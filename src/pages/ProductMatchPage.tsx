@@ -102,7 +102,7 @@ function ProductSearchPanel({
               )}
             >
               <img
-                src={getCdnUrl(p.images?.[0] || p.image_url || '/placeholder.svg', 48, 48)}
+                src={getCdnUrl(p.images?.[0] || p.image_url || '/placeholder.svg', 'thumbnail')}
                 alt={p.name}
                 className="w-10 h-10 rounded-md object-cover bg-muted shrink-0"
               />
