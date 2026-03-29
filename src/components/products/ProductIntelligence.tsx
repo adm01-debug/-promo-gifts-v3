@@ -23,7 +23,7 @@ interface ProductIntelligenceProps {
 export function ProductIntelligence({ productId, productSku, productName }: ProductIntelligenceProps) {
   const navigate = useNavigate();
   const { data: insights, isLoading: insightsLoading } = useProductInsights(productId, productSku);
-  const { frequentlyBoughtTogether, trendingProducts } = useProductRecommendations(productId, productSku);
+  const { frequentlyBoughtTogether } = useProductRecommendations(productId, productSku);
 
   if (insightsLoading) {
     return <ProductIntelligenceSkeleton />;
