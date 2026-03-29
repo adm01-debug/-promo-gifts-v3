@@ -107,7 +107,24 @@ export function SimilarProducts({
     setTimeout(updateScrollButtons, 400);
   }, [updateScrollButtons]);
 
-  if (similarItems.length === 0) return null;
+  if (!isLoading && similarItems.length === 0) return null;
+
+  if (isLoading) {
+    return (
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
+            <Layers className="h-4.5 w-4.5 text-foreground" />
+          </div>
+          <h2 className="font-display text-lg font-bold text-foreground">Produtos Semelhantes</h2>
+        </div>
+        <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm">Buscando produtos semelhantes...</span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4 overflow-hidden">
