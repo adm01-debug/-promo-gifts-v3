@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
-import { PersonalizationCollapsible } from "@/components/products/PersonalizationCollapsible";
+import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
+import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 
 interface ProductQuickActionsProps {
   productId: string;
@@ -117,7 +118,10 @@ export function ProductQuickActions({
             </DialogTitle>
             <DialogDescription>Técnicas e locais de gravação disponíveis</DialogDescription>
           </DialogHeader>
-          <PersonalizationCollapsible id={productId} productSku={productSku} productName={productName} />
+          <div className="space-y-4">
+            <ProductCustomizationOptions productId={productId} productSku={productSku} />
+            <ProductPersonalizationRules productId={productId} productSku={productSku} productName={productName} />
+          </div>
         </DialogContent>
       </Dialog>
 

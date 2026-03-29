@@ -151,7 +151,7 @@ export default function AdminProductFormPage() {
       requires_special_shipping: p.requires_special_shipping ?? false,
       shipping_notes: p.shipping_notes ?? '',
       lead_time_days: p.lead_time_days ?? null,
-      product_type: p.product_type ?? 'product',
+      // product_type already set above at line ~92
       supply_mode: p.supply_mode ?? '',
       warranty_months: p.warranty_months ?? null,
       gender: p.gender ?? '',
@@ -211,7 +211,7 @@ export default function AdminProductFormPage() {
         is_bestseller_expires_at: data.is_bestseller_expires_at || null,
         is_new_expires_at: data.is_new_expires_at || null,
         is_on_sale_expires_at: data.is_on_sale_expires_at || null,
-        is_kit: data.is_kit,
+        // is_kit already set above at line ~201
         has_commercial_packaging: data.has_commercial_packaging,
         is_imported: data.is_imported,
         is_textil: data.is_textil,
