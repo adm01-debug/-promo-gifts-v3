@@ -24,11 +24,11 @@ interface ProductQuickActionsProps {
 type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | "whatsapp" | null;
 
 const actions = [
-  { key: "precos" as const, label: "Preços", icon: TableProperties },
-  { key: "personalizacao" as const, label: "Gravação", icon: Palette },
-  { key: "indicacao" as const, label: "Indicação", icon: Target },
-  { key: "nicho" as const, label: "Nicho", icon: Layers },
-  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
+  { key: "precos" as const, label: "Preços", icon: TableProperties, iconColor: "text-primary" },
+  { key: "personalizacao" as const, label: "Gravação", icon: Palette, iconColor: "text-accent-foreground" },
+  { key: "indicacao" as const, label: "Indicação", icon: Target, iconColor: "text-primary" },
+  { key: "nicho" as const, label: "Nicho", icon: Layers, iconColor: "text-accent-foreground" },
+  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle, iconColor: "text-primary" },
 ];
 
 export function ProductQuickActions({
@@ -70,19 +70,18 @@ export function ProductQuickActions({
     <>
       {/* Quick Action Buttons — uniform pill style */}
       <div className="flex items-center gap-1.5 flex-wrap pt-1">
-        {actions.map(({ key, label, icon: Icon }) => (
+        {actions.map(({ key, label, icon: Icon, iconColor }) => (
           <button
             key={key}
             onClick={() => handleClick(key)}
             className={cn(
-              "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-medium",
-              "bg-secondary/80 text-secondary-foreground border border-border/40",
-              "transition-all duration-200 hover:bg-secondary hover:border-border",
-              "active:scale-[0.96]",
-              key === "whatsapp" && "bg-emerald-600/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/25"
+              "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-[11px] font-medium",
+              "bg-muted/60 text-muted-foreground border border-border/30",
+              "transition-all duration-150 hover:bg-accent hover:text-accent-foreground hover:border-border/60",
+              "active:scale-[0.97] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
             )}
           >
-            <Icon className="h-3 w-3" />
+            <Icon className={cn("h-3.5 w-3.5 shrink-0 opacity-70", iconColor)} />
             {label}
           </button>
         ))}
@@ -93,7 +92,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <TableProperties className="h-5 w-5 text-blue-400" />
+              <TableProperties className="h-5 w-5 text-primary" />
               Tabela de Preços
             </DialogTitle>
             <DialogDescription>Veja os descontos por quantidade</DialogDescription>
@@ -112,7 +111,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-purple-400" />
+              <Palette className="h-5 w-5 text-primary" />
               Personalização
             </DialogTitle>
             <DialogDescription>Técnicas e locais de gravação disponíveis</DialogDescription>
@@ -129,7 +128,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-emerald-400" />
+              <Target className="h-5 w-5 text-primary" />
               Indicado para
             </DialogTitle>
             <DialogDescription>Público-alvo e ocasiões recomendadas</DialogDescription>
@@ -166,7 +165,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-amber-400" />
+              <Layers className="h-5 w-5 text-primary" />
               Nichos / Segmentos
             </DialogTitle>
             <DialogDescription>Segmentos de mercado compatíveis</DialogDescription>
