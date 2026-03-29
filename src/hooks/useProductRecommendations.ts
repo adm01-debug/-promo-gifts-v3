@@ -422,7 +422,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
         totalOrders: ordersCount || 0,
         conversionRate: Math.round(conversionRate * 10) / 10,
         averageQuantity: Math.round(averageQuantity),
-        topClients,
+        topSegments,
         recentActivity: recentActivity.slice(0, 5)
       };
     },
