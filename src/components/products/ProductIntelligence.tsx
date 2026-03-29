@@ -155,44 +155,6 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
         </Card>
       )}
 
-      {/* Produtos em Alta */}
-      {trendingProducts.data && trendingProducts.data.length > 0 && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5 text-green-500" />
-                <span className="text-xs font-medium text-muted-foreground">Produtos em Alta</span>
-              </div>
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">30d</Badge>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {trendingProducts.data.map((product) => (
-                <div 
-                  key={product.id}
-                  className="group flex-shrink-0 w-16 cursor-pointer"
-                  onClick={() => navigate(`/produto/${product.id}`)}
-                >
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted border border-border/50 group-hover:border-primary/30 transition-colors">
-                    {product.images?.[0] ? (
-                      <img
-                        src={typeof product.images === 'object' && Array.isArray(product.images) ? product.images[0] : product.images}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[10px] truncate mt-0.5">{product.name}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
