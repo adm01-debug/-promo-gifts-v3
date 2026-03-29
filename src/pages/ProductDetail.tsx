@@ -552,26 +552,32 @@ export default function ProductDetail() {
             )}
 
             {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
-            <div className="hidden md:flex items-center gap-2 py-2 border-t border-border flex-wrap">
-              <ProductSocialProof productId={id!} totalStock={product.stock ?? 0} className="mr-auto" />
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-3 py-1.5 rounded-full border border-border">
+            <div className="hidden md:flex items-center gap-3 py-3 border-t border-border">
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Eye className="h-3.5 w-3.5" />
-                <span className="font-medium">{viewCount}</span>
+                <span className="font-semibold text-foreground">{viewCount}</span>
                 <span>visualizações</span>
               </div>
+
+              <div className="h-4 w-px bg-border" />
+
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={handleFavorite}
                 className={cn(
-                  "rounded-full px-4 text-xs transition-all",
-                  isFavorite && "bg-destructive/10 border-destructive/50 hover:bg-destructive/20"
+                  "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10",
+                  isFavorite && "text-destructive"
                 )}
               >
-                <Heart className={cn("h-3.5 w-3.5 mr-1 transition-all", isFavorite && "fill-destructive text-destructive")} />
+                <Heart className={cn("h-3.5 w-3.5 transition-all", isFavorite && "fill-destructive text-destructive")} />
                 {isFavorite ? "Favoritado" : "Favoritar"}
               </Button>
-              <ShareActions product={product} />
+
+              <div className="ml-auto">
+                <ShareActions product={product} />
+              </div>
+            </div>
               {product.isKit && (
                 <Button
                   size="sm"
