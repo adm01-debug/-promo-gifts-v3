@@ -574,8 +574,8 @@ export function useCategoryRanking(days = 30, categoryId?: string | null, suppli
         const result = await invokeExternalDb({
           table: 'stock_daily_summary',
           operation: 'select',
-          select: 'product_id, units_depleted',
-          filters: { 'summary_date.gte': sinceDate, 'units_depleted.gt': 0 },
+          select: 'product_id,units_depleted',
+          filters: { 'summary_date': `gte.${sinceDate}` },
           limit: 5000,
         });
         const snapshots = result?.records || [];
