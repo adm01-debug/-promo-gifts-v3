@@ -36,6 +36,24 @@ const PERIOD_OPTIONS = [
   { label: "1 ano", days: 360 },
 ];
 
+/** Highlights matching portions of text */
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.trim().toLowerCase() ? (
+          <mark key={i} className="bg-primary/20 text-primary rounded-sm px-0.5">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export function IntelligenceFilterBar({ filters, onFiltersChange }: IntelligenceFilterBarProps) {
   const { data: categories = [] } = useCategories();
   const { suppliers } = useSuppliers();
