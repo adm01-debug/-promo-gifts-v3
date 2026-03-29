@@ -36,10 +36,9 @@ interface ProductInsight {
   totalOrders: number;
   conversionRate: number;
   averageQuantity: number;
-  topClients: Array<{
-    id: string;
-    name: string;
-    totalOrdered: number;
+  topSegments: Array<{
+    segment: string;
+    count: number;
   }>;
   recentActivity: Array<{
     type: 'view' | 'quote' | 'order';
