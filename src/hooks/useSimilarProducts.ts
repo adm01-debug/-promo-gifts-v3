@@ -1,11 +1,10 @@
 /**
  * useSimilarProducts — Fetches products in the same product_group.
- * Uses the local `product_group_members` table to find siblings,
- * then fetches their details from the external catalog.
+ * Falls back to related products (same supplier/category) when no groups exist.
  */
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { fetchPromobrindProductById } from '@/lib/external-db';
+import { fetchPromobrindProductById, fetchPromobrindProducts } from '@/lib/external-db';
 import { mapPromobrindToProduct } from '@/utils/product-mapper';
 import type { Product } from '@/types/product-catalog';
 
@@ -35,58 +34,72 @@ function mapToSimilarItem(p: Product): SimilarProductItem {
   };
 }
 
-export function useSimilarProducts(productId: string | undefined) {
+export function useSimilarProducts(product: Product | null | undefined) {
+  const productId = product?.id;
+  const supplierId = product?.supplier?.id;
+  const categoryId = product?.category_id;
+
   return useQuery<SimilarProductItem[]>({
     queryKey: ['similar-products', productId],
     queryFn: async () => {
       if (!productId) return [];
 
-      // 1. Find the group(s) this product belongs to
-      const { data: memberships, error: memberErr } = await supabase
+      // 1. Try product_group_members first
+      const { data: memberships } = await supabase
         .from('product_group_members')
         .select('product_group_id')
         .eq('product_id', productId);
 
-      if (memberErr || !memberships?.length) return [];
+      if (memberships && memberships.length > 0) {
+        const groupIds = memberships.map(m => m.product_group_id);
+        const { data: allMembers } = await supabase
+          .from('product_group_members')
+          .select('product_id')
+          .in('product_group_id', groupIds);
 
-      const groupIds = memberships.map(m => m.product_group_id);
+        const siblingIds = [...new Set(
+          (allMembers || [])
+            .map(m => m.product_id)
+            .filter(id => id !== productId)
+        )];
 
-      // 2. Fetch all members of those groups
-      const { data: allMembers, error: allErr } = await supabase
-        .from('product_group_members')
-        .select('product_id')
-        .in('product_group_id', groupIds);
-
-      if (allErr || !allMembers?.length) return [];
-
-      // 3. Get unique sibling product IDs (exclude current)
-      const siblingIds = [...new Set(
-        allMembers
-          .map(m => m.product_id)
-          .filter(id => id !== productId)
-      )];
-
-      if (siblingIds.length === 0) return [];
-
-      // 4. Fetch product details from external catalog (parallel, max 20)
-      const idsToFetch = siblingIds.slice(0, 20);
-      const results = await Promise.allSettled(
-        idsToFetch.map(id => fetchPromobrindProductById(id))
-      );
-
-      const items: SimilarProductItem[] = [];
-      for (const result of results) {
-        if (result.status === 'fulfilled' && result.value) {
-          const product = mapPromobrindToProduct(result.value);
-          items.push(mapToSimilarItem(product));
+        if (siblingIds.length > 0) {
+          const results = await Promise.allSettled(
+            siblingIds.slice(0, 20).map(id => fetchPromobrindProductById(id))
+          );
+          const items: SimilarProductItem[] = [];
+          for (const result of results) {
+            if (result.status === 'fulfilled' && result.value) {
+              items.push(mapToSimilarItem(mapPromobrindToProduct(result.value)));
+            }
+          }
+          if (items.length > 0) return items;
         }
       }
 
-      return items;
+      // 2. Fallback: fetch related products from same supplier or category
+      const filters: Record<string, unknown> = {};
+      if (supplierId && supplierId !== 'unknown') {
+        filters.supplier_id = supplierId;
+      } else if (categoryId) {
+        filters.main_category_id = categoryId;
+      }
+
+      const raw = await fetchPromobrindProducts({
+        filters: Object.keys(filters).length > 0 ? filters : undefined,
+        limit: 25,
+        orderBy: { column: 'name', ascending: true },
+      });
+
+      return raw
+        .map(mapPromobrindToProduct)
+        .filter(p => p.id !== productId)
+        .slice(0, 20)
+        .map(mapToSimilarItem);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
     refetchOnWindowFocus: false,
-    enabled: !!productId,
+    enabled: !!product,
   });
 }

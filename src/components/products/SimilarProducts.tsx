@@ -86,7 +86,7 @@ export function SimilarProducts({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct?.id);
+  const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct);
   const similarItems = dbItems.slice(0, maxItems);
 
   const updateScrollButtons = useCallback(() => {
