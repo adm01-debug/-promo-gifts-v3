@@ -20,7 +20,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
 import { ProductStickyHeader } from "@/components/products/ProductStickyHeader";
 // ProductSectionNav removed — layout is dense enough without scroll-spy tabs
-import { ProductSocialProof } from "@/components/products/ProductSocialProof";
+
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
