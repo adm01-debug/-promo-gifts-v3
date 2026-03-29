@@ -65,7 +65,7 @@ import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
-import { useProductsContext } from "@/contexts/ProductsContext";
+
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 
 /** Collapsible wrapper for personalization section */
