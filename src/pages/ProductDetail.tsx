@@ -367,9 +367,6 @@ export default function ProductDetail() {
               />
             </div>
 
-            {/* Social Proof */}
-            <ProductSocialProof productId={product.id} totalStock={product.stock} />
-
             {/* ===== PRICE + SPECS — two columns ===== */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {/* LEFT — Price & CTA */}
