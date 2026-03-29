@@ -62,6 +62,8 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
   const [supOpen, setSupOpen] = useState(false);
   const [prodOpen, setProdOpen] = useState(false);
   const [prodSearch, setProdSearch] = useState("");
+  const [catSearch, setCatSearch] = useState("");
+  const [supSearch, setSupSearch] = useState("");
 
   const activeFilterCount =
     (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0) + (filters.productId ? 1 : 0);
@@ -73,10 +75,20 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
   const filteredProducts = useMemo(() => {
     if (!prodSearch.trim()) return products.slice(0, 50);
     const q = prodSearch.toLowerCase().trim();
-    return products
-      .filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)))
-      .slice(0, 50);
+    return products.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q))).slice(0, 50);
   }, [products, prodSearch]);
+
+  const filteredCategories = useMemo(() => {
+    if (!catSearch.trim()) return categories;
+    const q = catSearch.toLowerCase().trim();
+    return categories.filter(c => c.name.toLowerCase().includes(q));
+  }, [categories, catSearch]);
+
+  const filteredSuppliers = useMemo(() => {
+    if (!supSearch.trim()) return suppliers;
+    const q = supSearch.toLowerCase().trim();
+    return suppliers.filter(s => s.name.toLowerCase().includes(q));
+  }, [suppliers, supSearch]);
 
   return (
     <div className="space-y-3">
@@ -117,8 +129,8 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Buscar categoria..." />
+            <Command shouldFilter={false}>
+              <CommandInput placeholder="Buscar categoria..." value={catSearch} onValueChange={setCatSearch} />
               <CommandList>
                 <CommandEmpty>Nenhuma categoria encontrada.</CommandEmpty>
                 <CommandGroup>
@@ -126,23 +138,25 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
                     onSelect={() => {
                       onFiltersChange({ ...filters, categoryId: null, categoryName: null });
                       setCatOpen(false);
+                      setCatSearch("");
                     }}
                   >
                     <span className="text-muted-foreground">Todas as categorias</span>
                   </CommandItem>
-                  {categories.map((cat) => (
+                  {filteredCategories.map((cat) => (
                     <CommandItem
                       key={String(cat.id)}
-                      value={cat.name}
+                      value={String(cat.id)}
                       onSelect={() => {
                         onFiltersChange({ ...filters, categoryId: String(cat.id), categoryName: cat.name });
                         setCatOpen(false);
+                        setCatSearch("");
                       }}
                     >
                       <span className={cn(
                         filters.categoryId === String(cat.id) && "font-semibold text-primary"
                       )}>
-                        {cat.name}
+                        <HighlightText text={cat.name} query={catSearch} />
                       </span>
                     </CommandItem>
                   ))}
@@ -169,8 +183,8 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Buscar fornecedor..." />
+            <Command shouldFilter={false}>
+              <CommandInput placeholder="Buscar fornecedor..." value={supSearch} onValueChange={setSupSearch} />
               <CommandList>
                 <CommandEmpty>Nenhum fornecedor encontrado.</CommandEmpty>
                 <CommandGroup>
@@ -178,23 +192,25 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
                     onSelect={() => {
                       onFiltersChange({ ...filters, supplierId: null, supplierName: null });
                       setSupOpen(false);
+                      setSupSearch("");
                     }}
                   >
                     <span className="text-muted-foreground">Todos os fornecedores</span>
                   </CommandItem>
-                  {suppliers.map((sup) => (
+                  {filteredSuppliers.map((sup) => (
                     <CommandItem
                       key={sup.id}
-                      value={sup.name}
+                      value={sup.id}
                       onSelect={() => {
                         onFiltersChange({ ...filters, supplierId: sup.id, supplierName: sup.name });
                         setSupOpen(false);
+                        setSupSearch("");
                       }}
                     >
                       <span className={cn(
                         filters.supplierId === sup.id && "font-semibold text-primary"
                       )}>
-                        {sup.name}
+                        <HighlightText text={sup.name} query={supSearch} />
                       </span>
                     </CommandItem>
                   ))}
