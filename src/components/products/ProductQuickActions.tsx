@@ -3,13 +3,15 @@
  * Tabela de Preços | Personalização | Indicação | Nicho | WhatsApp
  */
 import { useState } from "react";
-import { TableProperties, Palette, Target, Layers, MessageCircle } from "lucide-react";
+import { TableProperties, Palette, Target, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
+import { ShareActions } from "@/components/products/ShareActions";
+import type { Product } from "@/hooks/useProducts";
 
 interface ProductQuickActionsProps {
   productId: string;
@@ -19,16 +21,16 @@ interface ProductQuickActionsProps {
   minQuantity: number;
   tags?: Record<string, string[]>;
   niches?: string[];
+  product?: Product;
 }
 
-type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | "whatsapp" | null;
+type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | null;
 
 const actions = [
   { key: "precos" as const, label: "Preços", icon: TableProperties, iconColor: "text-primary" },
   { key: "personalizacao" as const, label: "Gravação", icon: Palette, iconColor: "text-accent-foreground" },
   { key: "indicacao" as const, label: "Indicação", icon: Target, iconColor: "text-primary" },
   { key: "nicho" as const, label: "Nicho", icon: Layers, iconColor: "text-accent-foreground" },
-  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle, iconColor: "text-primary" },
 ];
 
 export function ProductQuickActions({
@@ -39,22 +41,12 @@ export function ProductQuickActions({
   minQuantity,
   tags,
   niches,
+  product,
 }: ProductQuickActionsProps) {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
-  const handleWhatsApp = () => {
-    const message = encodeURIComponent(
-      `Olá! Tenho interesse no produto: ${productName}${productSku ? ` (SKU: ${productSku})` : ""}. Poderia me enviar mais informações?`
-    );
-    window.open(`https://wa.me/?text=${message}`, "_blank");
-  };
-
   const handleClick = (key: ModalType) => {
-    if (key === "whatsapp") {
-      handleWhatsApp();
-    } else {
-      setActiveModal(key);
-    }
+    setActiveModal(key);
   };
 
   // Use real data, fallback to examples only if nothing provided
@@ -85,6 +77,7 @@ export function ProductQuickActions({
             {label}
           </button>
         ))}
+        {product && <ShareActions product={product} />}
       </div>
 
       {/* Tabela de Preços Modal */}
