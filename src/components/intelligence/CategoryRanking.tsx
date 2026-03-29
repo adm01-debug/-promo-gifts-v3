@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { LayoutGrid, Package, TrendingUp, Store, BarChart3, PieChart as PieChartIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -211,101 +212,119 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
             <Package className="h-8 w-8 mb-2 opacity-30" />
             <p className="text-xs">Sem dados de categorias para o período</p>
           </div>
-        ) : viewMode === "chart" ? (
-          <div className="w-full h-[320px]">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={110}
-                  paddingAngle={2}
-                  dataKey="value"
-                  strokeWidth={1}
-                  stroke="hsl(var(--background))"
-                >
-                  {pieData.map((entry, i) => (
-                    <Cell key={i} fill={entry.fill} />
-                  ))}
-                </Pie>
-                <RechartsTooltip content={<CustomTooltipContent />} />
-                <Legend
-                  verticalAlign="bottom"
-                  height={36}
-                  iconType="circle"
-                  iconSize={8}
-                  formatter={(value: string) => (
-                    <span className="text-[10px] text-muted-foreground">{value}</span>
-                  )}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
         ) : (
-          <div className="space-y-2.5">
-            <TooltipProvider delayDuration={200}>
-              {sortedCategories.map((cat, i) => {
-                const val = getBarValue(cat);
-                const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
-                return (
-                  <Tooltip key={cat.categoryId}>
-                    <TooltipTrigger asChild>
-                      <div className="space-y-1 cursor-default">
-                        <div className="flex items-center justify-between text-sm">
-                          <div className="flex items-center gap-2 truncate flex-1 mr-2">
-                            <span className={cn(
-                              "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
-                              i < 3 ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
-                            )}>
-                              {i < 3 ? medalEmojis[i] : i + 1}
-                            </span>
-                            <span className="font-medium truncate text-xs">{cat.categoryName}</span>
+          <AnimatePresence mode="wait">
+            {viewMode === "chart" ? (
+              <motion.div
+                key="chart"
+                initial={{ opacity: 0, scale: 0.96 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.96 }}
+                transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                className="w-full h-[320px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={pieData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={110}
+                      paddingAngle={2}
+                      dataKey="value"
+                      strokeWidth={1}
+                      stroke="hsl(var(--background))"
+                    >
+                      {pieData.map((entry, i) => (
+                        <Cell key={i} fill={entry.fill} />
+                      ))}
+                    </Pie>
+                    <RechartsTooltip content={<CustomTooltipContent />} />
+                    <Legend
+                      verticalAlign="bottom"
+                      height={36}
+                      iconType="circle"
+                      iconSize={8}
+                      formatter={(value: string) => (
+                        <span className="text-[10px] text-muted-foreground">{value}</span>
+                      )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="list"
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
+                className="space-y-2.5"
+              >
+                <TooltipProvider delayDuration={200}>
+                  {sortedCategories.map((cat, i) => {
+                    const val = getBarValue(cat);
+                    const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;
+                    return (
+                      <Tooltip key={cat.categoryId}>
+                        <TooltipTrigger asChild>
+                          <div className="space-y-1 cursor-default">
+                            <div className="flex items-center justify-between text-sm">
+                              <div className="flex items-center gap-2 truncate flex-1 mr-2">
+                                <span className={cn(
+                                  "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
+                                  i < 3 ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                                )}>
+                                  {i < 3 ? medalEmojis[i] : i + 1}
+                                </span>
+                                <span className="font-medium truncate text-xs">{cat.categoryName}</span>
+                              </div>
+                              <div className="text-right shrink-0 flex items-center gap-2">
+                                {sortMode !== "market" && cat.marketDepleted > 0 && (
+                                  <Badge variant="outline" className="text-[9px] px-1 py-0 gap-0.5">
+                                    <Store className="h-2.5 w-2.5" />
+                                    {formatNumber(cat.marketDepleted)}
+                                  </Badge>
+                                )}
+                                <span className="text-xs font-semibold text-foreground">{getDisplayValue(cat)}</span>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className={cn(
+                                    "h-full rounded-full bg-gradient-to-r transition-all duration-500",
+                                    barColors[i % barColors.length]
+                                  )}
+                                  style={{ width: `${pct}%` }}
+                                />
+                              </div>
+                              <span className="text-[9px] text-muted-foreground shrink-0 w-24 text-right">
+                                {formatNumber(cat.internalQty)} un. · {cat.internalOrders} ped.
+                              </span>
+                            </div>
                           </div>
-                          <div className="text-right shrink-0 flex items-center gap-2">
-                            {sortMode !== "market" && cat.marketDepleted > 0 && (
-                              <Badge variant="outline" className="text-[9px] px-1 py-0 gap-0.5">
-                                <Store className="h-2.5 w-2.5" />
-                                {formatNumber(cat.marketDepleted)}
-                              </Badge>
-                            )}
-                            <span className="text-xs font-semibold text-foreground">{getDisplayValue(cat)}</span>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="text-xs space-y-1">
+                          <p className="font-semibold">{cat.categoryName}</p>
+                          <div className="flex items-center gap-1.5">
+                            <TrendingUp className="h-3 w-3 text-emerald-500" />
+                            <span>Interno: {formatCurrency(cat.internalRevenue)} ({formatNumber(cat.internalQty)} un.)</span>
                           </div>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={cn(
-                                "h-full rounded-full bg-gradient-to-r transition-all duration-500",
-                                barColors[i % barColors.length]
-                              )}
-                              style={{ width: `${pct}%` }}
-                            />
+                          <div className="flex items-center gap-1.5">
+                            <Store className="h-3 w-3 text-blue-500" />
+                            <span>Mercado (saídas): {formatNumber(cat.marketDepleted)} un.</span>
                           </div>
-                          <span className="text-[9px] text-muted-foreground shrink-0 w-24 text-right">
-                            {formatNumber(cat.internalQty)} un. · {cat.internalOrders} ped.
-                          </span>
-                        </div>
-                      </div>
-                    </TooltipTrigger>
-                    <TooltipContent side="left" className="text-xs space-y-1">
-                      <p className="font-semibold">{cat.categoryName}</p>
-                      <div className="flex items-center gap-1.5">
-                        <TrendingUp className="h-3 w-3 text-emerald-500" />
-                        <span>Interno: {formatCurrency(cat.internalRevenue)} ({formatNumber(cat.internalQty)} un.)</span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <Store className="h-3 w-3 text-blue-500" />
-                        <span>Mercado (saídas): {formatNumber(cat.marketDepleted)} un.</span>
-                      </div>
-                      <p className="text-muted-foreground">Score: {cat.totalScore.toFixed(1)}</p>
-                    </TooltipContent>
-                  </Tooltip>
-                );
-              })}
-            </TooltipProvider>
-          </div>
+                          <p className="text-muted-foreground">Score: {cat.totalScore.toFixed(1)}</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    );
+                  })}
+                </TooltipProvider>
+              </motion.div>
+            )}
+          </AnimatePresence>
         )}
       </CardContent>
     </Card>
