@@ -552,7 +552,7 @@ export default function ProductDetail() {
             )}
 
             {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
-            <div className="hidden md:flex items-center gap-3 py-3 border-t border-border flex-wrap">
+            <div className="hidden md:flex items-center gap-3 py-2 border-t border-border flex-wrap">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-semibold text-foreground">{viewCount}</span>
@@ -590,7 +590,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Tags — Indicado para */}
-            <div id="sec-indicado" className="scroll-mt-28 space-y-2 pt-2 border-t border-border">
+            <div id="sec-indicado" className="scroll-mt-28 space-y-1.5 pt-1 border-t border-border">
               <h3 className="font-display text-base font-semibold text-foreground">Indicado para</h3>
               <div className="flex flex-wrap gap-1.5">
                 {product.tags.publicoAlvo.map((tag) => (
