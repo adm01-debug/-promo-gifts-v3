@@ -41,22 +41,12 @@ export function ProductQuickActions({
   minQuantity,
   tags,
   niches,
+  product,
 }: ProductQuickActionsProps) {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
-  const handleWhatsApp = () => {
-    const message = encodeURIComponent(
-      `Olá! Tenho interesse no produto: ${productName}${productSku ? ` (SKU: ${productSku})` : ""}. Poderia me enviar mais informações?`
-    );
-    window.open(`https://wa.me/?text=${message}`, "_blank");
-  };
-
   const handleClick = (key: ModalType) => {
-    if (key === "whatsapp") {
-      handleWhatsApp();
-    } else {
-      setActiveModal(key);
-    }
+    setActiveModal(key);
   };
 
   // Use real data, fallback to examples only if nothing provided
