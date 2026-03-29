@@ -1,47 +1,15 @@
 import { useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
-
-interface SimilarProductItem {
-  id: string;
-  name: string;
-  sku: string;
-  price: number;
-  image_url: string;
-  supplier_name: string;
-  category_name: string;
-  colors_count?: number;
-  stock?: number;
-}
+import { useSimilarProducts, type SimilarProductItem } from "@/hooks/useSimilarProducts";
 
 interface SimilarProductsProps {
   currentProduct: Product;
-  items?: SimilarProductItem[];
   maxItems?: number;
-}
-
-function generateMockSimilarProducts(product: Product): SimilarProductItem[] {
-  const suffixes = [
-    "Premium", "Classic", "Slim", "Pro", "Eco", "Sport", "Max", "Mini",
-    "Ultra", "Lite", "Plus", "Elite", "Basic", "Prime", "Flex", "Core",
-    "Wave", "Edge", "Bold", "Nova", "Zen", "Apex", "Vibe", "Rush",
-  ];
-
-  return suffixes.map((suffix, i) => ({
-    id: `mock-similar-${i}`,
-    name: `${product.name.split(" ").slice(0, 2).join(" ")} ${suffix}`,
-    sku: `${parseInt(product.sku || "10000") + i + 1}`,
-    price: product.price * (0.7 + Math.random() * 0.6),
-    image_url: product.images[0] || "",
-    supplier_name: ["Fornecedor A", "Fornecedor B", "Fornecedor C", "Fornecedor D"][i % 4],
-    category_name: product.category.name,
-    colors_count: Math.floor(Math.random() * 10) + 2,
-    stock: Math.floor(Math.random() * 500) + 50,
-  }));
 }
 
 function SimilarProductCard({
@@ -111,7 +79,6 @@ function SimilarProductCard({
 
 export function SimilarProducts({
   currentProduct,
-  items,
   maxItems = 12,
 }: SimilarProductsProps) {
   const navigate = useNavigate();
@@ -119,7 +86,8 @@ export function SimilarProducts({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  const similarItems = (items || generateMockSimilarProducts(currentProduct)).slice(0, maxItems);
+  const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct?.id);
+  const similarItems = dbItems.slice(0, maxItems);
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
@@ -139,7 +107,24 @@ export function SimilarProducts({
     setTimeout(updateScrollButtons, 400);
   }, [updateScrollButtons]);
 
-  if (similarItems.length === 0) return null;
+  if (!isLoading && similarItems.length === 0) return null;
+
+  if (isLoading) {
+    return (
+      <section className="space-y-4">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
+            <Layers className="h-4.5 w-4.5 text-foreground" />
+          </div>
+          <h2 className="font-display text-lg font-bold text-foreground">Produtos Semelhantes</h2>
+        </div>
+        <div className="flex items-center justify-center py-8 text-muted-foreground gap-2">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="text-sm">Buscando produtos semelhantes...</span>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="space-y-4 overflow-hidden">
@@ -199,11 +184,7 @@ export function SimilarProducts({
               key={item.id}
               item={item}
               index={index}
-              onClick={() => {
-                if (!item.id.startsWith("mock-")) {
-                  navigate(`/produto/${item.id}`);
-                }
-              }}
+              onClick={() => navigate(`/produto/${item.id}`)}
             />
           ))}
         </div>
