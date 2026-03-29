@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { IntelligenceOverview } from "@/components/intelligence/IntelligenceOverview";
-import { RevenueTrendChart } from "@/components/intelligence/RevenueTrendChart";
 import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/intelligence/IntelligenceFilterBar";
+import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
+import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { Brain } from "lucide-react";
 
 export default function CommercialIntelligencePage() {
@@ -31,18 +31,18 @@ export default function CommercialIntelligencePage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">Inteligência Comercial</h1>
-            <p className="text-sm text-muted-foreground">Insights estratégicos para acelerar suas vendas</p>
+            <p className="text-sm text-muted-foreground">Comportamento do mercado + vendas internas · visão macro</p>
           </div>
         </div>
 
         {/* Filters */}
         <IntelligenceFilterBar filters={filters} onFiltersChange={setFilters} />
 
-        {/* KPIs */}
-        <IntelligenceOverview days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+        {/* Market Intelligence — what competitors/market is buying */}
+        <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} />
 
-        {/* Trend Chart */}
-        <RevenueTrendChart days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+        {/* Internal Sales — our sales macro */}
+        <SalesOverviewChart days={filters.days} />
       </div>
     </MainLayout>
   );
