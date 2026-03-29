@@ -554,31 +554,11 @@ export default function ProductDetail() {
             </div>
 
 
-            {/* Quick Action Buttons — horizontal bar */}
-            <ProductQuickActions
-              productId={product.id}
-              productName={product.name}
-              productSku={product.sku}
-              basePrice={product.price}
-              minQuantity={product.minQuantity || 1}
-              tags={product.tags ? {
-                "Público-Alvo": product.tags.publicoAlvo || [],
-                "Datas Comemorativas": product.tags.datasComemorativas || [],
-                "Endomarketing": product.tags.endomarketing || [],
-              } : undefined}
-              niches={product.tags?.nicho || product.tags?.ramo || undefined}
-              product={product}
-            />
-
-            {/* Variant Grid */}
-
-
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
               <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
             )}
 
-            {/* Actions — compact row: Share + Kit Builder */}
             {/* Kit Builder button */}
             {product.isKit && (
               <div className="hidden md:flex items-center gap-3 xl:gap-4 py-2 xl:py-3 border-t border-border flex-wrap">
@@ -594,6 +574,24 @@ export default function ProductDetail() {
                 </div>
               </div>
             )}
+
+            {/* Quick Action Buttons — bottom bar */}
+            <div className="mt-auto pt-2">
+              <ProductQuickActions
+                productId={product.id}
+                productName={product.name}
+                productSku={product.sku}
+                basePrice={product.price}
+                minQuantity={product.minQuantity || 1}
+                tags={product.tags ? {
+                  "Público-Alvo": product.tags.publicoAlvo || [],
+                  "Datas Comemorativas": product.tags.datasComemorativas || [],
+                  "Endomarketing": product.tags.endomarketing || [],
+                } : undefined}
+                niches={product.tags?.nicho || product.tags?.ramo || undefined}
+                product={product}
+              />
+            </div>
 
           </div>
         </div>
