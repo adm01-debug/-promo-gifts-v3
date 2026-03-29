@@ -53,7 +53,12 @@ function applyFilters(
     }
 
     if (typeof value === 'string') {
-      if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
+      // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq.
+      const operatorMatch = value.match(/^(gte|lte|gt|lt|neq)\.(.+)$/);
+      if (operatorMatch) {
+        const [, op, val] = operatorMatch;
+        query = query[op](key, val);
+      } else if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
         query = query.ilike(key, `%${value}%`);
       } else {
         query = query.eq(key, value);
