@@ -67,8 +67,6 @@ export default function CommercialIntelligencePage() {
           <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
         </div>
 
-        {/* 4. Oportunidades de Conversão */}
-        <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
 
         {/* 5. Vendas Internas */}
         <SalesOverviewChart days={filters.days} productId={filters.productId} />
