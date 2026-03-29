@@ -20,7 +20,7 @@ const MOCK_SUPPLIER_SALES: SupplierSaleData[] = [
   { supplierName: 'Criative Promo', orderCount: 28, revenue: 19200, productCount: 11 },
 ];
 
-export function SupplierSales({ days = 30, categoryId, supplierId, productId }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null }) {
+export function SupplierSales({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: realSuppliers, isLoading } = useSupplierSales(days, categoryId, supplierId);
 
   const hasRealData = !!(realSuppliers?.length);
@@ -53,7 +53,9 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId }: 
           📦 Vendas por Fornecedor
           {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
-        <CardDescription className="text-xs">Faturamento acumulado por fornecedor · {days} dias</CardDescription>
+        <CardDescription className="text-xs">
+          {categoryName ? `Fornecedores de "${categoryName}"` : 'Faturamento acumulado por fornecedor'} · {days} dias
+        </CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
         {suppliers.map((supplier, i) => {

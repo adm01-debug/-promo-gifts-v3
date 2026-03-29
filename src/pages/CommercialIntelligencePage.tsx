@@ -48,12 +48,12 @@ export default function CommercialIntelligencePage() {
 
         {/* 2+3. Produtos em Alta + Vendas por Fornecedor (side by side) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} />
-          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} />
+          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
+          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
         </div>
 
         {/* 4. Oportunidades de Conversão — cotados mas não vendidos */}
-        <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} />
+        <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
 
         {/* 5. Vendas Internas (macro) — orçamentos vs pedidos */}
         <SalesOverviewChart days={filters.days} productId={filters.productId} />

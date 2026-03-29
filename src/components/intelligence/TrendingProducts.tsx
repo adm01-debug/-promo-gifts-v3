@@ -17,7 +17,7 @@ const MOCK_TRENDING: TrendingProduct[] = [
   { productId: 'mock-7', productSku: 'COP-007', productName: 'Copo Térmico 350ml', productImage: null, orderCount: 12, totalQuantity: 600, totalRevenue: 9000, quoteCount: 20, conversionRate: 60, trend: 'stable' },
 ];
 
-export function TrendingProducts({ days = 30, categoryId, supplierId, productId }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null }) {
+export function TrendingProducts({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: realProducts, isLoading } = useTrendingProducts(days, categoryId, supplierId);
   const navigate = useNavigate();
 
@@ -57,7 +57,9 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId 
           🔥 Produtos em Alta
           {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
-        <CardDescription className="text-xs">Ranking por faturamento · {days} dias</CardDescription>
+        <CardDescription className="text-xs">
+          {categoryName ? `Ranking de "${categoryName}"` : 'Ranking por faturamento'} · {days} dias
+        </CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-border">
