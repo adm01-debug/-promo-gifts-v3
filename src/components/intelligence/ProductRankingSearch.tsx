@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, TrendingUp, TrendingDown, Minus, Package, Filter, ChevronDown, X, Trophy, Hash, Download, Medal, Tag, DollarSign, ShoppingBag, BarChart3 } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Minus, Package, Filter, ChevronDown, X, Trophy, Hash, Medal, Tag, DollarSign, ShoppingBag, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
