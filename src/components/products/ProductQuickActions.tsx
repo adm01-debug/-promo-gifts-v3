@@ -135,7 +135,9 @@ export function ProductQuickActions({
             <DialogDescription>Público-alvo e ocasiões recomendadas</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 pt-2">
-            {Object.entries(displayTags).map(([category, items]) => (
+            {Object.entries(displayTags)
+              .filter(([, items]) => items.length > 0)
+              .map(([category, items]) => (
               <div key={category} className="space-y-2">
                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                   {category === "Público-Alvo" && "👥"}
