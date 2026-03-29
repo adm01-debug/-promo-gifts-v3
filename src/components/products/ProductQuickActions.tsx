@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
-import { PersonalizationCollapsible } from "@/components/products/PersonalizationCollapsible";
+import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
+import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 
 interface ProductQuickActionsProps {
   productId: string;
