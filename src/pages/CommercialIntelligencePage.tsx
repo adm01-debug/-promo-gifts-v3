@@ -2,6 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/intelligence/IntelligenceFilterBar";
+import { IntelligenceKPICards } from "@/components/intelligence/IntelligenceKPICards";
 import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
@@ -43,19 +44,28 @@ export default function CommercialIntelligencePage() {
         {/* Filters */}
         <IntelligenceFilterBar filters={filters} onFiltersChange={setFilters} />
 
-        {/* 1. Market Intelligence — estoque dos concorrentes (macro) */}
+        {/* KPI Summary */}
+        <IntelligenceKPICards
+          days={filters.days}
+          categoryId={filters.categoryId}
+          supplierId={filters.supplierId}
+          categoryName={filters.categoryName}
+          supplierName={filters.supplierName}
+        />
+
+        {/* 1. Market Intelligence */}
         <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} productId={filters.productId} />
 
-        {/* 2+3. Produtos em Alta + Vendas por Fornecedor (side by side) */}
+        {/* 2+3. Produtos em Alta + Vendas por Fornecedor */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
           <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
         </div>
 
-        {/* 4. Oportunidades de Conversão — cotados mas não vendidos */}
+        {/* 4. Oportunidades de Conversão */}
         <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
 
-        {/* 5. Vendas Internas (macro) — orçamentos vs pedidos */}
+        {/* 5. Vendas Internas */}
         <SalesOverviewChart days={filters.days} productId={filters.productId} />
       </div>
     </MainLayout>
