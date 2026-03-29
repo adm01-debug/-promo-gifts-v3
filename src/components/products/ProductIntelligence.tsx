@@ -29,7 +29,7 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
     return <ProductIntelligenceSkeleton />;
   }
 
-  const hasData = insights && (insights.totalViews > 0 || insights.totalQuotes > 0 || insights.totalOrders > 0);
+  const hasData = insights && (insights.totalViews > 0 || insights.totalOrders > 0);
 
   return (
     <div className="space-y-3">
