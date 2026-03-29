@@ -1,12 +1,10 @@
-import { Truck, Download, Package } from "lucide-react";
+import { Truck, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSupplierSales } from "@/hooks/useCommercialIntelligence";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 export function SupplierSales({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: suppliers, isLoading } = useSupplierSales(days, categoryId, supplierId, productId);
@@ -16,28 +14,6 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
-  const handleExport = async () => {
-    if (!suppliers?.length) return;
-    try {
-      await exportToExcel({
-        filename: `vendas-por-fornecedor${categoryName ? `-${categoryName}` : ''}`,
-        sheetName: 'Vendas por Fornecedor',
-        columns: [
-          { key: 'rank', header: '#', width: 5 },
-          { key: 'supplierName', header: 'Fornecedor', width: 30 },
-          { key: 'revenue', header: 'Receita', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'orderCount', header: 'Itens Vendidos', width: 12 },
-          { key: 'productCount', header: 'Produtos', width: 10 },
-          { key: 'share', header: 'Participação %', width: 12, format: (_: number, row: any) => {
-            const total = suppliers.reduce((s, su) => s + su.revenue, 0);
-            return total > 0 ? Number(((row.revenue / total) * 100).toFixed(1)) : 0;
-          }},
-        ],
-        data: suppliers.map((s, i) => ({ ...s, rank: i + 1 })),
-      });
-      toast.success('Exportado com sucesso!');
-    } catch { toast.error('Erro ao exportar'); }
-  };
 
   if (isLoading) {
     return (
@@ -79,11 +55,6 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
               {categoryName ? `Fornecedores de "${categoryName}"` : 'Faturamento por fornecedor'} · {days} dias
             </CardDescription>
           </div>
-          {hasData && (
-            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleExport}>
-              <Download className="h-3 w-3" />
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-2.5">

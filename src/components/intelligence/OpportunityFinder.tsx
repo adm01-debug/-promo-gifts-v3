@@ -1,4 +1,4 @@
-import { Lightbulb, AlertTriangle, ArrowRight, Package, Download, CircleDot } from "lucide-react";
+import { Lightbulb, AlertTriangle, ArrowRight, Package, CircleDot } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useOpportunities, type OpportunityProduct } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 function ScoreIndicator({ score }: { score: number }) {
   const color = score >= 80 ? "text-red-500" : score >= 50 ? "text-amber-500" : "text-muted-foreground";
@@ -26,26 +24,6 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
 
   const hasData = !!(opportunities?.length);
 
-  const handleExport = async () => {
-    if (!opportunities?.length) return;
-    try {
-      await exportToExcel({
-        filename: `oportunidades-conversao${categoryName ? `-${categoryName}` : ''}`,
-        sheetName: 'Oportunidades',
-        columns: [
-          { key: 'productName', header: 'Produto', width: 35 },
-          { key: 'productSku', header: 'SKU', width: 15 },
-          { key: 'quoteCount', header: 'Cotações', width: 10 },
-          { key: 'orderCount', header: 'Pedidos', width: 10 },
-          { key: 'conversionRate', header: 'Conversão %', width: 12 },
-          { key: 'opportunityScore', header: 'Score', width: 10 },
-          { key: 'reason', header: 'Motivo', width: 30 },
-        ],
-        data: opportunities,
-      });
-      toast.success('Exportado com sucesso!');
-    } catch { toast.error('Erro ao exportar'); }
-  };
 
   if (isLoading) {
     return (
@@ -73,11 +51,6 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
               {categoryName ? `Oportunidades em "${categoryName}"` : 'Produtos muito cotados mas com baixa conversão'} · {days} dias
             </CardDescription>
           </div>
-          {hasData && (
-            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleExport}>
-              <Download className="h-3 w-3" />
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-2">

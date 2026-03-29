@@ -1,4 +1,4 @@
-import { TrendingUp, TrendingDown, Minus, Package, Download } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTrendingProducts } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 export function TrendingProducts({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: products, isLoading } = useTrendingProducts(days, categoryId, supplierId, productId, 7);
@@ -24,27 +22,6 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
 
   const hasData = !!(products?.length);
 
-  const handleExport = async () => {
-    if (!products?.length) return;
-    try {
-      await exportToExcel({
-        filename: `produtos-em-alta${categoryName ? `-${categoryName}` : ''}`,
-        sheetName: 'Produtos em Alta',
-        columns: [
-          { key: 'rank', header: '#', width: 5 },
-          { key: 'productName', header: 'Produto', width: 35 },
-          { key: 'productSku', header: 'SKU', width: 15 },
-          { key: 'totalQuantity', header: 'Qtd', width: 10 },
-          { key: 'orderCount', header: 'Pedidos', width: 10 },
-          { key: 'totalRevenue', header: 'Receita', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'conversionRate', header: 'Conversão %', width: 12 },
-          { key: 'trend', header: 'Tendência', width: 10 },
-        ],
-        data: products.map((p, i) => ({ ...p, rank: i + 1 })),
-      });
-      toast.success('Exportado com sucesso!');
-    } catch { toast.error('Erro ao exportar'); }
-  };
 
   if (isLoading) {
     return (
@@ -72,11 +49,6 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
               {categoryName ? `Top em "${categoryName}"` : 'Top 7 por faturamento'} · {days} dias
             </CardDescription>
           </div>
-          {hasData && (
-            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleExport}>
-              <Download className="h-3 w-3" />
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="p-0">

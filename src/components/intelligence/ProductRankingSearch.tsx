@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
-import { Search, TrendingUp, TrendingDown, Minus, Package, Filter, ChevronDown, X, Trophy, Hash, Download, Medal, Tag, DollarSign, ShoppingBag, BarChart3 } from "lucide-react";
+import { Search, TrendingUp, TrendingDown, Minus, Package, Filter, ChevronDown, X, Trophy, Hash, Medal, Tag, DollarSign, ShoppingBag, BarChart3 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -12,8 +12,6 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 const PERIOD_OPTIONS = [
   { label: "30d", days: 30 },
@@ -132,36 +130,7 @@ export function ProductRankingSearch() {
 
   const topRevenue = products?.[0]?.totalRevenue || 0;
 
-  // Export
-  const handleExport = async () => {
-    if (!products?.length) return;
-    try {
-      await exportToExcel({
-        filename: `ranking-produtos${supplierName ? `-${supplierName}` : ''}`,
-        sheetName: 'Ranking Produtos',
-        columns: [
-          { key: 'rank', header: '#', width: 5 },
-          { key: 'productName', header: 'Produto', width: 40 },
-          { key: 'productSku', header: 'SKU', width: 15 },
-          { key: 'totalQuantity', header: 'Qtd Vendida', width: 12 },
-          { key: 'orderCount', header: 'Pedidos', width: 10 },
-          { key: 'totalRevenue', header: 'Receita (R$)', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'avgUnitPrice', header: 'Preço Médio Un.', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'conversionRate', header: 'Conversão (%)', width: 12 },
-          { key: 'trend', header: 'Tendência', width: 10 },
-        ],
-        data: products.map((p, i) => ({
-          ...p,
-          rank: i + 1,
-          avgUnitPrice: p.totalQuantity > 0 ? p.totalRevenue / p.totalQuantity : 0,
-        })),
-        includeTimestamp: true,
-      });
-      toast.success('Ranking exportado com sucesso!');
-    } catch {
-      toast.error('Erro ao exportar ranking');
-    }
-  };
+
 
   const clearAllFilters = () => {
     setSupplierId(null); setSupplierName(null);
@@ -184,12 +153,6 @@ export function ProductRankingSearch() {
               Pesquise por tipo de produto, filtre por fornecedor/categoria e veja o ranking dos mais vendidos
             </CardDescription>
           </div>
-          {hasResults && (
-            <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5" onClick={handleExport}>
-              <Download className="h-3 w-3" />
-              <span className="hidden sm:inline">Exportar</span>
-            </Button>
-          )}
         </div>
       </CardHeader>
 
