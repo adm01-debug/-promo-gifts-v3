@@ -1,18 +1,12 @@
-import { useState } from "react";
 import { 
-  TrendingUp, 
   Eye, 
-  FileText, 
-  ShoppingCart, 
   Users, 
-  Clock,
   BarChart3,
   Package,
   Target,
   Zap
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useProductInsights, useProductRecommendations } from "@/hooks/useProductRecommendations";
