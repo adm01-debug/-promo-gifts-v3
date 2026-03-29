@@ -104,7 +104,7 @@ export function ProductDimensions({ dimensions, compact }: ProductDimensionsProp
       <h3 className="font-display text-lg font-semibold text-foreground">
         Especificações
       </h3>
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-3 gap-3">
         {specs.map((spec, index) => (
           <SpecItem key={index} {...spec} />
         ))}
