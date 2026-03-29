@@ -184,11 +184,7 @@ export function SimilarProducts({
               key={item.id}
               item={item}
               index={index}
-              onClick={() => {
-                if (!item.id.startsWith("mock-")) {
-                  navigate(`/produto/${item.id}`);
-                }
-              }}
+              onClick={() => navigate(`/produto/${item.id}`)}
             />
           ))}
         </div>
