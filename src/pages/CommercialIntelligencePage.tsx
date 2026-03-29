@@ -2,12 +2,7 @@ import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { IntelligenceOverview } from "@/components/intelligence/IntelligenceOverview";
-import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
-import { OpportunityFinder } from "@/components/intelligence/OpportunityFinder";
-import { SegmentAnalysis } from "@/components/intelligence/SegmentAnalysis";
 import { RevenueTrendChart } from "@/components/intelligence/RevenueTrendChart";
-import { TopClients } from "@/components/intelligence/TopClients";
-import { SupplierSales } from "@/components/intelligence/SupplierSales";
 import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/intelligence/IntelligenceFilterBar";
 import { Brain } from "lucide-react";
 
@@ -48,21 +43,6 @@ export default function CommercialIntelligencePage() {
 
         {/* Trend Chart */}
         <RevenueTrendChart days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-
-        {/* Two-column layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-          <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TopClients days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <SegmentAnalysis days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-        </div>
       </div>
     </MainLayout>
   );
