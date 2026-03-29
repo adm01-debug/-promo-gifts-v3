@@ -86,22 +86,22 @@ function SimilarProductCard({
         </div>
       </div>
 
-      <div className="p-2.5 space-y-1 min-w-0">
-        <p className="text-[10px] text-muted-foreground truncate">{item.category_name}</p>
-        <h4 className="font-medium text-xs text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors min-h-[2rem]">
+      <div className="p-2.5 xl:p-3.5 space-y-1 xl:space-y-1.5 min-w-0">
+        <p className="text-[10px] xl:text-xs text-muted-foreground truncate">{item.category_name}</p>
+        <h4 className="font-medium text-xs xl:text-sm text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors min-h-[2rem]">
           {item.name}
         </h4>
         <div className="flex items-center justify-between gap-2 pt-0.5">
-          <span className="font-display font-bold text-sm text-foreground truncate">
+          <span className="font-display font-bold text-sm xl:text-base text-foreground truncate">
             R$ {item.price.toFixed(2).replace('.', ',')}
           </span>
           {item.colors_count && item.colors_count > 0 && (
-            <span className="text-[10px] text-muted-foreground shrink-0">
+            <span className="text-[10px] xl:text-xs text-muted-foreground shrink-0">
               {item.colors_count} cores
             </span>
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground font-mono truncate">
+        <p className="text-[10px] xl:text-xs text-muted-foreground font-mono truncate">
           REF: {item.sku}
         </p>
       </div>

@@ -91,7 +91,7 @@ export function ProductDimensions({ dimensions, compact }: ProductDimensionsProp
 
   if (compact) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 gap-1.5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-1.5 xl:gap-2">
         {specs.map((spec, index) => (
           <SpecItem key={index} {...spec} compact />
         ))}

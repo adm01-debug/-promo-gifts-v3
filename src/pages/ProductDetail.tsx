@@ -269,7 +269,7 @@ export default function ProductDetail() {
         onToggleFavorite={handleFavorite}
       />
 
-      <div className="space-y-3 md:space-y-5 animate-fade-in pb-20 md:pb-0 min-w-0 overflow-x-hidden">
+      <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 xl:space-y-8 animate-fade-in pb-20 md:pb-0 min-w-0 overflow-x-hidden xl:px-4 2xl:px-8">
         {/* Social Proof & Stock Alerts — compact */}
         {(product.featured || product.stockStatus === "low-stock") && (
           <div className="flex flex-wrap items-center gap-2">
@@ -279,7 +279,7 @@ export default function ProductDetail() {
         )}
 
         {/* ===== HERO: Gallery + Info — side by side ===== */}
-        <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6">
+        <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
           
           {/* LEFT — Gallery (sticky on desktop) */}
           <div className="min-w-0 lg:sticky lg:top-20 lg:self-start space-y-3">
@@ -315,18 +315,39 @@ export default function ProductDetail() {
                 endomarketing: ['QUALIDADE DE VIDA', 'ONBOARDING | KIT BOAS-VINDAS', 'CIPA | SIPAT'],
               };
               return (
-                <div id="sec-indicado" className="rounded-xl border border-border bg-card/50 p-3 space-y-2">
-                  <h3 className="font-display text-sm font-semibold text-foreground">Indicado para</h3>
-                  <div className="flex flex-wrap gap-1.5">
-                    {tags.publicoAlvo?.map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">👤 {tag}</Badge>
-                    ))}
-                    {tags.datasComemorativas?.map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">📅 {tag}</Badge>
-                    ))}
-                    {tags.endomarketing?.slice(0, 3).map((tag: string) => (
-                      <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">🎯 {tag}</Badge>
-                    ))}
+                <div id="sec-indicado" className="rounded-xl border border-border bg-card/50 p-3 xl:p-4 space-y-3">
+                  <h3 className="font-display text-sm xl:text-base font-semibold text-foreground">Indicado para</h3>
+                  <div className="space-y-2.5">
+                    {tags.publicoAlvo?.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] xl:text-xs font-medium text-muted-foreground uppercase tracking-wider">👤 Público-Alvo</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tags.publicoAlvo.map((tag: string) => (
+                            <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">{tag}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {tags.datasComemorativas?.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] xl:text-xs font-medium text-muted-foreground uppercase tracking-wider">📅 Datas Comemorativas</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tags.datasComemorativas.map((tag: string) => (
+                            <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">{tag}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    {tags.endomarketing?.length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-[10px] xl:text-xs font-medium text-muted-foreground uppercase tracking-wider">🎯 Endomarketing</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {tags.endomarketing.slice(0, 5).map((tag: string) => (
+                            <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">{tag}</Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
@@ -334,7 +355,7 @@ export default function ProductDetail() {
           </div>
 
           {/* RIGHT — All product info in a compact flow */}
-          <div className="space-y-3 md:space-y-4 min-w-0">
+          <div className="space-y-3 md:space-y-4 xl:space-y-5 min-w-0">
             
             {/* Header: badges + title + info bar — compact */}
             <div className="space-y-2">
@@ -379,7 +400,7 @@ export default function ProductDetail() {
                 />
               </div>
 
-              <h1 className="font-display text-lg sm:text-xl lg:text-2xl font-bold text-foreground leading-tight tracking-tight">
+              <h1 className="font-display text-lg sm:text-xl lg:text-2xl xl:text-3xl 2xl:text-4xl font-bold text-foreground leading-tight tracking-tight">
                 {product.name}
               </h1>
 
@@ -393,19 +414,19 @@ export default function ProductDetail() {
             </div>
 
             {/* ===== PRICE + SPECS — two columns ===== */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4">
               {/* LEFT — Price & CTA */}
-              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 shadow-md relative overflow-hidden">
+              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden">
                 {product.featured && (
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
                 )}
                 <div className="relative space-y-2">
                   <div>
-                    <p className="text-[11px] text-muted-foreground">A partir de</p>
-                    <span className="text-2xl font-display font-bold text-foreground">
+                    <p className="text-[11px] xl:text-xs text-muted-foreground">A partir de</p>
+                    <span className="text-2xl xl:text-3xl font-display font-bold text-foreground">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="text-sm text-muted-foreground ml-1">/un</span>
+                    <span className="text-sm xl:text-base text-muted-foreground ml-1">/un</span>
                   </div>
                   
                   {/* Stock per color */}
@@ -471,7 +492,7 @@ export default function ProductDetail() {
                   </div>
 
                   {/* CTA Buttons */}
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 xl:gap-3">
                     <QuickAddToQuote
                       productId={id || ""}
                       productName={product.name}
@@ -480,16 +501,16 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-8 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-sm"
+                      className="flex-1 h-8 xl:h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs xl:text-sm shadow-sm"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
                     <Button
                       size="sm"
-                      className="flex-1 h-8 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs shadow-sm gap-1.5"
+                      className="flex-1 h-8 xl:h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs xl:text-sm shadow-sm gap-1.5"
                       onClick={() => navigate(`/orcamentos/novo?product_id=${id}&product_name=${encodeURIComponent(product.name)}&product_sku=${encodeURIComponent(product.sku || '')}&product_price=${product.price}&product_image=${encodeURIComponent(product.images?.[0] || '')}&min_quantity=${product.minQuantity || 1}`)}
                     >
-                      <FileText className="h-3.5 w-3.5" />
+                      <FileText className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
                       Orçamento
                     </Button>
                   </div>
@@ -508,10 +529,10 @@ export default function ProductDetail() {
               </div>
 
               {/* RIGHT — Specs + Description */}
-              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 space-y-2">
+              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 xl:p-5 space-y-2 xl:space-y-3">
                 {/* Description */}
-                <div id="sec-descricao" className="scroll-mt-28">
-                  <h4 className="text-xs font-semibold text-foreground mb-1">Descrição</h4>
+                <div id="sec-descricao" className="scroll-mt-28 max-w-prose">
+                  <h4 className="text-xs xl:text-sm font-semibold text-foreground mb-1">Descrição</h4>
                   {product.description ? (() => {
                     const sentences = product.description
                       .split(/[.]\s+/)
@@ -537,7 +558,7 @@ export default function ProductDetail() {
 
                 {/* Specs */}
                 <div className="border-t border-border/40 pt-2 space-y-2">
-                  <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
+                  <h4 className="text-xs xl:text-sm font-semibold text-foreground">Especificações</h4>
                   {product.materials && product.materials.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {product.materials.map((material) => (
@@ -578,7 +599,7 @@ export default function ProductDetail() {
             )}
 
             {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
-            <div className="hidden md:flex items-center gap-3 py-2 border-t border-border flex-wrap">
+            <div className="hidden md:flex items-center gap-3 xl:gap-4 py-2 xl:py-3 border-t border-border flex-wrap">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-semibold text-foreground">{viewCount}</span>
@@ -619,12 +640,12 @@ export default function ProductDetail() {
         </div>
 
         {/* Produtos Semelhantes */}
-        <div className="pt-4 border-t border-border">
+        <div className="pt-6 xl:pt-8 border-t border-border/60">
           <SimilarProducts currentProduct={product} maxItems={12} />
         </div>
 
         {/* Below-fold sections — compact */}
-        <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-border">
+        <div className="grid md:grid-cols-2 gap-4 xl:gap-6 pt-6 xl:pt-8 border-t border-border/60">
           <StockHistoryChart
             productId={product.id}
             productName={product.name}
