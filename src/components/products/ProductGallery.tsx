@@ -476,6 +476,45 @@ export function ProductGallery({
                 </button>
               );
             })}
+           </div>
+            
+            {/* Navigation arrows over carousel */}
+            <Button
+              variant="secondary"
+              size="icon"
+              className={cn(
+                "absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full",
+                "bg-card/95 backdrop-blur-md shadow-xl border border-border/50",
+                "opacity-0 group-hover/variations:opacity-100",
+                "hover:bg-card hover:scale-110",
+                "transition-all duration-300"
+              )}
+              onClick={() => {
+                if (variationsScrollRef.current) {
+                  variationsScrollRef.current.scrollBy({ left: -300, behavior: 'smooth' });
+                }
+              }}
+            >
+              <ChevronLeft className="h-5 w-5" />
+            </Button>
+            <Button
+              variant="secondary"
+              size="icon"
+              className={cn(
+                "absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full",
+                "bg-card/95 backdrop-blur-md shadow-xl border border-border/50",
+                "opacity-0 group-hover/variations:opacity-100",
+                "hover:bg-card hover:scale-110",
+                "transition-all duration-300"
+              )}
+              onClick={() => {
+                if (variationsScrollRef.current) {
+                  variationsScrollRef.current.scrollBy({ left: 300, behavior: 'smooth' });
+                }
+              }}
+            >
+              <ChevronRight className="h-5 w-5" />
+            </Button>
           </div>
         </div>
         );
