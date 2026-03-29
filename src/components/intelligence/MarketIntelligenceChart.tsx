@@ -142,7 +142,7 @@ export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
                 <XAxis dataKey="dateFormatted" tick={{ fontSize: 10 }} className="fill-muted-foreground" interval="preserveStartEnd" />
                 <YAxis yAxisId="stock" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={50} />
                 <YAxis yAxisId="flow" orientation="right" hide />
-                <Tooltip content={<MarketMacroTooltip />} />
+                <Tooltip content={(props) => <MarketMacroTooltip {...props} />} />
                 <Legend
                   wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }}
                   iconSize={8}
