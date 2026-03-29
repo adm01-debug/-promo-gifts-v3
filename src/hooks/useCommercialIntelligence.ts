@@ -186,14 +186,14 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
   });
 }
 
-export function useTrendingProducts(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
+export function useTrendingProducts(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null, limit = 10, searchTerm?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-trending-products', user?.id, days, categoryId, supplierId],
+    queryKey: ['commercial-trending-products', user?.id, days, categoryId, supplierId, productId, limit, searchTerm],
     queryFn: async (): Promise<TrendingProduct[]> => {
       const productIdArray = productIds ? Array.from(productIds).slice(0, 200) : undefined;
 
@@ -213,6 +213,13 @@ export function useTrendingProducts(days = 30, categoryId?: string | null, suppl
       orderItems.forEach(item => {
         const key = item.product_sku || item.product_id || item.product_name;
         if (!key) return;
+        // Client-side search filter by product name
+        if (searchTerm) {
+          const q = searchTerm.toLowerCase();
+          const nameMatch = (item.product_name || '').toLowerCase().includes(q);
+          const skuMatch = (item.product_sku || '').toLowerCase().includes(q);
+          if (!nameMatch && !skuMatch) return;
+        }
         const existing = productMap.get(key) || {
           productId: item.product_id || '', productSku: item.product_sku,
           productName: item.product_name || 'Produto', productImage: item.product_image_url,
@@ -237,7 +244,7 @@ export function useTrendingProducts(days = 30, categoryId?: string | null, suppl
           trend: (p.totalRevenue > 1000 ? 'up' : p.totalRevenue > 200 ? 'stable' : 'down') as 'up' | 'down' | 'stable',
         }))
         .sort((a, b) => b.totalRevenue - a.totalRevenue)
-        .slice(0, 10);
+        .slice(0, limit);
     },
     staleTime: 1000 * 60 * 5,
     enabled: !!user && (!hasFilter || productIds !== undefined),

@@ -6,6 +6,7 @@ import { IntelligenceKPICards } from "@/components/intelligence/IntelligenceKPIC
 import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
+import { ProductRankingSearch } from "@/components/intelligence/ProductRankingSearch";
 import { OpportunityFinder } from "@/components/intelligence/OpportunityFinder";
 import { SupplierSales } from "@/components/intelligence/SupplierSales";
 import { Brain } from "lucide-react";
@@ -57,7 +58,10 @@ export default function CommercialIntelligencePage() {
         {/* 1. Market Intelligence */}
         <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} productId={filters.productId} />
 
-        {/* 2+3. Produtos em Alta + Vendas por Fornecedor */}
+        {/* 2. Product Ranking Search — main feature */}
+        <ProductRankingSearch />
+
+        {/* 3+4. Produtos em Alta + Vendas por Fornecedor */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
           <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} categoryName={filters.categoryName} />
