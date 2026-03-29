@@ -525,6 +525,28 @@ export default function ProductDetail() {
                     }}
                     className="text-[10px]"
                   />
+
+                  {/* Visualizações + Favoritar */}
+                  <div className="flex items-center gap-3 pt-1 border-t border-border/40">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Eye className="h-3.5 w-3.5" />
+                      <span className="font-semibold text-foreground">{viewCount}</span>
+                      <span>visualizações</span>
+                    </div>
+                    <div className="h-4 w-px bg-border" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleFavorite}
+                      className={cn(
+                        "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10 h-7",
+                        isFavorite && "text-destructive"
+                      )}
+                    >
+                      <Heart className={cn("h-3.5 w-3.5 transition-all", isFavorite && "fill-destructive text-destructive")} />
+                      {isFavorite ? "Favoritado" : "Favoritar"}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
@@ -598,29 +620,8 @@ export default function ProductDetail() {
               <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
             )}
 
-            {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
+            {/* Actions — compact row: Share + Kit Builder */}
             <div className="hidden md:flex items-center gap-3 xl:gap-4 py-2 xl:py-3 border-t border-border flex-wrap">
-              <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                <Eye className="h-3.5 w-3.5" />
-                <span className="font-semibold text-foreground">{viewCount}</span>
-                <span>visualizações</span>
-              </div>
-
-              <div className="h-4 w-px bg-border" />
-
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleFavorite}
-                className={cn(
-                  "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10",
-                  isFavorite && "text-destructive"
-                )}
-              >
-                <Heart className={cn("h-3.5 w-3.5 transition-all", isFavorite && "fill-destructive text-destructive")} />
-                {isFavorite ? "Favoritado" : "Favoritar"}
-              </Button>
-
               <div className="ml-auto flex items-center gap-2 flex-wrap">
                 <ShareActions product={product} />
                 {product.isKit && (
