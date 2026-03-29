@@ -128,6 +128,22 @@ export default function ProductDetail() {
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
 
+  const { data: viewCount = 0 } = useQuery({
+    queryKey: ["product-views-count", id],
+    queryFn: async () => {
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      const { count } = await supabase
+        .from("product_views")
+        .select("*", { count: "exact", head: true })
+        .eq("product_id", id!)
+        .gte("created_at", thirtyDaysAgo.toISOString());
+      return count || 0;
+    },
+    enabled: !!id,
+    staleTime: 5 * 60 * 1000,
+  });
+
   useEffect(() => {
     if (product) {
       trackProductView({
