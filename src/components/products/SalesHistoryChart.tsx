@@ -268,6 +268,52 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
             </div>
           </div>
         )}
+
+        {/* Qtd Média / Pedido + Segmentos que Compram */}
+        <div className="grid grid-cols-2 gap-2 pt-2 border-t border-border/40">
+          <div className="rounded-lg border border-border bg-card p-3">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Package className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-medium text-muted-foreground">Qtd. Média / Pedido</span>
+            </div>
+            <div className="flex items-baseline gap-1.5">
+              <span className="text-2xl font-bold">{insights?.averageQuantity || 0}</span>
+              <span className="text-xs text-muted-foreground">un.</span>
+            </div>
+          </div>
+
+          <div className="rounded-lg border border-border bg-card p-3">
+            <div className="flex items-center gap-1.5 mb-1.5">
+              <Users className="h-3.5 w-3.5 text-primary" />
+              <span className="text-xs font-medium text-muted-foreground">Segmentos que Compram</span>
+            </div>
+            {insights?.topSegments && insights.topSegments.length > 0 ? (
+              <div className="space-y-1">
+                {insights.topSegments.slice(0, 3).map((seg, idx) => (
+                  <div 
+                    key={seg.segment}
+                    className="flex items-center justify-between rounded px-1 py-0.5"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <span className={cn(
+                        "w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-bold",
+                        idx === 0 ? "bg-amber-500/20 text-amber-600" :
+                        idx === 1 ? "bg-slate-400/20 text-slate-600" :
+                        "bg-orange-600/20 text-orange-700"
+                      )}>
+                        {idx + 1}
+                      </span>
+                      <span className="text-[11px] font-medium truncate max-w-[100px]">{seg.segment}</span>
+                    </div>
+                    <span className="text-[10px] text-muted-foreground">{seg.count}x</span>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-[11px] text-muted-foreground">Nenhum segmento ainda</p>
+            )}
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
