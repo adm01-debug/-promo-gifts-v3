@@ -1,18 +1,12 @@
-import { useState } from "react";
 import { 
-  TrendingUp, 
   Eye, 
-  FileText, 
-  ShoppingCart, 
   Users, 
-  Clock,
   BarChart3,
   Package,
   Target,
   Zap
 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useProductInsights, useProductRecommendations } from "@/hooks/useProductRecommendations";
@@ -29,13 +23,13 @@ interface ProductIntelligenceProps {
 export function ProductIntelligence({ productId, productSku, productName }: ProductIntelligenceProps) {
   const navigate = useNavigate();
   const { data: insights, isLoading: insightsLoading } = useProductInsights(productId, productSku);
-  const { frequentlyBoughtTogether, trendingProducts } = useProductRecommendations(productId, productSku);
+  const { frequentlyBoughtTogether } = useProductRecommendations(productId, productSku);
 
   if (insightsLoading) {
     return <ProductIntelligenceSkeleton />;
   }
 
-  const hasData = insights && (insights.totalViews > 0 || insights.totalQuotes > 0 || insights.totalOrders > 0);
+  const hasData = insights && (insights.totalViews > 0 || insights.totalOrders > 0);
 
   return (
     <div className="space-y-3">
@@ -65,10 +59,8 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
       ) : (
         <>
           {/* Métricas em linha compacta */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <MetricCard icon={Eye} label="Visualizações" value={insights?.totalViews || 0} color="blue" />
-            <MetricCard icon={FileText} label="Em Cotações" value={insights?.totalQuotes || 0} color="amber" />
-            <MetricCard icon={ShoppingCart} label="Pedidos" value={insights?.totalOrders || 0} color="green" />
             <MetricCard icon={Target} label="Conversão" value={`${insights?.conversionRate || 0}%`} color="purple" />
           </div>
 
@@ -125,38 +117,6 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
         </>
       )}
 
-      {/* Atividade Recente - compacta, inline */}
-      {insights?.recentActivity && insights.recentActivity.length > 0 && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Clock className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground">Atividade Recente</span>
-            </div>
-            <div className="space-y-1.5">
-              {insights.recentActivity.slice(0, 5).map((activity, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className={cn(
-                    "w-5 h-5 rounded flex items-center justify-center shrink-0",
-                    activity.type === 'view' && "bg-blue-500/10",
-                    activity.type === 'quote' && "bg-amber-500/10",
-                    activity.type === 'order' && "bg-green-500/10"
-                  )}>
-                    {activity.type === 'view' && <Eye className="h-3 w-3 text-blue-500" />}
-                    {activity.type === 'quote' && <FileText className="h-3 w-3 text-amber-500" />}
-                    {activity.type === 'order' && <ShoppingCart className="h-3 w-3 text-green-500" />}
-                  </div>
-                  <p className="text-[11px] font-medium flex-1 truncate">{activity.details}</p>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                    {formatDistanceToNow(new Date(activity.date), { addSuffix: true, locale: ptBR })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Frequentemente Comprados Juntos */}
       {frequentlyBoughtTogether.data && frequentlyBoughtTogether.data.length > 0 && (
         <Card>
@@ -189,44 +149,6 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
         </Card>
       )}
 
-      {/* Produtos em Alta */}
-      {trendingProducts.data && trendingProducts.data.length > 0 && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5 text-green-500" />
-                <span className="text-xs font-medium text-muted-foreground">Produtos em Alta</span>
-              </div>
-              <Badge variant="secondary" className="text-[10px] px-1.5 py-0">30d</Badge>
-            </div>
-            <div className="flex gap-2 overflow-x-auto pb-1">
-              {trendingProducts.data.map((product) => (
-                <div 
-                  key={product.id}
-                  className="group flex-shrink-0 w-16 cursor-pointer"
-                  onClick={() => navigate(`/produto/${product.id}`)}
-                >
-                  <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted border border-border/50 group-hover:border-primary/30 transition-colors">
-                    {product.images?.[0] ? (
-                      <img
-                        src={typeof product.images === 'object' && Array.isArray(product.images) ? product.images[0] : product.images}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-[10px] truncate mt-0.5">{product.name}</p>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 }
@@ -275,7 +197,7 @@ function ProductIntelligenceSkeleton() {
           <Skeleton className="h-3 w-48 mt-1" />
         </div>
       </div>
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         {[...Array(4)].map((_, i) => (
           <Card key={i}>
             <CardContent className="p-2.5">
