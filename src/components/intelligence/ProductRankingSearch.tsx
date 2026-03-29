@@ -130,36 +130,7 @@ export function ProductRankingSearch() {
 
   const topRevenue = products?.[0]?.totalRevenue || 0;
 
-  // Export
-  const handleExport = async () => {
-    if (!products?.length) return;
-    try {
-      await exportToExcel({
-        filename: `ranking-produtos${supplierName ? `-${supplierName}` : ''}`,
-        sheetName: 'Ranking Produtos',
-        columns: [
-          { key: 'rank', header: '#', width: 5 },
-          { key: 'productName', header: 'Produto', width: 40 },
-          { key: 'productSku', header: 'SKU', width: 15 },
-          { key: 'totalQuantity', header: 'Qtd Vendida', width: 12 },
-          { key: 'orderCount', header: 'Pedidos', width: 10 },
-          { key: 'totalRevenue', header: 'Receita (R$)', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'avgUnitPrice', header: 'Preço Médio Un.', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'conversionRate', header: 'Conversão (%)', width: 12 },
-          { key: 'trend', header: 'Tendência', width: 10 },
-        ],
-        data: products.map((p, i) => ({
-          ...p,
-          rank: i + 1,
-          avgUnitPrice: p.totalQuantity > 0 ? p.totalRevenue / p.totalQuantity : 0,
-        })),
-        includeTimestamp: true,
-      });
-      toast.success('Ranking exportado com sucesso!');
-    } catch {
-      toast.error('Erro ao exportar ranking');
-    }
-  };
+
 
   const clearAllFilters = () => {
     setSupplierId(null); setSupplierName(null);
