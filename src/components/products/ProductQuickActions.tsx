@@ -95,6 +95,7 @@ export function ProductQuickActions({
             productName={productName}
             basePrice={basePrice}
             minQuantity={minQuantity}
+            defaultOpen
           />
         </DialogContent>
       </Dialog>
