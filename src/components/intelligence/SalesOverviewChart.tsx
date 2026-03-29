@@ -17,8 +17,7 @@ import {
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Loader2, ShoppingCart, FileText, DollarSign, Users, Target, Crown, Package } from "lucide-react";
+import { Loader2, ShoppingCart, FileText, DollarSign, Users, Target, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format";
 import { KpiCard } from "@/components/ui/kpi-card";
