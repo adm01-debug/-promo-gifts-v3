@@ -24,26 +24,6 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
 
   const hasData = !!(opportunities?.length);
 
-  const handleExport = async () => {
-    if (!opportunities?.length) return;
-    try {
-      await exportToExcel({
-        filename: `oportunidades-conversao${categoryName ? `-${categoryName}` : ''}`,
-        sheetName: 'Oportunidades',
-        columns: [
-          { key: 'productName', header: 'Produto', width: 35 },
-          { key: 'productSku', header: 'SKU', width: 15 },
-          { key: 'quoteCount', header: 'Cotações', width: 10 },
-          { key: 'orderCount', header: 'Pedidos', width: 10 },
-          { key: 'conversionRate', header: 'Conversão %', width: 12 },
-          { key: 'opportunityScore', header: 'Score', width: 10 },
-          { key: 'reason', header: 'Motivo', width: 30 },
-        ],
-        data: opportunities,
-      });
-      toast.success('Exportado com sucesso!');
-    } catch { toast.error('Erro ao exportar'); }
-  };
 
   if (isLoading) {
     return (
