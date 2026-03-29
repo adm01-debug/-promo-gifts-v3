@@ -22,27 +22,6 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
 
   const hasData = !!(products?.length);
 
-  const handleExport = async () => {
-    if (!products?.length) return;
-    try {
-      await exportToExcel({
-        filename: `produtos-em-alta${categoryName ? `-${categoryName}` : ''}`,
-        sheetName: 'Produtos em Alta',
-        columns: [
-          { key: 'rank', header: '#', width: 5 },
-          { key: 'productName', header: 'Produto', width: 35 },
-          { key: 'productSku', header: 'SKU', width: 15 },
-          { key: 'totalQuantity', header: 'Qtd', width: 10 },
-          { key: 'orderCount', header: 'Pedidos', width: 10 },
-          { key: 'totalRevenue', header: 'Receita', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'conversionRate', header: 'Conversão %', width: 12 },
-          { key: 'trend', header: 'Tendência', width: 10 },
-        ],
-        data: products.map((p, i) => ({ ...p, rank: i + 1 })),
-      });
-      toast.success('Exportado com sucesso!');
-    } catch { toast.error('Erro ao exportar'); }
-  };
 
   if (isLoading) {
     return (
