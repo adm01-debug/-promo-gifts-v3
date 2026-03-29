@@ -334,7 +334,7 @@ export default function ProductDetail() {
           </div>
 
           {/* RIGHT — All product info in a compact flow */}
-          <div className="space-y-3 md:space-y-4 min-w-0">
+          <div className="space-y-3 md:space-y-4 xl:space-y-5 min-w-0">
             
             {/* Header: badges + title + info bar — compact */}
             <div className="space-y-2">
