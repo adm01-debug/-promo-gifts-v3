@@ -183,8 +183,8 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-64 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Buscar fornecedor..." />
+            <Command shouldFilter={false}>
+              <CommandInput placeholder="Buscar fornecedor..." value={supSearch} onValueChange={setSupSearch} />
               <CommandList>
                 <CommandEmpty>Nenhum fornecedor encontrado.</CommandEmpty>
                 <CommandGroup>
@@ -192,23 +192,25 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
                     onSelect={() => {
                       onFiltersChange({ ...filters, supplierId: null, supplierName: null });
                       setSupOpen(false);
+                      setSupSearch("");
                     }}
                   >
                     <span className="text-muted-foreground">Todos os fornecedores</span>
                   </CommandItem>
-                  {suppliers.map((sup) => (
+                  {filteredSuppliers.map((sup) => (
                     <CommandItem
                       key={sup.id}
-                      value={sup.name}
+                      value={sup.id}
                       onSelect={() => {
                         onFiltersChange({ ...filters, supplierId: sup.id, supplierName: sup.name });
                         setSupOpen(false);
+                        setSupSearch("");
                       }}
                     >
                       <span className={cn(
                         filters.supplierId === sup.id && "font-semibold text-primary"
                       )}>
-                        {sup.name}
+                        <HighlightText text={sup.name} query={supSearch} />
                       </span>
                     </CommandItem>
                   ))}
