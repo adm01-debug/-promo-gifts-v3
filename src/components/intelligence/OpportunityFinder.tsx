@@ -1,14 +1,25 @@
 import { Lightbulb, AlertTriangle, ArrowRight, Package } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useOpportunities } from "@/hooks/useCommercialIntelligence";
+import { useOpportunities, type OpportunityProduct } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
+const MOCK_OPPORTUNITIES: OpportunityProduct[] = [
+  { productId: 'mock-op-1', productSku: 'POW-019', productName: 'Power Bank 10000mAh', productImage: null, quoteCount: 18, orderCount: 2, conversionRate: 11, opportunityScore: 85, reason: 'Conversão muito baixa' },
+  { productId: 'mock-op-2', productSku: 'REL-004', productName: 'Relógio de Parede Corporativo', productImage: null, quoteCount: 12, orderCount: 0, conversionRate: 0, opportunityScore: 100, reason: 'Cotado mas nunca vendido' },
+  { productId: 'mock-op-3', productSku: 'KIT-033', productName: 'Kit Escritório 5 Peças', productImage: null, quoteCount: 9, orderCount: 1, conversionRate: 11, opportunityScore: 75, reason: 'Conversão muito baixa' },
+  { productId: 'mock-op-4', productSku: 'NEC-012', productName: 'Necessaire Viagem Premium', productImage: null, quoteCount: 7, orderCount: 2, conversionRate: 29, opportunityScore: 50, reason: 'Conversão abaixo da média' },
+];
+
 export function OpportunityFinder({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
-  const { data: opportunities, isLoading } = useOpportunities(days, categoryId, supplierId);
+  const { data: realOpportunities, isLoading } = useOpportunities(days, categoryId, supplierId);
   const navigate = useNavigate();
+
+  const hasRealData = !!(realOpportunities?.length);
+  const isDemo = !hasRealData && !isLoading;
+  const opportunities = hasRealData ? realOpportunities : MOCK_OPPORTUNITIES;
 
   if (isLoading) {
     return (
@@ -16,20 +27,6 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId }: { days?
         <CardHeader className="pb-3"><Skeleton className="h-5 w-44" /></CardHeader>
         <CardContent className="space-y-3">
           {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (!opportunities?.length) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-          <Lightbulb className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <p className="text-sm font-medium mb-1">Nenhuma oportunidade detectada</p>
-          <p className="text-xs text-muted-foreground max-w-xs">
-            Conforme mais orçamentos e pedidos forem criados, oportunidades de conversão aparecerão aqui.
-          </p>
         </CardContent>
       </Card>
     );
@@ -43,14 +40,16 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId }: { days?
             <Lightbulb className="h-3.5 w-3.5 text-white" />
           </div>
           💡 Oportunidades de Conversão
+          {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
+        <CardDescription className="text-xs">Produtos muito cotados mas com baixa conversão em pedidos · {days} dias</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2">
         {opportunities.map((opp) => (
           <div
             key={opp.productSku || opp.productId}
             className="group flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all"
-            onClick={() => opp.productId && navigate(`/produto/${opp.productId}`)}
+            onClick={() => !isDemo && opp.productId && navigate(`/produto/${opp.productId}`)}
           >
             {/* Image */}
             <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
@@ -71,6 +70,7 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId }: { days?
                 <span className={cn(opp.orderCount === 0 ? "text-red-500" : "text-muted-foreground")}>
                   {opp.orderCount} pedidos
                 </span>
+                <span className="text-[10px]">({opp.conversionRate}%)</span>
               </div>
             </div>
 

@@ -5,6 +5,8 @@ import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/in
 import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
+import { OpportunityFinder } from "@/components/intelligence/OpportunityFinder";
+import { SupplierSales } from "@/components/intelligence/SupplierSales";
 import { Brain } from "lucide-react";
 
 export default function CommercialIntelligencePage() {
@@ -32,20 +34,26 @@ export default function CommercialIntelligencePage() {
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">Inteligência Comercial</h1>
-            <p className="text-sm text-muted-foreground">Comportamento do mercado + vendas internas · visão macro</p>
+            <p className="text-sm text-muted-foreground">Produtos & Fornecedores · comportamento do mercado + vendas internas</p>
           </div>
         </div>
 
         {/* Filters */}
         <IntelligenceFilterBar filters={filters} onFiltersChange={setFilters} />
 
-        {/* Market Intelligence — what competitors/market is buying */}
+        {/* 1. Market Intelligence — estoque dos concorrentes (macro) */}
         <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} />
 
-        {/* Trending Products — produtos que mais vendem */}
-        <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+        {/* 2+3. Produtos em Alta + Vendas por Fornecedor (side by side) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+        </div>
 
-        {/* Internal Sales — our sales macro (sem ranking de vendedores) */}
+        {/* 4. Oportunidades de Conversão — cotados mas não vendidos */}
+        <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+
+        {/* 5. Vendas Internas (macro) — orçamentos vs pedidos */}
         <SalesOverviewChart days={filters.days} />
       </div>
     </MainLayout>

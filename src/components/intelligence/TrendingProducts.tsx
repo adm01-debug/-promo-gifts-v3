@@ -1,14 +1,29 @@
+import { useMemo } from "react";
 import { TrendingUp, TrendingDown, Minus, Package } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTrendingProducts } from "@/hooks/useCommercialIntelligence";
+import { useTrendingProducts, type TrendingProduct } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
+const MOCK_TRENDING: TrendingProduct[] = [
+  { productId: 'mock-1', productSku: 'CAN-001', productName: 'Caneta Esferográfica Premium', productImage: null, orderCount: 48, totalQuantity: 2400, totalRevenue: 18720, quoteCount: 62, conversionRate: 77, trend: 'up' },
+  { productId: 'mock-2', productSku: 'GAR-015', productName: 'Garrafa Térmica 500ml', productImage: null, orderCount: 35, totalQuantity: 1750, totalRevenue: 43750, quoteCount: 50, conversionRate: 70, trend: 'up' },
+  { productId: 'mock-3', productSku: 'CAD-008', productName: 'Caderno Personalizado A5', productImage: null, orderCount: 29, totalQuantity: 1450, totalRevenue: 21750, quoteCount: 41, conversionRate: 71, trend: 'stable' },
+  { productId: 'mock-4', productSku: 'MOC-022', productName: 'Mochila Executiva Slim', productImage: null, orderCount: 22, totalQuantity: 880, totalRevenue: 52800, quoteCount: 38, conversionRate: 58, trend: 'up' },
+  { productId: 'mock-5', productSku: 'ECO-003', productName: 'Ecobag Algodão Cru', productImage: null, orderCount: 19, totalQuantity: 3800, totalRevenue: 15200, quoteCount: 30, conversionRate: 63, trend: 'stable' },
+  { productId: 'mock-6', productSku: 'USB-011', productName: 'Pen Drive 16GB Personalizado', productImage: null, orderCount: 15, totalQuantity: 750, totalRevenue: 11250, quoteCount: 28, conversionRate: 54, trend: 'down' },
+  { productId: 'mock-7', productSku: 'COP-007', productName: 'Copo Térmico 350ml', productImage: null, orderCount: 12, totalQuantity: 600, totalRevenue: 9000, quoteCount: 20, conversionRate: 60, trend: 'stable' },
+];
+
 export function TrendingProducts({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
-  const { data: products, isLoading } = useTrendingProducts(days, categoryId, supplierId);
+  const { data: realProducts, isLoading } = useTrendingProducts(days, categoryId, supplierId);
   const navigate = useNavigate();
+
+  const hasRealData = !!(realProducts?.length);
+  const isDemo = !hasRealData && !isLoading;
+  const products = hasRealData ? realProducts : MOCK_TRENDING;
 
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
@@ -32,17 +47,6 @@ export function TrendingProducts({ days = 30, categoryId, supplierId }: { days?:
     );
   }
 
-  if (!products?.length) {
-    return (
-      <Card>
-        <CardContent className="flex flex-col items-center justify-center py-10 text-center">
-          <Package className="h-10 w-10 text-muted-foreground/40 mb-3" />
-          <p className="text-sm text-muted-foreground">Ainda não há dados de vendas para ranquear produtos.</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
@@ -51,7 +55,9 @@ export function TrendingProducts({ days = 30, categoryId, supplierId }: { days?:
             <TrendingUp className="h-3.5 w-3.5 text-white" />
           </div>
           🔥 Produtos em Alta
+          {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
         </CardTitle>
+        <CardDescription className="text-xs">Ranking por faturamento · {days} dias</CardDescription>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-border">
@@ -59,7 +65,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId }: { days?:
             <div
               key={product.productSku || product.productId}
               className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
-              onClick={() => product.productId && navigate(`/produto/${product.productId}`)}
+              onClick={() => !isDemo && product.productId && navigate(`/produto/${product.productId}`)}
             >
               {/* Rank */}
               <span className={cn(
