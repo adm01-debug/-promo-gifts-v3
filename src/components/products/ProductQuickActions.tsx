@@ -111,7 +111,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-purple-400" />
+              <Palette className="h-5 w-5 text-primary" />
               Personalização
             </DialogTitle>
             <DialogDescription>Técnicas e locais de gravação disponíveis</DialogDescription>
