@@ -65,6 +65,7 @@ const navGroups: NavGroup[] = [
       { icon: Calculator, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
       { icon: Package, label: "Montador de Kits", href: "/montar-kit" },
+      { icon: Brain, label: "Inteligência Comercial", href: "/inteligencia-comercial" },
     ],
   },
   {

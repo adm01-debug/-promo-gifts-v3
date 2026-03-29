@@ -225,6 +225,7 @@ const App = () => {
                             <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                             <Route path="/mockup-generator" element={<MockupGenerator />} />
                             <Route path="/magic-up" element={<MagicUp />} />
+                            <Route path="/inteligencia-comercial" element={<CommercialIntelligencePage />} />
 
                             {/* Orders */}
                             <Route path="/pedidos" element={<OrdersPage />} />
