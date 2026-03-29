@@ -529,7 +529,7 @@ export default function ProductDetail() {
               </div>
 
               {/* RIGHT — Specs + Description */}
-              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 space-y-2">
+              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 xl:p-5 space-y-2 xl:space-y-3">
                 {/* Description */}
                 <div id="sec-descricao" className="scroll-mt-28 max-w-prose">
                   <h4 className="text-xs xl:text-sm font-semibold text-foreground mb-1">Descrição</h4>
