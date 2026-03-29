@@ -602,7 +602,7 @@ export default function ProductDetail() {
 
         {/* Produtos Semelhantes */}
         <div className="pt-4 border-t border-border">
-          <SimilarProducts currentProduct={product} maxItems={12} />
+          <SimilarProducts currentProduct={product} pageSize={12} />
         </div>
 
         {/* Modals */}
