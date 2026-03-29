@@ -161,6 +161,14 @@ export function EnhancedSpotlight() {
         action: () => navigate("/magic-up"),
         category: "Ferramentas",
       },
+      {
+        id: "commercial-intelligence",
+        title: "Inteligência Comercial",
+        description: "Insights estratégicos de vendas",
+        icon: <BarChart3 className="h-4 w-4" />,
+        action: () => navigate("/inteligencia-comercial"),
+        category: "Ferramentas",
+      },
       // Analytics
       {
         id: "dashboard",
