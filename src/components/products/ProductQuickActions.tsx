@@ -165,7 +165,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Layers className="h-5 w-5 text-amber-400" />
+              <Layers className="h-5 w-5 text-primary" />
               Nichos / Segmentos
             </DialogTitle>
             <DialogDescription>Segmentos de mercado compatíveis</DialogDescription>
