@@ -1,45 +1,55 @@
-import { useMemo } from "react";
-import { TrendingUp, TrendingDown, Minus, Package } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus, Package, Download } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTrendingProducts, type TrendingProduct } from "@/hooks/useCommercialIntelligence";
+import { useTrendingProducts } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-
-const MOCK_TRENDING: TrendingProduct[] = [
-  { productId: 'mock-1', productSku: 'CAN-001', productName: 'Caneta Esferográfica Premium', productImage: null, orderCount: 48, totalQuantity: 2400, totalRevenue: 18720, quoteCount: 62, conversionRate: 77, trend: 'up' },
-  { productId: 'mock-2', productSku: 'GAR-015', productName: 'Garrafa Térmica 500ml', productImage: null, orderCount: 35, totalQuantity: 1750, totalRevenue: 43750, quoteCount: 50, conversionRate: 70, trend: 'up' },
-  { productId: 'mock-3', productSku: 'CAD-008', productName: 'Caderno Personalizado A5', productImage: null, orderCount: 29, totalQuantity: 1450, totalRevenue: 21750, quoteCount: 41, conversionRate: 71, trend: 'stable' },
-  { productId: 'mock-4', productSku: 'MOC-022', productName: 'Mochila Executiva Slim', productImage: null, orderCount: 22, totalQuantity: 880, totalRevenue: 52800, quoteCount: 38, conversionRate: 58, trend: 'up' },
-  { productId: 'mock-5', productSku: 'ECO-003', productName: 'Ecobag Algodão Cru', productImage: null, orderCount: 19, totalQuantity: 3800, totalRevenue: 15200, quoteCount: 30, conversionRate: 63, trend: 'stable' },
-  { productId: 'mock-6', productSku: 'USB-011', productName: 'Pen Drive 16GB Personalizado', productImage: null, orderCount: 15, totalQuantity: 750, totalRevenue: 11250, quoteCount: 28, conversionRate: 54, trend: 'down' },
-  { productId: 'mock-7', productSku: 'COP-007', productName: 'Copo Térmico 350ml', productImage: null, orderCount: 12, totalQuantity: 600, totalRevenue: 9000, quoteCount: 20, conversionRate: 60, trend: 'stable' },
-];
+import { exportToExcel } from "@/utils/excelExport";
+import { toast } from "sonner";
 
 export function TrendingProducts({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
-  const { data: realProducts, isLoading } = useTrendingProducts(days, categoryId, supplierId, productId);
+  const { data: products, isLoading } = useTrendingProducts(days, categoryId, supplierId, productId, 7);
   const navigate = useNavigate();
-
-  const hasRealData = !!(realProducts?.length);
-  const isDemo = !hasRealData && !isLoading;
-  const products = hasRealData ? realProducts : MOCK_TRENDING;
 
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
   const trendIcon = {
-    up: <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />,
-    down: <TrendingDown className="h-3.5 w-3.5 text-red-500" />,
-    stable: <Minus className="h-3.5 w-3.5 text-muted-foreground" />,
+    up: <TrendingUp className="h-3 w-3 text-emerald-500" />,
+    down: <TrendingDown className="h-3 w-3 text-red-500" />,
+    stable: <Minus className="h-3 w-3 text-muted-foreground" />,
+  };
+
+  const hasData = !!(products?.length);
+
+  const handleExport = async () => {
+    if (!products?.length) return;
+    try {
+      await exportToExcel({
+        filename: `produtos-em-alta${categoryName ? `-${categoryName}` : ''}`,
+        sheetName: 'Produtos em Alta',
+        columns: [
+          { key: 'rank', header: '#', width: 5 },
+          { key: 'productName', header: 'Produto', width: 35 },
+          { key: 'productSku', header: 'SKU', width: 15 },
+          { key: 'totalQuantity', header: 'Qtd', width: 10 },
+          { key: 'orderCount', header: 'Pedidos', width: 10 },
+          { key: 'totalRevenue', header: 'Receita', width: 15, format: (v: number) => Number(v.toFixed(2)) },
+          { key: 'conversionRate', header: 'Conversão %', width: 12 },
+          { key: 'trend', header: 'Tendência', width: 10 },
+        ],
+        data: products.map((p, i) => ({ ...p, rank: i + 1 })),
+      });
+      toast.success('Exportado com sucesso!');
+    } catch { toast.error('Erro ao exportar'); }
   };
 
   if (isLoading) {
     return (
       <Card>
-        <CardHeader className="pb-3">
-          <Skeleton className="h-5 w-40" />
-        </CardHeader>
+        <CardHeader className="pb-3"><Skeleton className="h-5 w-40" /></CardHeader>
         <CardContent className="space-y-3">
           {[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 rounded-lg" />)}
         </CardContent>
@@ -50,70 +60,83 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
   return (
     <Card className="overflow-hidden">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-            <TrendingUp className="h-3.5 w-3.5 text-white" />
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
+                <TrendingUp className="h-3.5 w-3.5 text-white" />
+              </div>
+              🔥 Produtos em Alta
+            </CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+              {categoryName ? `Top em "${categoryName}"` : 'Top 7 por faturamento'} · {days} dias
+            </CardDescription>
           </div>
-          🔥 Produtos em Alta
-          {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
-        </CardTitle>
-        <CardDescription className="text-xs">
-          {categoryName ? `Ranking de "${categoryName}"` : 'Ranking por faturamento'} · {days} dias
-        </CardDescription>
+          {hasData && (
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleExport}>
+              <Download className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
-        <div className="divide-y divide-border">
-          {products.map((product, index) => (
-            <div
-              key={product.productSku || product.productId}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
-              onClick={() => !isDemo && product.productId && navigate(`/produto/${product.productId}`)}
-            >
-              {/* Rank */}
-              <span className={cn(
-                "w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0",
-                index === 0 && "bg-amber-500/20 text-amber-600",
-                index === 1 && "bg-slate-300/30 text-slate-500",
-                index === 2 && "bg-orange-400/20 text-orange-600",
-                index > 2 && "bg-muted text-muted-foreground",
-              )}>
-                {index + 1}
-              </span>
+        {!hasData ? (
+          <div className="flex flex-col items-center py-8 text-muted-foreground">
+            <Package className="h-8 w-8 mb-2 opacity-30" />
+            <p className="text-xs">Sem dados de vendas para o período</p>
+          </div>
+        ) : (
+          <div className="divide-y divide-border">
+            {products!.map((product, index) => (
+              <div
+                key={product.productSku || product.productId}
+                className="flex items-center gap-3 px-4 py-2.5 hover:bg-muted/30 cursor-pointer transition-colors"
+                onClick={() => product.productId && navigate(`/produto/${product.productId}`)}
+              >
+                {/* Rank */}
+                <span className={cn(
+                  "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
+                  index === 0 && "bg-amber-500/20 text-amber-600",
+                  index === 1 && "bg-slate-300/30 text-slate-500",
+                  index === 2 && "bg-orange-400/20 text-orange-600",
+                  index > 2 && "bg-muted text-muted-foreground",
+                )}>
+                  {index < 3 ? ['🥇','🥈','🥉'][index] : index + 1}
+                </span>
 
-              {/* Image */}
-              <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted border border-border/50 shrink-0">
-                {product.productImage ? (
-                  <img src={product.productImage} alt="" className="w-full h-full object-cover" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package className="h-4 w-4 text-muted-foreground" />
+                {/* Image */}
+                <div className="w-9 h-9 rounded-md overflow-hidden bg-muted border border-border/50 shrink-0">
+                  {product.productImage ? (
+                    <img src={product.productImage} alt="" className="w-full h-full object-contain" loading="lazy" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-medium truncate">{product.productName}</p>
+                  <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground">
+                    <span>{product.totalQuantity.toLocaleString('pt-BR')} un.</span>
+                    <span>·</span>
+                    <span>{product.orderCount} ped.</span>
                   </div>
-                )}
-              </div>
+                </div>
 
-              {/* Info */}
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{product.productName}</p>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{product.totalQuantity} un.</span>
-                  <span>·</span>
-                  <span>{product.orderCount} pedidos</span>
+                {/* Revenue + Trend */}
+                <div className="text-right shrink-0">
+                  <p className="text-xs font-semibold">{formatCurrency(product.totalRevenue)}</p>
+                  <div className="flex items-center gap-1 justify-end">
+                    {trendIcon[product.trend]}
+                    <span className="text-[9px] text-muted-foreground">{product.conversionRate}%</span>
+                  </div>
                 </div>
               </div>
-
-              {/* Revenue + Trend */}
-              <div className="text-right shrink-0">
-                <p className="text-sm font-semibold">{formatCurrency(product.totalRevenue)}</p>
-                <div className="flex items-center gap-1 justify-end">
-                  {trendIcon[product.trend]}
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0">
-                    {product.conversionRate}% conv.
-                  </Badge>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

@@ -1,25 +1,51 @@
-import { Lightbulb, AlertTriangle, ArrowRight, Package } from "lucide-react";
+import { Lightbulb, AlertTriangle, ArrowRight, Package, Download, CircleDot } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useOpportunities, type OpportunityProduct } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { exportToExcel } from "@/utils/excelExport";
+import { toast } from "sonner";
 
-const MOCK_OPPORTUNITIES: OpportunityProduct[] = [
-  { productId: 'mock-op-2', productSku: 'REL-004', productName: 'Relógio de Parede Corporativo', productImage: null, quoteCount: 12, orderCount: 0, conversionRate: 0, opportunityScore: 100, reason: 'Cotado mas nunca vendido' },
-  { productId: 'mock-op-1', productSku: 'POW-019', productName: 'Power Bank 10000mAh', productImage: null, quoteCount: 18, orderCount: 2, conversionRate: 11, opportunityScore: 85, reason: 'Conversão muito baixa' },
-  { productId: 'mock-op-3', productSku: 'KIT-033', productName: 'Kit Escritório 5 Peças', productImage: null, quoteCount: 9, orderCount: 1, conversionRate: 11, opportunityScore: 75, reason: 'Conversão muito baixa' },
-  { productId: 'mock-op-4', productSku: 'NEC-012', productName: 'Necessaire Viagem Premium', productImage: null, quoteCount: 7, orderCount: 2, conversionRate: 29, opportunityScore: 50, reason: 'Conversão abaixo da média' },
-];
+function ScoreIndicator({ score }: { score: number }) {
+  const color = score >= 80 ? "text-red-500" : score >= 50 ? "text-amber-500" : "text-muted-foreground";
+  const label = score >= 80 ? "Alta" : score >= 50 ? "Média" : "Baixa";
+  return (
+    <div className="flex items-center gap-1">
+      <CircleDot className={cn("h-3 w-3", color)} />
+      <span className={cn("text-[10px] font-medium", color)}>{label}</span>
+    </div>
+  );
+}
 
 export function OpportunityFinder({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
-  const { data: realOpportunities, isLoading } = useOpportunities(days, categoryId, supplierId, productId);
+  const { data: opportunities, isLoading } = useOpportunities(days, categoryId, supplierId, productId);
   const navigate = useNavigate();
 
-  const hasRealData = !!(realOpportunities?.length);
-  const isDemo = !hasRealData && !isLoading;
-  const opportunities = hasRealData ? realOpportunities : MOCK_OPPORTUNITIES;
+  const hasData = !!(opportunities?.length);
+
+  const handleExport = async () => {
+    if (!opportunities?.length) return;
+    try {
+      await exportToExcel({
+        filename: `oportunidades-conversao${categoryName ? `-${categoryName}` : ''}`,
+        sheetName: 'Oportunidades',
+        columns: [
+          { key: 'productName', header: 'Produto', width: 35 },
+          { key: 'productSku', header: 'SKU', width: 15 },
+          { key: 'quoteCount', header: 'Cotações', width: 10 },
+          { key: 'orderCount', header: 'Pedidos', width: 10 },
+          { key: 'conversionRate', header: 'Conversão %', width: 12 },
+          { key: 'opportunityScore', header: 'Score', width: 10 },
+          { key: 'reason', header: 'Motivo', width: 30 },
+        ],
+        data: opportunities,
+      });
+      toast.success('Exportado com sucesso!');
+    } catch { toast.error('Erro ao exportar'); }
+  };
 
   if (isLoading) {
     return (
@@ -35,56 +61,74 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
-            <Lightbulb className="h-3.5 w-3.5 text-white" />
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="text-base flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
+                <Lightbulb className="h-3.5 w-3.5 text-white" />
+              </div>
+              💡 Oportunidades de Conversão
+            </CardTitle>
+            <CardDescription className="text-xs mt-0.5">
+              {categoryName ? `Oportunidades em "${categoryName}"` : 'Produtos muito cotados mas com baixa conversão'} · {days} dias
+            </CardDescription>
           </div>
-          💡 Oportunidades de Conversão
-          {isDemo && <Badge variant="outline" className="text-[10px] px-1.5 py-0 ml-1">demo</Badge>}
-        </CardTitle>
-        <CardDescription className="text-xs">
-          {categoryName ? `Oportunidades em "${categoryName}"` : 'Produtos muito cotados mas com baixa conversão'} · {days} dias
-        </CardDescription>
+          {hasData && (
+            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleExport}>
+              <Download className="h-3 w-3" />
+            </Button>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-2">
-        {opportunities.map((opp) => (
-          <div
-            key={opp.productSku || opp.productId}
-            className="group flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all"
-            onClick={() => !isDemo && opp.productId && navigate(`/produto/${opp.productId}`)}
-          >
-            {/* Image */}
-            <div className="w-10 h-10 rounded-lg overflow-hidden bg-muted shrink-0">
-              {opp.productImage ? (
-                <img src={opp.productImage} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                </div>
-              )}
-            </div>
+        {!hasData ? (
+          <div className="flex flex-col items-center py-8 text-muted-foreground">
+            <Lightbulb className="h-8 w-8 mb-2 opacity-30" />
+            <p className="text-xs">Nenhuma oportunidade identificada no período</p>
+            <p className="text-[10px] mt-1 text-muted-foreground/60">
+              Oportunidades aparecem quando produtos são muito cotados mas pouco vendidos
+            </p>
+          </div>
+        ) : (
+          opportunities!.map((opp) => (
+            <div
+              key={opp.productSku || opp.productId}
+              className="group flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all"
+              onClick={() => opp.productId && navigate(`/produto/${opp.productId}`)}
+            >
+              {/* Image */}
+              <div className="w-9 h-9 rounded-md overflow-hidden bg-muted shrink-0 border border-border/50">
+                {opp.productImage ? (
+                  <img src={opp.productImage} alt="" className="w-full h-full object-contain" loading="lazy" />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                  </div>
+                )}
+              </div>
 
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{opp.productName}</p>
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span className="text-amber-600 font-medium">{opp.quoteCount} cotações</span>
-                <span>→</span>
-                <span className={cn(opp.orderCount === 0 ? "text-red-500" : "text-muted-foreground")}>
-                  {opp.orderCount} pedidos
-                </span>
-                <span className="text-[10px]">({opp.conversionRate}%)</span>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium truncate">{opp.productName}</p>
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span className="text-amber-600 font-medium">{opp.quoteCount} cotações</span>
+                  <span>→</span>
+                  <span className={cn(opp.orderCount === 0 ? "text-red-500" : "text-muted-foreground")}>
+                    {opp.orderCount} pedidos
+                  </span>
+                  <span className="text-[10px]">({opp.conversionRate}%)</span>
+                </div>
+              </div>
+
+              <div className="text-right shrink-0 space-y-1">
+                <ScoreIndicator score={opp.opportunityScore} />
+                <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-500/30 bg-amber-500/10 max-w-[120px] truncate">
+                  <AlertTriangle className="h-2.5 w-2.5 mr-0.5 shrink-0" />
+                  {opp.reason}
+                </Badge>
               </div>
             </div>
-
-            <div className="text-right shrink-0 space-y-1">
-              <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/30 bg-amber-500/10">
-                <AlertTriangle className="h-2.5 w-2.5 mr-1" />
-                {opp.reason}
-              </Badge>
-              <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40 group-hover:text-amber-500 transition-colors ml-auto" />
-            </div>
-          </div>
-        ))}
+          ))
+        )}
       </CardContent>
     </Card>
   );
