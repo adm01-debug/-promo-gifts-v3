@@ -95,7 +95,7 @@ export function useCrmCompanySelector() {
         select: "id, razao_social, nome_fantasia, ramo_atividade, logo_url, cnpj, is_customer, is_supplier",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
-        limit: 500,
+        limit: 200,
       });
 
       return companies.map((c) => ({
