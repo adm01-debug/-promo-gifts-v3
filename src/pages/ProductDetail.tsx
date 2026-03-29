@@ -618,6 +618,11 @@ export default function ProductDetail() {
           </div>
         </div>
 
+        {/* Produtos Semelhantes */}
+        <div className="pt-4 border-t border-border">
+          <SimilarProducts currentProduct={product} maxItems={12} />
+        </div>
+
         {/* Below-fold sections — compact */}
         <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-border">
           <StockHistoryChart
@@ -629,12 +634,6 @@ export default function ProductDetail() {
             productSku={product.sku}
             productName={product.name}
           />
-        </div>
-
-
-        {/* Produtos Semelhantes */}
-        <div className="pt-4 border-t border-border">
-          <SimilarProducts currentProduct={product} maxItems={12} />
         </div>
 
         {/* Modals */}
