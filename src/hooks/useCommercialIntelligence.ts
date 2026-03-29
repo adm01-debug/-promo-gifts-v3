@@ -437,38 +437,116 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
   });
 }
 
-export function useMostViewedProducts(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useTopClients(days = 30, categoryId?: string | null, supplierId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
   const hasFilter = !!(categoryId || supplierId);
 
   return useQuery({
-    queryKey: ['commercial-most-viewed', user?.id, days, categoryId, supplierId],
+    queryKey: ['commercial-top-clients', user?.id, days, categoryId, supplierId],
     queryFn: async () => {
-      const { data } = await supabase
-        .from('product_views')
-        .select('product_id, product_sku, product_name')
+      if (hasFilter && productIds) {
+        const productIdArray = Array.from(productIds).slice(0, 200);
+        if (!productIdArray.length) return [];
+
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('order_id, quantity, unit_price')
+          .gte('created_at', since)
+          .in('product_id', productIdArray);
+
+        const orderIds = [...new Set((orderItems || []).map(oi => oi.order_id).filter(Boolean))] as string[];
+        if (!orderIds.length) return [];
+
+        const { data: orders } = await supabase
+          .from('orders')
+          .select('id, client_name, client_company, total')
+          .in('id', orderIds.slice(0, 200));
+
+        return aggregateClients(orders || []);
+      }
+
+      const { data: orders } = await supabase
+        .from('orders')
+        .select('client_name, client_company, total')
         .gte('created_at', since);
 
-      if (!data?.length) return [];
+      return aggregateClients(orders || []);
+    },
+    staleTime: 1000 * 60 * 5,
+    enabled: !!user && (!hasFilter || productIds !== undefined),
+  });
+}
 
-      const filtered = hasFilter && productIds
-        ? data.filter(v => v.product_id && productIds.has(v.product_id))
-        : data;
+function aggregateClients(orders: Array<{ client_name?: string | null; client_company?: string | null; total?: number | null }>) {
+  const clientMap = new Map<string, { company: string | null; orderCount: number; revenue: number }>();
+  orders.forEach(o => {
+    const name = o.client_name || o.client_company || 'Não identificado';
+    const existing = clientMap.get(name) || { company: o.client_company || null, orderCount: 0, revenue: 0 };
+    existing.orderCount += 1;
+    existing.revenue += (o.total ?? 0);
+    clientMap.set(name, existing);
+  });
 
-      const viewMap = new Map<string, { name: string; sku: string | null; count: number }>();
-      filtered.forEach(v => {
-        const key = v.product_sku || v.product_id || '';
-        if (!key) return;
-        const existing = viewMap.get(key) || { name: v.product_name || '', sku: v.product_sku, count: 0 };
-        existing.count += 1;
-        viewMap.set(key, existing);
+  return Array.from(clientMap.entries())
+    .map(([name, data]) => ({
+      clientName: name,
+      company: data.company,
+      orderCount: data.orderCount,
+      revenue: data.revenue,
+      averageTicket: data.orderCount > 0 ? data.revenue / data.orderCount : 0,
+    }))
+    .sort((a, b) => b.revenue - a.revenue)
+    .slice(0, 10);
+}
+
+export function useSupplierSales(days = 30, categoryId?: string | null, supplierId?: string | null) {
+  const { user } = useAuth();
+  const since = getSinceDate(days);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
+  const hasFilter = !!(categoryId || supplierId);
+
+  return useQuery({
+    queryKey: ['commercial-supplier-sales', user?.id, days, categoryId, supplierId],
+    queryFn: async () => {
+      const productIdArray = productIds ? Array.from(productIds).slice(0, 200) : undefined;
+
+      const { data: orderItems } = productIdArray
+        ? await supabase.from('order_items').select('product_id, product_name, quantity, unit_price').gte('created_at', since).in('product_id', productIdArray)
+        : await supabase.from('order_items').select('product_id, product_name, quantity, unit_price').gte('created_at', since);
+
+      if (!orderItems?.length) return [];
+
+      // Group by product and fetch supplier info from external DB
+      const productIdsFromOrders = [...new Set(orderItems.map(oi => oi.product_id).filter(Boolean))] as string[];
+      if (!productIdsFromOrders.length) return [];
+
+      const { fetchPromobrindProducts } = await import('@/lib/external-db');
+      const products = await fetchPromobrindProducts({ limit: 5000 });
+      const productSupplierMap = new Map<string, string>();
+      products.forEach(p => {
+        productSupplierMap.set(p.id, p.supplier_reference || 'Sem fornecedor');
       });
 
-      return Array.from(viewMap.entries())
-        .map(([id, d]) => ({ productId: id, productSku: d.sku, productName: d.name, viewCount: d.count }))
-        .sort((a, b) => b.viewCount - a.viewCount)
+      const supplierMap = new Map<string, { orderCount: number; revenue: number; productCount: number; products: Set<string> }>();
+      orderItems.forEach(item => {
+        const supplier = productSupplierMap.get(item.product_id || '') || 'Sem fornecedor';
+        const existing = supplierMap.get(supplier) || { orderCount: 0, revenue: 0, productCount: 0, products: new Set<string>() };
+        existing.orderCount += 1;
+        existing.revenue += (item.quantity ?? 0) * (item.unit_price ?? 0);
+        if (item.product_id) existing.products.add(item.product_id);
+        supplierMap.set(supplier, existing);
+      });
+
+      return Array.from(supplierMap.entries())
+        .map(([supplier, data]) => ({
+          supplierName: supplier,
+          orderCount: data.orderCount,
+          revenue: data.revenue,
+          productCount: data.products.size,
+        }))
+        .sort((a, b) => b.revenue - a.revenue)
         .slice(0, 10);
     },
     staleTime: 1000 * 60 * 5,
