@@ -178,26 +178,6 @@ export function SalesOverviewChart({ days = 30, productId }: Props) {
   );
 }
 
-function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
-  const name = seller.sellerName || 'Vendedor';
-  const initials = name.split(' ').filter(w => w.length > 0).map(w => w[0]).slice(0, 2).join('').toUpperCase() || '??';
-
-  return (
-    <div className="flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-muted/50 transition-colors">
-      <span className={cn("w-4 text-center font-bold", rank === 1 ? "text-amber-500" : "text-muted-foreground")}>{rank}</span>
-      <Avatar className="h-5 w-5">
-        <AvatarFallback className="text-[9px] bg-primary/10 text-primary">{initials}</AvatarFallback>
-      </Avatar>
-      <span className="font-medium text-foreground flex-1 truncate">{name}</span>
-      <span className="text-muted-foreground">{seller.totalQty} un</span>
-      <span className="font-semibold text-foreground">{formatCurrency(seller.totalValue)}</span>
-      <div className="flex gap-1">
-        <Badge variant="outline" className="text-[9px] px-1 py-0 h-4">{seller.quoteCount} orç</Badge>
-        <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4">{seller.orderCount} ped</Badge>
-      </div>
-    </div>
-  );
-}
 
 function SalesMacroTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
