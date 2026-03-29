@@ -87,14 +87,13 @@ export function useSimilarProducts(product: Product | null | undefined) {
 
       const raw = await fetchPromobrindProducts({
         filters: Object.keys(filters).length > 0 ? filters : undefined,
-        limit: 25,
+        limit: 500,
         orderBy: { column: 'name', ascending: true },
       });
 
       return raw
         .map(mapPromobrindToProduct)
         .filter(p => p.id !== productId)
-        .slice(0, 20)
         .map(mapToSimilarItem);
     },
     staleTime: 10 * 60 * 1000,

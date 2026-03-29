@@ -87,7 +87,7 @@ export function SimilarProducts({
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct);
-  const similarItems = dbItems.slice(0, maxItems);
+  const similarItems = dbItems;
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
