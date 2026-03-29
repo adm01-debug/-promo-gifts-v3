@@ -153,12 +153,6 @@ export function ProductRankingSearch() {
               Pesquise por tipo de produto, filtre por fornecedor/categoria e veja o ranking dos mais vendidos
             </CardDescription>
           </div>
-          {hasResults && (
-            <Button variant="outline" size="sm" className="h-7 text-[11px] gap-1.5" onClick={handleExport}>
-              <Download className="h-3 w-3" />
-              <span className="hidden sm:inline">Exportar</span>
-            </Button>
-          )}
         </div>
       </CardHeader>
 

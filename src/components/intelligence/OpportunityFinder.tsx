@@ -51,11 +51,6 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
               {categoryName ? `Oportunidades em "${categoryName}"` : 'Produtos muito cotados mas com baixa conversão'} · {days} dias
             </CardDescription>
           </div>
-          {hasData && (
-            <Button variant="ghost" size="sm" className="h-6 text-[10px] gap-1" onClick={handleExport}>
-              <Download className="h-3 w-3" />
-            </Button>
-          )}
         </div>
       </CardHeader>
       <CardContent className="space-y-2">
