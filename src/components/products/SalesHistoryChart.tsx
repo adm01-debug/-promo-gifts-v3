@@ -30,10 +30,13 @@ import { formatCurrency } from "@/lib/format";
 import { useSalesHistory, type SellerRanking } from "@/hooks/useSalesHistory";
 import { safeParseDateForChart } from "@/lib/stock-chart-utils";
 import { KpiCard } from "@/components/ui/kpi-card";
+import { useProductInsights } from "@/hooks/useProductRecommendations";
+import { Package } from "lucide-react";
 
 
 interface SalesHistoryChartProps {
   productId: string;
+  productSku?: string;
   productName?: string;
 }
 
