@@ -24,11 +24,11 @@ interface ProductQuickActionsProps {
 type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | "whatsapp" | null;
 
 const actions = [
-  { key: "precos" as const, label: "Preços", icon: TableProperties, color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-400/60" },
-  { key: "personalizacao" as const, label: "Personalização", icon: Palette, color: "from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-400/60" },
-  { key: "indicacao" as const, label: "Indicação", icon: Target, color: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 hover:border-emerald-400/60" },
-  { key: "nicho" as const, label: "Nicho", icon: Layers, color: "from-amber-500/20 to-amber-600/10 border-amber-500/30 hover:border-amber-400/60" },
-  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle, color: "from-green-500/20 to-green-600/10 border-green-500/30 hover:border-green-400/60" },
+  { key: "precos" as const, label: "Preços", icon: TableProperties },
+  { key: "personalizacao" as const, label: "Gravação", icon: Palette },
+  { key: "indicacao" as const, label: "Indicação", icon: Target },
+  { key: "nicho" as const, label: "Nicho", icon: Layers },
+  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
 ];
 
 export function ProductQuickActions({
