@@ -2,6 +2,7 @@
  * MarketIntelligenceChart — Visão MACRO de mercado
  * Replica o layout do StockHistoryChart (página de produto)
  * mas com dados agregados de todos os produtos.
+ * Inclui mock data quando não há dados reais.
  */
 import { useMemo, useState } from "react";
 import {
@@ -28,11 +29,10 @@ import {
   Package,
   Loader2,
   AlertCircle,
-  DollarSign,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { KpiCard } from "@/components/ui/kpi-card";
-import { useMarketIntelligenceMacro, type MacroSupplierMetrics } from "@/hooks/useMarketIntelligenceMacro";
+import { useMarketIntelligenceMacro, type MacroSupplierMetrics, type MacroMarketPoint, type MacroMarketKpis } from "@/hooks/useMarketIntelligenceMacro";
 import { useSupplierNames } from "@/hooks/useSupplierNames";
 import { safeParseDateForChart } from "@/lib/stock-chart-utils";
 import { SupplierChartFilter } from "@/components/products/SupplierChartFilter";
@@ -42,38 +42,105 @@ interface Props {
   supplierId?: string | null;
 }
 
+// ---------- Mock data generator ----------
+function generateMockMarketData(days: number) {
+  const daily: MacroMarketPoint[] = [];
+  const now = new Date();
+  let stock = 3200 + Math.floor(Math.random() * 800);
+
+  for (let i = days - 1; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().split('T')[0];
+
+    const dayOfWeek = d.getDay();
+    const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+    const baseDepleted = isWeekend ? 15 : 45;
+    const depleted = Math.max(0, Math.round(baseDepleted + (Math.random() - 0.4) * 30));
+    const restocked = Math.random() > 0.85 ? Math.round(200 + Math.random() * 400) : 0;
+
+    stock = Math.max(100, stock - depleted + restocked);
+
+    daily.push({ date: dateStr, stockClose: stock, depleted, restocked });
+  }
+
+  const d7 = daily.slice(-7);
+  const totalDepleted7d = d7.reduce((s, p) => s + p.depleted, 0);
+  const totalDepleted30d = daily.reduce((s, p) => s + p.depleted, 0);
+  const totalRestocked30d = daily.reduce((s, p) => s + p.restocked, 0);
+  const activeDays = daily.filter(d => d.depleted > 0).length;
+
+  const topDay = daily.reduce((best, d) => d.depleted > (best?.depleted ?? 0) ? d : best, daily[0]);
+
+  const mockSuppliers: MacroSupplierMetrics[] = [
+    { supplierId: 'mock-supplier-1', avgDailyDepletion7d: 10.2, currentStock: 659, totalDepleted: 420, totalRestocked: 200, velocityTrend: 1.26, daysToStockout: 64 },
+    { supplierId: 'mock-supplier-2', avgDailyDepletion7d: 9.1, currentStock: 413, totalDepleted: 350, totalRestocked: 150, velocityTrend: 1.15, daysToStockout: 45 },
+    { supplierId: 'mock-supplier-3', avgDailyDepletion7d: 8.7, currentStock: 362, totalDepleted: 310, totalRestocked: 100, velocityTrend: 0.52, daysToStockout: 41 },
+    { supplierId: 'mock-supplier-4', avgDailyDepletion7d: 3.5, currentStock: 424, totalDepleted: 140, totalRestocked: 80, velocityTrend: 0.95, daysToStockout: 121 },
+  ];
+
+  const kpis: MacroMarketKpis = {
+    totalDepleted7d,
+    totalDepleted30d,
+    totalRestocked30d,
+    totalCurrentStock: stock,
+    avgDailyDepletion: activeDays > 0 ? totalDepleted30d / activeDays : 0,
+    supplierCount: 4,
+    topDepletionDay: { date: topDay.date, value: topDay.depleted },
+  };
+
+  const mockSupplierNames = new Map<string, string>([
+    ['mock-supplier-1', 'Brasil Brindes'],
+    ['mock-supplier-2', 'Master Promo'],
+    ['mock-supplier-3', 'Premium Gifts'],
+    ['mock-supplier-4', 'Master Promo'],
+  ]);
+
+  return { daily, kpis, suppliers: mockSuppliers, supplierIds: mockSuppliers.map(s => s.supplierId), supplierNames: mockSupplierNames };
+}
+
 export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: Props) {
   const [period, setPeriod] = useState<string>(String(defaultDays));
   const [selectedSupplier, setSelectedSupplier] = useState<string>('all');
   const days = Number(period);
 
-  const { data, isLoading, error } = useMarketIntelligenceMacro(days, supplierId);
+  const { data: realData, isLoading, error } = useMarketIntelligenceMacro(days, supplierId);
 
-  // Supplier names
-  const { data: supplierNamesMap } = useSupplierNames(data?.supplierIds ?? []);
+  // Mock data fallback
+  const mock = useMemo(() => generateMockMarketData(days), [days]);
+  const hasRealData = !!(realData?.daily?.length);
+  const isDemo = !hasRealData && !error;
+
+  const effectiveData = hasRealData ? realData : mock;
+  const effectiveSupplierNames = hasRealData ? null : mock.supplierNames;
+
+  // Supplier names (only fetch for real data)
+  const { data: realSupplierNamesMap } = useSupplierNames(hasRealData ? (realData?.supplierIds ?? []) : []);
+  const supplierNamesMap = hasRealData ? realSupplierNamesMap : effectiveSupplierNames;
 
   const supplierOptions = useMemo(() => {
-    if (!data?.supplierIds?.length || data.supplierIds.length <= 1) return [];
-    return data.supplierIds.map(id => ({
+    const ids = effectiveData?.supplierIds ?? [];
+    if (ids.length <= 1) return [];
+    return ids.map(id => ({
       id,
       name: supplierNamesMap?.get(id) ?? `Fornecedor ${id.slice(0, 6)}`,
     }));
-  }, [data?.supplierIds, supplierNamesMap]);
+  }, [effectiveData?.supplierIds, supplierNamesMap]);
 
   const chartData = useMemo(() => {
-    if (!data?.daily?.length) return [];
-    return data.daily.reduce<Array<typeof data.daily[0] & { dateFormatted: string; fullDate: string }>>((acc, d) => {
+    if (!effectiveData?.daily?.length) return [];
+    return effectiveData.daily.reduce<Array<typeof effectiveData.daily[0] & { dateFormatted: string; fullDate: string }>>((acc, d) => {
       const parsed = safeParseDateForChart(d.date);
       if (parsed) acc.push({ ...d, ...parsed });
       return acc;
     }, []);
-  }, [data]);
+  }, [effectiveData]);
 
   const supplierText = useMemo(() => {
-    const count = data?.kpis?.supplierCount ?? 0;
+    const count = effectiveData?.kpis?.supplierCount ?? 0;
     if (count === 0) return 'no fornecedor';
     return `em ${count} fornecedor${count > 1 ? 'es' : ''}`;
-  }, [data?.kpis?.supplierCount]);
+  }, [effectiveData?.kpis?.supplierCount]);
 
   if (isLoading) {
     return (
@@ -85,7 +152,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
     );
   }
 
-  if (error) {
+  if (error && !hasRealData) {
     return (
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-8 gap-2 text-center">
@@ -97,7 +164,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
     );
   }
 
-  const kpis = data?.kpis;
+  const kpis = effectiveData?.kpis;
   const hasData = !!chartData.length;
 
   // Market demand level
@@ -123,6 +190,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
             </CardTitle>
             <CardDescription className="mt-1">
               Como o mercado está comprando · visão macro · {days} dias
+              {isDemo && <Badge variant="outline" className="ml-2 text-[10px] px-1.5 py-0">dados ilustrativos</Badge>}
             </CardDescription>
           </div>
           <div className="flex items-center gap-2">
@@ -213,8 +281,8 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
         )}
 
         {/* Supplier Comparison Cards */}
-        {data?.suppliers && data.suppliers.length > 1 && supplierNamesMap && (
-          <MacroSupplierComparison suppliers={data.suppliers} supplierNames={supplierNamesMap} />
+        {effectiveData?.suppliers && effectiveData.suppliers.length > 1 && supplierNamesMap && (
+          <MacroSupplierComparison suppliers={effectiveData.suppliers} supplierNames={supplierNamesMap} />
         )}
 
         {/* Insight */}
@@ -222,6 +290,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: 
           <p className="text-xs text-muted-foreground">
             📊 Pico de saídas: <span className="font-medium text-foreground">{kpis.topDepletionDay.value.toLocaleString('pt-BR')} un</span> em{' '}
             {new Date(kpis.topDepletionDay.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
+            {isDemo && ' (demo)'}
           </p>
         )}
       </CardContent>
