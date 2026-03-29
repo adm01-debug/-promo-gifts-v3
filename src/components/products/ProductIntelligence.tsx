@@ -11,7 +11,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigate } from "react-router-dom";
 import { useProductInsights, useProductRecommendations } from "@/hooks/useProductRecommendations";
 import { cn } from "@/lib/utils";
-import { cn } from "@/lib/utils";
 
 interface ProductIntelligenceProps {
   productId?: string;
