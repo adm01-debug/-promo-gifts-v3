@@ -195,9 +195,9 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
             >
               Cancelar
             </Button>
-            <Button className="flex-1 gap-2" onClick={handleSend}>
+            <Button className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSend}>
               <Send className="h-4 w-4" />
-              Enviar via A-Ticket
+              Enviar - WhatsApp
             </Button>
           </div>
         </div>
