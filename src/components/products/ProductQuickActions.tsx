@@ -128,7 +128,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-lg">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-emerald-400" />
+              <Target className="h-5 w-5 text-primary" />
               Indicado para
             </DialogTitle>
             <DialogDescription>Público-alvo e ocasiões recomendadas</DialogDescription>
