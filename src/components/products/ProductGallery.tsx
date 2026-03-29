@@ -398,7 +398,7 @@ export function ProductGallery({
                   key={`${color.name}-${color.sku}`}
                   onClick={() => handleColorClick(originalIndex)}
                     className={cn(
-                      "group/color relative shrink-0 xl:shrink w-24 xl:w-[calc((100%-1.5rem*4)/5)] rounded-xl overflow-hidden transition-all duration-300",
+                      "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
                       "bg-card shadow-md hover:shadow-lg hover:-translate-y-1"
                     )}
                   style={{
