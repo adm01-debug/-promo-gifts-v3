@@ -14,28 +14,6 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
-  const handleExport = async () => {
-    if (!suppliers?.length) return;
-    try {
-      await exportToExcel({
-        filename: `vendas-por-fornecedor${categoryName ? `-${categoryName}` : ''}`,
-        sheetName: 'Vendas por Fornecedor',
-        columns: [
-          { key: 'rank', header: '#', width: 5 },
-          { key: 'supplierName', header: 'Fornecedor', width: 30 },
-          { key: 'revenue', header: 'Receita', width: 15, format: (v: number) => Number(v.toFixed(2)) },
-          { key: 'orderCount', header: 'Itens Vendidos', width: 12 },
-          { key: 'productCount', header: 'Produtos', width: 10 },
-          { key: 'share', header: 'Participação %', width: 12, format: (_: number, row: any) => {
-            const total = suppliers.reduce((s, su) => s + su.revenue, 0);
-            return total > 0 ? Number(((row.revenue / total) * 100).toFixed(1)) : 0;
-          }},
-        ],
-        data: suppliers.map((s, i) => ({ ...s, rank: i + 1 })),
-      });
-      toast.success('Exportado com sucesso!');
-    } catch { toast.error('Erro ao exportar'); }
-  };
 
   if (isLoading) {
     return (
