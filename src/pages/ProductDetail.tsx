@@ -311,7 +311,7 @@ export default function ProductDetail() {
           </div>
 
           {/* RIGHT — All product info in a compact flow */}
-          <div className="space-y-3 md:space-y-4 xl:space-y-5 min-w-0">
+          <div className="flex flex-col gap-3 md:gap-4 xl:gap-5 min-w-0">
             
             {/* Header: badges + title + info bar — compact */}
             <div className="space-y-2">
@@ -370,9 +370,9 @@ export default function ProductDetail() {
             </div>
 
             {/* ===== PRICE + SPECS — two columns ===== */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 flex-1">
               {/* LEFT — Price & CTA */}
-              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden">
+              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col">
                 {product.featured && (
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
                 )}
@@ -508,7 +508,7 @@ export default function ProductDetail() {
               </div>
 
               {/* RIGHT — Specs + Description */}
-              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 xl:p-5 space-y-2 xl:space-y-3">
+              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 xl:p-5 space-y-2 xl:space-y-3 flex flex-col">
                 {/* Description */}
                 <div id="sec-descricao" className="scroll-mt-28 max-w-prose">
                   <h4 className="text-xs xl:text-sm font-semibold text-foreground mb-1">Descrição</h4>
@@ -554,31 +554,11 @@ export default function ProductDetail() {
             </div>
 
 
-            {/* Quick Action Buttons — horizontal bar */}
-            <ProductQuickActions
-              productId={product.id}
-              productName={product.name}
-              productSku={product.sku}
-              basePrice={product.price}
-              minQuantity={product.minQuantity || 1}
-              tags={product.tags ? {
-                "Público-Alvo": product.tags.publicoAlvo || [],
-                "Datas Comemorativas": product.tags.datasComemorativas || [],
-                "Endomarketing": product.tags.endomarketing || [],
-              } : undefined}
-              niches={product.tags?.nicho || product.tags?.ramo || undefined}
-              product={product}
-            />
-
-            {/* Variant Grid */}
-
-
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
               <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
             )}
 
-            {/* Actions — compact row: Share + Kit Builder */}
             {/* Kit Builder button */}
             {product.isKit && (
               <div className="hidden md:flex items-center gap-3 xl:gap-4 py-2 xl:py-3 border-t border-border flex-wrap">
@@ -594,6 +574,24 @@ export default function ProductDetail() {
                 </div>
               </div>
             )}
+
+            {/* Quick Action Buttons — bottom bar */}
+            <div className="mt-auto pt-2">
+              <ProductQuickActions
+                productId={product.id}
+                productName={product.name}
+                productSku={product.sku}
+                basePrice={product.price}
+                minQuantity={product.minQuantity || 1}
+                tags={product.tags ? {
+                  "Público-Alvo": product.tags.publicoAlvo || [],
+                  "Datas Comemorativas": product.tags.datasComemorativas || [],
+                  "Endomarketing": product.tags.endomarketing || [],
+                } : undefined}
+                niches={product.tags?.nicho || product.tags?.ramo || undefined}
+                product={product}
+              />
+            </div>
 
           </div>
         </div>
