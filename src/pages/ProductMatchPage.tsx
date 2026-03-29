@@ -205,7 +205,7 @@ function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id:
     <Card className="border-border/40 hover:border-border/80 hover:shadow-md transition-all group">
       <CardContent className="p-3 flex items-start gap-3">
         <img
-          src={getCdnUrl(match.product.images?.[0] || match.product.image_url || '/placeholder.svg', 80, 80)}
+          src={getCdnUrl(match.product.images?.[0] || match.product.image_url || '/placeholder.svg', 'small')}
           alt={match.product.name}
           className="w-16 h-16 rounded-lg object-cover bg-muted shrink-0"
         />
