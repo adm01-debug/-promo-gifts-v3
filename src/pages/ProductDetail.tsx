@@ -250,7 +250,7 @@ export default function ProductDetail() {
         onToggleFavorite={handleFavorite}
       />
 
-      <div className="space-y-3 md:space-y-5 animate-fade-in pb-20 md:pb-0">
+      <div className="space-y-3 md:space-y-5 animate-fade-in pb-20 md:pb-0 min-w-0 overflow-x-hidden">
         {/* Social Proof & Stock Alerts — compact */}
         {(product.featured || product.stockStatus === "low-stock") && (
           <div className="flex flex-wrap items-center gap-2">
