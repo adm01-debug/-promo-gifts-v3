@@ -558,7 +558,7 @@ export default function ProductDetail() {
 
                 {/* Specs */}
                 <div className="border-t border-border/40 pt-2 space-y-2">
-                  <h4 className="text-xs font-semibold text-foreground">Especificações</h4>
+                  <h4 className="text-xs xl:text-sm font-semibold text-foreground">Especificações</h4>
                   {product.materials && product.materials.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {product.materials.map((material) => (
