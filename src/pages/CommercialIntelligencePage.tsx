@@ -6,6 +6,7 @@ import { IntelligenceKPICards } from "@/components/intelligence/IntelligenceKPIC
 import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
+import { ProductRankingSearch } from "@/components/intelligence/ProductRankingSearch";
 import { OpportunityFinder } from "@/components/intelligence/OpportunityFinder";
 import { SupplierSales } from "@/components/intelligence/SupplierSales";
 import { Brain } from "lucide-react";
