@@ -92,7 +92,7 @@ export function ProductQuickActions({
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <TableProperties className="h-5 w-5 text-blue-400" />
+              <TableProperties className="h-5 w-5 text-primary" />
               Tabela de Preços
             </DialogTitle>
             <DialogDescription>Veja os descontos por quantidade</DialogDescription>
