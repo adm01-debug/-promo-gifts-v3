@@ -102,7 +102,7 @@ function ProductSearchPanel({
               )}
             >
               <img
-                src={getCdnUrl(p.images?.[0] || p.image_url || '/placeholder.svg', 48, 48)}
+                src={getCdnUrl(p.images?.[0] || p.image_url || '/placeholder.svg', 'thumbnail')}
                 alt={p.name}
                 className="w-10 h-10 rounded-md object-cover bg-muted shrink-0"
               />
@@ -129,7 +129,7 @@ function SelectedProductCard({ product }: { product: Product }) {
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           <img
-            src={getCdnUrl(product.images?.[0] || product.image_url || '/placeholder.svg', 120, 120)}
+            src={getCdnUrl(product.images?.[0] || product.image_url || '/placeholder.svg', 'small')}
             alt={product.name}
             className="w-20 h-20 rounded-lg object-cover bg-muted shrink-0"
           />
@@ -205,7 +205,7 @@ function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id:
     <Card className="border-border/40 hover:border-border/80 hover:shadow-md transition-all group">
       <CardContent className="p-3 flex items-start gap-3">
         <img
-          src={getCdnUrl(match.product.images?.[0] || match.product.image_url || '/placeholder.svg', 80, 80)}
+          src={getCdnUrl(match.product.images?.[0] || match.product.image_url || '/placeholder.svg', 'small')}
           alt={match.product.name}
           className="w-16 h-16 rounded-lg object-cover bg-muted shrink-0"
         />
