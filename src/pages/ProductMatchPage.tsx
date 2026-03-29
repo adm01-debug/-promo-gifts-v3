@@ -185,8 +185,21 @@ function SelectedProductCard({ product }: { product: Product }) {
 }
 
 function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id: string) => void }) {
+  const navigate = useNavigate();
   const config = MATCH_TYPE_CONFIG[match.matchType];
   const Icon = config.icon;
+
+  const handleAddToQuote = () => {
+    const p = match.product;
+    const params = new URLSearchParams({
+      product_id: p.id,
+      sku: p.sku,
+      price: String(p.price),
+      min_quantity: String(p.minQuantity || 1),
+      ...(p.image_url ? { image: p.image_url } : {}),
+    });
+    navigate(`/orcamentos/novo?${params.toString()}`);
+  };
 
   return (
     <Card className="border-border/40 hover:border-border/80 hover:shadow-md transition-all group">
@@ -238,15 +251,29 @@ function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id:
               </>
             )}
           </div>
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-1.5 pt-1">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-[10px] gap-1 px-2"
+              onClick={handleAddToQuote}
+            >
+              <FileText className="h-3 w-3" />
+              Orçamento
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-6 text-[10px] gap-1 px-2"
+              onClick={() => onNavigate(match.product.id)}
+            >
+              <ExternalLink className="h-3 w-3" />
+              Detalhes
+            </Button>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-          onClick={() => onNavigate(match.product.id)}
-        >
-          <ArrowRight className="h-4 w-4" />
-        </Button>
       </CardContent>
     </Card>
   );
