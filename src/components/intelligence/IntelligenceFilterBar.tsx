@@ -39,14 +39,16 @@ const PERIOD_OPTIONS = [
 export function IntelligenceFilterBar({ filters, onFiltersChange }: IntelligenceFilterBarProps) {
   const { data: categories = [] } = useCategories();
   const { suppliers } = useSuppliers();
+  const { data: products = [] } = useProductsLightweight();
   const [catOpen, setCatOpen] = useState(false);
   const [supOpen, setSupOpen] = useState(false);
+  const [prodOpen, setProdOpen] = useState(false);
 
   const activeFilterCount =
-    (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0);
+    (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0) + (filters.productId ? 1 : 0);
 
   const clearAll = () => {
-    onFiltersChange({ ...filters, categoryId: null, categoryName: null, supplierId: null, supplierName: null });
+    onFiltersChange({ ...filters, categoryId: null, categoryName: null, supplierId: null, supplierName: null, productId: null, productName: null });
   };
 
   return (
