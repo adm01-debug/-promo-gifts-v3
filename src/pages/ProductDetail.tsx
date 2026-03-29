@@ -124,12 +124,7 @@ export default function ProductDetail() {
   const { registerProducts } = useProductsContext();
 
   const { data: product, isLoading, isError } = useProduct(id || "");
-  const { data: relatedProductsList = [] } = useRelatedProducts(product, 20);
   const { data: supplierTrust } = useSupplierTrust(id);
-
-  useEffect(() => {
-    if (relatedProductsList.length > 0) registerProducts(relatedProductsList);
-  }, [relatedProductsList, registerProducts]);
 
   useEffect(() => {
     if (product) {
