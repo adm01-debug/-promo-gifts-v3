@@ -6,8 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTrendingProducts } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 export function TrendingProducts({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: products, isLoading } = useTrendingProducts(days, categoryId, supplierId, productId, 7);

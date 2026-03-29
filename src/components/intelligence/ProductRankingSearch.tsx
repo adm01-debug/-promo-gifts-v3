@@ -12,8 +12,6 @@ import { useSuppliers } from "@/hooks/useSuppliers";
 import { useCategories } from "@/hooks/useCategories";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 const PERIOD_OPTIONS = [
   { label: "30d", days: 30 },

@@ -6,8 +6,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useOpportunities, type OpportunityProduct } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { exportToExcel } from "@/utils/excelExport";
-import { toast } from "sonner";
 
 function ScoreIndicator({ score }: { score: number }) {
   const color = score >= 80 ? "text-red-500" : score >= 50 ? "text-amber-500" : "text-muted-foreground";
