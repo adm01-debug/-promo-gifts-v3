@@ -1,11 +1,3 @@
-/**
- * SimilarProducts — Carousel de produtos visualmente semelhantes
- * 
- * Exibe até 12 produtos com aparência/especificações similares,
- * independente do fornecedor. Os dados virão de uma tabela dedicada
- * no banco externo (a ser conectada via hook).
- */
-
 import { useRef, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Layers } from "lucide-react";
@@ -28,61 +20,55 @@ interface SimilarProductItem {
 
 interface SimilarProductsProps {
   currentProduct: Product;
-  /** Produtos semelhantes — futuramente virão do hook useSimilarProducts */
   items?: SimilarProductItem[];
   maxItems?: number;
 }
 
-// ==========================================
-// MOCK DATA — será removido quando o hook real estiver pronto
-// ==========================================
 function generateMockSimilarProducts(product: Product): SimilarProductItem[] {
-  // Gera 24 itens mock (3 páginas de 8) para testar navegação
   const suffixes = [
-    'Premium', 'Classic', 'Slim', 'Pro', 'Eco', 'Sport', 'Max', 'Mini',
-    'Ultra', 'Lite', 'Plus', 'Elite', 'Basic', 'Prime', 'Flex', 'Core',
-    'Wave', 'Edge', 'Bold', 'Nova', 'Zen', 'Apex', 'Vibe', 'Rush',
+    "Premium", "Classic", "Slim", "Pro", "Eco", "Sport", "Max", "Mini",
+    "Ultra", "Lite", "Plus", "Elite", "Basic", "Prime", "Flex", "Core",
+    "Wave", "Edge", "Bold", "Nova", "Zen", "Apex", "Vibe", "Rush",
   ];
 
   return suffixes.map((suffix, i) => ({
     id: `mock-similar-${i}`,
-    name: `${product.name.split(' ').slice(0, 2).join(' ')} ${suffix}`,
-    sku: `${parseInt(product.sku || '10000') + i + 1}`,
+    name: `${product.name.split(" ").slice(0, 2).join(" ")} ${suffix}`,
+    sku: `${parseInt(product.sku || "10000") + i + 1}`,
     price: product.price * (0.7 + Math.random() * 0.6),
-    image_url: product.images[0] || '',
-    supplier_name: ['Fornecedor A', 'Fornecedor B', 'Fornecedor C', 'Fornecedor D'][i % 4],
+    image_url: product.images[0] || "",
+    supplier_name: ["Fornecedor A", "Fornecedor B", "Fornecedor C", "Fornecedor D"][i % 4],
     category_name: product.category.name,
     colors_count: Math.floor(Math.random() * 10) + 2,
     stock: Math.floor(Math.random() * 500) + 50,
   }));
 }
 
-// ==========================================
-// MINI CARD
-// ==========================================
-function SimilarProductCard({ 
-  item, 
+function SimilarProductCard({
+  item,
   onClick,
   index,
-}: { 
-  item: SimilarProductItem; 
+}: {
+  item: SimilarProductItem;
   onClick: () => void;
   index: number;
 }) {
   return (
     <div
       className={cn(
-        "group relative flex-shrink-0 snap-start",
-        "w-[calc((100%-1.75rem*7)/8)]",
+        "group relative min-w-0 shrink-0 snap-start",
         "rounded-xl bg-card border border-border/50 overflow-hidden",
         "transition-all duration-300 cursor-pointer",
         "hover:border-primary/30 hover:shadow-lg hover:shadow-primary/5 hover:-translate-y-1",
         "animate-fade-in"
       )}
-      style={{ animationDelay: `${index * 60}ms` }}
+      style={{
+        animationDelay: `${index * 60}ms`,
+        flex: "0 0 calc((100% - 5.25rem) / 8)",
+        maxWidth: "calc((100% - 5.25rem) / 8)",
+      }}
       onClick={onClick}
     >
-      {/* Image */}
       <div className="relative aspect-square overflow-hidden bg-muted">
         <img
           src={item.image_url}
@@ -90,10 +76,9 @@ function SimilarProductCard({
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
-        {/* Supplier badge */}
         <div className="absolute bottom-1.5 left-1.5">
-          <Badge 
-            variant="secondary" 
+          <Badge
+            variant="secondary"
             className="text-[9px] px-1.5 py-0 bg-background/80 backdrop-blur-sm border-none shadow-sm"
           >
             {item.supplier_name}
@@ -101,23 +86,22 @@ function SimilarProductCard({
         </div>
       </div>
 
-      {/* Info */}
-      <div className="p-2.5 space-y-1">
+      <div className="p-2.5 space-y-1 min-w-0">
         <p className="text-[10px] text-muted-foreground truncate">{item.category_name}</p>
         <h4 className="font-medium text-xs text-foreground line-clamp-2 leading-tight group-hover:text-primary transition-colors min-h-[2rem]">
           {item.name}
         </h4>
-        <div className="flex items-center justify-between pt-0.5">
-          <span className="font-display font-bold text-sm text-foreground">
+        <div className="flex items-center justify-between gap-2 pt-0.5">
+          <span className="font-display font-bold text-sm text-foreground truncate">
             R$ {item.price.toFixed(2).replace('.', ',')}
           </span>
           {item.colors_count && item.colors_count > 0 && (
-            <span className="text-[10px] text-muted-foreground">
+            <span className="text-[10px] text-muted-foreground shrink-0">
               {item.colors_count} cores
             </span>
           )}
         </div>
-        <p className="text-[10px] text-muted-foreground font-mono">
+        <p className="text-[10px] text-muted-foreground font-mono truncate">
           REF: {item.sku}
         </p>
       </div>
@@ -125,11 +109,8 @@ function SimilarProductCard({
   );
 }
 
-// ==========================================
-// CAROUSEL PRINCIPAL
-// ==========================================
-export function SimilarProducts({ 
-  currentProduct, 
+export function SimilarProducts({
+  currentProduct,
   items,
   maxItems = 12,
 }: SimilarProductsProps) {
@@ -138,7 +119,6 @@ export function SimilarProducts({
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
-  // Usa mock data se items não foi fornecido (temporário)
   const similarItems = (items || generateMockSimilarProducts(currentProduct)).slice(0, maxItems);
 
   const updateScrollButtons = useCallback(() => {
@@ -148,14 +128,13 @@ export function SimilarProducts({
     setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 10);
   }, []);
 
-  const scroll = useCallback((direction: 'left' | 'right') => {
+  const scroll = useCallback((direction: "left" | "right") => {
     const el = scrollRef.current;
     if (!el) return;
-    const containerWidth = el.clientWidth;
-    const scrollAmount = containerWidth; // scroll one full "page" of 8 cards
-    el.scrollBy({ 
-      left: direction === 'left' ? -scrollAmount : scrollAmount, 
-      behavior: 'smooth' 
+    const scrollAmount = el.clientWidth;
+    el.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
     });
     setTimeout(updateScrollButtons, 400);
   }, [updateScrollButtons]);
@@ -163,30 +142,28 @@ export function SimilarProducts({
   if (similarItems.length === 0) return null;
 
   return (
-    <section className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <section className="space-y-4 overflow-hidden">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3 min-w-0 flex-1">
-          <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center">
+          <div className="w-9 h-9 rounded-lg bg-accent/50 flex items-center justify-center shrink-0">
             <Layers className="h-4.5 w-4.5 text-foreground" />
           </div>
-          <div>
-            <h2 className="font-display text-lg font-bold text-foreground">
+          <div className="min-w-0">
+            <h2 className="font-display text-lg font-bold text-foreground truncate">
               Produtos Semelhantes
             </h2>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground truncate">
               {similarItems.length} produtos com aparência similar de diferentes fornecedores
             </p>
           </div>
         </div>
 
-        {/* Scroll arrows */}
         <div className="flex items-center gap-1 shrink-0 ml-4">
           <Button
             variant="outline"
             size="icon"
             className="h-8 w-8 rounded-lg"
-            onClick={() => scroll('left')}
+            onClick={() => scroll("left")}
             disabled={!canScrollLeft}
           >
             <ChevronLeft className="h-4 w-4" />
@@ -195,7 +172,7 @@ export function SimilarProducts({
             variant="outline"
             size="icon"
             className="h-8 w-8 rounded-lg"
-            onClick={() => scroll('right')}
+            onClick={() => scroll("right")}
             disabled={!canScrollRight}
           >
             <ChevronRight className="h-4 w-4" />
@@ -203,9 +180,7 @@ export function SimilarProducts({
         </div>
       </div>
 
-      {/* Carousel */}
-      <div className="relative">
-        {/* Left gradient fade */}
+      <div className="relative overflow-hidden">
         {canScrollLeft && (
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
         )}
@@ -214,10 +189,10 @@ export function SimilarProducts({
           ref={scrollRef}
           onScroll={updateScrollButtons}
           className={cn(
-            "flex gap-3 overflow-x-auto scrollbar-hide snap-x snap-mandatory",
-            "pb-2 -mb-2" // Extra padding for hover shadow
+            "flex w-full max-w-full gap-3 overflow-x-auto overflow-y-hidden scrollbar-hide snap-x snap-mandatory",
+            "pb-2 -mb-2"
           )}
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+          style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
           {similarItems.map((item, index) => (
             <SimilarProductCard
@@ -225,7 +200,7 @@ export function SimilarProducts({
               item={item}
               index={index}
               onClick={() => {
-                if (!item.id.startsWith('mock-')) {
+                if (!item.id.startsWith("mock-")) {
                   navigate(`/produto/${item.id}`);
                 }
               }}
@@ -233,7 +208,6 @@ export function SimilarProducts({
           ))}
         </div>
 
-        {/* Right gradient fade */}
         {canScrollRight && (
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
         )}
