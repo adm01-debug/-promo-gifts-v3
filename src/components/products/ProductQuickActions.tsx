@@ -24,11 +24,11 @@ interface ProductQuickActionsProps {
 type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | "whatsapp" | null;
 
 const actions = [
-  { key: "precos" as const, label: "Preços", icon: TableProperties, color: "from-blue-500/20 to-blue-600/10 border-blue-500/30 hover:border-blue-400/60" },
-  { key: "personalizacao" as const, label: "Personalização", icon: Palette, color: "from-purple-500/20 to-purple-600/10 border-purple-500/30 hover:border-purple-400/60" },
-  { key: "indicacao" as const, label: "Indicação", icon: Target, color: "from-emerald-500/20 to-emerald-600/10 border-emerald-500/30 hover:border-emerald-400/60" },
-  { key: "nicho" as const, label: "Nicho", icon: Layers, color: "from-amber-500/20 to-amber-600/10 border-amber-500/30 hover:border-amber-400/60" },
-  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle, color: "from-green-500/20 to-green-600/10 border-green-500/30 hover:border-green-400/60" },
+  { key: "precos" as const, label: "Preços", icon: TableProperties },
+  { key: "personalizacao" as const, label: "Gravação", icon: Palette },
+  { key: "indicacao" as const, label: "Indicação", icon: Target },
+  { key: "nicho" as const, label: "Nicho", icon: Layers },
+  { key: "whatsapp" as const, label: "WhatsApp", icon: MessageCircle },
 ];
 
 export function ProductQuickActions({
@@ -69,21 +69,21 @@ export function ProductQuickActions({
 
   return (
     <>
-      {/* Quick Action Buttons */}
-      <div className="flex items-center gap-2 flex-wrap">
-        {actions.map(({ key, label, icon: Icon, color }) => (
+      {/* Quick Action Buttons — uniform pill style */}
+      <div className="flex items-center gap-1.5 flex-wrap pt-1">
+        {actions.map(({ key, label, icon: Icon }) => (
           <button
             key={key}
             onClick={() => handleClick(key)}
             className={cn(
-              "flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs font-medium",
-              "bg-gradient-to-br border backdrop-blur-sm",
-              "transition-all duration-200 hover:scale-[1.03] hover:shadow-md",
-              "active:scale-[0.97]",
-              color
+              "flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[10px] font-medium",
+              "bg-secondary/80 text-secondary-foreground border border-border/40",
+              "transition-all duration-200 hover:bg-secondary hover:border-border",
+              "active:scale-[0.96]",
+              key === "whatsapp" && "bg-emerald-600/15 text-emerald-400 border-emerald-500/30 hover:bg-emerald-600/25"
             )}
           >
-            <Icon className="h-3.5 w-3.5" />
+            <Icon className="h-3 w-3" />
             {label}
           </button>
         ))}
