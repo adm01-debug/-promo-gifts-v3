@@ -9,6 +9,7 @@ import { PageSEO } from '@/components/seo/PageSEO';
 
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useProductMatch, type MatchFilters, type MatchResult } from '@/hooks/useProductMatch';
+import { MOCK_MATCH_PRODUCTS } from '@/data/mock-match-products';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -258,8 +259,9 @@ export default function ProductMatchPage() {
     onlyInStock: false,
   });
 
-  // Load all products for matching
-  const { data: allProducts = [] } = useProducts({ limit: 500 });
+  // Load all products for matching — fall back to mock data when DB is empty
+  const { data: dbProducts = [] } = useProducts({ limit: 500 });
+  const allProducts = dbProducts.length > 0 ? dbProducts : MOCK_MATCH_PRODUCTS;
 
   const { matches } = useProductMatch(selectedProduct, allProducts, filters);
 
