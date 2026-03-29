@@ -552,7 +552,7 @@ export default function ProductDetail() {
             )}
 
             {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
-            <div className="hidden md:flex items-center gap-3 py-3 border-t border-border flex-wrap">
+            <div className="hidden md:flex items-center gap-3 py-2 border-t border-border flex-wrap">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-semibold text-foreground">{viewCount}</span>
