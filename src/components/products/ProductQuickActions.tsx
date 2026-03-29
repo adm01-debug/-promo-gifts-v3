@@ -10,6 +10,8 @@ import { cn } from "@/lib/utils";
 import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
+import { ShareActions } from "@/components/products/ShareActions";
+import type { Product } from "@/hooks/useProducts";
 
 interface ProductQuickActionsProps {
   productId: string;
