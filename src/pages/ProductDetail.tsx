@@ -24,7 +24,7 @@ import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
 import { ShareActions } from "@/components/products/ShareActions";
-import { RelatedProducts, RecommendedProducts } from "@/components/products/RelatedProducts";
+import { SimilarProducts } from "@/components/products/SimilarProducts";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
