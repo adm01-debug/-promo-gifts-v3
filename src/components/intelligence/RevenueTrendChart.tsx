@@ -1,11 +1,8 @@
-import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Button } from "@/components/ui/button";
 import { useRevenueTrend } from "@/hooks/useCommercialIntelligence";
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, ComposedChart, Legend } from "recharts";
+import { Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Bar, ComposedChart } from "recharts";
 import { TrendingUp } from "lucide-react";
-import { cn } from "@/lib/utils";
 
 export function RevenueTrendChart({ days = 30 }: { days?: number }) {
   const { data: trendData, isLoading } = useRevenueTrend(days);
