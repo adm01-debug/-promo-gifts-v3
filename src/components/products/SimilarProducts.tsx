@@ -158,24 +158,24 @@ export function SimilarProducts({
           </div>
         </div>
 
-        <div className="flex items-center gap-1 shrink-0 ml-4">
+        <div className="flex items-center gap-2 shrink-0 ml-4">
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-lg"
+            className="h-10 w-10 rounded-xl border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
           >
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-5 w-5 text-primary" />
           </Button>
           <Button
             variant="outline"
             size="icon"
-            className="h-8 w-8 rounded-lg"
+            className="h-10 w-10 rounded-xl border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
             onClick={() => scroll("right")}
             disabled={!canScrollRight}
           >
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-5 w-5 text-primary" />
           </Button>
         </div>
       </div>
