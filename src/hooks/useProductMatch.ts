@@ -135,6 +135,7 @@ export function useProductMatch(
   allProducts: Product[],
   filters: Partial<MatchFilters> = {}
 ): { matches: MatchResult[]; isProcessing: boolean } {
+  const mergedFilters: MatchFilters = { ...DEFAULT_FILTERS, ...filters };
   const matchTypesKey = (mergedFilters.matchTypes || []).join(',');
 
   const matches = useMemo(() => {
