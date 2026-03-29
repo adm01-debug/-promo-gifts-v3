@@ -123,38 +123,6 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
         </>
       )}
 
-      {/* Atividade Recente - compacta, inline */}
-      {insights?.recentActivity && insights.recentActivity.length > 0 && (
-        <Card>
-          <CardContent className="p-3">
-            <div className="flex items-center gap-1.5 mb-2">
-              <Clock className="h-3.5 w-3.5 text-primary" />
-              <span className="text-xs font-medium text-muted-foreground">Atividade Recente</span>
-            </div>
-            <div className="space-y-1.5">
-              {insights.recentActivity.slice(0, 5).map((activity, idx) => (
-                <div key={idx} className="flex items-center gap-2">
-                  <div className={cn(
-                    "w-5 h-5 rounded flex items-center justify-center shrink-0",
-                    activity.type === 'view' && "bg-blue-500/10",
-                    activity.type === 'quote' && "bg-amber-500/10",
-                    activity.type === 'order' && "bg-green-500/10"
-                  )}>
-                    {activity.type === 'view' && <Eye className="h-3 w-3 text-blue-500" />}
-                    {activity.type === 'quote' && <FileText className="h-3 w-3 text-amber-500" />}
-                    {activity.type === 'order' && <ShoppingCart className="h-3 w-3 text-green-500" />}
-                  </div>
-                  <p className="text-[11px] font-medium flex-1 truncate">{activity.details}</p>
-                  <span className="text-[10px] text-muted-foreground whitespace-nowrap">
-                    {formatDistanceToNow(new Date(activity.date), { addSuffix: true, locale: ptBR })}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
       {/* Frequentemente Comprados Juntos */}
       {frequentlyBoughtTogether.data && frequentlyBoughtTogether.data.length > 0 && (
         <Card>
