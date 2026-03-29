@@ -155,8 +155,8 @@ export function SimilarProducts({
   const scroll = useCallback((direction: 'left' | 'right') => {
     const el = scrollRef.current;
     if (!el) return;
-    const cardWidth = 192; // 180px card + 12px gap
-    const scrollAmount = cardWidth * 3;
+    const containerWidth = el.clientWidth;
+    const scrollAmount = containerWidth; // scroll one full "page" of 8 cards
     el.scrollBy({ 
       left: direction === 'left' ? -scrollAmount : scrollAmount, 
       behavior: 'smooth' 
