@@ -49,6 +49,7 @@ export default function CommercialIntelligencePage() {
           days={filters.days}
           categoryId={filters.categoryId}
           supplierId={filters.supplierId}
+          productId={filters.productId}
           categoryName={filters.categoryName}
           supplierName={filters.supplierName}
         />
