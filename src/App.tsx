@@ -64,6 +64,7 @@ const AdvancedPriceSearchPage = lazyWithRetry(() => import("./pages/AdvancedPric
 const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
 const MeusKitsPage = lazyWithRetry(() => import("./pages/MeusKitsPage"));
 const CommercialIntelligencePage = lazyWithRetry(() => import("./pages/CommercialIntelligencePage"));
+const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"));
 
 // Orders Pages
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
