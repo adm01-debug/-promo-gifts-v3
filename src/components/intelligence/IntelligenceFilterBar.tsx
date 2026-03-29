@@ -52,6 +52,14 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
     onFiltersChange({ ...filters, categoryId: null, categoryName: null, supplierId: null, supplierName: null, productId: null, productName: null });
   };
 
+  const filteredProducts = useMemo(() => {
+    if (!prodSearch.trim()) return products.slice(0, 50);
+    const q = prodSearch.toLowerCase().trim();
+    return products
+      .filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)))
+      .slice(0, 50);
+  }, [products, prodSearch]);
+
   return (
     <div className="space-y-3">
       {/* Period + Filters Row */}
