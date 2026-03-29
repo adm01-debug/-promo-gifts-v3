@@ -567,6 +567,7 @@ export default function ProductDetail() {
                 "Endomarketing": product.tags.endomarketing || [],
               } : undefined}
               niches={product.tags?.nicho || product.tags?.ramo || undefined}
+              product={product}
             />
 
             {/* Variant Grid */}
