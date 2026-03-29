@@ -6,7 +6,7 @@ import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
-import { useProductsCatalog } from '@/hooks/useProductsLightweight';
+
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useProductMatch, type MatchFilters, type MatchResult } from '@/hooks/useProductMatch';
 import { Input } from '@/components/ui/input';

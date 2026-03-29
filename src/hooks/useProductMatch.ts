@@ -135,7 +135,7 @@ export function useProductMatch(
   allProducts: Product[],
   filters: Partial<MatchFilters> = {}
 ): { matches: MatchResult[]; isProcessing: boolean } {
-  const mergedFilters = { ...DEFAULT_FILTERS, ...filters };
+  const matchTypesKey = (mergedFilters.matchTypes || []).join(',');
 
   const matches = useMemo(() => {
     if (!sourceProduct || allProducts.length === 0) return [];
@@ -163,7 +163,7 @@ export function useProductMatch(
     }
 
     return results.sort((a, b) => b.score - a.score);
-  }, [sourceProduct?.id, allProducts.length, mergedFilters.minScore, mergedFilters.matchTypes.join(','), mergedFilters.categoryFilter, mergedFilters.supplierFilter, mergedFilters.onlyInStock]);
+  }, [sourceProduct, allProducts, mergedFilters.minScore, matchTypesKey, mergedFilters.categoryFilter, mergedFilters.supplierFilter, mergedFilters.onlyInStock]);
 
   return { matches, isProcessing: false };
 }
