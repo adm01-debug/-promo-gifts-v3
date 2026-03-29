@@ -32,6 +32,7 @@ interface InlinePriceCalculatorProps {
   minQuantity?: number;
   productName: string;
   className?: string;
+  defaultOpen?: boolean;
 }
 
 interface SupplierSourcePricing {
