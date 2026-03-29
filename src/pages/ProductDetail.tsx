@@ -620,13 +620,6 @@ export default function ProductDetail() {
           />
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4">
-          <ProductIntelligence 
-            productId={product.id}
-            productSku={product.sku}
-            productName={product.name}
-          />
-        </div>
 
         {/* Produtos Semelhantes */}
         <div className="pt-4 border-t border-border">
