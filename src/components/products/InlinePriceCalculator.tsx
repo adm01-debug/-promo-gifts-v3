@@ -102,8 +102,9 @@ export function InlinePriceCalculator({
   minQuantity = 1,
   productName: _productName,
   className,
+  defaultOpen = false,
 }: InlinePriceCalculatorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const [customQuantity, setCustomQuantity] = useState<number>(minQuantity);
   const [priceTiers, setPriceTiers] = useState<PriceTableRow[]>([]);
   const [isLoading, setIsLoading] = useState(false);
