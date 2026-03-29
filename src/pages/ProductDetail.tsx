@@ -552,7 +552,7 @@ export default function ProductDetail() {
             )}
 
             {/* Actions — compact row: Visualizações → Favoritar → Enviar */}
-            <div className="hidden md:flex items-center gap-3 py-3 border-t border-border">
+            <div className="hidden md:flex items-center gap-3 py-3 border-t border-border flex-wrap">
               <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                 <Eye className="h-3.5 w-3.5" />
                 <span className="font-semibold text-foreground">{viewCount}</span>
@@ -574,20 +574,19 @@ export default function ProductDetail() {
                 {isFavorite ? "Favoritado" : "Favoritar"}
               </Button>
 
-              <div className="ml-auto">
+              <div className="ml-auto flex items-center gap-2 flex-wrap">
                 <ShareActions product={product} />
+                {product.isKit && (
+                  <Button
+                    size="sm"
+                    className="rounded-full px-4 text-xs bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70"
+                    onClick={() => navigate(`/kit-builder?product=${id}`)}
+                  >
+                    <Package className="h-3.5 w-3.5 mr-1" />
+                    Montar no Kit Builder
+                  </Button>
+                )}
               </div>
-            </div>
-              {product.isKit && (
-                <Button
-                  size="sm"
-                  className="rounded-full px-4 text-xs bg-gradient-to-r from-warning to-warning/80 text-warning-foreground hover:from-warning/90 hover:to-warning/70"
-                  onClick={() => navigate(`/kit-builder?product=${id}`)}
-                >
-                  <Package className="h-3.5 w-3.5 mr-1" />
-                  Montar no Kit Builder
-                </Button>
-              )}
             </div>
 
             {/* Tags — Indicado para */}
