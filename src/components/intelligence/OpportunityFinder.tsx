@@ -14,7 +14,7 @@ const MOCK_OPPORTUNITIES: OpportunityProduct[] = [
 ];
 
 export function OpportunityFinder({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
-  const { data: realOpportunities, isLoading } = useOpportunities(days, categoryId, supplierId);
+  const { data: realOpportunities, isLoading } = useOpportunities(days, categoryId, supplierId, productId);
   const navigate = useNavigate();
 
   const hasRealData = !!(realOpportunities?.length);

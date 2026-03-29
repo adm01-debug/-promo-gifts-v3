@@ -18,7 +18,7 @@ const MOCK_TRENDING: TrendingProduct[] = [
 ];
 
 export function TrendingProducts({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
-  const { data: realProducts, isLoading } = useTrendingProducts(days, categoryId, supplierId);
+  const { data: realProducts, isLoading } = useTrendingProducts(days, categoryId, supplierId, productId);
   const navigate = useNavigate();
 
   const hasRealData = !!(realProducts?.length);

@@ -21,7 +21,7 @@ const MOCK_SUPPLIER_SALES: SupplierSaleData[] = [
 ];
 
 export function SupplierSales({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
-  const { data: realSuppliers, isLoading } = useSupplierSales(days, categoryId, supplierId);
+  const { data: realSuppliers, isLoading } = useSupplierSales(days, categoryId, supplierId, productId);
 
   const hasRealData = !!(realSuppliers?.length);
   const isDemo = !hasRealData && !isLoading;

@@ -9,12 +9,13 @@ interface Props {
   days: number;
   categoryId?: string | null;
   supplierId?: string | null;
+  productId?: string | null;
   categoryName?: string | null;
   supplierName?: string | null;
 }
 
-export function IntelligenceKPICards({ days, categoryId, supplierId, categoryName, supplierName }: Props) {
-  const { data: kpis, isLoading } = useCommercialKPIs(days, categoryId, supplierId);
+export function IntelligenceKPICards({ days, categoryId, supplierId, productId, categoryName, supplierName }: Props) {
+  const { data: kpis, isLoading } = useCommercialKPIs(days, categoryId, supplierId, productId);
 
   const formatCurrency = (v: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
