@@ -72,7 +72,7 @@ export function MainLayout({ children }: MainLayoutProps) {
           </Suspense>
         </div>
         
-        <div className="flex-1 flex flex-col min-h-screen print:min-h-0">
+        <div className="flex-1 flex flex-col min-h-screen min-w-0 overflow-x-hidden print:min-h-0">
           <div className="print:hidden">
             <Suspense fallback={<div className="h-16" />}>
               <Header 
