@@ -378,7 +378,7 @@ export function ProductGallery({
             </button>
           </div>
           
-          <div className="flex gap-3 overflow-x-auto xl:overflow-x-visible xl:flex-wrap pb-2 scrollbar-thin">
+          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
             {sortedColors.map((color) => {
               // Encontrar o índice original para manter a seleção funcionando
               const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
@@ -398,7 +398,7 @@ export function ProductGallery({
                   key={`${color.name}-${color.sku}`}
                   onClick={() => handleColorClick(originalIndex)}
                     className={cn(
-                      "group/color relative shrink-0 xl:shrink w-24 xl:w-[calc((100%-1.5rem*4)/5)] rounded-xl overflow-hidden transition-all duration-300",
+                      "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
                       "bg-card shadow-md hover:shadow-lg hover:-translate-y-1"
                     )}
                   style={{
