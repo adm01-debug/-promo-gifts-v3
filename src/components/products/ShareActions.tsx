@@ -81,7 +81,7 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="rounded-l-none px-2">
+            <Button className="rounded-l-none px-2 bg-emerald-600 hover:bg-emerald-700 text-white">
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
