@@ -151,7 +151,7 @@ export default function AdminProductFormPage() {
       requires_special_shipping: p.requires_special_shipping ?? false,
       shipping_notes: p.shipping_notes ?? '',
       lead_time_days: p.lead_time_days ?? null,
-      product_type: p.product_type ?? 'product',
+      // product_type already set above at line ~92
       supply_mode: p.supply_mode ?? '',
       warranty_months: p.warranty_months ?? null,
       gender: p.gender ?? '',
