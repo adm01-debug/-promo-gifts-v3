@@ -24,7 +24,7 @@ import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
 import { ShareActions } from "@/components/products/ShareActions";
-import { RelatedProducts, RecommendedProducts } from "@/components/products/RelatedProducts";
+import { SimilarProducts } from "@/components/products/SimilarProducts";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
@@ -48,7 +48,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 import { cn } from "@/lib/utils";
-import { useProduct, useRelatedProducts, type Product } from "@/hooks/useProducts";
+import { useProduct, type Product } from "@/hooks/useProducts";
 import { sortVariationsByColor } from "@/utils/colorSorting";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 
@@ -65,7 +65,7 @@ import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
-import { useProductsContext } from "@/contexts/ProductsContext";
+
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 
 /** Collapsible wrapper for personalization section */
@@ -121,15 +121,9 @@ export default function ProductDetail() {
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedStore();
-  const { registerProducts } = useProductsContext();
 
   const { data: product, isLoading, isError } = useProduct(id || "");
-  const { data: relatedProductsList = [] } = useRelatedProducts(product, 20);
   const { data: supplierTrust } = useSupplierTrust(id);
-
-  useEffect(() => {
-    if (relatedProductsList.length > 0) registerProducts(relatedProductsList);
-  }, [relatedProductsList, registerProducts]);
 
   useEffect(() => {
     if (product) {
@@ -606,10 +600,9 @@ export default function ProductDetail() {
           />
         </div>
 
-        {/* Related & Recommended */}
-        <div className="space-y-6 pt-4 border-t border-border">
-          <RelatedProducts currentProduct={product} allProducts={relatedProductsList} maxItems={4} />
-          <RecommendedProducts currentProduct={product} allProducts={relatedProductsList} maxItems={4} />
+        {/* Produtos Semelhantes */}
+        <div className="pt-4 border-t border-border">
+          <SimilarProducts currentProduct={product} maxItems={12} />
         </div>
 
         {/* Modals */}
