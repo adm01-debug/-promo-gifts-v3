@@ -44,19 +44,19 @@ export default function CommercialIntelligencePage() {
         <IntelligenceFilterBar filters={filters} onFiltersChange={setFilters} />
 
         {/* 1. Market Intelligence — estoque dos concorrentes (macro) */}
-        <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} />
+        <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} productId={filters.productId} />
 
         {/* 2+3. Produtos em Alta + Vendas por Fornecedor (side by side) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
-          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+          <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} />
+          <SupplierSales days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} />
         </div>
 
         {/* 4. Oportunidades de Conversão — cotados mas não vendidos */}
-        <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+        <OpportunityFinder days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} productId={filters.productId} />
 
         {/* 5. Vendas Internas (macro) — orçamentos vs pedidos */}
-        <SalesOverviewChart days={filters.days} />
+        <SalesOverviewChart days={filters.days} productId={filters.productId} />
       </div>
     </MainLayout>
   );
