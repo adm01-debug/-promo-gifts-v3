@@ -51,9 +51,9 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
     queryFn: async () => {
       const companies = await selectCrm<CrmCompany>("companies", {
         select: "id, razao_social, nome_fantasia, logo_url, ramo_atividade",
-        filters: { deleted_at: null },
+        filters: { deleted_at: null, is_customer: true },
         orderBy: { column: "razao_social", ascending: true },
-        limit: 500,
+        limit: 100,
       });
       return companies.map((c): CompanyItem => ({
         id: c.id,
