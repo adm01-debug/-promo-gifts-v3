@@ -66,6 +66,7 @@ const navGroups: NavGroup[] = [
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
       { icon: Package, label: "Montador de Kits", href: "/montar-kit" },
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
+      { icon: Zap, label: "Match", href: "/match" },
     ],
   },
   {
