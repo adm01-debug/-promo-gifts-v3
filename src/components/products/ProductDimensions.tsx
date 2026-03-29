@@ -1,4 +1,4 @@
-import { Ruler, Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal, Droplets } from "lucide-react";
+import { Scale, Box, ArrowUpDown, ArrowLeftRight, MoveHorizontal, Droplets } from "lucide-react";
 
 interface ProductDimensionsProps {
   dimensions?: {
@@ -16,12 +16,13 @@ interface SpecItemProps {
   icon: React.ReactNode;
   label: string;
   value: string;
+  unit: string;
   iconBgClass?: string;
   iconColorClass?: string;
   compact?: boolean;
 }
 
-function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColorClass = "text-primary", compact }: SpecItemProps) {
+function SpecItem({ icon, label, value, unit, iconBgClass = "bg-primary/10", iconColorClass = "text-primary", compact }: SpecItemProps) {
   if (compact) {
     return (
       <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border">
@@ -29,21 +30,21 @@ function SpecItem({ icon, label, value, iconBgClass = "bg-primary/10", iconColor
           <span className={iconColorClass}>{icon}</span>
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] text-muted-foreground leading-tight">{label}</p>
-          <p className="text-xs font-medium text-foreground leading-tight">{value}</p>
+          <p className="text-[10px] text-muted-foreground leading-tight truncate">{label}</p>
+          <p className="text-xs font-medium text-foreground leading-tight">{value} {unit}</p>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="flex items-center gap-3 p-3.5 rounded-xl bg-secondary/50 border border-border min-w-0">
+    <div className="flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border text-center">
       <div className={`w-10 h-10 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0`}>
         <span className={iconColorClass}>{icon}</span>
       </div>
-      <div className="min-w-0">
-        <p className="text-xs text-muted-foreground truncate">{label}</p>
-        <p className="text-sm font-bold text-foreground leading-snug">{value}</p>
-      </div>
+      <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>
+      <p className="text-base font-bold text-foreground leading-none">{value}</p>
+      <p className="text-[10px] text-muted-foreground leading-none">{unit}</p>
     </div>
   );
 }
@@ -58,40 +59,41 @@ export function ProductDimensions({ dimensions, compact }: ProductDimensionsProp
   if (!hasAnySpec) return null;
 
   const formatWeight = (g: number) => {
-    if (g >= 1000) {
-      return `${(g / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 })} kg`;
-    }
-    return `${g.toLocaleString('pt-BR')} g`;
+    if (g >= 1000) return { val: (g / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 2 }), unit: 'kg' };
+    return { val: g.toLocaleString('pt-BR'), unit: 'g' };
+  };
+
+  const formatCapacity = (ml: number) => {
+    if (ml >= 1000) return { val: (ml / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 }), unit: 'L' };
+    return { val: ml.toLocaleString('pt-BR'), unit: 'ml' };
   };
 
   const specs: SpecItemProps[] = [];
 
   if (diameter_cm) {
-    specs.push({ icon: <Box className="h-5 w-5" />, label: "Diâmetro", value: `${diameter_cm} cm` });
+    specs.push({ icon: <Box className="h-5 w-5" />, label: "Diâmetro", value: `${diameter_cm}`, unit: "cm" });
   }
   if (height_cm) {
-    specs.push({ icon: <ArrowUpDown className="h-5 w-5" />, label: "Altura", value: `${height_cm} cm` });
+    specs.push({ icon: <ArrowUpDown className="h-5 w-5" />, label: "Altura", value: `${height_cm}`, unit: "cm" });
   }
   if (width_cm) {
-    specs.push({ icon: <ArrowLeftRight className="h-5 w-5" />, label: "Largura", value: `${width_cm} cm` });
+    specs.push({ icon: <ArrowLeftRight className="h-5 w-5" />, label: "Largura", value: `${width_cm}`, unit: "cm" });
   }
   if (length_cm) {
-    specs.push({ icon: <MoveHorizontal className="h-5 w-5" />, label: "Profundidade", value: `${length_cm} cm` });
+    specs.push({ icon: <MoveHorizontal className="h-5 w-5" />, label: "Profundidade", value: `${length_cm}`, unit: "cm" });
   }
   if (capacity_ml) {
-    const formatCapacity = (ml: number) => {
-      if (ml >= 1000) return `${(ml / 1000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })} L`;
-      return `${ml.toLocaleString('pt-BR')} ml`;
-    };
-    specs.push({ icon: <Droplets className="h-5 w-5" />, label: "Capacidade", value: formatCapacity(capacity_ml), iconBgClass: "bg-cyan-500/10", iconColorClass: "text-cyan-500" });
+    const cap = formatCapacity(capacity_ml);
+    specs.push({ icon: <Droplets className="h-5 w-5" />, label: "Capacidade", value: cap.val, unit: cap.unit, iconBgClass: "bg-cyan-500/10", iconColorClass: "text-cyan-500" });
   }
   if (weight_g) {
-    specs.push({ icon: <Scale className="h-5 w-5" />, label: "Peso", value: formatWeight(weight_g), iconBgClass: "bg-info/10", iconColorClass: "text-info" });
+    const w = formatWeight(weight_g);
+    specs.push({ icon: <Scale className="h-5 w-5" />, label: "Peso", value: w.val, unit: w.unit, iconBgClass: "bg-info/10", iconColorClass: "text-info" });
   }
 
   if (compact) {
     return (
-      <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-4 gap-1.5 xl:gap-2">
+      <div className="grid grid-cols-3 gap-2">
         {specs.map((spec, index) => (
           <SpecItem key={index} {...spec} compact />
         ))}
