@@ -3,7 +3,7 @@
  * Tabela de Preços | Personalização | Indicação | Nicho | WhatsApp
  */
 import { useState } from "react";
-import { TableProperties, Palette, Target, Layers, MessageCircle } from "lucide-react";
+import { TableProperties, Palette, Target, Layers } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
