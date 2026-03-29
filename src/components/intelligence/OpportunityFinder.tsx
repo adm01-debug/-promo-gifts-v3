@@ -13,7 +13,7 @@ const MOCK_OPPORTUNITIES: OpportunityProduct[] = [
   { productId: 'mock-op-4', productSku: 'NEC-012', productName: 'Necessaire Viagem Premium', productImage: null, quoteCount: 7, orderCount: 2, conversionRate: 29, opportunityScore: 50, reason: 'Conversão abaixo da média' },
 ];
 
-export function OpportunityFinder({ days = 30, categoryId, supplierId, productId }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null }) {
+export function OpportunityFinder({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: realOpportunities, isLoading } = useOpportunities(days, categoryId, supplierId);
   const navigate = useNavigate();
 
