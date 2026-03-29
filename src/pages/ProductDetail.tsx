@@ -401,11 +401,11 @@ export default function ProductDetail() {
                 )}
                 <div className="relative space-y-2">
                   <div>
-                    <p className="text-[11px] text-muted-foreground">A partir de</p>
-                    <span className="text-2xl font-display font-bold text-foreground">
+                    <p className="text-[11px] xl:text-xs text-muted-foreground">A partir de</p>
+                    <span className="text-2xl xl:text-3xl font-display font-bold text-foreground">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="text-sm text-muted-foreground ml-1">/un</span>
+                    <span className="text-sm xl:text-base text-muted-foreground ml-1">/un</span>
                   </div>
                   
                   {/* Stock per color */}
