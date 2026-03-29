@@ -14,6 +14,7 @@ import {
   ChevronDown,
   ChevronUp,
   FileText,
+  Eye,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductGallery } from "@/components/products/ProductGallery";
