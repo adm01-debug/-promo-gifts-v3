@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Filter, X, ChevronDown, Package } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Filter, X, ChevronDown, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -43,6 +43,7 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
   const [catOpen, setCatOpen] = useState(false);
   const [supOpen, setSupOpen] = useState(false);
   const [prodOpen, setProdOpen] = useState(false);
+  const [prodSearch, setProdSearch] = useState("");
 
   const activeFilterCount =
     (filters.categoryId ? 1 : 0) + (filters.supplierId ? 1 : 0) + (filters.productId ? 1 : 0);
@@ -50,6 +51,14 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
   const clearAll = () => {
     onFiltersChange({ ...filters, categoryId: null, categoryName: null, supplierId: null, supplierName: null, productId: null, productName: null });
   };
+
+  const filteredProducts = useMemo(() => {
+    if (!prodSearch.trim()) return products.slice(0, 50);
+    const q = prodSearch.toLowerCase().trim();
+    return products
+      .filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)))
+      .slice(0, 50);
+  }, [products, prodSearch]);
 
   return (
     <div className="space-y-3">
@@ -193,38 +202,78 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
               <ChevronDown className="h-3 w-3 opacity-50" />
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-72 p-0" align="start">
-            <Command>
-              <CommandInput placeholder="Buscar produto por nome ou SKU..." />
-              <CommandList className="max-h-64">
-                <CommandEmpty>Nenhum produto encontrado.</CommandEmpty>
+          <PopoverContent className="w-80 p-0" align="start">
+            <Command shouldFilter={false}>
+              <CommandInput
+                placeholder="Buscar produto por nome ou SKU..."
+                value={prodSearch}
+                onValueChange={setProdSearch}
+              />
+              <CommandList className="max-h-72">
+                <CommandEmpty>
+                  <div className="flex flex-col items-center py-4 text-muted-foreground">
+                    <Search className="h-8 w-8 mb-2 opacity-40" />
+                    <p className="text-sm">Nenhum produto encontrado</p>
+                    <p className="text-xs">Tente outro termo de busca</p>
+                  </div>
+                </CommandEmpty>
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => {
                       onFiltersChange({ ...filters, productId: null, productName: null });
                       setProdOpen(false);
+                      setProdSearch("");
                     }}
                   >
                     <span className="text-muted-foreground">Todos os produtos</span>
                   </CommandItem>
-                  {products.map((prod) => (
+                  {filteredProducts.map((prod) => (
                     <CommandItem
                       key={prod.id}
-                      value={`${prod.name} ${prod.sku || ''}`}
+                      value={prod.id}
                       onSelect={() => {
                         onFiltersChange({ ...filters, productId: prod.id, productName: prod.name });
                         setProdOpen(false);
+                        setProdSearch("");
                       }}
+                      className="flex items-center gap-2.5 py-2"
                     >
+                      {/* Thumbnail */}
+                      <div className="w-8 h-8 rounded-md overflow-hidden bg-muted border border-border/50 shrink-0">
+                        {prod.image_url && prod.image_url !== '/placeholder.svg' ? (
+                          <img
+                            src={prod.image_url}
+                            alt=""
+                            className="w-full h-full object-contain"
+                            loading="lazy"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Package className="h-3.5 w-3.5 text-muted-foreground" />
+                          </div>
+                        )}
+                      </div>
+                      {/* Name + SKU with highlight */}
                       <div className={cn(
-                        "flex flex-col",
+                        "flex flex-col min-w-0 flex-1",
                         filters.productId === prod.id && "font-semibold text-primary"
                       )}>
-                        <span className="text-sm truncate">{prod.name}</span>
-                        {prod.sku && <span className="text-[10px] text-muted-foreground">{prod.sku}</span>}
+                        <span className="text-sm truncate">
+                          <HighlightText text={prod.name} query={prodSearch} />
+                        </span>
+                        {prod.sku && (
+                          <span className="text-[10px] text-muted-foreground truncate">
+                            <HighlightText text={prod.sku} query={prodSearch} />
+                          </span>
+                        )}
                       </div>
                     </CommandItem>
                   ))}
+                  {prodSearch && filteredProducts.length >= 50 && (
+                    <div className="px-3 py-2 text-[10px] text-muted-foreground text-center">
+                      Mostrando 50 resultados · refine sua busca
+                    </div>
+                  )}
                 </CommandGroup>
               </CommandList>
             </Command>
@@ -276,5 +325,24 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
         </div>
       )}
     </div>
+  );
+}
+
+/** Highlights matching portions of text */
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp(`(${escaped})`, 'gi');
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, i) =>
+        regex.test(part) ? (
+          <mark key={i} className="bg-primary/20 text-primary rounded-sm px-0.5">{part}</mark>
+        ) : (
+          <span key={i}>{part}</span>
+        )
+      )}
+    </>
   );
 }
