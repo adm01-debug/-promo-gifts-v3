@@ -21,6 +21,7 @@ interface ProductQuickActionsProps {
   minQuantity: number;
   tags?: Record<string, string[]>;
   niches?: string[];
+  product?: Product;
 }
 
 type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | "whatsapp" | null;
