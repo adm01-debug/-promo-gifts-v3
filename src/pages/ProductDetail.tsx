@@ -607,21 +607,7 @@ export default function ProductDetail() {
               </div>
             </div>
 
-            {/* Tags — Indicado para */}
-            <div id="sec-indicado" className="scroll-mt-28 space-y-1.5">
-              <h3 className="font-display text-base font-semibold text-foreground">Indicado para</h3>
-              <div className="flex flex-wrap gap-1.5">
-                {product.tags.publicoAlvo.map((tag) => (
-                  <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">👤 {tag}</Badge>
-                ))}
-                {product.tags.datasComemorativas.map((tag) => (
-                  <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">📅 {tag}</Badge>
-                ))}
-                {product.tags.endomarketing.slice(0, 3).map((tag) => (
-                  <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">🎯 {tag}</Badge>
-                ))}
-              </div>
-            </div>
+          </div>
           </div>
         </div>
 
