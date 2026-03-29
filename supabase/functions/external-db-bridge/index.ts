@@ -53,15 +53,22 @@ function applyFilters(
     }
 
     if (typeof value === 'string') {
-      // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq.
-      const operatorMatch = value.match(/^(gte|lte|gt|lt|neq)\.(.+)$/);
-      if (operatorMatch) {
-        const [, op, val] = operatorMatch;
-        query = query[op](key, val);
-      } else if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
-        query = query.ilike(key, `%${value}%`);
+      // Support PostgREST-style in.(val1,val2,...) operator
+      const inMatch = value.match(/^in\.\((.+)\)$/);
+      if (inMatch) {
+        const vals = inMatch[1].split(',').map(v => v.trim());
+        query = query.in(key, vals);
       } else {
-        query = query.eq(key, value);
+        // Support PostgREST-style comparison operators: gte., lte., gt., lt., neq.
+        const operatorMatch = value.match(/^(gte|lte|gt|lt|neq)\.(.+)$/);
+        if (operatorMatch) {
+          const [, op, val] = operatorMatch;
+          query = query[op](key, val);
+        } else if (['name', 'description', 'title', 'razao_social', 'nome_fantasia', 'nome', 'descricao'].includes(key)) {
+          query = query.ilike(key, `%${value}%`);
+        } else {
+          query = query.eq(key, value);
+        }
       }
     } else if (Array.isArray(value)) {
       query = query.in(key, value);
