@@ -9,6 +9,7 @@ import { PageSEO } from '@/components/seo/PageSEO';
 
 import { useProducts, type Product } from '@/hooks/useProducts';
 import { useProductMatch, type MatchFilters, type MatchResult } from '@/hooks/useProductMatch';
+import { MOCK_MATCH_PRODUCTS } from '@/data/mock-match-products';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
