@@ -105,11 +105,11 @@ export interface RevenuePoint {
   quotes: number;
 }
 
-export function useCommercialKPIs(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useCommercialKPIs(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-intelligence-kpis', user?.id, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
@@ -186,11 +186,11 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
   });
 }
 
-export function useTrendingProducts(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useTrendingProducts(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-trending-products', user?.id, days, categoryId, supplierId],
@@ -244,11 +244,11 @@ export function useTrendingProducts(days = 30, categoryId?: string | null, suppl
   });
 }
 
-export function useSegmentAnalysis(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useSegmentAnalysis(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-segments', user?.id, days, categoryId, supplierId],
@@ -306,11 +306,11 @@ function aggregateSegments(orders: Array<{ client_company?: string | null; total
     .slice(0, 10);
 }
 
-export function useOpportunities(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useOpportunities(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-opportunities', user?.id, days, categoryId, supplierId],
@@ -368,10 +368,10 @@ export function useOpportunities(days = 30, categoryId?: string | null, supplier
   });
 }
 
-export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-revenue-trend', user?.id, days, categoryId, supplierId],
@@ -444,11 +444,11 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
   });
 }
 
-export function useTopClients(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useTopClients(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-top-clients', user?.id, days, categoryId, supplierId],
@@ -508,11 +508,11 @@ function aggregateClients(orders: Array<{ client_name?: string | null; client_co
     .slice(0, 10);
 }
 
-export function useSupplierSales(days = 30, categoryId?: string | null, supplierId?: string | null) {
+export function useSupplierSales(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
   const since = getSinceDate(days);
-  const { data: productIds } = useFilteredProductIds(categoryId, supplierId);
-  const hasFilter = !!(categoryId || supplierId);
+  const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
+  const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
     queryKey: ['commercial-supplier-sales', user?.id, days, categoryId, supplierId],
