@@ -28,6 +28,7 @@ import { ShareActions } from "@/components/products/ShareActions";
 import { SimilarProducts } from "@/components/products/SimilarProducts";
 import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
 import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
+import { ProductQuickActions } from "@/components/products/ProductQuickActions";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { StockHistoryChart } from "@/components/products/StockHistoryChart";
 import { SalesHistoryChart } from "@/components/products/SalesHistoryChart";
