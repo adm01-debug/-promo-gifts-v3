@@ -619,12 +619,12 @@ export default function ProductDetail() {
         </div>
 
         {/* Produtos Semelhantes */}
-        <div className="pt-4 border-t border-border">
+        <div className="pt-6 xl:pt-8 border-t border-border/60">
           <SimilarProducts currentProduct={product} maxItems={12} />
         </div>
 
         {/* Below-fold sections — compact */}
-        <div className="grid md:grid-cols-2 gap-4 pt-4 border-t border-border">
+        <div className="grid md:grid-cols-2 gap-4 xl:gap-6 pt-6 xl:pt-8 border-t border-border/60">
           <StockHistoryChart
             productId={product.id}
             productName={product.name}
