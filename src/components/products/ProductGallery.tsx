@@ -404,7 +404,7 @@ export function ProductGallery({
             </div>
           </div>
           
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin" style={{ scrollbarWidth: 'none' }}>
+          <div ref={variationsScrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin" style={{ scrollbarWidth: 'none' }}>
             {sortedColors.map((color) => {
               // Encontrar o índice original para manter a seleção funcionando
               const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
