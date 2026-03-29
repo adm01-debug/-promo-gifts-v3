@@ -20,7 +20,7 @@ const MOCK_SUPPLIER_SALES: SupplierSaleData[] = [
   { supplierName: 'Criative Promo', orderCount: 28, revenue: 19200, productCount: 11 },
 ];
 
-export function SupplierSales({ days = 30, categoryId, supplierId }: { days?: number; categoryId?: string | null; supplierId?: string | null }) {
+export function SupplierSales({ days = 30, categoryId, supplierId, productId }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null }) {
   const { data: realSuppliers, isLoading } = useSupplierSales(days, categoryId, supplierId);
 
   const hasRealData = !!(realSuppliers?.length);
