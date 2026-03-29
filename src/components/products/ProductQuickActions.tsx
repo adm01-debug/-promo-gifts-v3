@@ -118,7 +118,10 @@ export function ProductQuickActions({
             </DialogTitle>
             <DialogDescription>Técnicas e locais de gravação disponíveis</DialogDescription>
           </DialogHeader>
-          <PersonalizationCollapsible id={productId} productSku={productSku} productName={productName} />
+          <div className="space-y-4">
+            <ProductCustomizationOptions productId={productId} productSku={productSku} />
+            <ProductPersonalizationRules productId={productId} productSku={productSku} productName={productName} />
+          </div>
         </DialogContent>
       </Dialog>
 

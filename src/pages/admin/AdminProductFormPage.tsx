@@ -211,7 +211,7 @@ export default function AdminProductFormPage() {
         is_bestseller_expires_at: data.is_bestseller_expires_at || null,
         is_new_expires_at: data.is_new_expires_at || null,
         is_on_sale_expires_at: data.is_on_sale_expires_at || null,
-        is_kit: data.is_kit,
+        // is_kit already set above at line ~201
         has_commercial_packaging: data.has_commercial_packaging,
         is_imported: data.is_imported,
         is_textil: data.is_textil,
