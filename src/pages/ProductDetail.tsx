@@ -306,6 +306,23 @@ export default function ProductDetail() {
               }}
               selectedColorIndex={product.variations?.findIndex(v => v.id === selectedVariation?.id) ?? -1}
             />
+
+            {product.tags && (product.tags.publicoAlvo?.length > 0 || product.tags.datasComemorativas?.length > 0 || product.tags.endomarketing?.length > 0) && (
+              <div id="sec-indicado" className="rounded-xl border border-border bg-card/50 p-3 space-y-2">
+                <h3 className="font-display text-sm font-semibold text-foreground">Indicado para</h3>
+                <div className="flex flex-wrap gap-1.5">
+                  {product.tags.publicoAlvo?.map((tag: string) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">👤 {tag}</Badge>
+                  ))}
+                  {product.tags.datasComemorativas?.map((tag: string) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">📅 {tag}</Badge>
+                  ))}
+                  {product.tags.endomarketing?.slice(0, 3).map((tag: string) => (
+                    <Badge key={tag} variant="outline" className="px-2 py-1 text-xs rounded-full">🎯 {tag}</Badge>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* RIGHT — All product info in a compact flow */}
