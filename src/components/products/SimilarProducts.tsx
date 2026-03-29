@@ -181,7 +181,7 @@ export function SimilarProducts({
         </div>
 
         {/* Scroll arrows */}
-        <div className="flex items-center gap-1">
+        <div className="flex items-center gap-1 shrink-0 ml-4">
           <Button
             variant="outline"
             size="icon"
