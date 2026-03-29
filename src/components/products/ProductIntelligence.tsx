@@ -65,10 +65,8 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
       ) : (
         <>
           {/* Métricas em linha compacta */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             <MetricCard icon={Eye} label="Visualizações" value={insights?.totalViews || 0} color="blue" />
-            <MetricCard icon={FileText} label="Em Cotações" value={insights?.totalQuotes || 0} color="amber" />
-            <MetricCard icon={ShoppingCart} label="Pedidos" value={insights?.totalOrders || 0} color="green" />
             <MetricCard icon={Target} label="Conversão" value={`${insights?.conversionRate || 0}%`} color="purple" />
           </div>
 
