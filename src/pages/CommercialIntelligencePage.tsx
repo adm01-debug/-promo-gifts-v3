@@ -4,6 +4,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/intelligence/IntelligenceFilterBar";
 import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
+import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
 import { Brain } from "lucide-react";
 
 export default function CommercialIntelligencePage() {
@@ -41,7 +42,10 @@ export default function CommercialIntelligencePage() {
         {/* Market Intelligence — what competitors/market is buying */}
         <MarketIntelligenceChart days={filters.days} supplierId={filters.supplierId} />
 
-        {/* Internal Sales — our sales macro */}
+        {/* Trending Products — produtos que mais vendem */}
+        <TrendingProducts days={filters.days} categoryId={filters.categoryId} supplierId={filters.supplierId} />
+
+        {/* Internal Sales — our sales macro (sem ranking de vendedores) */}
         <SalesOverviewChart days={filters.days} />
       </div>
     </MainLayout>

@@ -173,19 +173,6 @@ export function SalesOverviewChart({ days = 30 }: Props) {
           </ResponsiveContainer>
         </div>
 
-        {/* Top Sellers */}
-        {kpis && kpis.topSellers.length > 0 && (
-          <div className="space-y-1.5">
-            <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
-              <Crown className="h-3 w-3" /> Top Vendedores
-            </p>
-            <div className="space-y-1">
-              {kpis.topSellers.map((seller, i) => (
-                <SellerRow key={seller.sellerId} seller={seller} rank={i + 1} />
-              ))}
-            </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );
