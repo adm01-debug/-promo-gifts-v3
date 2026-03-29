@@ -42,11 +42,12 @@ interface SalesHistoryChartProps {
 
 // ---------- Main Component ----------
 
-export function SalesHistoryChart({ productId, productName }: SalesHistoryChartProps) {
+export function SalesHistoryChart({ productId, productSku, productName }: SalesHistoryChartProps) {
   const [period, setPeriod] = useState<string>('30');
   const days = Number(period);
 
   const { data, isLoading, error, refetch } = useSalesHistory(productId, days);
+  const { data: insights } = useProductInsights(productId, productSku);
 
   const hasData = !!data?.daily?.length;
 
