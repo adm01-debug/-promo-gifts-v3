@@ -1,11 +1,12 @@
-import { useState } from "react";
-import { Filter, X, ChevronDown } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Filter, X, ChevronDown, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useCategories } from "@/hooks/useCategories";
 import { useSuppliers } from "@/hooks/useSuppliers";
+import { useProductsLightweight } from "@/hooks/useProductsLightweight";
 import { cn } from "@/lib/utils";
 
 export interface IntelligenceFilters {
@@ -14,6 +15,8 @@ export interface IntelligenceFilters {
   categoryName: string | null;
   supplierId: string | null;
   supplierName: string | null;
+  productId: string | null;
+  productName: string | null;
 }
 
 interface IntelligenceFilterBarProps {
