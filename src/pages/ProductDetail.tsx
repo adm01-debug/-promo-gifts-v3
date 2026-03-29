@@ -590,7 +590,7 @@ export default function ProductDetail() {
             </div>
 
             {/* Tags — Indicado para */}
-            <div id="sec-indicado" className="scroll-mt-28 space-y-2 pt-2 border-t border-border">
+            <div id="sec-indicado" className="scroll-mt-28 space-y-1.5 pt-1 border-t border-border">
               <h3 className="font-display text-base font-semibold text-foreground">Indicado para</h3>
               <div className="flex flex-wrap gap-1.5">
                 {product.tags.publicoAlvo.map((tag) => (
