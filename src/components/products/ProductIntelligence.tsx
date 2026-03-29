@@ -57,9 +57,8 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
         </Card>
       ) : (
         <>
-          {/* Métricas em linha compacta */}
-          <div className="grid grid-cols-2 gap-2">
-            <MetricCard icon={Eye} label="Visualizações" value={insights?.totalViews || 0} color="blue" />
+          {/* Métrica de conversão */}
+          <div className="grid grid-cols-1 gap-2">
             <MetricCard icon={Target} label="Conversão" value={`${insights?.conversionRate || 0}%`} color="purple" />
           </div>
 
