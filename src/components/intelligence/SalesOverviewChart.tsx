@@ -160,7 +160,7 @@ export function SalesOverviewChart({ days = 30 }: Props) {
               <XAxis dataKey="dateFormatted" tick={{ fontSize: 10 }} className="fill-muted-foreground" interval="preserveStartEnd" />
               <YAxis yAxisId="qty" tick={{ fontSize: 10 }} className="fill-muted-foreground" width={45} />
               <YAxis yAxisId="value" orientation="right" hide />
-              <Tooltip content={<SalesMacroTooltip />} />
+              <Tooltip content={(props) => <SalesMacroTooltip {...props} />} />
               <Legend
                 wrapperStyle={{ fontSize: '10px', paddingTop: '4px' }}
                 iconSize={8}
