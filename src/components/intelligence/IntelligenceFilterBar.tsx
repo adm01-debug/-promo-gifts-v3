@@ -75,10 +75,20 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
   const filteredProducts = useMemo(() => {
     if (!prodSearch.trim()) return products.slice(0, 50);
     const q = prodSearch.toLowerCase().trim();
-    return products
-      .filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q)))
-      .slice(0, 50);
+    return products.filter(p => p.name.toLowerCase().includes(q) || (p.sku && p.sku.toLowerCase().includes(q))).slice(0, 50);
   }, [products, prodSearch]);
+
+  const filteredCategories = useMemo(() => {
+    if (!catSearch.trim()) return categories;
+    const q = catSearch.toLowerCase().trim();
+    return categories.filter(c => c.name.toLowerCase().includes(q));
+  }, [categories, catSearch]);
+
+  const filteredSuppliers = useMemo(() => {
+    if (!supSearch.trim()) return suppliers;
+    const q = supSearch.toLowerCase().trim();
+    return suppliers.filter(s => s.name.toLowerCase().includes(q));
+  }, [suppliers, supSearch]);
 
   return (
     <div className="space-y-3">
