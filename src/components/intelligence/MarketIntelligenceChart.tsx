@@ -1,9 +1,9 @@
 /**
  * MarketIntelligenceChart — Visão MACRO de mercado
- * Mostra movimentação agregada de estoque de todos os produtos/fornecedores.
- * "O que o mercado está comprando dos nossos concorrentes"
+ * Replica o layout do StockHistoryChart (página de produto)
+ * mas com dados agregados de todos os produtos.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   Area,
@@ -17,18 +17,48 @@ import {
 } from "recharts";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Target, ShoppingCart, BarChart3, TrendingUp, Package, AlertCircle } from "lucide-react";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Target,
+  ShoppingCart,
+  BarChart3,
+  TrendingUp,
+  TrendingDown,
+  Minus,
+  Package,
+  Loader2,
+  AlertCircle,
+  DollarSign,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 import { KpiCard } from "@/components/ui/kpi-card";
-import { useMarketIntelligenceMacro } from "@/hooks/useMarketIntelligenceMacro";
+import { useMarketIntelligenceMacro, type MacroSupplierMetrics } from "@/hooks/useMarketIntelligenceMacro";
+import { useSupplierNames } from "@/hooks/useSupplierNames";
 import { safeParseDateForChart } from "@/lib/stock-chart-utils";
+import { SupplierChartFilter } from "@/components/products/SupplierChartFilter";
 
 interface Props {
   days?: number;
   supplierId?: string | null;
 }
 
-export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
+export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId }: Props) {
+  const [period, setPeriod] = useState<string>(String(defaultDays));
+  const [selectedSupplier, setSelectedSupplier] = useState<string>('all');
+  const days = Number(period);
+
   const { data, isLoading, error } = useMarketIntelligenceMacro(days, supplierId);
+
+  // Supplier names
+  const { data: supplierNamesMap } = useSupplierNames(data?.supplierIds ?? []);
+
+  const supplierOptions = useMemo(() => {
+    if (!data?.supplierIds?.length || data.supplierIds.length <= 1) return [];
+    return data.supplierIds.map(id => ({
+      id,
+      name: supplierNamesMap?.get(id) ?? `Fornecedor ${id.slice(0, 6)}`,
+    }));
+  }, [data?.supplierIds, supplierNamesMap]);
 
   const chartData = useMemo(() => {
     if (!data?.daily?.length) return [];
@@ -73,7 +103,14 @@ export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
   const trend7d = (kpis?.totalDepleted7d ?? 0) / 7;
   const trend30d = (kpis?.totalDepleted30d ?? 0) / Math.max(days, 1);
   const trendRatio = trend30d > 0 ? trend7d / trend30d : 1;
+  const trendPercent = Math.round((trendRatio - 1) * 100);
   const trendLabel = trendRatio > 1.2 ? '↑ acelerando' : trendRatio < 0.8 ? '↓ desacelerando' : '→ estável';
+
+  const supplierText = useMemo(() => {
+    const count = kpis?.supplierCount ?? 0;
+    if (count === 0) return 'no fornecedor';
+    return `em ${count} fornecedor${count > 1 ? 'es' : ''}`;
+  }, [kpis?.supplierCount]);
 
   return (
     <Card>
@@ -81,52 +118,71 @@ export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-red-600 flex items-center justify-center">
-                <Target className="h-3.5 w-3.5 text-white" />
-              </div>
-              🔍 Inteligência de Mercado
+              <Target className="h-4 w-4" aria-hidden="true" />
+              Inteligência de Mercado
             </CardTitle>
             <CardDescription className="mt-1">
-              O que o mercado está comprando · visão macro · {days} dias
+              Como o mercado está comprando · visão macro · {days} dias
             </CardDescription>
           </div>
-          {trendRatio > 1.3 && (
-            <Badge variant="outline" className="bg-blue-500/15 text-blue-500 border-blue-500/30 text-xs font-bold">
-              🚀 Mercado Aquecido
-            </Badge>
-          )}
+          <div className="flex items-center gap-2">
+            {trendRatio > 1.3 && (
+              <Badge variant="outline" className="bg-blue-500/15 text-blue-500 border-blue-500/30 text-xs font-bold">
+                🚀 Mercado Aquecido
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="space-y-4">
         {/* KPI Cards */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" role="group" aria-label="Métricas de inteligência de mercado">
           <KpiCard
             icon={ShoppingCart}
-            label="Saídas no mercado"
+            label="Vendas no mercado"
             value={avgDepletion.toFixed(1)}
-            sub="un/dia (média)"
+            sub="un/dia (média 7d)"
             highlight={avgDepletion >= 20}
           />
           <KpiCard
             icon={BarChart3}
-            label="Demanda geral"
+            label="Demanda"
             value={demandLevel}
             sub={trendLabel}
             customValueColor={demandColor}
           />
           <KpiCard
-            icon={TrendingUp}
-            label="Total saídas"
-            value={(kpis?.totalDepleted30d ?? 0).toLocaleString('pt-BR')}
-            sub={`${(kpis?.totalDepleted7d ?? 0).toLocaleString('pt-BR')} últimos 7d`}
+            icon={trendRatio > 1.2 ? TrendingUp : trendRatio < 0.8 ? TrendingDown : BarChart3}
+            label="Tendência"
+            value={`${trendPercent >= 0 ? '+' : ''}${trendPercent}%`}
+            sub={trendRatio > 1 ? 'demanda crescente' : trendRatio < 0.8 ? 'demanda caindo' : 'demanda estável'}
+            highlight={trendRatio > 1.3}
           />
           <KpiCard
             icon={Package}
-            label="Estoque atual"
+            label="Disponível"
             value={(kpis?.totalCurrentStock ?? 0).toLocaleString('pt-BR')}
-            sub={`${(kpis?.totalRestocked30d ?? 0).toLocaleString('pt-BR')} repostos`}
+            sub={supplierText}
           />
+        </div>
+
+        {/* Period selector + supplier filter */}
+        <div className="flex items-center gap-3 flex-wrap">
+          <Tabs value={period} onValueChange={setPeriod}>
+            <TabsList className="h-7 flex-wrap">
+              {['15', '30', '60', '90', '120', '180', '360'].map(p => (
+                <TabsTrigger key={p} value={p} className="text-xs px-2 h-5">{p}d</TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+          {supplierOptions.length > 1 && (
+            <SupplierChartFilter
+              suppliers={supplierOptions}
+              selected={selectedSupplier}
+              onSelect={setSelectedSupplier}
+            />
+          )}
         </div>
 
         {/* Chart */}
@@ -135,7 +191,7 @@ export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
             Sem dados de mercado disponíveis para este período
           </div>
         ) : (
-          <div className="h-[200px] w-full">
+          <div className="h-[160px] sm:h-[200px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
@@ -148,12 +204,17 @@ export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
                   iconSize={8}
                   formatter={(value: string) => <span className="text-muted-foreground text-[10px]">{value}</span>}
                 />
-                <Area yAxisId="stock" type="monotone" dataKey="stockClose" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.15)" strokeWidth={2} name="Disponível no mercado" dot={false} activeDot={{ r: 4 }} />
+                <Area yAxisId="stock" type="monotone" dataKey="stockClose" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.15)" strokeWidth={2} name="Disponível" dot={false} activeDot={{ r: 4 }} />
                 <Bar yAxisId="flow" dataKey="depleted" fill="hsl(var(--destructive) / 0.4)" name="Compras do mercado" radius={[2, 2, 0, 0]} barSize={4} />
-                <Bar yAxisId="flow" dataKey="restocked" fill="hsl(142 71% 45% / 0.5)" name="Reposição fornecedores" radius={[2, 2, 0, 0]} barSize={4} />
+                <Bar yAxisId="flow" dataKey="restocked" fill="hsl(142 71% 45% / 0.5)" name="Reposição" radius={[2, 2, 0, 0]} barSize={4} />
               </ComposedChart>
             </ResponsiveContainer>
           </div>
+        )}
+
+        {/* Supplier Comparison Cards */}
+        {data?.suppliers && data.suppliers.length > 1 && supplierNamesMap && (
+          <MacroSupplierComparison suppliers={data.suppliers} supplierNames={supplierNamesMap} />
         )}
 
         {/* Insight */}
@@ -167,6 +228,89 @@ export function MarketIntelligenceChart({ days = 30, supplierId }: Props) {
     </Card>
   );
 }
+
+// ---------- Supplier Comparison (macro version) ----------
+
+function MacroSupplierComparison({ suppliers, supplierNames }: { suppliers: MacroSupplierMetrics[]; supplierNames: Map<string, string> }) {
+  const COLORS = [
+    'border-l-primary',
+    'border-l-destructive',
+    'border-l-emerald-500',
+    'border-l-amber-500',
+    'border-l-violet-500',
+    'border-l-cyan-500',
+  ];
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+        Comparativo por Fornecedor
+      </p>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+        {suppliers.map((s, idx) => {
+          const name = supplierNames.get(s.supplierId) ?? `Fornecedor ${s.supplierId.slice(0, 6)}`;
+          const isBest = idx === 0 && suppliers.length > 1;
+
+          return (
+            <div
+              key={s.supplierId}
+              className={cn(
+                "flex flex-col gap-1 p-2 rounded-md bg-muted/40 border-l-2",
+                COLORS[idx % COLORS.length]
+              )}
+            >
+              <div className="flex items-center justify-between gap-1">
+                <span className="text-xs font-medium truncate max-w-[120px]" title={name}>
+                  {name}
+                </span>
+                {isBest && (
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 bg-primary/10 text-primary border-primary/30">
+                    Maior saída
+                  </Badge>
+                )}
+              </div>
+
+              <div className="grid grid-cols-3 gap-1.5 text-[10px]">
+                <div>
+                  <p className="text-muted-foreground">Saída/dia</p>
+                  <p className="font-bold text-foreground">{s.avgDailyDepletion7d.toFixed(1)}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Estoque</p>
+                  <p className="font-bold text-foreground">{s.currentStock.toLocaleString('pt-BR')}</p>
+                </div>
+                <div>
+                  <p className="text-muted-foreground">Tendência</p>
+                  <p className={cn(
+                    "font-bold flex items-center gap-0.5",
+                    s.velocityTrend > 1 ? 'text-emerald-500' : s.velocityTrend < 0.8 ? 'text-destructive' : 'text-muted-foreground'
+                  )}>
+                    {s.velocityTrend > 1 ? <TrendingUp className="h-2.5 w-2.5" /> :
+                     s.velocityTrend < 0.8 ? <TrendingDown className="h-2.5 w-2.5" /> :
+                     <Minus className="h-2.5 w-2.5" />}
+                    {((s.velocityTrend - 1) * 100).toFixed(0)}%
+                  </p>
+                </div>
+              </div>
+
+              {s.daysToStockout != null && s.daysToStockout < 30 && (
+                <p className={cn(
+                  "text-[9px] flex items-center gap-1",
+                  s.daysToStockout < 7 ? 'text-destructive' : 'text-amber-500'
+                )}>
+                  <Package className="h-2.5 w-2.5" />
+                  {s.daysToStockout < 7 ? '⚠️' : '⏳'} Esgota em ~{s.daysToStockout}d
+                </p>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Tooltip ----------
 
 function MarketMacroTooltip({ active, payload }: any) {
   if (!active || !payload?.length) return null;
