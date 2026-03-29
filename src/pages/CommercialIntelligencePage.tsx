@@ -7,7 +7,7 @@ import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelli
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
 import { ProductRankingSearch } from "@/components/intelligence/ProductRankingSearch";
-
+import { CategoryRanking } from "@/components/intelligence/CategoryRanking";
 import { SupplierSales } from "@/components/intelligence/SupplierSales";
 import { Brain } from "lucide-react";
 
