@@ -525,6 +525,28 @@ export default function ProductDetail() {
                     }}
                     className="text-[10px]"
                   />
+
+                  {/* Visualizações + Favoritar */}
+                  <div className="flex items-center gap-3 pt-1 border-t border-border/40">
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      <Eye className="h-3.5 w-3.5" />
+                      <span className="font-semibold text-foreground">{viewCount}</span>
+                      <span>visualizações</span>
+                    </div>
+                    <div className="h-4 w-px bg-border" />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleFavorite}
+                      className={cn(
+                        "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10 h-7",
+                        isFavorite && "text-destructive"
+                      )}
+                    >
+                      <Heart className={cn("h-3.5 w-3.5 transition-all", isFavorite && "fill-destructive text-destructive")} />
+                      {isFavorite ? "Favoritado" : "Favoritar"}
+                    </Button>
+                  </div>
                 </div>
               </div>
 
