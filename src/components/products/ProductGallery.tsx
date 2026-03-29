@@ -364,21 +364,48 @@ export function ProductGallery({
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Variações ({colors.length})</span>
-            {/* Botão para ver todas as cores (imagens gerais) */}
-            <button
-              onClick={() => onColorSelect?.(-1)}
-              className={cn(
-                "text-xs px-3 py-1.5 rounded-full transition-all duration-200",
-                selectedColorIndex === -1 || selectedColorIndex === undefined
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+            <div className="flex items-center gap-2">
+              {colors.length > 6 && (
+                <>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg border border-border/60 bg-card hover:bg-accent transition-all"
+                    onClick={() => {
+                      const el = variationsScrollRef.current;
+                      if (el) el.scrollBy({ left: -260, behavior: 'smooth' });
+                    }}
+                  >
+                    <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="icon"
+                    className="h-7 w-7 rounded-lg border border-border/60 bg-card hover:bg-accent transition-all"
+                    onClick={() => {
+                      const el = variationsScrollRef.current;
+                      if (el) el.scrollBy({ left: 260, behavior: 'smooth' });
+                    }}
+                  >
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </>
               )}
-            >
-              Ver Todas
-            </button>
+              <button
+                onClick={() => onColorSelect?.(-1)}
+                className={cn(
+                  "text-xs px-3 py-1.5 rounded-full transition-all duration-200",
+                  selectedColorIndex === -1 || selectedColorIndex === undefined
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                )}
+              >
+                Ver Todas
+              </button>
+            </div>
           </div>
           
-          <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin">
+          <div ref={variationsScrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin" style={{ scrollbarWidth: 'none' }}>
             {sortedColors.map((color) => {
               // Encontrar o índice original para manter a seleção funcionando
               const originalIndex = colors.findIndex(c => c.name === color.name && c.sku === color.sku);
