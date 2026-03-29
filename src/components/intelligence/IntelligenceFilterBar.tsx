@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { Filter, X, ChevronDown, Package } from "lucide-react";
+import { useState, useMemo, useCallback } from "react";
+import { Filter, X, ChevronDown, Package, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
