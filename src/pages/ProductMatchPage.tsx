@@ -129,7 +129,7 @@ function SelectedProductCard({ product }: { product: Product }) {
       <CardContent className="p-4 space-y-3">
         <div className="flex items-start gap-3">
           <img
-            src={getCdnUrl(product.images?.[0] || product.image_url || '/placeholder.svg', 120, 120)}
+            src={getCdnUrl(product.images?.[0] || product.image_url || '/placeholder.svg', 'small')}
             alt={product.name}
             className="w-20 h-20 rounded-lg object-cover bg-muted shrink-0"
           />
