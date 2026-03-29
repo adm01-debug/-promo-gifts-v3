@@ -121,7 +121,6 @@ export default function ProductDetail() {
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedStore();
-  const { registerProducts } = useProductsContext();
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
