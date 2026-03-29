@@ -193,10 +193,11 @@ function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id:
     const p = match.product;
     const params = new URLSearchParams({
       product_id: p.id,
-      sku: p.sku,
-      price: String(p.price),
+      product_name: p.name,
+      product_sku: p.sku || '',
+      product_price: String(p.price),
       min_quantity: String(p.minQuantity || 1),
-      ...(p.image_url ? { image: p.image_url } : {}),
+      ...(p.image_url ? { product_image: p.image_url } : {}),
     });
     navigate(`/orcamentos/novo?${params.toString()}`);
   };
