@@ -12,15 +12,14 @@ interface SimilarProductsProps {
   maxItems?: number;
 }
 
-function SimilarProductCard({
-  item,
-  onClick,
-  index,
-}: {
-  item: SimilarProductItem;
-  onClick: () => void;
-  index: number;
-}) {
+const SimilarProductCard = forwardRef<
+  HTMLDivElement,
+  {
+    item: SimilarProductItem;
+    onClick: () => void;
+    index: number;
+  }
+>(({ item, onClick, index }, ref) => {
   return (
     <div
       className={cn(
