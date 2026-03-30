@@ -129,6 +129,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* Seller Cart - visible on all screens */}
           <CartHeaderButton />
 
+          {/* Notifications Bell */}
+          <div className="hidden md:block">
+            <NotificationBell />
+          </div>
+
           {/* Stock Alerts - hidden on mobile */}
           <div className="hidden md:block">
             <StockAlertsIndicator />
