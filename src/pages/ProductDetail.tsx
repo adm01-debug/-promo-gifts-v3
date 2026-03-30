@@ -130,7 +130,14 @@ export default function ProductDetail() {
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
-  const { badges: intellBadges, turnoverScore: intellTurnover, isDemo: intellIsDemo } = useProductIntelligenceBadges(id);
+  const catalogFlags = useMemo(() => product ? {
+    featured: product.featured,
+    newArrival: product.newArrival,
+    onSale: product.onSale,
+    lowStock: product.stockStatus === 'low-stock',
+    stock: product.stock,
+  } : undefined, [product?.featured, product?.newArrival, product?.onSale, product?.stockStatus, product?.stock]);
+  const { badges: intellBadges, turnoverScore: intellTurnover, isDemo: intellIsDemo } = useProductIntelligenceBadges(id, catalogFlags);
 
   const { data: viewCount = 0 } = useQuery({
     queryKey: ["product-views-count", id],
