@@ -33,7 +33,8 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
   // Extended summary stats with comparisons
   const summary = useMemo(() => {
     const totalSales = hasRealData ? realData.totalQty : 0;
-    const revenue = hasRealData ? realData.totalValue : 0;
+    const totalReplenished = hasRealData ? realData.totalReplenished : 0;
+    const availableStock = hasRealData ? realData.availableStock : 0;
 
     const pts = points;
     const mid = Math.floor(pts.length / 2);
@@ -43,12 +44,9 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / (secondHalf.length || 1);
     const trend = firstAvg > 0 ? ((secondAvg / firstAvg) - 1) * 100 : 0;
 
-    // Extra metrics
     const dailyAvg = totalSales / (pts.length || 1);
     const peakDay = Math.max(...pts);
     const activeDays = pts.filter(v => v > 0).length;
-    const ticketMedio = totalSales > 0 ? revenue / totalSales : 0;
-
     // Period comparison: first half vs second half values
     const firstHalfTotal = firstHalf.reduce((a, b) => a + b, 0);
     const secondHalfTotal = secondHalf.reduce((a, b) => a + b, 0);

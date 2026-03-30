@@ -1,18 +1,21 @@
 /**
- * Batch sparkline sales data provider.
- * Fetches aggregated daily sales (qty) for multiple products in a single query,
- * avoiding N+1 when rendering many ProductCards in the catalog.
+ * Batch sparkline data provider.
+ * Fetches aggregated daily market activity (units_depleted) from supplier
+ * stock_daily_summary via external-db-bridge, avoiding N+1 queries.
  */
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 
 // Per-product sparkline data
 export interface SparklineSalesData {
-  /** Daily quantities (ordered by date ascending), last 30 days */
+  /** Daily depleted quantities (ordered by date ascending), last 30 days */
   dailyQty: number[];
   totalQty: number;
-  totalValue: number;
+  /** Total units replenished in the period */
+  totalReplenished: number;
+  /** Current available stock across all supplier sources */
+  availableStock: number;
 }
 
 type SparklineMap = Record<string, SparklineSalesData>;
@@ -31,10 +34,9 @@ interface Props {
 
 /**
  * Wrap a product list/grid with this provider.
- * It fetches quote_items + order_items for the given product IDs in bulk.
+ * It fetches stock_daily_summary for the given product IDs in bulk.
  */
 export function SparklineSalesProvider({ productIds, children }: Props) {
-  // Stable key: sort + dedupe
   const stableIds = useMemo(() => {
     const unique = [...new Set(productIds)];
     unique.sort();
@@ -42,11 +44,10 @@ export function SparklineSalesProvider({ productIds, children }: Props) {
   }, [productIds]);
 
   const { data: sparkMap } = useQuery({
-    queryKey: ["sparkline-sales-batch", stableIds],
-    queryFn: () => fetchSparklineBatch(stableIds),
+    queryKey: ["sparkline-supplier-batch", stableIds],
+    queryFn: () => fetchSupplierSparklineBatch(stableIds),
     enabled: stableIds.length > 0,
-    staleTime: 5 * 60 * 1000,
-    // Don't refetch on every window focus for catalog perf
+    staleTime: 10 * 60 * 1000,
     refetchOnWindowFocus: false,
   });
 
@@ -57,50 +58,66 @@ export function SparklineSalesProvider({ productIds, children }: Props) {
 
 // ---------- Data fetching ----------
 
-async function fetchSparklineBatch(productIds: string[]): Promise<SparklineMap> {
+interface StockDailySummaryRow {
+  product_id: string;
+  summary_date: string;
+  units_depleted: number | null;
+  units_replenished: number | null;
+  closing_stock: number | null;
+}
+
+async function fetchSupplierSparklineBatch(productIds: string[]): Promise<SparklineMap> {
   if (!productIds.length) return {};
 
   const cutoff = new Date();
   cutoff.setDate(cutoff.getDate() - 30);
-  const cutoffStr = cutoff.toISOString();
+  const cutoffStr = cutoff.toISOString().substring(0, 10);
 
-  // Fetch quote_items and order_items in parallel
-  const [{ data: quoteItems }, { data: orderItems }] = await Promise.all([
-    supabase
-      .from("quote_items")
-      .select("product_id, quantity, unit_price, subtotal, created_at")
-      .in("product_id", productIds)
-      .gte("created_at", cutoffStr),
-    supabase
-      .from("order_items")
-      .select("product_id, quantity, unit_price, created_at")
-      .in("product_id", productIds)
-      .gte("created_at", cutoffStr),
-  ]);
+  // Fetch in batches of 50 product IDs to avoid query size limits
+  const BATCH_SIZE = 50;
+  const allRecords: StockDailySummaryRow[] = [];
 
-  // Build per-product, per-date map
-  // Key: productId → dateStr → { qty, value }
-  const map: Record<string, Record<string, { qty: number; value: number }>> = {};
-
-  const ensure = (pid: string, date: string) => {
-    if (!map[pid]) map[pid] = {};
-    if (!map[pid][date]) map[pid][date] = { qty: 0, value: 0 };
-  };
-
-  for (const qi of quoteItems || []) {
-    if (!qi.product_id) continue;
-    const date = qi.created_at.substring(0, 10);
-    ensure(qi.product_id, date);
-    map[qi.product_id][date].qty += qi.quantity || 0;
-    map[qi.product_id][date].value += qi.subtotal || (qi.quantity || 0) * (qi.unit_price || 0);
+  for (let i = 0; i < productIds.length; i += BATCH_SIZE) {
+    const batch = productIds.slice(i, i + BATCH_SIZE);
+    try {
+      const result = await invokeExternalDb<StockDailySummaryRow>({
+        table: 'stock_daily_summary',
+        operation: 'select',
+        select: 'product_id, summary_date, units_depleted, units_replenished, closing_stock',
+        filters: {
+          product_id: `in.(${batch.join(',')})`,
+          summary_date: `gte.${cutoffStr}`,
+        },
+        limit: batch.length * 31,
+        orderBy: { column: 'summary_date', ascending: true },
+      });
+      allRecords.push(...(result.records || []));
+    } catch (err) {
+      console.warn('[sparkline] Failed to fetch stock_daily_summary batch:', err);
+    }
   }
 
-  for (const oi of orderItems || []) {
-    if (!oi.product_id) continue;
-    const date = oi.created_at.substring(0, 10);
-    ensure(oi.product_id, date);
-    map[oi.product_id][date].qty += oi.quantity || 0;
-    map[oi.product_id][date].value += (oi.quantity || 0) * (oi.unit_price || 0);
+  // Build per-product, per-date map
+  const map: Record<string, Record<string, { depleted: number; replenished: number; stock: number }>> = {};
+
+  for (const row of allRecords) {
+    if (!row.product_id) continue;
+    const date = row.summary_date?.substring(0, 10);
+    if (!date) continue;
+    if (!map[row.product_id]) map[row.product_id] = {};
+    const existing = map[row.product_id][date];
+    if (existing) {
+      // Aggregate across suppliers for the same product+date
+      existing.depleted += row.units_depleted || 0;
+      existing.replenished += row.units_replenished || 0;
+      existing.stock += row.closing_stock || 0;
+    } else {
+      map[row.product_id][date] = {
+        depleted: row.units_depleted || 0,
+        replenished: row.units_replenished || 0,
+        stock: row.closing_stock || 0,
+      };
+    }
   }
 
   // Generate contiguous 30-day arrays
@@ -110,7 +127,8 @@ async function fetchSparklineBatch(productIds: string[]): Promise<SparklineMap> 
   for (const pid of productIds) {
     const dailyQty: number[] = [];
     let totalQty = 0;
-    let totalValue = 0;
+    let totalReplenished = 0;
+    let lastStock = 0;
     const dateMap = map[pid] || {};
 
     for (let i = 29; i >= 0; i--) {
@@ -118,12 +136,19 @@ async function fetchSparklineBatch(productIds: string[]): Promise<SparklineMap> 
       d.setDate(d.getDate() - i);
       const ds = d.toISOString().substring(0, 10);
       const entry = dateMap[ds];
-      dailyQty.push(entry?.qty ?? 0);
-      totalQty += entry?.qty ?? 0;
-      totalValue += entry?.value ?? 0;
+      const depleted = entry?.depleted ?? 0;
+      dailyQty.push(depleted);
+      totalQty += depleted;
+      totalReplenished += entry?.replenished ?? 0;
+      if (entry) lastStock = entry.stock;
     }
 
-    result[pid] = { dailyQty, totalQty, totalValue };
+    result[pid] = {
+      dailyQty,
+      totalQty,
+      totalReplenished,
+      availableStock: lastStock,
+    };
   }
 
   return result;
