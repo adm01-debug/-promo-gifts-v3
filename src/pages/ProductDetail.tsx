@@ -64,6 +64,8 @@ import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInterac
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, type ProductBadgeFlags } from "@/components/common/SocialProof";
+import { useProductIntelligenceBadges } from "@/hooks/useProductIntelligenceBadges";
+import { IntelligenceBadges } from "@/components/common/IntelligenceBadges";
 import { useSupplierTrust } from "@/hooks/useSupplierTrust";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
@@ -128,6 +130,7 @@ export default function ProductDetail() {
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
+  const { badges: intellBadges, turnoverScore: intellTurnover, isDemo: intellIsDemo } = useProductIntelligenceBadges(id);
 
   const { data: viewCount = 0 } = useQuery({
     queryKey: ["product-views-count", id],
@@ -272,12 +275,12 @@ export default function ProductDetail() {
 
       <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 xl:space-y-8 animate-fade-in pb-20 md:pb-0 min-w-0 overflow-x-hidden xl:px-4 2xl:px-8">
         {/* Social Proof & Stock Alerts — compact */}
-        {(product.featured || product.stockStatus === "low-stock") && (
-          <div className="flex flex-wrap items-center gap-2">
-            {product.featured && <PopularityBadge variant="trending" />}
-            {product.stockStatus === "low-stock" && <LowStockAlert quantity={product.stock} />}
-          </div>
-        )}
+        {/* Intelligence Badges — data-driven from market intelligence */}
+        <IntelligenceBadges
+          badges={intellBadges}
+          turnoverScore={intellTurnover}
+          isDemo={intellIsDemo}
+        />
 
         {/* ===== HERO: Gallery + Info — side by side ===== */}
         <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
