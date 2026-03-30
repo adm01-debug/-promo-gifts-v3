@@ -64,6 +64,8 @@ import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInterac
 import { GlassCard } from "@/components/common/GlassElements";
 import { EmptyState } from "@/components/common/EmptyState";
 import { PopularityBadge, LowStockAlert, TrustBadgesRow, TrustBadge, DynamicTrustBadges, type ProductBadgeFlags } from "@/components/common/SocialProof";
+import { useProductIntelligenceBadges } from "@/hooks/useProductIntelligenceBadges";
+import { IntelligenceBadges } from "@/components/common/IntelligenceBadges";
 import { useSupplierTrust } from "@/hooks/useSupplierTrust";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
