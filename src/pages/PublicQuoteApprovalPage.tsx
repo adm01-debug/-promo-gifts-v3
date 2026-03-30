@@ -514,7 +514,7 @@ export default function PublicQuoteApprovalPage() {
 
       {/* Footer */}
       <div className="border-t border-border mt-8 py-6 text-center text-xs text-muted-foreground">
-        <p>Proposta gerada automaticamente • Gift Store</p>
+        <p>Proposta gerada automaticamente • Promo Gifts</p>
       </div>
     </div>
   );
