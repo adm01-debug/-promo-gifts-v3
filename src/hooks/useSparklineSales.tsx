@@ -97,7 +97,7 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   }
 
   // Build per-product, per-date map
-  const map: Record<string, Record<string, { depleted: number; replenished: number; stock: number }>> = {};
+  const map: Record<string, Record<string, { depleted: number; stock: number }>> = {};
 
   for (const row of allRecords) {
     if (!row.product_id) continue;
@@ -106,14 +106,11 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
     if (!map[row.product_id]) map[row.product_id] = {};
     const existing = map[row.product_id][date];
     if (existing) {
-      // Aggregate across suppliers for the same product+date
       existing.depleted += row.units_depleted || 0;
-      existing.replenished += row.units_replenished || 0;
       existing.stock += row.closing_stock || 0;
     } else {
       map[row.product_id][date] = {
         depleted: row.units_depleted || 0,
-        replenished: row.units_replenished || 0,
         stock: row.closing_stock || 0,
       };
     }
