@@ -85,14 +85,17 @@ export function ProductQuickActions({
                 onClick={() => handleClick(key)}
                 title={disabled ? `Sem dados de ${label.toLowerCase()} para este produto` : undefined}
                 className={cn(
-                  "inline-flex items-center justify-center gap-2 flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold border",
-                  "transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "group inline-flex items-center justify-center gap-2 flex-1 px-4 py-2.5 rounded-lg text-xs font-semibold border",
+                  "transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   disabled
                     ? "bg-muted/30 text-muted-foreground/50 border-border/20 cursor-not-allowed"
-                    : "bg-muted/70 text-foreground/80 border-border/40 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-md hover:shadow-primary/5 active:scale-[0.97]"
+                    : "bg-muted/70 text-foreground/80 border-border/40 hover:bg-accent hover:text-accent-foreground hover:border-primary/40 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-0.5 active:translate-y-0 active:shadow-sm"
                 )}
               >
-                <Icon className={cn("h-4 w-4 shrink-0", disabled ? "opacity-40" : iconColor)} />
+                <Icon className={cn(
+                  "h-4 w-4 shrink-0 transition-transform duration-300",
+                  disabled ? "opacity-40" : cn(iconColor, "group-hover:scale-110")
+                )} />
                 {label}
               </button>
             );
