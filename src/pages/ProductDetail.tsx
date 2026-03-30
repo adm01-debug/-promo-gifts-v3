@@ -275,12 +275,12 @@ export default function ProductDetail() {
 
       <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 xl:space-y-8 animate-fade-in pb-20 md:pb-0 min-w-0 overflow-x-hidden xl:px-4 2xl:px-8">
         {/* Social Proof & Stock Alerts — compact */}
-        {(product.featured || product.stockStatus === "low-stock") && (
-          <div className="flex flex-wrap items-center gap-2">
-            {product.featured && <PopularityBadge variant="trending" />}
-            {product.stockStatus === "low-stock" && <LowStockAlert quantity={product.stock} />}
-          </div>
-        )}
+        {/* Intelligence Badges — data-driven from market intelligence */}
+        <IntelligenceBadges
+          badges={intellBadges}
+          turnoverScore={intellTurnover}
+          isDemo={intellIsDemo}
+        />
 
         {/* ===== HERO: Gallery + Info — side by side ===== */}
         <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
