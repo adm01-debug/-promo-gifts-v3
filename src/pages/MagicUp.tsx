@@ -6,6 +6,7 @@
  */
 
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -154,6 +155,7 @@ export default function MagicUp() {
 
   return (
     <MainLayout>
+      <PageSEO title="MagicUp — Gerador de Imagens IA" description="Crie imagens publicitárias profissionais com inteligência artificial." path="/magic-up" />
       <div className="space-y-6">
         <MagicUpHeader variationsCount={m.variations.length} historyCount={m.history.length} />
         <MagicUpProgress step={m.step} />
@@ -476,7 +478,7 @@ export default function MagicUp() {
                     className="text-sm resize-none"
                   />
                   {!m.selectedScene && m.additionalDetails.trim() && (
-                    <p className="text-[10px] text-amber-600 mt-1">
+                    <p className="text-[10px] text-warning mt-1">
                       💡 Dica: selecione também um cenário acima para melhores resultados
                     </p>
                   )}

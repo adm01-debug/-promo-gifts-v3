@@ -1,4 +1,5 @@
 import { MainLayout } from '@/components/layout/MainLayout';
+import { PageSEO } from '@/components/seo/PageSEO';
 import { ProductPriceSimulator } from '@/components/pricing/ProductPriceSimulator';
 import { QuantityPriceCalculator } from '@/components/pricing/QuantityPriceCalculator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -12,6 +13,7 @@ import {
 export default function PriceSimulatorPage() {
   return (
     <MainLayout>
+      <PageSEO title="Simulador de Preços" description="Simule preços de brindes com personalização, quantidades e custos." path="/simulador" />
       <div className="container mx-auto py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

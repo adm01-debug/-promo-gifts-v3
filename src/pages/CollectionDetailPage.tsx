@@ -2,6 +2,7 @@ import { useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Package, Trash2 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -51,6 +52,7 @@ export default function CollectionDetailPage() {
 
   return (
     <MainLayout>
+      <PageSEO title={`Coleção: ${collection.name}`} description={`Explore os produtos da coleção ${collection.name}.`} path={`/colecoes/${id}`} noIndex />
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col gap-4">

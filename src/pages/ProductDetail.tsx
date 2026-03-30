@@ -232,16 +232,16 @@ export default function ProductDetail() {
   return (
     <MainLayout>
       <Helmet>
-        <title>{product.name} | PromoHub</title>
+        <title>{product.name} | Promo Gifts</title>
         <meta name="description" content={product.description || `${product.name} - Brinde Promocional`} />
         <link rel="canonical" href={`${window.location.origin}/produto/${product.id}`} />
-        <meta property="og:title" content={product.name} />
+        <meta property="og:title" content={`${product.name} | Promo Gifts`} />
         <meta property="og:description" content={product.description || `${product.name} - Brinde Promocional`} />
         <meta property="og:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
         <meta property="og:type" content="product" />
         <meta property="og:url" content={`${window.location.origin}/produto/${product.id}`} />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content={product.name} />
+        <meta name="twitter:title" content={`${product.name} | Promo Gifts`} />
         <meta name="twitter:image" content={product.og_image_url ? getCdnUrl(product.og_image_url, 'large') : (product.images[0] || '')} />
         <script type="application/ld+json">
           {JSON.stringify({
@@ -251,7 +251,7 @@ export default function ProductDetail() {
             "description": product.description || `${product.name} - Brinde Promocional`,
             "sku": product.sku,
             "image": product.images?.filter(Boolean) || [],
-            "brand": { "@type": "Brand", "name": product.supplier?.name || "PromoHub" },
+            "brand": { "@type": "Brand", "name": product.supplier?.name || "Promo Gifts" },
             "offers": {
               "@type": "Offer",
               "price": product.price,
@@ -261,7 +261,7 @@ export default function ProductDetail() {
                 : product.stockStatus === "out-of-stock"
                   ? "https://schema.org/OutOfStock"
                   : "https://schema.org/LimitedAvailability",
-              "seller": { "@type": "Organization", "name": "PromoHub" }
+              "seller": { "@type": "Organization", "name": "Promo Gifts" }
             },
             "category": product.category?.name,
             "material": product.materials?.join(", "),
@@ -467,7 +467,7 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-8 xl:h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs xl:text-sm shadow-sm"
+                      className="flex-1 h-8 xl:h-10 rounded-lg bg-success hover:bg-success/90 text-success-foreground font-semibold text-xs xl:text-sm shadow-sm"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { QuoteKanbanBoard } from "@/components/quotes/QuoteKanbanBoard";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -87,6 +88,7 @@ export default function QuotesKanbanPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Kanban de Orçamentos" description="Visualize e gerencie orçamentos no formato Kanban." path="/orcamentos/kanban" noIndex />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

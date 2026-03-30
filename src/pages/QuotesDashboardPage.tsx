@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -416,6 +417,7 @@ export default function QuotesDashboardPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Dashboard de Orçamentos" description="Acompanhe métricas e performance comercial dos seus orçamentos." path="/orcamentos/dashboard" noIndex />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

@@ -8,7 +8,7 @@ interface PageSEOProps {
 }
 
 const BASE_URL = "https://criar-together-now.lovable.app";
-const SITE_NAME = "Promo Brindes";
+const SITE_NAME = "Promo Gifts";
 const DEFAULT_DESC = "Plataforma completa para vendedores de brindes promocionais. Catálogo, orçamentos, simulador de preços e muito mais.";
 
 export function PageSEO({ title, description, path, noIndex }: PageSEOProps) {

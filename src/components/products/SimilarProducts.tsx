@@ -1,4 +1,4 @@
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, forwardRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { ChevronLeft, ChevronRight, Layers, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,17 +12,17 @@ interface SimilarProductsProps {
   maxItems?: number;
 }
 
-function SimilarProductCard({
-  item,
-  onClick,
-  index,
-}: {
-  item: SimilarProductItem;
-  onClick: () => void;
-  index: number;
-}) {
+const SimilarProductCard = forwardRef<
+  HTMLDivElement,
+  {
+    item: SimilarProductItem;
+    onClick: () => void;
+    index: number;
+  }
+>(({ item, onClick, index }, ref) => {
   return (
     <div
+      ref={ref}
       className={cn(
         "group relative min-w-0 shrink-0 snap-start",
         "rounded-xl bg-card border border-border/50 overflow-hidden",
@@ -75,7 +75,9 @@ function SimilarProductCard({
       </div>
     </div>
   );
-}
+});
+
+SimilarProductCard.displayName = "SimilarProductCard";
 
 export function SimilarProducts({
   currentProduct,
