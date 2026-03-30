@@ -204,8 +204,8 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Activity className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                    {hasRealData ? `Dia ${hoverIndex + 1}` : `Dia ${hoverIndex + 1}/${points.length}`}
+                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                     Mercado · Dia {hoverIndex + 1}
                   </span>
                 </div>
                 <span className="text-sm font-bold text-foreground">
