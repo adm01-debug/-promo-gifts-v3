@@ -467,7 +467,7 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-8 xl:h-10 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs xl:text-sm shadow-sm"
+                      className="flex-1 h-8 xl:h-10 rounded-lg bg-success hover:bg-success/90 text-success-foreground font-semibold text-xs xl:text-sm shadow-sm"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
