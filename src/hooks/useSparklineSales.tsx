@@ -62,7 +62,6 @@ interface StockDailySummaryRow {
   product_id: string;
   summary_date: string;
   units_depleted: number | null;
-  units_replenished: number | null;
   closing_stock: number | null;
 }
 
