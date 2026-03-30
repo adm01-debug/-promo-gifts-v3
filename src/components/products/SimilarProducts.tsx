@@ -22,6 +22,7 @@ const SimilarProductCard = forwardRef<
 >(({ item, onClick, index }, ref) => {
   return (
     <div
+      ref={ref}
       className={cn(
         "group relative min-w-0 shrink-0 snap-start",
         "rounded-xl bg-card border border-border/50 overflow-hidden",
