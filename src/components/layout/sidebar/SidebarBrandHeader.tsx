@@ -26,7 +26,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
           </div>
           <div className="flex flex-col min-w-0">
             <span className="text-sm font-bold text-sidebar-foreground tracking-tight">
-              Gift Store
+              Promo Gifts
             </span>
             <span className="text-[10px] text-sidebar-foreground/40 font-medium uppercase tracking-widest">
               Plataforma de Vendas

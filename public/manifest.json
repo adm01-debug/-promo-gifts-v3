@@ -1,6 +1,6 @@
 {
-  "name": "Gifts Store",
-  "short_name": "Gifts",
+  "name": "Promo Gifts",
+  "short_name": "Promo Gifts",
   "description": "Sistema de gestão de brindes personalizados",
   "start_url": "/",
   "display": "standalone",
