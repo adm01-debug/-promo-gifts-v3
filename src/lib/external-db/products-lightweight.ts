@@ -16,6 +16,7 @@ export interface LightweightProduct {
   id: string;
   name: string;
   sku: string;
+  supplier_reference?: string | null;
   sale_price?: number | null;
   cost_price?: number | null;
   image_url: string | null;
