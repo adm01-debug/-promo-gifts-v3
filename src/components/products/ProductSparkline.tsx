@@ -228,12 +228,12 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             {/* Metrics grid */}
             <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
               <TooltipMetric
-                label="Total 30d"
+                label="Saídas 30d"
                 value={`${summary.totalSales.toLocaleString('pt-BR')} un`}
               />
               <TooltipMetric
-                label="Faturamento"
-                value={formatCurrency(summary.revenue)}
+                label="Disponível"
+                value={`${summary.availableStock.toLocaleString('pt-BR')} un`}
               />
               <TooltipMetric
                 label="Média/dia"
