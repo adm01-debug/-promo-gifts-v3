@@ -62,7 +62,7 @@ interface StockDailySummaryRow {
   product_id: string;
   summary_date: string;
   units_depleted: number | null;
-  closing_stock: number | null;
+  [key: string]: unknown;
 }
 
 async function fetchSupplierSparklineBatch(productIds: string[]): Promise<SparklineMap> {
@@ -82,7 +82,7 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
       const result = await invokeExternalDb<StockDailySummaryRow>({
         table: 'stock_daily_summary',
         operation: 'select',
-        select: 'product_id, summary_date, units_depleted, closing_stock',
+        select: 'product_id, summary_date, units_depleted',
         filters: {
           product_id: `in.(${batch.join(',')})`,
           summary_date: `gte.${cutoffStr}`,
@@ -97,23 +97,14 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   }
 
   // Build per-product, per-date map
-  const map: Record<string, Record<string, { depleted: number; stock: number }>> = {};
+  const map: Record<string, Record<string, number>> = {};
 
   for (const row of allRecords) {
     if (!row.product_id) continue;
     const date = row.summary_date?.substring(0, 10);
     if (!date) continue;
     if (!map[row.product_id]) map[row.product_id] = {};
-    const existing = map[row.product_id][date];
-    if (existing) {
-      existing.depleted += row.units_depleted || 0;
-      existing.stock += row.closing_stock || 0;
-    } else {
-      map[row.product_id][date] = {
-        depleted: row.units_depleted || 0,
-        stock: row.closing_stock || 0,
-      };
-    }
+    map[row.product_id][date] = (map[row.product_id][date] || 0) + (row.units_depleted || 0);
   }
 
   // Generate contiguous 30-day arrays
@@ -123,25 +114,22 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   for (const pid of productIds) {
     const dailyQty: number[] = [];
     let totalQty = 0;
-    let lastStock = 0;
     const dateMap = map[pid] || {};
 
     for (let i = 29; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const ds = d.toISOString().substring(0, 10);
-      const entry = dateMap[ds];
-      const depleted = entry?.depleted ?? 0;
+      const depleted = dateMap[ds] ?? 0;
       dailyQty.push(depleted);
       totalQty += depleted;
-      if (entry) lastStock = entry.stock;
     }
 
     result[pid] = {
       dailyQty,
       totalQty,
       totalReplenished: 0,
-      availableStock: lastStock,
+      availableStock: 0,
     };
   }
 
