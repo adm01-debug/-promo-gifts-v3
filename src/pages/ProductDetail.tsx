@@ -130,6 +130,7 @@ export default function ProductDetail() {
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
+  const { badges: intellBadges, turnoverScore: intellTurnover, isDemo: intellIsDemo } = useProductIntelligenceBadges(id);
 
   const { data: viewCount = 0 } = useQuery({
     queryKey: ["product-views-count", id],
