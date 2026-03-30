@@ -122,6 +122,7 @@ export interface ProductLightweight {
   id: string;
   name: string;
   sku: string;
+  supplier_reference?: string | null;
   price: number;
   image_url: string;
   stock: number;
