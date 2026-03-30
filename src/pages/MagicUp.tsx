@@ -155,6 +155,7 @@ export default function MagicUp() {
 
   return (
     <MainLayout>
+      <PageSEO title="MagicUp — Gerador de Imagens IA" description="Crie imagens publicitárias profissionais com inteligência artificial." path="/magic-up" />
       <div className="space-y-6">
         <MagicUpHeader variationsCount={m.variations.length} historyCount={m.history.length} />
         <MagicUpProgress step={m.step} />

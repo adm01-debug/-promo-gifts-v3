@@ -52,6 +52,7 @@ export default function CollectionDetailPage() {
 
   return (
     <MainLayout>
+      <PageSEO title={`Coleção: ${collection.name}`} description={`Explore os produtos da coleção ${collection.name}.`} path={`/colecoes/${id}`} noIndex />
       <div className="space-y-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col gap-4">

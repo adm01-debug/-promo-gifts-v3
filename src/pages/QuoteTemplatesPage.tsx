@@ -39,6 +39,7 @@ export default function QuoteTemplatesPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Modelos de Orçamento" description="Gerencie modelos para criar orçamentos rapidamente." path="/orcamentos/modelos" noIndex />
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           {viewMode !== "list" && (

@@ -417,6 +417,7 @@ export default function QuotesDashboardPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Dashboard de Orçamentos" description="Acompanhe métricas e performance comercial dos seus orçamentos." path="/orcamentos/dashboard" noIndex />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

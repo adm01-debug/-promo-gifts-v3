@@ -88,6 +88,7 @@ export default function QuotesKanbanPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Kanban de Orçamentos" description="Visualize e gerencie orçamentos no formato Kanban." path="/orcamentos/kanban" noIndex />
       <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
