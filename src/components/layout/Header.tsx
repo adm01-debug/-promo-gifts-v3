@@ -19,7 +19,7 @@ import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
 
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
-
+import { NotificationBell } from "@/components/notifications/NotificationDrawer";
 
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
@@ -128,6 +128,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
 
           {/* Seller Cart - visible on all screens */}
           <CartHeaderButton />
+
+          {/* Notifications Bell - visible on all screens */}
+          <NotificationBell />
 
           {/* Stock Alerts - hidden on mobile */}
           <div className="hidden md:block">

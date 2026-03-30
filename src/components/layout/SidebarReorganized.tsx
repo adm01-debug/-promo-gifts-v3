@@ -25,6 +25,7 @@ import {
   Truck,
   Palette,
   Brain,
+  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -114,6 +115,7 @@ const navGroups: NavGroup[] = [
         { icon: Palette, label: "Gravação", href: "/admin/cadastros?tab=personalizacao" },
       ]},
       { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
+      { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", adminOnly: true },
       { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },
     ],
   },
