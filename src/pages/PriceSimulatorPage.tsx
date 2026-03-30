@@ -1,4 +1,5 @@
 import { MainLayout } from '@/components/layout/MainLayout';
+import { PageSEO } from '@/components/seo/PageSEO';
 import { ProductPriceSimulator } from '@/components/pricing/ProductPriceSimulator';
 import { QuantityPriceCalculator } from '@/components/pricing/QuantityPriceCalculator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
