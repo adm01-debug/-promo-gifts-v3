@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format";
 import { useSparklineData } from "@/hooks/useSparklineSales";
 import { TrendingUp, TrendingDown, Minus, BarChart3, Zap, Activity } from "lucide-react";
 
@@ -33,7 +32,8 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
   // Extended summary stats with comparisons
   const summary = useMemo(() => {
     const totalSales = hasRealData ? realData.totalQty : 0;
-    const revenue = hasRealData ? realData.totalValue : 0;
+    const totalReplenished = hasRealData ? realData.totalReplenished : 0;
+    const availableStock = hasRealData ? realData.availableStock : 0;
 
     const pts = points;
     const mid = Math.floor(pts.length / 2);
@@ -43,13 +43,9 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     const secondAvg = secondHalf.reduce((a, b) => a + b, 0) / (secondHalf.length || 1);
     const trend = firstAvg > 0 ? ((secondAvg / firstAvg) - 1) * 100 : 0;
 
-    // Extra metrics
     const dailyAvg = totalSales / (pts.length || 1);
     const peakDay = Math.max(...pts);
     const activeDays = pts.filter(v => v > 0).length;
-    const ticketMedio = totalSales > 0 ? revenue / totalSales : 0;
-
-    // Period comparison: first half vs second half values
     const firstHalfTotal = firstHalf.reduce((a, b) => a + b, 0);
     const secondHalfTotal = secondHalf.reduce((a, b) => a + b, 0);
     const periodChange = firstHalfTotal > 0
@@ -57,7 +53,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
       : 0;
 
     return {
-      totalSales, revenue, trend, dailyAvg, peakDay, activeDays, ticketMedio,
+      totalSales, totalReplenished, availableStock, trend, dailyAvg, peakDay, activeDays,
       firstHalfTotal, secondHalfTotal, periodChange,
     };
   }, [points, hasRealData, realData, productId]);
@@ -208,8 +204,8 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5">
                   <Activity className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
-                    {hasRealData ? `Dia ${hoverIndex + 1}` : `Dia ${hoverIndex + 1}/${points.length}`}
+                   <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
+                     Mercado · Dia {hoverIndex + 1}
                   </span>
                 </div>
                 <span className="text-sm font-bold text-foreground">
@@ -231,12 +227,12 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             {/* Metrics grid */}
             <div className="px-3 py-2 grid grid-cols-2 gap-x-3 gap-y-1.5">
               <TooltipMetric
-                label="Total 30d"
+                label="Saídas 30d"
                 value={`${summary.totalSales.toLocaleString('pt-BR')} un`}
               />
               <TooltipMetric
-                label="Faturamento"
-                value={formatCurrency(summary.revenue)}
+                label="Disponível"
+                value={`${summary.availableStock.toLocaleString('pt-BR')} un`}
               />
               <TooltipMetric
                 label="Média/dia"
