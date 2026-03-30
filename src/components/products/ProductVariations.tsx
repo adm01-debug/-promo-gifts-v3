@@ -100,7 +100,7 @@ export function ProductVariations({
                 onSelectVariation(isSelected && !selectAll ? null : variation);
               }}
               className={cn(
-                "relative p-3 rounded-xl border-2 transition-all duration-200 text-left",
+                "relative p-3 rounded-xl border-2 transition-all duration-200 text-left flex flex-col h-full",
                 isSelected
                   ? "border-primary bg-primary/5"
                   : "border-border hover:border-primary/50 bg-card"
@@ -128,7 +128,7 @@ export function ProductVariations({
               <div className="flex items-center gap-2 mb-1">
                 {colorHex && (
                   <div
-                    className="w-4 h-4 rounded-full border border-border"
+                    className="w-4 h-4 rounded-full border border-border shrink-0"
                     style={{
                       backgroundColor: colorHex,
                       border: colorHex === "#FFFFFF" ? "1px solid hsl(var(--border))" : undefined,
@@ -147,8 +147,8 @@ export function ProductVariations({
                 </p>
               )}
 
-              {/* Stock */}
-              <div className="flex items-center gap-1">
+              {/* Stock - pushed to bottom */}
+              <div className="flex items-center gap-1 mt-auto">
                 <Package className="h-3 w-3 text-muted-foreground" />
                 <span className={cn("text-xs font-medium", stockStatus.color)}>
                   {Math.max(0, variationStock).toLocaleString("pt-BR")} un.
