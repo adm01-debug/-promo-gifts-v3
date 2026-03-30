@@ -478,7 +478,7 @@ export default function MagicUp() {
                     className="text-sm resize-none"
                   />
                   {!m.selectedScene && m.additionalDetails.trim() && (
-                    <p className="text-[10px] text-amber-600 mt-1">
+                    <p className="text-[10px] text-warning mt-1">
                       💡 Dica: selecione também um cenário acima para melhores resultados
                     </p>
                   )}
