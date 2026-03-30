@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { QuoteTemplatesList } from "@/components/quotes/QuoteTemplatesList";
 import { QuoteTemplateForm } from "@/components/quotes/QuoteTemplateForm";
 import { AdminTemplatesManager } from "@/components/quotes/AdminTemplatesManager";
