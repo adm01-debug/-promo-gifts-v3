@@ -82,7 +82,7 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
       const result = await invokeExternalDb<StockDailySummaryRow>({
         table: 'stock_daily_summary',
         operation: 'select',
-        select: 'product_id, summary_date, units_depleted, closing_stock',
+        select: 'product_id, summary_date, units_depleted',
         filters: {
           product_id: `in.(${batch.join(',')})`,
           summary_date: `gte.${cutoffStr}`,
