@@ -3,7 +3,7 @@
  * Data-driven from useProductIntelligenceBadges hook.
  */
 import { motion } from "framer-motion";
-import { Flame, Zap, Package, Rocket, AlertTriangle } from "lucide-react";
+import { Flame, Zap, Package, Rocket, AlertTriangle, Sparkles, Star, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
@@ -14,6 +14,19 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   colors: string;
   animation?: string;
 }> = {
+  'featured': {
+    icon: Sparkles,
+    colors: 'bg-primary/15 text-primary border-primary/30',
+  },
+  'new-arrival': {
+    icon: Star,
+    colors: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
+  },
+  'on-sale': {
+    icon: Tag,
+    colors: 'bg-orange-500/15 text-orange-600 border-orange-500/30',
+    animation: 'animate-pulse',
+  },
   'best-seller': {
     icon: Flame,
     colors: 'bg-orange-500/15 text-orange-500 border-orange-500/30',
