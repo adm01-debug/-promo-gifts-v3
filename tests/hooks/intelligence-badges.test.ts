@@ -2,9 +2,21 @@ import { describe, it, expect } from 'vitest';
 
 // Test the badge derivation logic directly
 describe('useProductIntelligenceBadges logic', () => {
-  const deriveBadges = (abc: 'A' | 'B' | 'C', trend: number | null, isStockoutRisk: boolean, currentStock: number) => {
+  const deriveBadges = (
+    abc: 'A' | 'B' | 'C',
+    trend: number | null,
+    isStockoutRisk: boolean,
+    currentStock: number,
+    catalogFlags?: { featured?: boolean; newArrival?: boolean; onSale?: boolean }
+  ) => {
     const badges: Array<{ type: string; label: string }> = [];
 
+    // Catalog flags first
+    if (catalogFlags?.featured) badges.push({ type: 'featured', label: 'Destaque' });
+    if (catalogFlags?.newArrival) badges.push({ type: 'new-arrival', label: 'Novidade' });
+    if (catalogFlags?.onSale) badges.push({ type: 'on-sale', label: 'Promoção' });
+
+    // ABC
     if (abc === 'A') badges.push({ type: 'best-seller', label: 'Best-Seller' });
     else if (abc === 'B') badges.push({ type: 'popular', label: 'Popular' });
     else badges.push({ type: 'normal', label: 'Normal' });
@@ -63,5 +75,29 @@ describe('useProductIntelligenceBadges logic', () => {
     const badges = deriveBadges('B', null, false, 500);
     expect(badges).toHaveLength(1);
     expect(badges[0].type).toBe('popular');
+  });
+
+  // === Catalog flags tests ===
+  it('should show Destaque when featured=true', () => {
+    const badges = deriveBadges('C', 0.8, false, 500, { featured: true });
+    expect(badges[0]).toEqual({ type: 'featured', label: 'Destaque' });
+    expect(badges[1]).toEqual({ type: 'normal', label: 'Normal' });
+  });
+
+  it('should show Novidade when newArrival=true', () => {
+    const badges = deriveBadges('C', 0.8, false, 500, { newArrival: true });
+    expect(badges[0]).toEqual({ type: 'new-arrival', label: 'Novidade' });
+  });
+
+  it('should show Promoção when onSale=true', () => {
+    const badges = deriveBadges('C', 0.8, false, 500, { onSale: true });
+    expect(badges[0]).toEqual({ type: 'on-sale', label: 'Promoção' });
+  });
+
+  it('should combine catalog flags + intelligence badges', () => {
+    const badges = deriveBadges('A', 1.5, true, 20, { featured: true, onSale: true });
+    expect(badges.map(b => b.type)).toEqual([
+      'featured', 'on-sale', 'best-seller', 'emergente', 'last-units'
+    ]);
   });
 });
