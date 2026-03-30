@@ -8,6 +8,7 @@ import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
 
 import { useProducts, type Product } from '@/hooks/useProducts';
+import { useDebounce } from '@/hooks/useDebounce';
 import { useProductMatch, type MatchFilters, type MatchResult } from '@/hooks/useProductMatch';
 import { MOCK_MATCH_PRODUCTS } from '@/data/mock-match-products';
 import { Input } from '@/components/ui/input';
@@ -39,6 +40,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { getCdnUrl } from '@/utils/image-utils';
+import { createProductFuseOptions, dedupeById, rankProductSearchResults } from '@/utils/product-search';
 import Fuse from 'fuse.js';
 
 const MATCH_TYPE_CONFIG = {
@@ -61,33 +63,52 @@ function ProductSearchPanel({
   selectedId?: string;
 }) {
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 250);
+
+  const { data: remoteProducts = [], isFetching: isRemoteSearching } = useProducts(
+    { search: debouncedSearch.trim(), limit: 120 },
+    {
+      enabled: debouncedSearch.trim().length >= 2,
+      staleTime: 60_000,
+    }
+  );
 
   const fuse = useMemo(
     () =>
-      new Fuse(products, {
-        keys: ['name', 'sku', 'supplier_reference'],
-        threshold: 0.35,
-        minMatchCharLength: 2,
-      }),
+      new Fuse(
+        products,
+        createProductFuseOptions<Product>({
+          threshold: 0.35,
+          minMatchCharLength: 2,
+        })
+      ),
     [products]
   );
 
   const filtered = useMemo(() => {
-    if (!search.trim()) return products.slice(0, 50);
-    return fuse.search(search, { limit: 50 }).map((r) => r.item);
-  }, [search, fuse, products]);
+    const query = search.trim();
+    if (!query) return products.slice(0, 50);
+
+    const localRanked = rankProductSearchResults(products, query, fuse, { limit: 50 });
+    const merged = dedupeById([...localRanked, ...remoteProducts]);
+
+    return rankProductSearchResults(merged, query, undefined, { limit: 50 });
+  }, [search, products, fuse, remoteProducts]);
 
   return (
     <div className="space-y-3">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Buscar produto por nome ou SKU..."
+          placeholder="Buscar produto por nome ou código..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-10"
         />
       </div>
+      {search.trim().length >= 2 && isRemoteSearching && (
+        <p className="text-[10px] text-muted-foreground">Buscando no catálogo completo…</p>
+      )}
       <ScrollArea className="h-[calc(100vh-22rem)]">
         <div className="space-y-1.5 pr-3">
           {filtered.map((p) => (
