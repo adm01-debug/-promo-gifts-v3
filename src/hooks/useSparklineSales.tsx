@@ -62,7 +62,6 @@ interface StockDailySummaryRow {
   product_id: string;
   summary_date: string;
   units_depleted: number | null;
-  units_replenished: number | null;
   closing_stock: number | null;
 }
 
@@ -83,7 +82,7 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
       const result = await invokeExternalDb<StockDailySummaryRow>({
         table: 'stock_daily_summary',
         operation: 'select',
-        select: 'product_id, summary_date, units_depleted, units_replenished, closing_stock',
+        select: 'product_id, summary_date, units_depleted, closing_stock',
         filters: {
           product_id: `in.(${batch.join(',')})`,
           summary_date: `gte.${cutoffStr}`,
@@ -98,7 +97,7 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   }
 
   // Build per-product, per-date map
-  const map: Record<string, Record<string, { depleted: number; replenished: number; stock: number }>> = {};
+  const map: Record<string, Record<string, { depleted: number; stock: number }>> = {};
 
   for (const row of allRecords) {
     if (!row.product_id) continue;
@@ -107,14 +106,11 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
     if (!map[row.product_id]) map[row.product_id] = {};
     const existing = map[row.product_id][date];
     if (existing) {
-      // Aggregate across suppliers for the same product+date
       existing.depleted += row.units_depleted || 0;
-      existing.replenished += row.units_replenished || 0;
       existing.stock += row.closing_stock || 0;
     } else {
       map[row.product_id][date] = {
         depleted: row.units_depleted || 0,
-        replenished: row.units_replenished || 0,
         stock: row.closing_stock || 0,
       };
     }
@@ -127,7 +123,6 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   for (const pid of productIds) {
     const dailyQty: number[] = [];
     let totalQty = 0;
-    let totalReplenished = 0;
     let lastStock = 0;
     const dateMap = map[pid] || {};
 
@@ -139,14 +134,13 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
       const depleted = entry?.depleted ?? 0;
       dailyQty.push(depleted);
       totalQty += depleted;
-      totalReplenished += entry?.replenished ?? 0;
       if (entry) lastStock = entry.stock;
     }
 
     result[pid] = {
       dailyQty,
       totalQty,
-      totalReplenished,
+      totalReplenished: 0,
       availableStock: lastStock,
     };
   }
