@@ -19,6 +19,7 @@ function mapLightweight(p: LightweightProduct): ProductLightweight {
     id: p.id,
     name: p.name,
     sku: p.sku,
+    supplier_reference: p.supplier_reference ?? null,
     price: typeof price === 'number' ? price : 0,
     image_url: imageUrl,
     stock: p.stock_quantity ?? 0,
