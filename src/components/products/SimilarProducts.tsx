@@ -75,7 +75,9 @@ const SimilarProductCard = forwardRef<
       </div>
     </div>
   );
-}
+});
+
+SimilarProductCard.displayName = "SimilarProductCard";
 
 export function SimilarProducts({
   currentProduct,
