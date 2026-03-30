@@ -53,7 +53,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     stock,
     colors: [],
     materials: [],
-    supplier_reference: undefined,
+    supplier_reference: p.supplier_reference ?? null,
     brand: p.brand,
     is_active: p.is_active || p.active,
     minQuantity: p.min_quantity || 1,
