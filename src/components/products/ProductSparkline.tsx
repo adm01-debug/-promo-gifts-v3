@@ -47,7 +47,6 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
     const dailyAvg = totalSales / (pts.length || 1);
     const peakDay = Math.max(...pts);
     const activeDays = pts.filter(v => v > 0).length;
-    // Period comparison: first half vs second half values
     const firstHalfTotal = firstHalf.reduce((a, b) => a + b, 0);
     const secondHalfTotal = secondHalf.reduce((a, b) => a + b, 0);
     const periodChange = firstHalfTotal > 0
@@ -55,7 +54,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
       : 0;
 
     return {
-      totalSales, revenue, trend, dailyAvg, peakDay, activeDays, ticketMedio,
+      totalSales, totalReplenished, availableStock, trend, dailyAvg, peakDay, activeDays,
       firstHalfTotal, secondHalfTotal, periodChange,
     };
   }, [points, hasRealData, realData, productId]);
