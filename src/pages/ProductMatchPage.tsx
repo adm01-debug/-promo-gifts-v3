@@ -134,7 +134,7 @@ function ProductSearchPanel({
               {selectedId === p.id && <Target className="h-4 w-4 text-primary shrink-0" />}
             </button>
           ))}
-          {filtered.length === 0 && (
+          {filtered.length === 0 && !(search.trim().length >= 2 && isRemoteSearching) && (
             <p className="text-xs text-muted-foreground text-center py-6">Nenhum produto encontrado</p>
           )}
         </div>
