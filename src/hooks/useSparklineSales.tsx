@@ -123,7 +123,6 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   for (const pid of productIds) {
     const dailyQty: number[] = [];
     let totalQty = 0;
-    let totalReplenished = 0;
     let lastStock = 0;
     const dateMap = map[pid] || {};
 
@@ -135,14 +134,13 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
       const depleted = entry?.depleted ?? 0;
       dailyQty.push(depleted);
       totalQty += depleted;
-      totalReplenished += entry?.replenished ?? 0;
       if (entry) lastStock = entry.stock;
     }
 
     result[pid] = {
       dailyQty,
       totalQty,
-      totalReplenished,
+      totalReplenished: 0,
       availableStock: lastStock,
     };
   }
