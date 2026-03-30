@@ -97,23 +97,14 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
   }
 
   // Build per-product, per-date map
-  const map: Record<string, Record<string, { depleted: number; stock: number }>> = {};
+  const map: Record<string, Record<string, number>> = {};
 
   for (const row of allRecords) {
     if (!row.product_id) continue;
     const date = row.summary_date?.substring(0, 10);
     if (!date) continue;
     if (!map[row.product_id]) map[row.product_id] = {};
-    const existing = map[row.product_id][date];
-    if (existing) {
-      existing.depleted += row.units_depleted || 0;
-      existing.stock += row.closing_stock || 0;
-    } else {
-      map[row.product_id][date] = {
-        depleted: row.units_depleted || 0,
-        stock: row.closing_stock || 0,
-      };
-    }
+    map[row.product_id][date] = (map[row.product_id][date] || 0) + (row.units_depleted || 0);
   }
 
   // Generate contiguous 30-day arrays
