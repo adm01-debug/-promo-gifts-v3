@@ -47,7 +47,7 @@ export function use2FA(targetUserId?: string) {
 
   const generateSecret = useCallback((email: string): { secret: string; uri: string } => {
     const totp = new OTPAuth.TOTP({
-       issuer: 'Gift Store',
+       issuer: 'Promo Gifts',
       label: email,
       algorithm: 'SHA1',
       digits: 6,
