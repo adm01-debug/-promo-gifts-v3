@@ -62,7 +62,7 @@ interface StockDailySummaryRow {
   product_id: string;
   summary_date: string;
   units_depleted: number | null;
-  closing_stock: number | null;
+  [key: string]: unknown;
 }
 
 async function fetchSupplierSparklineBatch(productIds: string[]): Promise<SparklineMap> {
