@@ -72,9 +72,9 @@ function calculateMatchScore(source: Product, candidate: Product): { score: numb
   };
 
   for (const tagCat of tagCategories) {
-    const srcTags = source.tags?.[tagCat] || [];
-    const candTags = candidate.tags?.[tagCat] || [];
-    const shared = srcTags.filter(t => candTags.includes(t));
+    const srcTags = (source.tags?.[tagCat] || []).map(t => t.trim().toLowerCase());
+    const candTags = (candidate.tags?.[tagCat] || []).map(t => t.trim().toLowerCase());
+    const shared = srcTags.filter(t => t && candTags.includes(t));
     if (shared.length > 0) {
       score += 10 * shared.length;
       reasons.push(`${tagLabels[tagCat]}: ${shared.join(', ')}`);
