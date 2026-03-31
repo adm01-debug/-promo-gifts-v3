@@ -49,6 +49,7 @@ function mapLightweightToSimilarItem(p: LightweightProduct): SimilarProductItem 
     image_url: p.primary_image_url || '/placeholder.svg',
     supplier_name: p.brand || 'Fornecedor',
     category_name: '',
+    category_id: p.category_id || undefined,
     colors_count: 0,
     stock: p.stock_quantity || 0,
   };
