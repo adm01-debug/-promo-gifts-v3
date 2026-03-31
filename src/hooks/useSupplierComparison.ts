@@ -58,7 +58,9 @@ export function useSupplierComparison(product: Product | null | undefined) {
 
     const alternatives: SupplierProduct[] = similarProducts.map((product) => {
       const priceDiff = product.price - baseProduct.price;
-      const priceDiffPercent = (priceDiff / baseProduct.price) * 100;
+      const priceDiffPercent = baseProduct.price > 0
+        ? (priceDiff / baseProduct.price) * 100
+        : 0;
 
       return {
         product,
@@ -84,9 +86,15 @@ export function useSupplierComparison(product: Product | null | undefined) {
   return result;
 }
 
+const STOP_WORDS = new Set(['de', 'da', 'do', 'dos', 'das', 'a', 'o', 'e', 'em', 'com', 'para', 'por', 'um', 'uma', 'no', 'na']);
+
 function calculateNameSimilarity(name1: string, name2: string): number {
-  const words1 = name1.toLowerCase().split(/\s+/);
-  const words2 = name2.toLowerCase().split(/\s+/);
+  if (!name1?.trim() || !name2?.trim()) return 0;
+
+  const words1 = name1.toLowerCase().split(/\s+/).filter(w => w.length >= 3 && !STOP_WORDS.has(w));
+  const words2 = name2.toLowerCase().split(/\s+/).filter(w => w.length >= 3 && !STOP_WORDS.has(w));
+
+  if (words1.length === 0 || words2.length === 0) return 0;
 
   const commonWords = words1.filter((word) =>
     words2.some((w) => w.includes(word) || word.includes(w))
@@ -97,7 +105,7 @@ function calculateNameSimilarity(name1: string, name2: string): number {
 
 export function getSupplierProductsInCategory(
   products: Product[],
-  categoryId: number
+  categoryId: string | number
 ): Map<string, Product[]> {
   const supplierMap = new Map<string, Product[]>();
 

@@ -119,7 +119,8 @@ export function useSimilarProducts(product: Product | null | undefined) {
         });
 
         if (memberships && memberships.length > 0) {
-          const groupIds = [...new Set(memberships.map(m => m.group_id))];
+          const groupIds = [...new Set(memberships.map(m => m.group_id))].filter(Boolean);
+          if (groupIds.length === 0) throw new Error('No valid group IDs');
           
           const { records: allMembers } = await invokeExternalDb<{
             product_id: string;

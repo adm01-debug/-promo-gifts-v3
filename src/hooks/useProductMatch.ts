@@ -72,9 +72,9 @@ function calculateMatchScore(source: Product, candidate: Product): { score: numb
   };
 
   for (const tagCat of tagCategories) {
-    const srcTags = source.tags?.[tagCat] || [];
-    const candTags = candidate.tags?.[tagCat] || [];
-    const shared = srcTags.filter(t => candTags.includes(t));
+    const srcTags = (source.tags?.[tagCat] || []).map(t => t.trim().toLowerCase());
+    const candTags = (candidate.tags?.[tagCat] || []).map(t => t.trim().toLowerCase());
+    const shared = srcTags.filter(t => t && candTags.includes(t));
     if (shared.length > 0) {
       score += 10 * shared.length;
       reasons.push(`${tagLabels[tagCat]}: ${shared.join(', ')}`);
@@ -82,9 +82,9 @@ function calculateMatchScore(source: Product, candidate: Product): { score: numb
   }
 
   // Shared nicho/ramo
-  const srcNiches = [...(source.tags?.nicho || []), ...(source.tags?.ramo || [])];
-  const candNiches = [...(candidate.tags?.nicho || []), ...(candidate.tags?.ramo || [])];
-  const sharedNiches = srcNiches.filter(n => candNiches.includes(n));
+  const srcNiches = [...(source.tags?.nicho || []), ...(source.tags?.ramo || [])].map(n => n.trim().toLowerCase());
+  const candNiches = [...(candidate.tags?.nicho || []), ...(candidate.tags?.ramo || [])].map(n => n.trim().toLowerCase());
+  const sharedNiches = srcNiches.filter(n => n && candNiches.includes(n));
   if (sharedNiches.length > 0) {
     score += 15 * sharedNiches.length;
     reasons.push(`Nicho: ${sharedNiches.join(', ')}`);
@@ -96,11 +96,16 @@ function calculateMatchScore(source: Product, candidate: Product): { score: numb
     reasons.push('Mesmo fornecedor');
   }
 
-  // Complementary name keywords
+  // Complementary name keywords (exclude self-matching)
   const complements = findComplementaryKeywords(source.name);
   if (complements.length > 0) {
     const candNormalized = normalizeText(candidate.name);
-    const matchedKeywords = complements.filter(kw => candNormalized.includes(normalizeText(kw)));
+    const sourceNormalized = normalizeText(source.name);
+    const matchedKeywords = complements.filter(kw => {
+      const kwNorm = normalizeText(kw);
+      // Only count if keyword matches candidate but NOT source (avoid self-match)
+      return candNormalized.includes(kwNorm) && !sourceNormalized.includes(kwNorm);
+    });
     if (matchedKeywords.length > 0) {
       score += 20 * matchedKeywords.length;
       reasons.push(`Complementar: ${matchedKeywords.join(', ')}`);
