@@ -82,9 +82,9 @@ function calculateMatchScore(source: Product, candidate: Product): { score: numb
   }
 
   // Shared nicho/ramo
-  const srcNiches = [...(source.tags?.nicho || []), ...(source.tags?.ramo || [])];
-  const candNiches = [...(candidate.tags?.nicho || []), ...(candidate.tags?.ramo || [])];
-  const sharedNiches = srcNiches.filter(n => candNiches.includes(n));
+  const srcNiches = [...(source.tags?.nicho || []), ...(source.tags?.ramo || [])].map(n => n.trim().toLowerCase());
+  const candNiches = [...(candidate.tags?.nicho || []), ...(candidate.tags?.ramo || [])].map(n => n.trim().toLowerCase());
+  const sharedNiches = srcNiches.filter(n => n && candNiches.includes(n));
   if (sharedNiches.length > 0) {
     score += 15 * sharedNiches.length;
     reasons.push(`Nicho: ${sharedNiches.join(', ')}`);
