@@ -755,11 +755,11 @@ function KitComponentCard({
             </div>
 
             {/* Col 2: Material — full width block */}
-            <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2">
-              <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-4 min-h-[64px]">
+              <Layers className="h-5 w-5 text-muted-foreground shrink-0" />
               <div className="min-w-0 flex-1">
-                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Material</div>
-                <div className="text-xs font-semibold text-foreground truncate">
+                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Material</div>
+                <div className="text-sm font-semibold text-foreground truncate">
                   {item.material || "—"}
                 </div>
               </div>
