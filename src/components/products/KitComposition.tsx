@@ -20,6 +20,9 @@ import {
   Maximize2,
   Box,
   Utensils,
+  ArrowUpDown,
+  ArrowLeftRight,
+  MoveHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
