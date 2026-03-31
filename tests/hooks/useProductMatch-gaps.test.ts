@@ -290,9 +290,9 @@ describe('GAP: calculateNameSimilarity logic issues', () => {
 
   it('empty name returns NaN (division by zero)', () => {
     const similarity = calculateNameSimilarity('', '');
-    // Math.max(0, 0) = 0, division by 0 = NaN or Infinity
-    expect(isFinite(similarity)).toBe(false);
-    // BUG: should return 0 or handle gracefully
+    // ''.split(/\s+/) returns [''], so length = 1, not 0
+    // Result: 0 common / Math.max(1,1) = 0 — actually handles gracefully
+    expect(similarity).toBe(0);
   });
 
   it('single character words inflate similarity', () => {
