@@ -126,7 +126,8 @@ export function useSearch(products: Product[] = []) {
       });
     }
     
-    const orderedProducts = rankProductSearchResults(availableProducts, searchTerm, productFuse);
+    const orderedProducts = rankProductSearchResults(availableProducts, searchTerm, productFuse)
+      .slice(0, 6);
 
     orderedProducts.forEach((product) => {
       // Skip if already added as exact SKU match

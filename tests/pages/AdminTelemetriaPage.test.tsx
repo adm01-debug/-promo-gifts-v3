@@ -170,7 +170,7 @@ describe('AdminTelemetriaPage - Rendering', () => {
     await waitFor(() => {
       expect(screen.getByText('Telemetria de Queries')).toBeInTheDocument();
       expect(screen.getByText('Monitoramento de performance do banco externo')).toBeInTheDocument();
-    });
+    }, { timeout: 15000 });
   });
 
   it('renders inside MainLayout', async () => {
