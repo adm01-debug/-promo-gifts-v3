@@ -178,7 +178,7 @@ export function KitComposition({
 
       {/* ── Dialog Modal ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-2xl max-h-[72vh] p-0 gap-0 overflow-hidden">
           {/* Header */}
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border space-y-3">
             <div className="flex items-center gap-3">
@@ -242,7 +242,7 @@ export function KitComposition({
           </DialogHeader>
 
           {/* Content */}
-          <ScrollArea className="max-h-[calc(90vh-180px)]">
+          <ScrollArea className="max-h-[calc(72vh-160px)]">
             <div className="px-6 py-4 space-y-5">
               {/* Selection bar */}
               {onSelectItems && (
@@ -302,6 +302,7 @@ export function KitComposition({
                           selectable={!!onSelectItems}
                           onToggle={() => toggleItem(item.id)}
                           onViewProduct={onViewProduct}
+                          onZoomImage={(url) => setZoomImageUrl(url)}
                         />
                       ))}
                     </div>
@@ -340,6 +341,7 @@ export function KitComposition({
                           selectable={!!onSelectItems}
                           onToggle={() => toggleItem(item.id)}
                           onViewProduct={onViewProduct}
+                          onZoomImage={(url) => setZoomImageUrl(url)}
                         />
                       ))}
                     </div>
@@ -543,6 +545,7 @@ interface KitComponentCardProps {
   selectable: boolean;
   onToggle: () => void;
   onViewProduct?: (productId: string) => void;
+  onZoomImage?: (url: string) => void;
 }
 
 function KitComponentCard({
@@ -553,6 +556,7 @@ function KitComponentCard({
   selectable,
   onToggle,
   onViewProduct,
+  onZoomImage,
 }: KitComponentCardProps) {
   const [expanded, setExpanded] = useState(false);
 
@@ -620,9 +624,9 @@ function KitComponentCard({
                 item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all"
               )}
               onClick={(e) => {
-                if (item.imageUrl) {
+                if (item.imageUrl && onZoomImage) {
                   e.stopPropagation();
-                  setZoomImageUrl(item.imageUrl);
+                  onZoomImage(item.imageUrl);
                 }
               }}
             >
