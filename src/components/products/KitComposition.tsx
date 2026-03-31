@@ -302,6 +302,7 @@ export function KitComposition({
                           selectable={!!onSelectItems}
                           onToggle={() => toggleItem(item.id)}
                           onViewProduct={onViewProduct}
+                          onZoomImage={(url) => setZoomImageUrl(url)}
                         />
                       ))}
                     </div>
