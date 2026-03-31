@@ -58,7 +58,9 @@ export function useSupplierComparison(product: Product | null | undefined) {
 
     const alternatives: SupplierProduct[] = similarProducts.map((product) => {
       const priceDiff = product.price - baseProduct.price;
-      const priceDiffPercent = (priceDiff / baseProduct.price) * 100;
+      const priceDiffPercent = baseProduct.price > 0
+        ? (priceDiff / baseProduct.price) * 100
+        : 0;
 
       return {
         product,
