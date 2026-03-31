@@ -496,18 +496,39 @@ export default function KitBuilderPage() {
                         onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')}
                         className="flex gap-4"
                       >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="montado" id="kit-montado" />
-                          <Label htmlFor="kit-montado" className="cursor-pointer text-sm">Montado</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="original" id="kit-original" />
-                          <Label htmlFor="kit-original" className="cursor-pointer text-sm">Original</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="simples" id="kit-simples" />
-                          <Label htmlFor="kit-simples" className="cursor-pointer text-sm">Simples</Label>
-                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="montado" id="kit-montado" />
+                                <Label htmlFor="kit-montado" className="cursor-pointer text-sm">Montado</Label>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs max-w-[200px]">Kit montado dentro da caixa, itens arrumados e prontos para presentear.</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="original" id="kit-original" />
+                                <Label htmlFor="kit-original" className="cursor-pointer text-sm">Original</Label>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs max-w-[200px]">Kit com embalagem original do fornecedor, sem remontagem.</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="simples" id="kit-simples" />
+                                <Label htmlFor="kit-simples" className="cursor-pointer text-sm">Simples</Label>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs max-w-[200px]">Agrupamento de itens sem embalagem especial — apenas os produtos.</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </RadioGroup>
                     </div>
 
