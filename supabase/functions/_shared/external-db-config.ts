@@ -72,6 +72,9 @@ export const PRODUCT_TABLES = [
   'price_history',
   'stock_snapshots',
   'stock_daily_summary',
+  'product_groups',
+  'product_group_members',
+  'product_relationships',
 ] as const;
 
 // Views e Materialized Views (somente leitura)
