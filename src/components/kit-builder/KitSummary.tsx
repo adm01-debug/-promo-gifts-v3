@@ -502,17 +502,15 @@ export function KitSummary({
       )}
 
       {/* Ações */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Button
           variant="outline"
-          className="flex-1"
           onClick={onExportPDF}
         >
           <Printer className="h-4 w-4 mr-2" />
           Exportar PDF
         </Button>
         <Button
-          className="flex-1"
           disabled={!kitState.isValid || isAddingToQuote}
           onClick={onAddToQuote}
         >
@@ -521,7 +519,22 @@ export function KitSummary({
           ) : (
             <ShoppingCart className="h-4 w-4 mr-2" />
           )}
-          {isAddingToQuote ? 'Criando orçamento...' : 'Adicionar ao Orçamento'}
+          {isAddingToQuote ? 'Criando...' : 'Criar Orçamento'}
+        </Button>
+        <Button
+          variant="outline"
+          className="border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+          disabled={!kitState.isValid}
+          onClick={() => {
+            const kitLabel = kitName || 'Kit Personalizado';
+            const itemsList = items.map(i => `• ${i.quantity}x ${i.name}`).join('\n');
+            const text = `*${kitLabel}* (${kitQuantity}x)\n\n${itemsList}\n\n💰 *${formatCurrency(pricing.unitPrice)}/kit*\n📦 Total: *${formatCurrency(pricing.total)}*`;
+            const encoded = encodeURIComponent(text);
+            window.open(`https://wa.me/?text=${encoded}`, '_blank');
+          }}
+        >
+          <MessageCircle className="h-4 w-4 mr-2" />
+          WhatsApp
         </Button>
       </div>
     </div>
