@@ -97,7 +97,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
         });
 
         if (memberships && memberships.length > 0) {
-          const groupIds = memberships.map(m => m.group_id);
+          const groupIds = [...new Set(memberships.map(m => m.group_id))];
           
           // Fetch all members of those groups
           const { records: allMembers } = await invokeExternalDb<{
