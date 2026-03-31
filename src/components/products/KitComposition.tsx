@@ -768,39 +768,65 @@ function KitComponentCard({
         </div>
       </div>
 
-      {/* ── Specs Section ── */}
+      {/* ── Specs Section — single row: Weight | Dimensions | Volume ── */}
       {hasSpecs && (
-        <div className="px-4 pb-3 space-y-2">
-          {/* Weight row */}
-          {item.weightG != null && item.weightG > 0 && (
-            <div className="flex items-stretch gap-2">
-              <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5 min-w-[110px]">
+        <div className="px-4 pb-3">
+          <div className="flex items-stretch gap-2 rounded-lg border border-border bg-muted/20 px-4 py-3">
+            {/* Weight */}
+            {item.weightG != null && item.weightG > 0 && (
+              <div className="flex items-center gap-2 pr-3 border-r border-border/50">
                 <Weight className="h-4 w-4 text-primary shrink-0" />
                 <div>
                   <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
-                    Peso {item.quantity > 1 ? "(un.)" : ""}
+                    Peso
                   </div>
-                  <div className="text-xs font-bold text-foreground tabular-nums">
+                  <div className="text-sm font-bold text-foreground tabular-nums">
                     {formatWeight(item.weightG)}
-                    {item.quantity > 1 && (
-                      <span className="text-[10px] font-normal text-muted-foreground ml-1">
-                        ({formatWeight(item.weightG * item.quantity)} total)
-                      </span>
-                    )}
                   </div>
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Dimensions — consolidated diagram */}
-          {hasDimensions && (
-            <DimensionDiagram
-              height={item.heightMm}
-              width={item.widthMm}
-              depth={item.lengthMm}
-            />
-          )}
+            {/* Dimensions */}
+            {hasDimensions && (
+              <>
+                {(item.heightMm ?? 0) > 0 && (
+                  <div className="flex-1 min-w-0 px-2">
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Altura</div>
+                    <div className="text-sm font-bold text-foreground tabular-nums">
+                      {item.heightMm} <span className="text-[10px] font-normal text-muted-foreground">mm</span>
+                    </div>
+                  </div>
+                )}
+                {(item.widthMm ?? 0) > 0 && (
+                  <div className="flex-1 min-w-0 px-2">
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Largura</div>
+                    <div className="text-sm font-bold text-foreground tabular-nums">
+                      {item.widthMm} <span className="text-[10px] font-normal text-muted-foreground">mm</span>
+                    </div>
+                  </div>
+                )}
+                {(item.lengthMm ?? 0) > 0 && (
+                  <div className="flex-1 min-w-0 px-2">
+                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Profund.</div>
+                    <div className="text-sm font-bold text-foreground tabular-nums">
+                      {item.lengthMm} <span className="text-[10px] font-normal text-muted-foreground">mm</span>
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+
+            {/* Volume (ml) */}
+            {item.volumeMl != null && item.volumeMl > 0 && (
+              <div className="flex-1 min-w-0 px-2 border-l border-border/50">
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Volume</div>
+                <div className="text-sm font-bold text-foreground tabular-nums">
+                  {item.volumeMl} <span className="text-[10px] font-normal text-muted-foreground">ml</span>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
