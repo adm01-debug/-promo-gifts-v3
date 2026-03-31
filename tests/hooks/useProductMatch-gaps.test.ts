@@ -288,11 +288,12 @@ describe('GAP: calculateNameSimilarity logic issues', () => {
     // GAP: stop words like "de", "em", "com" cause false positives
   });
 
-  it('empty name returns NaN (division by zero)', () => {
+  it('empty names return similarity 1.0 (BUG: empty string includes empty string)', () => {
     const similarity = calculateNameSimilarity('', '');
-    // ''.split(/\s+/) returns [''], so length = 1, not 0
-    // Result: 0 common / Math.max(1,1) = 0 — actually handles gracefully
-    expect(similarity).toBe(0);
+    // ''.split(/\s+/) = [''], and ''.includes('') = true
+    // So commonWords = [''], length = 1, max(1,1) = 1 → similarity = 1.0
+    // BUG: Two empty-named products show 100% similarity
+    expect(similarity).toBe(1);
   });
 
   it('single character words inflate similarity', () => {
