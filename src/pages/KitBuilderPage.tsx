@@ -99,7 +99,8 @@ export default function KitBuilderPage() {
       name: kitState.name,
       kitQuantity,
     });
-  }, [kitState.box?.id, kitState.items.length, kitQuantity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kitState.box?.id, kitState.items.length, kitState.name, kitQuantity]);
 
   // Load saved kit from ?kit= param
   useEffect(() => {
