@@ -337,13 +337,9 @@ function KitComponentCard({
     (item.widthMm != null && item.widthMm > 0) ||
     (item.lengthMm != null && item.lengthMm > 0);
 
-  const hasExtraInfo =
-    hasDimensions ||
+  const hasExpandableInfo =
     item.description ||
-    item.personalizationNotes ||
-    item.supplierComponentCode ||
-    item.componentTypeCode ||
-    item.color;
+    item.personalizationNotes;
 
   const formatDim = () => {
     const parts: string[] = [];
@@ -352,6 +348,8 @@ function KitComponentCard({
     if (item.lengthMm) parts.push(`${item.lengthMm}`);
     return parts.join(" × ") + " mm";
   };
+
+  const formatWeight = (g: number) => g >= 1000 ? `${(g / 1000).toFixed(1)} kg` : `${g} g`;
 
   return (
     <div
@@ -367,7 +365,7 @@ function KitComponentCard({
       {/* Main row */}
       <div
         className="flex items-center gap-3 px-4 py-3.5 cursor-pointer"
-        onClick={() => (selectable ? onToggle() : hasExtraInfo && setExpanded(!expanded))}
+        onClick={() => (selectable ? onToggle() : hasExpandableInfo && setExpanded(!expanded))}
         role={selectable ? "button" : undefined}
         tabIndex={selectable ? 0 : undefined}
       >
@@ -400,7 +398,8 @@ function KitComponentCard({
         </div>
 
         {/* Info */}
-        <div className="flex-1 min-w-0 space-y-1">
+        <div className="flex-1 min-w-0 space-y-1.5">
+          {/* Name row */}
           <div className="flex items-start gap-2">
             <Badge
               variant="secondary"
@@ -408,47 +407,51 @@ function KitComponentCard({
             >
               {item.quantity}x
             </Badge>
-            <span className="text-sm font-medium text-foreground leading-tight line-clamp-2">
+            <span className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
               {item.productName}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap">
-            {item.sku && (
-              <span className="text-[11px] text-muted-foreground font-mono">
-                {item.sku}
-              </span>
-            )}
-            {!item.sku && (
-              <span className="text-[11px] text-muted-foreground font-mono">—</span>
+          {/* Inline specs: SKU • material • weight • dimensions */}
+          <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-muted-foreground">
+            {item.sku ? (
+              <span className="font-mono">{item.sku}</span>
+            ) : (
+              <span className="font-mono">—</span>
             )}
             {item.material && (
               <>
                 <span className="text-muted-foreground/40">•</span>
-                <span className="text-[11px] text-muted-foreground">{item.material}</span>
+                <span>{item.material}</span>
               </>
             )}
             {item.weightG != null && item.weightG > 0 && (
               <>
                 <span className="text-muted-foreground/40">•</span>
-                <span className="text-[11px] text-muted-foreground">
-                  {item.weightG >= 1000
-                    ? `${(item.weightG / 1000).toFixed(1)} kg`
-                    : `${item.weightG} g`}
-                </span>
+                <span>{formatWeight(item.weightG)}</span>
               </>
             )}
             {hasDimensions && (
               <>
                 <span className="text-muted-foreground/40">•</span>
-                <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                <span className="flex items-center gap-0.5">
                   <Ruler className="h-2.5 w-2.5" />
                   {formatDim()}
                 </span>
               </>
             )}
+            {item.supplierComponentCode && (
+              <>
+                <span className="text-muted-foreground/40">•</span>
+                <span className="flex items-center gap-0.5">
+                  <Tag className="h-2.5 w-2.5" />
+                  {item.supplierComponentCode}
+                </span>
+              </>
+            )}
           </div>
 
+          {/* Badges row */}
           <div className="flex items-center gap-1 flex-wrap">
             {item.isPackaging && (
               <Badge
@@ -493,12 +496,20 @@ function KitComponentCard({
                 Cor: {item.color}
               </Badge>
             )}
+            {item.componentTypeCode && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 gap-0.5"
+              >
+                {item.componentTypeCode}
+              </Badge>
+            )}
           </div>
         </div>
 
         {/* Actions */}
         <div className="flex items-center gap-1 shrink-0">
-          {hasExtraInfo && !selectable && (
+          {hasExpandableInfo && !selectable && (
             <Button
               variant="ghost"
               size="icon"
@@ -540,37 +551,11 @@ function KitComponentCard({
         </div>
       </div>
 
-      {/* Expanded details */}
-      {expanded && hasExtraInfo && (
+      {/* Expanded details (description & personalization notes only) */}
+      {expanded && hasExpandableInfo && (
         <div className="px-4 pb-3.5 pt-0 ml-[4.75rem] space-y-2 border-t border-border/30 mt-0">
-          <div className="pt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
-            {item.componentTypeCode && (
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Tag className="h-3 w-3 shrink-0" />
-                <span className="font-medium">Tipo:</span>
-                <span>{item.componentTypeCode}</span>
-              </div>
-            )}
-            {item.supplierComponentCode && (
-              <div className="flex items-center gap-1.5 text-muted-foreground">
-                <Tag className="h-3 w-3 shrink-0" />
-                <span className="font-medium">Cód. Fornecedor:</span>
-                <span>{item.supplierComponentCode}</span>
-              </div>
-            )}
-            {hasDimensions && (
-              <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
-                <Ruler className="h-3 w-3 shrink-0" />
-                <span className="font-medium">Dimensões (A×L×P):</span>
-                <span>
-                  {item.heightMm ?? "—"} × {item.widthMm ?? "—"} × {item.lengthMm ?? "—"} mm
-                </span>
-              </div>
-            )}
-          </div>
-
           {item.description && (
-            <div className="text-[11px] text-muted-foreground">
+            <div className="pt-2 text-[11px] text-muted-foreground">
               <span className="font-medium flex items-center gap-1 mb-0.5">
                 <FileText className="h-3 w-3" /> Descrição
               </span>
@@ -583,7 +568,7 @@ function KitComponentCard({
           {item.personalizationNotes && (
             <div className="text-[11px] rounded-md bg-primary/5 border border-primary/10 p-2">
               <span className="font-medium flex items-center gap-1 mb-0.5 text-primary">
-                <Palette className="h-3 w-3" /> Áreas de Personalização
+                <Palette className="h-3 w-3" /> Notas de Personalização
               </span>
               <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
                 {item.personalizationNotes}
