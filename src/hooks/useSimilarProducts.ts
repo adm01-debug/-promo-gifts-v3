@@ -1,9 +1,13 @@
 /**
- * useSimilarProducts — Fetches products in the same product_group.
- * Falls back to related products (same supplier/category) when no groups exist.
+ * useSimilarProducts — Fetches similar products via the external DB.
+ * 
+ * Strategy:
+ * 1. Query `product_relationships` (107k+ cross-supplier pairs) for direct similar matches
+ * 2. Fallback: Query `product_group_members` for group-based siblings
+ * 3. Last resort: Related products from same supplier/category
  */
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalDb } from '@/lib/external-db';
 import { fetchPromobrindProductById, fetchPromobrindProducts } from '@/lib/external-db';
 import { mapPromobrindToProduct } from '@/utils/product-mapper';
 import type { Product } from '@/types/product-catalog';
@@ -44,40 +48,95 @@ export function useSimilarProducts(product: Product | null | undefined) {
     queryFn: async () => {
       if (!productId) return [];
 
-      // 1. Try product_group_members first
-      const { data: memberships } = await supabase
-        .from('product_group_members')
-        .select('product_group_id')
-        .eq('product_id', productId);
+      // 1. Try product_relationships (direct pairs — fastest, 107k+ records)
+      try {
+        const { records: relationships } = await invokeExternalDb<{
+          related_product_id: string;
+        }>({
+          table: 'product_relationships',
+          operation: 'select',
+          select: 'related_product_id',
+          filters: {
+            product_id: productId,
+            relationship_type: 'similar',
+          },
+          limit: 50,
+        });
 
-      if (memberships && memberships.length > 0) {
-        const groupIds = memberships.map(m => m.product_group_id);
-        const { data: allMembers } = await supabase
-          .from('product_group_members')
-          .select('product_id')
-          .in('product_group_id', groupIds);
-
-        const siblingIds = [...new Set(
-          (allMembers || [])
-            .map(m => m.product_id)
-            .filter(id => id !== productId)
-        )];
-
-        if (siblingIds.length > 0) {
+        if (relationships && relationships.length > 0) {
+          const relatedIds = relationships.map(r => r.related_product_id);
           const results = await Promise.allSettled(
-            siblingIds.map(id => fetchPromobrindProductById(id))
+            relatedIds.map(id => fetchPromobrindProductById(id))
           );
           const items: SimilarProductItem[] = [];
           for (const result of results) {
             if (result.status === 'fulfilled' && result.value) {
-              items.push(mapToSimilarItem(mapPromobrindToProduct(result.value)));
+              const mapped = mapPromobrindToProduct(result.value);
+              // Only include products with valid price and images
+              if (mapped.price > 0) {
+                items.push(mapToSimilarItem(mapped));
+              }
             }
           }
           if (items.length > 0) return items;
         }
+      } catch (err) {
+        console.warn('[useSimilarProducts] product_relationships query failed, trying groups:', err);
       }
 
-      // 2. Fallback: fetch related products from same supplier or category
+      // 2. Try product_group_members (group-based siblings)
+      try {
+        const { records: memberships } = await invokeExternalDb<{
+          group_id: string;
+        }>({
+          table: 'product_group_members',
+          operation: 'select',
+          select: 'group_id',
+          filters: { product_id: productId },
+          limit: 10,
+        });
+
+        if (memberships && memberships.length > 0) {
+          const groupIds = memberships.map(m => m.group_id);
+          
+          // Fetch all members of those groups
+          const { records: allMembers } = await invokeExternalDb<{
+            product_id: string;
+            supplier_id: string;
+          }>({
+            table: 'product_group_members',
+            operation: 'select',
+            select: 'product_id,supplier_id',
+            filters: {
+              group_id: `in.(${groupIds.join(',')})`,
+            },
+            limit: 100,
+          });
+
+          const siblingIds = [...new Set(
+            (allMembers || [])
+              .map(m => m.product_id)
+              .filter(id => id !== productId)
+          )];
+
+          if (siblingIds.length > 0) {
+            const results = await Promise.allSettled(
+              siblingIds.map(id => fetchPromobrindProductById(id))
+            );
+            const items: SimilarProductItem[] = [];
+            for (const result of results) {
+              if (result.status === 'fulfilled' && result.value) {
+                items.push(mapToSimilarItem(mapPromobrindToProduct(result.value)));
+              }
+            }
+            if (items.length > 0) return items;
+          }
+        }
+      } catch (err) {
+        console.warn('[useSimilarProducts] product_group_members query failed, using fallback:', err);
+      }
+
+      // 3. Fallback: fetch related products from same supplier or category
       const filters: Record<string, unknown> = {};
       if (supplierId && supplierId !== 'unknown') {
         filters.supplier_id = supplierId;
