@@ -97,6 +97,7 @@ export interface KitComponent {
   heightMm?: number | null;
   widthMm?: number | null;
   lengthMm?: number | null;
+  volumeMl?: number | null;
   componentTypeCode?: string | null;
   supplierComponentCode?: string | null;
   description?: string | null;
