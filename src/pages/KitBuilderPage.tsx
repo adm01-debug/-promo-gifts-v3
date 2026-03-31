@@ -31,6 +31,7 @@ import {
   KitSummary,
 } from '@/components/kit-builder';
 import { KitSmartSuggestions } from '@/components/kit-builder/KitSmartSuggestions';
+import { FreightEstimator } from '@/components/kit-builder/FreightEstimator';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
