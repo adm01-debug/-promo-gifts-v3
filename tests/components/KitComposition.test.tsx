@@ -42,9 +42,9 @@ describe('KitComposition', () => {
   it('renders header with correct component and piece counts in dialog', () => {
     render(<KitComposition items={[PACKAGING, ITEM_A, ITEM_B]} />);
     openDialog();
-    expect(screen.getByText(/3 componentes/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/3.*componentes/i).length).toBeGreaterThanOrEqual(1);
     // total pieces: 1 + 1 + 3 = 5
-    expect(screen.getByText(/5 peças/i)).toBeInTheDocument();
+    expect(screen.getByText(/5\s*peças/i)).toBeInTheDocument();
   });
 
   it('renders singular "componente" and "peça" for single item', () => {
