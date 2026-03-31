@@ -112,8 +112,9 @@ export function calculateSavings(
 // FORMATAÇÃO
 // ============================================
 
-// Re-export from centralized format module
-export { formatCurrency } from '@/lib/format';
+// Import + re-export from centralized format module
+import { formatCurrency } from '@/lib/format';
+export { formatCurrency };
 
 /**
  * Formata preço por unidade
