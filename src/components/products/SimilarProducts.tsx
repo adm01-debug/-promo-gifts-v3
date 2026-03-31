@@ -1,11 +1,12 @@
-import { useRef, useState, useCallback, forwardRef } from "react";
+import { useRef, useState, useCallback, forwardRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Layers, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, Loader2, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { useSimilarProducts, type SimilarProductItem } from "@/hooks/useSimilarProducts";
+import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 
 interface SimilarProductsProps {
   currentProduct: Product;
@@ -18,8 +19,9 @@ const SimilarProductCard = forwardRef<
     item: SimilarProductItem;
     onClick: () => void;
     index: number;
+    isLowestPrice?: boolean;
   }
->(({ item, onClick, index }, ref) => {
+>(({ item, onClick, index, isLowestPrice }, ref) => {
   return (
     <div
       ref={ref}
@@ -44,6 +46,14 @@ const SimilarProductCard = forwardRef<
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
+        {isLowestPrice && (
+          <div className="absolute top-1.5 right-1.5">
+            <Badge className="text-[9px] px-1.5 py-0.5 bg-emerald-500/90 text-white backdrop-blur-sm border-none shadow-sm gap-0.5">
+              <TrendingDown className="h-2.5 w-2.5" />
+              Menor preço
+            </Badge>
+          </div>
+        )}
         <div className="absolute bottom-1.5 left-1.5">
           <Badge
             variant="secondary"
@@ -89,7 +99,25 @@ export function SimilarProducts({
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct);
-  const similarItems = dbItems;
+  const { data: categories = [] } = useExternalCategoriesQuery();
+
+  // Enrich items with category names and find lowest price
+  const { similarItems, lowestPriceId } = useMemo(() => {
+    const catMap = new Map(categories.map(c => [c.id, c.name]));
+    const enriched = dbItems.map(item => ({
+      ...item,
+      category_name: catMap.get(item.category_id || '') || item.category_name || '',
+    }));
+    let minPrice = Infinity;
+    let minId = '';
+    for (const item of enriched) {
+      if (item.price > 0 && item.price < minPrice) {
+        minPrice = item.price;
+        minId = item.id;
+      }
+    }
+    return { similarItems: enriched, lowestPriceId: minId };
+  }, [dbItems, categories]);
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
@@ -186,6 +214,7 @@ export function SimilarProducts({
               key={item.id}
               item={item}
               index={index}
+              isLowestPrice={item.id === lowestPriceId && similarItems.length > 1}
               onClick={() => navigate(`/produto/${item.id}`)}
             />
           ))}
