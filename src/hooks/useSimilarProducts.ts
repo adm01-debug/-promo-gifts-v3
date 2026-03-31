@@ -136,24 +136,45 @@ export function useSimilarProducts(product: Product | null | undefined) {
         console.warn('[useSimilarProducts] product_group_members query failed, using fallback:', err);
       }
 
-      // 3. Fallback: fetch related products from same supplier or category
-      const filters: Record<string, unknown> = {};
-      if (supplierId && supplierId !== 'unknown') {
-        filters.supplier_id = supplierId;
-      } else if (categoryId) {
-        filters.main_category_id = categoryId;
+      // 3. Fallback: fetch related products from same supplier or category (lightweight)
+      try {
+        const fallbackFilters: Record<string, unknown> = { active: true };
+        if (supplierId && supplierId !== 'unknown') {
+          fallbackFilters.supplier_id = supplierId;
+        } else if (categoryId) {
+          fallbackFilters.main_category_id = categoryId;
+        }
+
+        const { records: fallbackProducts } = await invokeExternalDb<{
+          id: string; name: string; sku: string; sale_price: number;
+          primary_image_url: string; supplier_id: string; stock_quantity: number;
+          brand: string; category_id: string;
+        }>({
+          table: 'products',
+          operation: 'select',
+          select: 'id,name,sku,sale_price,primary_image_url,supplier_id,stock_quantity,brand,category_id',
+          filters: fallbackFilters,
+          limit: 30,
+          orderBy: { column: 'name', ascending: true },
+        });
+
+        return (fallbackProducts || [])
+          .filter(p => p.id !== productId && p.sale_price > 0)
+          .map(p => ({
+            id: p.id,
+            name: p.name,
+            sku: p.sku,
+            price: p.sale_price,
+            image_url: p.primary_image_url || '/placeholder.svg',
+            supplier_name: p.brand || 'Fornecedor',
+            category_name: '',
+            colors_count: 0,
+            stock: p.stock_quantity || 0,
+          }));
+      } catch (err) {
+        console.warn('[useSimilarProducts] Fallback query failed:', err);
+        return [];
       }
-
-      const raw = await fetchPromobrindProducts({
-        filters: Object.keys(filters).length > 0 ? filters : undefined,
-        limit: 500,
-        orderBy: { column: 'name', ascending: true },
-      });
-
-      return raw
-        .map(mapPromobrindToProduct)
-        .filter(p => p.id !== productId)
-        .map(mapToSimilarItem);
     },
     staleTime: 10 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
