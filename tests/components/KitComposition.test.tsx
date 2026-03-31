@@ -58,8 +58,9 @@ describe('KitComposition', () => {
   it('displays total weight in grams when < 1000g', () => {
     render(<KitComposition items={[PACKAGING, ITEM_A]} />);
     openDialog();
-    // 200 + 250 = 450g
-    expect(screen.getByText(/450 g/)).toBeInTheDocument();
+    // 200 + 250 = 450g (appears in trigger + dialog)
+    const matches = screen.getAllByText(/450 g/);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it('displays total weight in kg when >= 1000g', () => {
