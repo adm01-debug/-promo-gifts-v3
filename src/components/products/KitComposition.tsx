@@ -66,6 +66,7 @@ export function KitComposition({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState({
     packaging: true,
     products: true,
@@ -349,6 +350,19 @@ export function KitComposition({
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Image Zoom Dialog */}
+      <Dialog open={!!zoomImageUrl} onOpenChange={() => setZoomImageUrl(null)}>
+        <DialogContent className="max-w-2xl p-2 bg-background/95 backdrop-blur-xl">
+          {zoomImageUrl && (
+            <img
+              src={zoomImageUrl}
+              alt="Zoom"
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
@@ -602,8 +616,15 @@ function KitComponentCard({
                 "w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border",
                 isPackaging
                   ? "bg-amber-500/5 border-amber-500/20"
-                  : "bg-muted/60 border-border/50"
+                  : "bg-muted/60 border-border/50",
+                item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all"
               )}
+              onClick={(e) => {
+                if (item.imageUrl) {
+                  e.stopPropagation();
+                  setZoomImageUrl(item.imageUrl);
+                }
+              }}
             >
               {item.imageUrl ? (
                 <img
