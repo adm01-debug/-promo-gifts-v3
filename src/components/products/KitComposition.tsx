@@ -66,6 +66,7 @@ export function KitComposition({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
   const [selectAll, setSelectAll] = useState(false);
+  const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState({
     packaging: true,
     products: true,
