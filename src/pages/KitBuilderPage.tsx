@@ -702,6 +702,13 @@ export default function KitBuilderPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Freight preview in sidebar */}
+            {kitState.totalWeight > 0 && (
+              <div className="scale-[0.92] origin-top">
+                <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
+              </div>
+            )}
           </div>
         </div>
       </div>
