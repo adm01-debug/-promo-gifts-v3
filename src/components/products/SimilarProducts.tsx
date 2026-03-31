@@ -214,6 +214,7 @@ export function SimilarProducts({
               key={item.id}
               item={item}
               index={index}
+              isLowestPrice={item.id === lowestPriceId && similarItems.length > 1}
               onClick={() => navigate(`/produto/${item.id}`)}
             />
           ))}
