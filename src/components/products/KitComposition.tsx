@@ -12,6 +12,9 @@ import {
   ShoppingBag,
   ChevronUp,
   ChevronDown,
+  Ruler,
+  Tag,
+  FileText,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
