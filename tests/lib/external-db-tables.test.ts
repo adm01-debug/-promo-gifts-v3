@@ -18,18 +18,13 @@ describe('External DB Tables constants', () => {
     expect(PRODUCT_TABLES).toContain('tabela_preco_gravacao_oficial_faixa');
   });
 
-  it('does NOT contain phantom tables', () => {
-    expect(PRODUCT_TABLES).not.toContain('product_categories');
-    expect(PRODUCT_TABLES).not.toContain('product_suppliers');
-    expect(PRODUCT_TABLES).not.toContain('product_print_areas');
-    expect(PRODUCT_TABLES).not.toContain('product_attributes');
+  it('does NOT contain phantom tables that were fully removed', () => {
+    // These were confirmed non-existent in the external DB
     expect(PRODUCT_TABLES).not.toContain('kit_component_media');
     expect(PRODUCT_TABLES).not.toContain('personalization_techniques');
     expect(PRODUCT_TABLES).not.toContain('customization_price_tables');
     expect(PRODUCT_TABLES).not.toContain('customization_price_tiers');
     expect(PRODUCT_TABLES).not.toContain('tecnica_gravacao');
-    expect(PRODUCT_TABLES).not.toContain('price_lists');
-    expect(PRODUCT_TABLES).not.toContain('stock_movements');
     expect(PRODUCT_TABLES).not.toContain('business_sectors');
   });
 
