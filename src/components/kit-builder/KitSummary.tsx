@@ -145,7 +145,7 @@ export function KitSummary({
         {/* Peso Total */}
         <Card>
           <CardContent className="pt-6 text-center">
-            <Package className="h-8 w-8 mx-auto text-primary mb-2" />
+            <Scale className="h-8 w-8 mx-auto text-primary mb-2" />
             <p className="text-2xl font-bold">
               {kitState.totalWeight >= 1000
                 ? `${(kitState.totalWeight / 1000).toFixed(1)}kg`

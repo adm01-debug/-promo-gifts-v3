@@ -141,7 +141,7 @@ export function ItemSelector({
         onReorder={onReorder}
       />
 
-      <ScrollArea className="h-[350px] pr-4">
+      <ScrollArea className="h-[50vh] pr-4">
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map(i => (
