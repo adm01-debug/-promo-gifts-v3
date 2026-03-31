@@ -546,7 +546,7 @@ function KitComponentCard({
 
   const hasExpandableInfo = item.description || item.personalizationNotes;
   const hasSpecs =
-    hasDimensions || (item.weightG != null && item.weightG > 0) || item.material;
+    hasDimensions || (item.weightG != null && item.weightG > 0);
 
   const formatWeight = (g: number) =>
     g >= 1000 ? `${(g / 1000).toFixed(1)} kg` : `${g} g`;
