@@ -99,7 +99,25 @@ export function SimilarProducts({
   const [canScrollRight, setCanScrollRight] = useState(true);
 
   const { data: dbItems = [], isLoading } = useSimilarProducts(currentProduct);
-  const similarItems = dbItems;
+  const { data: categories = [] } = useExternalCategoriesQuery();
+
+  // Enrich items with category names and find lowest price
+  const { similarItems, lowestPriceId } = useMemo(() => {
+    const catMap = new Map(categories.map(c => [c.id, c.name]));
+    const enriched = dbItems.map(item => ({
+      ...item,
+      category_name: catMap.get(item.category_id || '') || item.category_name || '',
+    }));
+    let minPrice = Infinity;
+    let minId = '';
+    for (const item of enriched) {
+      if (item.price > 0 && item.price < minPrice) {
+        minPrice = item.price;
+        minId = item.id;
+      }
+    }
+    return { similarItems: enriched, lowestPriceId: minId };
+  }, [dbItems, categories]);
 
   const updateScrollButtons = useCallback(() => {
     const el = scrollRef.current;
