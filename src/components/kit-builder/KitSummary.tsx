@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image, AlertTriangle, TrendingUp, Percent, Scale } from 'lucide-react';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image, AlertTriangle, TrendingUp, Percent, Scale, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
