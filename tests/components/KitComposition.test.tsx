@@ -234,7 +234,9 @@ describe('KitComposition', () => {
   it('handles all items being packaging', () => {
     const pkg2 = makeItem({ id: 'pkg-2', productName: 'Tampa', isPackaging: true, quantity: 1 });
     render(<KitComposition items={[PACKAGING, pkg2]} />);
-    expect(screen.getByText('Embalagem')).toBeInTheDocument();
+    // "Embalagem" appears as section header + badge on each packaging item
+    const matches = screen.getAllByText('Embalagem');
+    expect(matches.length).toBeGreaterThanOrEqual(1);
     expect(screen.queryByText('Itens do Kit')).toBeNull();
   });
 
