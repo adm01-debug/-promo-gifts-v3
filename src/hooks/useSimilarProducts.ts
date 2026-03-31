@@ -8,7 +8,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
-import { fetchPromobrindProductById, fetchPromobrindProducts } from '@/lib/external-db';
+import { fetchPromobrindProductById } from '@/lib/external-db';
 import { mapPromobrindToProduct } from '@/utils/product-mapper';
 import type { Product } from '@/types/product-catalog';
 
