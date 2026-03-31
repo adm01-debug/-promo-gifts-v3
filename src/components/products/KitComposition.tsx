@@ -350,6 +350,19 @@ export function KitComposition({
           </ScrollArea>
         </DialogContent>
       </Dialog>
+
+      {/* Image Zoom Dialog */}
+      <Dialog open={!!zoomImageUrl} onOpenChange={() => setZoomImageUrl(null)}>
+        <DialogContent className="max-w-2xl p-2 bg-background/95 backdrop-blur-xl">
+          {zoomImageUrl && (
+            <img
+              src={zoomImageUrl}
+              alt="Zoom"
+              className="w-full h-auto max-h-[80vh] object-contain rounded-lg"
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
