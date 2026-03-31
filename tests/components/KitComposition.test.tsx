@@ -67,7 +67,9 @@ describe('KitComposition', () => {
 
   it('separates packaging and product items into sections', () => {
     render(<KitComposition items={[PACKAGING, ITEM_A, ITEM_B]} />);
-    expect(screen.getByText('Embalagem')).toBeInTheDocument();
+    // "Embalagem" appears as section header AND as badge on packaging item
+    const embalagemMatches = screen.getAllByText('Embalagem');
+    expect(embalagemMatches.length).toBeGreaterThanOrEqual(2); // section + badge
     expect(screen.getByText('Itens do Kit')).toBeInTheDocument();
   });
 
