@@ -77,6 +77,10 @@ export const PRODUCT_TABLES = [
   // Histórico de estoque
   'stock_snapshots',
   'stock_daily_summary',
+  // Grupos e relacionamentos de produtos
+  'product_groups',
+  'product_group_members',
+  'product_relationships',
 ] as const;
 
 // ============================================
