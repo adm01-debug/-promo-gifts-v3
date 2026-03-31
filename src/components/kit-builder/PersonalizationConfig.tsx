@@ -369,6 +369,20 @@ export function PersonalizationConfig({
         )}
       </div>
 
+      {/* Alerta de quantidade mínima */}
+      {kitQuantity < 50 && totalPersonalizations > 0 && (
+        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-lg p-3">
+          <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
+          <div>
+            <p className="font-medium text-warning">Quantidade baixa para personalização</p>
+            <p className="text-xs text-muted-foreground">
+              A maioria das técnicas de gravação exige lote mínimo de 50 unidades.
+              Com {kitQuantity} {kitQuantity === 1 ? 'kit' : 'kits'}, o custo por unidade pode ser significativamente maior.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Caixa */}
       {box && (
         <div className="space-y-2">
