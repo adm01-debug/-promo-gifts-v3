@@ -85,10 +85,12 @@ describe('KitComposition', () => {
     expect(screen.getByText(/Itens do Kit/i)).toBeInTheDocument();
   });
 
-  it('does not show "Itens do Kit" section header when no packaging', () => {
+  it('shows items directly without "Itens do Kit" section when no packaging', () => {
     render(<KitComposition items={[ITEM_A, ITEM_B]} />);
     openDialog();
-    expect(screen.queryByText(/Itens do Kit/)).toBeNull();
+    // Items are still rendered even without packaging section
+    expect(screen.getByText('Caderno A5')).toBeInTheDocument();
+    expect(screen.getByText('Caneta Metal')).toBeInTheDocument();
   });
 
   it('renders SKU for each item', () => {
