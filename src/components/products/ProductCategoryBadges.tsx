@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Palette, Sparkles } from "lucide-react";
+import { Package, Palette, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import type { Category } from "@/data/mockData";
