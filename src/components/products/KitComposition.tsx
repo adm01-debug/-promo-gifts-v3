@@ -773,66 +773,59 @@ function KitComponentCard({
 
       {/* ── Specs Section — individual cards matching product detail style ── */}
       {hasSpecs && (
-        <div className="px-4 pb-3 space-y-2">
-          {/* Row 1: Dimensions */}
-          {hasDimensions && (
-            <div className="grid grid-cols-3 gap-2">
-              {(item.heightMm ?? 0) > 0 && (
-                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-                  <ArrowUpDown className="h-4 w-4 text-primary shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-muted-foreground">Altura</div>
-                    <div className="text-sm font-bold text-foreground tabular-nums">
-                      {item.heightMm} <span className="text-[10px] font-normal text-muted-foreground">mm</span>
-                    </div>
+        <div className="px-4 pb-3">
+          <div className="flex items-stretch gap-1.5">
+            {(item.heightMm ?? 0) > 0 && (
+              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 flex-1 min-w-0">
+                <ArrowUpDown className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[9px] text-muted-foreground leading-tight">Altura</div>
+                  <div className="text-xs font-bold text-foreground tabular-nums leading-tight">
+                    {item.heightMm} <span className="text-[9px] font-normal text-muted-foreground">mm</span>
                   </div>
                 </div>
-              )}
-              {(item.widthMm ?? 0) > 0 && (
-                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-                  <ArrowLeftRight className="h-4 w-4 text-primary shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-muted-foreground">Largura</div>
-                    <div className="text-sm font-bold text-foreground tabular-nums">
-                      {item.widthMm} <span className="text-[10px] font-normal text-muted-foreground">mm</span>
-                    </div>
+              </div>
+            )}
+            {(item.widthMm ?? 0) > 0 && (
+              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 flex-1 min-w-0">
+                <ArrowLeftRight className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[9px] text-muted-foreground leading-tight">Largura</div>
+                  <div className="text-xs font-bold text-foreground tabular-nums leading-tight">
+                    {item.widthMm} <span className="text-[9px] font-normal text-muted-foreground">mm</span>
                   </div>
                 </div>
-              )}
-              {(item.lengthMm ?? 0) > 0 && (
-                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-                  <MoveHorizontal className="h-4 w-4 text-primary shrink-0" />
-                  <div>
-                    <div className="text-[10px] text-muted-foreground">Profundidade</div>
-                    <div className="text-sm font-bold text-foreground tabular-nums">
-                      {item.lengthMm} <span className="text-[10px] font-normal text-muted-foreground">mm</span>
-                    </div>
+              </div>
+            )}
+            {(item.lengthMm ?? 0) > 0 && (
+              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 flex-1 min-w-0">
+                <MoveHorizontal className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[9px] text-muted-foreground leading-tight">Profundidade</div>
+                  <div className="text-xs font-bold text-foreground tabular-nums leading-tight">
+                    {item.lengthMm} <span className="text-[9px] font-normal text-muted-foreground">mm</span>
                   </div>
                 </div>
-              )}
-            </div>
-          )}
-
-          {/* Row 2: Weight + Volume */}
-          <div className="flex items-stretch gap-2">
+              </div>
+            )}
             {item.weightG != null && item.weightG > 0 && (
-              <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-                <Weight className="h-4 w-4 text-primary shrink-0" />
-                <div>
-                  <div className="text-[10px] text-muted-foreground">Peso</div>
-                  <div className="text-sm font-bold text-foreground tabular-nums">
+              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 flex-1 min-w-0">
+                <Weight className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[9px] text-muted-foreground leading-tight">Peso</div>
+                  <div className="text-xs font-bold text-foreground tabular-nums leading-tight">
                     {formatWeight(item.weightG)}
                   </div>
                 </div>
               </div>
             )}
             {item.volumeMl != null && item.volumeMl > 0 && (
-              <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5">
-                <Box className="h-4 w-4 text-primary shrink-0" />
-                <div>
-                  <div className="text-[10px] text-muted-foreground">Volume</div>
-                  <div className="text-sm font-bold text-foreground tabular-nums">
-                    {item.volumeMl} <span className="text-[10px] font-normal text-muted-foreground">ml</span>
+              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 flex-1 min-w-0">
+                <Box className="h-3.5 w-3.5 text-primary shrink-0" />
+                <div className="min-w-0">
+                  <div className="text-[9px] text-muted-foreground leading-tight">Volume</div>
+                  <div className="text-xs font-bold text-foreground tabular-nums leading-tight">
+                    {item.volumeMl} <span className="text-[9px] font-normal text-muted-foreground">ml</span>
                   </div>
                 </div>
               </div>
