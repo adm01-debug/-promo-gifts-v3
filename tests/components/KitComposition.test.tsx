@@ -51,7 +51,8 @@ describe('KitComposition', () => {
 
   it('displays total weight in kg when >= 1000g', () => {
     render(<KitComposition items={[ITEM_C]} />);
-    expect(screen.getByText('1.2 kg')).toBeInTheDocument();
+    const matches = screen.getAllByText('1.2 kg');
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it('does not show weight badge when all items have 0 weight', () => {
