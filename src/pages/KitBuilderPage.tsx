@@ -481,6 +481,20 @@ export default function KitBuilderPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
+                {/* Templates */}
+                {wizardState.currentStep === 'box' && !kitState.box && kitState.items.length === 0 && (
+                  <KitTemplates
+                    visible
+                    onSelectTemplate={(template: KitTemplate) => {
+                      setKitType(template.kitType);
+                      setKitName(template.name);
+                      toast.success(`Template "${template.name}" aplicado!`, {
+                        description: `Tipo: ${template.kitType}. Agora selecione a caixa.`,
+                      });
+                    }}
+                  />
+                )}
+
                 {/* Step: Box Selection */}
                 {wizardState.currentStep === 'box' && (
                   <div className="space-y-6">
