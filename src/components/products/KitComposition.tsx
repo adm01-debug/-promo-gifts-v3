@@ -554,6 +554,7 @@ function KitComponentCard({
   selectable,
   onToggle,
   onViewProduct,
+  onZoomImage,
 }: KitComponentCardProps) {
   const [expanded, setExpanded] = useState(false);
 
