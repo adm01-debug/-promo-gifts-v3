@@ -5,11 +5,11 @@
  * 1. Query `product_relationships` (107k+ cross-supplier pairs) for direct similar matches
  * 2. Fallback: Query `product_group_members` for group-based siblings
  * 3. Last resort: Related products from same supplier/category
+ * 
+ * All levels use lightweight batch queries (no individual product detail fetches).
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
-import { fetchPromobrindProductById } from '@/lib/external-db';
-import { mapPromobrindToProduct } from '@/utils/product-mapper';
 import type { Product } from '@/types/product-catalog';
 
 export interface SimilarProductItem {
@@ -24,18 +24,50 @@ export interface SimilarProductItem {
   stock?: number;
 }
 
-function mapToSimilarItem(p: Product): SimilarProductItem {
+/** Lightweight product columns needed for similar product cards */
+const SIMILAR_PRODUCT_SELECT = 'id,name,sku,sale_price,primary_image_url,supplier_id,stock_quantity,brand,category_id';
+
+interface LightweightProduct {
+  id: string;
+  name: string;
+  sku: string;
+  sale_price: number;
+  primary_image_url: string;
+  supplier_id: string;
+  stock_quantity: number;
+  brand: string;
+  category_id: string;
+}
+
+function mapLightweightToSimilarItem(p: LightweightProduct): SimilarProductItem {
   return {
     id: p.id,
     name: p.name,
     sku: p.sku,
-    price: p.price,
-    image_url: p.images?.[0] || p.image_url || '',
-    supplier_name: p.supplier?.name || 'Fornecedor',
-    category_name: p.category?.name || '',
-    colors_count: p.colors?.length || 0,
-    stock: p.stock,
+    price: p.sale_price,
+    image_url: p.primary_image_url || '/placeholder.svg',
+    supplier_name: p.brand || 'Fornecedor',
+    category_name: '',
+    colors_count: 0,
+    stock: p.stock_quantity || 0,
   };
+}
+
+/** Batch-fetch lightweight product data by an array of IDs */
+async function fetchProductsByIds(ids: string[]): Promise<SimilarProductItem[]> {
+  if (ids.length === 0) return [];
+
+  const { records } = await invokeExternalDb<LightweightProduct>({
+    table: 'products',
+    operation: 'select',
+    select: SIMILAR_PRODUCT_SELECT,
+    filters: { id: ids, active: true },
+    limit: ids.length,
+  });
+
+  return (records || [])
+    .filter(p => p.sale_price > 0)
+    .map(mapLightweightToSimilarItem);
 }
 
 export function useSimilarProducts(product: Product | null | undefined) {
@@ -65,19 +97,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
 
         if (relationships && relationships.length > 0) {
           const relatedIds = relationships.map(r => r.related_product_id);
-          const results = await Promise.allSettled(
-            relatedIds.map(id => fetchPromobrindProductById(id))
-          );
-          const items: SimilarProductItem[] = [];
-          for (const result of results) {
-            if (result.status === 'fulfilled' && result.value) {
-              const mapped = mapPromobrindToProduct(result.value);
-              // Only include products with valid price and images
-              if (mapped.price > 0) {
-                items.push(mapToSimilarItem(mapped));
-              }
-            }
-          }
+          const items = await fetchProductsByIds(relatedIds);
           if (items.length > 0) return items;
         }
       } catch (err) {
@@ -99,14 +119,12 @@ export function useSimilarProducts(product: Product | null | undefined) {
         if (memberships && memberships.length > 0) {
           const groupIds = [...new Set(memberships.map(m => m.group_id))];
           
-          // Fetch all members of those groups
           const { records: allMembers } = await invokeExternalDb<{
             product_id: string;
-            supplier_id: string;
           }>({
             table: 'product_group_members',
             operation: 'select',
-            select: 'product_id,supplier_id',
+            select: 'product_id',
             filters: {
               group_id: `in.(${groupIds.join(',')})`,
             },
@@ -120,15 +138,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
           )];
 
           if (siblingIds.length > 0) {
-            const results = await Promise.allSettled(
-              siblingIds.map(id => fetchPromobrindProductById(id))
-            );
-            const items: SimilarProductItem[] = [];
-            for (const result of results) {
-              if (result.status === 'fulfilled' && result.value) {
-                items.push(mapToSimilarItem(mapPromobrindToProduct(result.value)));
-              }
-            }
+            const items = await fetchProductsByIds(siblingIds);
             if (items.length > 0) return items;
           }
         }
@@ -145,14 +155,10 @@ export function useSimilarProducts(product: Product | null | undefined) {
           fallbackFilters.main_category_id = categoryId;
         }
 
-        const { records: fallbackProducts } = await invokeExternalDb<{
-          id: string; name: string; sku: string; sale_price: number;
-          primary_image_url: string; supplier_id: string; stock_quantity: number;
-          brand: string; category_id: string;
-        }>({
+        const { records: fallbackProducts } = await invokeExternalDb<LightweightProduct>({
           table: 'products',
           operation: 'select',
-          select: 'id,name,sku,sale_price,primary_image_url,supplier_id,stock_quantity,brand,category_id',
+          select: SIMILAR_PRODUCT_SELECT,
           filters: fallbackFilters,
           limit: 30,
           orderBy: { column: 'name', ascending: true },
@@ -160,17 +166,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
 
         return (fallbackProducts || [])
           .filter(p => p.id !== productId && p.sale_price > 0)
-          .map(p => ({
-            id: p.id,
-            name: p.name,
-            sku: p.sku,
-            price: p.sale_price,
-            image_url: p.primary_image_url || '/placeholder.svg',
-            supplier_name: p.brand || 'Fornecedor',
-            category_name: '',
-            colors_count: 0,
-            stock: p.stock_quantity || 0,
-          }));
+          .map(mapLightweightToSimilarItem);
       } catch (err) {
         console.warn('[useSimilarProducts] Fallback query failed:', err);
         return [];
