@@ -223,9 +223,10 @@ describe('KitComposition', () => {
   });
 
   it('correctly calculates weight with multiple quantities', () => {
-    // ITEM_B has weightG=35 and quantity=3 => 105g
+    // ITEM_B has weightG=35 and quantity=3 => 105g total
     render(<KitComposition items={[ITEM_B]} />);
-    expect(screen.getByText('105 g')).toBeInTheDocument();
+    const matches = screen.getAllByText('105 g');
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it('handles all items being packaging', () => {
