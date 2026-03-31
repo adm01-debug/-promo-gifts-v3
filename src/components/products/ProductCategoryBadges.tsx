@@ -164,6 +164,30 @@ export function ProductCategoryBadges({
           </TooltipContent>
         </Tooltip>
       )}
+
+      {/* Monte seu Kit - apenas para produtos que NÃO são kits nativos */}
+      {productId && !isKit && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              onClick={() => navigate(`/kit-builder?product=${productId}`)}
+              className={cn(
+                "px-2.5 py-1 text-sm font-medium cursor-pointer",
+                "border-warning/50 bg-warning/15 hover:bg-warning/25",
+                "text-warning hover:text-warning",
+                "transition-all duration-200 hover:scale-105 hover:border-warning"
+              )}
+            >
+              <Package className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs">Monte seu Kit</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="font-medium">
+            Montar um kit personalizado com este produto
+          </TooltipContent>
+        </Tooltip>
+      )}
     </div>
   );
 }
