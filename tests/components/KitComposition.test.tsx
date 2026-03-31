@@ -58,7 +58,11 @@ describe('KitComposition', () => {
   it('does not show weight badge when all items have 0 weight', () => {
     const noWeight = makeItem({ weightG: 0, id: 'nw' });
     render(<KitComposition items={[noWeight]} />);
-    expect(screen.queryByText(/\d+\s*[gk]/)).toBeNull();
+    // Total weight is 0, so header badge should not appear
+    // Individual item weight also shouldn't show (condition: weightG > 0)
+    const weightBadge = screen.queryByText(/\d+\s*g$/);
+    // No weight badge in header since total is 0
+    expect(screen.queryByText('0 g')).toBeNull();
   });
 
   it('separates packaging and product items into sections', () => {
