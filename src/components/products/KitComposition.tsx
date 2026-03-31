@@ -754,19 +754,15 @@ function KitComponentCard({
               )}
             </div>
 
-            {/* Col 2: Material */}
-            <div className="flex justify-end">
-              {item.material ? (
-                <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-1.5 shrink-0">
-                  <Layers className="h-3.5 w-3.5 text-muted-foreground/70 shrink-0" />
-                  <div className="flex flex-col leading-none">
-                    <span className="text-[8px] uppercase tracking-wider text-muted-foreground font-medium">Material</span>
-                    <span className="text-[11px] font-semibold text-foreground">{item.material}</span>
-                  </div>
+            {/* Col 2: Material — full width block */}
+            <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2">
+              <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0 flex-1">
+                <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">Material</div>
+                <div className="text-xs font-semibold text-foreground truncate">
+                  {item.material || "—"}
                 </div>
-              ) : (
-                <span className="text-[10px] text-muted-foreground italic">—</span>
-              )}
+              </div>
             </div>
           </div>
         </div>
