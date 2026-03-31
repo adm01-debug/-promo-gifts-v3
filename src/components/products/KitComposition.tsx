@@ -543,6 +543,7 @@ interface KitComponentCardProps {
   selectable: boolean;
   onToggle: () => void;
   onViewProduct?: (productId: string) => void;
+  onZoomImage?: (url: string) => void;
 }
 
 function KitComponentCard({
