@@ -755,6 +755,14 @@ function KitComponentCard({
                 Cor: {item.color}
               </Badge>
             )}
+            {/* Material badge — after all status badges */}
+            <SmartBadge
+              icon={Layers}
+              tooltip="Material principal do item."
+              className="bg-muted/40 text-foreground border-border"
+            >
+              {item.material || "—"}
+            </SmartBadge>
           </div>
         </div>
       </div>
