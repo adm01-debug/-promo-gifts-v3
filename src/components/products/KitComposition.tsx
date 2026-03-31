@@ -603,8 +603,15 @@ function KitComponentCard({
                 "w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border",
                 isPackaging
                   ? "bg-amber-500/5 border-amber-500/20"
-                  : "bg-muted/60 border-border/50"
+                  : "bg-muted/60 border-border/50",
+                item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all"
               )}
+              onClick={(e) => {
+                if (item.imageUrl) {
+                  e.stopPropagation();
+                  setZoomImageUrl(item.imageUrl);
+                }
+              }}
             >
               {item.imageUrl ? (
                 <img
