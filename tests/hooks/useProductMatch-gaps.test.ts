@@ -124,10 +124,9 @@ describe('GAP: Empty string supplier IDs match incorrectly', () => {
     const source = makeProduct({ id: '1', name: 'A', supplier: { id: '', name: '' }, category_id: 'c1' });
     const candidate = makeProduct({ id: '2', name: 'B', supplier: { id: '', name: '' }, category_id: 'c2' });
     const { score, reasons } = calculateMatchScore(source, candidate);
-    // BUG: empty string is truthy, so '' === '' passes the check
-    // This gives a false +5 score for "Mesmo fornecedor"
-    expect(reasons).toContain('Mesmo fornecedor');
-    // This SHOULD NOT match — documenting the gap
+    // Empty string IS falsy in JS, so the guard `source.supplier?.id &&` catches it
+    // This is actually handled correctly — empty IDs don't match
+    expect(reasons).not.toContain('Mesmo fornecedor');
   });
 
   it('undefined supplier does not score', () => {
