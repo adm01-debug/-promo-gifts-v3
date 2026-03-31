@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { Palette, Sparkles } from "lucide-react";
+import { Package, Palette, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 import type { Category } from "@/data/mockData";
@@ -19,6 +19,7 @@ interface ProductCategoryBadgesProps {
   productImageUrl?: string | null;
   productMinQuantity?: number;
   showPersonalizationLink?: boolean;
+  isKit?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ export function ProductCategoryBadges({
   productImageUrl,
   productMinQuantity,
   showPersonalizationLink = true,
+  isKit = false,
 }: ProductCategoryBadgesProps) {
   const navigate = useNavigate();
   const { data: categoryIcons = [] } = useCategoryIcons();
@@ -159,6 +161,30 @@ export function ProductCategoryBadges({
           </TooltipTrigger>
           <TooltipContent side="top" className="font-medium">
             Gerar mockup com sua logo
+          </TooltipContent>
+        </Tooltip>
+      )}
+
+      {/* Monte seu Kit - apenas para produtos que NÃO são kits nativos */}
+      {productId && !isKit && (
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              onClick={() => navigate(`/kit-builder?product=${productId}`)}
+              className={cn(
+                "px-2.5 py-1 text-sm font-medium cursor-pointer",
+                "border-warning/50 bg-warning/15 hover:bg-warning/25",
+                "text-warning hover:text-warning",
+                "transition-all duration-200 hover:scale-105 hover:border-warning"
+              )}
+            >
+              <Package className="h-3.5 w-3.5 mr-1.5" />
+              <span className="text-xs">Monte seu Kit</span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="font-medium">
+            Montar um kit personalizado com este produto
           </TooltipContent>
         </Tooltip>
       )}
