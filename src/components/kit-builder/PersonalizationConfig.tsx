@@ -5,7 +5,7 @@
  */
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2 } from 'lucide-react';
+import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -194,12 +194,22 @@ function ItemPersonalizationCard({
 
             <div className="flex items-center gap-3">
               {personalization.enabled && (
-                <span className="text-sm font-semibold text-primary">
+                <span className="text-sm font-semibold">
                   {priceLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin inline" />
+                    <Loader2 className="h-3 w-3 animate-spin inline text-primary" />
+                  ) : !personalization.techniqueId ? (
+                    <span className="text-warning flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Sem técnica
+                    </span>
                   ) : currentUnitPrice ? (
-                    `+${formatCurrency(currentUnitPrice)}/un`
-                  ) : null}
+                    <span className="text-primary">+{formatCurrency(currentUnitPrice)}/un</span>
+                  ) : (
+                    <span className="text-warning flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      R$ 0,00
+                    </span>
+                  )}
                 </span>
               )}
               <Switch checked={personalization.enabled} onCheckedChange={handleToggle} />
@@ -368,6 +378,20 @@ export function PersonalizationConfig({
           </Badge>
         )}
       </div>
+
+      {/* Alerta de quantidade mínima */}
+      {kitQuantity < 50 && totalPersonalizations > 0 && (
+        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-lg p-3">
+          <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
+          <div>
+            <p className="font-medium text-warning">Quantidade baixa para personalização</p>
+            <p className="text-xs text-muted-foreground">
+              A maioria das técnicas de gravação exige lote mínimo de 50 unidades.
+              Com {kitQuantity} {kitQuantity === 1 ? 'kit' : 'kits'}, o custo por unidade pode ser significativamente maior.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Caixa */}
       {box && (

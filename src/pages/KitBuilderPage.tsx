@@ -30,6 +30,10 @@ import {
   PersonalizationConfig,
   KitSummary,
 } from '@/components/kit-builder';
+import { KitSmartSuggestions } from '@/components/kit-builder/KitSmartSuggestions';
+import { FreightEstimator } from '@/components/kit-builder/FreightEstimator';
+import { KitTemplates } from '@/components/kit-builder/KitTemplates';
+import type { KitTemplate } from '@/components/kit-builder/KitTemplates';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
@@ -95,7 +99,8 @@ export default function KitBuilderPage() {
       name: kitState.name,
       kitQuantity,
     });
-  }, [kitState.box?.id, kitState.items.length, kitQuantity]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [kitState.box?.id, kitState.items.length, kitState.name, kitQuantity]);
 
   // Load saved kit from ?kit= param
   useEffect(() => {
@@ -477,6 +482,20 @@ export default function KitBuilderPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardContent className="p-6">
+                {/* Templates */}
+                {wizardState.currentStep === 'box' && !kitState.box && kitState.items.length === 0 && (
+                  <KitTemplates
+                    visible
+                    onSelectTemplate={(template: KitTemplate) => {
+                      setKitType(template.kitType);
+                      setKitName(template.name);
+                      toast.success(`Template "${template.name}" aplicado!`, {
+                        description: `Tipo: ${template.kitType}. Agora selecione a caixa.`,
+                      });
+                    }}
+                  />
+                )}
+
                 {/* Step: Box Selection */}
                 {wizardState.currentStep === 'box' && (
                   <div className="space-y-6">
@@ -495,18 +514,39 @@ export default function KitBuilderPage() {
                         onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')}
                         className="flex gap-4"
                       >
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="montado" id="kit-montado" />
-                          <Label htmlFor="kit-montado" className="cursor-pointer text-sm">Montado</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="original" id="kit-original" />
-                          <Label htmlFor="kit-original" className="cursor-pointer text-sm">Original</Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <RadioGroupItem value="simples" id="kit-simples" />
-                          <Label htmlFor="kit-simples" className="cursor-pointer text-sm">Simples</Label>
-                        </div>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="montado" id="kit-montado" />
+                                <Label htmlFor="kit-montado" className="cursor-pointer text-sm">Montado</Label>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs max-w-[200px]">Kit montado dentro da caixa, itens arrumados e prontos para presentear.</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="original" id="kit-original" />
+                                <Label htmlFor="kit-original" className="cursor-pointer text-sm">Original</Label>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs max-w-[200px]">Kit com embalagem original do fornecedor, sem remontagem.</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="simples" id="kit-simples" />
+                                <Label htmlFor="kit-simples" className="cursor-pointer text-sm">Simples</Label>
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent><p className="text-xs max-w-[200px]">Agrupamento de itens sem embalagem especial — apenas os produtos.</p></TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </RadioGroup>
                     </div>
 
@@ -542,6 +582,15 @@ export default function KitBuilderPage() {
                       onReorder={reorderItems}
                       boxSelected={kitState.box !== null}
                     />
+                    {kitState.items.length > 0 && (
+                      <KitSmartSuggestions
+                        selectedItems={kitState.items}
+                        onAddItem={(item) => {
+                          const kitItem = availableItems.find(i => i.id === item.id);
+                          if (kitItem) addItem(kitItem);
+                        }}
+                      />
+                    )}
                   </div>
                 )}
 
@@ -671,6 +720,13 @@ export default function KitBuilderPage() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Freight preview in sidebar */}
+            {kitState.totalWeight > 0 && (
+              <div className="scale-[0.92] origin-top">
+                <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
+              </div>
+            )}
           </div>
         </div>
       </div>

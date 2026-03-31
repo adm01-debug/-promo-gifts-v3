@@ -5,7 +5,7 @@
 
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image, AlertTriangle, TrendingUp, Percent } from 'lucide-react';
+import { Package, Gift, Palette, FileText, Download, ShoppingCart, Printer, Check, Loader2, Image, AlertTriangle, TrendingUp, Percent, Scale, MessageCircle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -145,7 +145,7 @@ export function KitSummary({
         {/* Peso Total */}
         <Card>
           <CardContent className="pt-6 text-center">
-            <Package className="h-8 w-8 mx-auto text-primary mb-2" />
+            <Scale className="h-8 w-8 mx-auto text-primary mb-2" />
             <p className="text-2xl font-bold">
               {kitState.totalWeight >= 1000
                 ? `${(kitState.totalWeight / 1000).toFixed(1)}kg`
@@ -336,7 +336,42 @@ export function KitSummary({
         </CardContent>
       </Card>
 
-      {/* Simulação de Margem */}
+      {/* Tabela Comparativa por Quantidade */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base flex items-center gap-2">
+            <TrendingUp className="h-4 w-4 text-primary" />
+            Preço por Quantidade
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-5 gap-2 text-center">
+            {[50, 100, 200, 500, 1000].map(qty => {
+              const qtyPricing = calculateTotalKitPrice(box, items, personalization, qty);
+              const isCurrentQty = qty === kitQuantity;
+              return (
+                <button
+                  key={qty}
+                  onClick={() => onKitQuantityChange(qty)}
+                  className={cn(
+                    "rounded-lg p-2.5 border transition-all cursor-pointer",
+                    isCurrentQty
+                      ? "border-primary bg-primary/10 ring-1 ring-primary"
+                      : "border-border/50 bg-secondary/30 hover:border-primary/30"
+                  )}
+                >
+                  <p className="text-[11px] text-muted-foreground">{qty} kits</p>
+                  <p className={cn("text-sm font-bold", isCurrentQty && "text-primary")}>
+                    {formatCurrency(qtyPricing.unitPrice)}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground">/kit</p>
+                </button>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
       <Card className="border-primary/20">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
@@ -467,17 +502,15 @@ export function KitSummary({
       )}
 
       {/* Ações */}
-      <div className="flex flex-col sm:flex-row gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <Button
           variant="outline"
-          className="flex-1"
           onClick={onExportPDF}
         >
           <Printer className="h-4 w-4 mr-2" />
           Exportar PDF
         </Button>
         <Button
-          className="flex-1"
           disabled={!kitState.isValid || isAddingToQuote}
           onClick={onAddToQuote}
         >
@@ -486,7 +519,22 @@ export function KitSummary({
           ) : (
             <ShoppingCart className="h-4 w-4 mr-2" />
           )}
-          {isAddingToQuote ? 'Criando orçamento...' : 'Adicionar ao Orçamento'}
+          {isAddingToQuote ? 'Criando...' : 'Criar Orçamento'}
+        </Button>
+        <Button
+          variant="outline"
+          className="border-emerald-500/50 text-emerald-600 hover:bg-emerald-500/10 dark:text-emerald-400"
+          disabled={!kitState.isValid}
+          onClick={() => {
+            const kitLabel = kitName || 'Kit Personalizado';
+            const itemsList = items.map(i => `• ${i.quantity}x ${i.name}`).join('\n');
+            const text = `*${kitLabel}* (${kitQuantity}x)\n\n${itemsList}\n\n💰 *${formatCurrency(pricing.unitPrice)}/kit*\n📦 Total: *${formatCurrency(pricing.total)}*`;
+            const encoded = encodeURIComponent(text);
+            window.open(`https://wa.me/?text=${encoded}`, '_blank');
+          }}
+        >
+          <MessageCircle className="h-4 w-4 mr-2" />
+          WhatsApp
         </Button>
       </div>
     </div>
