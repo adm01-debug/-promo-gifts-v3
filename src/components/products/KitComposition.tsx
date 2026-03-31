@@ -242,7 +242,7 @@ export function KitComposition({
           </DialogHeader>
 
           {/* Content */}
-          <ScrollArea className="max-h-[calc(90vh-180px)]">
+          <ScrollArea className="max-h-[calc(72vh-160px)]">
             <div className="px-6 py-4 space-y-5">
               {/* Selection bar */}
               {onSelectItems && (
