@@ -39,6 +39,7 @@ export function ProductCategoryBadges({
   productImageUrl,
   productMinQuantity,
   showPersonalizationLink = true,
+  isKit = false,
 }: ProductCategoryBadgesProps) {
   const navigate = useNavigate();
   const { data: categoryIcons = [] } = useCategoryIcons();
