@@ -19,8 +19,9 @@ const SimilarProductCard = forwardRef<
     item: SimilarProductItem;
     onClick: () => void;
     index: number;
+    isLowestPrice?: boolean;
   }
->(({ item, onClick, index }, ref) => {
+>(({ item, onClick, index, isLowestPrice }, ref) => {
   return (
     <div
       ref={ref}
