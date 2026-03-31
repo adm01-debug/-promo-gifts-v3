@@ -46,6 +46,14 @@ const SimilarProductCard = forwardRef<
           className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
           loading="lazy"
         />
+        {isLowestPrice && (
+          <div className="absolute top-1.5 right-1.5">
+            <Badge className="text-[9px] px-1.5 py-0.5 bg-emerald-500/90 text-white backdrop-blur-sm border-none shadow-sm gap-0.5">
+              <TrendingDown className="h-2.5 w-2.5" />
+              Menor preço
+            </Badge>
+          </div>
+        )}
         <div className="absolute bottom-1.5 left-1.5">
           <Badge
             variant="secondary"
