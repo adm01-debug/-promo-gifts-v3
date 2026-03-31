@@ -94,6 +94,14 @@ export interface KitComponent {
   allowsPersonalization?: boolean;
   material?: string | null;
   weightG?: number | null;
+  heightMm?: number | null;
+  widthMm?: number | null;
+  lengthMm?: number | null;
+  componentTypeCode?: string | null;
+  supplierComponentCode?: string | null;
+  description?: string | null;
+  personalizationNotes?: string | null;
+  color?: string | null;
   video?: string;
   productVideos?: Array<{
     id: string;

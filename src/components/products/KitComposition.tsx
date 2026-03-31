@@ -12,6 +12,9 @@ import {
   ShoppingBag,
   ChevronUp,
   ChevronDown,
+  Ruler,
+  Tag,
+  FileText,
   X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -327,145 +330,267 @@ function KitComponentCard({
   onToggle,
   onViewProduct,
 }: KitComponentCardProps) {
+  const [expanded, setExpanded] = useState(false);
+
+  const hasDimensions =
+    (item.heightMm != null && item.heightMm > 0) ||
+    (item.widthMm != null && item.widthMm > 0) ||
+    (item.lengthMm != null && item.lengthMm > 0);
+
+  const hasExtraInfo =
+    hasDimensions ||
+    item.description ||
+    item.personalizationNotes ||
+    item.supplierComponentCode ||
+    item.componentTypeCode ||
+    item.color;
+
+  const formatDim = () => {
+    const parts: string[] = [];
+    if (item.heightMm) parts.push(`${item.heightMm}`);
+    if (item.widthMm) parts.push(`${item.widthMm}`);
+    if (item.lengthMm) parts.push(`${item.lengthMm}`);
+    return parts.join(" × ") + " mm";
+  };
+
   return (
     <div
       className={cn(
-        "flex items-center gap-3 px-4 py-3.5 transition-colors group",
+        "transition-colors group",
         selectable
           ? isSelected
             ? "bg-primary/5"
-            : "hover:bg-accent/30 cursor-pointer"
+            : "hover:bg-accent/30"
           : "hover:bg-accent/20"
       )}
-      onClick={() => selectable && onToggle()}
-      role={selectable ? "button" : undefined}
-      tabIndex={selectable ? 0 : undefined}
     >
-      {/* Checkbox */}
-      {selectable && (
-        <div
-          className={cn(
-            "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
-            isSelected
-              ? "bg-primary border-primary scale-105"
-              : "border-muted-foreground/30 group-hover:border-primary/50"
-          )}
-        >
-          {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-        </div>
-      )}
-
-      {/* Image */}
-      <div className="w-14 h-14 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 overflow-hidden border border-border/50">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt={item.productName}
-            className="w-full h-full object-contain p-0.5"
-            loading="lazy"
-          />
-        ) : (
-          <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0 space-y-1">
-        <div className="flex items-start gap-2">
-          <Badge
-            variant="secondary"
-            className="text-[11px] px-1.5 py-0 shrink-0 font-bold tabular-nums"
+      {/* Main row */}
+      <div
+        className="flex items-center gap-3 px-4 py-3.5 cursor-pointer"
+        onClick={() => (selectable ? onToggle() : hasExtraInfo && setExpanded(!expanded))}
+        role={selectable ? "button" : undefined}
+        tabIndex={selectable ? 0 : undefined}
+      >
+        {/* Checkbox */}
+        {selectable && (
+          <div
+            className={cn(
+              "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
+              isSelected
+                ? "bg-primary border-primary scale-105"
+                : "border-muted-foreground/30 group-hover:border-primary/50"
+            )}
           >
-            {item.quantity}x
-          </Badge>
-          <span className="text-sm font-medium text-foreground leading-tight line-clamp-2">
-            {item.productName}
-          </span>
+            {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
+          </div>
+        )}
+
+        {/* Image */}
+        <div className="w-14 h-14 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 overflow-hidden border border-border/50">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt={item.productName}
+              className="w-full h-full object-contain p-0.5"
+              loading="lazy"
+            />
+          ) : (
+            <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+          )}
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-[11px] text-muted-foreground font-mono">
-            {item.sku || "—"}
-          </span>
-          {item.material && (
-            <>
-              <span className="text-muted-foreground/40">•</span>
-              <span className="text-[11px] text-muted-foreground">{item.material}</span>
-            </>
-          )}
-          {item.weightG != null && item.weightG > 0 && (
-            <>
-              <span className="text-muted-foreground/40">•</span>
-              <span className="text-[11px] text-muted-foreground">
-                {item.weightG >= 1000
-                  ? `${(item.weightG / 1000).toFixed(1)} kg`
-                  : `${item.weightG} g`}
+        {/* Info */}
+        <div className="flex-1 min-w-0 space-y-1">
+          <div className="flex items-start gap-2">
+            <Badge
+              variant="secondary"
+              className="text-[11px] px-1.5 py-0 shrink-0 font-bold tabular-nums"
+            >
+              {item.quantity}x
+            </Badge>
+            <span className="text-sm font-medium text-foreground leading-tight line-clamp-2">
+              {item.productName}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap">
+            {item.sku && (
+              <span className="text-[11px] text-muted-foreground font-mono">
+                {item.sku}
               </span>
-            </>
-          )}
+            )}
+            {!item.sku && (
+              <span className="text-[11px] text-muted-foreground font-mono">—</span>
+            )}
+            {item.material && (
+              <>
+                <span className="text-muted-foreground/40">•</span>
+                <span className="text-[11px] text-muted-foreground">{item.material}</span>
+              </>
+            )}
+            {item.weightG != null && item.weightG > 0 && (
+              <>
+                <span className="text-muted-foreground/40">•</span>
+                <span className="text-[11px] text-muted-foreground">
+                  {item.weightG >= 1000
+                    ? `${(item.weightG / 1000).toFixed(1)} kg`
+                    : `${item.weightG} g`}
+                </span>
+              </>
+            )}
+            {hasDimensions && (
+              <>
+                <span className="text-muted-foreground/40">•</span>
+                <span className="text-[11px] text-muted-foreground flex items-center gap-0.5">
+                  <Ruler className="h-2.5 w-2.5" />
+                  {formatDim()}
+                </span>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-1 flex-wrap">
+            {item.isPackaging && (
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0 gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+              >
+                <Package className="h-2.5 w-2.5" />
+                Embalagem
+              </Badge>
+            )}
+            {item.isOptional && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-700 dark:text-blue-400"
+              >
+                Opcional
+              </Badge>
+            )}
+            {item.isReplaceable && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 gap-0.5 bg-violet-500/10 text-violet-700 dark:text-violet-400"
+              >
+                <Settings2 className="h-2.5 w-2.5" />
+                Substituível
+              </Badge>
+            )}
+            {item.allowsPersonalization && (
+              <Badge
+                variant="outline"
+                className="text-[10px] px-1.5 py-0 gap-0.5 text-primary border-primary/30 bg-primary/5"
+              >
+                <Palette className="h-2.5 w-2.5" />
+                Personalizável
+              </Badge>
+            )}
+            {item.color && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-1.5 py-0 gap-0.5"
+              >
+                Cor: {item.color}
+              </Badge>
+            )}
+          </div>
         </div>
 
-        <div className="flex items-center gap-1 flex-wrap">
-          {item.isPackaging && (
-            <Badge
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+        {/* Actions */}
+        <div className="flex items-center gap-1 shrink-0">
+          {hasExtraInfo && !selectable && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7"
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded(!expanded);
+              }}
             >
-              <Package className="h-2.5 w-2.5" />
-              Embalagem
-            </Badge>
+              {expanded ? (
+                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+              )}
+            </Button>
           )}
-          {item.isOptional && (
-            <Badge
-              variant="secondary"
-              className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-700 dark:text-blue-400"
-            >
-              Opcional
-            </Badge>
-          )}
-          {item.isReplaceable && (
-            <Badge
-              variant="secondary"
-              className="text-[10px] px-1.5 py-0 gap-0.5 bg-violet-500/10 text-violet-700 dark:text-violet-400"
-            >
-              <Settings2 className="h-2.5 w-2.5" />
-              Substituível
-            </Badge>
-          )}
-          {item.allowsPersonalization && (
-            <Badge
-              variant="outline"
-              className="text-[10px] px-1.5 py-0 gap-0.5 text-primary border-primary/30 bg-primary/5"
-            >
-              <Palette className="h-2.5 w-2.5" />
-              Personalizável
-            </Badge>
+          {onViewProduct && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewProduct(item.productId);
+                    }}
+                  >
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="left">
+                  <p className="text-xs">Ver produto</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
         </div>
       </div>
 
-      {/* View product action */}
-      {onViewProduct && (
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onViewProduct(item.productId);
-                }}
-              >
-                <Eye className="h-4 w-4 text-muted-foreground" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              <p className="text-xs">Ver produto</p>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+      {/* Expanded details */}
+      {expanded && hasExtraInfo && (
+        <div className="px-4 pb-3.5 pt-0 ml-[4.75rem] space-y-2 border-t border-border/30 mt-0">
+          <div className="pt-2 grid grid-cols-2 gap-x-4 gap-y-1.5 text-[11px]">
+            {item.componentTypeCode && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Tag className="h-3 w-3 shrink-0" />
+                <span className="font-medium">Tipo:</span>
+                <span>{item.componentTypeCode}</span>
+              </div>
+            )}
+            {item.supplierComponentCode && (
+              <div className="flex items-center gap-1.5 text-muted-foreground">
+                <Tag className="h-3 w-3 shrink-0" />
+                <span className="font-medium">Cód. Fornecedor:</span>
+                <span>{item.supplierComponentCode}</span>
+              </div>
+            )}
+            {hasDimensions && (
+              <div className="flex items-center gap-1.5 text-muted-foreground col-span-2">
+                <Ruler className="h-3 w-3 shrink-0" />
+                <span className="font-medium">Dimensões (A×L×P):</span>
+                <span>
+                  {item.heightMm ?? "—"} × {item.widthMm ?? "—"} × {item.lengthMm ?? "—"} mm
+                </span>
+              </div>
+            )}
+          </div>
+
+          {item.description && (
+            <div className="text-[11px] text-muted-foreground">
+              <span className="font-medium flex items-center gap-1 mb-0.5">
+                <FileText className="h-3 w-3" /> Descrição
+              </span>
+              <p className="text-muted-foreground/80 whitespace-pre-line leading-relaxed">
+                {item.description}
+              </p>
+            </div>
+          )}
+
+          {item.personalizationNotes && (
+            <div className="text-[11px] rounded-md bg-primary/5 border border-primary/10 p-2">
+              <span className="font-medium flex items-center gap-1 mb-0.5 text-primary">
+                <Palette className="h-3 w-3" /> Áreas de Personalização
+              </span>
+              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+                {item.personalizationNotes}
+              </p>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

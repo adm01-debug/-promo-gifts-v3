@@ -138,6 +138,14 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
       allowsPersonalization: c.allows_personalization || false,
       material: c.material || null,
       weightG: c.weight_g || null,
+      heightMm: c.height_mm ?? null,
+      widthMm: c.width_mm ?? null,
+      lengthMm: c.length_mm ?? null,
+      componentTypeCode: c.component_type_code ?? null,
+      supplierComponentCode: c.supplier_component_code ?? null,
+      description: c.component_description ?? null,
+      personalizationNotes: c.personalization_notes ?? null,
+      color: c.color ?? null,
     })) || undefined,
   };
 }
