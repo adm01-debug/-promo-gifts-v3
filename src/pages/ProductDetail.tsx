@@ -335,6 +335,7 @@ export default function ProductDetail() {
                   productPrice={product.price}
                   productImageUrl={product.images?.[0]}
                   productMinQuantity={product.minQuantity || 1}
+                  isKit={product.isKit}
                 />
               </div>
 
