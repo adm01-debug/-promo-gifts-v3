@@ -2,6 +2,7 @@ import { createContext, useContext, useEffect, useState, useRef, useCallback, Re
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
+import { checkLoginAllowed, recordFailedAttempt, clearLoginAttempts } from "@/hooks/useLoginRateLimit";
 
 // Tipos de role conforme app_role enum no banco
 type AppRole = "admin" | "manager" | "vendedor";
@@ -189,11 +190,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signIn = async (email: string, password: string) => {
+    // Client-side brute force protection
+    const { allowed, remainingSeconds } = checkLoginAllowed(email);
+    if (!allowed) {
+      const minutes = Math.ceil(remainingSeconds / 60);
+      return {
+        error: {
+          message: `Conta temporariamente bloqueada por excesso de tentativas. Tente novamente em ${minutes} minuto(s).`,
+          name: 'RateLimitError',
+          status: 429,
+        } as any,
+      };
+    }
+
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    
+
+    if (error) {
+      const { locked, remainingSeconds: lockSecs } = recordFailedAttempt(email);
+      if (locked) {
+        const mins = Math.ceil(lockSecs / 60);
+        return {
+          error: {
+            message: `Muitas tentativas de login. Conta bloqueada por ${mins} minuto(s).`,
+            name: 'RateLimitError',
+            status: 429,
+          } as any,
+        };
+      }
+    } else {
+      // Successful login — clear attempts
+      clearLoginAttempts(email);
+    }
+
+    // Log attempt server-side (fire-and-forget)
+    supabase.functions.invoke('log-login-attempt', {
+      body: {
+        email,
+        user_id: error ? null : undefined,
+        ip_address: 'client',
+        success: !error,
+        failure_reason: error?.message || null,
+        user_agent: navigator.userAgent,
+      },
+    }).catch(() => {});
+
     return { error };
   };
 
