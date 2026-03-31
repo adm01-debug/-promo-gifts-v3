@@ -594,8 +594,8 @@ function KitComponentCard({
           </div>
         )}
 
-        {/* Image + Material column */}
-        <div className="shrink-0 flex flex-col gap-2 items-center">
+        {/* Image + Material row */}
+        <div className="shrink-0 flex flex-row gap-2 items-center">
           <div className="relative">
             <div
               className={cn(
@@ -625,11 +625,11 @@ function KitComponentCard({
               </span>
             </div>
           </div>
-          {/* Material block — aligned under image */}
-          <div className="w-16 flex flex-col items-center gap-1 rounded-lg border border-border bg-muted/20 px-1.5 py-2">
-            <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
+          {/* Material block — same row as image */}
+          <div className="flex flex-col items-center gap-1 rounded-lg border border-border bg-muted/20 px-2 py-1.5 h-16 justify-center">
+            <Layers className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
             <div className="text-[8px] uppercase tracking-wider text-muted-foreground font-medium leading-tight text-center">Material</div>
-            <div className="text-[11px] font-semibold text-foreground text-center leading-tight break-words">
+            <div className="text-[11px] font-semibold text-foreground text-center leading-tight break-words max-w-[4rem]">
               {item.material || "—"}
             </div>
           </div>
