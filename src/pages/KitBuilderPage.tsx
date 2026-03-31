@@ -543,6 +543,15 @@ export default function KitBuilderPage() {
                       onReorder={reorderItems}
                       boxSelected={kitState.box !== null}
                     />
+                    {kitState.items.length > 0 && (
+                      <KitSmartSuggestions
+                        selectedItems={kitState.items}
+                        onAddItem={(item) => {
+                          const kitItem = availableItems.find(i => i.id === item.id);
+                          if (kitItem) addItem(kitItem);
+                        }}
+                      />
+                    )}
                   </div>
                 )}
 
