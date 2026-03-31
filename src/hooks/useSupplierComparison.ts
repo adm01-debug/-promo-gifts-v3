@@ -105,7 +105,7 @@ function calculateNameSimilarity(name1: string, name2: string): number {
 
 export function getSupplierProductsInCategory(
   products: Product[],
-  categoryId: number
+  categoryId: string | number
 ): Map<string, Product[]> {
   const supplierMap = new Map<string, Product[]>();
 

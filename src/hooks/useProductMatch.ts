@@ -96,11 +96,16 @@ function calculateMatchScore(source: Product, candidate: Product): { score: numb
     reasons.push('Mesmo fornecedor');
   }
 
-  // Complementary name keywords
+  // Complementary name keywords (exclude self-matching)
   const complements = findComplementaryKeywords(source.name);
   if (complements.length > 0) {
     const candNormalized = normalizeText(candidate.name);
-    const matchedKeywords = complements.filter(kw => candNormalized.includes(normalizeText(kw)));
+    const sourceNormalized = normalizeText(source.name);
+    const matchedKeywords = complements.filter(kw => {
+      const kwNorm = normalizeText(kw);
+      // Only count if keyword matches candidate but NOT source (avoid self-match)
+      return candNormalized.includes(kwNorm) && !sourceNormalized.includes(kwNorm);
+    });
     if (matchedKeywords.length > 0) {
       score += 20 * matchedKeywords.length;
       reasons.push(`Complementar: ${matchedKeywords.join(', ')}`);
