@@ -15,7 +15,11 @@ import {
   Ruler,
   Tag,
   FileText,
-  X,
+  ArrowUpDown,
+  ArrowLeftRight,
+  MoveHorizontal,
+  Hash,
+  Barcode,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -38,6 +42,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import type { KitComponent } from "@/types/product-catalog";
 
@@ -105,7 +110,7 @@ export function KitComposition({
 
   return (
     <>
-      {/* ── Trigger Card (inline, compact) ── */}
+      {/* ── Trigger Card ── */}
       <div
         className="rounded-xl border border-border bg-card overflow-hidden shadow-sm cursor-pointer hover:border-primary/40 transition-all group"
         onClick={() => setDialogOpen(true)}
@@ -129,7 +134,6 @@ export function KitComposition({
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Mini stats pills */}
             <div className="hidden sm:flex items-center gap-1.5">
               {stats.productCount > 0 && (
                 <Badge variant="secondary" className="text-[10px] gap-1">
@@ -157,7 +161,7 @@ export function KitComposition({
 
       {/* ── Dialog Modal ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 overflow-hidden">
           {/* Header */}
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border space-y-3">
             <div className="flex items-center gap-3">
@@ -175,7 +179,6 @@ export function KitComposition({
               </div>
             </div>
 
-            {/* Stats row */}
             <div className="flex items-center gap-2 flex-wrap">
               {stats.productCount > 0 && (
                 <Badge variant="secondary" className="text-xs gap-1.5 px-2.5 py-1">
@@ -205,8 +208,8 @@ export function KitComposition({
           </DialogHeader>
 
           {/* Content */}
-          <ScrollArea className="max-h-[calc(85vh-180px)]">
-            <div className="px-6 py-4 space-y-4">
+          <ScrollArea className="max-h-[calc(90vh-180px)]">
+            <div className="px-6 py-4 space-y-5">
               {/* Selection bar */}
               {onSelectItems && (
                 <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 rounded-lg border border-border">
@@ -254,7 +257,7 @@ export function KitComposition({
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-2 rounded-lg border border-border overflow-hidden divide-y divide-border">
+                    <div className="mt-3 space-y-3">
                       {packagingItems.map((item) => (
                         <KitComponentCard
                           key={item.id}
@@ -290,7 +293,7 @@ export function KitComposition({
                     )}
                   </CollapsibleTrigger>
                   <CollapsibleContent>
-                    <div className="mt-2 rounded-lg border border-border overflow-hidden divide-y divide-border">
+                    <div className="mt-3 space-y-3">
                       {productItems.map((item) => (
                         <KitComponentCard
                           key={item.id}
@@ -310,6 +313,36 @@ export function KitComposition({
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+/* ─────────────── Spec Mini Card ─────────────── */
+
+function SpecCard({
+  icon: Icon,
+  label,
+  value,
+  accentColor,
+}: {
+  icon: React.ElementType;
+  label: string;
+  value: string;
+  accentColor?: string;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/30 px-3 py-2 min-w-0">
+      <div className={cn("shrink-0", accentColor || "text-muted-foreground")}>
+        <Icon className="h-4 w-4" />
+      </div>
+      <div className="min-w-0">
+        <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium leading-none mb-0.5">
+          {label}
+        </div>
+        <div className="text-xs font-semibold text-foreground truncate">
+          {value}
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -337,34 +370,24 @@ function KitComponentCard({
     (item.widthMm != null && item.widthMm > 0) ||
     (item.lengthMm != null && item.lengthMm > 0);
 
-  const hasExpandableInfo =
-    item.description ||
-    item.personalizationNotes;
+  const hasExpandableInfo = item.description || item.personalizationNotes;
+  const hasSpecs = hasDimensions || (item.weightG != null && item.weightG > 0) || item.material;
 
-  const formatDim = () => {
-    const parts: string[] = [];
-    if (item.heightMm) parts.push(`${item.heightMm}`);
-    if (item.widthMm) parts.push(`${item.widthMm}`);
-    if (item.lengthMm) parts.push(`${item.lengthMm}`);
-    return parts.join(" × ") + " mm";
-  };
-
-  const formatWeight = (g: number) => g >= 1000 ? `${(g / 1000).toFixed(1)} kg` : `${g} g`;
+  const formatWeight = (g: number) =>
+    g >= 1000 ? `${(g / 1000).toFixed(1)} kg` : `${g} g`;
 
   return (
     <div
       className={cn(
-        "transition-colors group",
-        selectable
-          ? isSelected
-            ? "bg-primary/5"
-            : "hover:bg-accent/30"
-          : "hover:bg-accent/20"
+        "rounded-xl border transition-all overflow-hidden",
+        selectable && isSelected
+          ? "border-primary/50 bg-primary/5 shadow-sm shadow-primary/10"
+          : "border-border bg-card hover:border-border/80 hover:shadow-sm"
       )}
     >
-      {/* Main row */}
+      {/* ── Header Row ── */}
       <div
-        className="flex items-center gap-3 px-4 py-3.5 cursor-pointer"
+        className="flex items-start gap-3 px-4 pt-4 pb-3 cursor-pointer group"
         onClick={() => (selectable ? onToggle() : hasExpandableInfo && setExpanded(!expanded))}
         role={selectable ? "button" : undefined}
         tabIndex={selectable ? 0 : undefined}
@@ -373,7 +396,7 @@ function KitComponentCard({
         {selectable && (
           <div
             className={cn(
-              "w-5 h-5 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
+              "w-5 h-5 mt-1 rounded-md border-2 flex items-center justify-center transition-all shrink-0",
               isSelected
                 ? "bg-primary border-primary scale-105"
                 : "border-muted-foreground/30 group-hover:border-primary/50"
@@ -384,88 +407,115 @@ function KitComponentCard({
         )}
 
         {/* Image */}
-        <div className="w-14 h-14 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 overflow-hidden border border-border/50">
+        <div className="w-16 h-16 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 overflow-hidden border border-border/50">
           {item.imageUrl ? (
             <img
               src={item.imageUrl}
               alt={item.productName}
-              className="w-full h-full object-contain p-0.5"
+              className="w-full h-full object-contain p-1"
               loading="lazy"
             />
           ) : (
-            <ImageIcon className="h-6 w-6 text-muted-foreground/50" />
+            <ImageIcon className="h-7 w-7 text-muted-foreground/40" />
           )}
         </div>
 
-        {/* Info */}
+        {/* Name + meta */}
         <div className="flex-1 min-w-0 space-y-1.5">
-          {/* Name row */}
-          <div className="flex items-start gap-2">
-            <Badge
-              variant="secondary"
-              className="text-[11px] px-1.5 py-0 shrink-0 font-bold tabular-nums"
-            >
-              {item.quantity}x
-            </Badge>
-            <span className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
-              {item.productName}
-            </span>
+          <div className="flex items-start justify-between gap-2">
+            <div className="flex items-start gap-2 min-w-0">
+              <Badge
+                variant="secondary"
+                className="text-xs px-2 py-0.5 shrink-0 font-bold tabular-nums bg-primary/10 text-primary border-0"
+              >
+                {item.quantity}x
+              </Badge>
+              <h4 className="text-sm font-semibold text-foreground leading-tight line-clamp-2">
+                {item.productName}
+              </h4>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-0.5 shrink-0">
+              {hasExpandableInfo && !selectable && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpanded(!expanded);
+                  }}
+                >
+                  {expanded ? (
+                    <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
+                  ) : (
+                    <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
+                  )}
+                </Button>
+              )}
+              {onViewProduct && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onViewProduct(item.productId);
+                        }}
+                      >
+                        <Eye className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent side="left">
+                      <p className="text-xs">Ver produto</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
           </div>
 
-          {/* Inline specs: SKU • material • weight • dimensions */}
-          <div className="flex items-center gap-1.5 flex-wrap text-[11px] text-muted-foreground">
-            {item.sku ? (
-              <span className="font-mono">{item.sku}</span>
-            ) : (
-              <span className="font-mono">—</span>
-            )}
-            {item.material && (
-              <>
-                <span className="text-muted-foreground/40">•</span>
-                <span>{item.material}</span>
-              </>
-            )}
-            {item.weightG != null && item.weightG > 0 && (
-              <>
-                <span className="text-muted-foreground/40">•</span>
-                <span>{formatWeight(item.weightG)}</span>
-              </>
-            )}
-            {hasDimensions && (
-              <>
-                <span className="text-muted-foreground/40">•</span>
-                <span className="flex items-center gap-0.5">
-                  <Ruler className="h-2.5 w-2.5" />
-                  {formatDim()}
-                </span>
-              </>
+          {/* SKU + supplier code row */}
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+            {item.sku && (
+              <span className="flex items-center gap-1 font-mono">
+                <Barcode className="h-3 w-3 shrink-0 opacity-50" />
+                {item.sku}
+              </span>
             )}
             {item.supplierComponentCode && (
-              <>
-                <span className="text-muted-foreground/40">•</span>
-                <span className="flex items-center gap-0.5">
-                  <Tag className="h-2.5 w-2.5" />
-                  {item.supplierComponentCode}
-                </span>
-              </>
+              <span className="flex items-center gap-1">
+                <Tag className="h-3 w-3 shrink-0 opacity-50" />
+                {item.supplierComponentCode}
+              </span>
+            )}
+            {item.componentTypeCode && (
+              <span className="flex items-center gap-1">
+                <Hash className="h-3 w-3 shrink-0 opacity-50" />
+                {item.componentTypeCode}
+              </span>
             )}
           </div>
 
-          {/* Badges row */}
-          <div className="flex items-center gap-1 flex-wrap">
+          {/* Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
             {item.isPackaging && (
               <Badge
                 variant="outline"
-                className="text-[10px] px-1.5 py-0 gap-0.5 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+                className="text-[10px] px-2 py-0.5 gap-1 bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
               >
-                <Package className="h-2.5 w-2.5" />
+                <Package className="h-3 w-3" />
                 Embalagem
               </Badge>
             )}
             {item.isOptional && (
               <Badge
                 variant="secondary"
-                className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                className="text-[10px] px-2 py-0.5 bg-blue-500/10 text-blue-700 dark:text-blue-400"
               >
                 Opcional
               </Badge>
@@ -473,104 +523,99 @@ function KitComponentCard({
             {item.isReplaceable && (
               <Badge
                 variant="secondary"
-                className="text-[10px] px-1.5 py-0 gap-0.5 bg-violet-500/10 text-violet-700 dark:text-violet-400"
+                className="text-[10px] px-2 py-0.5 gap-1 bg-violet-500/10 text-violet-700 dark:text-violet-400"
               >
-                <Settings2 className="h-2.5 w-2.5" />
+                <Settings2 className="h-3 w-3" />
                 Substituível
               </Badge>
             )}
             {item.allowsPersonalization && (
               <Badge
                 variant="outline"
-                className="text-[10px] px-1.5 py-0 gap-0.5 text-primary border-primary/30 bg-primary/5"
+                className="text-[10px] px-2 py-0.5 gap-1 text-primary border-primary/30 bg-primary/5"
               >
-                <Palette className="h-2.5 w-2.5" />
+                <Palette className="h-3 w-3" />
                 Personalizável
               </Badge>
             )}
             {item.color && (
-              <Badge
-                variant="secondary"
-                className="text-[10px] px-1.5 py-0 gap-0.5"
-              >
+              <Badge variant="secondary" className="text-[10px] px-2 py-0.5 gap-1">
                 Cor: {item.color}
-              </Badge>
-            )}
-            {item.componentTypeCode && (
-              <Badge
-                variant="secondary"
-                className="text-[10px] px-1.5 py-0 gap-0.5"
-              >
-                {item.componentTypeCode}
               </Badge>
             )}
           </div>
         </div>
-
-        {/* Actions */}
-        <div className="flex items-center gap-1 shrink-0">
-          {hasExpandableInfo && !selectable && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7"
-              onClick={(e) => {
-                e.stopPropagation();
-                setExpanded(!expanded);
-              }}
-            >
-              {expanded ? (
-                <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" />
-              ) : (
-                <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-              )}
-            </Button>
-          )}
-          {onViewProduct && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewProduct(item.productId);
-                    }}
-                  >
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="left">
-                  <p className="text-xs">Ver produto</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
-        </div>
       </div>
 
-      {/* Expanded details (description & personalization notes only) */}
+      {/* ── Specs Grid ── */}
+      {hasSpecs && (
+        <div className="px-4 pb-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            {item.material && (
+              <SpecCard
+                icon={Layers}
+                label="Material"
+                value={item.material}
+              />
+            )}
+            {item.weightG != null && item.weightG > 0 && (
+              <SpecCard
+                icon={Weight}
+                label="Peso"
+                value={formatWeight(item.weightG)}
+                accentColor="text-primary"
+              />
+            )}
+            {item.heightMm != null && item.heightMm > 0 && (
+              <SpecCard
+                icon={ArrowUpDown}
+                label="Altura"
+                value={`${item.heightMm} mm`}
+                accentColor="text-primary"
+              />
+            )}
+            {item.widthMm != null && item.widthMm > 0 && (
+              <SpecCard
+                icon={ArrowLeftRight}
+                label="Largura"
+                value={`${item.widthMm} mm`}
+                accentColor="text-primary"
+              />
+            )}
+            {item.lengthMm != null && item.lengthMm > 0 && (
+              <SpecCard
+                icon={MoveHorizontal}
+                label="Profundidade"
+                value={`${item.lengthMm} mm`}
+                accentColor="text-primary"
+              />
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ── Expandable Details ── */}
       {expanded && hasExpandableInfo && (
-        <div className="px-4 pb-3.5 pt-0 ml-[4.75rem] space-y-2 border-t border-border/30 mt-0">
+        <div className="px-4 pb-4 space-y-3 border-t border-border/50">
           {item.description && (
-            <div className="pt-2 text-[11px] text-muted-foreground">
-              <span className="font-medium flex items-center gap-1 mb-0.5">
-                <FileText className="h-3 w-3" /> Descrição
-              </span>
-              <p className="text-muted-foreground/80 whitespace-pre-line leading-relaxed">
+            <div className="pt-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 mb-1.5">
+                <FileText className="h-3 w-3" />
+                Descrição
+              </div>
+              <p className="text-xs text-muted-foreground/90 whitespace-pre-line leading-relaxed">
                 {item.description}
               </p>
             </div>
           )}
 
           {item.personalizationNotes && (
-            <div className="text-[11px] rounded-md bg-primary/5 border border-primary/10 p-2">
-              <span className="font-medium flex items-center gap-1 mb-0.5 text-primary">
-                <Palette className="h-3 w-3" /> Notas de Personalização
-              </span>
-              <p className="text-muted-foreground whitespace-pre-line leading-relaxed">
+            <div className="rounded-lg bg-primary/5 border border-primary/15 p-3">
+              <div className="text-[11px] font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5 mb-1.5">
+                <Palette className="h-3 w-3" />
+                Notas de Personalização
+              </div>
+              <p className="text-xs text-muted-foreground whitespace-pre-line leading-relaxed">
                 {item.personalizationNotes}
               </p>
             </div>
