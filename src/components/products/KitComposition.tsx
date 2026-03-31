@@ -594,34 +594,44 @@ function KitComponentCard({
           </div>
         )}
 
-        {/* Image with index badge */}
-        <div className="relative shrink-0">
-          <div
-            className={cn(
-              "w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border",
-              isPackaging
-                ? "bg-amber-500/5 border-amber-500/20"
-                : "bg-muted/60 border-border/50"
-            )}
-          >
-            {item.imageUrl ? (
-              <img
-                src={item.imageUrl}
-                alt={item.productName}
-                className="w-full h-full object-contain p-1"
-                loading="lazy"
-              />
-            ) : isPackaging ? (
-              <Box className="h-7 w-7 text-amber-600/40 dark:text-amber-400/40" />
-            ) : (
-              <Utensils className="h-6 w-6 text-muted-foreground/30" />
-            )}
+        {/* Image + Material column */}
+        <div className="shrink-0 flex flex-col gap-2 items-center">
+          <div className="relative">
+            <div
+              className={cn(
+                "w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border",
+                isPackaging
+                  ? "bg-amber-500/5 border-amber-500/20"
+                  : "bg-muted/60 border-border/50"
+              )}
+            >
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.productName}
+                  className="w-full h-full object-contain p-1"
+                  loading="lazy"
+                />
+              ) : isPackaging ? (
+                <Box className="h-7 w-7 text-amber-600/40 dark:text-amber-400/40" />
+              ) : (
+                <Utensils className="h-6 w-6 text-muted-foreground/30" />
+              )}
+            </div>
+            {/* Index number */}
+            <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center">
+              <span className="text-[9px] font-bold text-muted-foreground tabular-nums">
+                {index}
+              </span>
+            </div>
           </div>
-          {/* Index number */}
-          <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center">
-            <span className="text-[9px] font-bold text-muted-foreground tabular-nums">
-              {index}
-            </span>
+          {/* Material block — aligned under image */}
+          <div className="w-16 flex flex-col items-center gap-1 rounded-lg border border-border bg-muted/20 px-1.5 py-2">
+            <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="text-[8px] uppercase tracking-wider text-muted-foreground font-medium leading-tight text-center">Material</div>
+            <div className="text-[11px] font-semibold text-foreground text-center leading-tight break-words">
+              {item.material || "—"}
+            </div>
           </div>
         </div>
 
