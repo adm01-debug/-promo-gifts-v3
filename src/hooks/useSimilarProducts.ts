@@ -20,6 +20,7 @@ export interface SimilarProductItem {
   image_url: string;
   supplier_name: string;
   category_name: string;
+  category_id?: string;
   colors_count?: number;
   stock?: number;
 }
