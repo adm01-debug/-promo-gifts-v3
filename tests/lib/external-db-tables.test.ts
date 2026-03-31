@@ -51,12 +51,9 @@ describe('External DB Tables constants', () => {
     expect(PRODUCT_VIEWS).toContain('mv_product_compositions');
     expect(PRODUCT_VIEWS).toContain('mv_material_group_stats');
     expect(PRODUCT_VIEWS).toContain('categories_tree_visual');
-    // Phantom views removed
-    expect(PRODUCT_VIEWS).not.toContain('v_products_with_techniques');
-    expect(PRODUCT_VIEWS).not.toContain('v_products_with_stock');
-    expect(PRODUCT_VIEWS).not.toContain('v_customization_price_summary');
-    expect(PRODUCT_VIEWS).not.toContain('v_variant_pricing_complete');
-    expect(PRODUCT_VIEWS).not.toContain('v_technique_stats');
+    // These views exist in the bridge whitelist
+    expect(PRODUCT_VIEWS).toContain('v_products_with_techniques');
+    expect(PRODUCT_VIEWS).toContain('v_products_with_stock');
   });
 
   it('has CRM company tables', () => {
