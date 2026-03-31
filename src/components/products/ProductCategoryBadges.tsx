@@ -19,6 +19,7 @@ interface ProductCategoryBadgesProps {
   productImageUrl?: string | null;
   productMinQuantity?: number;
   showPersonalizationLink?: boolean;
+  isKit?: boolean;
 }
 
 /**
