@@ -5,7 +5,7 @@
  */
 
 import { useState, useMemo, useEffect, useRef } from 'react';
-import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2 } from 'lucide-react';
+import { Palette, Package, ChevronDown, ChevronUp, Check, Settings, Loader2, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
