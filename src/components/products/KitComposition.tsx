@@ -622,9 +622,9 @@ function KitComponentCard({
                 item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all"
               )}
               onClick={(e) => {
-                if (item.imageUrl) {
+                if (item.imageUrl && onZoomImage) {
                   e.stopPropagation();
-                  setZoomImageUrl(item.imageUrl);
+                  onZoomImage(item.imageUrl);
                 }
               }}
             >
