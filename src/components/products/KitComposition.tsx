@@ -594,34 +594,44 @@ function KitComponentCard({
           </div>
         )}
 
-        {/* Image with index badge */}
-        <div className="relative shrink-0">
-          <div
-            className={cn(
-              "w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border",
-              isPackaging
-                ? "bg-amber-500/5 border-amber-500/20"
-                : "bg-muted/60 border-border/50"
-            )}
-          >
-            {item.imageUrl ? (
-              <img
-                src={item.imageUrl}
-                alt={item.productName}
-                className="w-full h-full object-contain p-1"
-                loading="lazy"
-              />
-            ) : isPackaging ? (
-              <Box className="h-7 w-7 text-amber-600/40 dark:text-amber-400/40" />
-            ) : (
-              <Utensils className="h-6 w-6 text-muted-foreground/30" />
-            )}
+        {/* Image + Material column */}
+        <div className="shrink-0 flex flex-col gap-2 items-center">
+          <div className="relative">
+            <div
+              className={cn(
+                "w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border",
+                isPackaging
+                  ? "bg-amber-500/5 border-amber-500/20"
+                  : "bg-muted/60 border-border/50"
+              )}
+            >
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.productName}
+                  className="w-full h-full object-contain p-1"
+                  loading="lazy"
+                />
+              ) : isPackaging ? (
+                <Box className="h-7 w-7 text-amber-600/40 dark:text-amber-400/40" />
+              ) : (
+                <Utensils className="h-6 w-6 text-muted-foreground/30" />
+              )}
+            </div>
+            {/* Index number */}
+            <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center">
+              <span className="text-[9px] font-bold text-muted-foreground tabular-nums">
+                {index}
+              </span>
+            </div>
           </div>
-          {/* Index number */}
-          <div className="absolute -top-1.5 -left-1.5 w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center">
-            <span className="text-[9px] font-bold text-muted-foreground tabular-nums">
-              {index}
-            </span>
+          {/* Material block — aligned under image */}
+          <div className="w-16 flex flex-col items-center gap-1 rounded-lg border border-border bg-muted/20 px-1.5 py-2">
+            <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
+            <div className="text-[8px] uppercase tracking-wider text-muted-foreground font-medium leading-tight text-center">Material</div>
+            <div className="text-[11px] font-semibold text-foreground text-center leading-tight break-words">
+              {item.material || "—"}
+            </div>
           </div>
         </div>
 
@@ -708,65 +718,51 @@ function KitComponentCard({
             )}
           </div>
 
-          {/* Row 3: Two-column layout — Badges | Material */}
-          <div className="grid grid-cols-2 gap-3 items-start">
-            {/* Col 1: Smart Badges */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {item.isPackaging && (
-                <SmartBadge
-                  icon={Package}
-                  tooltip="Este componente é a embalagem do kit. Contém os demais itens."
-                  className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
-                >
-                  Embalagem
-                </SmartBadge>
-              )}
-              {item.isOptional && (
-                <SmartBadge
-                  tooltip="Item opcional — pode ser removido do kit sem afetar os demais."
-                  className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30"
-                >
-                  Opcional
-                </SmartBadge>
-              )}
-              {item.isReplaceable && (
-                <SmartBadge
-                  icon={Settings2}
-                  tooltip="Item substituível — pode ser trocado por variantes compatíveis."
-                  className="bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30"
-                >
-                  Substituível
-                </SmartBadge>
-              )}
-              {item.allowsPersonalization && (
-                <SmartBadge
-                  icon={Palette}
-                  tooltip="Aceita gravação/personalização com a logo do cliente."
-                  className="text-primary border-primary/30 bg-primary/5"
-                >
-                  Personalizável
-                </SmartBadge>
-              )}
-              {item.color && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] px-2 py-0.5 gap-1"
-                >
-                  Cor: {item.color}
-                </Badge>
-              )}
-            </div>
-
-            {/* Col 2: Material — full width block */}
-            <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 px-4 py-4 min-h-[64px]">
-              <Layers className="h-5 w-5 text-muted-foreground shrink-0" />
-              <div className="min-w-0 flex-1">
-                <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mb-0.5">Material</div>
-                <div className="text-sm font-semibold text-foreground truncate">
-                  {item.material || "—"}
-                </div>
-              </div>
-            </div>
+          {/* Row 3: Smart Badges */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {item.isPackaging && (
+              <SmartBadge
+                icon={Package}
+                tooltip="Este componente é a embalagem do kit. Contém os demais itens."
+                className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30"
+              >
+                Embalagem
+              </SmartBadge>
+            )}
+            {item.isOptional && (
+              <SmartBadge
+                tooltip="Item opcional — pode ser removido do kit sem afetar os demais."
+                className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30"
+              >
+                Opcional
+              </SmartBadge>
+            )}
+            {item.isReplaceable && (
+              <SmartBadge
+                icon={Settings2}
+                tooltip="Item substituível — pode ser trocado por variantes compatíveis."
+                className="bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30"
+              >
+                Substituível
+              </SmartBadge>
+            )}
+            {item.allowsPersonalization && (
+              <SmartBadge
+                icon={Palette}
+                tooltip="Aceita gravação/personalização com a logo do cliente."
+                className="text-primary border-primary/30 bg-primary/5"
+              >
+                Personalizável
+              </SmartBadge>
+            )}
+            {item.color && (
+              <Badge
+                variant="secondary"
+                className="text-[10px] px-2 py-0.5 gap-1"
+              >
+                Cor: {item.color}
+              </Badge>
+            )}
           </div>
         </div>
       </div>
