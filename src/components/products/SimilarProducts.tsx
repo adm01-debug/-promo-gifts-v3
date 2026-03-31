@@ -1,11 +1,12 @@
-import { useRef, useState, useCallback, forwardRef } from "react";
+import { useRef, useState, useCallback, forwardRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Layers, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Layers, Loader2, TrendingDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { useSimilarProducts, type SimilarProductItem } from "@/hooks/useSimilarProducts";
+import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 
 interface SimilarProductsProps {
   currentProduct: Product;
