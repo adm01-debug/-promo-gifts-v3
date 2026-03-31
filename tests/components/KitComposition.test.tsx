@@ -88,7 +88,7 @@ describe('KitComposition', () => {
   it('does not show "Itens do Kit" section header when no packaging', () => {
     render(<KitComposition items={[ITEM_A, ITEM_B]} />);
     openDialog();
-    expect(screen.queryByText(/Itens do Kit/i)).toBeNull();
+    expect(screen.queryByText(/Itens do Kit/)).toBeNull();
   });
 
   it('renders SKU for each item', () => {
