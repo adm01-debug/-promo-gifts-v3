@@ -194,12 +194,22 @@ function ItemPersonalizationCard({
 
             <div className="flex items-center gap-3">
               {personalization.enabled && (
-                <span className="text-sm font-semibold text-primary">
+                <span className="text-sm font-semibold">
                   {priceLoading ? (
-                    <Loader2 className="h-3 w-3 animate-spin inline" />
+                    <Loader2 className="h-3 w-3 animate-spin inline text-primary" />
+                  ) : !personalization.techniqueId ? (
+                    <span className="text-warning flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      Sem técnica
+                    </span>
                   ) : currentUnitPrice ? (
-                    `+${formatCurrency(currentUnitPrice)}/un`
-                  ) : null}
+                    <span className="text-primary">+{formatCurrency(currentUnitPrice)}/un</span>
+                  ) : (
+                    <span className="text-warning flex items-center gap-1">
+                      <AlertTriangle className="h-3 w-3" />
+                      R$ 0,00
+                    </span>
+                  )}
                 </span>
               )}
               <Switch checked={personalization.enabled} onCheckedChange={handleToggle} />
