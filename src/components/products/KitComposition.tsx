@@ -771,40 +771,25 @@ function KitComponentCard({
       {/* ── Specs Section ── */}
       {hasSpecs && (
         <div className="px-4 pb-3 space-y-2">
-          {/* Material + Weight row */}
-          {(item.material || (item.weightG != null && item.weightG > 0)) && (
+          {/* Weight row */}
+          {item.weightG != null && item.weightG > 0 && (
             <div className="flex items-stretch gap-2">
-              {item.material && (
-                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5 flex-1 min-w-0">
-                  <Layers className="h-4 w-4 text-muted-foreground shrink-0" />
-                  <div className="min-w-0">
-                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
-                      Material
-                    </div>
-                    <div className="text-xs font-semibold text-foreground truncate">
-                      {item.material}
-                    </div>
+              <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5 min-w-[110px]">
+                <Weight className="h-4 w-4 text-primary shrink-0" />
+                <div>
+                  <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
+                    Peso {item.quantity > 1 ? "(un.)" : ""}
+                  </div>
+                  <div className="text-xs font-bold text-foreground tabular-nums">
+                    {formatWeight(item.weightG)}
+                    {item.quantity > 1 && (
+                      <span className="text-[10px] font-normal text-muted-foreground ml-1">
+                        ({formatWeight(item.weightG * item.quantity)} total)
+                      </span>
+                    )}
                   </div>
                 </div>
-              )}
-              {item.weightG != null && item.weightG > 0 && (
-                <div className="flex items-center gap-2.5 rounded-lg border border-border bg-muted/20 px-3 py-2.5 min-w-[110px]">
-                  <Weight className="h-4 w-4 text-primary shrink-0" />
-                  <div>
-                    <div className="text-[9px] uppercase tracking-wider text-muted-foreground font-medium">
-                      Peso {item.quantity > 1 ? "(un.)" : ""}
-                    </div>
-                    <div className="text-xs font-bold text-foreground tabular-nums">
-                      {formatWeight(item.weightG)}
-                      {item.quantity > 1 && (
-                        <span className="text-[10px] font-normal text-muted-foreground ml-1">
-                          ({formatWeight(item.weightG * item.quantity)} total)
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
           )}
 
