@@ -174,6 +174,13 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
           </ScrollArea>
         )}
       </CardContent>
+
+      <QuoteVersionCompare
+        open={showCompare}
+        onOpenChange={setShowCompare}
+        versions={versions}
+        currentQuoteId={currentQuoteId}
+      />
     </Card>
   );
 }
