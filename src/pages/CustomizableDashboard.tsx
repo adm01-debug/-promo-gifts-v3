@@ -157,6 +157,8 @@ export function CustomizableDashboard() {
         return <UpcomingDatesWidget variant="compact" daysAhead={60} maxItems={6} />;
       case 'recent-kits':
         return <RecentKitsWidget />;
+      case 'scheduled-reports':
+        return <ScheduledReportsManager />;
       case 'vendas':
         return (
           <MetricCard
