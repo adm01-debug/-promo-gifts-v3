@@ -36,7 +36,7 @@ export function useQuoteApproval() {
     setIsLoading(true);
     try {
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30);
+      expiresAt.setHours(expiresAt.getHours() + 48); // 48h TTL para segurança
 
       const { data, error } = await supabase
         .from("quote_approval_tokens")

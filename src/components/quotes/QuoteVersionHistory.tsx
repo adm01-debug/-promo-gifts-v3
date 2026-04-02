@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { GitBranch, Plus, Eye, Check, Clock, FileText } from "lucide-react";
+import { GitBranch, GitCompare, Plus, Eye, Check, Clock, FileText } from "lucide-react";
+import { QuoteVersionCompare } from "./QuoteVersionCompare";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -22,6 +23,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
   const navigate = useNavigate();
   const { versions, isLoading, fetchVersions, createNewVersion, hasMultipleVersions } = useQuoteVersions(quoteId);
   const [isCreating, setIsCreating] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
 
   useEffect(() => {
     fetchVersions();
@@ -66,21 +68,39 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
               </Badge>
             )}
           </CardTitle>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCreateVersion}
-                disabled={isCreating}
-                className="h-7 text-xs gap-1"
-              >
-                <Plus className="h-3 w-3" />
-                Nova Versão
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>Criar nova versão baseada neste orçamento</TooltipContent>
-          </Tooltip>
+          <div className="flex items-center gap-1">
+            {hasMultipleVersions && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowCompare(true)}
+                    className="h-7 text-xs gap-1"
+                  >
+                    <GitCompare className="h-3 w-3" />
+                    Comparar
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Comparar versões lado a lado</TooltipContent>
+              </Tooltip>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={handleCreateVersion}
+                  disabled={isCreating}
+                  className="h-7 text-xs gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Nova Versão
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>Criar nova versão baseada neste orçamento</TooltipContent>
+            </Tooltip>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -154,6 +174,13 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
           </ScrollArea>
         )}
       </CardContent>
+
+      <QuoteVersionCompare
+        open={showCompare}
+        onOpenChange={setShowCompare}
+        versions={versions}
+        currentQuoteId={currentQuoteId}
+      />
     </Card>
   );
 }
