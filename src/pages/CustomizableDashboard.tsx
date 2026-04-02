@@ -11,6 +11,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { UpcomingDatesWidget } from '@/components/dashboard/UpcomingDatesWidget';
 import { QuickActionsPanel } from '@/components/dashboard/QuickActionsPanel';
 import { RecentKitsWidget } from '@/components/dashboard/RecentKitsWidget';
+import { ScheduledReportsManager } from '@/components/reports/ScheduledReportsManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { toast } from 'sonner';
