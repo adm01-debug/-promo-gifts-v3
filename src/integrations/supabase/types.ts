@@ -1510,6 +1510,51 @@ export type Database = {
         }
         Relationships: []
       }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          email_to: string
+          filters: Json | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          next_run_at: string
+          report_name: string
+          report_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          filters?: Json | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string
+          report_name?: string
+          report_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          filters?: Json | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string
+          report_name?: string
+          report_type?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       seller_cart_items: {
         Row: {
           cart_id: string
