@@ -1,5 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-import { corsHeaders } from "@supabase/supabase-js/cors";
+import { corsHeaders } from "npm:@supabase/supabase-js@2.49.4/cors";
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
