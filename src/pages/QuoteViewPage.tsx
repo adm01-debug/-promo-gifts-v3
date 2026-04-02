@@ -34,6 +34,7 @@ import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 import { QuoteItemDetailSheet } from "@/components/quotes/QuoteItemDetailSheet";
 import { QuoteCommentsSection } from "@/components/quotes/QuoteCommentsSection";
 import { QuoteApprovalLinkCard } from "@/components/quotes/QuoteApprovalLinkCard";
+import { QuoteVersionHistory } from "@/components/quotes/QuoteVersionHistory";
 
 function formatCNPJ(cnpj: string): string {
   const digits = cnpj.replace(/\D/g, "");
@@ -915,6 +916,9 @@ export default function QuoteViewPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Version History */}
+        {id && <QuoteVersionHistory quoteId={id} currentQuoteId={id} />}
 
         {/* Approval Link */}
         {id && quote && (
