@@ -1347,7 +1347,9 @@ export type Database = {
           discount_percent: number
           id: string
           internal_notes: string | null
+          is_latest_version: boolean
           notes: string | null
+          parent_quote_id: string | null
           payment_terms: string | null
           quote_number: string
           seller_id: string
@@ -1361,6 +1363,7 @@ export type Database = {
           total: number
           updated_at: string
           valid_until: string | null
+          version: number
         }
         Insert: {
           bitrix_deal_id?: string | null
@@ -1380,7 +1383,9 @@ export type Database = {
           discount_percent?: number
           id?: string
           internal_notes?: string | null
+          is_latest_version?: boolean
           notes?: string | null
+          parent_quote_id?: string | null
           payment_terms?: string | null
           quote_number?: string
           seller_id: string
@@ -1394,6 +1399,7 @@ export type Database = {
           total?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number
         }
         Update: {
           bitrix_deal_id?: string | null
@@ -1413,7 +1419,9 @@ export type Database = {
           discount_percent?: number
           id?: string
           internal_notes?: string | null
+          is_latest_version?: boolean
           notes?: string | null
+          parent_quote_id?: string | null
           payment_terms?: string | null
           quote_number?: string
           seller_id?: string
@@ -1427,8 +1435,17 @@ export type Database = {
           total?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "quotes_parent_quote_id_fkey"
+            columns: ["parent_quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       role_permissions: {
         Row: {
@@ -1488,6 +1505,51 @@ export type Database = {
           id?: string
           is_default?: boolean
           name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      scheduled_reports: {
+        Row: {
+          created_at: string
+          email_to: string
+          filters: Json | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_sent_at: string | null
+          next_run_at: string
+          report_name: string
+          report_type: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_to: string
+          filters?: Json | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string
+          report_name?: string
+          report_type?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_to?: string
+          filters?: Json | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_sent_at?: string | null
+          next_run_at?: string
+          report_name?: string
+          report_type?: string
           updated_at?: string
           user_id?: string
         }
