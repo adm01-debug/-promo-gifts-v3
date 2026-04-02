@@ -30,6 +30,7 @@ const DEFAULT_WIDGETS: WidgetConfig[] = [
   { id: 'vendas', title: 'Vendas do Mês', visible: true, order: 3 },
   { id: 'orcamentos', title: 'Orçamentos', visible: true, order: 4 },
   { id: 'pedidos', title: 'Pedidos Pendentes', visible: true, order: 5 },
+  { id: 'scheduled-reports', title: 'Relatórios Agendados', visible: true, order: 6 },
 ];
 
 const LAYOUT_KEY = 'dashboard_layout';
