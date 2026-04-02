@@ -23,6 +23,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
   const navigate = useNavigate();
   const { versions, isLoading, fetchVersions, createNewVersion, hasMultipleVersions } = useQuoteVersions(quoteId);
   const [isCreating, setIsCreating] = useState(false);
+  const [showCompare, setShowCompare] = useState(false);
 
   useEffect(() => {
     fetchVersions();
