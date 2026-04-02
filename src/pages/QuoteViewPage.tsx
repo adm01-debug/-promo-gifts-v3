@@ -917,6 +917,9 @@ export default function QuoteViewPage() {
           </CardContent>
         </Card>
 
+        {/* Version History */}
+        {id && <QuoteVersionHistory quoteId={id} currentQuoteId={id} />}
+
         {/* Approval Link */}
         {id && quote && (
           <QuoteApprovalLinkCard
