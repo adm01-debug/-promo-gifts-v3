@@ -525,7 +525,7 @@ export function ProductCard({
         {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono truncate">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground/60 font-mono truncate">
             {product.sku}
           </span>
           
