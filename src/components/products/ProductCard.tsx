@@ -187,7 +187,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30 rounded-t-xl sm:rounded-t-2xl ring-1 ring-border/10" style={{ zIndex: 0 }}>
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-gradient-to-b from-muted/20 to-muted/40 rounded-t-xl sm:rounded-t-2xl ring-1 ring-border/10" style={{ zIndex: 0 }}>
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
