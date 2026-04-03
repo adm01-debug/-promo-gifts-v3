@@ -151,6 +151,10 @@ export function ProductCard({
   const cardSrcSet = colorSpecificImage ? undefined : (rawImageUrl ? getSrcSet(rawImageUrl) : undefined);
   const activeColorName = getActiveColorName(product, activeColorFilter);
 
+  // Second image for hover preview
+  const secondImageRaw = !colorSpecificImage && product.images.length > 1 ? product.images[1] : null;
+  const secondImageUrl = secondImageRaw ? getCdnUrl(secondImageRaw, "card") : null;
+
   const imageBounds = useProductBounds(cardImageUrl !== "/placeholder.svg" ? cardImageUrl : null, {
     whiteThreshold: 230,
     margin: 0.01,
