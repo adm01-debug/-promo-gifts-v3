@@ -495,7 +495,7 @@ export function ProductCard({
         {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
-          <span className="text-[10px] sm:text-xs text-muted-foreground font-mono truncate">
+          <span className="text-[10px] sm:text-xs text-muted-foreground/60 font-mono truncate">
             {product.sku}
           </span>
           
@@ -503,7 +503,7 @@ export function ProductCard({
             {/* Gender badge */}
             <GenderBadge gender={product.gender} size="sm" />
             {/* Nome do fornecedor - badge neutro */}
-            <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium truncate max-w-[120px] flex items-center gap-1">
+            <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary/80 text-secondary-foreground font-medium truncate max-w-[120px] flex items-center gap-1">
               <Building2 className={cn("h-3 w-3 shrink-0", getSupplierColors(product.supplier.name).text)} />
               {product.supplier.name}
             </span>
