@@ -58,6 +58,7 @@ export function ProductCard({
   isNovelty = false,
   noveltyDaysRemaining,
   activeColorFilter,
+  isViewed = false,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
