@@ -1,6 +1,7 @@
 /**
  * Kit Builder Wizard Steps — Redesigned
  * Stepper horizontal com progresso animado e contadores contextuais
+ * Padronizado com tokens semânticos do Design System
  */
 
 import { Check, Package, Gift, Palette, FileText } from 'lucide-react';
@@ -66,10 +67,10 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, stepCoun
                       animate={{ scale: 1 }}
                       transition={{ type: "spring", stiffness: 400, damping: 15 }}
                     >
-                      <Check className="h-4.5 w-4.5" />
+                      <Check className="h-5 w-5" />
                     </motion.div>
                   ) : (
-                    <Icon className="h-4.5 w-4.5" />
+                    <Icon className="h-5 w-5" />
                   )}
 
                   {/* Count badge */}
