@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { cn } from "@/lib/utils";
+import { AIRecommendationsWidget } from "@/components/ai/AIRecommendationsWidget";
 
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
