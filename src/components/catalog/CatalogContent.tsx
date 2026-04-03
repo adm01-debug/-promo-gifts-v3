@@ -8,6 +8,7 @@ import { ProductList } from "@/components/products/ProductList";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
+import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import type { Product } from "@/hooks/useProducts";
 import type { ViewMode } from "@/hooks/useCatalogState";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
