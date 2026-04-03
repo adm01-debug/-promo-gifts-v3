@@ -94,29 +94,11 @@ export function CatalogToolbar({
           </SheetContent>
         </Sheet>
 
-        {/* Sort chips inline */}
-        <div className="hidden md:flex items-center gap-1 px-1 py-0.5 rounded-lg bg-muted/40 border border-border/30">
-          {SORT_OPTIONS.map((opt) => (
-            <button
-              key={opt.value}
-              onClick={() => setSortBy(opt.value)}
-              className={cn(
-                "px-3 py-1.5 min-h-[36px] rounded-md text-xs font-medium transition-all duration-200",
-                sortBy === opt.value
-                  ? "bg-primary text-primary-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
-              )}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Mobile: compact sort select */}
+        {/* Sort dropdown */}
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as SortOption)}
-          className="md:hidden h-9 min-h-[36px] px-3 rounded-md border border-input bg-background text-xs"
+          className="h-9 min-h-[36px] px-3 rounded-md border border-input bg-background text-xs"
           aria-label="Ordenar por"
         >
           {SORT_OPTIONS.map((opt) => (
