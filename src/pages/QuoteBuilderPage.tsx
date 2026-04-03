@@ -266,6 +266,26 @@ export default function QuoteBuilderPage() {
                   )}
                 </div>
               </div>
+              {/* AI Recommendations */}
+              <AIRecommendationsWidget
+                clientName={s.companyInfo?.name}
+                clientCompany={s.companyInfo?.name}
+                clientIndustry={s.companyInfo?.ramo_atividade}
+                availableProducts={(s.filteredProducts || []).map((p: any) => ({
+                  id: p.id,
+                  name: p.name,
+                  sku: p.sku,
+                  category: p.category_name || p.category,
+                  description: p.description,
+                  price: p.price || p.sale_price,
+                  image_url: p.cover_image_url || (Array.isArray(p.images) ? p.images[0] : null),
+                  tags: p.tags,
+                }))}
+                onAddProduct={(productId) => {
+                  const product = (s.filteredProducts || []).find((p: any) => p.id === productId);
+                  if (product) s.handleProductClick(product);
+                }}
+              />
             </div>
           </div>
 
