@@ -89,15 +89,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             <Menu className="h-5 w-5" />
           </Button>
 
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-2 sm:gap-2.5 cursor-pointer hover:opacity-80 transition-opacity"
-            aria-label="Ir para a página inicial"
-          >
+          <div className="flex items-center gap-2 sm:gap-2.5">
             <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-orange flex items-center justify-center shadow-md">
               <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-foreground" />
             </div>
-            <div className="hidden sm:block text-left">
+            <div className="hidden sm:block">
               <h1 className="font-display text-sm sm:text-base font-bold text-foreground leading-tight">
                 Promo
               </h1>
@@ -105,7 +101,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                 Brindes
               </p>
             </div>
-          </button>
+          </div>
 
         </div>
 

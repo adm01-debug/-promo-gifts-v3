@@ -525,7 +525,7 @@ export function ProductCard({
         {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground/60 font-mono truncate">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono truncate">
             {product.sku}
           </span>
           
@@ -541,7 +541,7 @@ export function ProductCard({
         </div>
 
         {/* Name */}
-        <h3 className="font-display font-semibold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-display font-bold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
           {product.name}
         </h3>
 
@@ -554,7 +554,7 @@ export function ProductCard({
           <div className="flex items-end justify-between pt-0.5 sm:pt-1">
           <div>
             <p className="text-[10px] sm:text-xs text-muted-foreground/70 mb-0.5">A partir de</p>
-            <span className="text-base sm:text-lg font-display font-bold text-foreground tracking-tight">
+            <span className="text-lg sm:text-2xl font-display font-extrabold text-foreground tracking-tight">
               {formatPrice(product.price)}
             </span>
           </div>
