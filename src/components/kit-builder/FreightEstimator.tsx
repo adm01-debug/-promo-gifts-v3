@@ -1,12 +1,12 @@
 /**
  * Freight Estimator
  * Estimates shipping cost based on total weight
- * Tabela interna estimada — sem integração CEP real
+ * Padronizado com layout compacto de sidebar do Design System
  */
 
 import { useState } from 'react';
 import { Truck, AlertCircle, Info } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -60,34 +60,33 @@ export function FreightEstimator({ totalWeightGrams, kitQuantity }: FreightEstim
 
   return (
     <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2">
+      <CardContent className="p-3 space-y-2.5">
+        <h3 className="font-semibold text-xs flex items-center gap-1.5">
           <Truck className="h-4 w-4 text-primary" />
-          Estimativa de Frete
+          <span>Frete Estimado</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger asChild>
-                <Info className="h-3.5 w-3.5 text-muted-foreground cursor-help" />
+                <Info className="h-3 w-3 text-muted-foreground cursor-help" />
               </TooltipTrigger>
-              <TooltipContent className="max-w-[260px]">
-                <p className="text-xs">Valores estimados com base em tabela interna (referência: SP Capital). Para cotação exata, consulte sua transportadora com o CEP de destino.</p>
+              <TooltipContent className="max-w-[240px]">
+                <p className="text-xs">Valores estimados (ref: SP Capital). Consulte transportadora para cotação exata.</p>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        </h3>
+
         {noWeight && (
-          <div className="flex items-center gap-2 text-xs text-warning bg-warning/10 border border-warning/20 rounded-lg p-2.5">
-            <AlertCircle className="h-3.5 w-3.5 flex-shrink-0" />
-            <span>Peso dos itens não informado. Estimativa pode ser imprecisa.</span>
+          <div className="flex items-center gap-1.5 text-[10px] text-warning bg-warning/10 border border-warning/20 rounded-md p-2">
+            <AlertCircle className="h-3 w-3 flex-shrink-0" />
+            <span>Peso não informado. Estimativa imprecisa.</span>
           </div>
         )}
 
         <div className="space-y-1">
-          <Label className="text-xs">Modalidade</Label>
+          <Label className="text-[10px] text-muted-foreground">Modalidade</Label>
           <Select value={method} onValueChange={setMethod}>
-            <SelectTrigger className="h-9">
+            <SelectTrigger className="h-8 text-xs">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -98,25 +97,25 @@ export function FreightEstimator({ totalWeightGrams, kitQuantity }: FreightEstim
           </Select>
         </div>
 
-        <div className="grid grid-cols-3 gap-2 text-center">
-          <div className="rounded-lg bg-secondary/50 p-2">
-            <p className="text-[11px] text-muted-foreground">Peso Total</p>
-            <p className="font-bold text-sm">{totalWeightKg.toFixed(1)}kg</p>
+        <div className="grid grid-cols-3 gap-1.5 text-center">
+          <div className="rounded-md bg-secondary/50 p-1.5">
+            <p className="text-[9px] text-muted-foreground">Peso</p>
+            <p className="font-bold text-xs tabular-nums">{totalWeightKg.toFixed(1)}kg</p>
           </div>
-          <div className="rounded-lg bg-secondary/50 p-2">
-            <p className="text-[11px] text-muted-foreground">{METHOD_LABELS[method]}</p>
-            <p className="font-bold text-sm text-primary">{formatCurrency(perShipmentCost)}</p>
+          <div className="rounded-md bg-secondary/50 p-1.5">
+            <p className="text-[9px] text-muted-foreground">{METHOD_LABELS[method]}</p>
+            <p className="font-bold text-xs text-primary tabular-nums">{formatCurrency(perShipmentCost)}</p>
           </div>
-          <div className="rounded-lg bg-primary/10 p-2">
-            <p className="text-[11px] text-muted-foreground">Por Kit</p>
-            <p className="font-bold text-sm text-primary">{formatCurrency(perShipmentCost / kitQuantity)}</p>
+          <div className="rounded-md bg-primary/10 p-1.5">
+            <p className="text-[9px] text-muted-foreground">Por Kit</p>
+            <p className="font-bold text-xs text-primary tabular-nums">{formatCurrency(perShipmentCost / kitQuantity)}</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 justify-center">
-          <Badge variant="outline" className="text-[10px] gap-1 text-muted-foreground font-normal">
+        <div className="flex items-center justify-center">
+          <Badge variant="outline" className="text-[9px] gap-1 text-muted-foreground font-normal">
             <AlertCircle className="h-2.5 w-2.5" />
-            Valores estimados — consulte transportadora para cotação exata
+            Estimativa — consulte transportadora
           </Badge>
         </div>
       </CardContent>

@@ -1,6 +1,7 @@
 /**
  * Kit Mini Preview — Visual preview card do kit montado
  * Mostra thumbnails empilhadas dos itens + caixa
+ * Padronizado com tokens semânticos do Design System
  */
 
 import { Package, Gift } from 'lucide-react';
@@ -52,7 +53,7 @@ export function KitMiniPreview({ box, items, kitName }: KitMiniPreviewProps) {
                 transition={{ delay: i * 0.05, type: "spring", stiffness: 300 }}
                 className={cn(
                   "w-12 h-12 rounded-lg overflow-hidden border-2 flex items-center justify-center",
-                  el.isBox ? "border-amber-500/30 bg-amber-500/5" : "border-border/50 bg-muted/30"
+                  el.isBox ? "border-primary/30 bg-primary/5" : "border-border/50 bg-muted/30"
                 )}
                 title={el.name}
               >
@@ -60,7 +61,7 @@ export function KitMiniPreview({ box, items, kitName }: KitMiniPreviewProps) {
                   <img src={el.imageUrl} alt={el.name} className="w-full h-full object-cover" />
                 ) : (
                   el.isBox ? (
-                    <Package className="h-5 w-5 text-amber-500/50" />
+                    <Package className="h-5 w-5 text-primary/50" />
                   ) : (
                     <Gift className="h-5 w-5 text-muted-foreground/40" />
                   )
