@@ -357,7 +357,7 @@ async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Respon
       return jsonResponse({ error: error.message }, 500);
     }
     if (!data) {
-      return jsonResponse({ error: "Record not found" }, 404);
+      return jsonResponse({ data: null, count: 0 });
     }
     return jsonResponse({ data, count: 1 });
   }
