@@ -8,7 +8,6 @@ import { ProductList } from "@/components/products/ProductList";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
-import { useRecentlyViewed } from "@/hooks/useRecentlyViewed";
 import type { Product } from "@/hooks/useProducts";
 import type { ViewMode } from "@/hooks/useCatalogState";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
@@ -57,7 +56,6 @@ function VirtualGrid({
   loadMoreRef,
   itemsPerPage,
   onLoadMore,
-  isViewed,
 }: {
   products: Product[];
   columns: ColumnCount;
@@ -74,31 +72,20 @@ function VirtualGrid({
   loadMoreRef: RefObject<HTMLDivElement>;
   itemsPerPage: number;
   onLoadMore?: () => void;
-  isViewed?: (id: string) => boolean;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  // On mobile (<640px), force max 2 columns for better readability
-  const [screenWidth, setScreenWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1024);
-  useEffect(() => {
-    const check = () => setScreenWidth(window.innerWidth);
-    window.addEventListener("resize", check, { passive: true });
-    return () => window.removeEventListener("resize", check);
-  }, []);
-  const effectiveColumns = screenWidth < 640 ? (Math.min(columns, 2) as typeof columns) : columns;
-
-  const rowCount = Math.ceil(products.length / effectiveColumns);
+  const rowCount = Math.ceil(products.length / columns);
   // Extra row for loader / "all loaded" message
   const totalRows = rowCount + 1;
 
   const estimateRowHeight = useCallback(() => {
-    if (effectiveColumns <= 2) return 520;
-    if (effectiveColumns >= 8) return 380;
-    if (effectiveColumns >= 6) return 420;
-    if (effectiveColumns >= 5) return 460;
+    if (columns >= 8) return 380;
+    if (columns >= 6) return 420;
+    if (columns >= 5) return 460;
     return 500;
-  }, [effectiveColumns]);
+  }, [columns]);
 
   const virtualizer = useVirtualizer({
     count: totalRows,
@@ -108,9 +95,8 @@ function VirtualGrid({
   });
 
   const getGap = () => {
-    if (effectiveColumns <= 2) return 12;
-    if (effectiveColumns >= 8) return 16;
-    if (effectiveColumns >= 6) return 24;
+    if (columns >= 8) return 16;
+    if (columns >= 6) return 24;
     return 32;
   };
 
@@ -205,8 +191,8 @@ function VirtualGrid({
               );
             }
 
-            const startIdx = virtualRow.index * effectiveColumns;
-            const rowProducts = products.slice(startIdx, startIdx + effectiveColumns);
+            const startIdx = virtualRow.index * columns;
+            const rowProducts = products.slice(startIdx, startIdx + columns);
 
             return (
               <div
@@ -220,7 +206,7 @@ function VirtualGrid({
                   width: "100%",
                   transform: `translateY(${virtualRow.start}px)`,
                   display: "grid",
-                  gridTemplateColumns: `repeat(${effectiveColumns}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
                   columnGap: `${gap}px`,
                   paddingBottom: `${gap}px`,
                 }}
@@ -235,7 +221,6 @@ function VirtualGrid({
                     isInCompare={isInCompare(product.id)}
                     onToggleCompare={onToggleCompare}
                     canAddToCompare={canAddToCompare}
-                    isViewed={isViewed?.(product.id)}
                     hideCategoryBadges
                   />
                 ))}
@@ -288,10 +273,6 @@ export function CatalogContent({
   canAddToCompare,
   onLoadMore,
 }: CatalogContentProps) {
-  const { items: recentlyViewedItems } = useRecentlyViewed();
-  const viewedSet = useMemo(() => new Set(recentlyViewedItems.map(i => i.productId)), [recentlyViewedItems]);
-  const isViewed = useCallback((id: string) => viewedSet.has(id), [viewedSet]);
-
   // Extract product IDs for batch sparkline data
   const sparklineProductIds = useMemo(
     () => paginatedProducts.map(p => p.id),
@@ -381,7 +362,6 @@ export function CatalogContent({
       loadMoreRef={loadMoreRef}
       itemsPerPage={itemsPerPage}
       onLoadMore={onLoadMore}
-      isViewed={isViewed}
     />
     </SparklineSalesProvider>
   );

@@ -38,8 +38,6 @@ export interface ProductCardProps {
   noveltyDaysRemaining?: number;
   /** Filtros de cor ativos - quando presente, o card mostra a imagem da cor filtrada */
   activeColorFilter?: ActiveColorFilter | null;
-  /** Se o produto já foi visitado/visualizado pelo vendedor */
-  isViewed?: boolean;
 }
 
 export function ProductCard({ 
@@ -58,7 +56,6 @@ export function ProductCard({
   isNovelty = false,
   noveltyDaysRemaining,
   activeColorFilter,
-  isViewed = false,
 }: ProductCardProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
@@ -187,7 +184,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-white rounded-t-xl sm:rounded-t-2xl" style={{ zIndex: 0 }}>
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30 rounded-t-xl sm:rounded-t-2xl ring-1 ring-border/10" style={{ zIndex: 0 }}>
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
@@ -287,16 +284,6 @@ export function ProductCard({
           )}
         </div>
 
-
-        {/* Viewed indicator — top right */}
-        {isViewed && !isHovered && (
-          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
-            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-card/80 backdrop-blur-sm text-muted-foreground/60 shadow-sm">
-              <Eye className="h-2.5 w-2.5" />
-              <span className="text-[9px] font-medium hidden sm:inline">Visto</span>
-            </div>
-          </div>
-        )}
 
         {/* Colors and gradient remain inside overflow-hidden, actions moved outside */}
 
@@ -525,7 +512,7 @@ export function ProductCard({
         {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
-          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono truncate">
+          <span className="text-[10px] sm:text-xs text-muted-foreground/60 font-mono truncate">
             {product.sku}
           </span>
           
@@ -592,8 +579,15 @@ export function ProductCard({
           </div>
         )}
 
-        {/* Sales Sparkline - only renders when real data exists */}
-        <ProductSparkline productId={product.id} className="pt-1.5 sm:pt-2 border-t border-border/30" />
+        {/* Sales Sparkline */}
+        <div className="pt-1.5 sm:pt-2 border-t border-border/30">
+          <div className="flex items-center justify-between mb-0.5">
+            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+              Vendas 30d
+            </span>
+          </div>
+          <ProductSparkline productId={product.id} />
+        </div>
       </div>
 
       {/* Collection Modal */}

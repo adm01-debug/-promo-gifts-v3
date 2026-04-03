@@ -349,15 +349,12 @@ async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   let query = crm.from(table).select(selectFields);
 
   if (id) {
-    const { data, error } = await query.eq("id", id).maybeSingle();
+    const { data, error } = await query.eq("id", id).single();
     if (error) {
       if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
         return createOptionalSelectFallback(table, true);
       }
-      return jsonResponse({ error: error.message }, 500);
-    }
-    if (!data) {
-      return jsonResponse({ data: null, count: 0 });
+      return jsonResponse({ error: error.message }, error.code === "PGRST116" ? 404 : 500);
     }
     return jsonResponse({ data, count: 1 });
   }

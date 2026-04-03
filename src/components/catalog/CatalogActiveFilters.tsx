@@ -9,22 +9,10 @@ interface CatalogActiveFiltersProps {
 }
 
 export function CatalogActiveFilters({ filters, setFilters, activeFiltersCount }: CatalogActiveFiltersProps) {
-  const hasPriceFilter = filters.priceRange[0] > 0 || filters.priceRange[1] < 9999;
-
-  if (activeFiltersCount === 0 && !hasPriceFilter) return null;
+  if (activeFiltersCount === 0) return null;
 
   return (
     <div className="flex flex-wrap gap-2">
-      {hasPriceFilter && (
-        <Badge
-          variant="secondary"
-          className="cursor-pointer hover:bg-destructive/10"
-          onClick={() => setFilters({ ...filters, priceRange: [0, 9999] })}
-        >
-          💰 R${filters.priceRange[0]}–{filters.priceRange[1] >= 9999 ? "∞" : filters.priceRange[1]}
-          <span className="ml-1">×</span>
-        </Badge>
-      )}
       {filters.colors.map((color) => (
         <Badge
           key={color}

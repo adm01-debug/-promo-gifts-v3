@@ -17,13 +17,23 @@ export default function Index() {
       <div>
         <div className="flex-1 min-w-0">
           <div className="space-y-3 p-4 sm:p-6">
-            {/* Header: Title + Recently Viewed */}
+            {/* Header: Title + Search */}
             <CatalogHeader
               shouldShowCatalogSkeleton={catalog.shouldShowCatalogSkeleton}
               totalEstimate={catalog.totalEstimate}
               filteredCount={catalog.filteredProducts.length}
               hasNextPage={catalog.hasNextPage}
-              onSelect={() => {}}
+              onSelect={(result) => {
+                if (result.type === "product") {
+                  catalog.navigate(`/produto/${result.id}`);
+                } else if (result.type === "category") {
+                  catalog.setFilters({ ...catalog.filters, categories: [parseInt(result.id)] });
+                } else if (result.type === "supplier") {
+                  catalog.setFilters({ ...catalog.filters, suppliers: [result.id] });
+                } else {
+                  catalog.handleSearch(result.label);
+                }
+              }}
             />
 
             {/* Toolbar: Filters + Sort + Stats + Layout */}

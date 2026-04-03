@@ -128,11 +128,6 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
-      <div className="flex items-center justify-between mb-0.5">
-        <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-          Vendas 30d
-        </span>
-      </div>
       <svg
         viewBox={`0 0 ${width} ${height}`}
         preserveAspectRatio="none"
