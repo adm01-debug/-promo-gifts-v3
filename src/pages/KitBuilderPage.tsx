@@ -1,18 +1,12 @@
 /**
- * Kit Builder Page — Redesigned
- * Layout moderno com header sticky, stepper animado, sidebar contextual e navegação bottom
+ * Kit Builder Page — Refactored
+ * Orquestrador leve usando sub-componentes (SRP)
+ * Header, Sidebar e BottomNav extraídos
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, Cloud, ChevronRight } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { downloadKitPDF } from '@/utils/kitPdfGenerator';
-import { BackButton } from '@/components/common/BackButton';
-import { Button } from '@/components/ui/button';
-import { formatCurrency } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
 import { useKitAutoSave } from '@/hooks/useKitAutoSave';
@@ -22,22 +16,23 @@ import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalDb } from '@/lib/external-db';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
-  WizardSteps,
   BoxSelector,
   ItemSelector,
-  VolumeIndicator,
   PersonalizationConfig,
   KitSummary,
 } from '@/components/kit-builder';
 import { KitSmartSuggestions } from '@/components/kit-builder/KitSmartSuggestions';
-import { FreightEstimator } from '@/components/kit-builder/FreightEstimator';
 import { KitTemplates } from '@/components/kit-builder/KitTemplates';
-import { KitMiniPreview } from '@/components/kit-builder/KitMiniPreview';
 import { KitTypeCards } from '@/components/kit-builder/KitTypeCards';
+import { KitBuilderHeader } from '@/components/kit-builder/KitBuilderHeader';
+import { KitBuilderSidebar } from '@/components/kit-builder/KitBuilderSidebar';
+import { KitBuilderBottomNav } from '@/components/kit-builder/KitBuilderBottomNav';
 import type { KitTemplate } from '@/components/kit-builder/KitTemplates';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
+import { calculateTotalKitPrice, formatCurrency } from '@/lib/kit-builder';
+import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 
 const STEP_LABELS: Record<string, string> = {
   box: 'Caixa',
@@ -108,14 +103,10 @@ export default function KitBuilderPage() {
   } = useKitBuilder();
 
   const { saveKit, isSaving } = useCustomKitPersistence();
-
-  // Auto-save
   const { lastSavedAt, isSaving: isAutoSaving, autoSavedKitId } = useKitAutoSave(
     kitState, kitQuantity, currentKitId,
     (id) => setCurrentKitId(id),
   );
-
-  // Undo/Redo
   const { pushSnapshot, undo, redo, canUndo, canRedo } = useKitUndoRedo();
 
   // Track slide direction
@@ -209,6 +200,8 @@ export default function KitBuilderPage() {
     loadProduct();
   }, [productIdParam, kitIdParam, addItem, setKitName]);
 
+  // ─── Handlers ────────────────────────────────────────
+
   const handleSaveKit = async () => {
     try {
       const result = await saveKit(kitState, kitQuantity, currentKitId || autoSavedKitId || undefined);
@@ -233,10 +226,7 @@ export default function KitBuilderPage() {
     try {
       const kitLabel = kitState.name || 'Kit sem nome';
       const kitGroupId = crypto.randomUUID();
-
-      const { total: kitTotal } = await import('@/lib/kit-builder').then(m =>
-        m.calculateTotalKitPrice(kitState.box, kitState.items, kitState.personalization, kitQuantity)
-      );
+      const { total: kitTotal } = calculateTotalKitPrice(kitState.box, kitState.items, kitState.personalization, kitQuantity);
 
       const { data: quote, error: quoteError } = await supabase
         .from('quotes')
@@ -395,11 +385,7 @@ export default function KitBuilderPage() {
 
   const handleExportPDF = () => {
     try {
-      downloadKitPDF({
-        kitState,
-        kitQuantity,
-        kitName: kitState.name,
-      });
+      downloadKitPDF({ kitState, kitQuantity, kitName: kitState.name });
       toast.success('PDF do kit exportado com sucesso!');
     } catch (error) {
       console.error('Erro ao exportar PDF:', error);
@@ -412,116 +398,44 @@ export default function KitBuilderPage() {
     setCurrentKitId(undefined);
   };
 
-  // Weight calculation
-  const itemsWeight = kitState.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
-  const weightExceeded = kitState.box?.maxWeight ? itemsWeight > kitState.box.maxWeight : false;
-  const weightPercent = kitState.box?.maxWeight ? (itemsWeight / kitState.box.maxWeight) * 100 : 0;
+  // ─── Computed ────────────────────────────────────────
 
-  // Step counts for badges
   const stepCounts = {
     items: kitState.items.length,
     personalization: Object.values(kitState.personalization.items).filter((p: any) => p?.enabled).length + (kitState.personalization.box.enabled ? 1 : 0),
   };
 
-  // Next step label
   const currentStepIdx = STEPS_ORDER.indexOf(wizardState.currentStep);
   const nextStepLabel = currentStepIdx < STEPS_ORDER.length - 1
     ? STEP_LABELS[STEPS_ORDER[currentStepIdx + 1]]
     : null;
 
-  // Show sidebar based on step
   const showSidebar = wizardState.currentStep !== 'summary';
+
+  // ─── Render ──────────────────────────────────────────
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* ═══════════════════════════════════════════
-          HEADER — Sticky, compact, modern
-         ═══════════════════════════════════════════ */}
-      <div className="sticky top-0 z-40 border-b bg-card/95 backdrop-blur-md">
-        <div className="container">
-          {/* Top bar */}
-          <div className="flex items-center justify-between py-3">
-            <div className="flex items-center gap-3">
-              <BackButton fallbackPath="/meus-kits" className="mr-1" />
-              <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Package className="h-4.5 w-4.5 text-primary" />
-              </div>
-              <div className="leading-tight">
-                <h1 className="text-base font-bold tracking-tight">Montador de Kits</h1>
-                <div className="flex items-center gap-2">
-                  {/* Auto-save status */}
-                  {isAutoSaving ? (
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                      Salvando...
-                    </span>
-                  ) : lastSavedAt ? (
-                    <span className="flex items-center gap-1 text-[10px] text-muted-foreground/70">
-                      <Cloud className="h-2.5 w-2.5 text-emerald-500" />
-                      Salvo {lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </span>
-                  ) : (
-                    <span className="text-[10px] text-muted-foreground/50">Rascunho</span>
-                  )}
-                </div>
-              </div>
-            </div>
+      {/* HEADER */}
+      <KitBuilderHeader
+        isAutoSaving={isAutoSaving}
+        lastSavedAt={lastSavedAt}
+        canUndo={canUndo}
+        canRedo={canRedo}
+        onUndo={() => undo()}
+        onRedo={() => redo()}
+        isSaving={isSaving}
+        hasContent={!!(kitState.box || kitState.items.length > 0)}
+        hasExistingKit={!!(currentKitId || autoSavedKitId)}
+        onSave={handleSaveKit}
+        onReset={handleResetKit}
+        currentStep={wizardState.currentStep}
+        completedSteps={wizardState.completedSteps}
+        onStepClick={goToStep}
+        stepCounts={stepCounts}
+      />
 
-            {/* Actions */}
-            <div className="flex items-center gap-1.5">
-              <TooltipProvider delayDuration={300}>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!canUndo} onClick={() => undo()}>
-                      <Undo2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom"><span className="text-xs">Desfazer · Ctrl+Z</span></TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" disabled={!canRedo} onClick={() => redo()}>
-                      <Redo2 className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom"><span className="text-xs">Refazer · Ctrl+Y</span></TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-
-              <div className="h-5 w-px bg-border mx-1" />
-
-              <Button
-                size="sm"
-                variant="default"
-                className="h-8 text-xs gap-1.5"
-                onClick={handleSaveKit}
-                disabled={isSaving || (!kitState.box && kitState.items.length === 0)}
-              >
-                {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-                {currentKitId || autoSavedKitId ? 'Atualizar' : 'Salvar'}
-              </Button>
-              <Button size="sm" variant="outline" className="h-8 text-xs gap-1.5" onClick={handleResetKit}>
-                <RotateCcw className="h-3.5 w-3.5" />
-                Novo
-              </Button>
-            </div>
-          </div>
-
-          {/* Stepper */}
-          <div className="pb-3">
-            <WizardSteps
-              currentStep={wizardState.currentStep}
-              completedSteps={wizardState.completedSteps}
-              onStepClick={goToStep}
-              stepCounts={stepCounts}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* ═══════════════════════════════════════════
-          CONTENT — Grid with contextual sidebar
-         ═══════════════════════════════════════════ */}
+      {/* CONTENT */}
       <div className="flex-1 container py-6 pb-24">
         <div className={cn(
           "grid gap-6 transition-all duration-300",
@@ -544,7 +458,6 @@ export default function KitBuilderPage() {
                     {/* Step: Box Selection */}
                     {wizardState.currentStep === 'box' && (
                       <div className="space-y-6">
-                        {/* Templates */}
                         {!kitState.box && kitState.items.length === 0 && (
                           <KitTemplates
                             visible
@@ -559,13 +472,12 @@ export default function KitBuilderPage() {
                         )}
 
                         <div>
-                          <h2 className="text-lg font-semibold">Selecione a Embalagem</h2>
+                          <h2 className="text-lg font-display font-semibold">Selecione a Embalagem</h2>
                           <p className="text-sm text-muted-foreground mt-0.5">
                             Escolha a caixa que será a base do seu kit
                           </p>
                         </div>
 
-                        {/* Kit Type — Visual Cards */}
                         <div className="space-y-2">
                           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Tipo de Kit</label>
                           <KitTypeCards value={kitState.kitType} onChange={setKitType} />
@@ -587,7 +499,7 @@ export default function KitBuilderPage() {
                     {wizardState.currentStep === 'items' && (
                       <div className="space-y-4">
                         <div>
-                          <h2 className="text-lg font-semibold">Adicione os Itens</h2>
+                          <h2 className="text-lg font-display font-semibold">Adicione os Itens</h2>
                           <p className="text-sm text-muted-foreground mt-0.5">
                             Selecione os produtos que farão parte do kit
                           </p>
@@ -649,167 +561,22 @@ export default function KitBuilderPage() {
             </AnimatePresence>
           </div>
 
-          {/* ═══════════════════════════════════════
-              SIDEBAR — Contextual per step
-             ═══════════════════════════════════════ */}
+          {/* SIDEBAR */}
           {showSidebar && (
-            <div className="space-y-3">
-              {/* Kit Mini Preview — always visible */}
-              <KitMiniPreview
-                box={kitState.box}
-                items={kitState.items}
-                kitName={kitState.name}
-              />
-
-              {/* Volume Indicator — show when box selected */}
-              {kitState.box && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-                  <VolumeIndicator
-                    usedVolume={kitState.totalItemsVolume}
-                    totalVolume={kitState.box.internalVolume}
-                    usagePercent={kitState.volumeUsagePercent}
-                  />
-                </motion.div>
-              )}
-
-              {/* Weight Indicator */}
-              {kitState.box && kitState.box.maxWeight && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
-                  <Card className={cn("transition-colors", weightExceeded && "border-destructive/50")}>
-                    <CardContent className="p-3 space-y-2">
-                      <h3 className="font-semibold text-xs flex items-center justify-between">
-                        <span>⚖️ Peso</span>
-                        <span className={cn(
-                          "text-[10px] tabular-nums",
-                          weightExceeded ? "text-destructive" : "text-muted-foreground"
-                        )}>
-                          {(itemsWeight / 1000).toFixed(1)}kg / {(kitState.box.maxWeight / 1000).toFixed(1)}kg
-                        </span>
-                      </h3>
-                      <div className="w-full bg-secondary rounded-full h-1.5">
-                        <motion.div
-                          className={cn(
-                            "h-1.5 rounded-full",
-                            weightExceeded ? "bg-destructive" : weightPercent > 80 ? "bg-warning" : "bg-primary"
-                          )}
-                          initial={{ width: 0 }}
-                          animate={{ width: `${Math.min(weightPercent, 100)}%` }}
-                          transition={{ duration: 0.5, ease: "easeOut" }}
-                        />
-                      </div>
-                      {weightExceeded && (
-                        <p className="text-[10px] text-destructive font-medium">
-                          ⚠ Excede em {((itemsWeight - kitState.box.maxWeight) / 1000).toFixed(1)}kg
-                        </p>
-                      )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-
-              {/* Price Preview */}
-              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                <Card>
-                  <CardContent className="p-3 space-y-2">
-                    <h3 className="font-semibold text-xs">Prévia de Preços</h3>
-                    <div className="space-y-1.5 text-xs">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Caixa</span>
-                        <span className="tabular-nums">{formatCurrency(kitState.boxPrice)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Itens</span>
-                        <span className="tabular-nums">{formatCurrency(kitState.itemsPrice)}</span>
-                      </div>
-                      {kitState.personalizationPrice > 0 && (
-                        <div className="flex justify-between text-primary">
-                          <span>Personalização</span>
-                          <span className="tabular-nums">{formatCurrency(kitState.personalizationPrice)}</span>
-                        </div>
-                      )}
-                      <div className="border-t pt-1.5 flex justify-between font-semibold">
-                        <span>Total/kit</span>
-                        <span className="text-primary tabular-nums">{formatCurrency(kitState.totalPrice)}</span>
-                      </div>
-                      {kitState.totalWeight > 0 && (
-                        <div className="flex justify-between text-[10px] text-muted-foreground pt-0.5">
-                          <span>Peso estimado</span>
-                          <span className="tabular-nums">
-                            {kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(2)} kg` : `${kitState.totalWeight} g`}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-
-              {/* Freight — compact, only when weight exists */}
-              {kitState.totalWeight > 0 && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
-                  <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
-                </motion.div>
-              )}
-            </div>
+            <KitBuilderSidebar kitState={kitState} kitQuantity={kitQuantity} />
           )}
         </div>
       </div>
 
-      {/* ═══════════════════════════════════════════
-          BOTTOM NAV — Sticky navigation bar
-         ═══════════════════════════════════════════ */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 border-t bg-card/95 backdrop-blur-md">
-        <div className="container flex items-center justify-between py-3">
-          {/* Back */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-1.5 text-xs"
-            onClick={prevStep}
-            disabled={wizardState.currentStep === 'box'}
-          >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            Voltar
-          </Button>
-
-          {/* Center — Price summary */}
-          <div className="hidden sm:flex items-center gap-4 text-xs">
-            {kitState.box && (
-              <Badge variant="outline" className="gap-1 text-[10px] font-normal">
-                <Package className="h-3 w-3" />
-                {kitState.box.name.length > 15 ? kitState.box.name.slice(0, 15) + '…' : kitState.box.name}
-              </Badge>
-            )}
-            {kitState.items.length > 0 && (
-              <Badge variant="outline" className="text-[10px] font-normal">
-                {kitState.items.length} {kitState.items.length === 1 ? 'item' : 'itens'}
-              </Badge>
-            )}
-            {kitState.totalPrice > 0 && (
-              <span className="font-semibold text-primary tabular-nums">
-                {formatCurrency(kitState.totalPrice)}
-              </span>
-            )}
-          </div>
-
-          {/* Next / Finish */}
-          {wizardState.currentStep !== 'summary' ? (
-            <Button
-              size="sm"
-              className="gap-1.5 text-xs"
-              onClick={nextStep}
-              disabled={!wizardState.canProceed}
-            >
-              {nextStepLabel && (
-                <span className="hidden sm:inline text-primary-foreground/70">{nextStepLabel}</span>
-              )}
-              <ChevronRight className="h-3.5 w-3.5" />
-            </Button>
-          ) : (
-            <div className="w-20" /> // spacer
-          )}
-        </div>
-      </div>
+      {/* BOTTOM NAV */}
+      <KitBuilderBottomNav
+        kitState={kitState}
+        currentStep={wizardState.currentStep}
+        canProceed={wizardState.canProceed}
+        nextStepLabel={nextStepLabel}
+        onPrevStep={prevStep}
+        onNextStep={nextStep}
+      />
     </div>
   );
 }
