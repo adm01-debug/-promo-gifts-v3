@@ -104,5 +104,13 @@ export async function convertQuoteToOrder({ quoteId, sellerId }: ConvertQuoteToO
     .update({ status: "converted" })
     .eq("id", quoteId);
 
+  // 6. Send notification
+  notifyNewOrder(
+    sellerId,
+    order.order_number,
+    order.id,
+    quote.client_name || 'Cliente'
+  ).catch(err => logger.error("Notification error:", err));
+
   return order;
 }
