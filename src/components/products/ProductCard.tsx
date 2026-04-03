@@ -187,7 +187,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30 rounded-t-xl sm:rounded-t-2xl ring-1 ring-border/10" style={{ zIndex: 0 }}>
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-gradient-to-b from-muted/20 to-muted/40 rounded-t-xl sm:rounded-t-2xl ring-1 ring-border/10" style={{ zIndex: 0 }}>
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
@@ -525,7 +525,7 @@ export function ProductCard({
         {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
-          <span className="text-[10px] sm:text-xs text-muted-foreground/60 font-mono truncate">
+          <span className="text-[9px] sm:text-[10px] text-muted-foreground/40 font-mono truncate">
             {product.sku}
           </span>
           
@@ -592,15 +592,8 @@ export function ProductCard({
           </div>
         )}
 
-        {/* Sales Sparkline */}
-        <div className="pt-1.5 sm:pt-2 border-t border-border/30">
-          <div className="flex items-center justify-between mb-0.5">
-            <span className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-              Vendas 30d
-            </span>
-          </div>
-          <ProductSparkline productId={product.id} />
-        </div>
+        {/* Sales Sparkline - only renders when real data exists */}
+        <ProductSparkline productId={product.id} className="pt-1.5 sm:pt-2 border-t border-border/30" />
       </div>
 
       {/* Collection Modal */}

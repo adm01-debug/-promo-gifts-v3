@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { Filter } from "lucide-react";
+import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -100,7 +101,7 @@ export function CatalogToolbar({
               key={opt.value}
               onClick={() => setSortBy(opt.value)}
               className={cn(
-                "px-2.5 py-1 rounded-md text-xs font-medium transition-all duration-200",
+                "px-3 py-1.5 min-h-[36px] rounded-md text-xs font-medium transition-all duration-200",
                 sortBy === opt.value
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/60"
@@ -115,7 +116,7 @@ export function CatalogToolbar({
         <select
           value={sortBy}
           onChange={(e) => setSortBy(e.target.value as SortOption)}
-          className="md:hidden h-8 px-2 rounded-md border border-input bg-background text-xs"
+          className="md:hidden h-9 min-h-[36px] px-3 rounded-md border border-input bg-background text-xs"
           aria-label="Ordenar por"
         >
           {SORT_OPTIONS.map((opt) => (
@@ -123,12 +124,11 @@ export function CatalogToolbar({
           ))}
         </select>
 
-        <div className="hidden sm:block">
-          <StatsPopover stats={statBadges} />
-        </div>
+        <StatsPopover stats={statBadges} />
       </div>
 
-      <div className="hidden sm:block">
+      <div className="hidden sm:flex items-center gap-1.5">
+        <RecentlyViewedPopover maxVisible={10} />
         <LayoutPopover
           viewMode={viewMode}
           setViewMode={setViewMode}

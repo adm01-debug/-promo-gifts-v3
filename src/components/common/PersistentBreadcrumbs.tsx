@@ -51,8 +51,8 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
     const items: BreadcrumbItem[] = [];
     const pathParts = location.pathname.split("/").filter(Boolean);
     
-    if (location.pathname === "/" && showHome) {
-      return [{ label: "Catálogo de Produtos", icon: Home }];
+    if (location.pathname === "/") {
+      return []; // Don't show breadcrumb on homepage — title already says "Catálogo de Produtos"
     }
     
     if (showHome && location.pathname !== "/") {
