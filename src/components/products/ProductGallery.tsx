@@ -268,7 +268,6 @@ export function ProductGallery({
               setIsImageLoading(false);
             }
           }}
-          }}
         />
       )}
     </div>
