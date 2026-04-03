@@ -224,6 +224,7 @@ function VirtualGrid({
                     isInCompare={isInCompare(product.id)}
                     onToggleCompare={onToggleCompare}
                     canAddToCompare={canAddToCompare}
+                    isViewed={isViewed?.(product.id)}
                     hideCategoryBadges
                   />
                 ))}
