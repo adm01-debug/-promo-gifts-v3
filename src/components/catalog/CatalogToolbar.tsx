@@ -127,7 +127,8 @@ export function CatalogToolbar({
         <StatsPopover stats={statBadges} />
       </div>
 
-      <div className="hidden sm:block">
+      <div className="hidden sm:flex items-center gap-1.5">
+        <RecentlyViewedPopover maxVisible={10} />
         <LayoutPopover
           viewMode={viewMode}
           setViewMode={setViewMode}
