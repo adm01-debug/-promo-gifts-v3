@@ -308,9 +308,11 @@ describe("Sort Chips — CatalogToolbar", () => {
   it("highlights the active sort chip with primary styles", async () => {
     const { CatalogToolbar } = await import("@/components/catalog/CatalogToolbar");
     const { container } = renderWithProviders(<CatalogToolbar {...defaultProps} sortBy="name" />);
-    const azButton = screen.getByText("A-Z");
-    expect(azButton.className).toContain("bg-primary");
-    expect(azButton.className).toContain("text-primary-foreground");
+    const azButtons = screen.getAllByText("A-Z");
+    const azChip = azButtons.find(el => el.tagName === "BUTTON");
+    expect(azChip).toBeTruthy();
+    expect(azChip!.className).toContain("bg-primary");
+    expect(azChip!.className).toContain("text-primary-foreground");
   });
 
   it("calls setSortBy when a sort chip is clicked", async () => {
