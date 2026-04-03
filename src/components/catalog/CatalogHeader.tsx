@@ -1,7 +1,4 @@
-import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
-import type { FilterState } from "@/components/filters/FilterPanel";
-import type { NavigateFunction } from "react-router-dom";
 
 interface CatalogHeaderProps {
   shouldShowCatalogSkeleton: boolean;
@@ -16,10 +13,9 @@ export function CatalogHeader({
   totalEstimate,
   filteredCount,
   hasNextPage,
-  onSelect,
 }: CatalogHeaderProps) {
   return (
-    <div className="flex items-center gap-3 flex-wrap">
+    <div className="flex items-center justify-between gap-3">
       <div className="flex-shrink-0">
         <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
           Catálogo de Produtos
@@ -34,15 +30,8 @@ export function CatalogHeader({
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xl">
-        <SmartSearchInput
-          placeholder="Buscar produtos..."
-          onSelect={onSelect}
-          className="flex-1"
-        />
-        <div className="hidden sm:block">
-          <RecentlyViewedPopover maxVisible={10} />
-        </div>
+      <div className="hidden sm:block">
+        <RecentlyViewedPopover maxVisible={10} />
       </div>
     </div>
   );
