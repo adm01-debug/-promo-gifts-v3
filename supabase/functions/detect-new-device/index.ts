@@ -120,7 +120,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Create in-app notification
       await supabase
-        .from("notifications")
+        .from("workspace_notifications")
         .insert({
           user_id: userId,
           type: "security",
