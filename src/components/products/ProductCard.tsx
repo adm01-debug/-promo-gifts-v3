@@ -541,7 +541,7 @@ export function ProductCard({
         </div>
 
         {/* Name */}
-        <h3 className="font-display font-bold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-display font-semibold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
           {product.name}
         </h3>
 
