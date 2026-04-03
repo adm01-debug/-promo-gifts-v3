@@ -57,15 +57,11 @@ export function CatalogToolbar({
       <div className="flex items-center gap-2 flex-shrink-0">
         <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
           <SheetTrigger asChild>
-            <Button 
-              variant={activeFiltersCount > 0 ? "default" : "outline"} 
-              size="sm"
-              className={activeFiltersCount > 0 ? "bg-orange hover:bg-orange-hover text-orange-foreground shadow-md" : ""}
-            >
+            <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
               Filtros
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-2 bg-orange-foreground/20 text-orange-foreground">
+                <Badge variant="secondary" className="ml-2">
                   {activeFiltersCount}
                 </Badge>
               )}

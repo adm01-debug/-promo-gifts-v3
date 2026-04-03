@@ -110,7 +110,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           <GlobalSearchPalette />
         </div>
 
-        {/* Right section — grouped by function */}
+        {/* Right section */}
         <div className="flex items-center gap-0.5 sm:gap-1">
 
           {/* Mobile search trigger */}
@@ -122,24 +122,23 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
               document.dispatchEvent(event);
             }}
-            aria-label="Buscar produtos"
           >
             <Search className="h-4 w-4" />
           </Button>
 
-          {/* Group 1: Commerce — Cart + Notifications */}
-          <div className="flex items-center gap-0.5">
-            <CartHeaderButton />
-            <NotificationBell />
+          {/* Seller Cart - visible on all screens */}
+          <CartHeaderButton />
+
+          {/* Notifications Bell - visible on all screens */}
+          <NotificationBell />
+
+          {/* Stock Alerts - hidden on mobile */}
+          <div className="hidden md:block">
+            <StockAlertsIndicator />
           </div>
 
-          {/* Separator */}
-          <div className="h-5 w-px bg-border/50 mx-0.5 hidden md:block" />
-
-          {/* Group 2: Discovery — Alerts + Favorites + Compare */}
-          <div className="hidden md:flex items-center gap-0.5">
-            <StockAlertsIndicator />
-
+          {/* Favorites - hidden on mobile */}
+          <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -147,12 +146,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   size="icon"
                   className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                   onClick={() => navigate("/favoritos")}
-                  aria-label="Meus Favoritos"
                 >
                   <Heart className="h-[18px] w-[18px]" strokeWidth={1.75} />
                   {favoriteCount > 0 && (
                     <Badge 
-                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground rounded-full"
+                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground"
                     >
                       {favoriteCount > 99 ? "99+" : favoriteCount}
                     </Badge>
@@ -161,7 +159,10 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               </TooltipTrigger>
               <TooltipContent className="bg-card border-border">Meus Favoritos</TooltipContent>
             </Tooltip>
+          </div>
 
+          {/* Compare - hidden on mobile */}
+          <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -169,12 +170,11 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   size="icon"
                   className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                   onClick={() => navigate("/comparar")}
-                  aria-label="Comparar Produtos"
                 >
                   <GitCompare className="h-[18px] w-[18px]" strokeWidth={1.75} />
                   {compareCount > 0 && (
                     <Badge 
-                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground rounded-full"
+                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground"
                     >
                       {compareCount > 4 ? "4" : compareCount}
                     </Badge>
@@ -185,10 +185,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             </Tooltip>
           </div>
 
-          {/* Separator */}
-          <div className="h-5 w-px bg-border/50 mx-0.5 hidden md:block" />
-
-          {/* Group 3: Preferences — Theme */}
+          {/* Theme toggle - LAST action icon, after Compare */}
           <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
@@ -197,7 +194,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   size="icon"
                   onClick={handleToggleTheme}
                   className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-                  aria-label={actualTheme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
                 >
                   <Sun className="h-[18px] w-[18px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
                   <Moon className="absolute h-[18px] w-[18px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" strokeWidth={1.75} />
@@ -210,7 +206,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             </Tooltip>
           </div>
 
-          {/* Divider before user menu */}
+          {/* Divider */}
           <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
 
           {/* User menu */}

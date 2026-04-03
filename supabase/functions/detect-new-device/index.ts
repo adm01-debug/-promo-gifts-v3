@@ -120,11 +120,10 @@ Deno.serve(async (req: Request): Promise<Response> => {
 
       // Create in-app notification
       await supabase
-        .from("workspace_notifications")
+        .from("notifications")
         .insert({
           user_id: userId,
-          type: "warning",
-          category: "security",
+          type: "security",
           title: isNewDevice ? "Novo dispositivo detectado" : "Novo IP detectado",
           message: isNewDevice 
             ? `Login detectado de um novo dispositivo: ${deviceInfo.browserName} no ${deviceInfo.osName}`

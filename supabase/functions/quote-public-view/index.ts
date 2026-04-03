@@ -210,15 +210,14 @@ Deno.serve(async (req: Request) => {
         metadata: { via: "public_link", client_name: tokenData.client_name },
       });
 
-      // Create notification for seller
+      // Create notification for seller (best-effort, may fail if table doesn't exist)
       try {
-        await supabase.from("workspace_notifications").insert({
+        await supabase.from("notifications").insert({
           user_id: tokenData.seller_id,
           title: response === "approved" ? "🎉 Orçamento aprovado!" : "❌ Orçamento rejeitado",
           message: `${tokenData.client_name || "Cliente"} ${response === "approved" ? "aprovou" : "rejeitou"} o orçamento.${response_notes ? ` Obs: ${response_notes}` : ""}`,
-          type: response === "approved" ? "success" : "warning",
-          category: "quotes",
-          metadata: { quote_id: tokenData.quote_id, response },
+          type: "quote_approval",
+          data: { quote_id: tokenData.quote_id, response },
         });
       } catch (_) {
         // Notification is optional — don't block the response flow

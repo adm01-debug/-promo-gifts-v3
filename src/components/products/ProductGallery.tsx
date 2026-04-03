@@ -43,14 +43,6 @@ interface ProductGalleryProps {
 /** Thumbnail with blur-to-sharp loading for color variation cards */
 function ColorThumb({ src, alt, title }: { src: string; alt: string; title: string }) {
   const [loaded, setLoaded] = useState(false);
-  const [failed, setFailed] = useState(false);
-  if (failed) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-muted">
-        <Package className="h-6 w-6 text-muted-foreground" />
-      </div>
-    );
-  }
   return (
     <img
       src={src}
@@ -61,16 +53,6 @@ function ColorThumb({ src, alt, title }: { src: string; alt: string; title: stri
         loaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-sm scale-105"
       )}
       onLoad={() => setLoaded(true)}
-      onError={(e) => {
-        const img = e.currentTarget;
-        if (!img.dataset.fallback) {
-          img.dataset.fallback = '1';
-          // Try original URL without CDN variant
-          const original = src.includes('imagedelivery.net') ? src.replace(/\/[^/]+$/, '/public') : src;
-          if (original !== src) { img.src = original; return; }
-        }
-        setFailed(true);
-      }}
     />
   );
 }
@@ -262,10 +244,6 @@ export function ProductGallery({
             if (!img.dataset.fallback) {
               img.dataset.fallback = '1';
               img.src = allMedia[selectedIndex];
-            } else if (img.dataset.fallback === '1') {
-              img.dataset.fallback = '2';
-              img.src = '/placeholder.svg';
-              setIsImageLoading(false);
             }
           }}
         />

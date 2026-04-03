@@ -1,13 +1,10 @@
 /**
  * Volume Indicator
  * Indicador visual de volume utilizado na caixa
- * Padronizado com tokens semânticos do Design System
  */
 
 import { Box, AlertTriangle, CheckCircle } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
-import { motion } from 'framer-motion';
 import {
   formatVolume,
   getVolumeStatusColor,
@@ -33,14 +30,14 @@ export function VolumeIndicator({
   const label = getVolumeStatusLabel(usagePercent);
 
   const statusTextColors = {
-    success: 'text-success',
-    warning: 'text-warning',
+    success: 'text-green-600',
+    warning: 'text-yellow-600',
     destructive: 'text-destructive',
   };
 
   const progressBgColors = {
-    success: 'bg-success',
-    warning: 'bg-warning',
+    success: 'bg-green-500',
+    warning: 'bg-yellow-500',
     destructive: 'bg-destructive',
   };
 
@@ -49,14 +46,12 @@ export function VolumeIndicator({
       <div className={cn("flex items-center gap-2", className)}>
         <Box className={cn("h-4 w-4", statusTextColors[status])} />
         <div className="relative h-2 w-20 overflow-hidden rounded-full bg-secondary">
-          <motion.div
-            className={cn("h-full rounded-full", progressBgColors[status])}
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(usagePercent, 100)}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
+          <div
+            className={cn("h-full transition-all", progressBgColors[status])}
+            style={{ width: `${Math.min(usagePercent, 100)}%` }}
           />
         </div>
-        <span className={cn("text-xs font-medium tabular-nums", statusTextColors[status])}>
+        <span className={cn("text-xs font-medium", statusTextColors[status])}>
           {Math.round(usagePercent)}%
         </span>
       </div>
@@ -64,54 +59,50 @@ export function VolumeIndicator({
   }
 
   return (
-    <Card className={cn("transition-colors", className)}>
-      <CardContent className="p-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <h3 className="font-semibold text-xs flex items-center gap-1.5">
-            <Box className={cn("h-4 w-4", statusTextColors[status])} />
-            <span>Volume do Kit</span>
-          </h3>
-          <div className="flex items-center gap-1.5">
-            {status === 'destructive' ? (
-              <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-            ) : status === 'success' ? (
-              <CheckCircle className="h-3.5 w-3.5 text-success" />
-            ) : null}
-            <span className={cn("text-[10px] font-medium", statusTextColors[status])}>
-              {label}
-            </span>
-          </div>
+    <div className={cn("card-elevated p-4 space-y-3", className)}>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Box className={cn("h-5 w-5", statusTextColors[status])} />
+          <span className="font-medium">Volume do Kit</span>
         </div>
-
-        {/* Animated progress bar */}
-        <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-secondary">
-          <motion.div
-            className={cn("h-full rounded-full", progressBgColors[status])}
-            initial={{ width: 0 }}
-            animate={{ width: `${Math.min(usagePercent, 100)}%` }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          />
-        </div>
-
-        <div className="flex items-center justify-between text-[10px] text-muted-foreground">
-          <span>
-            Usado: <strong className="text-foreground tabular-nums">{formatVolume(usedVolume)}</strong>
-          </span>
-          <span>
-            Disp: <strong className="text-foreground tabular-nums">{formatVolume(totalVolume - usedVolume)}</strong>
-          </span>
-          <span>
-            <strong className={cn("tabular-nums", statusTextColors[status])}>{Math.round(usagePercent)}%</strong>
+        <div className="flex items-center gap-2">
+          {status === 'destructive' ? (
+            <AlertTriangle className="h-4 w-4 text-destructive" />
+          ) : status === 'success' ? (
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          ) : null}
+          <span className={cn("text-sm font-medium", statusTextColors[status])}>
+            {label}
           </span>
         </div>
+      </div>
 
-        {usagePercent > 100 && (
-          <div className="bg-destructive/10 border border-destructive/30 rounded-md p-2 text-[10px] text-destructive flex items-center gap-1.5">
-            <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-            <span>Volume excede a capacidade. Remova itens.</span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      {/* Custom progress bar with dynamic color */}
+      <div className="relative h-3 w-full overflow-hidden rounded-full bg-secondary">
+        <div
+          className={cn("h-full transition-all", progressBgColors[status])}
+          style={{ width: `${Math.min(usagePercent, 100)}%` }}
+        />
+      </div>
+
+      <div className="flex items-center justify-between text-sm text-muted-foreground">
+        <span>
+          Usado: <strong className="text-foreground">{formatVolume(usedVolume)}</strong>
+        </span>
+        <span>
+          Disponível: <strong className="text-foreground">{formatVolume(totalVolume - usedVolume)}</strong>
+        </span>
+        <span>
+          <strong className={statusTextColors[status]}>{Math.round(usagePercent)}%</strong>
+        </span>
+      </div>
+
+      {usagePercent > 100 && (
+        <div className="bg-destructive/10 border border-destructive/30 rounded-md p-2 text-sm text-destructive flex items-center gap-2">
+          <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+          <span>Volume excede a capacidade da caixa. Remova alguns itens.</span>
+        </div>
+      )}
+    </div>
   );
 }
