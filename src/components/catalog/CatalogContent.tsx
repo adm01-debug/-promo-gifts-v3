@@ -57,6 +57,7 @@ function VirtualGrid({
   loadMoreRef,
   itemsPerPage,
   onLoadMore,
+  isViewed,
 }: {
   products: Product[];
   columns: ColumnCount;
