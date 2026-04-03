@@ -38,6 +38,8 @@ export interface ProductCardProps {
   noveltyDaysRemaining?: number;
   /** Filtros de cor ativos - quando presente, o card mostra a imagem da cor filtrada */
   activeColorFilter?: ActiveColorFilter | null;
+  /** Se o produto já foi visitado/visualizado pelo vendedor */
+  isViewed?: boolean;
 }
 
 export function ProductCard({ 
