@@ -73,6 +73,7 @@ function VirtualGrid({
   loadMoreRef: RefObject<HTMLDivElement>;
   itemsPerPage: number;
   onLoadMore?: () => void;
+  isViewed?: (id: string) => boolean;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
