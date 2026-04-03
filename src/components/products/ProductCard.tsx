@@ -211,6 +211,19 @@ export function ProductCard({
               }
             }}
           />
+          {/* Second image hover preview */}
+          {secondImageUrl && (
+            <img
+              src={secondImageUrl}
+              alt={`${product.name} - imagem alternativa`}
+              className={cn(
+                "absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ease-out",
+                isHovered ? "opacity-100" : "opacity-0"
+              )}
+              loading="lazy"
+              aria-hidden="true"
+            />
+          )}
           {/* Badge indicando cor filtrada */}
           {activeColorName && colorSpecificImage && (
             <div className="absolute top-2 right-2 z-10 sm:hidden">
