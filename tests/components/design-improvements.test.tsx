@@ -328,8 +328,9 @@ describe("Sort Chips — CatalogToolbar", () => {
   it("sort chips have min-h-[36px] for accessibility", async () => {
     const { CatalogToolbar } = await import("@/components/catalog/CatalogToolbar");
     renderWithProviders(<CatalogToolbar {...defaultProps} />);
-    const azButton = screen.getByText("A-Z");
-    expect(azButton.className).toContain("min-h-[36px]");
+    const azButtons = screen.getAllByText("A-Z");
+    const azChip = azButtons.find(el => el.tagName === "BUTTON");
+    expect(azChip!.className).toContain("min-h-[36px]");
   });
 
   it("renders mobile select dropdown for sort", async () => {
