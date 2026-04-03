@@ -262,7 +262,12 @@ export function ProductGallery({
             if (!img.dataset.fallback) {
               img.dataset.fallback = '1';
               img.src = allMedia[selectedIndex];
+            } else if (img.dataset.fallback === '1') {
+              img.dataset.fallback = '2';
+              img.src = '/placeholder.svg';
+              setIsImageLoading(false);
             }
+          }}
           }}
         />
       )}
