@@ -220,8 +220,10 @@ describe("Visual Hierarchy — ProductCard", () => {
   });
 
   it("renders stock status indicator", () => {
-    renderWithProviders(<ProductCard product={mockProduct as any} />);
-    expect(screen.getByText("100")).toBeTruthy(); // stock count present
+    const { container } = renderWithProviders(<ProductCard product={mockProduct as any} />);
+    // Stock is formatted as "100 un." but split across elements; check container text
+    expect(container.textContent).toContain("100");
+    expect(container.textContent).toContain("un.");
   });
 
   it("renders materials badges on desktop", () => {
