@@ -297,11 +297,12 @@ describe("Sort Chips — CatalogToolbar", () => {
   it("renders all 5 sort chip options", async () => {
     const { CatalogToolbar } = await import("@/components/catalog/CatalogToolbar");
     renderWithProviders(<CatalogToolbar {...defaultProps} />);
-    expect(screen.getByText("A-Z")).toBeInTheDocument();
-    expect(screen.getByText("Menor Preço")).toBeInTheDocument();
-    expect(screen.getByText("Maior Preço")).toBeInTheDocument();
-    expect(screen.getByText("Estoque")).toBeInTheDocument();
-    expect(screen.getByText("Novidades")).toBeInTheDocument();
+    // Both chip buttons and select options exist; use getAllByText
+    expect(screen.getAllByText("A-Z").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Menor Preço").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Maior Preço").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Estoque").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Novidades").length).toBeGreaterThanOrEqual(1);
   });
 
   it("highlights the active sort chip with primary styles", async () => {
