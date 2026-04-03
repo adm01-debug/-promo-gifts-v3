@@ -277,6 +277,10 @@ export function CatalogContent({
   canAddToCompare,
   onLoadMore,
 }: CatalogContentProps) {
+  const { items: recentlyViewedItems } = useRecentlyViewed();
+  const viewedSet = useMemo(() => new Set(recentlyViewedItems.map(i => i.productId)), [recentlyViewedItems]);
+  const isViewed = useCallback((id: string) => viewedSet.has(id), [viewedSet]);
+
   // Extract product IDs for batch sparkline data
   const sparklineProductIds = useMemo(
     () => paginatedProducts.map(p => p.id),
