@@ -1,5 +1,6 @@
 import React, { Suspense } from "react";
 import { Filter } from "lucide-react";
+import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
