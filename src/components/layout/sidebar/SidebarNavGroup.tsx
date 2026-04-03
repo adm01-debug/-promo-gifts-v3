@@ -227,6 +227,11 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wider">
             {group.label}
           </span>
+          {!isOpen && group.items.length > 0 && (
+            <span className="text-[10px] text-sidebar-foreground/30 font-medium tabular-nums mr-1">
+              {group.items.filter(i => !(i.adminOnly && !isAdmin)).length}
+            </span>
+          )}
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 transition-transform duration-300 text-sidebar-foreground/30",
