@@ -48,7 +48,7 @@ export function CartHeaderButton() {
           variant="ghost"
           size="icon"
           className="relative h-9 w-9 hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors"
-          title="Carrinho de Orçamentos"
+          aria-label={`Carrinho de Orçamentos${totalItems > 0 ? ` (${totalItems} itens)` : ''}`}
         >
           <ShoppingCart className="h-4 w-4" />
           {totalItems > 0 && (

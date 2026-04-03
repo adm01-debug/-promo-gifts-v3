@@ -95,11 +95,12 @@ export function NotificationBell() {
                 variant="ghost"
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
               >
                 <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
                 {unreadCount > 0 && (
-                  <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground animate-in zoom-in-50">
-                    {unreadCount > 9 ? "9+" : unreadCount}
+                  <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground animate-in zoom-in-50 rounded-full">
+                    {unreadCount > 99 ? "99+" : unreadCount}
                   </Badge>
                 )}
               </Button>

@@ -151,6 +151,10 @@ export function ProductCard({
   const cardSrcSet = colorSpecificImage ? undefined : (rawImageUrl ? getSrcSet(rawImageUrl) : undefined);
   const activeColorName = getActiveColorName(product, activeColorFilter);
 
+  // Second image for hover preview
+  const secondImageRaw = !colorSpecificImage && product.images.length > 1 ? product.images[1] : null;
+  const secondImageUrl = secondImageRaw ? getCdnUrl(secondImageRaw, "card") : null;
+
   const imageBounds = useProductBounds(cardImageUrl !== "/placeholder.svg" ? cardImageUrl : null, {
     whiteThreshold: 230,
     margin: 0.01,
@@ -180,7 +184,7 @@ export function ProductCard({
       onClick={onClick}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30" style={{ zIndex: 0 }}>
+      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30 rounded-t-xl sm:rounded-t-2xl ring-1 ring-border/10" style={{ zIndex: 0 }}>
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
@@ -207,6 +211,19 @@ export function ProductCard({
               }
             }}
           />
+          {/* Second image hover preview */}
+          {secondImageUrl && (
+            <img
+              src={secondImageUrl}
+              alt={`${product.name} - imagem alternativa`}
+              className={cn(
+                "absolute inset-0 w-full h-full object-contain transition-opacity duration-500 ease-out",
+                isHovered ? "opacity-100" : "opacity-0"
+              )}
+              loading="lazy"
+              aria-hidden="true"
+            />
+          )}
           {/* Badge indicando cor filtrada */}
           {activeColorName && colorSpecificImage && (
             <div className="absolute top-2 right-2 z-10 sm:hidden">
@@ -495,7 +512,7 @@ export function ProductCard({
         {/* SKU & Supplier & Gender */}
         <div className="flex items-center justify-between gap-2">
           {/* SKU/Código do produto */}
-          <span className="text-[10px] sm:text-xs text-muted-foreground font-mono truncate">
+          <span className="text-[10px] sm:text-xs text-muted-foreground/60 font-mono truncate">
             {product.sku}
           </span>
           
@@ -503,7 +520,7 @@ export function ProductCard({
             {/* Gender badge */}
             <GenderBadge gender={product.gender} size="sm" />
             {/* Nome do fornecedor - badge neutro */}
-            <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground font-medium truncate max-w-[120px] flex items-center gap-1">
+            <span className="text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full bg-secondary/80 text-secondary-foreground font-medium truncate max-w-[120px] flex items-center gap-1">
               <Building2 className={cn("h-3 w-3 shrink-0", getSupplierColors(product.supplier.name).text)} />
               {product.supplier.name}
             </span>
@@ -511,7 +528,7 @@ export function ProductCard({
         </div>
 
         {/* Name */}
-        <h3 className="font-display font-semibold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
+        <h3 className="font-display font-bold text-foreground line-clamp-2 min-h-[2.25rem] sm:min-h-[2.75rem] text-sm sm:text-base leading-snug group-hover:text-primary transition-colors duration-300">
           {product.name}
         </h3>
 
@@ -523,8 +540,8 @@ export function ProductCard({
           return (
           <div className="flex items-end justify-between pt-0.5 sm:pt-1">
           <div>
-            <p className="text-[10px] sm:text-xs text-muted-foreground mb-0.5">A partir de</p>
-            <span className="text-base sm:text-xl font-display font-bold text-foreground">
+            <p className="text-[10px] sm:text-xs text-muted-foreground/70 mb-0.5">A partir de</p>
+            <span className="text-lg sm:text-2xl font-display font-extrabold text-foreground tracking-tight">
               {formatPrice(product.price)}
             </span>
           </div>
