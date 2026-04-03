@@ -186,6 +186,7 @@ export function useCatalogState() {
 
     if (filters.suppliers.length) {
       result = result.filter((p) =>
+        filters.suppliers.includes(p.supplier?.id || '') ||
         filters.suppliers.includes(p.brand || '') ||
         filters.suppliers.includes(p.supplier_reference || '')
       );
