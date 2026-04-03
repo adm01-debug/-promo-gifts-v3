@@ -145,16 +145,16 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
 
   return (
     <div className={cn(
-      "flex items-start gap-3 p-3 rounded-lg border",
+      "flex items-start gap-2 p-2.5 rounded-lg border",
       severityStyles[alert.severity]
     )}>
-      {severityIcons[alert.severity]}
+      <div className="shrink-0 mt-0.5">{severityIcons[alert.severity]}</div>
       <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{alert.productName}</p>
-        <p className="text-xs text-muted-foreground">{alert.message}</p>
-        <p className="text-xs text-muted-foreground mt-1">SKU: {alert.productSku}</p>
+        <p className="font-medium text-xs leading-tight truncate">{alert.productName}</p>
+        <p className="text-[11px] text-muted-foreground truncate">{alert.message}</p>
+        <p className="text-[11px] text-muted-foreground mt-0.5">SKU: {alert.productSku}</p>
       </div>
-      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss}>
+      <Button variant="ghost" size="icon" className="h-5 w-5 shrink-0" onClick={onDismiss}>
         <X className="h-3 w-3" />
       </Button>
     </div>
