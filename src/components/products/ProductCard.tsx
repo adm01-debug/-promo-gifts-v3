@@ -288,6 +288,16 @@ export function ProductCard({
         </div>
 
 
+        {/* Viewed indicator — top right */}
+        {isViewed && !isHovered && (
+          <div className="absolute top-2 right-2 sm:top-3 sm:right-3 z-10">
+            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-card/80 backdrop-blur-sm text-muted-foreground/60 shadow-sm">
+              <Eye className="h-2.5 w-2.5" />
+              <span className="text-[9px] font-medium hidden sm:inline">Visto</span>
+            </div>
+          </div>
+        )}
+
         {/* Colors and gradient remain inside overflow-hidden, actions moved outside */}
 
         {/* Color variations - Bottom */}
