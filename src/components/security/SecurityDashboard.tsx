@@ -148,10 +148,10 @@ export function SecurityDashboard() {
 
       // Load security notifications
       const { data: notifs } = await supabase
-        .from('notifications')
+        .from('workspace_notifications')
         .select('*')
         .eq('user_id', effectiveUserId)
-        .eq('type', 'security')
+        .eq('category', 'security')
         .order('created_at', { ascending: false })
         .limit(10);
 
