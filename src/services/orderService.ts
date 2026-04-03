@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { logger } from "@/lib/logger";
+import { notifyNewOrder } from "@/services/notificationService";
 
 export interface ConvertQuoteToOrderParams {
   quoteId: string;
@@ -102,6 +103,14 @@ export async function convertQuoteToOrder({ quoteId, sellerId }: ConvertQuoteToO
     .from("quotes")
     .update({ status: "converted" })
     .eq("id", quoteId);
+
+  // 6. Send notification
+  notifyNewOrder(
+    sellerId,
+    order.order_number,
+    order.id,
+    quote.client_name || 'Cliente'
+  ).catch(err => logger.error("Notification error:", err));
 
   return order;
 }
