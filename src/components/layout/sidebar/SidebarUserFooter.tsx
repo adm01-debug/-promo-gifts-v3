@@ -68,9 +68,6 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
 
   return (
     <div className="px-3 py-2 border-t border-sidebar-border/50 shrink-0">
-      <div className="opacity-60 mb-2">
-        <RestartTourButton />
-      </div>
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group outline-none">
           {avatarElement}
@@ -99,6 +96,10 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
             <Palette className="mr-2 h-4 w-4" />
             Selecione sua Skin
           </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <div className="px-1 py-1">
+            <RestartTourButton />
+          </div>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:text-destructive">
             <LogOut className="mr-2 h-4 w-4" />
