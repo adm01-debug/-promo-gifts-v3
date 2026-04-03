@@ -554,7 +554,7 @@ export function ProductCard({
           <div className="flex items-end justify-between pt-0.5 sm:pt-1">
           <div>
             <p className="text-[10px] sm:text-xs text-muted-foreground/70 mb-0.5">A partir de</p>
-            <span className="text-lg sm:text-2xl font-display font-extrabold text-foreground tracking-tight">
+            <span className="text-base sm:text-lg font-display font-bold text-foreground tracking-tight">
               {formatPrice(product.price)}
             </span>
           </div>
