@@ -319,7 +319,9 @@ describe("Sort Chips — CatalogToolbar", () => {
     const setSortBy = vi.fn();
     const { CatalogToolbar } = await import("@/components/catalog/CatalogToolbar");
     renderWithProviders(<CatalogToolbar {...defaultProps} setSortBy={setSortBy} />);
-    fireEvent.click(screen.getByText("Menor Preço"));
+    const chips = screen.getAllByText("Menor Preço");
+    const chip = chips.find(el => el.tagName === "BUTTON")!;
+    fireEvent.click(chip);
     expect(setSortBy).toHaveBeenCalledWith("price-asc");
   });
 
