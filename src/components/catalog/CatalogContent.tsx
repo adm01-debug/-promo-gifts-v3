@@ -108,8 +108,9 @@ function VirtualGrid({
   });
 
   const getGap = () => {
-    if (columns >= 8) return 16;
-    if (columns >= 6) return 24;
+    if (effectiveColumns <= 2) return 12;
+    if (effectiveColumns >= 8) return 16;
+    if (effectiveColumns >= 6) return 24;
     return 32;
   };
 
