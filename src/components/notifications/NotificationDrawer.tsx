@@ -95,6 +95,7 @@ export function NotificationBell() {
                 variant="ghost"
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
               >
                 <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
                 {unreadCount > 0 && (
