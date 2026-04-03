@@ -207,7 +207,7 @@ const App = () => {
                               <Route path="/admin/temas" element={<AdminTemasPage />} />
                               <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
-                              <Route path="/financeiro" element={<FinancialDashboardPage />} />
+                              
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
