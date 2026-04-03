@@ -370,6 +370,7 @@ export function CatalogContent({
       loadMoreRef={loadMoreRef}
       itemsPerPage={itemsPerPage}
       onLoadMore={onLoadMore}
+      isViewed={isViewed}
     />
     </SparklineSalesProvider>
   );
