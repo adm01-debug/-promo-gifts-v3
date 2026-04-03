@@ -77,7 +77,7 @@ const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
 const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
-const FinancialDashboardPage = lazyWithRetry(() => import("./pages/FinancialDashboardPage"));
+
 
 // System Pages
 const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"));
