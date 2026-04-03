@@ -79,16 +79,26 @@ function VirtualGrid({
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
-  const rowCount = Math.ceil(products.length / columns);
+  // On mobile (<640px), force max 2 columns for better readability
+  const [screenWidth, setScreenWidth] = useState(() => typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    const check = () => setScreenWidth(window.innerWidth);
+    window.addEventListener("resize", check, { passive: true });
+    return () => window.removeEventListener("resize", check);
+  }, []);
+  const effectiveColumns = screenWidth < 640 ? (Math.min(columns, 2) as typeof columns) : columns;
+
+  const rowCount = Math.ceil(products.length / effectiveColumns);
   // Extra row for loader / "all loaded" message
   const totalRows = rowCount + 1;
 
   const estimateRowHeight = useCallback(() => {
-    if (columns >= 8) return 380;
-    if (columns >= 6) return 420;
-    if (columns >= 5) return 460;
+    if (effectiveColumns <= 2) return 520;
+    if (effectiveColumns >= 8) return 380;
+    if (effectiveColumns >= 6) return 420;
+    if (effectiveColumns >= 5) return 460;
     return 500;
-  }, [columns]);
+  }, [effectiveColumns]);
 
   const virtualizer = useVirtualizer({
     count: totalRows,
