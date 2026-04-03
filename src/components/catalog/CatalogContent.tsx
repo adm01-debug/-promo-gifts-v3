@@ -205,8 +205,8 @@ function VirtualGrid({
               );
             }
 
-            const startIdx = virtualRow.index * columns;
-            const rowProducts = products.slice(startIdx, startIdx + columns);
+            const startIdx = virtualRow.index * effectiveColumns;
+            const rowProducts = products.slice(startIdx, startIdx + effectiveColumns);
 
             return (
               <div
@@ -220,7 +220,7 @@ function VirtualGrid({
                   width: "100%",
                   transform: `translateY(${virtualRow.start}px)`,
                   display: "grid",
-                  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
+                  gridTemplateColumns: `repeat(${effectiveColumns}, minmax(0, 1fr))`,
                   columnGap: `${gap}px`,
                   paddingBottom: `${gap}px`,
                 }}
