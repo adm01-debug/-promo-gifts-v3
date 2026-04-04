@@ -162,7 +162,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Rosé',
     description: 'Elegante e moderno',
     emoji: '✨',
-    colors: ['hsl(340, 75%, 55%)', 'hsl(340, 20%, 6%)', 'hsl(338, 70%, 58%)'],
+    colors: ['hsl(340, 75%, 50%)', 'hsl(350, 70%, 60%)', 'hsl(0, 80%, 65%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(340, 75, 55) },
       dark: {
