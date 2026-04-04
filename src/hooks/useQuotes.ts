@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { toast } from "sonner";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
@@ -105,6 +106,8 @@ export interface PersonalizationTechnique {
 
 export function useQuotes() {
   const { user } = useAuth();
+  const { currentOrg } = useOrganization();
+  const orgId = currentOrg?.id || null;
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [techniques, setTechniques] = useState<PersonalizationTechnique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -208,6 +211,7 @@ export function useQuotes() {
         client_phone: quote.client_phone || null,
         client_company: quote.client_company || null,
         seller_id: user.id,
+        organization_id: orgId,
         status: quote.status || "draft",
         subtotal,
         discount_percent: quote.discount_percent || 0,

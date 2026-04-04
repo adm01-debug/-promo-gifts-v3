@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { convertQuoteToOrder } from "@/services/orderService";
 import {
   AlertDialog,
@@ -25,6 +26,7 @@ interface QuoteConvertToOrderProps {
 
 export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConvertToOrderProps) {
   const { user } = useAuth();
+  const { currentOrg } = useOrganization();
   const navigate = useNavigate();
   const [isConverting, setIsConverting] = useState(false);
 
@@ -41,6 +43,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
       const order = await convertQuoteToOrder({
         quoteId,
         sellerId: user.id,
+        organizationId: currentOrg?.id || null,
       });
 
       toast.success(

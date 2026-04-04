@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 export interface ConvertQuoteToOrderParams {
   quoteId: string;
   sellerId: string;
+  organizationId?: string | null;
 }
 
 export interface ConvertedOrder {
@@ -13,7 +14,7 @@ export interface ConvertedOrder {
   total: number;
 }
 
-export async function convertQuoteToOrder({ quoteId, sellerId }: ConvertQuoteToOrderParams): Promise<ConvertedOrder> {
+export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }: ConvertQuoteToOrderParams): Promise<ConvertedOrder> {
   // 1. Fetch the quote
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
@@ -41,10 +42,12 @@ export async function convertQuoteToOrder({ quoteId, sellerId }: ConvertQuoteToO
   }
 
   // 3. Create the order
+  const effectiveOrgId = organizationId || quote.organization_id || null;
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
       seller_id: sellerId,
+      organization_id: effectiveOrgId,
       quote_id: quoteId,
       client_id: quote.client_id,
       client_name: quote.client_name,
@@ -80,6 +83,7 @@ export async function convertQuoteToOrder({ quoteId, sellerId }: ConvertQuoteToO
   if (quoteItems && quoteItems.length > 0) {
     const orderItems = quoteItems.map((item) => ({
       order_id: order.id,
+      organization_id: effectiveOrgId,
       product_id: item.product_id,
       product_sku: item.product_sku,
       product_name: item.product_name,

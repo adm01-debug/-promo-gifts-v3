@@ -539,6 +539,7 @@ export type Database = {
           created_at: string
           id: string
           order_id: string | null
+          organization_id: string | null
           product_id: string | null
           product_image_url: string | null
           product_name: string | null
@@ -550,6 +551,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string | null
+          organization_id?: string | null
           product_id?: string | null
           product_image_url?: string | null
           product_name?: string | null
@@ -561,6 +563,7 @@ export type Database = {
           created_at?: string
           id?: string
           order_id?: string | null
+          organization_id?: string | null
           product_id?: string | null
           product_image_url?: string | null
           product_name?: string | null
@@ -568,7 +571,15 @@ export type Database = {
           quantity?: number | null
           unit_price?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "order_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       orders: {
         Row: {
@@ -585,6 +596,7 @@ export type Database = {
           internal_notes: string | null
           notes: string | null
           order_number: string
+          organization_id: string | null
           payment_terms: string | null
           quote_id: string | null
           seller_id: string
@@ -610,6 +622,7 @@ export type Database = {
           internal_notes?: string | null
           notes?: string | null
           order_number?: string
+          organization_id?: string | null
           payment_terms?: string | null
           quote_id?: string | null
           seller_id: string
@@ -635,6 +648,7 @@ export type Database = {
           internal_notes?: string | null
           notes?: string | null
           order_number?: string
+          organization_id?: string | null
           payment_terms?: string | null
           quote_id?: string | null
           seller_id?: string
@@ -647,6 +661,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "orders_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "orders_quote_id_fkey"
             columns: ["quote_id"]
@@ -1349,6 +1370,7 @@ export type Database = {
           internal_notes: string | null
           is_latest_version: boolean
           notes: string | null
+          organization_id: string | null
           parent_quote_id: string | null
           payment_terms: string | null
           quote_number: string
@@ -1385,6 +1407,7 @@ export type Database = {
           internal_notes?: string | null
           is_latest_version?: boolean
           notes?: string | null
+          organization_id?: string | null
           parent_quote_id?: string | null
           payment_terms?: string | null
           quote_number?: string
@@ -1421,6 +1444,7 @@ export type Database = {
           internal_notes?: string | null
           is_latest_version?: boolean
           notes?: string | null
+          organization_id?: string | null
           parent_quote_id?: string | null
           payment_terms?: string | null
           quote_number?: string
@@ -1438,6 +1462,13 @@ export type Database = {
           version?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "quotes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quotes_parent_quote_id_fkey"
             columns: ["parent_quote_id"]
