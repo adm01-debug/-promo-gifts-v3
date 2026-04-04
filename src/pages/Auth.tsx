@@ -316,10 +316,10 @@ export default function Auth() {
             {/* Feature highlights */}
             <div className="grid grid-cols-2 gap-4 pt-6">
                 {[
-                  { label: "15.000+", desc: "Produtos", icon: Package },
-                  { label: "50+", desc: "Fornecedores", icon: Factory },
+                  { label: "+20.000", desc: "Produtos", icon: Package },
+                  { label: "+100", desc: "Fornecedores", icon: Factory },
                   { label: "Filtros", desc: "Avançados", icon: SlidersHorizontal },
-                  { label: "IA", desc: "Recomendações", icon: Brain },
+                  { label: "IA", desc: "Assistente Pessoal", icon: Brain },
                 ].map((item, i) => {
                   const IconComponent = item.icon;
                   return (
