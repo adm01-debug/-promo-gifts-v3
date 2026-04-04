@@ -44,6 +44,15 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const rawBody = await req.json();
+    const parsed = MockupBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { 
       productImageUrl, 
       logoBase64,
@@ -55,14 +64,14 @@ Deno.serve(async (req) => {
       positionY, 
       logoWidthCm, 
       logoHeightCm,
-      logoRotation = 0,
-      logoScale = 100,
+      logoRotation,
+      logoScale,
       productName 
-    } = await req.json();
+    } = parsed.data;
 
     let logoImageSrc = logoBase64 || logoUrl;
 
-    if (!productImageUrl || !logoImageSrc) {
+    if (!logoImageSrc) {
       return new Response(
         JSON.stringify({ error: "Product image and logo are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
