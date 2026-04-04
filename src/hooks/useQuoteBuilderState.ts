@@ -184,7 +184,7 @@ export function useQuoteBuilderState() {
     if (!state?.fromSimulator || !state.simulationData) return;
     const { product, quantity, personalizations } = state.simulationData;
     if (!product) return;
-    const quotePersonalizations: QuoteItemPersonalization[] = (personalizations || []).map((p: any) => ({
+    const quotePersonalizations: QuoteItemPersonalization[] = (personalizations || []).map((p) => ({
       technique_id: p.technique?.id || '', technique_name: p.technique?.name || '',
       colors_count: p.specs?.colors || 1, positions_count: 1,
       width_cm: p.specs?.width || undefined, height_cm: p.specs?.height || undefined,
