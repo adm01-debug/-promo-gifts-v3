@@ -330,7 +330,7 @@ export function ProductRankingSearch() {
             </div>
             <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <ShoppingBag className="h-3 w-3 text-blue-500" />
+                <ShoppingBag className="h-3 w-3 text-primary" />
               </div>
               <p className="text-base sm:text-lg font-bold text-foreground">{summary.totalQty.toLocaleString('pt-BR')}</p>
               <p className="text-[10px] text-muted-foreground">Unidades</p>
