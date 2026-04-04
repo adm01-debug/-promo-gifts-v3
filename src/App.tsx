@@ -121,14 +121,12 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
 
-  // Apply saved theme on boot
+  // Apply saved theme on boot (ThemeInitializer handles re-apply on mode change)
   useEffect(() => {
     const cfg = loadThemeConfig();
-    if (cfg.presetId !== 'default' || cfg.radius !== 12) {
-      const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      applyThemePreset(cfg.presetId, mode);
-      applyRadius(cfg.radius);
-    }
+    const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    applyThemePreset(cfg.presetId, mode);
+    applyRadius(cfg.radius);
   }, []);
 
   useEffect(() => {
