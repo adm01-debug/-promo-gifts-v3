@@ -97,7 +97,7 @@ export function useProductSupplierSources(productId?: string) {
       toast.success('Fonte atualizada');
       await fetchSources();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Erro ao atualizar fonte');
       return false;
     }
