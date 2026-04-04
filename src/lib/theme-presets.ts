@@ -113,7 +113,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Corporativo',
     description: 'Azul profissional',
     emoji: '💼',
-    colors: ['hsl(217, 91%, 50%)', 'hsl(220, 25%, 8%)', 'hsl(215, 85%, 55%)'],
+    colors: ['hsl(217, 91%, 40%)', 'hsl(215, 85%, 55%)', 'hsl(210, 90%, 60%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(217, 91, 50) },
       dark: { ...DEFAULT_DARK_BASE, ...makePrimaryTokens(215, 85, 55) },
