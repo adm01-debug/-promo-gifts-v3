@@ -303,8 +303,14 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         }
       }
 
-      // Parse numeric fields
-      for (const numField of ['cost_price', 'stock_quantity', 'min_quantity', 'height_cm', 'width_cm', 'length_cm', 'weight_g'] as const) {
+      // Parse ALL numeric fields
+      const NUMERIC_FIELDS = [
+        'cost_price', 'stock_quantity', 'min_quantity',
+        'height_cm', 'width_cm', 'length_cm', 'diameter_cm', 'weight_g', 'capacity_ml',
+        'box_width_mm', 'box_height_mm', 'box_length_mm', 'box_weight_kg',
+        'box_quantity', 'box_volume_cm3',
+      ] as const;
+      for (const numField of NUMERIC_FIELDS) {
         if (mapped[numField] !== undefined && mapped[numField] !== '') {
           const val = parseFloat(String(mapped[numField]).replace(',', '.'));
           if (isNaN(val)) {
@@ -316,44 +322,87 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         }
       }
 
-      // SKU validation
-      const sku = mapped.sku ? String(mapped.sku).trim() : '';
-      if (sku && sku.length > 50) errors.push('SKU excede 50 caracteres');
-
-      // Name truncation
-      if (mapped.name && String(mapped.name).length > 300) {
-        warnings.push('Nome truncado em 300 caracteres');
-        mapped.name = String(mapped.name).substring(0, 300);
+      // Parse boolean fields
+      const BOOLEAN_FIELDS = [
+        'is_active', 'is_featured', 'is_bestseller', 'is_new',
+        'is_on_sale', 'is_kit', 'has_commercial_packaging',
+      ] as const;
+      for (const boolField of BOOLEAN_FIELDS) {
+        if (mapped[boolField] !== undefined && mapped[boolField] !== '') {
+          const raw = String(mapped[boolField]).toLowerCase().trim();
+          mapped[boolField] = ['true', '1', 'sim', 'yes', 's', 'y', 'x'].includes(raw);
+        }
       }
 
-      // Collect SKU for dedup check
-      if (sku) allSkus.push(sku);
+      // Validate URL fields
+      const URL_FIELDS = ['image_url', 'primary_image_url', 'og_image_url', 'box_image'] as const;
+      for (const urlField of URL_FIELDS) {
+        if (mapped[urlField] && typeof mapped[urlField] === 'string') {
+          const url = String(mapped[urlField]).trim();
+          if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+            warnings.push(`"${TARGET_FIELDS.find(f => f.key === urlField)?.label}" não parece ser uma URL válida`);
+          }
+        }
+      }
 
       // Detect duplicate SKUs within the file
       const skuCount = allSkus.filter(s => s === sku).length;
       if (skuCount > 1) warnings.push('SKU duplicado dentro do arquivo');
 
+      // Build import row mapping ALL 47 fields
       const importRow: ImportRow | undefined = errors.length === 0 ? {
         sku: sku,
         name: String(mapped.name).trim(),
         sale_price: mapped.sale_price ?? 0,
+        // Textos
         description: mapped.description || null,
         short_description: mapped.short_description || null,
         meta_description: mapped.meta_description || null,
+        // Comercial
         brand: mapped.brand || null,
         supplier_reference: mapped.supplier_reference || null,
+        supplier_id: mapped.supplier_id || null,
         cost_price: mapped.cost_price ?? null,
         stock_quantity: mapped.stock_quantity ?? 0,
         min_quantity: mapped.min_quantity ?? 1,
+        category_id: mapped.category_id || null,
+        main_category_id: mapped.main_category_id || null,
+        // Dimensões
         height_cm: mapped.height_cm ?? null,
         width_cm: mapped.width_cm ?? null,
         length_cm: mapped.length_cm ?? null,
+        diameter_cm: mapped.diameter_cm ?? null,
         weight_g: mapped.weight_g ?? null,
+        capacity_ml: mapped.capacity_ml ?? null,
+        // Embalagem
         packing_type: mapped.packing_type || null,
+        packing_classification: mapped.packing_classification || null,
+        has_commercial_packaging: mapped.has_commercial_packaging ?? null,
+        repacking_type: mapped.repacking_type || null,
+        packaging_context: mapped.packaging_context || null,
+        // Caixa
+        box_width_mm: mapped.box_width_mm ?? null,
+        box_height_mm: mapped.box_height_mm ?? null,
+        box_length_mm: mapped.box_length_mm ?? null,
+        box_weight_kg: mapped.box_weight_kg ?? null,
+        box_quantity: mapped.box_quantity ?? null,
+        box_volume_cm3: mapped.box_volume_cm3 ?? null,
+        box_image: mapped.box_image || null,
+        // Mídia
         image_url: mapped.image_url || null,
-        primary_image_url: mapped.image_url || null,
-        is_active: true,
-        active: true,
+        primary_image_url: mapped.primary_image_url || mapped.image_url || null,
+        og_image_url: mapped.og_image_url || null,
+        // Flags
+        is_active: mapped.is_active ?? true,
+        active: mapped.is_active ?? true,
+        is_featured: mapped.is_featured ?? null,
+        is_bestseller: mapped.is_bestseller ?? null,
+        is_new: mapped.is_new ?? null,
+        is_on_sale: mapped.is_on_sale ?? null,
+        is_kit: mapped.is_kit ?? null,
+        // Outros
+        gender: mapped.gender || null,
+        dimensions: mapped.dimensions || null,
       } : undefined;
 
       results.push({
