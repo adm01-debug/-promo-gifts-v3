@@ -292,7 +292,7 @@ export function StarRating({
       <div className="flex">
         {/* Full stars */}
         {Array.from({ length: fullStars }).map((_, i) => (
-          <Star key={`full-${i}`} className={cn(starSizes[size], "fill-amber-400 text-amber-400")} />
+          <Star key={`full-${i}`} className={cn(starSizes[size], "fill-warning text-warning")} />
         ))}
         
         {/* Half star */}
