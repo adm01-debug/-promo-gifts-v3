@@ -300,7 +300,7 @@ export function StarRating({
           <div className="relative">
             <Star className={cn(starSizes[size], "text-muted-foreground/30")} />
             <div className="absolute inset-0 overflow-hidden w-1/2">
-              <Star className={cn(starSizes[size], "fill-amber-400 text-amber-400")} />
+              <Star className={cn(starSizes[size], "fill-warning text-warning")} />
             </div>
           </div>
         )}
