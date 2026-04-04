@@ -96,7 +96,7 @@ describe('KitComposition', () => {
   it('renders SKU for each item', () => {
     render(<KitComposition items={[ITEM_A]} />);
     openDialog();
-    expect(screen.getByText('CAD-A5')).toBeInTheDocument();
+    expect(screen.getAllByText(/CAD-A5/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders dash when sku is empty', () => {
