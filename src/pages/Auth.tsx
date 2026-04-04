@@ -208,11 +208,11 @@ export default function Auth() {
             
             <div className="space-y-4 max-w-md">
               <h2 className="text-4xl xl:text-5xl font-display font-bold text-foreground leading-tight">
-                Vitrine de Produtos para{" "}
-                <span className="text-orange">Vendedores</span>
+                Um Universo de Produtos, para o{" "}
+                <span className="text-orange">Melhor Time das Galáxias!</span>
               </h2>
               <p className="text-lg text-muted-foreground">
-                Encontre os melhores brindes promocionais, compare produtos e encante seus clientes.
+                Explore nossa galáxia de brindes promocionais, compare produtos e encante seus clientes.
               </p>
             </div>
 
