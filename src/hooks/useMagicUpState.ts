@@ -200,8 +200,8 @@ export function useMagicUpState() {
         ]);
 
         const images: ProductImage[] = (imagesResult.records || [])
-          .filter((img: any) => img.image_type !== "box")
-          .map((img: any) => ({
+          .filter((img: Record<string, unknown>) => img.image_type !== "box")
+          .map((img: Record<string, unknown>) => ({
             url: img.url_cdn || img.url_original || "",
             supplierCode: img.supplier_code || null,
             isPrimary: img.is_primary,
