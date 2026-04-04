@@ -48,7 +48,7 @@ const quickActions: QuickAction[] = [
     description: "Calcular personalização",
     icon: Calculator,
     href: "/simulador",
-    color: "bg-amber-500 text-white",
+    color: "bg-warning text-warning-foreground",
   },
   {
     id: "cart",
