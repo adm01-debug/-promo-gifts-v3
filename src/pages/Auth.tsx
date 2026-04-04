@@ -309,7 +309,7 @@ export default function Auth() {
                 <span className="text-orange">Melhor Time das Galáxias!</span>
               </h2>
               <p className="text-lg text-muted-foreground">
-                Explore nossa galáxia de brindes promocionais, compare produtos e encante seus clientes.
+                Tenha acesso ao maior mix de produtos personalizados, consulte estoque em tempo real, visualize locais e técnicas de personalização de cada item, faça cálculos com facilidade e muito mais. Feito especialmente para você! Bora brilhar, Estrelinha!!!
               </p>
             </div>
 
