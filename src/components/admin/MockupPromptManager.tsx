@@ -112,8 +112,8 @@ export function MockupPromptManager() {
 
       setConfigs((configsRes.data || []) as PromptConfig[]);
       setTechniques(techRes.data || []);
-    } catch (err: any) {
-      toast.error("Erro ao carregar configurações", { description: err.message });
+    } catch (err: unknown) {
+      toast.error("Erro ao carregar configurações", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setIsLoading(false);
     }
