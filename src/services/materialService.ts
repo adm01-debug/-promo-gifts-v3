@@ -105,7 +105,7 @@ class MaterialService {
 
   // Buscar todos os tipos de materiais
   async getTypes(): Promise<{ types: MaterialType[]; count: number }> {
-    const res = await this.callApi<{ types: any[]; count?: number }>("types");
+    const res = await this.callApi<{ types: Record<string, unknown>[]; count?: number }>("types");
 
     const types: MaterialType[] = (res.types || []).map((t) => ({
       id: t.id ?? t.material_id ?? "",
