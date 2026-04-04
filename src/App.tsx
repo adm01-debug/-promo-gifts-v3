@@ -103,6 +103,7 @@ const queryClient = createQueryClient();
 
 import { useCatalogPrefetch } from '@/hooks/useCatalogPrefetch';
 import { loadThemeConfig, applyThemePreset, applyRadius } from '@/lib/theme-presets';
+import { ThemeInitializer } from '@/components/ThemeInitializer';
 
 /** Componente interno que roda hooks que dependem de AuthProvider */
 function AppWithAuth({ children }: { children: React.ReactNode }) {
@@ -120,14 +121,12 @@ const App = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   useGlobalErrorCatcher();
 
-  // Apply saved theme on boot
+  // Apply saved theme on boot (ThemeInitializer handles re-apply on mode change)
   useEffect(() => {
     const cfg = loadThemeConfig();
-    if (cfg.presetId !== 'default' || cfg.radius !== 12) {
-      const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
-      applyThemePreset(cfg.presetId, mode);
-      applyRadius(cfg.radius);
-    }
+    const mode = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+    applyThemePreset(cfg.presetId, mode);
+    applyRadius(cfg.radius);
   }, []);
 
   useEffect(() => {
@@ -146,6 +145,7 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
+        <ThemeInitializer />
         <AccessibilityProvider>
           <AriaLiveProvider>
             <TooltipProvider>
