@@ -283,11 +283,11 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                                 <div
-                                  className={cn(
-                                    "h-full rounded-full bg-gradient-to-r transition-all duration-500",
-                                    barColors[i % barColors.length]
-                                  )}
-                                  style={{ width: `${pct}%` }}
+                                  className="h-full rounded-full transition-all duration-500"
+                                  style={{
+                                    width: `${pct}%`,
+                                    background: `hsl(var(--primary) / ${getBarOpacity(i)})`,
+                                  }}
                                 />
                               </div>
                               <span className="text-[9px] text-muted-foreground shrink-0 w-24 text-right">
