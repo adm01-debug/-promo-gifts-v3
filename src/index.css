@@ -1786,3 +1786,74 @@ html[data-scroll-locked] body {
     box-shadow: none !important;
   }
 }
+
+/* ═══════════════════════════════════════════════
+   SKIN-AWARE UTILITY CLASSES
+   These use CSS variables so they follow the active skin.
+   Replace hardcoded Tailwind colors with these.
+   ═══════════════════════════════════════════════ */
+
+/* Decorative icon container — gradient from primary */
+.skin-icon {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-hover)));
+  color: hsl(var(--primary-foreground));
+}
+.skin-icon-subtle {
+  background: hsl(var(--primary) / 0.12);
+  color: hsl(var(--primary));
+}
+
+/* Progress bars */
+.skin-progress {
+  background: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+}
+
+/* Badges — skin-tinted */
+.skin-badge {
+  background: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
+  border-color: hsl(var(--primary) / 0.3);
+}
+.skin-badge-solid {
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+/* Decorative accent backgrounds */
+.skin-accent-bg {
+  background: hsl(var(--primary) / 0.08);
+}
+.skin-accent-bg-strong {
+  background: hsl(var(--primary) / 0.15);
+}
+
+/* Gradient text */
+.skin-gradient-text {
+  background: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Borders */
+.skin-border {
+  border-color: hsl(var(--primary) / 0.3);
+}
+.skin-border-strong {
+  border-color: hsl(var(--primary) / 0.5);
+}
+
+/* Hover states */
+.skin-hover:hover {
+  background: hsl(var(--primary) / 0.1);
+}
+
+/* Ring / focus */
+.skin-ring {
+  box-shadow: 0 0 0 2px hsl(var(--primary) / 0.3);
+}
+
+/* Glow effect */
+.skin-glow {
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.25);
+}
