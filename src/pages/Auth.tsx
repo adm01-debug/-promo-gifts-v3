@@ -183,10 +183,78 @@ export default function Auth() {
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
         {/* Background decoration */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-3xl" />
           <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-orange/5 rounded-full blur-3xl" />
           <div className="absolute top-1/2 left-1/3 w-64 h-64 bg-success/5 rounded-full blur-3xl" />
+          
+          {/* Animated stars */}
+          {[...Array(18)].map((_, i) => {
+            const size = 1 + (i % 3);
+            const top = (i * 37 + 11) % 100;
+            const left = (i * 53 + 7) % 100;
+            const dur = 2 + (i % 4);
+            const delay = (i * 0.3) % 2;
+            return (
+              <div
+                key={`star-${i}`}
+                className="absolute rounded-full bg-foreground/30"
+                style={{
+                  width: `${size}px`,
+                  height: `${size}px`,
+                  top: `${top}%`,
+                  left: `${left}%`,
+                  animation: `twinkle ${dur}s ease-in-out ${delay}s infinite`,
+                }}
+              />
+            );
+          })}
+          
+          {/* Rocket 1 - main */}
+          <div className="absolute bottom-0 left-[18%]" style={{ animation: 'rocketLaunch 4s ease-out 0.5s forwards' }}>
+            <div style={{ animation: 'rocketShake 0.15s ease-in-out infinite' }}>
+              <Rocket className="h-10 w-10 text-orange -rotate-45" />
+            </div>
+            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-3 rounded-full opacity-80" style={{ animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)', height: '40px' }} />
+            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-1.5 rounded-full opacity-50" style={{ animation: 'flameTrail 0.2s ease-in-out infinite alternate-reverse', background: 'linear-gradient(to bottom, #f97316, transparent)', height: '60px' }} />
+          </div>
+          
+          {/* Rocket 2 - secondary */}
+          <div className="absolute bottom-0 right-[22%]" style={{ animation: 'rocketLaunch 4.5s ease-out 1.2s forwards' }}>
+            <div style={{ animation: 'rocketShake 0.12s ease-in-out infinite' }}>
+              <Rocket className="h-7 w-7 text-orange/70 -rotate-45" />
+            </div>
+            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-2 rounded-full opacity-60" style={{ animation: 'flameTrail 0.25s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)', height: '30px' }} />
+          </div>
+          
+          {/* Rocket 3 - small */}
+          <div className="absolute bottom-0 left-[50%]" style={{ animation: 'rocketLaunch 5s ease-out 2s forwards' }}>
+            <div style={{ animation: 'rocketShake 0.18s ease-in-out infinite' }}>
+              <Rocket className="h-5 w-5 text-orange/50 -rotate-45" />
+            </div>
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-1.5 rounded-full opacity-40" style={{ animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, transparent)', height: '20px' }} />
+          </div>
+
+          {/* Smoke at bottom */}
+          {[...Array(6)].map((_, i) => {
+            const w = 40 + (i * 13) % 40;
+            const l = 5 + (i * 17) % 85;
+            const d = 3 + (i % 3);
+            const dl = 0.5 + i * 0.4;
+            return (
+              <div
+                key={`smoke-${i}`}
+                className="absolute bottom-0 rounded-full bg-muted-foreground/10"
+                style={{
+                  width: `${w}px`,
+                  height: `${w}px`,
+                  left: `${l}%`,
+                  animation: `smokeRise ${d}s ease-out ${dl}s forwards`,
+                  filter: 'blur(8px)',
+                }}
+              />
+            );
+          })}
         </div>
         
         {/* Content */}
