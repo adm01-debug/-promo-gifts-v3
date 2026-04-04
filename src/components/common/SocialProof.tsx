@@ -372,7 +372,7 @@ export function LowStockAlert({
       animate={{ opacity: 1, x: 0 }}
       className={cn(
         "flex items-center gap-2 px-3 py-1.5 rounded-lg",
-        "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        "bg-warning/10 text-warning",
         "text-sm font-medium",
         className
       )}
