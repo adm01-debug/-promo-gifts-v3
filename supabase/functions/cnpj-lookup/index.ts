@@ -1,8 +1,10 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const CnpjBodySchema = z.object({
+  cnpj: z.string().min(1, "CNPJ é obrigatório").transform(v => v.replace(/\D/g, "")).refine(v => v.length === 14, "CNPJ deve ter 14 dígitos"),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -33,21 +35,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { cnpj } = await req.json();
-    if (!cnpj) {
-      return new Response(JSON.stringify({ error: "CNPJ é obrigatório" }), {
+    const parsed = CnpjBodySchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: parsed.error.flatten().fieldErrors }), {
         status: 400,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-
-    const cnpjDigits = cnpj.replace(/\D/g, "");
-    if (cnpjDigits.length !== 14) {
-      return new Response(JSON.stringify({ error: "CNPJ deve ter 14 dígitos" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const cnpjDigits = parsed.data.cnpj;
 
     const apiKey = Deno.env.get("CNPJA_API_KEY");
     if (!apiKey) {

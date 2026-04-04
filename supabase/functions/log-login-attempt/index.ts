@@ -1,6 +1,16 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from "../_shared/cors.ts";
 import { RateLimiter, applyRateLimit } from "../_shared/rate-limiter.ts";
+import { z } from "npm:zod@3.23.8";
+
+const LoginAttemptSchema = z.object({
+  email: z.string().email().max(255),
+  user_id: z.string().uuid().nullish(),
+  ip_address: z.string().max(45).default("unknown"),
+  success: z.boolean(),
+  failure_reason: z.string().max(500).nullish(),
+  user_agent: z.string().max(512).nullish(),
+});
 
 // Rate limiter: 10 login log attempts per minute per IP
 const loginLogLimiter = new RateLimiter({
@@ -19,7 +29,6 @@ Deno.serve(async (req) => {
     // Rate limit by IP
     const rateLimitResponse = await applyRateLimit(req, loginLogLimiter);
     if (rateLimitResponse) {
-      // Add CORS headers to rate limit response
       const headers = new Headers(rateLimitResponse.headers);
       Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
       return new Response(rateLimitResponse.body, {
@@ -28,25 +37,14 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { email, user_id, ip_address, success, failure_reason, user_agent } =
-      await req.json();
-
-    // Validate required fields
-    if (!email || typeof success !== "boolean") {
+    const parsed = LoginAttemptSchema.safeParse(await req.json());
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "email and success are required" }),
+        JSON.stringify({ error: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-
-    // Validate email format (basic check)
-    const emailStr = String(email).trim();
-    if (emailStr.length > 255 || !emailStr.includes('@')) {
-      return new Response(
-        JSON.stringify({ error: "Invalid email format" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { email, user_id, ip_address, success, failure_reason, user_agent } = parsed.data;
 
     // Sanitize inputs
     const sanitizedEmail = emailStr.slice(0, 255);
