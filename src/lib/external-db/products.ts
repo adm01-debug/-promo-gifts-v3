@@ -236,7 +236,7 @@ async function enrichProducts(
     const r = batchResults[idx];
     if (r?.success && r.data?.records) variantsRecords.push(...r.data.records);
   }
-  const imagesRecords: any[] = [];
+  const imagesRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.images) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) imagesRecords.push(...r.data.records);
