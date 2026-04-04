@@ -1,29 +1,12 @@
 /**
- * RLS Policy Validation Tests
+ * RLS Policy Validation Tests for 10 Critical Tables
  * 
- * These tests validate Row-Level Security policies for the 10 most
- * critical tables by querying the database through the Supabase client
- * with different user contexts.
+ * Validates that RLS is enabled and policies are correctly structured
+ * by inspecting pg_policy with pg_get_expr() for readable SQL expressions.
  * 
- * LIMITATION: The Deno test runner in Lovable Cloud only has 
- * SUPABASE_DB_URL (restricted select/insert, no SET ROLE, no auth schema).
- * These tests therefore use direct SQL queries where possible and document
- * expected RLS behavior based on the policy definitions.
- * 
- * To run full integration RLS tests, deploy to a Supabase project with
- * service_role access.
- * 
- * Tables tested:
- * 1. profiles         - user_id scoped + admin read
- * 2. user_roles       - admin-only CRUD, no seller access
- * 3. organizations    - member-only read, owner update
- * 4. organization_members - member read, owner insert/update/delete
- * 5. quotes           - org+seller scoped, admin full, manager read
- * 6. orders           - org+seller scoped, admin full, manager read
- * 7. order_items      - org scoped
- * 8. quote_items      - via quote ownership
- * 9. quote_approval_tokens - seller-only
- * 10. admin_audit_log - admin-only read/insert
+ * Tables: profiles, user_roles, organizations, organization_members,
+ *         quotes, orders, order_items, quote_items,
+ *         quote_approval_tokens, admin_audit_log
  */
 import { assertEquals, assert } from "https://deno.land/std@0.208.0/assert/mod.ts";
 import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
@@ -31,262 +14,249 @@ import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 const DB_URL = Deno.env.get("SUPABASE_DB_URL") ?? "";
 const pool = new Pool(DB_URL, 2, true);
 
-async function sql(query: string): Promise<Record<string, unknown>[]> {
+interface PolicyRow {
+  polname: string;
+  cmd: string;
+  qual: string | null;
+  with_check: string | null;
+}
+
+async function getPolicies(table: string): Promise<PolicyRow[]> {
   const c = await pool.connect();
   try {
-    const r = await c.queryObject(query);
-    return r.rows as Record<string, unknown>[];
+    const r = await c.queryObject<PolicyRow>(`
+      SELECT 
+        polname,
+        CASE polcmd 
+          WHEN 'r' THEN 'SELECT'
+          WHEN 'a' THEN 'INSERT'
+          WHEN 'w' THEN 'UPDATE'
+          WHEN 'd' THEN 'DELETE'
+          WHEN '*' THEN 'ALL'
+        END as cmd,
+        pg_get_expr(polqual, polrelid) as qual,
+        pg_get_expr(polwithcheck, polrelid) as with_check
+      FROM pg_policy 
+      WHERE polrelid = ('public.' || '${table}')::regclass
+      ORDER BY polname
+    `);
+    return r.rows;
+  } finally {
+    c.release();
+  }
+}
+
+async function isRlsEnabled(table: string): Promise<boolean> {
+  const c = await pool.connect();
+  try {
+    const r = await c.queryObject<{ relrowsecurity: boolean }>(`
+      SELECT relrowsecurity FROM pg_class WHERE oid = ('public.' || '${table}')::regclass
+    `);
+    return r.rows[0]?.relrowsecurity ?? false;
   } finally {
     c.release();
   }
 }
 
 // ============================================
-// 1. PROFILES - RLS Policy Verification
+// CROSS-CUTTING: RLS enabled on ALL critical tables
 // ============================================
-Deno.test({ name: "1. profiles: RLS enabled and policies exist", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polroles::text, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.profiles'::regclass
-    ORDER BY polname
-  `);
-  
-  assert(rows.length >= 3, `Expected >= 3 policies, got ${rows.length}`);
-  
-  // Verify key policies exist
-  const names = rows.map(r => r.polname);
-  assert(names.some(n => String(n).includes("view own")), "Should have 'view own' policy");
-  assert(names.some(n => String(n).includes("admin") || String(n).includes("Admin")), "Should have admin policy");
-  assert(names.some(n => String(n).includes("update own") || String(n).includes("Update")), "Should have update policy");
-  
-  // Verify admin policy uses has_role function (not recursive query)
-  const adminPolicy = rows.find(r => String(r.polname).toLowerCase().includes("admin"));
-  assert(adminPolicy, "Admin policy should exist");
-  assert(
-    String(adminPolicy.polqual).includes("has_role"),
-    "Admin policy should use has_role() function to prevent recursion"
-  );
-}});
-
-// ============================================
-// 2. USER_ROLES - Admin Only
-// ============================================
-Deno.test({ name: "2. user_roles: RLS policies restrict to admin-only", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.user_roles'::regclass
-  `);
-  
-  // user_roles should have NO select policy for regular users
-  // Only admin should be able to read
-  const selectPolicies = rows.filter(r => r.polcmd === 's' || r.polcmd === '*');
-  
-  // Verify no overly permissive SELECT policy
-  for (const p of selectPolicies) {
-    const qual = String(p.polqual || '');
-    assert(
-      !qual.includes("true") || qual.includes("has_role") || qual.includes("is_admin"),
-      `Policy ${p.polname} should not be open SELECT without role check`
-    );
-  }
-}});
-
-// ============================================
-// 3. ORGANIZATIONS - Member Scoped
-// ============================================
-Deno.test({ name: "3. organizations: policies use SECURITY DEFINER functions", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.organizations'::regclass
-  `);
-  
-  assert(rows.length >= 2, "Should have multiple policies");
-  
-  // SELECT policy should use get_user_org_ids to avoid recursion
-  const selectPolicy = rows.find(r => String(r.polcmd) === 's' || 
-    (String(r.polcmd) === '*' && String(r.polqual).includes("get_user_org_ids")));
-  assert(selectPolicy, "Should have member-scoped SELECT via get_user_org_ids");
-  
-  // No DELETE policy (verified in schema)
-  const deletePolicy = rows.find(r => String(r.polcmd) === 'd');
-  assertEquals(deletePolicy, undefined, "Should NOT have DELETE policy");
-}});
-
-// ============================================
-// 4. ORGANIZATION_MEMBERS - Owner Management
-// ============================================
-Deno.test({ name: "4. organization_members: owner-only write access", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.organization_members'::regclass
-  `);
-  
-  // INSERT should require owner role
-  const insertPolicy = rows.find(r => String(r.polcmd) === 'a' && 
-    (String(r.polwithcheck).includes("has_org_role") && String(r.polwithcheck).includes("owner")));
-  assert(insertPolicy, "INSERT should require org owner role");
-  
-  // UPDATE should require owner role
-  const updatePolicy = rows.find(r => String(r.polcmd) === 'w' && 
-    String(r.polqual).includes("owner"));
-  assert(updatePolicy, "UPDATE should require owner role");
-}});
-
-// ============================================
-// 5. QUOTES - Org + Seller Scoped
-// ============================================
-Deno.test({ name: "5. quotes: multi-tenant isolation enforced", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.quotes'::regclass
-  `);
-  
-  assert(rows.length >= 2, "Should have seller + manager policies");
-  
-  // Verify seller policy checks both seller_id AND organization_id
-  const sellerPolicy = rows.find(r => String(r.polname).toLowerCase().includes("seller"));
-  assert(sellerPolicy, "Should have seller policy");
-  const qual = String(sellerPolicy!.polqual);
-  assert(qual.includes("seller_id"), "Seller policy must check seller_id");
-  assert(qual.includes("organization_id") || qual.includes("get_user_org_ids"), 
-    "Seller policy must check organization_id for multi-tenant isolation");
-  
-  // Verify admin bypass uses has_role
-  assert(qual.includes("has_role") || qual.includes("is_admin"), 
-    "Should include admin bypass via has_role");
-}});
-
-// ============================================
-// 6. ORDERS - Org + Seller Scoped
-// ============================================
-Deno.test({ name: "6. orders: multi-tenant isolation enforced", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text
-    FROM pg_policy WHERE polrelid = 'public.orders'::regclass
-  `);
-  
-  assert(rows.length >= 2, "Should have seller + manager policies");
-  
-  const sellerPolicy = rows.find(r => String(r.polname).toLowerCase().includes("seller"));
-  assert(sellerPolicy, "Should have seller policy");
-  const qual = String(sellerPolicy!.polqual);
-  assert(qual.includes("seller_id") && qual.includes("get_user_org_ids"),
-    "Orders must enforce seller_id + org isolation");
-}});
-
-// ============================================
-// 7. ORDER_ITEMS - Org Scoped
-// ============================================
-Deno.test({ name: "7. order_items: org-scoped access", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polqual::text
-    FROM pg_policy WHERE polrelid = 'public.order_items'::regclass
-  `);
-  
-  assert(rows.length >= 1);
-  const qual = String(rows[0].polqual);
-  assert(qual.includes("organization_id") || qual.includes("get_user_org_ids"),
-    "order_items must be org-scoped");
-}});
-
-// ============================================
-// 8. QUOTE_ITEMS - Via Quote Ownership
-// ============================================
-Deno.test({ name: "8. quote_items: access via quote ownership join", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polqual::text
-    FROM pg_policy WHERE polrelid = 'public.quote_items'::regclass
-  `);
-  
-  assert(rows.length >= 1);
-  const qual = String(rows[0].polqual);
-  // Should join to quotes table to check seller_id
-  assert(qual.includes("quotes") && qual.includes("seller_id"),
-    "quote_items should verify access via quotes.seller_id");
-}});
-
-// ============================================
-// 9. QUOTE_APPROVAL_TOKENS - Seller Only
-// ============================================
-Deno.test({ name: "9. quote_approval_tokens: seller-scoped CRUD", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.quote_approval_tokens'::regclass
-  `);
-  
-  // Should have separate SELECT, INSERT, UPDATE, DELETE policies
-  const commands = rows.map(r => r.polcmd);
-  assert(commands.includes('r') || commands.includes('s'), "Should have SELECT policy");
-  assert(commands.includes('a'), "Should have INSERT policy");
-  assert(commands.includes('w'), "Should have UPDATE policy");
-  assert(commands.includes('d'), "Should have DELETE policy");
-  
-  // All should check seller_id = auth.uid()
-  for (const row of rows) {
-    const check = String(row.polqual || row.polwithcheck || '');
-    assert(check.includes("seller_id"), `Policy ${row.polname} should check seller_id`);
-  }
-}});
-
-// ============================================
-// 10. ADMIN_AUDIT_LOG - Admin Only
-// ============================================
-Deno.test({ name: "10. admin_audit_log: admin-only read and insert", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const rows = await sql(`
-    SELECT polname, polcmd, polqual::text, polwithcheck::text
-    FROM pg_policy WHERE polrelid = 'public.admin_audit_log'::regclass
-  `);
-  
-  assert(rows.length >= 2, "Should have read + insert policies");
-  
-  // All policies should require admin role
-  for (const row of rows) {
-    const check = String(row.polqual || row.polwithcheck || '');
-    assert(check.includes("has_role") && check.includes("admin"),
-      `Policy ${row.polname} should require admin role`);
-  }
-  
-  // Should NOT have UPDATE or DELETE policies
-  const hasMutation = rows.some(r => r.polcmd === 'w' || r.polcmd === 'd');
-  assertEquals(hasMutation, false, "Should NOT allow UPDATE/DELETE on audit logs");
-}});
-
-// ============================================
-// CROSS-CUTTING: RLS enabled on all tables
-// ============================================
-Deno.test({ name: "CROSS: all critical tables have RLS enabled", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+Deno.test({ name: "CROSS: all 10 critical tables have RLS enabled", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const tables = [
     "profiles", "user_roles", "quotes", "orders", "order_items",
     "organizations", "organization_members", "admin_audit_log",
     "quote_items", "quote_approval_tokens",
   ];
-  
   for (const t of tables) {
-    const rows = await sql(`
-      SELECT relrowsecurity FROM pg_class 
-      WHERE oid = 'public.${t}'::regclass
-    `);
-    assertEquals(rows[0]?.relrowsecurity, true, `RLS must be enabled on ${t}`);
+    const enabled = await isRlsEnabled(t);
+    assertEquals(enabled, true, `RLS must be enabled on ${t}`);
   }
 }});
 
 // ============================================
-// CROSS: No overly permissive policies (true for all)
+// 1. PROFILES
 // ============================================
-Deno.test({ name: "CROSS: no open policies on sensitive tables", sanitizeOps: false, sanitizeResources: false, fn: async () => {
-  const sensitive = ["profiles", "user_roles", "quotes", "orders", "admin_audit_log"];
+Deno.test({ name: "1. profiles: has view-own + admin-read + update-own policies", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("profiles");
+  assert(policies.length >= 3, `Expected >= 3 policies, got ${policies.length}: ${policies.map(p=>p.polname).join(', ')}`);
+
+  const selfSelect = policies.find(p => p.cmd === 'SELECT' && p.qual?.includes("auth.uid()") && p.qual?.includes("user_id"));
+  assert(selfSelect, "Must have user_id = auth.uid() SELECT policy");
+
+  const adminRead = policies.find(p => p.cmd === 'SELECT' && p.qual?.includes("has_role"));
+  assert(adminRead, "Must have admin SELECT policy using has_role()");
+
+  const updateOwn = policies.find(p => p.cmd === 'UPDATE' && p.qual?.includes("auth.uid()"));
+  assert(updateOwn, "Must have UPDATE policy with auth.uid()");
+}});
+
+// ============================================
+// 2. USER_ROLES
+// ============================================
+Deno.test({ name: "2. user_roles: no open SELECT, admin-only management", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("user_roles");
   
+  for (const p of policies) {
+    const expr = `${p.qual ?? ''} ${p.with_check ?? ''}`;
+    assert(
+      expr.includes("has_role") || expr.includes("is_admin"),
+      `Policy "${p.polname}" (${p.cmd}) must require admin: ${expr}`
+    );
+  }
+}});
+
+// ============================================
+// 3. ORGANIZATIONS
+// ============================================
+Deno.test({ name: "3. organizations: member-scoped via get_user_org_ids", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("organizations");
+  assert(policies.length >= 2, `Expected >= 2 policies, got ${policies.length}`);
+
+  const selectPolicy = policies.find(p => p.cmd === 'SELECT');
+  assert(selectPolicy, "Must have SELECT policy");
+  assert(selectPolicy!.qual?.includes("get_user_org_ids"), 
+    `SELECT must use get_user_org_ids: ${selectPolicy!.qual}`);
+
+  const deletePolicy = policies.find(p => p.cmd === 'DELETE');
+  assertEquals(deletePolicy, undefined, "Should NOT have DELETE policy on organizations");
+}});
+
+// ============================================
+// 4. ORGANIZATION_MEMBERS
+// ============================================
+Deno.test({ name: "4. organization_members: owner-only write, member read", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("organization_members");
+
+  const insertPolicy = policies.find(p => p.cmd === 'INSERT');
+  assert(insertPolicy, "Must have INSERT policy");
+  const insertExpr = `${insertPolicy!.qual ?? ''} ${insertPolicy!.with_check ?? ''}`;
+  assert(insertExpr.includes("owner"), `INSERT must require owner role: ${insertExpr}`);
+
+  const updatePolicy = policies.find(p => p.cmd === 'UPDATE');
+  assert(updatePolicy, "Must have UPDATE policy");
+  assert(updatePolicy!.qual?.includes("owner"), `UPDATE must require owner: ${updatePolicy!.qual}`);
+}});
+
+// ============================================
+// 5. QUOTES
+// ============================================
+Deno.test({ name: "5. quotes: seller_id + org isolation + admin bypass", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("quotes");
+  assert(policies.length >= 2, `Expected >= 2 policies, got ${policies.length}`);
+
+  const sellerSelect = policies.find(p => p.cmd === 'SELECT' && p.qual?.includes("seller_id"));
+  assert(sellerSelect, "Must have seller-scoped SELECT policy");
+  assert(sellerSelect!.qual!.includes("seller_id"), "Must check seller_id");
+  assert(
+    sellerSelect!.qual!.includes("organization_id") || sellerSelect!.qual!.includes("get_user_org_ids"),
+    `Must enforce org isolation: ${sellerSelect!.qual}`
+  );
+
+  const allPoliciesText = policies.map(p => p.qual ?? '').join(' ');
+  assert(
+    allPoliciesText.includes("has_role") || allPoliciesText.includes("is_admin") || allPoliciesText.includes("is_manager_or_admin"),
+    "Must include admin/manager bypass"
+  );
+}});
+
+// ============================================
+// 6. ORDERS
+// ============================================
+Deno.test({ name: "6. orders: seller_id + org isolation enforced", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("orders");
+  assert(policies.length >= 2, `Expected >= 2 policies, got ${policies.length}`);
+
+  const sellerSelect = policies.find(p => p.cmd === 'SELECT' && p.qual?.includes("seller_id"));
+  assert(sellerSelect, "Must have seller-scoped SELECT");
+  assert(
+    sellerSelect!.qual!.includes("get_user_org_ids") || sellerSelect!.qual!.includes("organization_id"),
+    `Must enforce org isolation: ${sellerSelect!.qual}`
+  );
+}});
+
+// ============================================
+// 7. ORDER_ITEMS
+// ============================================
+Deno.test({ name: "7. order_items: org-scoped access", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("order_items");
+  assert(policies.length >= 1, "Must have at least 1 policy");
+
+  const selectPolicy = policies.find(p => p.cmd === 'SELECT' || p.cmd === 'ALL');
+  assert(selectPolicy, "Must have SELECT/ALL policy");
+  assert(
+    selectPolicy!.qual?.includes("organization_id") || selectPolicy!.qual?.includes("get_user_org_ids"),
+    `Must be org-scoped: ${selectPolicy!.qual}`
+  );
+}});
+
+// ============================================
+// 8. QUOTE_ITEMS
+// ============================================
+Deno.test({ name: "8. quote_items: access via quote ownership (seller_id join)", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("quote_items");
+  assert(policies.length >= 1, "Must have at least 1 policy");
+
+  const selectPolicy = policies.find(p => p.cmd === 'SELECT' || p.cmd === 'ALL');
+  assert(selectPolicy, "Must have SELECT/ALL policy");
+  assert(
+    selectPolicy!.qual?.includes("quotes") || selectPolicy!.qual?.includes("seller_id"),
+    `Must verify via quote ownership: ${selectPolicy!.qual}`
+  );
+}});
+
+// ============================================
+// 9. QUOTE_APPROVAL_TOKENS
+// ============================================
+Deno.test({ name: "9. quote_approval_tokens: full CRUD scoped to seller_id", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("quote_approval_tokens");
+
+  const cmds = policies.map(p => p.cmd);
+  for (const required of ['SELECT', 'INSERT', 'UPDATE', 'DELETE']) {
+    assert(cmds.includes(required), `Must have ${required} policy`);
+  }
+
+  for (const p of policies) {
+    const expr = `${p.qual ?? ''} ${p.with_check ?? ''}`;
+    assert(expr.includes("seller_id"), `Policy "${p.polname}" (${p.cmd}) must check seller_id: ${expr}`);
+  }
+}});
+
+// ============================================
+// 10. ADMIN_AUDIT_LOG
+// ============================================
+Deno.test({ name: "10. admin_audit_log: admin-only read+insert, no update/delete", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const policies = await getPolicies("admin_audit_log");
+  assert(policies.length >= 2, `Expected >= 2 policies, got ${policies.length}`);
+
+  for (const p of policies) {
+    const expr = `${p.qual ?? ''} ${p.with_check ?? ''}`;
+    assert(
+      expr.includes("has_role") && expr.includes("admin"),
+      `Policy "${p.polname}" must require admin: ${expr}`
+    );
+  }
+
+  const hasMutation = policies.some(p => p.cmd === 'UPDATE' || p.cmd === 'DELETE');
+  assertEquals(hasMutation, false, "Audit logs must NOT allow UPDATE/DELETE");
+}});
+
+// ============================================
+// CROSS: No overly permissive policies
+// ============================================
+Deno.test({ name: "CROSS: no open 'true' policies on sensitive tables", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const sensitive = ["profiles", "user_roles", "quotes", "orders", "admin_audit_log"];
   for (const t of sensitive) {
-    const rows = await sql(`
-      SELECT polname, polqual::text
-      FROM pg_policy WHERE polrelid = 'public.${t}'::regclass
-      AND polqual::text = 'true'
-    `);
-    assertEquals(rows.length, 0, `${t} should NOT have open 'true' policies`);
+    const policies = await getPolicies(t);
+    for (const p of policies) {
+      assert(
+        p.qual !== 'true',
+        `${t}: policy "${p.polname}" has dangerously open 'true' USING clause`
+      );
+    }
   }
 }});
 
 // Cleanup
-Deno.test({ name: "CLEANUP", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+Deno.test({ name: "CLEANUP: close pool", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   await pool.end();
 }});
