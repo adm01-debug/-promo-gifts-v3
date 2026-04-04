@@ -211,6 +211,7 @@ export function useQuotes() {
         client_phone: quote.client_phone || null,
         client_company: quote.client_company || null,
         seller_id: user.id,
+        organization_id: orgId,
         status: quote.status || "draft",
         subtotal,
         discount_percent: quote.discount_percent || 0,
