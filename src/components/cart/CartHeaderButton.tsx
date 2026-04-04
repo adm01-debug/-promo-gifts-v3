@@ -47,7 +47,7 @@ export function CartHeaderButton() {
         <Button
           variant="ghost"
           size="icon"
-          className="relative h-9 w-9 hover:bg-emerald-500/10 hover:text-emerald-500 transition-colors"
+          className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
           title="Carrinho de Orçamentos"
         >
           <ShoppingCart className="h-4 w-4" />
@@ -102,12 +102,12 @@ export function CartHeaderButton() {
               {/* Header */}
               <div className="px-4 pt-4 pb-3 flex items-center justify-between border-b border-border/40">
                 <div className="flex items-center gap-2">
-                  <div className="h-7 w-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                    <ShoppingCart className="h-3.5 w-3.5 text-emerald-500" />
+                  <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <ShoppingCart className="h-3.5 w-3.5 text-primary" />
                   </div>
                   <h3 className="font-semibold text-sm">Carrinhos</h3>
                   <button
-                    className="text-[10px] text-muted-foreground hover:text-emerald-500 font-medium underline-offset-2 hover:underline transition-colors"
+                    className="text-[10px] text-muted-foreground hover:text-primary font-medium underline-offset-2 hover:underline transition-colors"
                     onClick={() => { setOpen(false); navigate("/carrinhos"); }}
                   >
                     Ver todos →
@@ -120,7 +120,7 @@ export function CartHeaderButton() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-7 text-[11px] gap-1 px-2.5 rounded-lg border-dashed border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/10 hover:text-emerald-500 hover:border-emerald-500/50"
+                    className="h-7 text-[11px] gap-1 px-2.5 rounded-lg border-dashed border-primary/30 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/50"
                     onClick={() => setShowPicker(true)}
                   >
                     <Plus className="h-3 w-3" />
@@ -163,7 +163,7 @@ export function CartHeaderButton() {
                             className={cn(
                               "rounded-xl border transition-all duration-200 cursor-pointer group",
                               isActive
-                                ? "border-emerald-500/30 bg-emerald-500/5"
+                                ? "border-primary/30 bg-primary/5"
                                 : "border-border/40 hover:border-border/60 hover:bg-muted/30"
                             )}
                             onClick={() => setActiveCartId(cart.id)}
@@ -179,7 +179,7 @@ export function CartHeaderButton() {
                               ) : (
                                 <div className={cn(
                                   "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
-                                  isActive ? "bg-emerald-500/15 text-emerald-500" : "bg-muted text-muted-foreground"
+                                  isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
                                 )}>
                                   <Building2 className="h-4 w-4" />
                                 </div>
@@ -188,7 +188,7 @@ export function CartHeaderButton() {
                               <div className="min-w-0 flex-1">
                                 <p className={cn(
                                   "text-[13px] font-semibold truncate leading-tight",
-                                  isActive && "text-emerald-500"
+                                  isActive && "text-primary"
                                 )}>
                                   {cart.company_name}
                                 </p>
@@ -204,7 +204,7 @@ export function CartHeaderButton() {
                                   <span className={cn(
                                     "text-[10px] font-bold tabular-nums rounded-full px-2 py-0.5",
                                     isActive
-                                      ? "bg-emerald-500/15 text-emerald-500"
+                                      ? "bg-primary/15 text-primary"
                                       : "bg-muted text-muted-foreground"
                                   )}>
                                     {cart.items.length} {cart.items.length === 1 ? "item" : "itens"}
@@ -215,7 +215,7 @@ export function CartHeaderButton() {
                                   <Tooltip>
                                     <TooltipTrigger asChild>
                                       <button
-                                        className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-emerald-500 hover:bg-emerald-500/10 transition-colors"
+                                        className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           cart.items.forEach((item) => removeItem(item.id));
@@ -273,7 +273,7 @@ export function CartHeaderButton() {
                                       </p>
                                       {/* Price + Qty stepper row */}
                                       <div className="flex items-center justify-between mt-1.5 gap-2">
-                                        <span className="text-[11px] font-semibold text-emerald-500 tabular-nums">
+                                        <span className="text-[11px] font-semibold text-primary tabular-nums">
                                           {formatCurrency(item.product_price)}
                                         </span>
                                         {/* Qty stepper */}
@@ -354,7 +354,7 @@ export function CartHeaderButton() {
                           </span>
                         </div>
                         <Button
-                          className="w-full gap-2 text-xs h-10 rounded-lg font-semibold bg-emerald-500 hover:bg-emerald-600 text-white"
+                          className="w-full gap-2 text-xs h-10 rounded-lg font-semibold bg-primary hover:bg-primary/90 text-primary-foreground"
                           onClick={() => {
                             const cartIdToDelete = activeCart.id;
                             setOpen(false);
