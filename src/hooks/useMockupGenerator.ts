@@ -359,7 +359,7 @@ export function useMockupGenerator() {
       }
 
       const records = techniquesRes?.data?.records || techniquesRes?.records || [];
-      const techniquesData = records.map((r: any) => ({
+      const techniquesData = records.map((r: Record<string, unknown>) => ({
         id: r.id,
         name: r.nome,
         code: r.codigo_curto || r.codigo_tabela || null,
