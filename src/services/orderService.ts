@@ -83,6 +83,7 @@ export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }:
   if (quoteItems && quoteItems.length > 0) {
     const orderItems = quoteItems.map((item) => ({
       order_id: order.id,
+      organization_id: effectiveOrgId,
       product_id: item.product_id,
       product_sku: item.product_sku,
       product_name: item.product_name,
