@@ -180,7 +180,7 @@ export function useQuoteBuilderState() {
 
   // ── Pre-fill from simulator ──
   useEffect(() => {
-    const state = location.state as { fromSimulator?: boolean; simulationData?: any } | null;
+    const state = location.state as { fromSimulator?: boolean; simulationData?: { product?: { id: string; name: string; sku?: string; imageUrl?: string; price?: number }; quantity?: number; personalizations?: Array<{ technique?: { id: string; name: string }; specs?: { colors?: number; width?: number; height?: number }; pricing?: { setupPrice?: number; unitPrice?: number; totalPrice?: number } }> } } | null;
     if (!state?.fromSimulator || !state.simulationData) return;
     const { product, quantity, personalizations } = state.simulationData;
     if (!product) return;
