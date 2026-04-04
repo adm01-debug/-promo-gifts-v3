@@ -177,16 +177,17 @@ export function useWebAuthn() {
         });
 
         return true;
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error registering passkey:", error);
+        const err = error instanceof Error ? error : new Error('Unknown error');
 
-        if (error.name === "NotAllowedError") {
+        if (err.name === "NotAllowedError") {
           toast({
             variant: "destructive",
             title: "Cancelado",
             description: "Registro de passkey foi cancelado",
           });
-        } else if (error.name === "InvalidStateError") {
+        } else if (err.name === "InvalidStateError") {
           toast({
             variant: "destructive",
             title: "Já registrado",
@@ -196,7 +197,7 @@ export function useWebAuthn() {
           toast({
             variant: "destructive",
             title: "Erro ao registrar",
-            description: error.message || "Não foi possível registrar a passkey",
+            description: err.message || "Não foi possível registrar a passkey",
           });
         }
         return false;
