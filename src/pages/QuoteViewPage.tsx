@@ -80,6 +80,7 @@ export default function QuoteViewPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [approvalLink, setApprovalLink] = useState<string | null>(null);
   const whatsAppRef = useRef<HTMLButtonElement>(null);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   useEffect(() => {
     if (id) {
