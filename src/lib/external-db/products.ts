@@ -259,8 +259,8 @@ async function enrichProducts(
   }
 
   const suppliersMap = new Map(suppliersRecords.map(s => [s.id, s.name]));
-  const colorVariationMap = new Map(colorVariationsRecords.map((v: any) => [v.id, { name: v.name, slug: v.slug, group_id: v.group_id }]));
-  const colorGroupMap = new Map(colorGroupsRecords.map((g: any) => [g.id, { name: g.name, slug: g.slug }]));
+  const colorVariationMap = new Map(colorVariationsRecords.map((v) => [v.id as string, { name: v.name as string, slug: v.slug as string, group_id: v.group_id as string }]));
+  const colorGroupMap = new Map(colorGroupsRecords.map((g) => [g.id as string, { name: g.name as string, slug: g.slug as string }]));
 
   // Build image map
   const productIdSet = new Set(productIds);
