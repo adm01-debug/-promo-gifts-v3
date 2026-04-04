@@ -143,7 +143,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Pôr do Sol',
     description: 'Quente e acolhedor',
     emoji: '🌅',
-    colors: ['hsl(35, 95%, 50%)', 'hsl(20, 20%, 6%)', 'hsl(30, 90%, 52%)'],
+    colors: ['hsl(25, 95%, 55%)', 'hsl(35, 90%, 60%)', 'hsl(45, 95%, 55%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, '--background': '30 20% 96%', ...makePrimaryTokens(35, 95, 50) },
       dark: {
