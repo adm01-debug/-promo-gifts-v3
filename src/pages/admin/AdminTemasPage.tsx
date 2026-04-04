@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { Palette, Sun, Moon, Monitor, RotateCcw, Check, Download, Upload } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Palette, Sun, Moon, Monitor, RotateCcw, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
@@ -15,14 +15,11 @@ import {
   applyRadius,
   clearThemeOverrides,
   getDefaultConfig,
-  exportThemeConfig,
-  importThemeConfig,
 } from '@/lib/theme-presets';
 
 export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
     applyThemePreset(cfg.presetId, mode);
@@ -58,40 +55,6 @@ export default function AdminTemasPage() {
     toast.success('Tema restaurado ao padrão');
   };
 
-  const handleExport = () => {
-    const json = exportThemeConfig(config);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'promo-gifts-theme.json';
-    a.click();
-    URL.revokeObjectURL(url);
-    toast.success('Tema exportado');
-  };
-
-  const handleImport = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const imported = importThemeConfig(reader.result as string);
-      if (imported) {
-        setConfig(imported);
-        saveThemeConfig(imported);
-        toast.success('Tema importado com sucesso');
-      } else {
-        toast.error('Arquivo de tema inválido');
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  };
-
   const currentMode = config.mode === 'auto' ? 'system' : config.mode;
 
   return (
@@ -110,19 +73,6 @@ export default function AdminTemasPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json"
-            className="hidden"
-            onChange={handleFileChange}
-          />
-          <Button variant="outline" size="sm" onClick={handleImport}>
-            <Upload className="h-4 w-4 mr-1.5" /> Importar
-          </Button>
-          <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1.5" /> Exportar
-          </Button>
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
           </Button>
