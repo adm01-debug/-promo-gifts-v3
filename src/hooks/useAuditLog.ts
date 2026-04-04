@@ -168,12 +168,12 @@ export function useAuditLog() {
   /**
    * Wrapper para DELETE com auditoria automática
    */
-  const auditedDelete = async <T extends Record<string, any>>(
+  const auditedDelete = async <T extends Record<string, unknown>>(
     table: AuditEntityType,
     entityId: string,
     oldRecord: T,
-    deleteFn: () => Promise<{ error: any }>
-  ): Promise<{ error: any }> => {
+    deleteFn: () => Promise<{ error: Error | null }>
+  ): Promise<{ error: Error | null }> => {
     const result = await deleteFn();
     
     if (!result.error) {

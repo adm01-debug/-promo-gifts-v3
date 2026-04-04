@@ -193,7 +193,7 @@ export function useColorVariations(groupId: string | null) {
         throw new Error(`Falha ao carregar variações: ${response.error.message}`);
       }
 
-      return (response.data?.data?.records || []).map((v: any) => ({
+      return (response.data?.data?.records || []).map((v: Record<string, string>) => ({
         id: v.id,
         name: v.name,
         slug: v.slug || v.name.toLowerCase().replace(/\s+/g, '-'),
