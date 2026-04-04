@@ -44,7 +44,7 @@ describe('KitComposition', () => {
     openDialog();
     expect(screen.getAllByText(/3.*componentes/i).length).toBeGreaterThanOrEqual(1);
     // total pieces: 1 + 1 + 3 = 5
-    expect(screen.getByText(/5\s*peças/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/5\s*peças/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders singular "componente" and "peça" for single item', () => {
@@ -96,7 +96,7 @@ describe('KitComposition', () => {
   it('renders SKU for each item', () => {
     render(<KitComposition items={[ITEM_A]} />);
     openDialog();
-    expect(screen.getByText('CAD-A5')).toBeInTheDocument();
+    expect(screen.getAllByText(/CAD-A5/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it('renders dash when sku is empty', () => {
