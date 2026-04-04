@@ -181,7 +181,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Minimal',
     description: 'Clean e neutro',
     emoji: '🌑',
-    colors: ['hsl(220, 10%, 50%)', 'hsl(220, 10%, 8%)', 'hsl(220, 12%, 55%)'],
+    colors: ['hsl(220, 15%, 40%)', 'hsl(220, 10%, 55%)', 'hsl(220, 12%, 65%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(220, 10, 50), '--primary-foreground': '0 0% 100%' },
       dark: { ...DEFAULT_DARK_BASE, ...makePrimaryTokens(220, 12, 55) },
