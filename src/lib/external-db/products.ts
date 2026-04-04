@@ -231,7 +231,7 @@ async function enrichProducts(
   }
 
   // Extract results
-  const variantsRecords: any[] = [];
+  const variantsRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.variants) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) variantsRecords.push(...r.data.records);
