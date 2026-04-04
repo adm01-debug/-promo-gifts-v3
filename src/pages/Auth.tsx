@@ -116,11 +116,6 @@ export default function Auth() {
     defaultValues: { email: "", password: "" },
   });
 
-  const signupForm = useForm<SignupForm>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
-  });
-
   const handleLogin = async (data: LoginForm) => {
     setIsSubmitting(true);
     setIpBlocked(false);
