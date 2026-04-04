@@ -410,9 +410,9 @@ CENÁRIO: ${effectivePrompt}`;
       } else {
         throw new Error(data?.error || "Nenhuma imagem retornada");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Magic Up error:", err);
-      toast.error(err.message || "Erro ao gerar imagem");
+      toast.error(err instanceof Error ? err.message : "Erro ao gerar imagem");
     } finally {
       setGenerating(false);
     }

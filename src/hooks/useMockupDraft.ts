@@ -254,8 +254,8 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
       }
 
       return backendData || localData;
-    } catch (err: any) {
-      setError(err.message || "Erro ao carregar rascunho");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Erro ao carregar rascunho");
       // Fallback para localStorage em caso de erro
       return loadFromLocal();
     } finally {

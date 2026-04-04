@@ -147,10 +147,10 @@ export function usePasswordResetRequests() {
         success: true, 
         message: 'Solicitação enviada! Um gestor irá analisar e aprovar seu pedido de recuperação de senha.' 
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       return { 
         success: false, 
-        message: error.message 
+        message: error instanceof Error ? error.message : 'Erro desconhecido'
       };
     }
   };

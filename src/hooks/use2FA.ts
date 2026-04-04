@@ -157,8 +157,8 @@ export function use2FA(targetUserId?: string) {
 
       await fetchSettings();
       return { success: true };
-    } catch (error: any) {
-      return { success: false, error: error.message };
+    } catch (error: unknown) {
+      return { success: false, error: error instanceof Error ? error.message : 'Erro desconhecido' };
     }
   }, [effectiveUserId, targetUserId, verifyToken, fetchSettings]);
 
