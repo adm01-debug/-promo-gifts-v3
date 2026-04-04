@@ -17,10 +17,9 @@ import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { supabase } from "@/integrations/supabase/client";
 
-import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from "@/lib/validations";
+import { loginSchema, type LoginFormData } from "@/lib/validations";
 
 type LoginForm = LoginFormData;
-type SignupForm = SignupFormData;
 
 interface RocketData {
   id: number;
