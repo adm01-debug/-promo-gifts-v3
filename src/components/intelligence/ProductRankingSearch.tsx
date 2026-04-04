@@ -144,8 +144,8 @@ export function ProductRankingSearch() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                <Trophy className="h-3.5 w-3.5 text-white" />
+              <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+                <Trophy className="h-3.5 w-3.5" />
               </div>
               🏆 Ranking de Produtos Mais Vendidos
             </CardTitle>
