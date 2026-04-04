@@ -106,6 +106,8 @@ export interface PersonalizationTechnique {
 
 export function useQuotes() {
   const { user } = useAuth();
+  const { currentOrg } = useOrganization();
+  const orgId = currentOrg?.id || null;
   const [quotes, setQuotes] = useState<Quote[]>([]);
   const [techniques, setTechniques] = useState<PersonalizationTechnique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
