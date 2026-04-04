@@ -156,9 +156,9 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                <LayoutGrid className="h-3.5 w-3.5 text-white" />
-              </div>
+               <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+                 <LayoutGrid className="h-3.5 w-3.5" />
+               </div>
               🏆 Ranking de Categorias
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
