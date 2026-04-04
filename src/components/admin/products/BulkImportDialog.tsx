@@ -44,23 +44,58 @@ import {
 const MAX_ROWS = 10_000;
 
 const TARGET_FIELDS = [
+  // ── Identificação (obrigatórios) ──
   { key: 'sku', label: 'SKU', required: true },
   { key: 'name', label: 'Nome', required: true },
   { key: 'sale_price', label: 'Preço Venda', required: true },
+  // ── Textos ──
   { key: 'description', label: 'Descrição', required: false },
   { key: 'short_description', label: 'Descrição Curta', required: false },
   { key: 'meta_description', label: 'Meta Descrição', required: false },
+  // ── Comercial ──
   { key: 'brand', label: 'Marca', required: false },
   { key: 'supplier_reference', label: 'Ref. Fornecedor', required: false },
+  { key: 'supplier_id', label: 'ID Fornecedor', required: false },
   { key: 'cost_price', label: 'Preço Custo', required: false },
   { key: 'stock_quantity', label: 'Estoque', required: false },
   { key: 'min_quantity', label: 'Qtd. Mín. Venda', required: false },
+  { key: 'category_id', label: 'ID Categoria', required: false },
+  { key: 'main_category_id', label: 'ID Categoria Principal', required: false },
+  // ── Dimensões do produto ──
   { key: 'height_cm', label: 'Altura (cm)', required: false },
   { key: 'width_cm', label: 'Largura (cm)', required: false },
   { key: 'length_cm', label: 'Profundidade (cm)', required: false },
+  { key: 'diameter_cm', label: 'Diâmetro (cm)', required: false },
   { key: 'weight_g', label: 'Peso (g)', required: false },
+  { key: 'capacity_ml', label: 'Capacidade (ml)', required: false },
+  // ── Embalagem ──
   { key: 'packing_type', label: 'Tipo Embalagem', required: false },
+  { key: 'packing_classification', label: 'Classificação Embalagem', required: false },
+  { key: 'has_commercial_packaging', label: 'Embalagem Comercial', required: false },
+  { key: 'repacking_type', label: 'Tipo Reembalagem', required: false },
+  { key: 'packaging_context', label: 'Contexto Embalagem', required: false },
+  // ── Caixa (box) ──
+  { key: 'box_width_mm', label: 'Caixa Larg (mm)', required: false },
+  { key: 'box_height_mm', label: 'Caixa Alt (mm)', required: false },
+  { key: 'box_length_mm', label: 'Caixa Prof (mm)', required: false },
+  { key: 'box_weight_kg', label: 'Caixa Peso (kg)', required: false },
+  { key: 'box_quantity', label: 'Qtd por Caixa', required: false },
+  { key: 'box_volume_cm3', label: 'Volume Caixa (cm³)', required: false },
+  { key: 'box_image', label: 'Imagem Caixa', required: false },
+  // ── Mídia ──
   { key: 'image_url', label: 'URL Imagem', required: false },
+  { key: 'primary_image_url', label: 'URL Imagem Principal', required: false },
+  { key: 'og_image_url', label: 'URL OG Image', required: false },
+  // ── Flags ──
+  { key: 'is_active', label: 'Ativo', required: false },
+  { key: 'is_featured', label: 'Destaque', required: false },
+  { key: 'is_bestseller', label: 'Mais Vendido', required: false },
+  { key: 'is_new', label: 'Novidade', required: false },
+  { key: 'is_on_sale', label: 'Em Promoção', required: false },
+  { key: 'is_kit', label: 'É Kit', required: false },
+  // ── Outros ──
+  { key: 'gender', label: 'Gênero', required: false },
+  { key: 'dimensions', label: 'Dimensões (texto)', required: false },
 ] as const;
 
 type TargetFieldKey = typeof TARGET_FIELDS[number]['key'];
@@ -88,26 +123,67 @@ interface BulkImportDialogProps {
 
 // ── Alias map for auto-mapping ──
 const ALIAS_MAP: Record<string, TargetFieldKey> = {
+  // SKU
   sku: 'sku', codigo: 'sku', code: 'sku', cod: 'sku', ref: 'sku', referencia: 'sku',
+  // Nome
   nome: 'name', name: 'name', produto: 'name', product: 'name', titulo: 'name', title: 'name',
+  // Preços
   preco: 'sale_price', price: 'sale_price', precovenda: 'sale_price', saleprice: 'sale_price',
   valor: 'sale_price', valorvenda: 'sale_price', sellprice: 'sale_price',
+  custo: 'cost_price', costprice: 'cost_price', precocusto: 'cost_price',
+  // Textos
   descricao: 'description', description: 'description', desc: 'description',
   descricaocurta: 'short_description', shortdescription: 'short_description',
   metadescricao: 'meta_description', metadescription: 'meta_description',
+  // Marca
   marca: 'brand', brand: 'brand',
+  // Estoque
   estoque: 'stock_quantity', stock: 'stock_quantity', qty: 'stock_quantity', quantidade: 'stock_quantity',
-  custo: 'cost_price', costprice: 'cost_price', precocusto: 'cost_price',
+  // Dimensões
   peso: 'weight_g', weight: 'weight_g', pesogramas: 'weight_g',
-  altura: 'height_cm', height: 'height_cm',
-  largura: 'width_cm', width: 'width_cm',
+  altura: 'height_cm', height: 'height_cm', alturacm: 'height_cm',
+  largura: 'width_cm', width: 'width_cm', larguracm: 'width_cm',
   comprimento: 'length_cm', profundidade: 'length_cm', length: 'length_cm', depth: 'length_cm',
-  imagem: 'image_url', image: 'image_url', imageurl: 'image_url', foto: 'image_url', photo: 'image_url',
+  diametro: 'diameter_cm', diameter: 'diameter_cm', diametrocm: 'diameter_cm',
+  capacidade: 'capacity_ml', capacity: 'capacity_ml', capacidademl: 'capacity_ml', volume: 'capacity_ml',
+  // Embalagem
   embalagem: 'packing_type', packingtype: 'packing_type', packaging: 'packing_type',
+  classificacaoembalagem: 'packing_classification', packingclassification: 'packing_classification',
+  embalagemcomercial: 'has_commercial_packaging', commercialpackaging: 'has_commercial_packaging',
+  reembalagem: 'repacking_type', repackingtype: 'repacking_type',
+  contextoembalagem: 'packaging_context', packagingcontext: 'packaging_context',
+  // Caixa
+  caixalargura: 'box_width_mm', boxwidth: 'box_width_mm',
+  caixaaltura: 'box_height_mm', boxheight: 'box_height_mm',
+  caixacomprimento: 'box_length_mm', boxlength: 'box_length_mm',
+  caixapeso: 'box_weight_kg', boxweight: 'box_weight_kg',
+  qtdporcaixa: 'box_quantity', boxquantity: 'box_quantity', boxqty: 'box_quantity',
+  volumecaixa: 'box_volume_cm3', boxvolume: 'box_volume_cm3',
+  imagemcaixa: 'box_image', boximage: 'box_image',
+  // Mídia
+  imagem: 'image_url', image: 'image_url', imageurl: 'image_url', foto: 'image_url', photo: 'image_url',
+  imagemprincipal: 'primary_image_url', primaryimage: 'primary_image_url',
+  ogimage: 'og_image_url', ogimageurl: 'og_image_url',
+  // Fornecedor
   reffornecedor: 'supplier_reference', supplierref: 'supplier_reference', supplierreference: 'supplier_reference',
   referenciaforncedor: 'supplier_reference', fornecedorref: 'supplier_reference',
+  idfornecedor: 'supplier_id', supplierid: 'supplier_id',
+  // Categorias
+  idcategoria: 'category_id', categoryid: 'category_id', categoria: 'category_id',
+  categoriaprincipal: 'main_category_id', maincategoryid: 'main_category_id',
+  // Quantidades
   qtdminima: 'min_quantity', minquantity: 'min_quantity', minqty: 'min_quantity',
   quantidademinima: 'min_quantity', pedidominimo: 'min_quantity',
+  // Flags
+  ativo: 'is_active', active: 'is_active', isactive: 'is_active',
+  destaque: 'is_featured', featured: 'is_featured', isfeatured: 'is_featured',
+  maisvendido: 'is_bestseller', bestseller: 'is_bestseller', isbestseller: 'is_bestseller',
+  novidade: 'is_new', new: 'is_new', isnew: 'is_new', lancamento: 'is_new',
+  promocao: 'is_on_sale', onsale: 'is_on_sale', isonsale: 'is_on_sale',
+  kit: 'is_kit', iskit: 'is_kit', ekit: 'is_kit',
+  // Outros
+  genero: 'gender', gender: 'gender', sexo: 'gender',
+  dimensoes: 'dimensions', dimensions: 'dimensions',
 };
 
 export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportDialogProps) {

@@ -11,23 +11,55 @@ export interface ImportRow {
   sku: string;
   name: string;
   sale_price: number;
+  // Textos
   description?: string | null;
   short_description?: string | null;
   meta_description?: string | null;
+  // Comercial
   brand?: string | null;
   supplier_reference?: string | null;
+  supplier_id?: string | null;
   cost_price?: number | null;
   stock_quantity?: number | null;
   min_quantity?: number | null;
+  category_id?: string | null;
+  main_category_id?: string | null;
+  // Dimensões
   height_cm?: number | null;
   width_cm?: number | null;
   length_cm?: number | null;
+  diameter_cm?: number | null;
   weight_g?: number | null;
+  capacity_ml?: number | null;
+  // Embalagem
   packing_type?: string | null;
+  packing_classification?: string | null;
+  has_commercial_packaging?: boolean | null;
+  repacking_type?: string | null;
+  packaging_context?: string | null;
+  // Caixa
+  box_width_mm?: number | null;
+  box_height_mm?: number | null;
+  box_length_mm?: number | null;
+  box_weight_kg?: number | null;
+  box_quantity?: number | null;
+  box_volume_cm3?: number | null;
+  box_image?: string | null;
+  // Mídia
   image_url?: string | null;
   primary_image_url?: string | null;
+  og_image_url?: string | null;
+  // Flags
   is_active?: boolean;
   active?: boolean;
+  is_featured?: boolean | null;
+  is_bestseller?: boolean | null;
+  is_new?: boolean | null;
+  is_on_sale?: boolean | null;
+  is_kit?: boolean | null;
+  // Outros
+  gender?: string | null;
+  dimensions?: string | null;
   [key: string]: unknown;
 }
 
