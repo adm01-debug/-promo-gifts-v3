@@ -139,7 +139,7 @@ export type CompanyTable = typeof COMPANY_TABLES[number];
 
 // Permissões por grupo
 export const PERMISSIONS: Record<ResourceGroup, Operation[]> = {
-  products: ['select', 'insert', 'update', 'delete'],
+  products: ['select', 'insert', 'update', 'delete', 'upsert', 'batch_insert'],
   companies: ['select'],
   views: ['select'],
 };
