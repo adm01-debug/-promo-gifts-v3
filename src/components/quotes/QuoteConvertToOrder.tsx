@@ -26,6 +26,7 @@ interface QuoteConvertToOrderProps {
 
 export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConvertToOrderProps) {
   const { user } = useAuth();
+  const { currentOrg } = useOrganization();
   const navigate = useNavigate();
   const [isConverting, setIsConverting] = useState(false);
 
