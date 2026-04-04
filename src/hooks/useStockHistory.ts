@@ -164,9 +164,9 @@ export function useProductIntelligenceData(productId: string | undefined) {
     },
     enabled: !!productId,
     staleTime: 30 * 60 * 1000,
-    retry: (failureCount, error: any) => {
-      if (error.message?.includes('not been populated')) return false;
-      return failureCount < 2;
+    retry: (failureCount, error: unknown) => {
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.includes('not been populated')) return false;
     },
   });
 }

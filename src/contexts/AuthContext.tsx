@@ -217,7 +217,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             message: `Muitas tentativas de login. Conta bloqueada por ${mins} minuto(s).`,
             name: 'RateLimitError',
             status: 429,
-          } as any,
+          } as { message: string; name: string; status: number },
         };
       }
     } else {

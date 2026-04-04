@@ -113,7 +113,7 @@ export function useProductSupplierSources(productId?: string) {
       toast.success('Fonte removida');
       await fetchSources();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Erro ao remover fonte');
       return false;
     }

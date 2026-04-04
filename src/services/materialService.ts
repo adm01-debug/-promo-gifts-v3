@@ -180,7 +180,7 @@ class MaterialService {
   }
 
   // Buscar materiais de um produto específico
-  async getProductMaterials(productId: string): Promise<{ materials: any[]; count: number; productId: string }> {
+  async getProductMaterials(productId: string): Promise<{ materials: Record<string, unknown>[]; count: number; productId: string }> {
     return this.callApi('product_materials', { productId });
   }
 
