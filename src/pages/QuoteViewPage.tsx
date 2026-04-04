@@ -541,6 +541,10 @@ export default function QuoteViewPage() {
                   <Copy className="h-4 w-4 mr-2" />
                   Duplicar
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowPresentation(true)}>
+                  <Monitor className="h-4 w-4 mr-2" />
+                  Modo Apresentação
+                </DropdownMenuItem>
                 <Sheet>
                   <SheetTrigger asChild>
                     <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
