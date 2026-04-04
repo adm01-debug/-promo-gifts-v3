@@ -33,22 +33,22 @@ export function PopularityBadge({
     views: {
       icon: Users,
       label: `${views?.toLocaleString("pt-BR")} visualizações`,
-      color: "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+      color: "bg-primary/10 text-primary"
     },
     sales: {
       icon: TrendingUp,
       label: `${sales?.toLocaleString("pt-BR")} vendidos`,
-      color: "bg-green-500/10 text-green-600 dark:text-green-400"
+      color: "bg-success/10 text-success"
     },
     trending: {
       icon: Flame,
       label: "Em alta",
-      color: "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+      color: "bg-primary/10 text-primary"
     },
     bestseller: {
       icon: Crown,
       label: "Mais vendido",
-      color: "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      color: "bg-warning/10 text-warning"
     }
   };
 
@@ -87,56 +87,56 @@ const trustBadges: Record<TrustBadgeType, { icon: React.ElementType; label: stri
   verified: {
     icon: ShieldCheck,
     label: "Fornecedor verificado",
-    color: "text-blue-500",
-    bg: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+    color: "text-primary",
+    bg: "bg-primary/10 text-primary",
   },
   fast: {
     icon: Zap,
     label: "Entrega rápida",
-    color: "text-amber-500",
-    bg: "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+    color: "text-warning",
+    bg: "bg-warning/10 text-warning",
   },
   quality: {
     icon: Award,
     label: "Alta qualidade",
-    color: "text-purple-500",
-    bg: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
+    color: "text-primary",
+    bg: "bg-primary/10 text-primary",
   },
   secure: {
     icon: ShieldCheck,
     label: "Compra segura",
-    color: "text-green-500",
-    bg: "bg-green-500/10 text-green-600 dark:text-green-400",
+    color: "text-success",
+    bg: "bg-success/10 text-success",
   },
   popular: {
     icon: ThumbsUp,
     label: "Escolha popular",
-    color: "text-rose-500",
-    bg: "bg-rose-500/10 text-rose-600 dark:text-rose-400",
+    color: "text-primary",
+    bg: "bg-primary/10 text-primary",
   },
   new: {
     icon: Zap,
     label: "Novidade",
-    color: "text-emerald-500",
-    bg: "bg-emerald-500/20 text-emerald-800 dark:bg-emerald-500/25 dark:text-emerald-200 border border-emerald-500/30",
+    color: "text-success",
+    bg: "bg-success/20 text-success border border-success/30",
   },
   sale: {
     icon: Flame,
     label: "Promoção",
-    color: "text-orange-500",
-    bg: "bg-orange-500/20 text-orange-800 dark:bg-orange-500/25 dark:text-orange-200 border border-orange-500/30",
+    color: "text-primary",
+    bg: "bg-primary/20 text-primary border border-primary/30",
   },
   bestseller: {
     icon: Crown,
     label: "Mais vendido",
-    color: "text-amber-500",
-    bg: "bg-amber-500/20 text-amber-800 dark:bg-amber-500/25 dark:text-amber-200 border border-amber-500/30",
+    color: "text-warning",
+    bg: "bg-warning/20 text-warning border border-warning/30",
   },
   freeShipping: {
     icon: TrendingUp,
     label: "Frete grátis",
-    color: "text-emerald-600",
-    bg: "bg-emerald-600/20 text-emerald-800 dark:bg-emerald-600/25 dark:text-emerald-200 border border-emerald-600/30",
+    color: "text-success",
+    bg: "bg-success/20 text-success border border-success/30",
   },
 };
 
@@ -292,7 +292,7 @@ export function StarRating({
       <div className="flex">
         {/* Full stars */}
         {Array.from({ length: fullStars }).map((_, i) => (
-          <Star key={`full-${i}`} className={cn(starSizes[size], "fill-amber-400 text-amber-400")} />
+          <Star key={`full-${i}`} className={cn(starSizes[size], "fill-warning text-warning")} />
         ))}
         
         {/* Half star */}
@@ -300,7 +300,7 @@ export function StarRating({
           <div className="relative">
             <Star className={cn(starSizes[size], "text-muted-foreground/30")} />
             <div className="absolute inset-0 overflow-hidden w-1/2">
-              <Star className={cn(starSizes[size], "fill-amber-400 text-amber-400")} />
+              <Star className={cn(starSizes[size], "fill-warning text-warning")} />
             </div>
           </div>
         )}
@@ -343,7 +343,7 @@ export function RecentActivity({
     >
       <div className="relative">
         <Users className="w-4 h-4 text-muted-foreground" />
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-success rounded-full animate-pulse" />
       </div>
       <span className="text-muted-foreground">
         <strong className="text-foreground">{count}</strong> pessoas viram nas {timeframe}
@@ -372,7 +372,7 @@ export function LowStockAlert({
       animate={{ opacity: 1, x: 0 }}
       className={cn(
         "flex items-center gap-2 px-3 py-1.5 rounded-lg",
-        "bg-amber-500/10 text-amber-600 dark:text-amber-400",
+        "bg-warning/10 text-warning",
         "text-sm font-medium",
         className
       )}
@@ -456,7 +456,7 @@ export function ConversionStats({
         <div className="text-xs text-muted-foreground">Usuários ativos</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-green-500">{satisfactionRate}%</div>
+        <div className="text-2xl font-bold text-success">{satisfactionRate}%</div>
         <div className="text-xs text-muted-foreground">Satisfação</div>
       </div>
     </div>

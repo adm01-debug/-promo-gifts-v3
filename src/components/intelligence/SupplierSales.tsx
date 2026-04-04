@@ -29,16 +29,8 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
   const maxRevenue = hasData ? Math.max(...suppliers!.map(s => s.revenue)) : 0;
   const totalRevenue = hasData ? suppliers!.reduce((s, su) => s + su.revenue, 0) : 0;
 
-  const barColors = [
-    "from-emerald-500 to-emerald-400",
-    "from-blue-500 to-blue-400",
-    "from-violet-500 to-violet-400",
-    "from-amber-500 to-amber-400",
-    "from-rose-500 to-rose-400",
-    "from-cyan-500 to-cyan-400",
-    "from-orange-500 to-orange-400",
-    "from-pink-500 to-pink-400",
-  ];
+  // Use opacity-based approach so bars follow the skin
+  const getBarOpacity = (i: number) => Math.max(1 - i * 0.07, 0.4);
 
   return (
     <Card>
@@ -46,8 +38,8 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                <Truck className="h-3.5 w-3.5 text-white" />
+              <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+                <Truck className="h-3.5 w-3.5" />
               </div>
               📦 Vendas por Fornecedor
             </CardTitle>
@@ -89,11 +81,11 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
                 <div className="flex items-center gap-2">
                   <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                     <div
-                      className={cn(
-                        "h-full rounded-full bg-gradient-to-r transition-all duration-500",
-                        barColors[i % barColors.length]
-                      )}
-                      style={{ width: `${pct}%` }}
+                      className="h-full rounded-full transition-all duration-500"
+                      style={{
+                        width: `${pct}%`,
+                        background: `hsl(var(--primary) / ${getBarOpacity(i)})`,
+                      }}
                     />
                   </div>
                   <span className="text-[9px] text-muted-foreground shrink-0 w-20 text-right">

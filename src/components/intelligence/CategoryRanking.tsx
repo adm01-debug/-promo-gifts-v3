@@ -118,18 +118,8 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
   const hasData = sortedCategories.length > 0;
   const maxVal = hasData ? Math.max(...sortedCategories.map(getBarValue)) : 0;
 
-  const barColors = [
-    "from-violet-500 to-purple-400",
-    "from-blue-500 to-cyan-400",
-    "from-emerald-500 to-green-400",
-    "from-amber-500 to-yellow-400",
-    "from-rose-500 to-pink-400",
-    "from-indigo-500 to-blue-400",
-    "from-teal-500 to-emerald-400",
-    "from-orange-500 to-amber-400",
-    "from-fuchsia-500 to-violet-400",
-    "from-sky-500 to-blue-400",
-  ];
+  // Use opacity-based approach so bars follow the skin
+  const getBarOpacity = (i: number) => Math.max(1 - i * 0.06, 0.35);
 
   const medalEmojis = ['🥇', '🥈', '🥉'];
 
@@ -148,11 +138,11 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
       <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1">
         <p className="font-semibold text-foreground">{d.fullName}</p>
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="h-3 w-3 text-emerald-500" />
+           <TrendingUp className="h-3 w-3 text-success" />
           <span>Interno: {formatCurrency(d.internalRevenue)}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Store className="h-3 w-3 text-blue-500" />
+           <Store className="h-3 w-3 text-primary" />
           <span>Mercado: {formatNumber(d.marketDepleted)} un.</span>
         </div>
         <p className="text-muted-foreground">{pct}% do total</p>
@@ -166,9 +156,9 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-                <LayoutGrid className="h-3.5 w-3.5 text-white" />
-              </div>
+               <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+                 <LayoutGrid className="h-3.5 w-3.5" />
+               </div>
               🏆 Ranking de Categorias
             </CardTitle>
             <CardDescription className="text-xs mt-0.5">
@@ -293,11 +283,11 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                             <div className="flex items-center gap-2">
                               <div className="flex-1 h-1.5 bg-muted rounded-full overflow-hidden">
                                 <div
-                                  className={cn(
-                                    "h-full rounded-full bg-gradient-to-r transition-all duration-500",
-                                    barColors[i % barColors.length]
-                                  )}
-                                  style={{ width: `${pct}%` }}
+                                  className="h-full rounded-full transition-all duration-500"
+                                  style={{
+                                    width: `${pct}%`,
+                                    background: `hsl(var(--primary) / ${getBarOpacity(i)})`,
+                                  }}
                                 />
                               </div>
                               <span className="text-[9px] text-muted-foreground shrink-0 w-24 text-right">
@@ -309,11 +299,11 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                         <TooltipContent side="left" className="text-xs space-y-1">
                           <p className="font-semibold">{cat.categoryName}</p>
                           <div className="flex items-center gap-1.5">
-                            <TrendingUp className="h-3 w-3 text-emerald-500" />
+                            <TrendingUp className="h-3 w-3 text-success" />
                             <span>Interno: {formatCurrency(cat.internalRevenue)} ({formatNumber(cat.internalQty)} un.)</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Store className="h-3 w-3 text-blue-500" />
+                            <Store className="h-3 w-3 text-primary" />
                             <span>Mercado (saídas): {formatNumber(cat.marketDepleted)} un.</span>
                           </div>
                           <p className="text-muted-foreground">Score: {cat.totalScore.toFixed(1)}</p>

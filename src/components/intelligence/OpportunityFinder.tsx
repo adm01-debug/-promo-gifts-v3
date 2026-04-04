@@ -8,7 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 function ScoreIndicator({ score }: { score: number }) {
-  const color = score >= 80 ? "text-red-500" : score >= 50 ? "text-amber-500" : "text-muted-foreground";
+  const color = score >= 80 ? "text-destructive" : score >= 50 ? "text-warning" : "text-muted-foreground";
   const label = score >= 80 ? "Alta" : score >= 50 ? "Média" : "Baixa";
   return (
     <div className="flex items-center gap-1">
@@ -42,8 +42,8 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-yellow-500 to-orange-500 flex items-center justify-center">
-                <Lightbulb className="h-3.5 w-3.5 text-white" />
+              <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+                <Lightbulb className="h-3.5 w-3.5" />
               </div>
               💡 Oportunidades de Conversão
             </CardTitle>
@@ -66,7 +66,7 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
           opportunities!.map((opp) => (
             <div
               key={opp.productSku || opp.productId}
-              className="group flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-amber-500/30 hover:bg-amber-500/5 cursor-pointer transition-all"
+              className="group flex items-center gap-3 p-3 rounded-xl border border-border/50 hover:border-warning/30 hover:bg-warning/5 cursor-pointer transition-all"
               onClick={() => opp.productId && navigate(`/produto/${opp.productId}`)}
             >
               {/* Image */}
@@ -83,9 +83,9 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium truncate">{opp.productName}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span className="text-amber-600 font-medium">{opp.quoteCount} cotações</span>
+                  <span className="text-warning font-medium">{opp.quoteCount} cotações</span>
                   <span>→</span>
-                  <span className={cn(opp.orderCount === 0 ? "text-red-500" : "text-muted-foreground")}>
+                  <span className={cn(opp.orderCount === 0 ? "text-destructive" : "text-muted-foreground")}>
                     {opp.orderCount} pedidos
                   </span>
                   <span className="text-[10px]">({opp.conversionRate}%)</span>
@@ -94,7 +94,7 @@ export function OpportunityFinder({ days = 30, categoryId, supplierId, productId
 
               <div className="text-right shrink-0 space-y-1">
                 <ScoreIndicator score={opp.opportunityScore} />
-                <Badge variant="outline" className="text-[9px] text-amber-600 border-amber-500/30 bg-amber-500/10 max-w-[120px] truncate">
+                <Badge variant="outline" className="text-[9px] text-warning border-warning/30 bg-warning/10 max-w-[120px] truncate">
                   <AlertTriangle className="h-2.5 w-2.5 mr-0.5 shrink-0" />
                   {opp.reason}
                 </Badge>

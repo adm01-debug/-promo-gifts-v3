@@ -56,8 +56,8 @@ function RankBadge({ index }: { index: number }) {
 
 function ABCBadge({ revenue, topRevenue }: { revenue: number; topRevenue: number }) {
   const ratio = topRevenue > 0 ? revenue / topRevenue : 0;
-  if (ratio >= 0.5) return <Badge variant="default" className="text-[9px] h-4 px-1 bg-emerald-600 hover:bg-emerald-600">🔥 A</Badge>;
-  if (ratio >= 0.2) return <Badge variant="secondary" className="text-[9px] h-4 px-1 bg-amber-500/20 text-amber-700 hover:bg-amber-500/20">⚡ B</Badge>;
+  if (ratio >= 0.5) return <Badge variant="default" className="text-[9px] h-4 px-1 bg-success hover:bg-success">🔥 A</Badge>;
+  if (ratio >= 0.2) return <Badge variant="secondary" className="text-[9px] h-4 px-1 bg-warning/20 text-warning hover:bg-warning/20">⚡ B</Badge>;
   return <Badge variant="outline" className="text-[9px] h-4 px-1 text-muted-foreground">📦 C</Badge>;
 }
 
@@ -113,8 +113,8 @@ export function ProductRankingSearch() {
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
   const trendIcon = {
-    up: <TrendingUp className="h-3 w-3 text-emerald-500" />,
-    down: <TrendingDown className="h-3 w-3 text-red-500" />,
+    up: <TrendingUp className="h-3 w-3 text-success" />,
+    down: <TrendingDown className="h-3 w-3 text-destructive" />,
     stable: <Minus className="h-3 w-3 text-muted-foreground" />,
   };
 
@@ -144,8 +144,8 @@ export function ProductRankingSearch() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                <Trophy className="h-3.5 w-3.5 text-white" />
+              <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+                <Trophy className="h-3.5 w-3.5" />
               </div>
               🏆 Ranking de Produtos Mais Vendidos
             </CardTitle>
@@ -323,28 +323,28 @@ export function ProductRankingSearch() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
             <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <DollarSign className="h-3 w-3 text-emerald-500" />
+                 <DollarSign className="h-3 w-3 text-success" />
               </div>
               <p className="text-base sm:text-lg font-bold text-foreground">{formatCurrency(summary.totalRev)}</p>
               <p className="text-[10px] text-muted-foreground">Faturamento</p>
             </div>
             <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <ShoppingBag className="h-3 w-3 text-blue-500" />
+                <ShoppingBag className="h-3 w-3 text-primary" />
               </div>
               <p className="text-base sm:text-lg font-bold text-foreground">{summary.totalQty.toLocaleString('pt-BR')}</p>
               <p className="text-[10px] text-muted-foreground">Unidades</p>
             </div>
             <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <BarChart3 className="h-3 w-3 text-violet-500" />
+                <BarChart3 className="h-3 w-3 text-primary" />
               </div>
               <p className="text-base sm:text-lg font-bold text-foreground">{summary.totalOrders}</p>
               <p className="text-[10px] text-muted-foreground">Pedidos</p>
             </div>
             <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Medal className="h-3 w-3 text-amber-500" />
+                <Medal className="h-3 w-3 text-warning" />
               </div>
               <p className="text-base sm:text-lg font-bold text-foreground">{formatCurrency(summary.avgTicket)}</p>
               <p className="text-[10px] text-muted-foreground">Ticket Médio</p>

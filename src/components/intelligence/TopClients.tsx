@@ -25,8 +25,8 @@ export function TopClients({ days = 30, categoryId, supplierId }: { days?: numbe
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-              <Users className="h-3.5 w-3.5 text-white" />
+            <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+              <Users className="h-3.5 w-3.5" />
             </div>
             🏆 Top Clientes
           </CardTitle>
@@ -44,8 +44,8 @@ export function TopClients({ days = 30, categoryId, supplierId }: { days?: numbe
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
-            <Users className="h-3.5 w-3.5 text-white" />
+          <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+            <Users className="h-3.5 w-3.5" />
           </div>
           🏆 Top Clientes por Faturamento
         </CardTitle>
@@ -69,7 +69,7 @@ export function TopClients({ days = 30, categoryId, supplierId }: { days?: numbe
               </div>
               <div className="h-1.5 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500"
+                  className="h-full rounded-full skin-progress transition-all duration-500"
                   style={{ width: `${pct}%` }}
                 />
               </div>
