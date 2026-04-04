@@ -20,7 +20,7 @@ export interface MagicUpProduct {
   id: string;
   name: string;
   sku: string;
-  images: any;
+  images: Array<{ url_cdn?: string; url_original?: string; is_primary?: boolean; is_og_image?: boolean; image_type?: string; supplier_code?: string }> | null;
   primary_image_url?: string | null;
   og_image_url?: string | null;
 }
