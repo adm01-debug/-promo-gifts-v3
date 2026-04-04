@@ -5,6 +5,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
 
 function getSinceDate(days: number): string {
   const d = new Date();
@@ -107,12 +108,13 @@ export interface RevenuePoint {
 
 export function useCommercialKPIs(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
+  const orgId = useCurrentOrgId();
   const since = getSinceDate(days);
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-intelligence-kpis', user?.id, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
+    queryKey: ['commercial-intelligence-kpis', user?.id, orgId, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
     queryFn: async (): Promise<IntelligenceKPI> => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
@@ -154,11 +156,19 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
         };
       }
 
+      // Defense-in-depth: filter by org even though RLS enforces it
+      let quotesQuery1 = supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since);
+      let ordersQuery1 = supabase.from('orders').select('id, total, status, created_at').gte('created_at', since);
+      let quotesQuery2 = supabase.from('quotes').select('id, total').gte('created_at', startOfMonth);
+      let ordersQuery2 = supabase.from('orders').select('id, total').gte('created_at', startOfMonth);
+      if (orgId) {
+        quotesQuery1 = quotesQuery1.eq('organization_id', orgId);
+        ordersQuery1 = ordersQuery1.eq('organization_id', orgId);
+        quotesQuery2 = quotesQuery2.eq('organization_id', orgId);
+        ordersQuery2 = ordersQuery2.eq('organization_id', orgId);
+      }
       const [quotesRes, ordersRes, quotesMonthRes, ordersMonthRes] = await Promise.all([
-        supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since),
-        supabase.from('orders').select('id, total, status, created_at').gte('created_at', since),
-        supabase.from('quotes').select('id, total').gte('created_at', startOfMonth),
-        supabase.from('orders').select('id, total').gte('created_at', startOfMonth),
+        quotesQuery1, ordersQuery1, quotesQuery2, ordersQuery2,
       ]);
 
       const quotes = quotesRes.data || [];
@@ -377,11 +387,12 @@ export function useOpportunities(days = 30, categoryId?: string | null, supplier
 
 export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
+  const orgId = useCurrentOrgId();
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-revenue-trend', user?.id, days, categoryId, supplierId],
+    queryKey: ['commercial-revenue-trend', user?.id, orgId, days, categoryId, supplierId],
     queryFn: async (): Promise<RevenuePoint[]> => {
       const since = new Date();
       since.setDate(since.getDate() - days);
@@ -411,10 +422,13 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
         orderData = oi || [];
         quoteData = qi || [];
       } else {
-        const [{ data: orders }, { data: quotes }] = await Promise.all([
-          supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at'),
-          supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at'),
-        ]);
+        let ordQ = supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at');
+        let quoQ = supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at');
+        if (orgId) {
+          ordQ = ordQ.eq('organization_id', orgId);
+          quoQ = quoQ.eq('organization_id', orgId);
+        }
+        const [{ data: orders }, { data: quotes }] = await Promise.all([ordQ, quoQ]);
 
         // Convert order-level data to same shape
         orderData = (orders || []).map(o => ({ quantity: 1, unit_price: o.total, created_at: o.created_at }));
