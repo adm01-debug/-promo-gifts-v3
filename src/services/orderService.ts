@@ -42,10 +42,12 @@ export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }:
   }
 
   // 3. Create the order
+  const effectiveOrgId = organizationId || quote.organization_id || null;
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
       seller_id: sellerId,
+      organization_id: effectiveOrgId,
       quote_id: quoteId,
       client_id: quote.client_id,
       client_name: quote.client_name,
