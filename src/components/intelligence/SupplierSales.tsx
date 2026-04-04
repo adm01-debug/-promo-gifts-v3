@@ -29,16 +29,8 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
   const maxRevenue = hasData ? Math.max(...suppliers!.map(s => s.revenue)) : 0;
   const totalRevenue = hasData ? suppliers!.reduce((s, su) => s + su.revenue, 0) : 0;
 
-  const barColors = [
-    "from-emerald-500 to-emerald-400",
-    "from-blue-500 to-blue-400",
-    "from-violet-500 to-violet-400",
-    "from-amber-500 to-amber-400",
-    "from-rose-500 to-rose-400",
-    "from-cyan-500 to-cyan-400",
-    "from-orange-500 to-orange-400",
-    "from-pink-500 to-pink-400",
-  ];
+  // Use opacity-based approach so bars follow the skin
+  const getBarOpacity = (i: number) => Math.max(1 - i * 0.07, 0.4);
 
   return (
     <Card>
