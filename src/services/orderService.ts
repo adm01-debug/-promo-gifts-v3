@@ -14,7 +14,7 @@ export interface ConvertedOrder {
   total: number;
 }
 
-export async function convertQuoteToOrder({ quoteId, sellerId }: ConvertQuoteToOrderParams): Promise<ConvertedOrder> {
+export async function convertQuoteToOrder({ quoteId, sellerId, organizationId }: ConvertQuoteToOrderParams): Promise<ConvertedOrder> {
   // 1. Fetch the quote
   const { data: quote, error: quoteError } = await supabase
     .from("quotes")
