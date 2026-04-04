@@ -103,6 +103,29 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
+  const [currentIP, setCurrentIP] = useState<string | null>(null);
+  const [geoLocation, setGeoLocation] = useState<string | null>(null);
+
+  // Fetch IP and geolocation on mount
+  useEffect(() => {
+    const loadIPInfo = async () => {
+      try {
+        const ip = await fetchCurrentIP();
+        if (ip) {
+          setCurrentIP(ip);
+          // Fetch geolocation
+          const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=city,country`);
+          if (geoRes.ok) {
+            const geo = await geoRes.json();
+            setGeoLocation(`${geo.city}, ${geo.country}`);
+          }
+        }
+      } catch {
+        // silent fail
+      }
+    };
+    loadIPInfo();
+  }, [fetchCurrentIP]);
 
   // Redirect if already logged in
   useEffect(() => {
