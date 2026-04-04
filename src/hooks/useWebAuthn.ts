@@ -264,10 +264,11 @@ export function useWebAuthn() {
           .eq("id", passkey.id);
 
         return { success: true, userId: passkey.user_id };
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error("Error authenticating with passkey:", error);
+        const err = error instanceof Error ? error : new Error('Unknown error');
 
-        if (error.name === "NotAllowedError") {
+        if (err.name === "NotAllowedError") {
           toast({
             variant: "destructive",
             title: "Cancelado",
@@ -277,7 +278,7 @@ export function useWebAuthn() {
           toast({
             variant: "destructive",
             title: "Erro de autenticação",
-            description: error.message || "Não foi possível autenticar com passkey",
+            description: err.message || "Não foi possível autenticar com passkey",
           });
         }
         return { success: false };
