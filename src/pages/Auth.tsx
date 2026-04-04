@@ -109,28 +109,41 @@ export default function Auth() {
   // Fetch IP and geolocation on mount
   useEffect(() => {
     const loadIPInfo = async () => {
-      try {
-        // Use ipapi.co (HTTPS, no key required, IP + geo in one call)
-        const geoRes = await fetch('https://ipapi.co/json/');
-        if (geoRes.ok) {
-          const geo = await geoRes.json();
-          if (geo.ip) setCurrentIP(geo.ip);
-          if (geo.city) setGeoLocation(`${geo.city}, ${geo.country_code}`);
-          return;
+      // Try multiple APIs in order
+      const apis = [
+        {
+          url: 'https://ipapi.co/json/',
+          parse: (d: any) => ({ ip: d.ip, loc: d.city ? `${d.city}, ${d.country_code}` : null }),
+        },
+        {
+          url: 'https://ipwho.is/',
+          parse: (d: any) => ({ ip: d.ip, loc: d.city ? `${d.city}, ${d.country_code}` : null }),
+        },
+        {
+          url: 'https://api.ipify.org?format=json',
+          parse: (d: any) => ({ ip: d.ip, loc: null }),
+        },
+      ];
+
+      for (const api of apis) {
+        try {
+          const res = await fetch(api.url, { signal: AbortSignal.timeout(5000) });
+          if (res.ok) {
+            const data = await res.json();
+            const result = api.parse(data);
+            if (result.ip) {
+              setCurrentIP(result.ip);
+              if (result.loc) setGeoLocation(result.loc);
+              return;
+            }
+          }
+        } catch {
+          // try next
         }
-      } catch {
-        // silent fail on geo
-      }
-      // Fallback: try fetchCurrentIP alone
-      try {
-        const ip = await fetchCurrentIP();
-        if (ip) setCurrentIP(ip);
-      } catch {
-        // silent fail
       }
     };
     loadIPInfo();
-  }, [fetchCurrentIP]);
+  }, []);
 
   // Redirect if already logged in
   useEffect(() => {
