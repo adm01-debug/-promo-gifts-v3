@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Gift, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Loader2, Gift, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket } from "lucide-react";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
