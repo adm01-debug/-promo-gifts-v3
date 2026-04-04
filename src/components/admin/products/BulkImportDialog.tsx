@@ -1,52 +1,48 @@
 /**
- * BulkImportDialog — Sistema completo de importação em massa de produtos
- * Suporta CSV e Excel (.xlsx/.xls) com mapeamento de colunas e validação
+ * BulkImportDialog — Sistema robusto de importação em massa de produtos
+ * 
+ * Features:
+ * - CSV e Excel (.xlsx/.xls) parsing
+ * - Auto-mapping inteligente de colunas (PT-BR + EN)
+ * - Verificação de SKUs duplicados no BD externo
+ * - Modo Insert / Upsert (inserir ou atualizar por SKU)
+ * - Importação em lotes (chunks de 25)
+ * - Validação completa com preview
+ * - Relatório de erros exportável
+ * - Template CSV e Excel
+ * - Limite de 10.000 linhas enforçado
  */
 
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from '@/components/ui/select';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from '@/components/ui/table';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 import {
-  Upload,
-  FileSpreadsheet,
-  ArrowRight,
-  CheckCircle2,
-  XCircle,
-  AlertTriangle,
-  Download,
-  Loader2,
-  RotateCcw,
-  X,
+  Upload, FileSpreadsheet, ArrowRight, CheckCircle2, XCircle,
+  AlertTriangle, Download, Loader2, RotateCcw, RefreshCw, FileDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
-import { invokeExternalDbSingle } from '@/lib/external-db';
+import {
+  type ImportMode, type ImportRow, type BatchImportProgress, type BatchImportResult,
+  checkExistingSkus, executeBatchImport, generateErrorReportCSV,
+} from '@/lib/external-db/batch-import';
 
-// ── Target fields for mapping ──
+// ── Constants ──
+const MAX_ROWS = 10_000;
+
 const TARGET_FIELDS = [
   { key: 'sku', label: 'SKU', required: true },
   { key: 'name', label: 'Nome', required: true },
@@ -78,14 +74,8 @@ interface ValidationResult {
   valid: boolean;
   errors: string[];
   warnings: string[];
-  data?: Record<string, any>;
-}
-
-interface ImportProgress {
-  total: number;
-  processed: number;
-  succeeded: number;
-  failed: number;
+  data?: ImportRow;
+  existsInDb: boolean;
 }
 
 type Step = 'upload' | 'mapping' | 'preview' | 'importing' | 'complete';
@@ -96,6 +86,30 @@ interface BulkImportDialogProps {
   onComplete: () => void;
 }
 
+// ── Alias map for auto-mapping ──
+const ALIAS_MAP: Record<string, TargetFieldKey> = {
+  sku: 'sku', codigo: 'sku', code: 'sku', cod: 'sku', ref: 'sku', referencia: 'sku',
+  nome: 'name', name: 'name', produto: 'name', product: 'name', titulo: 'name', title: 'name',
+  preco: 'sale_price', price: 'sale_price', precovenda: 'sale_price', saleprice: 'sale_price',
+  valor: 'sale_price', valorvenda: 'sale_price', sellprice: 'sale_price',
+  descricao: 'description', description: 'description', desc: 'description',
+  descricaocurta: 'short_description', shortdescription: 'short_description',
+  metadescricao: 'meta_description', metadescription: 'meta_description',
+  marca: 'brand', brand: 'brand',
+  estoque: 'stock_quantity', stock: 'stock_quantity', qty: 'stock_quantity', quantidade: 'stock_quantity',
+  custo: 'cost_price', costprice: 'cost_price', precocusto: 'cost_price',
+  peso: 'weight_g', weight: 'weight_g', pesogramas: 'weight_g',
+  altura: 'height_cm', height: 'height_cm',
+  largura: 'width_cm', width: 'width_cm',
+  comprimento: 'length_cm', profundidade: 'length_cm', length: 'length_cm', depth: 'length_cm',
+  imagem: 'image_url', image: 'image_url', imageurl: 'image_url', foto: 'image_url', photo: 'image_url',
+  embalagem: 'packing_type', packingtype: 'packing_type', packaging: 'packing_type',
+  reffornecedor: 'supplier_reference', supplierref: 'supplier_reference', supplierreference: 'supplier_reference',
+  referenciaforncedor: 'supplier_reference', fornecedorref: 'supplier_reference',
+  qtdminima: 'min_quantity', minquantity: 'min_quantity', minqty: 'min_quantity',
+  quantidademinima: 'min_quantity', pedidominimo: 'min_quantity',
+};
+
 export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportDialogProps) {
   const [step, setStep] = useState<Step>('upload');
   const [rawData, setRawData] = useState<Record<string, any>[]>([]);
@@ -103,8 +117,11 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
   const [fileName, setFileName] = useState('');
   const [mapping, setMapping] = useState<ColumnMapping>({});
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
-  const [progress, setProgress] = useState<ImportProgress | null>(null);
-  const [importErrors, setImportErrors] = useState<Array<{ row: number; errors: string[] }>>([]);
+  const [importMode, setImportMode] = useState<ImportMode>('upsert');
+  const [progress, setProgress] = useState<BatchImportProgress | null>(null);
+  const [importResult, setImportResult] = useState<BatchImportResult | null>(null);
+  const [isCheckingSkus, setIsCheckingSkus] = useState(false);
+  const [existingSkus, setExistingSkus] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ── Step 1: File Upload ──
@@ -112,11 +129,14 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
     const ext = file.name.split('.').pop()?.toLowerCase();
 
     try {
+      let parsedHeaders: string[] = [];
+      let parsedRows: Record<string, any>[] = [];
+
       if (ext === 'csv') {
         const text = await file.text();
-        const { headers: h, rows } = parseCSV(text);
-        setHeaders(h);
-        setRawData(rows);
+        const result = parseCSV(text);
+        parsedHeaders = result.headers;
+        parsedRows = result.rows;
       } else if (['xlsx', 'xls'].includes(ext || '')) {
         const XLSX = await import('@e965/xlsx');
         const buffer = await file.arrayBuffer();
@@ -127,114 +147,78 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
           toast.error('Planilha vazia');
           return;
         }
-        setHeaders(Object.keys(json[0]));
-        setRawData(json);
+        parsedHeaders = Object.keys(json[0]);
+        parsedRows = json;
       } else {
         toast.error('Formato não suportado. Use CSV, XLSX ou XLS.');
         return;
       }
 
+      if (parsedRows.length > MAX_ROWS) {
+        toast.error(`Arquivo excede o limite de ${MAX_ROWS.toLocaleString()} linhas (${parsedRows.length.toLocaleString()} encontradas)`);
+        return;
+      }
+
+      if (parsedRows.length === 0) {
+        toast.error('Nenhuma linha de dados encontrada');
+        return;
+      }
+
+      setHeaders(parsedHeaders);
+      setRawData(parsedRows);
       setFileName(file.name);
-      // Auto-map columns by name similarity
-      autoMapColumns(ext === 'csv' ? headers : Object.keys(rawData[0] || {}));
+
+      // Auto-map with the ACTUAL parsed headers (fixes stale state bug)
+      const newMapping: ColumnMapping = {};
+      const normalizeStr = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
+
+      for (const col of parsedHeaders) {
+        const normalized = normalizeStr(col);
+        if (ALIAS_MAP[normalized]) {
+          const alreadyMapped = Object.values(newMapping).includes(ALIAS_MAP[normalized]);
+          if (!alreadyMapped) {
+            newMapping[col] = ALIAS_MAP[normalized];
+          }
+        }
+      }
+      setMapping(newMapping);
+
       setStep('mapping');
-      toast.success(`${file.name} carregado com sucesso`);
+      toast.success(`${file.name} carregado — ${parsedRows.length.toLocaleString()} linhas`);
     } catch (error) {
       console.error('Parse error:', error);
       toast.error('Erro ao ler o arquivo. Verifique o formato.');
     }
   }, []);
 
-  // After rawData and headers are set, auto-map
-  const autoMapColumns = useCallback((cols: string[]) => {
-    const newMapping: ColumnMapping = {};
-    const normalizeStr = (s: string) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]/g, '');
-
-    const aliasMap: Record<string, TargetFieldKey> = {
-      sku: 'sku',
-      codigo: 'sku',
-      code: 'sku',
-      nome: 'name',
-      name: 'name',
-      produto: 'name',
-      preco: 'sale_price',
-      price: 'sale_price',
-      precovenda: 'sale_price',
-      saleprice: 'sale_price',
-      valor: 'sale_price',
-      descricao: 'description',
-      description: 'description',
-      marca: 'brand',
-      brand: 'brand',
-      estoque: 'stock_quantity',
-      stock: 'stock_quantity',
-      custo: 'cost_price',
-      costprice: 'cost_price',
-      precocusto: 'cost_price',
-      peso: 'weight_g',
-      weight: 'weight_g',
-      altura: 'height_cm',
-      height: 'height_cm',
-      largura: 'width_cm',
-      width: 'width_cm',
-      comprimento: 'length_cm',
-      length: 'length_cm',
-      imagem: 'image_url',
-      image: 'image_url',
-      imageurl: 'image_url',
-      embalagem: 'packing_type',
-      reffornecedor: 'supplier_reference',
-      supplierref: 'supplier_reference',
-      qtdminima: 'min_quantity',
-      minquantity: 'min_quantity',
-      descricaocurta: 'short_description',
-      shortdescription: 'short_description',
-      metadescricao: 'meta_description',
-      metadescription: 'meta_description',
-    };
-
-    for (const col of cols) {
-      const normalized = normalizeStr(col);
-      if (aliasMap[normalized]) {
-        // Avoid duplicate mappings
-        const alreadyMapped = Object.values(newMapping).includes(aliasMap[normalized]);
-        if (!alreadyMapped) {
-          newMapping[col] = aliasMap[normalized];
-        }
-      }
-    }
-
-    setMapping(newMapping);
-  }, []);
-
-  // ── Step 2: Validate mapped data ──
-  const validateData = useCallback(() => {
+  // ── Step 2: Validate + check existing SKUs ──
+  const validateData = useCallback(async () => {
+    setIsCheckingSkus(true);
     const results: ValidationResult[] = [];
     const requiredFields = TARGET_FIELDS.filter(f => f.required).map(f => f.key);
+    const allSkus: string[] = [];
 
+    // First pass: validate rows
     for (let i = 0; i < rawData.length; i++) {
       const row = rawData[i];
       const errors: string[] = [];
       const warnings: string[] = [];
       const mapped: Record<string, any> = {};
 
-      // Map source columns to target fields
       for (const [sourceCol, targetField] of Object.entries(mapping)) {
-        if (targetField) {
-          mapped[targetField] = row[sourceCol];
-        }
+        if (targetField) mapped[targetField] = row[sourceCol];
       }
 
-      // Check required fields
+      // Required fields
       for (const field of requiredFields) {
         const value = mapped[field];
         if (value === undefined || value === null || String(value).trim() === '') {
-          errors.push(`"${TARGET_FIELDS.find(f => f.key === field)?.label}" é obrigatório`);
+          errors.push(`"${TARGET_FIELDS.find(f => f.key === field)?.label}" obrigatório`);
         }
       }
 
-      // Validate price
-      if (mapped.sale_price !== undefined) {
+      // Parse price
+      if (mapped.sale_price !== undefined && mapped.sale_price !== '') {
         const price = parseFloat(String(mapped.sale_price).replace(',', '.'));
         if (isNaN(price) || price < 0) {
           errors.push('Preço inválido');
@@ -243,12 +227,12 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         }
       }
 
-      // Validate numeric fields
-      for (const numField of ['cost_price', 'stock_quantity', 'min_quantity', 'height_cm', 'width_cm', 'length_cm', 'weight_g']) {
+      // Parse numeric fields
+      for (const numField of ['cost_price', 'stock_quantity', 'min_quantity', 'height_cm', 'width_cm', 'length_cm', 'weight_g'] as const) {
         if (mapped[numField] !== undefined && mapped[numField] !== '') {
           const val = parseFloat(String(mapped[numField]).replace(',', '.'));
           if (isNaN(val)) {
-            warnings.push(`"${TARGET_FIELDS.find(f => f.key === numField)?.label}" valor inválido, será ignorado`);
+            warnings.push(`"${TARGET_FIELDS.find(f => f.key === numField)?.label}" ignorado (inválido)`);
             mapped[numField] = null;
           } else {
             mapped[numField] = val;
@@ -256,128 +240,177 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         }
       }
 
-      // SKU length
-      if (mapped.sku && String(mapped.sku).length > 50) {
-        errors.push('SKU excede 50 caracteres');
-      }
+      // SKU validation
+      const sku = mapped.sku ? String(mapped.sku).trim() : '';
+      if (sku && sku.length > 50) errors.push('SKU excede 50 caracteres');
 
-      // Name length
+      // Name truncation
       if (mapped.name && String(mapped.name).length > 300) {
-        warnings.push('Nome será truncado em 300 caracteres');
+        warnings.push('Nome truncado em 300 caracteres');
         mapped.name = String(mapped.name).substring(0, 300);
       }
+
+      // Collect SKU for dedup check
+      if (sku) allSkus.push(sku);
+
+      // Detect duplicate SKUs within the file
+      const skuCount = allSkus.filter(s => s === sku).length;
+      if (skuCount > 1) warnings.push('SKU duplicado dentro do arquivo');
+
+      const importRow: ImportRow | undefined = errors.length === 0 ? {
+        sku: sku,
+        name: String(mapped.name).trim(),
+        sale_price: mapped.sale_price ?? 0,
+        description: mapped.description || null,
+        short_description: mapped.short_description || null,
+        meta_description: mapped.meta_description || null,
+        brand: mapped.brand || null,
+        supplier_reference: mapped.supplier_reference || null,
+        cost_price: mapped.cost_price ?? null,
+        stock_quantity: mapped.stock_quantity ?? 0,
+        min_quantity: mapped.min_quantity ?? 1,
+        height_cm: mapped.height_cm ?? null,
+        width_cm: mapped.width_cm ?? null,
+        length_cm: mapped.length_cm ?? null,
+        weight_g: mapped.weight_g ?? null,
+        packing_type: mapped.packing_type || null,
+        image_url: mapped.image_url || null,
+        primary_image_url: mapped.image_url || null,
+        is_active: true,
+        active: true,
+      } : undefined;
 
       results.push({
         row: i + 1,
         valid: errors.length === 0,
         errors,
         warnings,
-        data: errors.length === 0 ? mapped : undefined,
+        data: importRow,
+        existsInDb: false,
       });
     }
 
+    // Second pass: check existing SKUs in DB
+    try {
+      const uniqueSkus = [...new Set(allSkus.filter(Boolean))];
+      if (uniqueSkus.length > 0) {
+        const existing = await checkExistingSkus(uniqueSkus);
+        setExistingSkus(existing);
+        for (const r of results) {
+          if (r.data?.sku && existing.has(r.data.sku)) {
+            r.existsInDb = true;
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('SKU dedup check failed, continuing:', err);
+      toast.warning('Não foi possível verificar SKUs existentes');
+    }
+
+    setIsCheckingSkus(false);
     setValidationResults(results);
     setStep('preview');
   }, [rawData, mapping]);
 
-  // ── Step 3: Execute import ──
+  // ── Step 3: Execute Import ──
   const executeImport = useCallback(async () => {
-    const validRows = validationResults.filter(r => r.valid && r.data);
-    if (validRows.length === 0) {
-      toast.error('Nenhuma linha válida para importar');
+    let rowsToImport: ImportRow[];
+
+    if (importMode === 'insert') {
+      // Skip rows that already exist
+      rowsToImport = validationResults
+        .filter(r => r.valid && r.data && !r.existsInDb)
+        .map(r => r.data!);
+    } else {
+      // Upsert: include all valid rows
+      rowsToImport = validationResults
+        .filter(r => r.valid && r.data)
+        .map(r => r.data!);
+    }
+
+    if (rowsToImport.length === 0) {
+      toast.error('Nenhuma linha para importar');
       return;
     }
 
     setStep('importing');
-    const prog: ImportProgress = {
-      total: validRows.length,
-      processed: 0,
-      succeeded: 0,
-      failed: 0,
-    };
-    setProgress(prog);
-    const errors: Array<{ row: number; errors: string[] }> = [];
 
-    for (const result of validRows) {
-      try {
-        const data = result.data!;
-        const productData: Record<string, any> = {
-          sku: String(data.sku).trim(),
-          name: String(data.name).trim(),
-          sale_price: data.sale_price ?? 0,
-          description: data.description || null,
-          short_description: data.short_description || null,
-          meta_description: data.meta_description || null,
-          brand: data.brand || null,
-          supplier_reference: data.supplier_reference || null,
-          cost_price: data.cost_price ?? null,
-          stock_quantity: data.stock_quantity ?? 0,
-          min_quantity: data.min_quantity ?? 1,
-          height_cm: data.height_cm ?? null,
-          width_cm: data.width_cm ?? null,
-          length_cm: data.length_cm ?? null,
-          weight_g: data.weight_g ?? null,
-          packing_type: data.packing_type || null,
-          is_active: true,
-          active: true,
-          updated_at: new Date().toISOString(),
-        };
+    const result = await executeBatchImport(
+      rowsToImport,
+      importMode,
+      (p) => setProgress({ ...p }),
+    );
 
-        if (data.image_url) {
-          productData.image_url = data.image_url;
-          productData.primary_image_url = data.image_url;
-        }
-
-        await invokeExternalDbSingle({
-          table: 'products',
-          operation: 'insert',
-          data: productData,
-        });
-
-        prog.succeeded++;
-      } catch (err) {
-        prog.failed++;
-        errors.push({ row: result.row, errors: [err instanceof Error ? err.message : 'Erro ao salvar'] });
-      }
-
-      prog.processed++;
-      setProgress({ ...prog });
-    }
-
-    setImportErrors(errors);
+    setImportResult(result);
     setStep('complete');
 
-    if (prog.succeeded > 0) {
-      toast.success(`${prog.succeeded} produto(s) importado(s)!`);
+    if (result.succeeded > 0) {
+      toast.success(`${result.succeeded} produto(s) importado(s)!`);
       onComplete();
     }
-    if (prog.failed > 0) {
-      toast.error(`${prog.failed} produto(s) falharam`);
+    if (result.failed > 0) {
+      toast.error(`${result.failed} produto(s) falharam`);
     }
-  }, [validationResults, onComplete]);
+  }, [validationResults, importMode, onComplete]);
 
-  // ── Template download ──
-  const downloadTemplate = useCallback(() => {
-    const headers = TARGET_FIELDS.map(f => f.key);
+  // ── Template download (CSV) ──
+  const downloadTemplateCSV = useCallback(() => {
     const labels = TARGET_FIELDS.map(f => `${f.label}${f.required ? ' *' : ''}`);
     const example = [
       'PROD-001', 'Caneta Personalizada', '5.99', 'Caneta esferográfica para brindes',
-      'Caneta brinde', 'Caneta personalizada para brindes corporativos', 'Marca XYZ',
+      'Caneta brinde', 'Caneta personalizada para brindes', 'Marca XYZ',
       'REF-001', '2.50', '1000', '50', '14', '1.2', '15', '10', 'Caixa Individual',
       'https://exemplo.com/imagem.jpg',
     ];
 
-    const csv = [labels.join(';'), example.join(';')].join('\n');
-    const BOM = '\uFEFF';
-    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = 'template_importacao_produtos.csv';
-    link.click();
-    URL.revokeObjectURL(url);
-    toast.success('Template baixado!');
+    const csv = '\uFEFF' + [labels.join(';'), example.join(';')].join('\n');
+    downloadBlob(csv, 'template_importacao_produtos.csv', 'text/csv;charset=utf-8;');
+    toast.success('Template CSV baixado!');
   }, []);
+
+  // ── Template download (Excel) ──
+  const downloadTemplateXLSX = useCallback(async () => {
+    try {
+      const XLSX = await import('@e965/xlsx');
+      const ws = XLSX.utils.aoa_to_sheet([
+        TARGET_FIELDS.map(f => `${f.label}${f.required ? ' *' : ''}`),
+        [
+          'PROD-001', 'Caneta Personalizada', 5.99, 'Caneta esferográfica para brindes',
+          'Caneta brinde', 'Caneta personalizada para brindes', 'Marca XYZ',
+          'REF-001', 2.50, 1000, 50, 14, 1.2, 15, 10, 'Caixa Individual',
+          'https://exemplo.com/imagem.jpg',
+        ],
+      ]);
+
+      // Set column widths
+      ws['!cols'] = TARGET_FIELDS.map((_, i) => ({ wch: i < 3 ? 20 : 15 }));
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Produtos');
+      XLSX.writeFile(wb, 'template_importacao_produtos.xlsx');
+      toast.success('Template Excel baixado!');
+    } catch {
+      toast.error('Erro ao gerar template Excel');
+    }
+  }, []);
+
+  // ── Error report download ──
+  const downloadErrorReport = useCallback(() => {
+    if (!importResult) return;
+
+    const failedRows = validationResults
+      .filter(r => !r.valid)
+      .map(r => ({
+        row: r.row,
+        sku: r.data?.sku || rawData[r.row - 1]?.sku || '',
+        name: r.data?.name || rawData[r.row - 1]?.name || '',
+        errors: r.errors,
+      }));
+
+    const csv = generateErrorReportCSV(importResult.errors, failedRows);
+    downloadBlob(csv, `erros_importacao_${new Date().toISOString().slice(0, 10)}.csv`, 'text/csv;charset=utf-8;');
+    toast.success('Relatório de erros baixado');
+  }, [importResult, validationResults, rawData]);
 
   // ── Reset ──
   const reset = () => {
@@ -388,10 +421,12 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
     setMapping({});
     setValidationResults([]);
     setProgress(null);
-    setImportErrors([]);
+    setImportResult(null);
+    setIsCheckingSkus(false);
+    setExistingSkus(new Set());
   };
 
-  // ── Helpers ──
+  // ── Derived state ──
   const requiredMapped = TARGET_FIELDS.filter(f => f.required).every(f =>
     Object.values(mapping).includes(f.key)
   );
@@ -399,6 +434,12 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
   const validCount = validationResults.filter(r => r.valid).length;
   const invalidCount = validationResults.filter(r => !r.valid).length;
   const warningCount = validationResults.filter(r => r.warnings.length > 0).length;
+  const existsCount = validationResults.filter(r => r.existsInDb).length;
+  const newCount = validationResults.filter(r => r.valid && !r.existsInDb).length;
+
+  const importableCount = importMode === 'insert'
+    ? newCount
+    : validCount;
 
   return (
     <Dialog open={open} onOpenChange={(v) => { if (!v) reset(); onOpenChange(v); }}>
@@ -411,8 +452,8 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
           <DialogDescription>
             {step === 'upload' && 'Envie um arquivo CSV ou Excel com os dados dos produtos'}
             {step === 'mapping' && `Mapeie as colunas de "${fileName}" para os campos do sistema`}
-            {step === 'preview' && 'Revise os dados antes de importar'}
-            {step === 'importing' && 'Importando produtos...'}
+            {step === 'preview' && 'Revise os dados e escolha o modo de importação'}
+            {step === 'importing' && 'Importando produtos em lotes...'}
             {step === 'complete' && 'Importação concluída'}
           </DialogDescription>
         </DialogHeader>
@@ -463,13 +504,19 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
               />
               <Upload className="h-10 w-10 mx-auto mb-3 text-muted-foreground" />
               <p className="text-sm font-medium">Arraste um arquivo aqui ou clique para selecionar</p>
-              <p className="text-xs text-muted-foreground mt-1">CSV, XLSX ou XLS • Máximo 10.000 linhas</p>
+              <p className="text-xs text-muted-foreground mt-1">
+                CSV, XLSX ou XLS • Máximo {MAX_ROWS.toLocaleString()} linhas
+              </p>
             </div>
 
-            <div className="flex justify-center">
-              <Button variant="outline" size="sm" onClick={downloadTemplate}>
+            <div className="flex justify-center gap-2">
+              <Button variant="outline" size="sm" onClick={downloadTemplateCSV}>
                 <Download className="h-4 w-4 mr-2" />
-                Baixar Template CSV
+                Template CSV
+              </Button>
+              <Button variant="outline" size="sm" onClick={downloadTemplateXLSX}>
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+                Template Excel
               </Button>
             </div>
           </div>
@@ -479,7 +526,7 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         {step === 'mapping' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <span>{headers.length} colunas encontradas • {rawData.length} linhas</span>
+              <span>{headers.length} colunas • {rawData.length.toLocaleString()} linhas</span>
               <span className={cn(!requiredMapped && 'text-destructive')}>
                 {requiredMapped ? '✓ Campos obrigatórios mapeados' : '⚠ Mapeie os campos obrigatórios (*)'}
               </span>
@@ -522,12 +569,19 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
             </ScrollArea>
 
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep('upload')}>
-                Voltar
-              </Button>
-              <Button onClick={validateData} disabled={!requiredMapped}>
-                Validar Dados
-                <ArrowRight className="h-4 w-4 ml-2" />
+              <Button variant="outline" onClick={() => setStep('upload')}>Voltar</Button>
+              <Button onClick={validateData} disabled={!requiredMapped || isCheckingSkus}>
+                {isCheckingSkus ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Verificando SKUs...
+                  </>
+                ) : (
+                  <>
+                    Validar Dados
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </>
+                )}
               </Button>
             </div>
           </div>
@@ -536,7 +590,8 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         {/* ═══ STEP: PREVIEW ═══ */}
         {step === 'preview' && (
           <div className="space-y-4">
-            <div className="flex gap-3">
+            {/* Stats badges */}
+            <div className="flex flex-wrap gap-2">
               <Badge variant="default" className="gap-1">
                 <CheckCircle2 className="h-3 w-3" /> {validCount} válidos
               </Badge>
@@ -546,13 +601,47 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
                 </Badge>
               )}
               {warningCount > 0 && (
-                <Badge variant="secondary" className="gap-1 text-yellow-500">
+                <Badge variant="secondary" className="gap-1 text-yellow-600">
                   <AlertTriangle className="h-3 w-3" /> {warningCount} avisos
                 </Badge>
               )}
+              {existsCount > 0 && (
+                <Badge variant="outline" className="gap-1 text-blue-600 border-blue-600/30">
+                  <RefreshCw className="h-3 w-3" /> {existsCount} já existem no BD
+                </Badge>
+              )}
+              <Badge variant="outline" className="gap-1 text-green-600 border-green-600/30">
+                + {newCount} novos
+              </Badge>
             </div>
 
-            <ScrollArea className="h-[350px]">
+            {/* Import mode selector */}
+            <div className="rounded-lg border p-3 space-y-2">
+              <p className="text-sm font-medium">Modo de Importação</p>
+              <RadioGroup
+                value={importMode}
+                onValueChange={(v) => setImportMode(v as ImportMode)}
+                className="flex gap-4"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="upsert" id="mode-upsert" />
+                  <Label htmlFor="mode-upsert" className="text-sm cursor-pointer">
+                    <span className="font-medium">Upsert</span>
+                    <span className="text-muted-foreground ml-1">— insere novos, atualiza existentes (por SKU)</span>
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="insert" id="mode-insert" />
+                  <Label htmlFor="mode-insert" className="text-sm cursor-pointer">
+                    <span className="font-medium">Inserir</span>
+                    <span className="text-muted-foreground ml-1">— apenas novos ({newCount}), pula existentes</span>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Data table */}
+            <ScrollArea className="h-[280px]">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -561,6 +650,7 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
                     <TableHead>SKU</TableHead>
                     <TableHead>Nome</TableHead>
                     <TableHead>Preço</TableHead>
+                    <TableHead>BD</TableHead>
                     <TableHead>Detalhes</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -575,17 +665,28 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
                           <XCircle className="h-4 w-4 text-destructive" />
                         )}
                       </TableCell>
-                      <TableCell className="font-mono text-xs">{r.data?.sku || rawData[r.row - 1]?.sku || '—'}</TableCell>
-                      <TableCell className="text-sm max-w-[200px] truncate">{r.data?.name || rawData[r.row - 1]?.name || '—'}</TableCell>
+                      <TableCell className="font-mono text-xs">
+                        {r.data?.sku || rawData[r.row - 1]?.[Object.entries(mapping).find(([, v]) => v === 'sku')?.[0] || ''] || '—'}
+                      </TableCell>
+                      <TableCell className="text-sm max-w-[180px] truncate">
+                        {r.data?.name || rawData[r.row - 1]?.[Object.entries(mapping).find(([, v]) => v === 'name')?.[0] || ''] || '—'}
+                      </TableCell>
                       <TableCell className="text-sm tabular-nums">
                         {r.data?.sale_price ? `R$ ${Number(r.data.sale_price).toFixed(2)}` : '—'}
+                      </TableCell>
+                      <TableCell>
+                        {r.existsInDb ? (
+                          <Badge variant="outline" className="text-[10px] text-blue-600 border-blue-600/30">Existe</Badge>
+                        ) : r.valid ? (
+                          <Badge variant="outline" className="text-[10px] text-green-600 border-green-600/30">Novo</Badge>
+                        ) : null}
                       </TableCell>
                       <TableCell>
                         {r.errors.length > 0 && (
                           <p className="text-[10px] text-destructive">{r.errors.join('; ')}</p>
                         )}
                         {r.warnings.length > 0 && (
-                          <p className="text-[10px] text-yellow-500">{r.warnings.join('; ')}</p>
+                          <p className="text-[10px] text-yellow-600">{r.warnings.join('; ')}</p>
                         )}
                       </TableCell>
                     </TableRow>
@@ -595,11 +696,9 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
             </ScrollArea>
 
             <div className="flex justify-between">
-              <Button variant="outline" onClick={() => setStep('mapping')}>
-                Voltar ao Mapeamento
-              </Button>
-              <Button onClick={executeImport} disabled={validCount === 0}>
-                Importar {validCount} produto(s)
+              <Button variant="outline" onClick={() => setStep('mapping')}>Voltar ao Mapeamento</Button>
+              <Button onClick={executeImport} disabled={importableCount === 0}>
+                Importar {importableCount} produto(s)
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
@@ -611,8 +710,9 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
           <div className="space-y-6 py-8">
             <div className="text-center">
               <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto mb-4" />
-              <p className="text-sm font-medium">Importando produtos...</p>
+              <p className="text-sm font-medium">Importando produtos em lotes...</p>
               <p className="text-xs text-muted-foreground mt-1">
+                Lote {progress.currentChunk} de {progress.totalChunks} •{' '}
                 {progress.processed} de {progress.total} processados
               </p>
             </div>
@@ -625,35 +725,44 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         )}
 
         {/* ═══ STEP: COMPLETE ═══ */}
-        {step === 'complete' && progress && (
+        {step === 'complete' && importResult && (
           <div className="space-y-6 py-4">
             <div className="text-center">
-              {progress.failed === 0 ? (
+              {importResult.failed === 0 ? (
                 <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-3" />
               ) : (
                 <AlertTriangle className="h-12 w-12 text-yellow-500 mx-auto mb-3" />
               )}
               <p className="text-lg font-semibold">Importação Concluída</p>
               <div className="flex justify-center gap-4 mt-2 text-sm">
-                <span className="text-green-500 font-medium">{progress.succeeded} importados</span>
-                {progress.failed > 0 && (
-                  <span className="text-destructive font-medium">{progress.failed} falharam</span>
+                <span className="text-green-500 font-medium">{importResult.succeeded} importados</span>
+                {importResult.failed > 0 && (
+                  <span className="text-destructive font-medium">{importResult.failed} falharam</span>
                 )}
               </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Modo: {importMode === 'upsert' ? 'Upsert (inserir/atualizar)' : 'Apenas inserção'}
+              </p>
             </div>
 
-            {importErrors.length > 0 && (
-              <ScrollArea className="h-[200px] border rounded-lg p-3">
+            {importResult.errors.length > 0 && (
+              <ScrollArea className="h-[150px] border rounded-lg p-3">
                 <p className="text-xs font-medium mb-2">Erros detalhados:</p>
-                {importErrors.map((e, i) => (
+                {importResult.errors.map((e, i) => (
                   <p key={i} className="text-xs text-destructive mb-1">
-                    Linha {e.row}: {e.errors.join('; ')}
+                    Linhas {e.startRow}–{e.endRow}: {e.message}
                   </p>
                 ))}
               </ScrollArea>
             )}
 
             <div className="flex justify-center gap-2">
+              {(importResult.failed > 0 || invalidCount > 0) && (
+                <Button variant="outline" size="sm" onClick={downloadErrorReport}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Baixar Erros
+                </Button>
+              )}
               <Button variant="outline" onClick={reset}>
                 <RotateCcw className="h-4 w-4 mr-2" />
                 Nova Importação
@@ -669,12 +778,21 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
   );
 }
 
-// ── CSV Parser ──
-function parseCSV(text: string): { headers: string[]; rows: Record<string, string>[] } {
-  // Detect delimiter
-  const firstLine = text.split('\n')[0];
-  const delimiter = firstLine.includes(';') ? ';' : ',';
+// ── Helpers ──
 
+function downloadBlob(content: string, filename: string, type: string) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = filename;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
+function parseCSV(text: string): { headers: string[]; rows: Record<string, string>[] } {
+  const firstLine = text.split('\n')[0];
+  const delimiter = firstLine.includes(';') ? ';' : firstLine.includes('\t') ? '\t' : ',';
   const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
   if (lines.length < 2) return { headers: [], rows: [] };
 
@@ -685,7 +803,6 @@ function parseCSV(text: string): { headers: string[]; rows: Record<string, strin
     headers.forEach((h, i) => { row[h] = values[i] || ''; });
     return row;
   });
-
   return { headers, rows };
 }
 
