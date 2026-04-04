@@ -166,3 +166,8 @@ export function useProductsContext() {
   }
   return context;
 }
+
+/** Safe version that returns null when outside ProductsProvider */
+export function useProductsContextSafe() {
+  return useContext(ProductsContext) ?? null;
+}
