@@ -507,6 +507,16 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
       if (result instanceof Response) return result;
       break;
 
+    case 'upsert':
+      result = await handleUpsert(externalSupabase, table, { data, corsHeaders });
+      if (result instanceof Response) return result;
+      break;
+
+    case 'batch_insert':
+      result = await handleBatchInsert(externalSupabase, table, { data, corsHeaders, onConflict: body.onConflict });
+      if (result instanceof Response) return result;
+      break;
+
     case 'update':
       result = await handleUpdate(externalSupabase, table, { data, id, isVirtual, corsHeaders });
       if (result instanceof Response) return result;
