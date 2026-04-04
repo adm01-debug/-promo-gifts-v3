@@ -179,7 +179,7 @@ export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: str
       // Filtrar por período se maxDays for especificado
       if (maxDays) {
         const minDaysRemaining = 30 - maxDays;
-        novelties = novelties.filter((n: any) => n.days_remaining >= minDaysRemaining);
+        novelties = novelties.filter((n: { days_remaining?: number }) => (n.days_remaining ?? 0) >= minDaysRemaining);
       }
 
       return novelties;

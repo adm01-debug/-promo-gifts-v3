@@ -357,7 +357,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
 
           // Contar pedidos por segmento
           const clientSegmentMap: Record<string, string> = {};
-          (clients || []).forEach((c: any) => {
+          (clients || []).forEach((c: { id?: string; ramo_atividade?: string }) => {
             if (c.ramo_atividade) clientSegmentMap[c.id] = c.ramo_atividade;
           });
 

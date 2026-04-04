@@ -128,7 +128,7 @@ export interface CustomizationPriceFlat {
  *  Handles BOTH the expected nested format AND the actual flat format
  *  returned by fn_get_customization_price.
  */
-export function mapPriceResponseToFlat(resp: any): CustomizationPriceFlat {
+export function mapPriceResponseToFlat(resp: Record<string, unknown>): CustomizationPriceFlat {
   // Detect format: if resp.area is an object, it's nested; otherwise flat
   const isNested = resp.area && typeof resp.area === 'object' && resp.area.id;
 

@@ -139,15 +139,15 @@ export function useSimulation() {
     queryKey: ["simulator-clients"],
     queryFn: async () => {
       const { selectCrm } = await import("@/lib/crm-db");
-      const companies = await selectCrm<any>("companies", {
+      const companies = await selectCrm<{ id: string; razao_social?: string; nome_fantasia?: string; ramo?: string; nicho?: string; logo_url?: string }>("companies", {
         select: "id, razao_social, nome_fantasia, ramo, nicho, logo_url",
         filters: { deleted_at: null },
         orderBy: { column: "razao_social", ascending: true },
         limit: 500,
       });
-      return companies.map((c: any) => ({
+      return companies.map((c) => ({
         id: c.id,
-        name: c.nome_fantasia || c.razao_social,
+        name: c.nome_fantasia || c.razao_social || '',
         ramo: c.ramo,
         nicho: c.nicho,
         logo_url: c.logo_url,

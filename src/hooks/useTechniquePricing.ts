@@ -65,17 +65,17 @@ export function useTechniquePricing(techniqueCode: string | null) {
         const records = data.data.records || [];
         
         // Filtrar tabelas que correspondem ao código da técnica
-        const matchingTables = records.filter((t: any) => {
+        const matchingTables = records.filter((t: Record<string, unknown>) => {
           const code = techniqueCode.toLowerCase();
-          const tableCode = (t.table_code || '').toLowerCase();
-          const fullCode = (t.table_fullcode || '').toLowerCase();
+          const tableCode = ((t.table_code as string) || '').toLowerCase();
+          const fullCode = ((t.table_fullcode as string) || '').toLowerCase();
           
           return tableCode.includes(code) || 
                  code.includes(tableCode) ||
                  fullCode.includes(code);
         });
 
-        const options: TechniquePriceOption[] = matchingTables.map((t: any) => ({
+        const options: TechniquePriceOption[] = matchingTables.map((t: Record<string, unknown>) => ({
           id: t.id,
           tableCode: t.table_code,
           tableCodeOption: t.table_code_option,

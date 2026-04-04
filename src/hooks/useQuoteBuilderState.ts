@@ -205,10 +205,10 @@ export function useQuoteBuilderState() {
 
   // ── Pre-fill from cart ──
   useEffect(() => {
-    const state = location.state as { fromCart?: boolean; companyId?: string; companyName?: string; companyLocation?: string; items?: any[] } | null;
+    const state = location.state as { fromCart?: boolean; companyId?: string; companyName?: string; companyLocation?: string; items?: Array<{ product_id: string; product_name: string; product_sku?: string; product_image_url?: string; quantity: number; unit_price: number; color_name?: string; color_hex?: string }> } | null;
     if (!state?.fromCart || !state.items?.length) return;
     if (state.companyId) setClientId(state.companyId);
-    const cartItems: QuoteItem[] = state.items.map((i: any) => ({
+    const cartItems: QuoteItem[] = state.items.map((i) => ({
       product_id: i.product_id, product_name: i.product_name, product_sku: i.product_sku || '',
       product_image_url: i.product_image_url || undefined, quantity: i.quantity,
       unit_price: i.unit_price, color_name: i.color_name || undefined,
