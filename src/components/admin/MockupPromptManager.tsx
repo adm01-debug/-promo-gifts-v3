@@ -190,7 +190,7 @@ export function MockupPromptManager() {
 
       if (error) throw error;
       setHistory((data || []) as PromptHistory[]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Erro ao carregar histórico");
     } finally {
       setHistoryLoading(false);
