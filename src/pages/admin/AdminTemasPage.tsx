@@ -15,14 +15,11 @@ import {
   applyRadius,
   clearThemeOverrides,
   getDefaultConfig,
-  exportThemeConfig,
-  importThemeConfig,
 } from '@/lib/theme-presets';
 
 export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
     applyThemePreset(cfg.presetId, mode);
