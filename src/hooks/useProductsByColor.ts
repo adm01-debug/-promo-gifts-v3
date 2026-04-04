@@ -85,8 +85,8 @@ export function useProductsByColor({
 
       const refResults = await invokeBatchBridge(refQueries);
 
-      const groupsData = refResults[0]?.success ? (refResults[0].data?.records as any[] || []) : [];
-      const variationsData = refResults[1]?.success ? (refResults[1].data?.records as any[] || []) : [];
+      const groupsData = refResults[0]?.success ? (refResults[0].data?.records as Record<string, unknown>[] || []) : [];
+      const variationsData = refResults[1]?.success ? (refResults[1].data?.records as Record<string, unknown>[] || []) : [];
 
       // Build lookup maps
       const groupsBySlug = new Map(groupsData.map((g: Record<string, unknown>) => [g.slug as string, g.id as string]));
