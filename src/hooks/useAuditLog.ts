@@ -138,13 +138,13 @@ export function useAuditLog() {
   /**
    * Wrapper para UPDATE com auditoria automática
    */
-  const auditedUpdate = async <T extends Record<string, any>>(
+  const auditedUpdate = async <T extends Record<string, unknown>>(
     table: AuditEntityType,
     entityId: string,
     oldRecord: T,
     updates: Partial<T>,
-    updateFn: () => Promise<{ data: T | null; error: any }>
-  ): Promise<{ data: T | null; error: any }> => {
+    updateFn: () => Promise<{ data: T | null; error: Error | null }>
+  ): Promise<{ data: T | null; error: Error | null }> => {
     const result = await updateFn();
     
     if (result.data && !result.error) {
