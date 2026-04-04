@@ -249,7 +249,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Lavanda',
     description: 'Suave e calmante',
     emoji: '🟪',
-    colors: ['hsl(260, 60%, 65%)', 'hsl(255, 20%, 6%)', 'hsl(258, 55%, 68%)'],
+    colors: ['hsl(270, 50%, 60%)', 'hsl(260, 45%, 68%)', 'hsl(250, 40%, 75%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(260, 60, 65) },
       dark: {
