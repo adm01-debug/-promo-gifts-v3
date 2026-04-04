@@ -108,12 +108,13 @@ export interface RevenuePoint {
 
 export function useCommercialKPIs(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
+  const orgId = useCurrentOrgId();
   const since = getSinceDate(days);
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-intelligence-kpis', user?.id, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
+    queryKey: ['commercial-intelligence-kpis', user?.id, orgId, days, categoryId, supplierId, productIds ? Array.from(productIds).length : null],
     queryFn: async (): Promise<IntelligenceKPI> => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
