@@ -80,9 +80,9 @@ interface Product {
   category_id: string | null;
   supplier_id: string | null;
   supplier_reference: string | null;
-  images: any;
-  colors: any;
-  materials: any;
+  images: string[] | null;
+  colors: Array<{ name: string; hex?: string; stock?: number }> | null;
+  materials: string[] | null;
   min_quantity: number | null;
   min_order_quantity: number | null;
   is_active: boolean | null;
