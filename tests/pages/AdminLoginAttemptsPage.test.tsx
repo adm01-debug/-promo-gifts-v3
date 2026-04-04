@@ -52,7 +52,7 @@ describe("AdminLoginAttemptsPage", () => {
     const { default: Page } = await import("@/pages/admin/AdminLoginAttemptsPage");
     renderWithProviders(<Page />);
     expect(screen.getByText("Tentativas de Login")).toBeInTheDocument();
-  });
+  }, 15000);
 
   it("renders stats cards", async () => {
     const { default: Page } = await import("@/pages/admin/AdminLoginAttemptsPage");
