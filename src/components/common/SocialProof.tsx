@@ -343,7 +343,7 @@ export function RecentActivity({
     >
       <div className="relative">
         <Users className="w-4 h-4 text-muted-foreground" />
-        <span className="absolute -top-1 -right-1 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+        <span className="absolute -top-1 -right-1 w-2 h-2 bg-success rounded-full animate-pulse" />
       </div>
       <span className="text-muted-foreground">
         <strong className="text-foreground">{count}</strong> pessoas viram nas {timeframe}
