@@ -1,11 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Palette, Sun, Moon, RotateCcw, Check, Save, ArrowLeft } from 'lucide-react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Palette, Sun, Moon, Monitor, RotateCcw, Check, Download, Upload } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
-import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import {
   THEME_PRESETS,
@@ -16,14 +15,15 @@ import {
   applyRadius,
   clearThemeOverrides,
   getDefaultConfig,
+  exportThemeConfig,
+  importThemeConfig,
 } from '@/lib/theme-presets';
 
 export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
-  const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Apply on mount + changes
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
     applyThemePreset(cfg.presetId, mode);
     applyRadius(cfg.radius);
@@ -39,9 +39,14 @@ export default function AdminTemasPage() {
     saveThemeConfig(next);
   };
 
-  const handleModeChange = (mode: 'light' | 'dark') => {
-    setAppTheme(mode);
-    updateConfig({ mode });
+  const handleModeChange = (mode: 'light' | 'dark' | 'system') => {
+    if (mode === 'system') {
+      setAppTheme('auto');
+      updateConfig({ mode: 'auto' as any });
+    } else {
+      setAppTheme(mode);
+      updateConfig({ mode });
+    }
   };
 
   const handleReset = () => {
@@ -53,40 +58,73 @@ export default function AdminTemasPage() {
     toast.success('Tema restaurado ao padrão');
   };
 
-  const handleSave = () => {
-    saveThemeConfig(config);
-    toast.success('Tema salvo com sucesso');
+  const handleExport = () => {
+    const json = exportThemeConfig(config);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'promo-gifts-theme.json';
+    a.click();
+    URL.revokeObjectURL(url);
+    toast.success('Tema exportado');
   };
+
+  const handleImport = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const imported = importThemeConfig(reader.result as string);
+      if (imported) {
+        setConfig(imported);
+        saveThemeConfig(imported);
+        toast.success('Tema importado com sucesso');
+      } else {
+        toast.error('Arquivo de tema inválido');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const currentMode = config.mode === 'auto' ? 'system' : config.mode;
 
   return (
     <div className="max-w-5xl mx-auto px-6 py-8 space-y-8">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-10 w-10 rounded-xl"
-            onClick={() => navigate(-1)}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
           <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
             <Palette className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Skins</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
             <p className="text-sm text-muted-foreground">
               Escolha um preset ou customize as cores
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={handleFileChange}
+          />
+          <Button variant="outline" size="sm" onClick={handleImport}>
+            <Upload className="h-4 w-4 mr-1.5" /> Importar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleExport}>
+            <Download className="h-4 w-4 mr-1.5" /> Exportar
+          </Button>
           <Button variant="outline" size="sm" onClick={handleReset}>
             <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
-          </Button>
-          <Button size="sm" onClick={handleSave}>
-            <Save className="h-4 w-4 mr-1.5" /> Salvar
           </Button>
         </div>
       </div>
@@ -96,60 +134,62 @@ export default function AdminTemasPage() {
         <CardContent className="p-6">
           <h2 className="text-sm font-semibold text-foreground mb-4">Modo de Cor</h2>
           <div className="flex gap-3">
-            <Button
-              variant={actualTheme === 'light' ? 'default' : 'outline'}
-              size="sm"
-              className="px-5"
-              onClick={() => handleModeChange('light')}
-            >
-              <Sun className="h-4 w-4 mr-2" /> Claro
-            </Button>
-            <Button
-              variant={actualTheme === 'dark' ? 'default' : 'outline'}
-              size="sm"
-              className="px-5"
-              onClick={() => handleModeChange('dark')}
-            >
-              <Moon className="h-4 w-4 mr-2" /> Escuro
-            </Button>
+            {[
+              { key: 'light' as const, icon: Sun, label: 'Claro' },
+              { key: 'dark' as const, icon: Moon, label: 'Escuro' },
+              { key: 'system' as const, icon: Monitor, label: 'Sistema' },
+            ].map(({ key, icon: Icon, label }) => (
+              <Button
+                key={key}
+                variant={currentMode === key ? 'default' : 'outline'}
+                size="sm"
+                className="px-5"
+                onClick={() => handleModeChange(key)}
+              >
+                <Icon className="h-4 w-4 mr-2" /> {label}
+              </Button>
+            ))}
           </div>
         </CardContent>
       </Card>
 
       {/* Presets Grid */}
       <div>
-        <h2 className="text-sm font-semibold text-foreground mb-4">Temas Disponíveis</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <h2 className="text-sm font-semibold text-foreground mb-4">
+          {THEME_PRESETS.length} skins disponíveis
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
           {THEME_PRESETS.map((preset) => {
             const isActive = config.presetId === preset.id;
             return (
               <Card
                 key={preset.id}
                 className={cn(
-                  'cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 relative group',
+                  'cursor-pointer transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 relative group overflow-hidden',
                   isActive && 'ring-2 ring-primary shadow-glow-primary'
                 )}
                 onClick={() => updateConfig({ presetId: preset.id })}
               >
-                <CardContent className="p-5">
+                <CardContent className="p-4">
+                  {/* Gradient swatch */}
+                  <div
+                    className="h-10 w-full rounded-lg mb-3 shadow-inner"
+                    style={{
+                      background: `linear-gradient(135deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 50%, ${preset.colors[2]} 100%)`,
+                    }}
+                  />
                   {isActive && (
-                    <div className="absolute top-4 right-4">
+                    <div className="absolute top-3 right-3">
                       <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
                         <Check className="h-3 w-3 text-primary-foreground" />
                       </div>
                     </div>
                   )}
-                  <div className="flex gap-2 mb-4">
-                    {preset.colors.map((color, i) => (
-                      <div
-                        key={i}
-                        className="h-7 w-7 rounded-full border-2 border-border/50 shadow-sm transition-transform group-hover:scale-110"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm">{preset.emoji}</span>
+                    <h3 className="text-xs font-bold text-foreground">{preset.name}</h3>
                   </div>
-                  <h3 className="text-sm font-bold text-foreground">{preset.name}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">{preset.description}</p>
+                  <p className="text-[11px] text-muted-foreground mt-0.5 italic">{preset.description}</p>
                 </CardContent>
               </Card>
             );
@@ -177,9 +217,7 @@ export default function AdminTemasPage() {
             onValueChange={([v]) => updateConfig({ radius: v })}
             className="my-5"
           />
-          {/* Live preview */}
           <div className="flex items-center gap-4 mt-6 pt-5 border-t border-border/50">
-            <span className="text-xs text-muted-foreground mr-1">Preview:</span>
             <Button size="sm" style={{ borderRadius: `${config.radius}px` }}>
               Botão
             </Button>
