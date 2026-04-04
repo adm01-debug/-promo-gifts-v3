@@ -47,7 +47,7 @@ export interface PromobrindTechnique {
 
 const TECHNIQUE_SELECT_FIELDS = '*';
 
-function mapTechniqueFields(t: any): PromobrindTechnique {
+function mapTechniqueFields(t: Record<string, unknown>): PromobrindTechnique {
   const maxCoresRaw = t.max_cores ?? t.max_colors;
   const maxCores = typeof maxCoresRaw === 'number' ? maxCoresRaw : typeof maxCoresRaw === 'string' ? Number(maxCoresRaw) : null;
   return {
@@ -71,11 +71,11 @@ export async function fetchPromobrindPrintAreas(productId: string): Promise<Prom
   const areas = await fetchPrintAreasFromProduct(productId);
   if (!areas.length) return [];
 
-  const techResult = await invokeExternalDb<any>({
+  const techResult = await invokeExternalDb<Record<string, unknown>>({
     table: 'tabela_preco_gravacao_oficial', operation: 'select',
     filters: { ativo: true }, limit: 100,
   });
-  const techById = new Map((techResult.records || []).map((t: any) => [t.id, t]));
+  const techById = new Map((techResult.records || []).map((t) => [t.id as string, t]));
   const result: PromobrindPrintArea[] = [];
 
   for (const area of areas) {

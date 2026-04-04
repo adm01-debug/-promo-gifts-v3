@@ -119,9 +119,9 @@ export function useStockVelocity(productId: string | undefined) {
           limit: 50,
         });
         return result.records;
-      } catch (err: any) {
-        // MV may not be populated yet — graceful fallback
-        if (err.message?.includes('not been populated') || err.message?.includes('não mapeada')) {
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('not been populated') || msg.includes('não mapeada')) {
           console.warn('[StockVelocity] MV not populated yet, returning empty');
           return [];
         }
@@ -130,9 +130,9 @@ export function useStockVelocity(productId: string | undefined) {
     },
     enabled: !!productId,
     staleTime: 30 * 60 * 1000,
-    retry: (failureCount, error: any) => {
-      if (error.message?.includes('not been populated')) return false;
-      return failureCount < 2;
+    retry: (failureCount, error: unknown) => {
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.includes('not been populated')) return false;
     },
   });
 }
@@ -154,9 +154,9 @@ export function useProductIntelligenceData(productId: string | undefined) {
           limit: 1,
         });
         return result.records[0] || null;
-      } catch (err: any) {
-        if (err.message?.includes('not been populated') || err.message?.includes('não mapeada')) {
-          console.warn('[ProductIntelligence] MV not populated yet, returning null');
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '';
+        if (msg.includes('not been populated') || msg.includes('não mapeada')) {
           return null;
         }
         throw err;
@@ -164,9 +164,9 @@ export function useProductIntelligenceData(productId: string | undefined) {
     },
     enabled: !!productId,
     staleTime: 30 * 60 * 1000,
-    retry: (failureCount, error: any) => {
-      if (error.message?.includes('not been populated')) return false;
-      return failureCount < 2;
+    retry: (failureCount, error: unknown) => {
+      const msg = error instanceof Error ? error.message : '';
+      if (msg.includes('not been populated')) return false;
     },
   });
 }

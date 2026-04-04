@@ -6,11 +6,10 @@
 
 const isDev = import.meta.env.DEV;
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
 export const logger = {
-  log: (...args: any[]) => { if (isDev) console.log(...args); },
-  warn: (...args: any[]) => { if (isDev) console.warn(...args); },
-  error: (...args: any[]) => console.error(...args), // always log errors
-  info: (...args: any[]) => { if (isDev) console.info(...args); },
-  debug: (...args: any[]) => { if (isDev) console.debug(...args); },
+  log: (...args: unknown[]) => { if (isDev) console.log(...args); },
+  warn: (...args: unknown[]) => { if (isDev) console.warn(...args); },
+  error: (...args: unknown[]) => console.error(...args), // always log errors
+  info: (...args: unknown[]) => { if (isDev) console.info(...args); },
+  debug: (...args: unknown[]) => { if (isDev) console.debug(...args); },
 };

@@ -66,7 +66,7 @@ export const useVoiceCommandHistory = (): UseVoiceCommandHistoryReturn => {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        return parsed.map((item: any) => ({
+        return parsed.map((item: { transcript?: string; command?: string; timestamp?: string; type?: string }) => ({
           ...item,
           timestamp: new Date(item.timestamp),
         }));

@@ -31,7 +31,7 @@ export function useCatalogPrefetch() {
           ...(i === 0 ? { countMode: 'planned' } : {}),
         }));
         const batchResults = await invokeBatchBridge(batchQueries);
-        const products: any[] = [];
+        const products: ReturnType<typeof mapLightweightToProduct>[] = [];
         let totalEstimate: number | null = null;
         let lastPageSize = 0;
         for (const result of batchResults) {

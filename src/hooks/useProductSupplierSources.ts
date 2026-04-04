@@ -57,7 +57,7 @@ export function useProductSupplierSources(productId?: string) {
         return (a.sale_price ?? 0) - (b.sale_price ?? 0);
       });
       setSources(records);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching supplier sources:', err);
     } finally {
       setIsLoading(false);
@@ -76,9 +76,9 @@ export function useProductSupplierSources(productId?: string) {
       toast.success('Fonte de fornecimento adicionada');
       await fetchSources();
       return true;
-    } catch (err: any) {
-      if (err.message?.includes('duplicate') || err.message?.includes('23505')) {
-        toast.error('Este fornecedor já está vinculado a este produto');
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : '';
+      if (msg.includes('duplicate') || msg.includes('23505')) {
       } else {
         toast.error('Erro ao adicionar fonte');
       }
@@ -97,7 +97,7 @@ export function useProductSupplierSources(productId?: string) {
       toast.success('Fonte atualizada');
       await fetchSources();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Erro ao atualizar fonte');
       return false;
     }
@@ -113,7 +113,7 @@ export function useProductSupplierSources(productId?: string) {
       toast.success('Fonte removida');
       await fetchSources();
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error('Erro ao remover fonte');
       return false;
     }

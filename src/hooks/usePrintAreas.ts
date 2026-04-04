@@ -76,9 +76,9 @@ export function usePrintAreas(productId: string | null) {
       if (!techData?.success) throw new Error(techData?.error || 'Erro ao buscar técnicas');
 
       const allTechs = techData.data?.records || [];
-      const techById = new Map(allTechs.map((t: any) => [t.id, t]));
+      const techById = new Map(allTechs.map((t: Record<string, unknown>) => [t.id as string, t]));
 
-      return areas.map((area: any, idx: number) => {
+      return areas.map((area: Record<string, unknown>, idx: number) => {
         const tech = area.tabela_preco_id ? techById.get(area.tabela_preco_id) : null;
         const techniques: { id: string; nome: string; codigo: string }[] = [];
 

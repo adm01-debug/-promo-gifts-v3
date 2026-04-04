@@ -89,8 +89,8 @@ export function useProductsByColor({
       const variationsData = refResults[1]?.success ? (refResults[1].data?.records as any[] || []) : [];
 
       // Build lookup maps
-      const groupsBySlug = new Map(groupsData.map((g: any) => [g.slug, g.id]));
-      const variationsBySlug = new Map(variationsData.map((v: any) => [v.slug, v]));
+      const groupsBySlug = new Map(groupsData.map((g: Record<string, unknown>) => [g.slug as string, g.id as string]));
+      const variationsBySlug = new Map(variationsData.map((v: Record<string, unknown>) => [v.slug as string, v]));
 
       // Resolve target color_ids from filters
       const targetColorIds = new Set<string>();

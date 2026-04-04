@@ -86,7 +86,7 @@ class MaterialService {
 
   // Buscar todos os grupos de materiais com estatísticas
   async getGroups(): Promise<{ groups: MaterialGroup[]; count: number }> {
-    const res = await this.callApi<{ groups: any[]; count?: number }>("groups");
+    const res = await this.callApi<{ groups: Record<string, unknown>[]; count?: number }>("groups");
 
     const groups: MaterialGroup[] = (res.groups || []).map((g) => ({
       group_id: g.group_id ?? g.id ?? "",
@@ -105,7 +105,7 @@ class MaterialService {
 
   // Buscar todos os tipos de materiais
   async getTypes(): Promise<{ types: MaterialType[]; count: number }> {
-    const res = await this.callApi<{ types: any[]; count?: number }>("types");
+    const res = await this.callApi<{ types: Record<string, unknown>[]; count?: number }>("types");
 
     const types: MaterialType[] = (res.types || []).map((t) => ({
       id: t.id ?? t.material_id ?? "",
@@ -125,7 +125,7 @@ class MaterialService {
 
   // Buscar tipos de um grupo específico por slug
   async getTypesByGroupSlug(groupSlug: string): Promise<{ types: MaterialType[]; count: number; groupSlug: string }> {
-    const res = await this.callApi<{ types: any[]; count?: number }>("types_by_group", { groupId: groupSlug });
+    const res = await this.callApi<{ types: Record<string, unknown>[]; count?: number }>("types_by_group", { groupId: groupSlug });
 
     const types: MaterialType[] = (res.types || []).map((t) => ({
       id: t.id ?? t.material_id ?? "",
@@ -145,7 +145,7 @@ class MaterialService {
 
   // Buscar materiais completos (tipos + grupos)
   async getComplete(): Promise<{ materials: MaterialComplete[]; count: number }> {
-    const res = await this.callApi<{ materials: any[]; count?: number }>("complete");
+    const res = await this.callApi<{ materials: Record<string, unknown>[]; count?: number }>("complete");
 
     const materials: MaterialComplete[] = (res.materials || []).map((m) => ({
       type_id: m.type_id ?? m.material_id ?? m.id ?? "",
@@ -180,7 +180,7 @@ class MaterialService {
   }
 
   // Buscar materiais de um produto específico
-  async getProductMaterials(productId: string): Promise<{ materials: any[]; count: number; productId: string }> {
+  async getProductMaterials(productId: string): Promise<{ materials: Record<string, unknown>[]; count: number; productId: string }> {
     return this.callApi('product_materials', { productId });
   }
 

@@ -31,7 +31,13 @@ interface Product {
   totalStock?: number;
 }
 
-function mapQuoteSearchProduct(p: any, getProductImageUrl: (product: any) => string | null): Product {
+interface RawProductColor {
+  name?: string;
+  hex?: string;
+  stock?: number;
+}
+
+function mapQuoteSearchProduct(p: PromobrindProduct, getProductImageUrl: (product: PromobrindProduct) => string | null): Product {
   const imgUrl = getProductImageUrl(p);
   const images = (p.images && p.images.length > 0) ? p.images : (imgUrl ? [imgUrl] : []);
 
@@ -41,13 +47,13 @@ function mapQuoteSearchProduct(p: any, getProductImageUrl: (product: any) => str
     sku: p.sku,
     price: p.sale_price ?? p.base_price ?? 0,
     images,
-    colors: (p.colors || []).map((c: any) => {
-      const name = typeof c === 'string' ? c : c.name;
+    colors: (p.colors || []).map((c: string | RawProductColor) => {
+      const name = typeof c === 'string' ? c : c.name || '';
       const hex = (typeof c === 'string' ? undefined : c.hex) || findKnownHex(name) || undefined;
       return { name, hex, stock: typeof c === 'string' ? undefined : c.stock };
     }),
     minQuantity: p.min_quantity ?? 1,
-    totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
+    totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: string | RawProductColor) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
   };
 }
 
@@ -174,11 +180,11 @@ export function useQuoteBuilderState() {
 
   // ── Pre-fill from simulator ──
   useEffect(() => {
-    const state = location.state as { fromSimulator?: boolean; simulationData?: any } | null;
+    const state = location.state as { fromSimulator?: boolean; simulationData?: { product?: { id: string; name: string; sku?: string; imageUrl?: string; price?: number }; quantity?: number; personalizations?: Array<{ technique?: { id: string; name: string }; specs?: { colors?: number; width?: number; height?: number }; pricing?: { setupPrice?: number; unitPrice?: number; totalPrice?: number } }> } } | null;
     if (!state?.fromSimulator || !state.simulationData) return;
     const { product, quantity, personalizations } = state.simulationData;
     if (!product) return;
-    const quotePersonalizations: QuoteItemPersonalization[] = (personalizations || []).map((p: any) => ({
+    const quotePersonalizations: QuoteItemPersonalization[] = (personalizations || []).map((p) => ({
       technique_id: p.technique?.id || '', technique_name: p.technique?.name || '',
       colors_count: p.specs?.colors || 1, positions_count: 1,
       width_cm: p.specs?.width || undefined, height_cm: p.specs?.height || undefined,
@@ -199,10 +205,10 @@ export function useQuoteBuilderState() {
 
   // ── Pre-fill from cart ──
   useEffect(() => {
-    const state = location.state as { fromCart?: boolean; companyId?: string; companyName?: string; companyLocation?: string; items?: any[] } | null;
+    const state = location.state as { fromCart?: boolean; companyId?: string; companyName?: string; companyLocation?: string; items?: Array<{ product_id: string; product_name: string; product_sku?: string; product_image_url?: string; quantity: number; unit_price: number; color_name?: string; color_hex?: string }> } | null;
     if (!state?.fromCart || !state.items?.length) return;
     if (state.companyId) setClientId(state.companyId);
-    const cartItems: QuoteItem[] = state.items.map((i: any) => ({
+    const cartItems: QuoteItem[] = state.items.map((i) => ({
       product_id: i.product_id, product_name: i.product_name, product_sku: i.product_sku || '',
       product_image_url: i.product_image_url || undefined, quantity: i.quantity,
       unit_price: i.unit_price, color_name: i.color_name || undefined,

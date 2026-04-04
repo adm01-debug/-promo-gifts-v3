@@ -231,12 +231,12 @@ async function enrichProducts(
   }
 
   // Extract results
-  const variantsRecords: any[] = [];
+  const variantsRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.variants) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) variantsRecords.push(...r.data.records);
   }
-  const imagesRecords: any[] = [];
+  const imagesRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.images) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) imagesRecords.push(...r.data.records);
@@ -247,20 +247,20 @@ async function enrichProducts(
     if (r?.success && r.data?.records) suppliersRecords.push(...(r.data.records as ExternalProduct[]));
   }
 
-  let colorVariationsRecords: any[] = [];
+  let colorVariationsRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.colorVariations) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) colorVariationsRecords = r.data.records as unknown[];
   }
-  let colorGroupsRecords: any[] = [];
+  let colorGroupsRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.colorGroups) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) colorGroupsRecords = r.data.records as unknown[];
   }
 
   const suppliersMap = new Map(suppliersRecords.map(s => [s.id, s.name]));
-  const colorVariationMap = new Map(colorVariationsRecords.map((v: any) => [v.id, { name: v.name, slug: v.slug, group_id: v.group_id }]));
-  const colorGroupMap = new Map(colorGroupsRecords.map((g: any) => [g.id, { name: g.name, slug: g.slug }]));
+  const colorVariationMap = new Map(colorVariationsRecords.map((v) => [v.id as string, { name: v.name as string, slug: v.slug as string, group_id: v.group_id as string }]));
+  const colorGroupMap = new Map(colorGroupsRecords.map((g) => [g.id as string, { name: g.name as string, slug: g.slug as string }]));
 
   // Build image map
   const productIdSet = new Set(productIds);
@@ -271,7 +271,7 @@ async function enrichProducts(
     titleText: string | null; variantId: string | null;
   }>>();
 
-  imagesRecords.forEach((img: any) => {
+  imagesRecords.forEach((img) => {
     if (!productIdSet.has(img.product_id)) return;
     if (!imagesByProduct.has(img.product_id)) imagesByProduct.set(img.product_id, []);
     imagesByProduct.get(img.product_id)!.push({
@@ -290,7 +290,7 @@ async function enrichProducts(
     image?: string; images?: string[]; groupSlug?: string; groupName?: string; variationSlug?: string;
   }>>();
 
-  variantsRecords.forEach((variant: any) => {
+  variantsRecords.forEach((variant) => {
     if (!variant.color_name || !productIds.includes(variant.product_id)) return;
     if (!colorsByProduct.has(variant.product_id)) colorsByProduct.set(variant.product_id, []);
     const colors = colorsByProduct.get(variant.product_id)!;

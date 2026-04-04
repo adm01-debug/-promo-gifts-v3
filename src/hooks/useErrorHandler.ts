@@ -44,7 +44,7 @@ export function useErrorHandler() {
    * Wraps an async function so any thrown error is automatically handled.
    */
   const wrapAsync = useCallback(
-    <T extends (...args: any[]) => Promise<any>>(
+    <T extends (...args: never[]) => Promise<unknown>>(
       fn: T,
       options?: ErrorHandlerOptions
     ): ((...args: Parameters<T>) => Promise<ReturnType<T> | undefined>) => {

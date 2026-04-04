@@ -579,7 +579,7 @@ export function useCategoryRanking(days = 30, categoryId?: string | null, suppli
           limit: 5000,
         });
         const snapshots = result?.records || [];
-        (snapshots || []).forEach((snap: any) => {
+        (snapshots || []).forEach((snap: Record<string, unknown>) => {
           const cat = productCategoryMap.get(snap.product_id);
           if (!cat) return;
           const existing = categoryMap.get(cat.catId) || {
