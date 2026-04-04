@@ -270,7 +270,7 @@ function buildPreset(p: PresetParams): ThemePreset {
 const diversityBase = buildPreset({
   id: 'diversity',
   name: 'Diversity',
-  description: 'Arco-íris inclusivo',
+  description: 'Orgulho e diversidade',
   emoji: '🏳️‍🌈',
   h: 0, s: 85, l: 55, gh: 280, sh: 160, ss: 70, sl: 45,
 });
