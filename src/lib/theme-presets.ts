@@ -192,7 +192,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Oceano',
     description: 'Azul profundo',
     emoji: '🌊',
-    colors: ['hsl(200, 85%, 45%)', 'hsl(205, 25%, 6%)', 'hsl(198, 80%, 50%)'],
+    colors: ['hsl(210, 85%, 40%)', 'hsl(200, 80%, 50%)', 'hsl(195, 85%, 55%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(200, 85, 45) },
       dark: {
