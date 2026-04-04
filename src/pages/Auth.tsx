@@ -194,14 +194,14 @@ export default function Auth() {
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-xl bg-orange flex items-center justify-center shadow-lg shadow-orange/30">
-                <Sparkles className="h-7 w-7 text-orange-foreground" />
+                <Gift className="h-7 w-7 text-orange-foreground" />
               </div>
               <div>
                 <h1 className="font-display text-3xl font-bold text-foreground">
-                  Promo
+                  Promo Gifts
                 </h1>
                 <p className="text-orange font-semibold uppercase tracking-widest text-sm -mt-1">
-                  Brindes
+                  Plataforma de Vendas
                 </p>
               </div>
             </div>
