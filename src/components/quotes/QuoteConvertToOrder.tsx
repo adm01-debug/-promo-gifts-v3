@@ -43,6 +43,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
       const order = await convertQuoteToOrder({
         quoteId,
         sellerId: user.id,
+        organizationId: currentOrg?.id || null,
       });
 
       toast.success(
