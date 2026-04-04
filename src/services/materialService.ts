@@ -145,7 +145,7 @@ class MaterialService {
 
   // Buscar materiais completos (tipos + grupos)
   async getComplete(): Promise<{ materials: MaterialComplete[]; count: number }> {
-    const res = await this.callApi<{ materials: any[]; count?: number }>("complete");
+    const res = await this.callApi<{ materials: Record<string, unknown>[]; count?: number }>("complete");
 
     const materials: MaterialComplete[] = (res.materials || []).map((m) => ({
       type_id: m.type_id ?? m.material_id ?? m.id ?? "",
