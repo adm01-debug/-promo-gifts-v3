@@ -422,10 +422,13 @@ export function useRevenueTrend(days = 30, categoryId?: string | null, supplierI
         orderData = oi || [];
         quoteData = qi || [];
       } else {
-        const [{ data: orders }, { data: quotes }] = await Promise.all([
-          supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at'),
-          supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at'),
-        ]);
+        let ordQ = supabase.from('orders').select('total, created_at').gte('created_at', sinceStr).order('created_at');
+        let quoQ = supabase.from('quotes').select('total, created_at').gte('created_at', sinceStr).order('created_at');
+        if (orgId) {
+          ordQ = ordQ.eq('organization_id', orgId);
+          quoQ = quoQ.eq('organization_id', orgId);
+        }
+        const [{ data: orders }, { data: quotes }] = await Promise.all([ordQ, quoQ]);
 
         // Convert order-level data to same shape
         orderData = (orders || []).map(o => ({ quantity: 1, unit_price: o.total, created_at: o.created_at }));
