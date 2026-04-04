@@ -56,7 +56,7 @@ function RankBadge({ index }: { index: number }) {
 
 function ABCBadge({ revenue, topRevenue }: { revenue: number; topRevenue: number }) {
   const ratio = topRevenue > 0 ? revenue / topRevenue : 0;
-  if (ratio >= 0.5) return <Badge variant="default" className="text-[9px] h-4 px-1 bg-emerald-600 hover:bg-emerald-600">🔥 A</Badge>;
+  if (ratio >= 0.5) return <Badge variant="default" className="text-[9px] h-4 px-1 bg-success hover:bg-success">🔥 A</Badge>;
   if (ratio >= 0.2) return <Badge variant="secondary" className="text-[9px] h-4 px-1 bg-amber-500/20 text-amber-700 hover:bg-amber-500/20">⚡ B</Badge>;
   return <Badge variant="outline" className="text-[9px] h-4 px-1 text-muted-foreground">📦 C</Badge>;
 }
