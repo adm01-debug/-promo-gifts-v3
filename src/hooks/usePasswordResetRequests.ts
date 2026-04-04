@@ -110,11 +110,11 @@ export function usePasswordResetRequests() {
 
       await fetchRequests();
       return true;
-    } catch (error: any) {
+    } catch (error: unknown) {
       toast({
         variant: 'destructive',
         title: 'Erro ao rejeitar',
-        description: error.message,
+        description: error instanceof Error ? error.message : 'Erro desconhecido',
       });
       return false;
     }
