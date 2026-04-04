@@ -171,16 +171,13 @@ export default function AdminTemasPage() {
                 onClick={() => updateConfig({ presetId: preset.id })}
               >
                 <CardContent className="p-4">
-                  {/* Color swatches - 3 separate blocks */}
-                  <div className="flex gap-1 mb-3">
-                    {preset.colors.map((color, i) => (
-                      <div
-                        key={i}
-                        className="h-10 flex-1 first:rounded-l-lg last:rounded-r-lg"
-                        style={{ backgroundColor: color }}
-                      />
-                    ))}
-                  </div>
+                  {/* Gradient swatch */}
+                  <div
+                    className="h-10 w-full rounded-lg mb-3"
+                    style={{
+                      background: `linear-gradient(90deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 50%, ${preset.colors[2]} 100%)`,
+                    }}
+                  />
                   {isActive && (
                     <div className="absolute top-3 right-3">
                       <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
