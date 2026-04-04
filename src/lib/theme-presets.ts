@@ -230,7 +230,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Cyber',
     description: 'Neon futurista',
     emoji: '💜',
-    colors: ['hsl(280, 85%, 55%)', 'hsl(270, 25%, 5%)', 'hsl(285, 80%, 58%)'],
+    colors: ['hsl(180, 85%, 50%)', 'hsl(300, 80%, 55%)', 'hsl(280, 85%, 60%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(280, 85, 55) },
       dark: {
