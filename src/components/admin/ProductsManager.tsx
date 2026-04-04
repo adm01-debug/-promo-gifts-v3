@@ -206,7 +206,7 @@ export function ProductsManager() {
         filters: serverFilters,
       });
 
-      const { products: productsData, count } = result as { products: any[]; count: number | null };
+      const { products: productsData, count } = result as { products: PromobrindProduct[]; count: number | null };
       setTotalCount(count);
 
       const formattedProducts: Product[] = productsData.map((p) => {
