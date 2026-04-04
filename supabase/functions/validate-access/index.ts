@@ -1,6 +1,11 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
+const AccessBodySchema = z.object({
+  ip: z.string().max(45).optional(),
+  userAgent: z.string().max(512).optional(),
+}).passthrough();
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
 
@@ -72,8 +77,10 @@ Deno.serve(async (req: Request) => {
     const userId = user.id;
     const userEmail = user.email || "";
 
-    // Obter body da request
-    const body = await req.json().catch(() => ({}));
+    // Obter e validar body da request
+    const rawBody = await req.json().catch(() => ({}));
+    const parsedBody = AccessBodySchema.safeParse(rawBody);
+    const body = parsedBody.success ? parsedBody.data : {};
     const clientIp = body.ip || req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const userAgent = body.userAgent || req.headers.get("user-agent") || "";
 
