@@ -273,14 +273,14 @@ export default function Auth() {
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-orange shadow-lg shadow-orange/30">
-              <Sparkles className="h-8 w-8 text-orange-foreground" />
+              <Gift className="h-8 w-8 text-orange-foreground" />
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold text-foreground">
-                Promo Brindes
+                Promo Gifts
               </h1>
               <p className="text-sm text-muted-foreground">
-                Vitrine de Produtos
+                Plataforma de Vendas
               </p>
             </div>
           </div>
