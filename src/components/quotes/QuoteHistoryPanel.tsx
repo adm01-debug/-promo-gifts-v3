@@ -42,7 +42,7 @@ const actionIcons: Record<string, React.ReactNode> = {
 };
 
 const actionColors: Record<string, string> = {
-  created: "bg-green-500/10 text-green-600 border-green-500/20",
+  created: "bg-primary/10 text-primary border-primary/20",
   updated: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   status_changed: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   item_added: "bg-primary/10 text-primary border-primary/20",

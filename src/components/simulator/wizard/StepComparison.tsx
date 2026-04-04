@@ -255,7 +255,7 @@ ${persText}
             exit={{ opacity: 0, y: 20 }}
             className="sticky bottom-4 z-10"
           >
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-primary-foreground shadow-2xl shadow-emerald-900/40 border border-primary/30">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-2xl shadow-primary/40 border border-primary/30">
               <div>
                 <p className="font-bold text-base">
                   {selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}
@@ -522,8 +522,8 @@ function ConfirmedSummary({
             animate={{ scale: 1 }}
             transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
           >
-            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg" />
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg" />
+            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-primary/90 flex items-center justify-center shadow-md">
               <Check className="h-5 w-5 text-primary-foreground" />
             </div>
           </motion.div>
