@@ -6,6 +6,7 @@ export interface ThemePreset {
   id: string;
   name: string;
   description: string;
+  emoji: string;
   colors: [string, string, string]; // 3 preview swatches
   tokens: {
     light: Record<string, string>;
