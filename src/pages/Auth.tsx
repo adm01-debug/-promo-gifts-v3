@@ -210,51 +210,8 @@ export default function Auth() {
             );
           })}
           
-          {/* Rocket 1 - main */}
-          <div className="absolute bottom-0 left-[18%]" style={{ animation: 'rocketLaunch 4s ease-out 0.5s forwards' }}>
-            <div style={{ animation: 'rocketShake 0.15s ease-in-out infinite' }}>
-              <Rocket className="h-10 w-10 text-orange -rotate-45" />
-            </div>
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-3 rounded-full opacity-80" style={{ animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)', height: '40px' }} />
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-1.5 rounded-full opacity-50" style={{ animation: 'flameTrail 0.2s ease-in-out infinite alternate-reverse', background: 'linear-gradient(to bottom, #f97316, transparent)', height: '60px' }} />
-          </div>
-          
-          {/* Rocket 2 - secondary */}
-          <div className="absolute bottom-0 right-[22%]" style={{ animation: 'rocketLaunch 4.5s ease-out 1.2s forwards' }}>
-            <div style={{ animation: 'rocketShake 0.12s ease-in-out infinite' }}>
-              <Rocket className="h-7 w-7 text-orange/70 -rotate-45" />
-            </div>
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-2 rounded-full opacity-60" style={{ animation: 'flameTrail 0.25s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)', height: '30px' }} />
-          </div>
-          
-          {/* Rocket 3 - small */}
-          <div className="absolute bottom-0 left-[50%]" style={{ animation: 'rocketLaunch 5s ease-out 2s forwards' }}>
-            <div style={{ animation: 'rocketShake 0.18s ease-in-out infinite' }}>
-              <Rocket className="h-5 w-5 text-orange/50 -rotate-45" />
-            </div>
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-1.5 rounded-full opacity-40" style={{ animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, transparent)', height: '20px' }} />
-          </div>
-
-          {/* Smoke at bottom */}
-          {[...Array(6)].map((_, i) => {
-            const w = 40 + (i * 13) % 40;
-            const l = 5 + (i * 17) % 85;
-            const d = 3 + (i % 3);
-            const dl = 0.5 + i * 0.4;
-            return (
-              <div
-                key={`smoke-${i}`}
-                className="absolute bottom-0 rounded-full bg-muted-foreground/10"
-                style={{
-                  width: `${w}px`,
-                  height: `${w}px`,
-                  left: `${l}%`,
-                  animation: `smokeRise ${d}s ease-out ${dl}s forwards`,
-                  filter: 'blur(8px)',
-                }}
-              />
-            );
-          })}
+          {/* Continuous rockets */}
+          <ContinuousRockets />
         </div>
         
         {/* Content */}
