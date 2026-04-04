@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, Trash2 } from "lucide-react";
+import { ArrowLeft, Monitor, Package, Trash2 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
+import { PresentationMode, type PresentationSlide } from "@/components/presentation/PresentationMode";
 import { toast } from "sonner";
 
 export default function CollectionDetailPage() {
