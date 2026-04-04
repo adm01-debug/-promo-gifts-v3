@@ -31,7 +31,13 @@ interface Product {
   totalStock?: number;
 }
 
-function mapQuoteSearchProduct(p: any, getProductImageUrl: (product: any) => string | null): Product {
+interface RawProductColor {
+  name?: string;
+  hex?: string;
+  stock?: number;
+}
+
+function mapQuoteSearchProduct(p: PromobrindProduct, getProductImageUrl: (product: PromobrindProduct) => string | null): Product {
   const imgUrl = getProductImageUrl(p);
   const images = (p.images && p.images.length > 0) ? p.images : (imgUrl ? [imgUrl] : []);
 
@@ -41,13 +47,13 @@ function mapQuoteSearchProduct(p: any, getProductImageUrl: (product: any) => str
     sku: p.sku,
     price: p.sale_price ?? p.base_price ?? 0,
     images,
-    colors: (p.colors || []).map((c: any) => {
-      const name = typeof c === 'string' ? c : c.name;
+    colors: (p.colors || []).map((c: string | RawProductColor) => {
+      const name = typeof c === 'string' ? c : c.name || '';
       const hex = (typeof c === 'string' ? undefined : c.hex) || findKnownHex(name) || undefined;
       return { name, hex, stock: typeof c === 'string' ? undefined : c.stock };
     }),
     minQuantity: p.min_quantity ?? 1,
-    totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: any) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
+    totalStock: p.stock_quantity ?? (p.colors || []).reduce((sum: number, c: string | RawProductColor) => sum + (typeof c === 'object' ? (c.stock ?? 0) : 0), 0),
   };
 }
 
