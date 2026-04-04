@@ -211,7 +211,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Âmbar',
     description: 'Dourado e premium',
     emoji: '✨',
-    colors: ['hsl(45, 93%, 47%)', 'hsl(40, 20%, 5%)', 'hsl(42, 90%, 50%)'],
+    colors: ['hsl(30, 85%, 45%)', 'hsl(40, 90%, 55%)', 'hsl(45, 93%, 60%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(45, 93, 47), '--primary-foreground': '40 20% 10%' },
       dark: {
