@@ -102,7 +102,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Padrão',
     description: 'Roxo vibrante original',
     emoji: '💜',
-    colors: ['hsl(25, 95%, 53%)', 'hsl(225, 20%, 4%)', 'hsl(24, 100%, 50%)'],
+    colors: ['hsl(280, 70%, 65%)', 'hsl(25, 95%, 55%)', 'hsl(340, 75%, 55%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(25, 95, 53) },
       dark: { ...DEFAULT_DARK_BASE, ...makePrimaryTokens(24, 100, 50) },
