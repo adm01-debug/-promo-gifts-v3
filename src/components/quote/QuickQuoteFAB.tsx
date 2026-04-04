@@ -32,7 +32,7 @@ const quickActions: QuickAction[] = [
     description: "Criar orçamento do zero",
     icon: FileText,
     href: "/orcamentos/novo",
-    color: "bg-blue-500 text-white",
+    color: "bg-primary text-primary-foreground",
   },
   {
     id: "mockup",
@@ -40,7 +40,7 @@ const quickActions: QuickAction[] = [
     description: "Visualização com logo",
     icon: Wand2,
     href: "/mockup-generator",
-    color: "bg-purple-500 text-white",
+    color: "bg-primary/80 text-primary-foreground",
   },
   {
     id: "simulator",
@@ -48,7 +48,7 @@ const quickActions: QuickAction[] = [
     description: "Calcular personalização",
     icon: Calculator,
     href: "/simulador",
-    color: "bg-amber-500 text-white",
+    color: "bg-warning text-warning-foreground",
   },
   {
     id: "cart",
@@ -56,7 +56,7 @@ const quickActions: QuickAction[] = [
     description: "Orçamento rápido",
     icon: ShoppingCart,
     href: "__open_cart__",
-    color: "bg-emerald-400 text-white",
+    color: "bg-primary/60 text-primary-foreground",
   },
 ];
 
@@ -174,7 +174,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
               "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
               isOpen
                 ? "bg-muted text-muted-foreground"
-                : "bg-[#39FF14]/60 text-black hover:bg-[#39FF14]/80"
+                : "bg-primary text-primary-foreground hover:bg-primary/90"
             )}
             aria-label={isOpen ? "Fechar menu" : "Ações rápidas"}
             aria-expanded={isOpen}
