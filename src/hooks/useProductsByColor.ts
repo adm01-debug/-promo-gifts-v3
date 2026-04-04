@@ -106,8 +106,8 @@ export function useProductsByColor({
         const groupId = groupsBySlug.get(slug);
         if (groupId) {
           for (const v of variationsData) {
-            if ((v as any).group_id === groupId) {
-              targetColorIds.add((v as any).id);
+            if ((v as Record<string, unknown>).group_id === groupId) {
+              targetColorIds.add((v as Record<string, unknown>).id as string);
             }
           }
         }
