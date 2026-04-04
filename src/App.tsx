@@ -235,9 +235,11 @@ const App = () => {
                             <Route path="/meus-kits" element={<MeusKitsPage />} />
                             <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                             <Route path="/mockup-generator" element={<MockupGenerator />} />
+                            <Route path="/mockups/historico" element={<MockupHistoryPage />} />
                             <Route path="/magic-up" element={<MagicUp />} />
                             <Route path="/inteligencia-comercial" element={<CommercialIntelligencePage />} />
                             <Route path="/match" element={<ProductMatchPage />} />
+                            <Route path="/dropbox" element={<DropboxBrowserPage />} />
 
                             {/* Orders */}
                             <Route path="/pedidos" element={<OrdersPage />} />
