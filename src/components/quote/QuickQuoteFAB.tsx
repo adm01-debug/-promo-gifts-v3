@@ -32,7 +32,7 @@ const quickActions: QuickAction[] = [
     description: "Criar orçamento do zero",
     icon: FileText,
     href: "/orcamentos/novo",
-    color: "bg-blue-500 text-white",
+    color: "bg-primary text-primary-foreground",
   },
   {
     id: "mockup",
