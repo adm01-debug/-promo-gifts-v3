@@ -154,7 +154,7 @@ export function useProductIntelligenceData(productId: string | undefined) {
           limit: 1,
         });
         return result.records[0] || null;
-      } catch (err: any) {
+      } catch (err: unknown) {
         if (err.message?.includes('not been populated') || err.message?.includes('não mapeada')) {
           console.warn('[ProductIntelligence] MV not populated yet, returning null');
           return null;
