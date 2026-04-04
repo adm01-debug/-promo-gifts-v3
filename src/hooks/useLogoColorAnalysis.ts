@@ -72,10 +72,10 @@ export function useLogoColorAnalysis() {
       setColors(mapped);
       toast.success(`${mapped.length} cor(es) detectada(s) na logo`);
       return mapped;
-    } catch (err: any) {
-      // Ignore abort errors
-      if (err?.name === 'AbortError' || controller.signal.aborted) return [];
-      const msg = err?.message || 'Erro ao analisar cores da logo';
+    } catch (err: unknown) {
+      if (err instanceof Error && err.name === 'AbortError') return [];
+      if (controller.signal.aborted) return [];
+      const msg = err instanceof Error ? err.message : 'Erro ao analisar cores da logo';
       setError(msg);
       toast.error(msg);
       return [];

@@ -83,9 +83,9 @@ export function useScheduledReports() {
           frequency: input.frequency,
           email_to: input.email_to,
           report_name: input.report_name,
-          filters: input.filters || {},
+          filters: (input.filters || {}) as Record<string, unknown>,
           next_run_at: nextRun.toISOString(),
-        } as any);
+        });
 
       if (error) throw error;
       toast.success('Relatório agendado criado!', {
@@ -104,7 +104,7 @@ export function useScheduledReports() {
     try {
       const { error } = await supabase
         .from('scheduled_reports')
-        .update({ is_active: active, updated_at: new Date().toISOString() } as any)
+        .update({ is_active: active, updated_at: new Date().toISOString() })
         .eq('id', reportId);
 
       if (error) throw error;

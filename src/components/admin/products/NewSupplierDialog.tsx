@@ -91,7 +91,7 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Label className="text-xs font-semibold">Chaves PIX</Label>
                 <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={form.addPixKey}><Plus className="h-3 w-3" /> Adicionar</Button>
               </div>
-              {form.pixKeys.map((pix: any) => (
+              {form.pixKeys.map((pix: { id: string; tipo: string; chave: string; favorecido: string; principal: boolean }) => (
                 <div key={pix.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">

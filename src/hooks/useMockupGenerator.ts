@@ -664,9 +664,9 @@ export function useMockupGenerator() {
           throw new Error("Nenhum mockup gerado no batch");
         }
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error generating mockup:", error);
-      const errorMessage = error.message || "Erro ao gerar mockup";
+      const errorMessage = error instanceof Error ? error.message : "Erro ao gerar mockup";
       setGenerationError(errorMessage);
       toast.error(errorMessage);
     } finally {

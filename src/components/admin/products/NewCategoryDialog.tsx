@@ -88,8 +88,8 @@ export function NewCategoryDialog({ onCreated }: NewCategoryDialogProps) {
         setParentId(null);
         setCategories([]);
       }
-    } catch (err: any) {
-      toast.error(err.message || 'Erro ao criar categoria');
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : 'Erro ao criar categoria');
     } finally {
       setSaving(false);
     }

@@ -183,14 +183,14 @@ export function useMagicUpState() {
       try {
         const { invokeExternalDb } = await import("@/lib/external-db");
         const [variantsResult, imagesResult] = await Promise.all([
-          invokeExternalDb<any>({
+          invokeExternalDb<Record<string, unknown>>({
             table: "product_variants",
             operation: "select",
             filters: { product_id: selectedProduct.id },
             orderBy: { column: "color_name", ascending: true },
             limit: 100,
           }),
-          invokeExternalDb<any>({
+          invokeExternalDb<Record<string, unknown>>({
             table: "product_images",
             operation: "select",
             filters: { product_id: selectedProduct.id },
@@ -410,9 +410,9 @@ CENÁRIO: ${effectivePrompt}`;
       } else {
         throw new Error(data?.error || "Nenhuma imagem retornada");
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Magic Up error:", err);
-      toast.error(err.message || "Erro ao gerar imagem");
+      toast.error(err instanceof Error ? err.message : "Erro ao gerar imagem");
     } finally {
       setGenerating(false);
     }

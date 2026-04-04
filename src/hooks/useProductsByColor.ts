@@ -85,8 +85,8 @@ export function useProductsByColor({
 
       const refResults = await invokeBatchBridge(refQueries);
 
-      const groupsData = refResults[0]?.success ? (refResults[0].data?.records as any[] || []) : [];
-      const variationsData = refResults[1]?.success ? (refResults[1].data?.records as any[] || []) : [];
+      const groupsData = refResults[0]?.success ? (refResults[0].data?.records as Record<string, unknown>[] || []) : [];
+      const variationsData = refResults[1]?.success ? (refResults[1].data?.records as Record<string, unknown>[] || []) : [];
 
       // Build lookup maps
       const groupsBySlug = new Map(groupsData.map((g: Record<string, unknown>) => [g.slug as string, g.id as string]));
@@ -106,8 +106,8 @@ export function useProductsByColor({
         const groupId = groupsBySlug.get(slug);
         if (groupId) {
           for (const v of variationsData) {
-            if ((v as any).group_id === groupId) {
-              targetColorIds.add((v as any).id);
+            if ((v as Record<string, unknown>).group_id === groupId) {
+              targetColorIds.add((v as Record<string, unknown>).id as string);
             }
           }
         }
@@ -117,8 +117,8 @@ export function useProductsByColor({
       for (const colorName of colors) {
         const lower = colorName.toLowerCase();
         for (const v of variationsData) {
-          if ((v as any).name?.toLowerCase() === lower) {
-            targetColorIds.add((v as any).id);
+          if (((v as Record<string, unknown>).name as string)?.toLowerCase() === lower) {
+            targetColorIds.add((v as Record<string, unknown>).id as string);
           }
         }
       }
@@ -150,7 +150,7 @@ export function useProductsByColor({
 
           const variantResults = await invokeBatchBridge(variantQueries);
           if (variantResults[0]?.success && variantResults[0].data?.records) {
-            for (const r of variantResults[0].data.records as any[]) {
+            for (const r of variantResults[0].data.records as Array<{ product_id: string }>) {
               matchingProductIds.add(r.product_id);
             }
           }

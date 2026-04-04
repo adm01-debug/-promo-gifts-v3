@@ -108,9 +108,9 @@ export function useDeviceDetection(targetUserId?: string) {
         isNewDevice: data.isNewDevice || false,
         isNewIP: data.isNewIP || false,
       };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Device detection error:', error);
-      return { isNewDevice: false, isNewIP: false, error: error.message };
+      return { isNewDevice: false, isNewIP: false, error: error instanceof Error ? error.message : 'Unknown error' };
     }
   }, [user]);
 

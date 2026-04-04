@@ -303,7 +303,7 @@ export function useCustomizationPriceLegacy() {
     setError(null);
 
     try {
-      const rawResult = await invokeExternalRpc<any>(
+      const rawResult = await invokeExternalRpc<Record<string, unknown>>(
         'fn_get_customization_price',
         {
           p_area_id: areaId,

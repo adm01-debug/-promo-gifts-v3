@@ -80,9 +80,9 @@ interface Product {
   category_id: string | null;
   supplier_id: string | null;
   supplier_reference: string | null;
-  images: any;
-  colors: any;
-  materials: any;
+  images: string[] | null;
+  colors: Array<{ name: string; hex?: string; stock?: number }> | null;
+  materials: string[] | null;
   min_quantity: number | null;
   min_order_quantity: number | null;
   is_active: boolean | null;
@@ -206,7 +206,7 @@ export function ProductsManager() {
         filters: serverFilters,
       });
 
-      const { products: productsData, count } = result as { products: any[]; count: number | null };
+      const { products: productsData, count } = result as { products: PromobrindProduct[]; count: number | null };
       setTotalCount(count);
 
       const formattedProducts: Product[] = productsData.map((p) => {
@@ -389,9 +389,9 @@ export function ProductsManager() {
       toast.success("Produto excluído com sucesso");
       setIsDeleteOpen(false);
       fetchProducts(currentPage, pageSize, searchTerm);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error deleting product:", error);
-      toast.error(error.message || "Erro ao excluir produto");
+      toast.error(error instanceof Error ? error.message : "Erro ao excluir produto");
     }
   };
 
@@ -424,9 +424,9 @@ export function ProductsManager() {
       toast.success(`${selectedIds.size} produto(s) ${activate ? 'ativado(s)' : 'desativado(s)'}`);
       setSelectedIds(new Set());
       fetchProducts(currentPage, pageSize, searchTerm);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Bulk update error:', error);
-      toast.error(error.message || 'Erro ao atualizar produtos em lote');
+      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar produtos em lote');
     } finally {
       setIsBulkUpdating(false);
     }

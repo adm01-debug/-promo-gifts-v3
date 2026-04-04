@@ -112,8 +112,8 @@ export function MockupPromptManager() {
 
       setConfigs((configsRes.data || []) as PromptConfig[]);
       setTechniques(techRes.data || []);
-    } catch (err: any) {
-      toast.error("Erro ao carregar configurações", { description: err.message });
+    } catch (err: unknown) {
+      toast.error("Erro ao carregar configurações", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setIsLoading(false);
     }
@@ -171,8 +171,8 @@ export function MockupPromptManager() {
         return next;
       });
       fetchAll();
-    } catch (err: any) {
-      toast.error("Erro ao salvar", { description: err.message });
+    } catch (err: unknown) {
+      toast.error("Erro ao salvar", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setSavingId(null);
     }
@@ -190,7 +190,7 @@ export function MockupPromptManager() {
 
       if (error) throw error;
       setHistory((data || []) as PromptHistory[]);
-    } catch (err: any) {
+    } catch (err: unknown) {
       toast.error("Erro ao carregar histórico");
     } finally {
       setHistoryLoading(false);
@@ -238,8 +238,8 @@ export function MockupPromptManager() {
       setAddTechniqueDialog(false);
       setSelectedTechnique("");
       fetchAll();
-    } catch (err: any) {
-      toast.error("Erro ao criar prompt", { description: err.message });
+    } catch (err: unknown) {
+      toast.error("Erro ao criar prompt", { description: err instanceof Error ? err.message : undefined });
     }
   };
 

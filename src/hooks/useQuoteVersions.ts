@@ -168,11 +168,11 @@ export function useQuoteVersions(quoteId?: string) {
         // Update the new quote with version info
         await supabase
           .from("quotes")
-          .update({
+           .update({
             version: newVersion,
             parent_quote_id: rootId,
             is_latest_version: true,
-          } as any)
+          })
           .eq("id", newQuote.id);
 
         await logQuoteHistory(
