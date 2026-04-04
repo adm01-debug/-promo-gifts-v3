@@ -57,7 +57,7 @@ export function useProductSupplierSources(productId?: string) {
         return (a.sale_price ?? 0) - (b.sale_price ?? 0);
       });
       setSources(records);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Error fetching supplier sources:', err);
     } finally {
       setIsLoading(false);
