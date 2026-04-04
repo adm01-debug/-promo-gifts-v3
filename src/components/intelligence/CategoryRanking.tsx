@@ -142,7 +142,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
           <span>Interno: {formatCurrency(d.internalRevenue)}</span>
         </div>
         <div className="flex items-center gap-1.5">
-          <Store className="h-3 w-3 text-blue-500" />
+           <Store className="h-3 w-3 text-primary" />
           <span>Mercado: {formatNumber(d.marketDepleted)} un.</span>
         </div>
         <p className="text-muted-foreground">{pct}% do total</p>
