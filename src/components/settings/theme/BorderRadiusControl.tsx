@@ -48,7 +48,7 @@ export function BorderRadiusControl({ value, onChange }: BorderRadiusControlProp
           <Button size="sm" style={{ borderRadius: r }}>
             <Send className="h-3.5 w-3.5 mr-1.5" /> Enviar
           </Button>
-          <Button size="sm" variant="destructive" className="bg-rose-500 hover:bg-rose-600" style={{ borderRadius: r }}>
+          <Button size="sm" variant="secondary" style={{ borderRadius: r }}>
             <Heart className="h-3.5 w-3.5 mr-1.5" /> Curtir
           </Button>
           <Button size="sm" variant="outline" style={{ borderRadius: r }}>
