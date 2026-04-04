@@ -14,6 +14,7 @@ import { RecentKitsWidget } from '@/components/dashboard/RecentKitsWidget';
 import { ScheduledReportsManager } from '@/components/reports/ScheduledReportsManager';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
 import { toast } from 'sonner';
 
 interface WidgetConfig {
