@@ -58,7 +58,7 @@ export default function AdminLoginAttemptsPage() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-3">
-              <ShieldCheck className="h-8 w-8 text-emerald-500" />
+              <ShieldCheck className="h-8 w-8 text-primary" />
               <div>
                 <p className="text-2xl font-bold">{stats?.failRate24h || 0}%</p>
                 <p className="text-sm text-muted-foreground">Taxa de Falha</p>
