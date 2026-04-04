@@ -5,7 +5,7 @@ import { GitCompare, X, ChevronRight, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useComparisonStore } from "@/stores/useComparisonStore";
-import { useProductsContext } from "@/contexts/ProductsContext";
+import { useProductsContextSafe } from "@/contexts/ProductsContext";
 import { cn } from "@/lib/utils";
 
 export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
@@ -13,9 +13,10 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
   const navigate = useNavigate();
   const { compareIds, removeFromCompare, clearCompare, compareCount } =
     useComparisonStore();
-  const { getProductsByIds } = useProductsContext();
+  const ctx = useProductsContextSafe();
+  const getProductsByIds = ctx?.getProductsByIds;
 
-  const compareProducts = useMemo(() => getProductsByIds(compareIds), [getProductsByIds, compareIds]);
+  const compareProducts = useMemo(() => getProductsByIds ? getProductsByIds(compareIds) : [], [getProductsByIds, compareIds]);
 
   if (compareCount === 0) return null;
 
