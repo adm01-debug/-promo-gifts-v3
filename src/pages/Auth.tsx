@@ -508,6 +508,25 @@ export default function Auth() {
             )}
           </Card>
 
+          {/* IP/Location Widget */}
+          {currentIP && (
+            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-card/80 backdrop-blur-md border border-border/60 shadow-md max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Globe className="h-3.5 w-3.5 text-orange" />
+                <span className="font-mono">{currentIP}</span>
+              </div>
+              {geoLocation && (
+                <>
+                  <div className="w-px h-4 bg-border" />
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Wifi className="h-3.5 w-3.5 text-success" />
+                    <span>{geoLocation}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
           <p className="text-center text-xs text-muted-foreground">
             Acesso restrito a usuários autorizados.
             <br />
