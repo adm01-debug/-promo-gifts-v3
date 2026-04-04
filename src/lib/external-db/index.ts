@@ -18,6 +18,10 @@
 export { invokeExternalDb, invokeExternalDbSingle, invokeExternalDbDelete, invokeBatchBridge, invokeBridge } from './bridge';
 export type { InvokeOptions, InvokeResult, BatchQuery, BatchResult, BridgeResponse, Operation } from './bridge';
 
+// Batch Import
+export { checkExistingSkus, executeBatchImport, generateErrorReportCSV } from './batch-import';
+export type { ImportMode, ImportRow, BatchImportProgress, BatchImportResult } from './batch-import';
+
 // Product types + helpers
 export type { PromobrindProduct } from './product-types';
 export { getProductImageUrl, getProductPrice, getProductStock } from './product-types';
