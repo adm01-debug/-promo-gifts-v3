@@ -106,40 +106,17 @@ export default function Auth() {
   const [currentIP, setCurrentIP] = useState<string | null>(null);
   const [geoLocation, setGeoLocation] = useState<string | null>(null);
 
-  // Fetch IP and geolocation on mount
+  // Fetch IP and geolocation via edge function (works in preview + production)
   useEffect(() => {
     const loadIPInfo = async () => {
-      // Try multiple APIs in order
-      const apis = [
-        {
-          url: 'https://ipapi.co/json/',
-          parse: (d: any) => ({ ip: d.ip, loc: d.city ? `${d.city}, ${d.country_code}` : null }),
-        },
-        {
-          url: 'https://ipwho.is/',
-          parse: (d: any) => ({ ip: d.ip, loc: d.city ? `${d.city}, ${d.country_code}` : null }),
-        },
-        {
-          url: 'https://api.ipify.org?format=json',
-          parse: (d: any) => ({ ip: d.ip, loc: null }),
-        },
-      ];
-
-      for (const api of apis) {
-        try {
-          const res = await fetch(api.url, { signal: AbortSignal.timeout(5000) });
-          if (res.ok) {
-            const data = await res.json();
-            const result = api.parse(data);
-            if (result.ip) {
-              setCurrentIP(result.ip);
-              if (result.loc) setGeoLocation(result.loc);
-              return;
-            }
-          }
-        } catch {
-          // try next
+      try {
+        const { data, error } = await supabase.functions.invoke('get-visitor-info');
+        if (!error && data) {
+          if (data.ip) setCurrentIP(data.ip);
+          if (data.city) setGeoLocation(`${data.city}, ${data.country_code}`);
         }
+      } catch {
+        // silent fail
       }
     };
     loadIPInfo();
