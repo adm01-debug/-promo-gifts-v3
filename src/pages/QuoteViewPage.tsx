@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Printer, RefreshCw, Truck, Undo2, User, UserPlus } from "lucide-react";
+import { ArrowLeft, Building2, Copy, CreditCard, Download, Edit2, Eye, FileText, History, Link2, Loader2, MapPin, MoreHorizontal, Package, Phone, Mail, Monitor, Printer, RefreshCw, Truck, Undo2, User, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -35,6 +35,7 @@ import { QuoteItemDetailSheet } from "@/components/quotes/QuoteItemDetailSheet";
 import { QuoteCommentsSection } from "@/components/quotes/QuoteCommentsSection";
 import { QuoteApprovalLinkCard } from "@/components/quotes/QuoteApprovalLinkCard";
 import { QuoteVersionHistory } from "@/components/quotes/QuoteVersionHistory";
+import { PresentationMode, type PresentationSlide } from "@/components/presentation/PresentationMode";
 
 function formatCNPJ(cnpj: string): string {
   const digits = cnpj.replace(/\D/g, "");
@@ -79,6 +80,7 @@ export default function QuoteViewPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [approvalLink, setApprovalLink] = useState<string | null>(null);
   const whatsAppRef = useRef<HTMLButtonElement>(null);
+  const [showPresentation, setShowPresentation] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -441,6 +443,7 @@ export default function QuoteViewPage() {
   const status = statusConfig[quote.status] || statusConfig.draft;
 
   return (
+    <>
     <MainLayout>
       <PageSEO title={`Orçamento ${quote.quote_number}`} description={`Visualização do orçamento ${quote.quote_number}`} path={`/orcamentos/${id}`} noIndex />
       <div className="container py-6 space-y-6 pb-24 md:pb-6 print:py-0 print:max-w-none print:px-0">
@@ -538,6 +541,10 @@ export default function QuoteViewPage() {
                 }}>
                   <Copy className="h-4 w-4 mr-2" />
                   Duplicar
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowPresentation(true)}>
+                  <Monitor className="h-4 w-4 mr-2" />
+                  Modo Apresentação
                 </DropdownMenuItem>
                 <Sheet>
                   <SheetTrigger asChild>
@@ -951,5 +958,27 @@ export default function QuoteViewPage() {
         isGeneratingPDF={isGeneratingPDF}
       />
     </MainLayout>
+
+    {showPresentation && quote?.items && quote.items.length > 0 && (
+      <PresentationMode
+        title={`Proposta ${quote.quote_number || ""}`}
+        subtitle={quote.client_company || quote.client_name || undefined}
+        brandName="Promo Brindes"
+        onClose={() => setShowPresentation(false)}
+        slides={quote.items.map((item) => ({
+          id: item.id || item.product_id,
+          title: item.product_name,
+          subtitle: item.product_sku ? `SKU: ${item.product_sku}` : undefined,
+          imageUrl: item.product_image_url || null,
+          badge: item.kit_name || (item.color_name || null),
+          details: [
+            ...(item.quantity ? [{ label: "Quantidade", value: String(item.quantity) }] : []),
+            ...(item.color_name ? [{ label: "Cor", value: item.color_name }] : []),
+            ...(item.personalizations?.length ? [{ label: "Personalização", value: item.personalizations.map(p => p.technique_name).filter(Boolean).join(", ") || "Sim" }] : []),
+          ],
+        }))}
+      />
+    )}
+    </>
   );
 }

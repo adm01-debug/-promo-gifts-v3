@@ -1,6 +1,6 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeft, Package, Trash2 } from "lucide-react";
+import { ArrowLeft, Monitor, Package, Trash2 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
+import { PresentationMode, type PresentationSlide } from "@/components/presentation/PresentationMode";
 import { toast } from "sonner";
 
 export default function CollectionDetailPage() {
@@ -21,6 +22,7 @@ export default function CollectionDetailPage() {
   } = useCollectionsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
+  const [showPresentation, setShowPresentation] = useState(false);
 
   const collection = useMemo(() => {
     return collections.find((c) => c.id === id);
@@ -51,6 +53,7 @@ export default function CollectionDetailPage() {
   };
 
   return (
+    <>
     <MainLayout>
       <PageSEO title={`Coleção: ${collection.name}`} description={`Explore os produtos da coleção ${collection.name}.`} path={`/colecoes/${id}`} noIndex />
       <div className="space-y-6 animate-fade-in">
@@ -84,6 +87,12 @@ export default function CollectionDetailPage() {
                 {products.length} produtos
               </Badge>
             </div>
+            {products.length > 0 && (
+              <Button variant="outline" className="shrink-0 gap-2" onClick={() => setShowPresentation(true)}>
+                <Monitor className="h-4 w-4" />
+                Apresentar
+              </Button>
+            )}
           </div>
         </div>
 
@@ -150,5 +159,22 @@ export default function CollectionDetailPage() {
         )}
       </div>
     </MainLayout>
+
+    {showPresentation && products.length > 0 && (
+      <PresentationMode
+        title={collection.name}
+        subtitle={collection.description || undefined}
+        brandName="Promo Brindes"
+        onClose={() => setShowPresentation(false)}
+        slides={products.map((p) => ({
+          id: p.id,
+          title: p.name,
+          subtitle: p.sku ? `SKU: ${p.sku}` : undefined,
+          imageUrl: p.images?.[0] || null,
+          badge: p.brand || null,
+        }))}
+      />
+    )}
+    </>
   );
 }
