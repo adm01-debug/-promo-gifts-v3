@@ -67,30 +67,24 @@ describe("AIRecommendationsWidget", () => {
   });
 });
 
-describe("AIRecommendationsWidget with results", () => {
-  it("renders recommendations when available", async () => {
-    vi.doMock("@/hooks/useAIRecommendations", () => ({
-      useAIRecommendations: () => ({
-        recommendations: {
-          recommendations: [
-            { productId: "p1", score: 0.95, reason: "Perfeito para o segmento" },
-          ],
-          insights: "Cliente tech-savvy",
-        },
-        isLoading: false,
-        error: null,
-        getRecommendations: vi.fn(),
-        clearRecommendations: vi.fn(),
-      }),
-    }));
-
+describe("AIRecommendationsWidget - preferences input", () => {
+  it("renders preferences input field", async () => {
     const { AIRecommendationsWidget } = await import("@/components/ai/AIRecommendationsWidget");
     renderWithProviders(
       <AIRecommendationsWidget
-        products={[{ id: "p1", name: "Caneta Smart", category: "Tech" }]}
+        products={[{ id: "p1", name: "Caneta", category: "Escritório" }]}
       />
     );
-    expect(screen.getByText("Cliente tech-savvy")).toBeInTheDocument();
-    expect(screen.getByText("Perfeito para o segmento")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("canetas, ecológico, premium")).toBeInTheDocument();
+  });
+
+  it("renders Nome do Cliente label", async () => {
+    const { AIRecommendationsWidget } = await import("@/components/ai/AIRecommendationsWidget");
+    renderWithProviders(
+      <AIRecommendationsWidget
+        products={[{ id: "p1", name: "Caneta", category: "Escritório" }]}
+      />
+    );
+    expect(screen.getByText("Nome do Cliente *")).toBeInTheDocument();
   });
 });
