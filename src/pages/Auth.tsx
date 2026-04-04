@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useNavigate } from "react-router-dom";
 
@@ -23,6 +23,78 @@ import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } fr
 
 type LoginForm = LoginFormData;
 type SignupForm = SignupFormData;
+
+interface RocketData {
+  id: number;
+  left: number;
+  size: number;
+  duration: number;
+}
+
+function ContinuousRockets() {
+  const [rockets, setRockets] = useState<RocketData[]>([]);
+  const nextId = React.useRef(0);
+
+  useEffect(() => {
+    function spawnRocket() {
+      const id = nextId.current++;
+      const rocket: RocketData = {
+        id,
+        left: 5 + Math.random() * 85,
+        size: 20 + Math.random() * 24,
+        duration: 3 + Math.random() * 2.5,
+      };
+      setRockets((prev) => [...prev, rocket]);
+      setTimeout(() => {
+        setRockets((prev) => prev.filter((r) => r.id !== id));
+      }, rocket.duration * 1000 + 500);
+    }
+
+    spawnRocket();
+    const t1 = setTimeout(spawnRocket, 800);
+    const t2 = setTimeout(spawnRocket, 1800);
+
+    let timer: ReturnType<typeof setTimeout>;
+    function scheduleNext() {
+      const interval = 3000 + Math.random() * 5000;
+      timer = setTimeout(() => {
+        spawnRocket();
+        scheduleNext();
+      }, interval);
+    }
+    scheduleNext();
+
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(timer); };
+  }, []);
+
+  return (
+    <>
+      {rockets.map((r) => (
+        <div
+          key={r.id}
+          className="absolute bottom-0"
+          style={{ left: `${r.left}%`, animation: `rocketLaunch ${r.duration}s ease-out forwards` }}
+        >
+          <div style={{ animation: 'rocketShake 0.15s ease-in-out infinite' }}>
+            <Rocket className="text-orange -rotate-45" style={{ width: r.size, height: r.size }} />
+          </div>
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-70"
+            style={{ top: `${r.size * 0.75}px`, width: `${r.size * 0.3}px`, height: `${r.size}px`, animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)' }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full opacity-40"
+            style={{ top: `${r.size}px`, width: `${r.size * 0.15}px`, height: `${r.size * 1.5}px`, animation: 'flameTrail 0.2s ease-in-out infinite alternate-reverse', background: 'linear-gradient(to bottom, #f97316, transparent)' }}
+          />
+          <div
+            className="absolute left-1/2 -translate-x-1/2 rounded-full bg-muted-foreground/10"
+            style={{ top: `${r.size * 1.2}px`, width: `${r.size * 2}px`, height: `${r.size * 2}px`, animation: 'smokeRise 2s ease-out forwards', filter: 'blur(8px)' }}
+          />
+        </div>
+      ))}
+    </>
+  );
+}
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -210,51 +282,8 @@ export default function Auth() {
             );
           })}
           
-          {/* Rocket 1 - main */}
-          <div className="absolute bottom-0 left-[18%]" style={{ animation: 'rocketLaunch 4s ease-out 0.5s forwards' }}>
-            <div style={{ animation: 'rocketShake 0.15s ease-in-out infinite' }}>
-              <Rocket className="h-10 w-10 text-orange -rotate-45" />
-            </div>
-            <div className="absolute top-8 left-1/2 -translate-x-1/2 w-3 rounded-full opacity-80" style={{ animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)', height: '40px' }} />
-            <div className="absolute top-10 left-1/2 -translate-x-1/2 w-1.5 rounded-full opacity-50" style={{ animation: 'flameTrail 0.2s ease-in-out infinite alternate-reverse', background: 'linear-gradient(to bottom, #f97316, transparent)', height: '60px' }} />
-          </div>
-          
-          {/* Rocket 2 - secondary */}
-          <div className="absolute bottom-0 right-[22%]" style={{ animation: 'rocketLaunch 4.5s ease-out 1.2s forwards' }}>
-            <div style={{ animation: 'rocketShake 0.12s ease-in-out infinite' }}>
-              <Rocket className="h-7 w-7 text-orange/70 -rotate-45" />
-            </div>
-            <div className="absolute top-6 left-1/2 -translate-x-1/2 w-2 rounded-full opacity-60" style={{ animation: 'flameTrail 0.25s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, #eab308, transparent)', height: '30px' }} />
-          </div>
-          
-          {/* Rocket 3 - small */}
-          <div className="absolute bottom-0 left-[50%]" style={{ animation: 'rocketLaunch 5s ease-out 2s forwards' }}>
-            <div style={{ animation: 'rocketShake 0.18s ease-in-out infinite' }}>
-              <Rocket className="h-5 w-5 text-orange/50 -rotate-45" />
-            </div>
-            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-1.5 rounded-full opacity-40" style={{ animation: 'flameTrail 0.3s ease-in-out infinite alternate', background: 'linear-gradient(to bottom, #f97316, transparent)', height: '20px' }} />
-          </div>
-
-          {/* Smoke at bottom */}
-          {[...Array(6)].map((_, i) => {
-            const w = 40 + (i * 13) % 40;
-            const l = 5 + (i * 17) % 85;
-            const d = 3 + (i % 3);
-            const dl = 0.5 + i * 0.4;
-            return (
-              <div
-                key={`smoke-${i}`}
-                className="absolute bottom-0 rounded-full bg-muted-foreground/10"
-                style={{
-                  width: `${w}px`,
-                  height: `${w}px`,
-                  left: `${l}%`,
-                  animation: `smokeRise ${d}s ease-out ${dl}s forwards`,
-                  filter: 'blur(8px)',
-                }}
-              />
-            );
-          })}
+          {/* Continuous rockets */}
+          <ContinuousRockets />
         </div>
         
         {/* Content */}
@@ -467,7 +496,6 @@ export default function Auth() {
                         </p>
                       )}
                     </div>
-
 
                     <div className="flex items-center justify-end">
                       <Button
