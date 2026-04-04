@@ -1,11 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-// Mock supabase
-const mockInvoke = vi.fn();
 vi.mock('@/integrations/supabase/client', () => ({
   supabase: {
     functions: {
-      invoke: mockInvoke,
+      invoke: vi.fn(),
     },
   },
 }));
@@ -15,6 +13,9 @@ vi.mock('@/lib/logger', () => ({
 }));
 
 import { invokeBridge, invokeExternalDb, invokeExternalDbDelete, invokeBatchBridge } from '@/lib/external-db/bridge';
+import { supabase } from '@/integrations/supabase/client';
+
+const mockInvoke = vi.mocked(supabase.functions.invoke);
 
 describe('invokeBridge', () => {
   beforeEach(() => {
