@@ -387,11 +387,12 @@ export function useOpportunities(days = 30, categoryId?: string | null, supplier
 
 export function useRevenueTrend(days = 30, categoryId?: string | null, supplierId?: string | null, productId?: string | null) {
   const { user } = useAuth();
+  const orgId = useCurrentOrgId();
   const { data: productIds } = useFilteredProductIds(categoryId, supplierId, productId);
   const hasFilter = !!(categoryId || supplierId || productId);
 
   return useQuery({
-    queryKey: ['commercial-revenue-trend', user?.id, days, categoryId, supplierId],
+    queryKey: ['commercial-revenue-trend', user?.id, orgId, days, categoryId, supplierId],
     queryFn: async (): Promise<RevenuePoint[]> => {
       const since = new Date();
       since.setDate(since.getDate() - days);
