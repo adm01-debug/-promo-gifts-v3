@@ -1,6 +1,11 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
+const AccessBodySchema = z.object({
+  ip: z.string().max(45).optional(),
+  userAgent: z.string().max(512).optional(),
+}).passthrough();
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
 
