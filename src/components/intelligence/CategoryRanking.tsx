@@ -303,7 +303,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                             <span>Interno: {formatCurrency(cat.internalRevenue)} ({formatNumber(cat.internalQty)} un.)</span>
                           </div>
                           <div className="flex items-center gap-1.5">
-                            <Store className="h-3 w-3 text-blue-500" />
+                            <Store className="h-3 w-3 text-primary" />
                             <span>Mercado (saídas): {formatNumber(cat.marketDepleted)} un.</span>
                           </div>
                           <p className="text-muted-foreground">Score: {cat.totalScore.toFixed(1)}</p>
