@@ -100,8 +100,8 @@ export async function fetchPromobrindProducts(options?: {
           limit: pageSize, offset, countMode,
         });
         consecutiveErrors = 0;
-      } catch (err: any) {
-        const msg = err?.message || '';
+      } catch (err: unknown) {
+        const msg = err instanceof Error ? err.message : '';
         if (msg.includes('statement timeout') || msg.includes('57014') || msg.includes('canceling statement')) {
           consecutiveErrors++;
           if (consecutiveErrors >= MAX_CONSECUTIVE_ERRORS) {
