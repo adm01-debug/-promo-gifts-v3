@@ -1,28 +1,21 @@
 
-## Plano: Importação em Massa Robusta
+## Problema
+O widget de IP/geolocalização não aparece porque as APIs externas (ipapi.co, ipwho.is, ipify.org) estão sendo bloqueadas pelo navegador no preview do Lovable. Chamadas diretas do browser para essas APIs são instáveis.
 
-### 1. Refatorar `BulkImportDialog.tsx` (componente principal)
-- Corrigir bug do `autoMapColumns` (state stale)
-- Adicionar seleção de modo: **Inserir** / **Atualizar** / **Upsert** (inserir ou atualizar por SKU)
-- Adicionar verificação de SKUs existentes antes da importação (batch query ao BD externo)
-- Mostrar no preview quais linhas são novas vs. existentes
-- Enforçar limite de 10.000 linhas
-- Adicionar download de template Excel (.xlsx) além do CSV
+## Solução: Edge Function como proxy
 
-### 2. Importação em lotes (batch processing)
-- Enviar produtos em chunks de 25 para o `external-db-bridge` em vez de 1-a-1
-- Reduz tempo de ~500 chamadas para ~20 chamadas
-- Manter progress bar funcional
+### 1. Criar edge function `get-visitor-info`
+- A edge function recebe a requisição do browser
+- Extrai o IP do visitante via header `x-forwarded-for` (disponível automaticamente no Deno/Supabase)
+- Faz chamada server-side para API de geolocalização (sem restrições de CORS/sandbox)
+- Retorna `{ ip, city, country_code }` para o frontend
 
-### 3. Relatório de erros exportável
-- Botão "Baixar Relatório de Erros" no step final
-- CSV com: Linha, SKU, Nome, Erro(s)
+### 2. Atualizar `Auth.tsx`
+- Substituir as chamadas diretas às APIs externas por uma única chamada à edge function via `supabase.functions.invoke('get-visitor-info')`
+- Isso funciona tanto no preview quanto em produção, pois a edge function é um endpoint do próprio backend
 
-### 4. Deprecar `BulkImportPanel.tsx`
-- Redirecionar para `BulkImportDialog` que é mais flexível
-- Remover validações excessivas (cores/materiais/imagens obrigatórios para import)
-
-### Arquivos afetados:
-- `src/components/admin/products/BulkImportDialog.tsx` — refatoração principal
-- `src/components/product-registration/BulkImportPanel.tsx` — deprecar
-- `src/lib/external-db/bridge.ts` — adicionar helper de batch insert/upsert
+### Vantagens
+- ✅ Funciona no preview e em produção
+- ✅ Não expõe APIs externas ao browser
+- ✅ IP real do visitante vem dos headers do servidor (mais confiável)
+- ✅ Sem problemas de CORS ou mixed content (HTTP/HTTPS)
