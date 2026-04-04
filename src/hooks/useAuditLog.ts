@@ -115,11 +115,11 @@ export function useAuditLog() {
   /**
    * Wrapper para CREATE com auditoria automática
    */
-  const auditedInsert = async <T extends Record<string, any>>(
+  const auditedInsert = async <T extends Record<string, unknown>>(
     table: AuditEntityType,
     data: T,
-    insertFn: () => Promise<{ data: T & { id: string } | null; error: any }>
-  ): Promise<{ data: (T & { id: string }) | null; error: any }> => {
+    insertFn: () => Promise<{ data: (T & { id: string }) | null; error: Error | null }>
+  ): Promise<{ data: (T & { id: string }) | null; error: Error | null }> => {
     const result = await insertFn();
     
     if (result.data && !result.error) {
