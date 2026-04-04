@@ -86,7 +86,7 @@ class MaterialService {
 
   // Buscar todos os grupos de materiais com estatísticas
   async getGroups(): Promise<{ groups: MaterialGroup[]; count: number }> {
-    const res = await this.callApi<{ groups: any[]; count?: number }>("groups");
+    const res = await this.callApi<{ groups: Record<string, unknown>[]; count?: number }>("groups");
 
     const groups: MaterialGroup[] = (res.groups || []).map((g) => ({
       group_id: g.group_id ?? g.id ?? "",
