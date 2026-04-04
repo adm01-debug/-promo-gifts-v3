@@ -1,6 +1,20 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
+const MessageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().min(1).max(10000),
+});
+
+const ExpertChatBodySchema = z.object({
+  messages: z.array(MessageSchema).min(1).max(50),
+  clientId: z.string().uuid().optional(),
+  categoryFilter: z.string().max(200).optional(),
+  priceMin: z.number().nonnegative().optional(),
+  priceMax: z.number().nonnegative().optional(),
+  materialFilter: z.string().max(200).optional(),
+});
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
 
