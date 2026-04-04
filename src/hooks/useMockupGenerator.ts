@@ -364,7 +364,7 @@ export function useMockupGenerator() {
         name: r.nome,
         code: r.codigo_curto || r.codigo_tabela || null,
       }));
-      techniquesData.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      techniquesData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setTechniques(techniquesData);
     } catch (error) {
       console.error("Error fetching data:", error);

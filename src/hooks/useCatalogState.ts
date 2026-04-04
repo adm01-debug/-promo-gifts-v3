@@ -164,7 +164,7 @@ export function useCatalogState() {
 
     if (filters.colorVariations?.length) {
       result = result.filter((p) =>
-        p.colors?.some((c: any) => {
+        p.colors?.some((c: Record<string, string>) => {
           const colorVariationSlug = c.variationSlug || '';
           const colorName = (c.name || '').toLowerCase().trim();
           return filters.colorVariations.some(slug => {

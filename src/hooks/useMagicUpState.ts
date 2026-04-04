@@ -211,7 +211,7 @@ export function useMagicUpState() {
         setProductImages(images);
 
         const uniqueColors = new Map<string, ProductColor>();
-        (variantsResult.records || []).forEach((v: any) => {
+        (variantsResult.records || []).forEach((v: Record<string, unknown>) => {
           if (!v.color_name || uniqueColors.has(v.color_name)) return;
           uniqueColors.set(v.color_name, {
             hex: v.color_hex || "#CCCCCC",
