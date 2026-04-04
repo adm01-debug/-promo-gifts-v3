@@ -47,7 +47,7 @@ export interface PromobrindTechnique {
 
 const TECHNIQUE_SELECT_FIELDS = '*';
 
-function mapTechniqueFields(t: any): PromobrindTechnique {
+function mapTechniqueFields(t: Record<string, unknown>): PromobrindTechnique {
   const maxCoresRaw = t.max_cores ?? t.max_colors;
   const maxCores = typeof maxCoresRaw === 'number' ? maxCoresRaw : typeof maxCoresRaw === 'string' ? Number(maxCoresRaw) : null;
   return {
