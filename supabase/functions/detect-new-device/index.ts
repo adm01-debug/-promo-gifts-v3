@@ -1,25 +1,30 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const DeviceInfoSchema = z.object({
+  fingerprint: z.string().min(1).max(256),
+  userAgent: z.string().max(1024),
+  browserName: z.string().max(100),
+  osName: z.string().max(100),
+  deviceType: z.string().max(50),
+});
 
-interface DeviceInfo {
-  fingerprint: string;
-  userAgent: string;
-  browserName: string;
-  osName: string;
-  deviceType: string;
-}
+const BodySchema = z.object({
+  userId: z.string().uuid(),
+  userEmail: z.string().email().max(255),
+  deviceInfo: DeviceInfoSchema,
+});
 
-interface RequestBody {
-  userId: string;
-  userEmail: string;
-  deviceInfo: DeviceInfo;
+function jsonRes(corsHeaders: Record<string, string>, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }
 
 Deno.serve(async (req: Request): Promise<Response> => {
-  // Handle CORS preflight requests
+  const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -27,24 +32,19 @@ Deno.serve(async (req: Request): Promise<Response> => {
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Get client IP from headers
     const clientIP = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
                      req.headers.get("x-real-ip") || 
                      "unknown";
 
-    const { userId, userEmail, deviceInfo }: RequestBody = await req.json();
-
-    if (!userId || !deviceInfo?.fingerprint) {
-      return new Response(
-        JSON.stringify({ error: "Missing required fields" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    const rawBody = await req.json();
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonRes(corsHeaders, { error: "Invalid input", details: parsed.error.flatten().fieldErrors }, 400);
     }
 
-    console.log(`Checking device for user ${userId}, IP: ${clientIP}, fingerprint: ${deviceInfo.fingerprint}`);
+    const { userId, userEmail, deviceInfo } = parsed.data;
 
     // Check if device is already known
     const { data: existingDevice, error: fetchError } = await supabase
@@ -54,17 +54,13 @@ Deno.serve(async (req: Request): Promise<Response> => {
       .eq("device_fingerprint", deviceInfo.fingerprint)
       .maybeSingle();
 
-    if (fetchError) {
-      console.error("Error fetching device:", fetchError);
-      throw fetchError;
-    }
+    if (fetchError) throw fetchError;
 
     let isNewDevice = false;
     let isNewIP = false;
     let deviceId: string | null = null;
 
     if (existingDevice) {
-      // Device exists, update last seen and check if IP changed
       isNewIP = existingDevice.ip_address !== clientIP;
       deviceId = existingDevice.id;
 
@@ -76,10 +72,7 @@ Deno.serve(async (req: Request): Promise<Response> => {
           user_agent: deviceInfo.userAgent,
         })
         .eq("id", existingDevice.id);
-
-      console.log(`Known device updated. IP changed: ${isNewIP}`);
     } else {
-      // New device detected
       isNewDevice = true;
 
       const { data: newDevice, error: insertError } = await supabase
@@ -96,18 +89,12 @@ Deno.serve(async (req: Request): Promise<Response> => {
         .select()
         .single();
 
-      if (insertError) {
-        console.error("Error inserting device:", insertError);
-        throw insertError;
-      }
-
+      if (insertError) throw insertError;
       deviceId = newDevice.id;
-      console.log(`New device registered: ${deviceId}`);
     }
 
-    // If new device or new IP, create notification and optionally send email
+    // If new device or new IP, create notification
     if (isNewDevice || isNewIP) {
-      // Create notification record
       await supabase
         .from("device_login_notifications")
         .insert({
@@ -118,7 +105,6 @@ Deno.serve(async (req: Request): Promise<Response> => {
           email_sent: false,
         });
 
-      // Create in-app notification
       await supabase
         .from("notifications")
         .insert({
@@ -136,39 +122,21 @@ Deno.serve(async (req: Request): Promise<Response> => {
             device_type: deviceInfo.deviceType,
           },
         });
-
-      console.log(`Security notification created for user ${userId}`);
-
-      // TODO: Send email notification using Resend when RESEND_API_KEY is configured
-      // For now, we log the intent
-      console.log(`Email notification would be sent to ${userEmail} for ${isNewDevice ? 'new device' : 'new IP'}`);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        isNewDevice,
-        isNewIP,
-        deviceId,
-        message: isNewDevice 
-          ? "New device detected and registered" 
-          : isNewIP 
-            ? "Known device with new IP detected" 
-            : "Known device",
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
-  } catch (error: any) {
-    console.error("Error in detect-new-device:", error);
-    return new Response(
-      JSON.stringify({ error: error.message }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
-    );
+    return jsonRes(corsHeaders, {
+      success: true,
+      isNewDevice,
+      isNewIP,
+      deviceId,
+      message: isNewDevice 
+        ? "New device detected and registered" 
+        : isNewIP 
+          ? "Known device with new IP detected" 
+          : "Known device",
+    });
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Internal error";
+    return jsonRes(corsHeaders, { error: msg }, 500);
   }
 });

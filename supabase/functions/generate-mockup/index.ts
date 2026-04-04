@@ -1,5 +1,22 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.1";
+import { z } from "npm:zod@3.23.8";
+
+const MockupBodySchema = z.object({
+  productImageUrl: z.string().url().max(2000),
+  logoBase64: z.string().max(5_000_000).optional(),
+  logoUrl: z.string().url().max(2000).optional(),
+  techniqueName: z.string().max(200).optional(),
+  techniquePrompt: z.string().max(5000).optional(),
+  techniqueId: z.string().max(100).optional(),
+  positionX: z.number().min(0).max(100),
+  positionY: z.number().min(0).max(100),
+  logoWidthCm: z.number().positive().max(200).optional(),
+  logoHeightCm: z.number().positive().max(200).optional(),
+  logoRotation: z.number().min(-360).max(360).optional().default(0),
+  logoScale: z.number().min(1).max(500).optional().default(100),
+  productName: z.string().max(500).optional(),
+});
 
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
@@ -27,6 +44,15 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const rawBody = await req.json();
+    const parsed = MockupBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Invalid input", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const { 
       productImageUrl, 
       logoBase64,
@@ -38,14 +64,14 @@ Deno.serve(async (req) => {
       positionY, 
       logoWidthCm, 
       logoHeightCm,
-      logoRotation = 0,
-      logoScale = 100,
+      logoRotation,
+      logoScale,
       productName 
-    } = await req.json();
+    } = parsed.data;
 
     let logoImageSrc = logoBase64 || logoUrl;
 
-    if (!productImageUrl || !logoImageSrc) {
+    if (!logoImageSrc) {
       return new Response(
         JSON.stringify({ error: "Product image and logo are required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }

@@ -1,6 +1,20 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
+const MessageSchema = z.object({
+  role: z.enum(["user", "assistant", "system"]),
+  content: z.string().min(1).max(10000),
+});
+
+const ExpertChatBodySchema = z.object({
+  messages: z.array(MessageSchema).min(1).max(50),
+  clientId: z.string().uuid().optional(),
+  categoryFilter: z.string().max(200).optional(),
+  priceMin: z.number().nonnegative().optional(),
+  priceMax: z.number().nonnegative().optional(),
+  materialFilter: z.string().max(200).optional(),
+});
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
 
@@ -93,8 +107,15 @@ Deno.serve(async (req) => {
     const userId = user.id;
     console.log("Authenticated user:", userId);
 
-    const { messages, clientId, categoryFilter, priceMin, priceMax, materialFilter } = await req.json();
-    console.log("Filters - Category:", categoryFilter, "Price:", priceMin, "-", priceMax, "Material:", materialFilter);
+    const rawBody = await req.json();
+    const parsed = ExpertChatBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Dados inválidos", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+    const { messages, clientId, categoryFilter, priceMin, priceMax, materialFilter } = parsed.data;
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
