@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Palette, Sun, Moon, Monitor, RotateCcw } from 'lucide-react';
+import { ArrowLeft, Save, RotateCcw, Sun, Moon, Monitor } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useTheme } from '@/contexts/ThemeContext';
 import { toast } from 'sonner';
 import {
@@ -17,10 +16,12 @@ import {
 } from '@/lib/theme-presets';
 import { PresetCard } from '@/components/settings/theme/PresetCard';
 import { BorderRadiusControl } from '@/components/settings/theme/BorderRadiusControl';
+import { useNavigate } from 'react-router-dom';
 
 export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
+  const navigate = useNavigate();
 
   const applyAll = useCallback((cfg: ThemeConfig, mode: 'light' | 'dark') => {
     applyThemePreset(cfg.presetId, mode);
@@ -47,6 +48,11 @@ export default function AdminTemasPage() {
     }
   };
 
+  const handleSave = () => {
+    saveThemeConfig(config);
+    toast.success('Tema salvo com sucesso!');
+  };
+
   const handleReset = () => {
     clearThemeOverrides();
     const def = getDefaultConfig();
@@ -63,25 +69,33 @@ export default function AdminTemasPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
-            <Palette className="h-5 w-5 text-primary" />
-          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </button>
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Personalizar Tema</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">Skins</h1>
             <p className="text-sm text-muted-foreground">
-              Escolha um preset ou customize as cores
+              Escolha sua skin favorita
             </p>
           </div>
         </div>
-        <Button variant="outline" size="sm" onClick={handleReset}>
-          <RotateCcw className="h-4 w-4 mr-1.5" /> Reset
-        </Button>
+        <div className="flex items-center gap-2">
+          <Button size="sm" onClick={handleSave}>
+            <Save className="h-4 w-4 mr-1.5" /> Salvar
+          </Button>
+          <Button variant="outline" size="sm" onClick={handleReset}>
+            <RotateCcw className="h-4 w-4 mr-1.5" /> Original
+          </Button>
+        </div>
       </div>
 
       {/* Color Mode */}
       <Card>
         <CardContent className="p-6">
-          <h2 className="text-sm font-semibold text-foreground mb-4">Modo de Cor</h2>
+          <h2 className="text-sm font-display font-semibold text-foreground mb-4">Modo de Cor</h2>
           <div className="flex gap-3">
             {[
               { key: 'light' as const, icon: Sun, label: 'Claro' },

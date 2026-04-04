@@ -33,19 +33,17 @@ export function PresetCard({ preset, isActive, onSelect }: PresetCardProps) {
         ))}
       </div>
 
-      {/* Active check */}
-      {isActive && (
-        <div className="absolute top-3 right-3">
-          <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center">
+      {/* Info + Active check */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5 min-w-0">
+          <span className="text-sm shrink-0">{preset.emoji}</span>
+          <h3 className="text-xs font-bold text-foreground truncate">{preset.name}</h3>
+        </div>
+        {isActive && (
+          <div className="h-5 w-5 rounded-full bg-primary flex items-center justify-center shrink-0">
             <Check className="h-3 w-3 text-primary-foreground" />
           </div>
-        </div>
-      )}
-
-      {/* Info */}
-      <div className="flex items-center gap-1.5">
-        <span className="text-sm">{preset.emoji}</span>
-        <h3 className="text-xs font-bold text-foreground">{preset.name}</h3>
+        )}
       </div>
       <p className="text-[11px] text-muted-foreground mt-0.5 italic">{preset.description}</p>
     </motion.div>
