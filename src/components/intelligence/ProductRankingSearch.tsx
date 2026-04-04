@@ -344,7 +344,7 @@ export function ProductRankingSearch() {
             </div>
             <div className="bg-muted/30 rounded-lg px-3 py-2 text-center">
               <div className="flex items-center justify-center gap-1 mb-0.5">
-                <Medal className="h-3 w-3 text-amber-500" />
+                <Medal className="h-3 w-3 text-warning" />
               </div>
               <p className="text-base sm:text-lg font-bold text-foreground">{formatCurrency(summary.avgTicket)}</p>
               <p className="text-[10px] text-muted-foreground">Ticket Médio</p>
