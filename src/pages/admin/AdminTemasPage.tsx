@@ -75,7 +75,7 @@ export default function AdminTemasPage() {
             <Palette className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h1 className="text-2xl font-display font-bold text-foreground">Selecione sua Skin</h1>
+            <h1 className="text-2xl font-display font-bold text-foreground">Skins</h1>
             <p className="text-sm text-muted-foreground">
               Escolha um preset ou customize as cores
             </p>
