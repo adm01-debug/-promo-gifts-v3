@@ -138,7 +138,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
       <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1">
         <p className="font-semibold text-foreground">{d.fullName}</p>
         <div className="flex items-center gap-1.5">
-          <TrendingUp className="h-3 w-3 text-emerald-500" />
+           <TrendingUp className="h-3 w-3 text-success" />
           <span>Interno: {formatCurrency(d.internalRevenue)}</span>
         </div>
         <div className="flex items-center gap-1.5">
