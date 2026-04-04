@@ -119,7 +119,7 @@ export function useStockVelocity(productId: string | undefined) {
           limit: 50,
         });
         return result.records;
-      } catch (err: any) {
+      } catch (err: unknown) {
         // MV may not be populated yet — graceful fallback
         if (err.message?.includes('not been populated') || err.message?.includes('não mapeada')) {
           console.warn('[StockVelocity] MV not populated yet, returning empty');
