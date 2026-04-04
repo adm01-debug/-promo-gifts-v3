@@ -33,8 +33,8 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
     <div className="space-y-3">
       {/* Header compacto */}
       <div className="flex items-center gap-2">
-        <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
-          <BarChart3 className="h-3.5 w-3.5 text-white" />
+        <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
+          <BarChart3 className="h-3.5 w-3.5" />
         </div>
         <div>
           <h2 className="font-semibold text-sm text-foreground">Inteligência do Produto</h2>
