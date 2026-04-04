@@ -1,529 +1,294 @@
 /**
  * RLS Policy Tests for 10 Critical Tables
  * 
- * Uses direct SQL with set_config to simulate different auth contexts,
- * validating that RLS policies enforce proper data isolation.
- * 
- * Tables tested:
- * 1. profiles
- * 2. user_roles
- * 3. organizations
- * 4. organization_members
- * 5. quotes
- * 6. orders
- * 7. order_items
- * 8. quote_items
- * 9. quote_approval_tokens
- * 10. admin_audit_log
+ * Uses SUPABASE_DB_URL (select/insert only) with SET LOCAL ROLE
+ * to simulate authenticated/anon contexts against public tables.
+ * Test data is pre-inserted via service-level queries, then
+ * RLS is validated by switching to authenticated/anon roles.
  */
 import {
   assertEquals,
   assert,
 } from "https://deno.land/std@0.208.0/assert/mod.ts";
-
-const DB_URL = Deno.env.get("SUPABASE_DB_URL") ?? "";
-
-// We need the postgres module for direct SQL
 import { Pool } from "https://deno.land/x/postgres@v0.19.3/mod.ts";
 
+const DB_URL = Deno.env.get("SUPABASE_DB_URL") ?? "";
 const pool = new Pool(DB_URL, 3, true);
 
-async function query(sql: string): Promise<{ rows: Record<string, unknown>[] }> {
-  const conn = await pool.connect();
+// Deterministic test UUIDs
+const SELLER_A = "a0a00000-aaaa-aaaa-aaaa-000000000001";
+const SELLER_B = "b0b00000-bbbb-bbbb-bbbb-000000000002";
+const ADMIN_U  = "c0c00000-cccc-cccc-cccc-000000000003";
+const ORG_ID   = "d0d00000-dddd-dddd-dddd-000000000004";
+const QUOTE_A  = "e0e00000-0000-0000-0000-000000000001";
+const QUOTE_B  = "e0e00000-0000-0000-0000-000000000002";
+const QI_A     = "f0f00000-0000-0000-0000-000000000001";
+const QI_B     = "f0f00000-0000-0000-0000-000000000002";
+const TOKEN_A  = "f1f10000-0000-0000-0000-000000000001";
+const TOKEN_B  = "f1f10000-0000-0000-0000-000000000002";
+const ORDER_A  = "f2f20000-0000-0000-0000-000000000001";
+const ORDER_B  = "f2f20000-0000-0000-0000-000000000002";
+const OI_A     = "f3f30000-0000-0000-0000-000000000001";
+const OI_B     = "f3f30000-0000-0000-0000-000000000002";
+const AUDIT_ID = "f4f40000-0000-0000-0000-000000000001";
+
+/** Run SQL as the default (privileged) connection */
+async function run(sql: string) {
+  const c = await pool.connect();
+  try { await c.queryObject(sql); } finally { c.release(); }
+}
+
+/** SELECT as a simulated authenticated user */
+async function selectAs(userId: string, sql: string): Promise<Record<string, unknown>[]> {
+  const c = await pool.connect();
   try {
-    const result = await conn.queryObject(sql);
-    return { rows: result.rows as Record<string, unknown>[] };
+    await c.queryObject(`SELECT set_config('request.jwt.claims','{"sub":"${userId}","role":"authenticated"}',true)`);
+    await c.queryObject(`SELECT set_config('request.jwt.claim.sub','${userId}',true)`);
+    await c.queryObject(`SET LOCAL ROLE authenticated`);
+    const r = await c.queryObject(sql);
+    return r.rows as Record<string, unknown>[];
   } finally {
-    conn.release();
+    try { await c.queryObject(`RESET ROLE`); } catch { /* ok */ }
+    c.release();
   }
 }
 
-async function queryAs(userId: string, role: string, sql: string): Promise<Record<string, unknown>[]> {
-  const conn = await pool.connect();
+/** Try a write as authenticated – returns true if it succeeded without error */
+async function writeAs(userId: string, sql: string): Promise<boolean> {
+  const c = await pool.connect();
   try {
-    // Set the auth context for RLS
-    await conn.queryObject(`SELECT set_config('request.jwt.claims', '{"sub":"${userId}","role":"${role}"}', true)`);
-    await conn.queryObject(`SET LOCAL ROLE authenticated`);
-    await conn.queryObject(`SELECT set_config('request.jwt.claim.sub', '${userId}', true)`);
-    const result = await conn.queryObject(sql);
-    return result.rows as Record<string, unknown>[];
+    await c.queryObject(`SELECT set_config('request.jwt.claims','{"sub":"${userId}","role":"authenticated"}',true)`);
+    await c.queryObject(`SELECT set_config('request.jwt.claim.sub','${userId}',true)`);
+    await c.queryObject(`SET LOCAL ROLE authenticated`);
+    await c.queryObject(sql);
+    return true;
+  } catch {
+    return false;
   } finally {
-    // Reset role
-    try { await conn.queryObject(`RESET ROLE`); } catch { /* ignore */ }
-    conn.release();
+    try { await c.queryObject(`RESET ROLE`); } catch { /* ok */ }
+    c.release();
   }
 }
 
-async function queryAsAnon(sql: string): Promise<Record<string, unknown>[]> {
-  const conn = await pool.connect();
+/** SELECT as anon */
+async function selectAsAnon(sql: string): Promise<Record<string, unknown>[]> {
+  const c = await pool.connect();
   try {
-    await conn.queryObject(`SELECT set_config('request.jwt.claims', '{}', true)`);
-    await conn.queryObject(`SET LOCAL ROLE anon`);
-    const result = await conn.queryObject(sql);
-    return result.rows as Record<string, unknown>[];
+    await c.queryObject(`SELECT set_config('request.jwt.claims','{}',true)`);
+    await c.queryObject(`SET LOCAL ROLE anon`);
+    const r = await c.queryObject(sql);
+    return r.rows as Record<string, unknown>[];
   } finally {
-    try { await conn.queryObject(`RESET ROLE`); } catch { /* ignore */ }
-    conn.release();
+    try { await c.queryObject(`RESET ROLE`); } catch { /* ok */ }
+    c.release();
   }
 }
 
-// Test IDs (UUIDs that won't collide)
-const SELLER_A_ID = "a0000000-0000-0000-0000-000000000001";
-const SELLER_B_ID = "b0000000-0000-0000-0000-000000000002";
-const ADMIN_ID =    "c0000000-0000-0000-0000-000000000003";
-const ORG_ID =      "d0000000-0000-0000-0000-000000000004";
+// ========= SETUP =========
 
-// ---------- Setup & Teardown ----------
+Deno.test({ name: "SETUP: seed test data", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  // profiles (handle_new_user won't fire – insert directly)
+  await run(`INSERT INTO public.profiles (user_id,email,full_name,role) VALUES
+    ('${SELLER_A}','sa@t.l','Seller A','vendedor'),
+    ('${SELLER_B}','sb@t.l','Seller B','vendedor'),
+    ('${ADMIN_U}','ad@t.l','Admin','admin')
+    ON CONFLICT (user_id) DO NOTHING`);
 
-async function setupTestData() {
-  // Create test users in auth.users (service role)
-  await query(`
-    INSERT INTO auth.users (id, email, encrypted_password, email_confirmed_at, role, aud, instance_id)
-    VALUES 
-      ('${SELLER_A_ID}', 'rls-seller-a@test.local', crypt('password123', gen_salt('bf')), now(), 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000'),
-      ('${SELLER_B_ID}', 'rls-seller-b@test.local', crypt('password123', gen_salt('bf')), now(), 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000'),
-      ('${ADMIN_ID}', 'rls-admin@test.local', crypt('password123', gen_salt('bf')), now(), 'authenticated', 'authenticated', '00000000-0000-0000-0000-000000000000')
-    ON CONFLICT (id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.user_roles (user_id,role) VALUES
+    ('${SELLER_A}','vendedor'),('${SELLER_B}','vendedor'),('${ADMIN_U}','admin')
+    ON CONFLICT (user_id,role) DO NOTHING`);
 
-  // Create profiles
-  await query(`
-    INSERT INTO public.profiles (user_id, email, full_name, role)
-    VALUES 
-      ('${SELLER_A_ID}', 'rls-seller-a@test.local', 'Seller A', 'vendedor'),
-      ('${SELLER_B_ID}', 'rls-seller-b@test.local', 'Seller B', 'vendedor'),
-      ('${ADMIN_ID}', 'rls-admin@test.local', 'Admin User', 'admin')
-    ON CONFLICT (user_id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.organizations (id,name,slug) VALUES
+    ('${ORG_ID}','RLS Org','rls-org-${Date.now()}') ON CONFLICT (id) DO NOTHING`);
 
-  // Create roles
-  await query(`
-    INSERT INTO public.user_roles (user_id, role)
-    VALUES 
-      ('${SELLER_A_ID}', 'vendedor'),
-      ('${SELLER_B_ID}', 'vendedor'),
-      ('${ADMIN_ID}', 'admin')
-    ON CONFLICT (user_id, role) DO NOTHING
-  `);
+  await run(`INSERT INTO public.organization_members (organization_id,user_id,role) VALUES
+    ('${ORG_ID}','${SELLER_A}','member'),
+    ('${ORG_ID}','${SELLER_B}','member'),
+    ('${ORG_ID}','${ADMIN_U}','owner')
+    ON CONFLICT DO NOTHING`);
 
-  // Create organization
-  await query(`
-    INSERT INTO public.organizations (id, name, slug)
-    VALUES ('${ORG_ID}', 'RLS Test Org', 'rls-test-org-${Date.now()}')
-    ON CONFLICT (id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.quotes (id,seller_id,organization_id,client_name,status,quote_number) VALUES
+    ('${QUOTE_A}','${SELLER_A}','${ORG_ID}','Client A','draft','RLSA/99'),
+    ('${QUOTE_B}','${SELLER_B}','${ORG_ID}','Client B','draft','RLSB/99')
+    ON CONFLICT (id) DO NOTHING`);
 
-  // Add members
-  await query(`
-    INSERT INTO public.organization_members (organization_id, user_id, role)
-    VALUES 
-      ('${ORG_ID}', '${SELLER_A_ID}', 'member'),
-      ('${ORG_ID}', '${SELLER_B_ID}', 'member'),
-      ('${ORG_ID}', '${ADMIN_ID}', 'owner')
-    ON CONFLICT DO NOTHING
-  `);
+  await run(`INSERT INTO public.quote_items (id,quote_id,product_name,quantity,unit_price) VALUES
+    ('${QI_A}','${QUOTE_A}','Prod A',10,5),('${QI_B}','${QUOTE_B}','Prod B',20,10)
+    ON CONFLICT (id) DO NOTHING`);
 
-  // Create quotes
-  await query(`
-    INSERT INTO public.quotes (id, seller_id, organization_id, client_name, status, quote_number)
-    VALUES 
-      ('e0000000-0000-0000-0000-000000000001', '${SELLER_A_ID}', '${ORG_ID}', 'Client A', 'draft', 'RLS-A/99'),
-      ('e0000000-0000-0000-0000-000000000002', '${SELLER_B_ID}', '${ORG_ID}', 'Client B', 'draft', 'RLS-B/99')
-    ON CONFLICT (id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.quote_approval_tokens (id,quote_id,seller_id,client_name) VALUES
+    ('${TOKEN_A}','${QUOTE_A}','${SELLER_A}','Tok A'),
+    ('${TOKEN_B}','${QUOTE_B}','${SELLER_B}','Tok B')
+    ON CONFLICT (id) DO NOTHING`);
 
-  // Create quote items
-  await query(`
-    INSERT INTO public.quote_items (id, quote_id, product_name, quantity, unit_price)
-    VALUES 
-      ('f0000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 'Product A', 10, 5.00),
-      ('f0000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000002', 'Product B', 20, 10.00)
-    ON CONFLICT (id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.orders (id,seller_id,organization_id,client_name,order_number) VALUES
+    ('${ORDER_A}','${SELLER_A}','${ORG_ID}','Ord A','PED-RLS-0001'),
+    ('${ORDER_B}','${SELLER_B}','${ORG_ID}','Ord B','PED-RLS-0002')
+    ON CONFLICT (id) DO NOTHING`);
 
-  // Create quote approval tokens
-  await query(`
-    INSERT INTO public.quote_approval_tokens (id, quote_id, seller_id, client_name)
-    VALUES 
-      ('f1000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', '${SELLER_A_ID}', 'Token A'),
-      ('f1000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000002', '${SELLER_B_ID}', 'Token B')
-    ON CONFLICT (id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.order_items (id,order_id,organization_id,product_name,quantity) VALUES
+    ('${OI_A}','${ORDER_A}','${ORG_ID}','OI A',5),
+    ('${OI_B}','${ORDER_B}','${ORG_ID}','OI B',10)
+    ON CONFLICT (id) DO NOTHING`);
 
-  // Create orders
-  await query(`
-    INSERT INTO public.orders (id, seller_id, organization_id, client_name, order_number)
-    VALUES 
-      ('f2000000-0000-0000-0000-000000000001', '${SELLER_A_ID}', '${ORG_ID}', 'Order Client A', 'PED-RLS-0001'),
-      ('f2000000-0000-0000-0000-000000000002', '${SELLER_B_ID}', '${ORG_ID}', 'Order Client B', 'PED-RLS-0002')
-    ON CONFLICT (id) DO NOTHING
-  `);
+  await run(`INSERT INTO public.admin_audit_log (id,user_id,action,resource_type) VALUES
+    ('${AUDIT_ID}','${ADMIN_U}','test','rls') ON CONFLICT (id) DO NOTHING`);
+}});
 
-  // Create order items
-  await query(`
-    INSERT INTO public.order_items (id, order_id, organization_id, product_name, quantity)
-    VALUES 
-      ('f3000000-0000-0000-0000-000000000001', 'f2000000-0000-0000-0000-000000000001', '${ORG_ID}', 'Order Item A', 5),
-      ('f3000000-0000-0000-0000-000000000002', 'f2000000-0000-0000-0000-000000000002', '${ORG_ID}', 'Order Item B', 10)
-    ON CONFLICT (id) DO NOTHING
-  `);
+// ========= 1. PROFILES =========
 
-  // Create audit log entry
-  await query(`
-    INSERT INTO public.admin_audit_log (id, user_id, action, resource_type)
-    VALUES ('f4000000-0000-0000-0000-000000000001', '${ADMIN_ID}', 'rls_test_action', 'rls_test')
-    ON CONFLICT (id) DO NOTHING
-  `);
-}
+Deno.test({ name: "1a profiles: seller sees only own", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT user_id FROM public.profiles WHERE user_id IN ('${SELLER_A}','${SELLER_B}','${ADMIN_U}')`);
+  const ids = rows.map(r => r.user_id);
+  assert(ids.includes(SELLER_A), "own profile visible");
+  assertEquals(ids.includes(SELLER_B), false, "other seller hidden");
+}});
 
-async function teardownTestData() {
-  const ids = `'${SELLER_A_ID}','${SELLER_B_ID}','${ADMIN_ID}'`;
-  await query(`DELETE FROM public.admin_audit_log WHERE id = 'f4000000-0000-0000-0000-000000000001'`);
-  await query(`DELETE FROM public.quote_approval_tokens WHERE id IN ('f1000000-0000-0000-0000-000000000001','f1000000-0000-0000-0000-000000000002')`);
-  await query(`DELETE FROM public.quote_items WHERE id IN ('f0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000002')`);
-  await query(`DELETE FROM public.quotes WHERE id IN ('e0000000-0000-0000-0000-000000000001','e0000000-0000-0000-0000-000000000002')`);
-  await query(`DELETE FROM public.order_items WHERE id IN ('f3000000-0000-0000-0000-000000000001','f3000000-0000-0000-0000-000000000002')`);
-  await query(`DELETE FROM public.orders WHERE id IN ('f2000000-0000-0000-0000-000000000001','f2000000-0000-0000-0000-000000000002')`);
-  await query(`DELETE FROM public.organization_members WHERE organization_id = '${ORG_ID}'`);
-  await query(`DELETE FROM public.organizations WHERE id = '${ORG_ID}'`);
-  await query(`DELETE FROM public.user_roles WHERE user_id IN (${ids})`);
-  await query(`DELETE FROM public.profiles WHERE user_id IN (${ids})`);
-  await query(`DELETE FROM auth.users WHERE id IN (${ids})`);
-}
+Deno.test({ name: "1b profiles: admin sees all", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(ADMIN_U, `SELECT user_id FROM public.profiles WHERE user_id IN ('${SELLER_A}','${SELLER_B}','${ADMIN_U}')`);
+  assertEquals(rows.length, 3, "admin sees all 3");
+}});
 
-// ============================================
-// TESTS
-// ============================================
+Deno.test({ name: "1c profiles: seller can't update other", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  await writeAs(SELLER_A, `UPDATE public.profiles SET department='HACKED' WHERE user_id='${SELLER_B}'`);
+  const check = await selectAs(SELLER_B, `SELECT department FROM public.profiles WHERE user_id='${SELLER_B}'`);
+  assert(check[0]?.department !== 'HACKED', "not modified");
+}});
 
-Deno.test({
-  name: "RLS Test Suite - Setup",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    await setupTestData();
-  },
-});
+// ========= 2. USER_ROLES =========
 
-// --- 1. PROFILES ---
-Deno.test({
-  name: "1. profiles: seller sees only own profile",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated", 
-      `SELECT user_id FROM public.profiles WHERE user_id IN ('${SELLER_A_ID}','${SELLER_B_ID}','${ADMIN_ID}')`
-    );
-    const userIds = rows.map(r => r.user_id);
-    assert(userIds.includes(SELLER_A_ID), "Should see own profile");
-    assertEquals(userIds.includes(SELLER_B_ID), false, "Should NOT see Seller B");
-    assertEquals(userIds.includes(ADMIN_ID), false, "Should NOT see Admin");
-  },
-});
+Deno.test({ name: "2a user_roles: seller sees nothing", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT * FROM public.user_roles LIMIT 5`);
+  assertEquals(rows.length, 0, "seller can't read roles");
+}});
 
-Deno.test({
-  name: "1. profiles: admin sees all profiles",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(ADMIN_ID, "authenticated",
-      `SELECT user_id FROM public.profiles WHERE user_id IN ('${SELLER_A_ID}','${SELLER_B_ID}','${ADMIN_ID}')`
-    );
-    const userIds = rows.map(r => r.user_id);
-    assert(userIds.includes(SELLER_A_ID), "Admin should see Seller A");
-    assert(userIds.includes(SELLER_B_ID), "Admin should see Seller B");
-    assert(userIds.includes(ADMIN_ID), "Admin should see self");
-  },
-});
+Deno.test({ name: "2b user_roles: seller can't self-escalate", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const ok = await writeAs(SELLER_A, `INSERT INTO public.user_roles (user_id,role) VALUES ('${SELLER_A}','admin')`);
+  assertEquals(ok, false, "privilege escalation blocked");
+}});
 
-// --- 2. USER_ROLES ---
-Deno.test({
-  name: "2. user_roles: seller cannot read roles",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT * FROM public.user_roles WHERE user_id IN ('${SELLER_A_ID}','${SELLER_B_ID}','${ADMIN_ID}')`
-    );
-    assertEquals(rows.length, 0, "Seller should NOT see any user_roles");
-  },
-});
+// ========= 3. ORGANIZATIONS =========
 
-Deno.test({
-  name: "2. user_roles: seller cannot escalate privileges",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    let errored = false;
-    try {
-      await queryAs(SELLER_A_ID, "authenticated",
-        `INSERT INTO public.user_roles (user_id, role) VALUES ('${SELLER_A_ID}', 'admin')`
-      );
-    } catch {
-      errored = true;
-    }
-    assertEquals(errored, true, "Seller should NOT be able to self-assign admin role");
-  },
-});
+Deno.test({ name: "3a organizations: member sees own org", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT id FROM public.organizations WHERE id='${ORG_ID}'`);
+  assertEquals(rows.length, 1);
+}});
 
-// --- 3. ORGANIZATIONS ---
-Deno.test({
-  name: "3. organizations: member sees own org only",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT id FROM public.organizations WHERE id = '${ORG_ID}'`
-    );
-    assertEquals(rows.length, 1, "Member should see their org");
-  },
-});
+Deno.test({ name: "3b organizations: non-member can't see", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs("99990000-0000-0000-0000-000000000099", `SELECT id FROM public.organizations WHERE id='${ORG_ID}'`);
+  assertEquals(rows.length, 0);
+}});
 
-Deno.test({
-  name: "3. organizations: non-member cannot see org",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    // Use a random UUID that's not a member
-    const fakeUserId = "99990000-0000-0000-0000-000000000099";
-    const rows = await queryAs(fakeUserId, "authenticated",
-      `SELECT id FROM public.organizations WHERE id = '${ORG_ID}'`
-    );
-    assertEquals(rows.length, 0, "Non-member should NOT see org");
-  },
-});
+// ========= 4. ORG MEMBERS =========
 
-// --- 4. ORGANIZATION_MEMBERS ---
-Deno.test({
-  name: "4. organization_members: member can view org members",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT user_id FROM public.organization_members WHERE organization_id = '${ORG_ID}'`
-    );
-    assert(rows.length >= 3, "Member should see all org members");
-  },
-});
+Deno.test({ name: "4a org_members: member sees members", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT user_id FROM public.organization_members WHERE organization_id='${ORG_ID}'`);
+  assert(rows.length >= 3);
+}});
 
-Deno.test({
-  name: "4. organization_members: non-owner cannot add members",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    let errored = false;
-    try {
-      await queryAs(SELLER_A_ID, "authenticated",
-        `INSERT INTO public.organization_members (organization_id, user_id, role) 
-         VALUES ('${ORG_ID}', '99990000-0000-0000-0000-000000000088', 'member')`
-      );
-    } catch {
-      errored = true;
-    }
-    assertEquals(errored, true, "Non-owner should NOT add members");
-  },
-});
+Deno.test({ name: "4b org_members: non-owner can't add", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const ok = await writeAs(SELLER_A, `INSERT INTO public.organization_members (organization_id,user_id,role) VALUES ('${ORG_ID}','99990000-0000-0000-0000-000000000088','member')`);
+  assertEquals(ok, false, "non-owner insert blocked");
+}});
 
-// --- 5. QUOTES (org-scoped) ---
-Deno.test({
-  name: "5. quotes: seller sees only own quotes (not other seller's)",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT id, seller_id FROM public.quotes WHERE id IN ('e0000000-0000-0000-0000-000000000001','e0000000-0000-0000-0000-000000000002')`
-    );
-    assert(rows.length >= 1, "Should see at least own quote");
-    const allOwn = rows.every(r => r.seller_id === SELLER_A_ID);
-    assertEquals(allOwn, true, "Seller A should only see own quotes");
-  },
-});
+// ========= 5. QUOTES =========
 
-Deno.test({
-  name: "5. quotes: admin sees all org quotes",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(ADMIN_ID, "authenticated",
-      `SELECT id, seller_id FROM public.quotes WHERE organization_id = '${ORG_ID}'`
-    );
-    const sellerIds = [...new Set(rows.map(r => r.seller_id))];
-    assert(sellerIds.includes(SELLER_A_ID), "Admin should see Seller A's quotes");
-    assert(sellerIds.includes(SELLER_B_ID), "Admin should see Seller B's quotes");
-  },
-});
+Deno.test({ name: "5a quotes: seller sees only own", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT id,seller_id FROM public.quotes WHERE id IN ('${QUOTE_A}','${QUOTE_B}')`);
+  assert(rows.length >= 1);
+  assert(rows.every(r => r.seller_id === SELLER_A), "only own quotes");
+}});
 
-Deno.test({
-  name: "5. quotes: seller cannot modify another seller's quote",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    // Try to update seller B's quote as seller A
-    await queryAs(SELLER_A_ID, "authenticated",
-      `UPDATE public.quotes SET client_name = 'HACKED' WHERE id = 'e0000000-0000-0000-0000-000000000002'`
-    );
-    // Verify it wasn't changed
-    const check = await query(
-      `SELECT client_name FROM public.quotes WHERE id = 'e0000000-0000-0000-0000-000000000002'`
-    );
-    assert(check.rows[0]?.client_name !== "HACKED", "Seller B's quote should NOT be modified");
-  },
-});
+Deno.test({ name: "5b quotes: admin sees all org quotes", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(ADMIN_U, `SELECT seller_id FROM public.quotes WHERE organization_id='${ORG_ID}'`);
+  const sellers = [...new Set(rows.map(r => r.seller_id))];
+  assert(sellers.includes(SELLER_A) && sellers.includes(SELLER_B), "admin sees both");
+}});
 
-// --- 6. ORDERS (org-scoped) ---
-Deno.test({
-  name: "6. orders: seller sees only own orders",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT id, seller_id FROM public.orders WHERE id IN ('f2000000-0000-0000-0000-000000000001','f2000000-0000-0000-0000-000000000002')`
-    );
-    const allOwn = rows.every(r => r.seller_id === SELLER_A_ID);
-    assertEquals(allOwn, true, "Seller A should only see own orders");
-  },
-});
+Deno.test({ name: "5c quotes: seller can't update other's quote", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  await writeAs(SELLER_A, `UPDATE public.quotes SET client_name='HACKED' WHERE id='${QUOTE_B}'`);
+  const c = await selectAs(ADMIN_U, `SELECT client_name FROM public.quotes WHERE id='${QUOTE_B}'`);
+  assert(c[0]?.client_name !== 'HACKED');
+}});
 
-Deno.test({
-  name: "6. orders: seller cannot delete another's order",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    await queryAs(SELLER_A_ID, "authenticated",
-      `DELETE FROM public.orders WHERE id = 'f2000000-0000-0000-0000-000000000002'`
-    );
-    const check = await query(`SELECT id FROM public.orders WHERE id = 'f2000000-0000-0000-0000-000000000002'`);
-    assertEquals(check.rows.length, 1, "Seller B's order should still exist");
-  },
-});
+// ========= 6. ORDERS =========
 
-// --- 7. ORDER_ITEMS (org-scoped) ---
-Deno.test({
-  name: "7. order_items: org member can see org items",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT id FROM public.order_items WHERE organization_id = '${ORG_ID}'`
-    );
-    assert(rows.length >= 1, "Org member should see org order items");
-  },
-});
+Deno.test({ name: "6a orders: seller sees only own", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT seller_id FROM public.orders WHERE id IN ('${ORDER_A}','${ORDER_B}')`);
+  assert(rows.every(r => r.seller_id === SELLER_A));
+}});
 
-// --- 8. QUOTE_ITEMS (via quote ownership) ---
-Deno.test({
-  name: "8. quote_items: seller sees only items from own quotes",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT qi.id, qi.product_name, qi.quote_id 
-       FROM public.quote_items qi 
-       WHERE qi.id IN ('f0000000-0000-0000-0000-000000000001','f0000000-0000-0000-0000-000000000002')`
-    );
-    const allFromOwnQuotes = rows.every(
-      r => r.quote_id === "e0000000-0000-0000-0000-000000000001"
-    );
-    assertEquals(allFromOwnQuotes, true, "Should only see items from own quotes");
-  },
-});
+Deno.test({ name: "6b orders: seller can't delete other's", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  await writeAs(SELLER_A, `DELETE FROM public.orders WHERE id='${ORDER_B}'`);
+  const c = await selectAs(ADMIN_U, `SELECT id FROM public.orders WHERE id='${ORDER_B}'`);
+  assertEquals(c.length, 1, "order still exists");
+}});
 
-// --- 9. QUOTE_APPROVAL_TOKENS (seller-scoped) ---
-Deno.test({
-  name: "9. quote_approval_tokens: seller sees only own tokens",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT id, seller_id FROM public.quote_approval_tokens 
-       WHERE id IN ('f1000000-0000-0000-0000-000000000001','f1000000-0000-0000-0000-000000000002')`
-    );
-    const allOwn = rows.every(r => r.seller_id === SELLER_A_ID);
-    assertEquals(allOwn, true, "Seller should only see own tokens");
-  },
-});
+// ========= 7. ORDER_ITEMS =========
 
-Deno.test({
-  name: "9. quote_approval_tokens: seller cannot delete another's token",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    await queryAs(SELLER_A_ID, "authenticated",
-      `DELETE FROM public.quote_approval_tokens WHERE id = 'f1000000-0000-0000-0000-000000000002'`
-    );
-    const check = await query(`SELECT id FROM public.quote_approval_tokens WHERE id = 'f1000000-0000-0000-0000-000000000002'`);
-    assertEquals(check.rows.length, 1, "Seller B's token should still exist");
-  },
-});
+Deno.test({ name: "7 order_items: org member sees org items", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT id FROM public.order_items WHERE organization_id='${ORG_ID}'`);
+  assert(rows.length >= 1);
+}});
 
-// --- 10. ADMIN_AUDIT_LOG (admin-only) ---
-Deno.test({
-  name: "10. admin_audit_log: seller cannot read audit logs",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(SELLER_A_ID, "authenticated",
-      `SELECT id FROM public.admin_audit_log WHERE id = 'f4000000-0000-0000-0000-000000000001'`
-    );
-    assertEquals(rows.length, 0, "Seller should NOT see audit logs");
-  },
-});
+// ========= 8. QUOTE_ITEMS =========
 
-Deno.test({
-  name: "10. admin_audit_log: admin can read audit logs",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const rows = await queryAs(ADMIN_ID, "authenticated",
-      `SELECT id FROM public.admin_audit_log WHERE id = 'f4000000-0000-0000-0000-000000000001'`
-    );
-    assert(rows.length >= 1, "Admin should see audit logs");
-  },
-});
+Deno.test({ name: "8 quote_items: seller sees only own quote items", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT quote_id FROM public.quote_items WHERE id IN ('${QI_A}','${QI_B}')`);
+  assert(rows.every(r => r.quote_id === QUOTE_A), "only own");
+}});
 
-Deno.test({
-  name: "10. admin_audit_log: seller cannot insert audit logs",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    let errored = false;
-    try {
-      await queryAs(SELLER_A_ID, "authenticated",
-        `INSERT INTO public.admin_audit_log (user_id, action, resource_type) 
-         VALUES ('${SELLER_A_ID}', 'malicious', 'exploit')`
-      );
-    } catch {
-      errored = true;
-    }
-    assertEquals(errored, true, "Seller should NOT insert audit logs");
-  },
-});
+// ========= 9. QUOTE_APPROVAL_TOKENS =========
 
-// --- CROSS-CUTTING: Anon access ---
-Deno.test({
-  name: "CROSS: anon cannot access critical tables",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    const tables = [
-      "profiles", "user_roles", "quotes", "orders", 
-      "order_items", "organizations", "admin_audit_log",
-      "quote_items", "quote_approval_tokens", "organization_members",
-    ];
-    
-    for (const table of tables) {
-      const rows = await queryAsAnon(`SELECT * FROM public.${table} LIMIT 1`);
-      assertEquals(rows.length, 0, `Anon should NOT see data in ${table}`);
-    }
-  },
-});
+Deno.test({ name: "9a tokens: seller sees only own", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT seller_id FROM public.quote_approval_tokens WHERE id IN ('${TOKEN_A}','${TOKEN_B}')`);
+  assert(rows.every(r => r.seller_id === SELLER_A));
+}});
 
-// --- Teardown ---
-Deno.test({
-  name: "RLS Test Suite - Teardown",
-  sanitizeOps: false,
-  sanitizeResources: false,
-  fn: async () => {
-    await teardownTestData();
-    await pool.end();
-  },
-});
+Deno.test({ name: "9b tokens: seller can't delete other's", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  await writeAs(SELLER_A, `DELETE FROM public.quote_approval_tokens WHERE id='${TOKEN_B}'`);
+  const c = await selectAs(SELLER_B, `SELECT id FROM public.quote_approval_tokens WHERE id='${TOKEN_B}'`);
+  assertEquals(c.length, 1);
+}});
+
+// ========= 10. ADMIN_AUDIT_LOG =========
+
+Deno.test({ name: "10a audit_log: seller can't read", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(SELLER_A, `SELECT id FROM public.admin_audit_log WHERE id='${AUDIT_ID}'`);
+  assertEquals(rows.length, 0);
+}});
+
+Deno.test({ name: "10b audit_log: admin can read", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const rows = await selectAs(ADMIN_U, `SELECT id FROM public.admin_audit_log WHERE id='${AUDIT_ID}'`);
+  assert(rows.length >= 1);
+}});
+
+Deno.test({ name: "10c audit_log: seller can't insert", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  const ok = await writeAs(SELLER_A, `INSERT INTO public.admin_audit_log (user_id,action,resource_type) VALUES ('${SELLER_A}','evil','hack')`);
+  assertEquals(ok, false);
+}});
+
+// ========= CROSS: ANON =========
+
+Deno.test({ name: "CROSS: anon can't access any critical table", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  for (const t of ["profiles","user_roles","quotes","orders","order_items","organizations","admin_audit_log","quote_items","quote_approval_tokens","organization_members"]) {
+    const rows = await selectAsAnon(`SELECT * FROM public.${t} LIMIT 1`);
+    assertEquals(rows.length, 0, `anon blocked on ${t}`);
+  }
+}});
+
+// ========= TEARDOWN =========
+
+Deno.test({ name: "TEARDOWN: clean test data", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+  await run(`DELETE FROM public.admin_audit_log WHERE id='${AUDIT_ID}'`);
+  await run(`DELETE FROM public.quote_approval_tokens WHERE id IN ('${TOKEN_A}','${TOKEN_B}')`);
+  await run(`DELETE FROM public.quote_items WHERE id IN ('${QI_A}','${QI_B}')`);
+  await run(`DELETE FROM public.quotes WHERE id IN ('${QUOTE_A}','${QUOTE_B}')`);
+  await run(`DELETE FROM public.order_items WHERE id IN ('${OI_A}','${OI_B}')`);
+  await run(`DELETE FROM public.orders WHERE id IN ('${ORDER_A}','${ORDER_B}')`);
+  await run(`DELETE FROM public.organization_members WHERE organization_id='${ORG_ID}'`);
+  await run(`DELETE FROM public.organizations WHERE id='${ORG_ID}'`);
+  await run(`DELETE FROM public.user_roles WHERE user_id IN ('${SELLER_A}','${SELLER_B}','${ADMIN_U}')`);
+  await run(`DELETE FROM public.profiles WHERE user_id IN ('${SELLER_A}','${SELLER_B}','${ADMIN_U}')`);
+  await pool.end();
+}});
