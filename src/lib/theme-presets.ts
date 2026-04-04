@@ -102,7 +102,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Padrão',
     description: 'Roxo vibrante original',
     emoji: '💜',
-    colors: ['hsl(25, 95%, 53%)', 'hsl(225, 20%, 4%)', 'hsl(24, 100%, 50%)'],
+    colors: ['hsl(280, 70%, 65%)', 'hsl(25, 95%, 55%)', 'hsl(340, 75%, 55%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(25, 95, 53) },
       dark: { ...DEFAULT_DARK_BASE, ...makePrimaryTokens(24, 100, 50) },
@@ -113,7 +113,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Corporativo',
     description: 'Azul profissional',
     emoji: '💼',
-    colors: ['hsl(217, 91%, 50%)', 'hsl(220, 25%, 8%)', 'hsl(215, 85%, 55%)'],
+    colors: ['hsl(217, 91%, 40%)', 'hsl(215, 85%, 55%)', 'hsl(210, 90%, 60%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(217, 91, 50) },
       dark: { ...DEFAULT_DARK_BASE, ...makePrimaryTokens(215, 85, 55) },
@@ -124,7 +124,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Esmeralda',
     description: 'Verde sofisticado',
     emoji: '💚',
-    colors: ['hsl(152, 76%, 40%)', 'hsl(160, 20%, 6%)', 'hsl(150, 70%, 45%)'],
+    colors: ['hsl(152, 76%, 40%)', 'hsl(160, 65%, 55%)', 'hsl(170, 70%, 50%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(152, 76, 40) },
       dark: {
@@ -143,7 +143,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Pôr do Sol',
     description: 'Quente e acolhedor',
     emoji: '🌅',
-    colors: ['hsl(35, 95%, 50%)', 'hsl(20, 20%, 6%)', 'hsl(30, 90%, 52%)'],
+    colors: ['hsl(25, 95%, 55%)', 'hsl(35, 90%, 60%)', 'hsl(45, 95%, 55%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, '--background': '30 20% 96%', ...makePrimaryTokens(35, 95, 50) },
       dark: {
@@ -162,7 +162,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Rosé',
     description: 'Elegante e moderno',
     emoji: '✨',
-    colors: ['hsl(340, 75%, 55%)', 'hsl(340, 20%, 6%)', 'hsl(338, 70%, 58%)'],
+    colors: ['hsl(340, 75%, 50%)', 'hsl(350, 70%, 60%)', 'hsl(0, 80%, 65%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(340, 75, 55) },
       dark: {
@@ -181,7 +181,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Minimal',
     description: 'Clean e neutro',
     emoji: '🌑',
-    colors: ['hsl(220, 10%, 50%)', 'hsl(220, 10%, 8%)', 'hsl(220, 12%, 55%)'],
+    colors: ['hsl(220, 15%, 40%)', 'hsl(220, 10%, 55%)', 'hsl(220, 12%, 65%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(220, 10, 50), '--primary-foreground': '0 0% 100%' },
       dark: { ...DEFAULT_DARK_BASE, ...makePrimaryTokens(220, 12, 55) },
@@ -192,7 +192,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Oceano',
     description: 'Azul profundo',
     emoji: '🌊',
-    colors: ['hsl(200, 85%, 45%)', 'hsl(205, 25%, 6%)', 'hsl(198, 80%, 50%)'],
+    colors: ['hsl(210, 85%, 40%)', 'hsl(200, 80%, 50%)', 'hsl(195, 85%, 55%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(200, 85, 45) },
       dark: {
@@ -211,7 +211,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Âmbar',
     description: 'Dourado e premium',
     emoji: '✨',
-    colors: ['hsl(45, 93%, 47%)', 'hsl(40, 20%, 5%)', 'hsl(42, 90%, 50%)'],
+    colors: ['hsl(30, 85%, 45%)', 'hsl(40, 90%, 55%)', 'hsl(45, 93%, 60%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(45, 93, 47), '--primary-foreground': '40 20% 10%' },
       dark: {
@@ -230,7 +230,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Cyber',
     description: 'Neon futurista',
     emoji: '💜',
-    colors: ['hsl(280, 85%, 55%)', 'hsl(270, 25%, 5%)', 'hsl(285, 80%, 58%)'],
+    colors: ['hsl(180, 85%, 50%)', 'hsl(300, 80%, 55%)', 'hsl(280, 85%, 60%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(280, 85, 55) },
       dark: {
@@ -249,7 +249,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Lavanda',
     description: 'Suave e calmante',
     emoji: '🟪',
-    colors: ['hsl(260, 60%, 65%)', 'hsl(255, 20%, 6%)', 'hsl(258, 55%, 68%)'],
+    colors: ['hsl(270, 50%, 60%)', 'hsl(260, 45%, 68%)', 'hsl(250, 40%, 75%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(260, 60, 65) },
       dark: {

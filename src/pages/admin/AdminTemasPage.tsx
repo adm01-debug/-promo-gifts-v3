@@ -173,9 +173,9 @@ export default function AdminTemasPage() {
                 <CardContent className="p-4">
                   {/* Gradient swatch */}
                   <div
-                    className="h-10 w-full rounded-lg mb-3 shadow-inner"
+                    className="h-10 w-full rounded-lg mb-3"
                     style={{
-                      background: `linear-gradient(135deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 50%, ${preset.colors[2]} 100%)`,
+                      background: `linear-gradient(90deg, ${preset.colors[0]} 0%, ${preset.colors[1]} 50%, ${preset.colors[2]} 100%)`,
                     }}
                   />
                   {isActive && (
