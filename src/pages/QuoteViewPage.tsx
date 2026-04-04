@@ -35,6 +35,7 @@ import { QuoteItemDetailSheet } from "@/components/quotes/QuoteItemDetailSheet";
 import { QuoteCommentsSection } from "@/components/quotes/QuoteCommentsSection";
 import { QuoteApprovalLinkCard } from "@/components/quotes/QuoteApprovalLinkCard";
 import { QuoteVersionHistory } from "@/components/quotes/QuoteVersionHistory";
+import { PresentationMode, type PresentationSlide } from "@/components/presentation/PresentationMode";
 
 function formatCNPJ(cnpj: string): string {
   const digits = cnpj.replace(/\D/g, "");
