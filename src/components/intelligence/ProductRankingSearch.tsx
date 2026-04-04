@@ -113,8 +113,8 @@ export function ProductRankingSearch() {
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
   const trendIcon = {
-    up: <TrendingUp className="h-3 w-3 text-emerald-500" />,
-    down: <TrendingDown className="h-3 w-3 text-red-500" />,
+    up: <TrendingUp className="h-3 w-3 text-success" />,
+    down: <TrendingDown className="h-3 w-3 text-destructive" />,
     stable: <Minus className="h-3 w-3 text-muted-foreground" />,
   };
 
