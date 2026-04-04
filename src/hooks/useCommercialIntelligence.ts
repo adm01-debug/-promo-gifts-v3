@@ -156,11 +156,19 @@ export function useCommercialKPIs(days = 30, categoryId?: string | null, supplie
         };
       }
 
+      // Defense-in-depth: filter by org even though RLS enforces it
+      let quotesQuery1 = supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since);
+      let ordersQuery1 = supabase.from('orders').select('id, total, status, created_at').gte('created_at', since);
+      let quotesQuery2 = supabase.from('quotes').select('id, total').gte('created_at', startOfMonth);
+      let ordersQuery2 = supabase.from('orders').select('id, total').gte('created_at', startOfMonth);
+      if (orgId) {
+        quotesQuery1 = quotesQuery1.eq('organization_id', orgId);
+        ordersQuery1 = ordersQuery1.eq('organization_id', orgId);
+        quotesQuery2 = quotesQuery2.eq('organization_id', orgId);
+        ordersQuery2 = ordersQuery2.eq('organization_id', orgId);
+      }
       const [quotesRes, ordersRes, quotesMonthRes, ordersMonthRes] = await Promise.all([
-        supabase.from('quotes').select('id, total, status, created_at').gte('created_at', since),
-        supabase.from('orders').select('id, total, status, created_at').gte('created_at', since),
-        supabase.from('quotes').select('id, total').gte('created_at', startOfMonth),
-        supabase.from('orders').select('id, total').gte('created_at', startOfMonth),
+        quotesQuery1, ordersQuery1, quotesQuery2, ordersQuery2,
       ]);
 
       const quotes = quotesRes.data || [];
