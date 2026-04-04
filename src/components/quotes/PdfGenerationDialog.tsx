@@ -243,8 +243,8 @@ export function PdfGenerationDialog({
             <div className="flex flex-col items-center py-12 px-6 gap-8">
               {/* Success indicator */}
               <div className="flex flex-col items-center gap-3">
-                <div className="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                  <Check className="h-8 w-8 text-emerald-500" />
+                <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                  <Check className="h-8 w-8 text-primary" />
                 </div>
                 <p className="font-semibold text-lg">PDF pronto!</p>
                 
@@ -303,7 +303,7 @@ function ActionButton({
         "flex flex-col items-center gap-2 p-4 rounded-xl border transition-all duration-200",
         "hover:scale-105 active:scale-95 disabled:opacity-40 disabled:pointer-events-none",
         variant === "primary" && "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20",
-        variant === "whatsapp" && "bg-emerald-500/10 border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/20",
+        variant === "whatsapp" && "bg-primary/10 border-primary/30 text-primary hover:bg-primary/20",
         variant === "default" && "bg-card border-border text-foreground hover:bg-accent",
       )}
     >

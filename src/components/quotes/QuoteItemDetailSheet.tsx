@@ -109,7 +109,7 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 h-7 px-2 font-semibold">
+        <Button variant="ghost" size="sm" className="gap-1.5 text-xs text-primary hover:text-primary/80 hover:bg-primary/10 h-7 px-2 font-semibold">
           <Info className="h-3.5 w-3.5" />
           Detalhes
         </Button>

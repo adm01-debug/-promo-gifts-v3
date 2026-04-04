@@ -464,12 +464,12 @@ function MarketTooltip({ active, payload, showCost }: { active?: boolean; payloa
         )}
         {restocked != null && restocked > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-emerald-500">Reposição:</span>
-            <span className="font-semibold text-emerald-500">+{restocked}</span>
+            <span className="text-primary">Reposição:</span>
+            <span className="font-semibold text-primary">+{restocked}</span>
           </div>
         )}
         {data.restockDetected && (
-          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
+          <Badge variant="outline" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/30">
             🔄 Fornecedor reabasteceu
           </Badge>
         )}

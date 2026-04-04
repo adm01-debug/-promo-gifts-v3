@@ -182,7 +182,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
         className="w-8 h-8 rounded-full flex items-center justify-center ring-2 ring-white dark:ring-gray-800 shadow-sm"
         style={{ backgroundColor: date.color_hex || "hsl(var(--primary))" }}
       >
-        {date.is_featured && <Sparkles className="h-3.5 w-3.5 text-white" />}
+        {date.is_featured && <Sparkles className="h-3.5 w-3.5 text-primary-foreground" />}
       </div>
 
       {/* Nome */}
@@ -195,9 +195,9 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
         className={cn(
           "text-[10px] font-bold px-2 py-0.5 rounded-full",
           isToday
-            ? "bg-green-500 text-white"
+            ? "bg-green-500 text-primary-foreground"
             : isThisWeek
-            ? "bg-amber-500 text-white"
+            ? "bg-amber-500 text-primary-foreground"
             : "bg-muted text-muted-foreground"
         )}
       >
@@ -229,9 +229,9 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
         style={{ backgroundColor: date.color_hex || "hsl(var(--muted))" }}
       >
         {date.is_featured ? (
-          <Sparkles className="h-4 w-4 text-white" />
+          <Sparkles className="h-4 w-4 text-primary-foreground" />
         ) : (
-          <Gift className="h-4 w-4 text-white/80" />
+          <Gift className="h-4 w-4 text-primary-foreground/80" />
         )}
       </div>
 
@@ -263,9 +263,9 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
           className={cn(
             "text-xs font-bold px-2 py-1 rounded",
             isToday
-              ? "bg-green-500 text-white"
+              ? "bg-green-500 text-primary-foreground"
               : isThisWeek
-              ? "bg-amber-500 text-white"
+              ? "bg-amber-500 text-primary-foreground"
               : "bg-muted text-foreground"
           )}
         >

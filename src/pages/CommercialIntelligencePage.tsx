@@ -34,7 +34,7 @@ export default function CommercialIntelligencePage() {
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-violet-500/20">
-            <Brain className="h-5 w-5 text-white" />
+            <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
             <h1 className="text-xl font-bold text-foreground">Inteligência de Mercado</h1>

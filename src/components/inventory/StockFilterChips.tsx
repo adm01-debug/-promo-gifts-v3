@@ -31,28 +31,28 @@ const filterOptions: Array<{
     label: 'Em Estoque',
     shortLabel: 'Disponível',
     icon: Package,
-    activeClass: 'bg-emerald-500 text-white border-emerald-500',
+    activeClass: 'bg-primary text-primary-foreground border-emerald-500',
   },
   {
     id: 'low-stock',
     label: 'Estoque Baixo',
     shortLabel: 'Baixo',
     icon: AlertTriangle,
-    activeClass: 'bg-amber-500 text-white border-amber-500',
+    activeClass: 'bg-amber-500 text-primary-foreground border-amber-500',
   },
   {
     id: 'out-of-stock',
     label: 'Sem Estoque',
     shortLabel: 'Indisponível',
     icon: XCircle,
-    activeClass: 'bg-red-500 text-white border-red-500',
+    activeClass: 'bg-red-500 text-primary-foreground border-red-500',
   },
   {
     id: 'incoming',
     label: 'Chegando',
     shortLabel: 'Em trânsito',
     icon: Clock,
-    activeClass: 'bg-purple-500 text-white border-purple-500',
+    activeClass: 'bg-purple-500 text-primary-foreground border-purple-500',
   },
 ];
 

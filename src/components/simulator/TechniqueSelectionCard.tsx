@@ -259,7 +259,7 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
                       'border',
                       activeCategory === cat.id
                         ? isRecommended
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-white border-amber-500 shadow-md'
+                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground border-amber-500 shadow-md'
                           : 'bg-primary text-primary-foreground border-primary shadow-md'
                         : isRecommended
                         ? 'bg-amber-50 text-amber-700 border-amber-200 hover:border-amber-400'
@@ -276,7 +276,7 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
                         'h-5 px-1.5 text-[10px]',
                         activeCategory === cat.id &&
                           (isRecommended
-                            ? 'bg-white/20 text-white'
+                            ? 'bg-white/20 text-primary-foreground'
                             : 'bg-primary-foreground/20 text-primary-foreground')
                       )}
                     >

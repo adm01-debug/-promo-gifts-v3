@@ -122,7 +122,7 @@ export function TechniqueCard({
   const { recommendation } = technique;
   
   const getSlaInfo = (days: number) => {
-    if (days <= 3) return { label: 'Express', color: 'bg-emerald-500', textColor: 'text-emerald-600' };
+    if (days <= 3) return { label: 'Express', color: 'bg-primary', textColor: 'text-primary' };
     if (days <= 7) return { label: 'Padrão', color: 'bg-amber-500', textColor: 'text-amber-600' };
     return { label: 'Estendido', color: 'bg-rose-500', textColor: 'text-rose-600' };
   };
@@ -169,7 +169,7 @@ export function TechniqueCard({
                 ) : (
                   <div className={cn(
                     'w-10 h-10 rounded-lg flex items-center justify-center text-lg',
-                    style.color, 'text-white'
+                    style.color, 'text-primary-foreground'
                   )}>
                     {style.icon}
                   </div>
@@ -199,7 +199,7 @@ export function TechniqueCard({
               
               {/* Recommendation badge */}
               {recommendation.isRecommended && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] px-1.5 h-5 gap-0.5">
+                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground text-[10px] px-1.5 h-5 gap-0.5">
                   <Sparkles className="h-2.5 w-2.5" />
                   IA
                 </Badge>
@@ -277,7 +277,7 @@ export function TechniqueCard({
         {/* Recommendation banner */}
         {recommendation.isRecommended && !isSelected && (
           <div className="absolute top-0 right-0 z-10">
-            <div className="bg-gradient-to-l from-amber-500 to-orange-500 text-white text-[10px] font-medium px-2 py-0.5 rounded-bl-lg flex items-center gap-1">
+            <div className="bg-gradient-to-l from-amber-500 to-orange-500 text-primary-foreground text-[10px] font-medium px-2 py-0.5 rounded-bl-lg flex items-center gap-1">
               <Sparkles className="h-3 w-3" />
               Recomendada
             </div>
@@ -307,7 +307,7 @@ export function TechniqueCard({
                       />
                       <div className={cn(
                         'absolute bottom-0 right-0 w-6 h-6 rounded-tl-lg rounded-br-lg flex items-center justify-center text-sm',
-                        style.color, 'text-white'
+                        style.color, 'text-primary-foreground'
                       )}>
                         {style.icon}
                       </div>
@@ -315,7 +315,7 @@ export function TechniqueCard({
                   ) : (
                     <div className={cn(
                       'w-14 h-14 rounded-xl flex items-center justify-center text-2xl',
-                      style.color, 'text-white'
+                      style.color, 'text-primary-foreground'
                     )}>
                       {style.icon}
                     </div>
@@ -350,7 +350,7 @@ export function TechniqueCard({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white text-xs gap-1">
+                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground text-xs gap-1">
                           <Sparkles className="h-3 w-3" />
                           Recomendada IA
                         </Badge>
@@ -498,7 +498,7 @@ function TechniquePreview({
       <div className="flex items-center gap-2">
         <div className={cn(
           'w-8 h-8 rounded-lg flex items-center justify-center text-lg',
-          style.color, 'text-white'
+          style.color, 'text-primary-foreground'
         )}>
           {style.icon}
         </div>

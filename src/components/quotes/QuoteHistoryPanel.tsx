@@ -45,14 +45,14 @@ const actionColors: Record<string, string> = {
   created: "bg-green-500/10 text-green-600 border-green-500/20",
   updated: "bg-blue-500/10 text-blue-600 border-blue-500/20",
   status_changed: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  item_added: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
+  item_added: "bg-primary/10 text-primary border-primary/20",
   item_removed: "bg-red-500/10 text-red-600 border-red-500/20",
   item_updated: "bg-purple-500/10 text-purple-600 border-purple-500/20",
   // Sync events
   sync_started: "bg-sky-500/10 text-sky-600 border-sky-500/20",
   sync_pdf_ok: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20",
   sync_pdf_error: "bg-orange-500/10 text-orange-600 border-orange-500/20",
-  sync_success: "bg-emerald-500/10 text-emerald-700 border-emerald-500/30",
+  sync_success: "bg-primary/10 text-primary border-primary/30",
   sync_error: "bg-red-500/10 text-red-600 border-red-500/20",
 };
 

@@ -140,7 +140,7 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
                 previewMode
-                  ? "bg-[hsl(142,40%,28%)] text-white"
+                  ? "bg-[hsl(142,40%,28%)] text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               )}
             >
@@ -195,7 +195,7 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
             >
               Cancelar
             </Button>
-            <Button className="flex-1 gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" onClick={handleSend}>
+            <Button className="flex-1 gap-2 bg-primary hover:bg-primary/90 text-primary-foreground" onClick={handleSend}>
               <Send className="h-4 w-4" />
               Enviar - WhatsApp
             </Button>

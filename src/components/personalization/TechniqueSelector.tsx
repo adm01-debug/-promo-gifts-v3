@@ -62,7 +62,7 @@ function formatCurrency(value: number | null): string {
 
 function getSLABadgeStyle(days: number | null): string {
   if (!days) return "bg-muted text-muted-foreground";
-  if (days <= 3) return "bg-emerald-500/10 text-emerald-600 border-emerald-500/30";
+  if (days <= 3) return "bg-primary/10 text-primary border-primary/30";
   if (days <= 7) return "bg-amber-500/10 text-amber-600 border-amber-500/30";
   return "bg-destructive/10 text-destructive border-destructive/30";
 }

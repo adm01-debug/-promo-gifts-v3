@@ -122,10 +122,10 @@ export function TechniqueTooltip({ technique, children, className }: TechniqueTo
       </HoverCardTrigger>
       <HoverCardContent side="right" align="start" className="w-72 p-0 overflow-hidden">
         {/* Visual Header */}
-        <div className={cn("p-4 bg-gradient-to-r text-white", info.gradient)}>
+        <div className={cn("p-4 bg-gradient-to-r text-primary-foreground", info.gradient)}>
           <div className="flex items-center justify-between">
             <h4 className="font-semibold text-lg">{technique.name}</h4>
-            <Badge variant="secondary" className="bg-white/20 text-white border-0">
+            <Badge variant="secondary" className="bg-white/20 text-primary-foreground border-0">
               {technique.code || "PRO"}
             </Badge>
           </div>

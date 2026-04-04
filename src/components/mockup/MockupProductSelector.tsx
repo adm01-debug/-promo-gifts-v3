@@ -328,7 +328,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
                           {formatCurrency(product.price)}
                         </p>
                         {product.stock > 0 ? (
-                          <p className="text-[10px] text-emerald-500 whitespace-nowrap">
+                          <p className="text-[10px] text-primary whitespace-nowrap">
                             ⊕ {product.stock >= 1000 ? `${(product.stock / 1000).toFixed(1)}k` : product.stock} un
                           </p>
                         ) : (
@@ -512,7 +512,7 @@ function ProductLoaderAndColorSelector({
               {/* Stock */}
               <div className="w-full">
                 {!outOfStock ? (
-                  <span className="text-[10px] text-emerald-500">
+                  <span className="text-[10px] text-primary">
                     ⊕ {formatStock(variant.stock_quantity ?? 0)} un
                   </span>
                 ) : (

@@ -629,7 +629,7 @@ export function MockupHistoryPanel({
               <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="min-w-0">
-                    <p className="font-medium text-sm text-white truncate">{lightboxMockup.product_name}</p>
+                    <p className="font-medium text-sm text-primary-foreground truncate">{lightboxMockup.product_name}</p>
                     <div className="flex items-center gap-2 mt-0.5">
                       {lightboxMockup.product_sku && (
                         <span className="text-[10px] text-zinc-400 font-mono">{lightboxMockup.product_sku}</span>
@@ -659,7 +659,7 @@ export function MockupHistoryPanel({
                   <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
                     <Download className="h-3.5 w-3.5" /> Baixar PDF
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={closeLightbox}>
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-primary-foreground hover:bg-zinc-800" onClick={closeLightbox}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
@@ -686,14 +686,14 @@ export function MockupHistoryPanel({
               {/* Bottom zoom bar — compact */}
               <div className="flex items-center justify-center py-2 bg-zinc-900 border-t border-zinc-800 shrink-0">
                 <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
                     <ZoomOut className="h-3.5 w-3.5" />
                   </Button>
                   <span className="text-xs font-medium w-12 text-center text-zinc-300">{Math.round(lightboxZoom * 100)}%</span>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
                     <ZoomIn className="h-3.5 w-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-white hover:bg-zinc-800" onClick={() => setLightboxZoom(1)}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-zinc-400 hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(1)}>
                     <RotateCcw className="h-3 w-3" />
                   </Button>
                 </div>

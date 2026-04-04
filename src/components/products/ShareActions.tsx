@@ -69,7 +69,7 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
     <>
       <div className="inline-flex rounded-md shadow-sm">
         <Button
-          className="gap-2 rounded-r-none border-r border-emerald-400/20 bg-emerald-600 hover:bg-emerald-700 text-white"
+          className="gap-2 rounded-r-none border-r border-emerald-400/20 bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={() => setShowPreview(true)}
         >
           <MessageCircle className="h-4 w-4" />
@@ -81,7 +81,7 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button className="rounded-l-none px-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+            <Button className="rounded-l-none px-2 bg-primary hover:bg-primary/90 text-primary-foreground">
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

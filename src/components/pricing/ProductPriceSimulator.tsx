@@ -48,7 +48,7 @@ function SimulatorStep({
         className={cn(
           'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
           isComplete
-            ? 'bg-green-500 text-white'
+            ? 'bg-green-500 text-primary-foreground'
             : isActive
             ? 'bg-primary text-primary-foreground shadow-md'
             : 'bg-muted text-muted-foreground'

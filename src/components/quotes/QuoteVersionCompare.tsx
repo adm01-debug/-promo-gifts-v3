@@ -52,7 +52,7 @@ function DiffBadge({ oldVal, newVal, format: fmt }: { oldVal: number; newVal: nu
   const diff = newVal - oldVal;
   const formatted = fmt ? fmt(Math.abs(diff)) : Math.abs(diff).toString();
   if (diff === 0) return <Badge variant="outline" className="text-muted-foreground"><Minus className="h-3 w-3 mr-1" />Igual</Badge>;
-  if (diff > 0) return <Badge className="bg-emerald-500/15 text-emerald-700 border-emerald-200"><TrendingUp className="h-3 w-3 mr-1" />+{formatted}</Badge>;
+  if (diff > 0) return <Badge className="bg-primary/15 text-primary border-primary/30"><TrendingUp className="h-3 w-3 mr-1" />+{formatted}</Badge>;
   return <Badge className="bg-red-500/15 text-red-700 border-red-200"><TrendingDown className="h-3 w-3 mr-1" />-{formatted}</Badge>;
 }
 
@@ -223,7 +223,7 @@ export function QuoteVersionCompare({ open, onOpenChange, versions, currentQuote
                               <span>{item.quantity}x {formatCurrency(item.unit_price)}</span>
                               <span className="font-medium text-foreground">{formatCurrency(item.subtotal || item.quantity * item.unit_price)}</span>
                             </div>
-                            {isNew && <Badge className="mt-1 bg-emerald-500 text-[10px] h-4">Novo</Badge>}
+                            {isNew && <Badge className="mt-1 bg-primary text-[10px] h-4">Novo</Badge>}
                             {changed && <Badge className="mt-1 bg-amber-500 text-[10px] h-4">Alterado</Badge>}
                           </div>
                         );

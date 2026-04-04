@@ -275,7 +275,7 @@ export function MultiEngravingResult({
                           onClick={() => handleCopyCode(calc.priceData!.codigo_orcamento)}
                         >
                           {copied === calc.priceData.codigo_orcamento ? (
-                            <CheckCircle2 className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-400" />
+                            <CheckCircle2 className="w-3 h-3 mr-1 text-primary dark:text-primary" />
                           ) : (
                             <Copy className="w-3 h-3 mr-1" />
                           )}

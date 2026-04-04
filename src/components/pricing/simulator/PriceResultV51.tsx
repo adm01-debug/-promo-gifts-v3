@@ -78,7 +78,7 @@ export function PriceResultV51({
                   className="font-mono gap-2"
                 >
             {copied ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="w-4 h-4 text-primary dark:text-primary" />
             ) : (
                     <Copy className="w-4 h-4" />
                   )}
@@ -206,7 +206,7 @@ export function PriceResultV51({
 
         {/* Margem (se disponível) */}
         {showDetails && priceData.margin_percent > 0 && (
-          <div className="flex items-center justify-center gap-2 text-sm text-emerald-600 dark:text-emerald-400">
+          <div className="flex items-center justify-center gap-2 text-sm text-primary dark:text-primary">
             <TrendingDown className="w-4 h-4" />
             <span>Margem: {priceData.margin_percent.toFixed(1)}%</span>
           </div>
@@ -261,7 +261,7 @@ export function QuoteCodeBadge({
             onClick={handleCopy}
           >
             {copied ? (
-              <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
+              <CheckCircle2 className="w-3 h-3 text-primary dark:text-primary" />
             ) : (
               <Copy className="w-3 h-3" />
             )}

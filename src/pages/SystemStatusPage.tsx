@@ -213,7 +213,7 @@ export default function SystemStatusPage() {
   const getStatusIcon = (status: "ok" | "error" | "warning" | "loading") => {
     switch (status) {
       case "ok":
-        return <CheckCircle className="h-5 w-5 text-emerald-500" />;
+        return <CheckCircle className="h-5 w-5 text-primary" />;
       case "error":
         return <XCircle className="h-5 w-5 text-destructive" />;
       case "warning":
@@ -226,7 +226,7 @@ export default function SystemStatusPage() {
   const getStatusBadge = (status: "ok" | "error" | "warning" | "loading") => {
     switch (status) {
       case "ok":
-        return <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">OK</Badge>;
+        return <Badge className="bg-primary/20 text-primary border-primary/30">OK</Badge>;
       case "error":
         return <Badge className="bg-destructive/20 text-destructive border-destructive/30">Erro</Badge>;
       case "warning":
@@ -251,13 +251,13 @@ export default function SystemStatusPage() {
 
         {/* Overall Status */}
         <Card
-          className={`border-2 ${overallStatus === "ok" ? "border-emerald-500/50 bg-emerald-500/5" : "border-destructive/50 bg-destructive/5"}`}
+          className={`border-2 ${overallStatus === "ok" ? "border-emerald-500/50 bg-primary/5" : "border-destructive/50 bg-destructive/5"}`}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
                 {overallStatus === "ok" ? (
-                  <CheckCircle className="h-10 w-10 text-emerald-500" />
+                  <CheckCircle className="h-10 w-10 text-primary" />
                 ) : (
                   <XCircle className="h-10 w-10 text-destructive" />
                 )}
@@ -349,7 +349,7 @@ export default function SystemStatusPage() {
                   </Badge>
                 )}
                 {crmErrorCount === 0 && crmOkCount > 0 && (
-                  <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30 ml-2">
+                  <Badge className="bg-primary/20 text-primary border-primary/30 ml-2">
                     {crmOkCount}/{CRM_CRITICAL_TABLES.length} OK
                   </Badge>
                 )}

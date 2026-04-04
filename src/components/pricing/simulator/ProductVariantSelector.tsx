@@ -177,7 +177,7 @@ export function ProductVariantSelector({
                   style={{ backgroundColor: variant.hex || '#888' }}
                 >
                   {isSelected && (
-                    <Check className="w-3 h-3 text-white absolute top-1/2 left-[14px] -translate-y-1/2" />
+                    <Check className="w-3 h-3 text-primary-foreground absolute top-1/2 left-[14px] -translate-y-1/2" />
                   )}
                 </div>
 

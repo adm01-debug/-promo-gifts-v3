@@ -20,7 +20,7 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   },
   'new-arrival': {
     icon: Star,
-    colors: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
   },
   'on-sale': {
     icon: Tag,
@@ -33,7 +33,7 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   },
   'popular': {
     icon: Zap,
-    colors: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
   },
   'normal': {
     icon: Package,

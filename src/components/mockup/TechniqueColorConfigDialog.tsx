@@ -309,7 +309,7 @@ export function TechniqueColorConfigDialog({
           {(category === "digital" || category === "other") && (
             <div className="flex flex-col items-center gap-3 py-4">
               <div className="w-16 h-16 rounded-full bg-gradient-to-br from-red-500 via-green-500 to-blue-500 flex items-center justify-center">
-                <Zap className="h-8 w-8 text-white" />
+                <Zap className="h-8 w-8 text-primary-foreground" />
               </div>
               <Badge className="text-sm px-3 py-1">Policromia (Full Color)</Badge>
               <p className="text-sm text-muted-foreground text-center max-w-xs">

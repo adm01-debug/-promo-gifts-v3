@@ -68,7 +68,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white" disabled={isConverting}>
+        <Button className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={isConverting}>
           {isConverting ? (
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
@@ -80,7 +80,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle className="flex items-center gap-2">
-            <CheckCircle className="h-5 w-5 text-emerald-500" />
+            <CheckCircle className="h-5 w-5 text-primary" />
             Converter Orçamento em Pedido?
           </AlertDialogTitle>
           <AlertDialogDescription>
@@ -93,7 +93,7 @@ export function QuoteConvertToOrder({ quoteId, status, onConverted }: QuoteConve
           <AlertDialogCancel>Cancelar</AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConvert}
-            className="bg-emerald-600 hover:bg-emerald-700"
+            className="bg-primary hover:bg-primary/90"
             disabled={isConverting}
           >
             {isConverting ? "Convertendo..." : "Confirmar Conversão"}

@@ -380,7 +380,7 @@ export default function QuoteViewPage() {
           <div className="flex items-center gap-2">
             <div className="hidden md:flex items-center gap-2">
               <QuoteConvertToOrder quoteId={id!} status={quote.status} onConverted={() => { if (id) fetchQuote(id).then(setQuote); }} />
-              <Button onClick={handleSyncBitrix} disabled={isSyncing} className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white">
+              <Button onClick={handleSyncBitrix} disabled={isSyncing} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
                 {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
                 {isSyncing ? "Sincronizando..." : "Sincronizar"}
               </Button>

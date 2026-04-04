@@ -199,7 +199,7 @@ function RecommendationGrid({ products, emptyMessage, emptyIcon: EmptyIcon = Pac
           {product.score >= 80 && (
             <div className="absolute top-2 right-2 z-10">
               <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
-                <Star className="h-3 w-3 text-white fill-white" />
+                <Star className="h-3 w-3 text-primary-foreground fill-white" />
               </div>
             </div>
           )}

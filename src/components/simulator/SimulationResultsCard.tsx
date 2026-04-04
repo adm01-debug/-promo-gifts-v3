@@ -350,7 +350,7 @@ export function SimulationResultsCard({
                                     </Badge>
                                   )}
                                   {isFastest && !isBest && (
-                                    <Badge className="bg-blue-500 text-white text-[10px] gap-1">
+                                    <Badge className="bg-blue-500 text-primary-foreground text-[10px] gap-1">
                                       <Zap className="h-3 w-3" />
                                       Mais rápido
                                     </Badge>
@@ -395,7 +395,7 @@ export function SimulationResultsCard({
                             <TableCell className="text-center">
                               <div className={cn(
                                 "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
-                                option.estimatedDays <= 3 && "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
+                                option.estimatedDays <= 3 && "bg-emerald-100 text-primary dark:bg-emerald-900/30 dark:text-primary",
                                 option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
                                 option.estimatedDays > 7 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                               )}>

@@ -133,7 +133,7 @@ export function WizardMockupPreview({
             <Badge className="absolute top-2 left-2 text-xs" variant="secondary">
               {personalization.technique.name}
             </Badge>
-            <Badge className="absolute top-2 right-2 text-xs bg-black/70 text-white border-white/20 backdrop-blur-sm" variant="outline">
+            <Badge className="absolute top-2 right-2 text-xs bg-black/70 text-primary-foreground border-white/20 backdrop-blur-sm" variant="outline">
               {personalization.location.locationName}
             </Badge>
           </div>

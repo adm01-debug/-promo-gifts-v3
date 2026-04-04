@@ -222,7 +222,7 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
               className={cn(
                 "flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors",
                 previewMode
-                  ? "bg-[hsl(153,18%,18%)] text-white"
+                  ? "bg-[hsl(153,18%,18%)] text-primary-foreground"
                   : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
               )}
             >

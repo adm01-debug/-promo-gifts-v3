@@ -258,7 +258,7 @@ export function ZoomableGallery({
                 className={cn(
                   "absolute left-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
                   "bg-black/30 hover:bg-black/50 backdrop-blur-sm",
-                  "text-white/80 hover:text-white",
+                  "text-primary-foreground/80 hover:text-primary-foreground",
                   "transition-all duration-200 border-0"
                 )}
                 onClick={goToPrevious}
@@ -271,7 +271,7 @@ export function ZoomableGallery({
                 className={cn(
                   "absolute right-2 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full",
                   "bg-black/30 hover:bg-black/50 backdrop-blur-sm",
-                  "text-white/80 hover:text-white",
+                  "text-primary-foreground/80 hover:text-primary-foreground",
                   "transition-all duration-200 border-0"
                 )}
                 onClick={goToNext}
