@@ -124,7 +124,7 @@ export const THEME_PRESETS: ThemePreset[] = [
     name: 'Esmeralda',
     description: 'Verde sofisticado',
     emoji: '💚',
-    colors: ['hsl(152, 76%, 40%)', 'hsl(160, 20%, 6%)', 'hsl(150, 70%, 45%)'],
+    colors: ['hsl(152, 76%, 40%)', 'hsl(160, 65%, 55%)', 'hsl(170, 70%, 50%)'],
     tokens: {
       light: { ...DEFAULT_LIGHT_BASE, ...makePrimaryTokens(152, 76, 40) },
       dark: {
