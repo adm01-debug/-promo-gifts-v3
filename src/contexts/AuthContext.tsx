@@ -199,7 +199,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           message: `Conta temporariamente bloqueada por excesso de tentativas. Tente novamente em ${minutes} minuto(s).`,
           name: 'RateLimitError',
           status: 429,
-        } as any,
+        } as { message: string; name: string; status: number },
       };
     }
 
