@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Sparkles, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert } from "lucide-react";
+import { Eye, EyeOff, Loader2, Gift, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert } from "lucide-react";
 import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -179,7 +179,7 @@ export default function Auth() {
 
   return (
     <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
-      <PageSEO title="Login" description="Acesse a plataforma Promo Brindes. Faça login para gerenciar seus orçamentos e catálogo." path="/login" />
+      <PageSEO title="Login" description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo." path="/login" />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
         {/* Background decoration */}
@@ -194,14 +194,14 @@ export default function Auth() {
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-xl bg-orange flex items-center justify-center shadow-lg shadow-orange/30">
-                <Sparkles className="h-7 w-7 text-orange-foreground" />
+                <Gift className="h-7 w-7 text-orange-foreground" />
               </div>
               <div>
                 <h1 className="font-display text-3xl font-bold text-foreground">
-                  Promo
+                  Promo Gifts
                 </h1>
                 <p className="text-orange font-semibold uppercase tracking-widest text-sm -mt-1">
-                  Brindes
+                  Plataforma de Vendas
                 </p>
               </div>
             </div>
@@ -273,14 +273,14 @@ export default function Auth() {
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
             <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-orange shadow-lg shadow-orange/30">
-              <Sparkles className="h-8 w-8 text-orange-foreground" />
+              <Gift className="h-8 w-8 text-orange-foreground" />
             </div>
             <div>
               <h1 className="font-display text-2xl font-bold text-foreground">
-                Promo Brindes
+                Promo Gifts
               </h1>
               <p className="text-sm text-muted-foreground">
-                Vitrine de Produtos
+                Plataforma de Vendas
               </p>
             </div>
           </div>
