@@ -97,7 +97,7 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => navigate("/admin/temas")}>
             <Palette className="mr-2 h-4 w-4" />
-            Selecione sua Skin
+            Skins
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:text-destructive">
