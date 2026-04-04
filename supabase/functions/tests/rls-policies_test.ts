@@ -124,10 +124,16 @@ Deno.test({ name: "6. orders: seller_id + org isolation enforced", sanitizeOps: 
 }});
 
 // 7. ORDER_ITEMS
-Deno.test({ name: "7. order_items: org-scoped access", sanitizeOps: false, sanitizeResources: false, fn: async () => {
+Deno.test({ name: "7. order_items: org-scoped + seller ownership for writes", sanitizeOps: false, sanitizeResources: false, fn: async () => {
   const p = await getPolicies("order_items");
-  assert(p.length >= 1);
-  assert(hasReadPolicy(p, "organization_id") || hasReadPolicy(p, "get_user_org_ids"), "Must be org-scoped");
+  assert(p.length >= 4, `Expected >= 4 policies (SELECT+INSERT+UPDATE+DELETE), got ${p.length}`);
+  assert(hasReadPolicy(p, "get_user_org_ids"), "SELECT must be org-scoped");
+  // Write policies must check seller ownership via orders join
+  const writePolicies = p.filter(x => x.cmd === 'INSERT' || x.cmd === 'UPDATE' || x.cmd === 'DELETE');
+  for (const pol of writePolicies) {
+    const expr = `${pol.qual ?? ''} ${pol.with_check ?? ''}`;
+    assert(expr.includes("orders") && expr.includes("seller_id"), `"${pol.polname}" must verify seller ownership via orders`);
+  }
 }});
 
 // 8. QUOTE_ITEMS
