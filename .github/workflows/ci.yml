@@ -120,7 +120,7 @@ jobs:
         run: |
           node -e "
             const pkg = require('./package.json');
-            const required = ['dev', 'build', 'preview'];
+            const required = ['dev', 'build', 'preview', 'test', 'test:coverage'];
             const missing = required.filter(s => !pkg.scripts[s]);
             if (missing.length) {
               console.error('Missing scripts:', missing.join(', '));
