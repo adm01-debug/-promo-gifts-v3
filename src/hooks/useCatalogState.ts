@@ -146,7 +146,7 @@ export function useCatalogState() {
 
     if (filters.colorGroups?.length) {
       result = result.filter((p) =>
-        p.colors?.some((c: any) => {
+        p.colors?.some((c: Record<string, string>) => {
           const colorGroupSlug = c.groupSlug || '';
           const colorGroup = (c.group || '').toLowerCase().trim();
           const colorName = (c.name || '').toLowerCase().trim();
