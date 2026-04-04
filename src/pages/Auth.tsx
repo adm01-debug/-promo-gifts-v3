@@ -184,53 +184,6 @@ export default function Auth() {
     }
   };
 
-  const handleSignup = async (data: SignupForm) => {
-    if (!isPasswordSafe) {
-      toast({
-        variant: "destructive",
-        title: "Senha insegura",
-        description: "Sua senha foi encontrada em vazamentos de dados. Escolha outra senha.",
-      });
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const { error } = await signUp(data.email, data.password, data.fullName);
-      
-      if (error) {
-        if (error.message.includes("User already registered")) {
-          toast({
-            variant: "destructive",
-            title: "Erro ao cadastrar",
-            description: "Este email já está cadastrado. Tente fazer login.",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Erro ao cadastrar",
-            description: error.message,
-          });
-        }
-        return;
-      }
-
-      toast({
-        title: "Cadastro realizado!",
-        description: "Verifique seu e-mail para confirmar sua conta antes de fazer login.",
-        duration: 10000,
-      });
-      setActiveTab("login");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro inesperado",
-        description: "Tente novamente mais tarde",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
   if (authLoading) {
     return (
       <main className="min-h-screen flex items-center justify-center bg-background" role="main" aria-label="Carregando autenticação">
