@@ -4,13 +4,11 @@ import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Gift, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket } from "lucide-react";
-import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { Eye, EyeOff, Loader2, Gift, Mail, Lock, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
@@ -19,10 +17,9 @@ import { PasskeyLogin } from "@/components/auth/PasskeyLogin";
 import { SocialLoginButtons } from "@/components/auth/SocialLoginButtons";
 import { supabase } from "@/integrations/supabase/client";
 
-import { loginSchema, signupSchema, type LoginFormData, type SignupFormData } from "@/lib/validations";
+import { loginSchema, type LoginFormData } from "@/lib/validations";
 
 type LoginForm = LoginFormData;
-type SignupForm = SignupFormData;
 
 interface RocketData {
   id: number;
@@ -99,15 +96,13 @@ function ContinuousRockets() {
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, isLoading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { user, isLoading: authLoading, signIn, signOut } = useAuth();
   const { validateIPForAuthenticatedUser, logLoginAttempt, fetchCurrentIP } = useIPValidation();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("login");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
-  const [isPasswordSafe, setIsPasswordSafe] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -119,11 +114,6 @@ export default function Auth() {
   const loginForm = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
-  });
-
-  const signupForm = useForm<SignupForm>({
-    resolver: zodResolver(signupSchema),
-    defaultValues: { fullName: "", email: "", password: "", confirmPassword: "" },
   });
 
   const handleLogin = async (data: LoginForm) => {
@@ -183,53 +173,6 @@ export default function Auth() {
         description: "Login realizado com sucesso",
       });
       navigate("/");
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro inesperado",
-        description: "Tente novamente mais tarde",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleSignup = async (data: SignupForm) => {
-    if (!isPasswordSafe) {
-      toast({
-        variant: "destructive",
-        title: "Senha insegura",
-        description: "Sua senha foi encontrada em vazamentos de dados. Escolha outra senha.",
-      });
-      return;
-    }
-    setIsSubmitting(true);
-    try {
-      const { error } = await signUp(data.email, data.password, data.fullName);
-      
-      if (error) {
-        if (error.message.includes("User already registered")) {
-          toast({
-            variant: "destructive",
-            title: "Erro ao cadastrar",
-            description: "Este email já está cadastrado. Tente fazer login.",
-          });
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Erro ao cadastrar",
-            description: error.message,
-          });
-        }
-        return;
-      }
-
-      toast({
-        title: "Cadastro realizado!",
-        description: "Verifique seu e-mail para confirmar sua conta antes de fazer login.",
-        duration: 10000,
-      });
-      setActiveTab("login");
     } catch (error) {
       toast({
         variant: "destructive",
@@ -431,32 +374,15 @@ export default function Auth() {
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
               </CardContent>
             ) : (
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
+            <>
               <CardHeader className="pb-4">
-                <TabsList className="grid w-full grid-cols-2 bg-muted/50">
-                  <TabsTrigger 
-                    value="login" 
-                    className="data-[state=active]:bg-orange data-[state=active]:text-orange-foreground"
-                  >
-                    Entrar
-                  </TabsTrigger>
-                  <TabsTrigger 
-                    value="signup"
-                    className="data-[state=active]:bg-orange data-[state=active]:text-orange-foreground"
-                  >
-                    Cadastrar
-                  </TabsTrigger>
-                </TabsList>
+                <div className="text-center space-y-1">
+                  <h2 className="text-xl font-semibold text-foreground">Bem-vindo de volta</h2>
+                  <p className="text-sm text-muted-foreground">Entre com suas credenciais para continuar</p>
+                </div>
               </CardHeader>
 
-              <CardContent className="pt-2">
-                {/* Login Tab */}
-                <TabsContent value="login" className="mt-0 space-y-6">
-                  <div className="text-center space-y-1">
-                    <h2 className="text-xl font-semibold text-foreground">Bem-vindo de volta</h2>
-                    <p className="text-sm text-muted-foreground">Entre com suas credenciais</p>
-                  </div>
-                  
+              <CardContent className="pt-2 space-y-6">
                   <form onSubmit={loginForm.handleSubmit(handleLogin)} className="space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="login-email" className="text-foreground">Email</Label>
@@ -554,138 +480,15 @@ export default function Auth() {
                       }}
                     />
                   </form>
-                </TabsContent>
-
-                {/* Signup Tab */}
-                <TabsContent value="signup" className="mt-0 space-y-6">
-                  <div className="text-center space-y-1">
-                    <h2 className="text-xl font-semibold text-foreground">Criar conta</h2>
-                    <p className="text-sm text-muted-foreground">Preencha seus dados abaixo</p>
-                  </div>
-
-                  <form onSubmit={signupForm.handleSubmit(handleSignup)} className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-name" className="text-foreground">Nome completo</Label>
-                      <div className="relative">
-                        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="signup-name"
-                          type="text"
-                          placeholder="Seu nome"
-                          className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
-                          {...signupForm.register("fullName")}
-                        />
-                      </div>
-                      {signupForm.formState.errors.fullName && (
-                        <p className="text-sm text-destructive">
-                          {signupForm.formState.errors.fullName.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="text-foreground">Email</Label>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="signup-email"
-                          type="email"
-                          placeholder="seu@email.com"
-                          className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
-                          {...signupForm.register("email")}
-                        />
-                      </div>
-                      {signupForm.formState.errors.email && (
-                        <p className="text-sm text-destructive">
-                          {signupForm.formState.errors.email.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="text-foreground">Senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="signup-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-10 pr-10 bg-input border-border focus:border-orange focus:ring-orange"
-                          {...signupForm.register("password")}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-orange transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center -mr-2"
-                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </button>
-                      </div>
-                      {signupForm.formState.errors.password && (
-                        <p className="text-sm text-destructive">
-                          {signupForm.formState.errors.password.message}
-                        </p>
-                      )}
-                      <PasswordStrengthIndicator password={signupForm.watch("password")} onStrengthChange={setIsPasswordSafe} />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="signup-confirm" className="text-foreground">Confirmar senha</Label>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                        <Input
-                          id="signup-confirm"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="••••••••"
-                          className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
-                          {...signupForm.register("confirmPassword")}
-                        />
-                      </div>
-                      {signupForm.formState.errors.confirmPassword && (
-                        <p className="text-sm text-destructive">
-                          {signupForm.formState.errors.confirmPassword.message}
-                        </p>
-                      )}
-                    </div>
-
-                    <Button 
-                      type="submit" 
-                      variant="orange"
-                      className="w-full h-11 text-base font-semibold" 
-                      disabled={isSubmitting || !isPasswordSafe}
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                          Cadastrando...
-                        </>
-                      ) : (
-                        "Criar conta"
-                      )}
-                    </Button>
-
-                    <div className="relative my-4">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">ou</span>
-                      </div>
-                    </div>
-
-                    <SocialLoginButtons />
-                  </form>
-                </TabsContent>
               </CardContent>
-            </Tabs>
+            </>
             )}
           </Card>
 
-          <p className="text-center text-sm text-muted-foreground">
-            Novos usuários são cadastrados como <span className="font-medium text-orange">Vendedores</span>.
+          <p className="text-center text-xs text-muted-foreground">
+            Acesso restrito a usuários autorizados.
             <br />
-            Contate o administrador para acesso de Admin.
+            Contate o administrador para obter suas credenciais.
           </p>
         </div>
       </div>
