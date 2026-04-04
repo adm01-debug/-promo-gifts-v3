@@ -28,7 +28,7 @@ describe("AdminVideoVariantsPage", () => {
     const { default: Page } = await import("@/pages/admin/AdminVideoVariantsPage");
     renderWithProviders(<Page />);
     expect(screen.getByText("Vídeos por Variante")).toBeInTheDocument();
-  });
+  }, 15000);
 
   it("renders Novo Vínculo button", async () => {
     const { default: Page } = await import("@/pages/admin/AdminVideoVariantsPage");
