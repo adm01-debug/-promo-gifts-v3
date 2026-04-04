@@ -271,7 +271,7 @@ async function enrichProducts(
     titleText: string | null; variantId: string | null;
   }>>();
 
-  imagesRecords.forEach((img: any) => {
+  imagesRecords.forEach((img) => {
     if (!productIdSet.has(img.product_id)) return;
     if (!imagesByProduct.has(img.product_id)) imagesByProduct.set(img.product_id, []);
     imagesByProduct.get(img.product_id)!.push({
