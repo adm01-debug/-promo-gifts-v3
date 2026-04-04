@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Gift, Mail, Lock, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket } from "lucide-react";
+import { Eye, EyeOff, Loader2, Gift, Mail, Lock, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket, Globe, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -103,6 +103,29 @@ export default function Auth() {
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
+  const [currentIP, setCurrentIP] = useState<string | null>(null);
+  const [geoLocation, setGeoLocation] = useState<string | null>(null);
+
+  // Fetch IP and geolocation on mount
+  useEffect(() => {
+    const loadIPInfo = async () => {
+      try {
+        const ip = await fetchCurrentIP();
+        if (ip) {
+          setCurrentIP(ip);
+          // Fetch geolocation
+          const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=city,country`);
+          if (geoRes.ok) {
+            const geo = await geoRes.json();
+            setGeoLocation(`${geo.city}, ${geo.country}`);
+          }
+        }
+      } catch {
+        // silent fail
+      }
+    };
+    loadIPInfo();
+  }, [fetchCurrentIP]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -484,6 +507,25 @@ export default function Auth() {
             </>
             )}
           </Card>
+
+          {/* IP/Location Widget */}
+          {currentIP && (
+            <div className="flex items-center justify-center gap-3 mx-auto px-5 py-2.5 rounded-full bg-card/80 backdrop-blur-md border border-border/60 shadow-md max-w-fit opacity-0" style={{ animation: 'scale-fade-in 0.5s ease-out 600ms forwards' }}>
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Globe className="h-3.5 w-3.5 text-orange" />
+                <span className="font-mono">{currentIP}</span>
+              </div>
+              {geoLocation && (
+                <>
+                  <div className="w-px h-4 bg-border" />
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Wifi className="h-3.5 w-3.5 text-success" />
+                    <span>{geoLocation}</span>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
 
           <p className="text-center text-xs text-muted-foreground">
             Acesso restrito a usuários autorizados.
