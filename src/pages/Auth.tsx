@@ -110,18 +110,22 @@ export default function Auth() {
   useEffect(() => {
     const loadIPInfo = async () => {
       try {
-        const ip = await fetchCurrentIP();
-        if (ip) {
-          setCurrentIP(ip);
-          // Fetch geolocation
-          const geoRes = await fetch(`http://ip-api.com/json/${ip}?fields=city,country`);
-          if (geoRes.ok) {
-            const geo = await geoRes.json();
-            setGeoLocation(`${geo.city}, ${geo.country}`);
-          }
+        // Try ip-api first (returns IP + geo in one call)
+        const geoRes = await fetch('http://ip-api.com/json/?fields=query,city,countryCode');
+        if (geoRes.ok) {
+          const geo = await geoRes.json();
+          if (geo.query) setCurrentIP(geo.query);
+          if (geo.city) setGeoLocation(`${geo.city}, ${geo.countryCode}`);
+          return;
         }
       } catch {
-        // silent fail
+        // Fallback: try fetchCurrentIP alone
+        try {
+          const ip = await fetchCurrentIP();
+          if (ip) setCurrentIP(ip);
+        } catch {
+          // silent fail
+        }
       }
     };
     loadIPInfo();
