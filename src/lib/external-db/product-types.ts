@@ -25,8 +25,8 @@ export interface PromobrindProduct {
   is_active: boolean;
   active: boolean;
   stock_quantity?: number | null;
-  colors?: any[] | null;
-  materials?: string[] | any[] | null;
+  colors?: Array<string | { name: string; hex?: string; stock?: number }> | null;
+  materials?: Array<string | Record<string, unknown>> | null;
   dimensions?: string | null;
   min_quantity?: number | null;
   created_at?: string | null;

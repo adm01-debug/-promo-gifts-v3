@@ -71,11 +71,11 @@ export async function fetchPromobrindPrintAreas(productId: string): Promise<Prom
   const areas = await fetchPrintAreasFromProduct(productId);
   if (!areas.length) return [];
 
-  const techResult = await invokeExternalDb<any>({
+  const techResult = await invokeExternalDb<Record<string, unknown>>({
     table: 'tabela_preco_gravacao_oficial', operation: 'select',
     filters: { ativo: true }, limit: 100,
   });
-  const techById = new Map((techResult.records || []).map((t: any) => [t.id, t]));
+  const techById = new Map((techResult.records || []).map((t) => [t.id as string, t]));
   const result: PromobrindPrintArea[] = [];
 
   for (const area of areas) {

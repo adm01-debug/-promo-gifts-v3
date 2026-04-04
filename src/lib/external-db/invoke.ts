@@ -48,7 +48,7 @@ export async function invokeWithRetry(
   body: Record<string, unknown>,
   retries = MAX_RETRIES,
   onRetry?: (attempt: number, maxRetries: number, delayMs: number) => void
-): Promise<{ data: any; error: any }> {
+): Promise<{ data: unknown; error: Error | null }> {
   for (let attempt = 0; attempt <= retries; attempt++) {
     const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
 

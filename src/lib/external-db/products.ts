@@ -290,7 +290,7 @@ async function enrichProducts(
     image?: string; images?: string[]; groupSlug?: string; groupName?: string; variationSlug?: string;
   }>>();
 
-  variantsRecords.forEach((variant: any) => {
+  variantsRecords.forEach((variant) => {
     if (!variant.color_name || !productIds.includes(variant.product_id)) return;
     if (!colorsByProduct.has(variant.product_id)) colorsByProduct.set(variant.product_id, []);
     const colors = colorsByProduct.get(variant.product_id)!;

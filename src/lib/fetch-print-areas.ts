@@ -88,7 +88,7 @@ export async function fetchPrintAreasFromProduct(productId: string): Promise<Pri
     }
 
     // 4. Mapear para interface esperada
-    return areas.map((area: any, idx: number) => {
+    return areas.map((area: Record<string, unknown>, idx: number) => {
       const tech = area.tabela_preco_id ? techById.get(area.tabela_preco_id) : null;
       const techCode = tech?.codigo_curto || tech?.codigo_tabela || null;
 
