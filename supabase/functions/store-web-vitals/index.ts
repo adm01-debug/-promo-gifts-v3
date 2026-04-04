@@ -1,8 +1,24 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const MetricSchema = z.object({
+  name: z.string().min(1).max(50),
+  value: z.number().finite(),
+  rating: z.string().max(20).optional(),
+  delta: z.number().finite().optional(),
+  navigationType: z.string().max(50).optional(),
+  url: z.string().url().max(2000).optional(),
+});
+
+const BodySchema = z.union([MetricSchema, z.array(MetricSchema).max(50)]);
+
+function jsonRes(corsHeaders: Record<string, string>, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
+}
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -13,10 +29,7 @@ Deno.serve(async (req) => {
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonRes(corsHeaders, { error: "Unauthorized" }, 401);
     }
 
     const supabase = createClient(
@@ -27,33 +40,29 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonRes(corsHeaders, { error: "Unauthorized" }, 401);
     }
 
-    const userId = user.id;
-    const body = await req.json();
+    const rawBody = await req.json();
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonRes(corsHeaders, { error: "Invalid metrics data", details: parsed.error.flatten() }, 400);
+    }
 
-    // Accept single metric or array of metrics
-    const metrics = Array.isArray(body) ? body : [body];
+    const metrics = Array.isArray(parsed.data) ? parsed.data : [parsed.data];
 
     if (metrics.length === 0) {
-      return new Response(JSON.stringify({ ok: true, count: 0 }), {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonRes(corsHeaders, { ok: true, count: 0 });
     }
 
-    const rows = metrics.map((m: Record<string, unknown>) => ({
-      user_id: userId,
-      metric_name: String(m.name || ""),
-      metric_value: Number(m.value) || 0,
-      rating: m.rating ? String(m.rating) : null,
-      delta: m.delta != null ? Number(m.delta) : null,
-      navigation_type: m.navigationType ? String(m.navigationType) : null,
-      page_url: m.url ? String(m.url) : null,
+    const rows = metrics.map((m) => ({
+      user_id: user.id,
+      metric_name: m.name,
+      metric_value: m.value,
+      rating: m.rating ?? null,
+      delta: m.delta ?? null,
+      navigation_type: m.navigationType ?? null,
+      page_url: m.url ?? null,
       user_agent: req.headers.get("User-Agent"),
     }));
 
@@ -62,22 +71,12 @@ Deno.serve(async (req) => {
       .insert(rows);
 
     if (insertError) {
-      console.error("[store-web-vitals] Insert error:", insertError);
-      return new Response(JSON.stringify({ error: insertError.message }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonRes(corsHeaders, { error: insertError.message }, 400);
     }
 
-    return new Response(JSON.stringify({ ok: true, count: rows.length }), {
-      status: 200,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonRes(corsHeaders, { ok: true, count: rows.length });
   } catch (err) {
-    console.error("[store-web-vitals] Error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    const msg = err instanceof Error ? err.message : "Internal server error";
+    return jsonRes(corsHeaders, { error: msg }, 500);
   }
 });

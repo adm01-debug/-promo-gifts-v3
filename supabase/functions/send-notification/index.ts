@@ -1,25 +1,30 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
-interface NotificationPayload {
-  user_id: string;
-  title: string;
-  message: string;
-  type?: string;
-  category?: string;
-  source_system: string;
-  source_entity_type?: string;
-  source_entity_id?: string;
-  channels?: string[];
-  priority?: number;
-  action_url?: string;
-  action_label?: string;
-  action_data?: any;
-  scheduled_for?: string;
+const NotificationSchema = z.object({
+  user_id: z.string().uuid(),
+  title: z.string().min(1).max(500),
+  message: z.string().min(1).max(5000),
+  type: z.string().max(50).optional().default('info'),
+  category: z.string().max(50).optional().default('system'),
+  source_system: z.string().min(1).max(100),
+  source_entity_type: z.string().max(100).optional(),
+  source_entity_id: z.string().max(100).optional(),
+  channels: z.array(z.enum(['in_app', 'email', 'push', 'sms', 'whatsapp'])).optional(),
+  priority: z.number().int().min(0).max(3).optional(),
+  action_url: z.string().url().max(2000).optional(),
+  action_label: z.string().max(100).optional(),
+  action_data: z.record(z.unknown()).optional(),
+  scheduled_for: z.string().datetime().optional(),
+});
+
+function jsonRes(corsHeaders: Record<string, string>, body: unknown, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 }
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -33,7 +38,13 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const payload: NotificationPayload = await req.json();
+    const rawBody = await req.json();
+    const parsed = NotificationSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonRes(corsHeaders, { error: 'Invalid payload', details: parsed.error.flatten().fieldErrors }, 400);
+    }
+
+    const payload = parsed.data;
 
     // 1. Buscar preferências do usuário
     const { data: prefs } = await supabase
@@ -46,8 +57,9 @@ Deno.serve(async (req) => {
     const { data: isDND } = await supabase
       .rpc('is_dnd_active', { p_user_id: payload.user_id });
 
+    let scheduledFor = payload.scheduled_for;
     if (isDND && payload.priority !== 3) {
-      payload.scheduled_for = calculateNextAvailableTime(prefs);
+      scheduledFor = calculateNextAvailableTime(prefs);
     }
 
     // 3. Determinar canais baseado em preferências
@@ -85,14 +97,11 @@ Deno.serve(async (req) => {
           })
           .eq('id', recentNotif.id);
 
-        return new Response(
-          JSON.stringify({ 
-            success: true, 
-            grouped: true,
-            notification_id: recentNotif.id 
-          }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        return jsonRes(corsHeaders, { 
+          success: true, 
+          grouped: true,
+          notification_id: recentNotif.id 
+        });
       }
     }
 
@@ -101,6 +110,7 @@ Deno.serve(async (req) => {
       .from('notifications')
       .insert({
         ...payload,
+        scheduled_for: scheduledFor,
         channels,
         group_key: groupKey,
       })
@@ -110,7 +120,7 @@ Deno.serve(async (req) => {
     if (error) throw error;
 
     // 6. Processar canais
-    const deliveryStatus: any = {};
+    const deliveryStatus: Record<string, string> = {};
 
     for (const channel of channels) {
       try {
@@ -132,8 +142,7 @@ Deno.serve(async (req) => {
             deliveryStatus.whatsapp = 'sent';
             break;
         }
-      } catch (err) {
-        console.error(`Erro ao enviar ${channel}:`, err);
+      } catch (_err) {
         deliveryStatus[channel] = 'failed';
       }
     }
@@ -147,25 +156,19 @@ Deno.serve(async (req) => {
       })
       .eq('id', notification.id);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        notification_id: notification.id,
-        delivery_status: deliveryStatus
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonRes(corsHeaders, { 
+      success: true, 
+      notification_id: notification.id,
+      delivery_status: deliveryStatus
+    });
 
   } catch (error) {
-    console.error('Erro:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(
-      JSON.stringify({ error: errorMessage }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return jsonRes(corsHeaders, { error: errorMessage }, 500);
   }
 });
 
+// deno-lint-ignore no-explicit-any
 async function sendEmail(notification: any, prefs: any) {
   const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
   if (!RESEND_API_KEY) return;
@@ -200,10 +203,12 @@ async function sendEmail(notification: any, prefs: any) {
   if (!res.ok) throw new Error('Falha ao enviar email');
 }
 
-async function sendPush(notification: any, prefs: any) {
-  console.log('Push notification:', notification.id);
+// deno-lint-ignore no-explicit-any
+async function sendPush(_notification: any, _prefs: any) {
+  // Push not yet implemented
 }
 
+// deno-lint-ignore no-explicit-any
 async function sendSMS(notification: any, prefs: any) {
   if (!prefs?.phone_number) return;
 
@@ -234,6 +239,7 @@ async function sendSMS(notification: any, prefs: any) {
   if (!res.ok) throw new Error('Falha ao enviar SMS');
 }
 
+// deno-lint-ignore no-explicit-any
 async function sendWhatsApp(notification: any, prefs: any) {
   if (!prefs?.whatsapp_number) return;
 
@@ -264,6 +270,7 @@ async function sendWhatsApp(notification: any, prefs: any) {
   if (!res.ok) throw new Error('Falha ao enviar WhatsApp');
 }
 
+// deno-lint-ignore no-explicit-any
 function filterChannelsByPreferences(channels: string[], categoryPrefs: any, prefs: any) {
   return channels.filter(channel => {
     switch (channel) {
@@ -276,7 +283,8 @@ function filterChannelsByPreferences(channels: string[], categoryPrefs: any, pre
   });
 }
 
-function calculateNextAvailableTime(prefs: any): string {
+// deno-lint-ignore no-explicit-any
+function calculateNextAvailableTime(_prefs: any): string {
   const now = new Date();
   return new Date(now.getTime() + 8 * 60 * 60 * 1000).toISOString();
 }
