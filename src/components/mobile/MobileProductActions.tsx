@@ -89,7 +89,7 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
           variant="button"
           labelOverride="Carrinho"
           iconOverride="cart"
-          className="flex-1 h-10 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium text-sm"
+          className="flex-1 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
         />
 
         {/* Orçamento Button */}

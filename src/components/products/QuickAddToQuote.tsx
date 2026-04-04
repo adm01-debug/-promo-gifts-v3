@@ -79,8 +79,8 @@ export function QuickAddToQuote({
             variant="outline"
             className={cn(
               "px-2.5 py-1 text-sm font-medium cursor-pointer",
-              "border-emerald-500/50 bg-emerald-500/10 hover:bg-emerald-500/20",
-              "text-emerald-500 hover:text-emerald-400",
+              "border-primary/50 bg-primary/10 hover:bg-primary/20",
+              "text-primary hover:text-primary/80",
               "transition-all duration-200 hover:scale-105 hover:border-emerald-500",
               className
             )}
