@@ -54,6 +54,9 @@ const AdminProductFormPage = lazyWithRetry(() => import("./pages/admin/AdminProd
 const AdminTelemetriaPage = lazyWithRetry(() => import("./pages/admin/AdminTelemetriaPage"));
 const AdminTemasPage = lazyWithRetry(() => import("./pages/admin/AdminTemasPage"));
 const AdminWorkflowsPage = lazyWithRetry(() => import("./pages/admin/AdminWorkflowsPage"));
+const AdminLoginAttemptsPage = lazyWithRetry(() => import("./pages/admin/AdminLoginAttemptsPage"));
+const AdminExternalDbPage = lazyWithRetry(() => import("./pages/admin/AdminExternalDbPage"));
+const AdminVideoVariantsPage = lazyWithRetry(() => import("./pages/admin/AdminVideoVariantsPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
@@ -64,6 +67,8 @@ const StockDashboardPage = lazyWithRetry(() => import("./pages/StockDashboardPag
 const AdvancedPriceSearchPage = lazyWithRetry(() => import("./pages/AdvancedPriceSearchPage"));
 const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
 const MeusKitsPage = lazyWithRetry(() => import("./pages/MeusKitsPage"));
+const MockupHistoryPage = lazyWithRetry(() => import("./pages/MockupHistoryPage"));
+const DropboxBrowserPage = lazyWithRetry(() => import("./pages/DropboxBrowserPage"));
 const CommercialIntelligencePage = lazyWithRetry(() => import("./pages/CommercialIntelligencePage"));
 const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"));
 
@@ -205,6 +210,9 @@ const App = () => {
                               <Route path="/admin/rate-limit" element={<RateLimitDashboard />} />
                               <Route path="/admin/temas" element={<AdminTemasPage />} />
                               <Route path="/admin/workflows" element={<AdminWorkflowsPage />} />
+                              <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
+                              <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
+                              <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
@@ -227,9 +235,11 @@ const App = () => {
                             <Route path="/meus-kits" element={<MeusKitsPage />} />
                             <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
                             <Route path="/mockup-generator" element={<MockupGenerator />} />
+                            <Route path="/mockups/historico" element={<MockupHistoryPage />} />
                             <Route path="/magic-up" element={<MagicUp />} />
                             <Route path="/inteligencia-comercial" element={<CommercialIntelligencePage />} />
                             <Route path="/match" element={<ProductMatchPage />} />
+                            <Route path="/dropbox" element={<DropboxBrowserPage />} />
 
                             {/* Orders */}
                             <Route path="/pedidos" element={<OrdersPage />} />
