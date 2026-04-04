@@ -1,5 +1,6 @@
 // =====================================================
 // THEME PRESETS SYSTEM — buildPreset() factory
+// Covers ALL CSS vars from index.css for DEEP theming
 // =====================================================
 
 export interface ThemeModeColors {
@@ -64,19 +65,34 @@ export interface ThemeModeColors {
   elevated: string;
   'elevated-hover': string;
 
-  // === GLASS ===
+  // === GLASS MORPHISM (ALL variants) ===
   'glass-bg': string;
+  'glass-bg-strong': string;
+  'glass-bg-subtle': string;
   'glass-border': string;
+  'glass-border-strong': string;
+  'glass-shadow': string;
 
-  // === GRADIENTES ===
+  // === GRADIENTES (ALL used in index.css) ===
   'gradient-primary': string;
   'gradient-secondary': string;
+  'gradient-success': string;
   'gradient-surface': string;
   'gradient-divider': string;
+  'gradient-hero': string;
+  'gradient-novelty': string;
 
-  // === SOMBRAS GLOW ===
+  // === SOMBRAS GLOW (ALL) ===
+  'shadow-glow': string;
   'shadow-glow-primary': string;
   'shadow-glow-secondary': string;
+  'shadow-glow-success': string;
+  'shadow-glow-warning': string;
+
+  // === SOMBRAS DEPTH ===
+  'shadow-lg': string;
+  'shadow-xl': string;
+  'shadow-header': string;
 
   // === CHART ===
   'chart-1': string;
@@ -93,9 +109,14 @@ export const CSS_VARS_TO_APPLY: (keyof ThemeModeColors)[] = [
   'sidebar-background', 'sidebar-foreground', 'sidebar-primary',
   'sidebar-primary-foreground', 'sidebar-accent', 'sidebar-accent-foreground',
   'sidebar-border', 'sidebar-ring',
-  'elevated', 'elevated-hover', 'glass-bg', 'glass-border',
-  'gradient-primary', 'gradient-secondary', 'gradient-surface', 'gradient-divider',
-  'shadow-glow-primary', 'shadow-glow-secondary', 'chart-1',
+  'elevated', 'elevated-hover',
+  'glass-bg', 'glass-bg-strong', 'glass-bg-subtle', 'glass-border', 'glass-border-strong', 'glass-shadow',
+  'gradient-primary', 'gradient-secondary', 'gradient-success',
+  'gradient-surface', 'gradient-divider', 'gradient-hero', 'gradient-novelty',
+  'shadow-glow', 'shadow-glow-primary', 'shadow-glow-secondary',
+  'shadow-glow-success', 'shadow-glow-warning',
+  'shadow-lg', 'shadow-xl', 'shadow-header',
+  'chart-1',
 ];
 
 export interface ThemePreset {
@@ -115,7 +136,7 @@ export interface ThemeConfig {
 }
 
 // =====================================================
-// BUILD PRESET FACTORY
+// BUILD PRESET FACTORY — generates ALL 80+ CSS vars
 // =====================================================
 
 interface PresetParams {
@@ -136,10 +157,20 @@ function buildPreset(p: PresetParams): ThemePreset {
   const { id, name, description, emoji, h, s, l, gh, sh, ss, sl } = p;
 
   const primary = `${h} ${s}% ${l}%`;
-  const primaryHover = `${h} ${s}% ${l - 5}%`;
-  const primaryActive = `${h} ${s}% ${l - 10}%`;
-  const primaryGlow = `${gh} ${s}% ${l + 10}%`;
+  const primaryHover = `${h} ${s}% ${Math.max(l - 5, 5)}%`;
+  const primaryActive = `${h} ${s}% ${Math.max(l - 10, 5)}%`;
+  const primaryGlow = `${gh} ${s}% ${Math.min(l + 10, 95)}%`;
   const secondary = `${sh} ${ss}% ${sl}%`;
+
+  // Success color stays green-ish but tinted towards the skin's hue
+  const successH = 142;
+  const successS = 71;
+  const successL = 45;
+
+  // Warning stays amber-ish
+  const warningH = 38;
+  const warningS = 92;
+  const warningL = 50;
 
   const light: ThemeModeColors = {
     background: `${h} 20% 97%`,
@@ -183,14 +214,30 @@ function buildPreset(p: PresetParams): ThemePreset {
     'sidebar-ring': primary,
     elevated: '0 0% 100%',
     'elevated-hover': `${h} 14% 97%`,
+    // Glass
     'glass-bg': '0 0% 100% / 0.8',
+    'glass-bg-strong': '0 0% 100% / 0.9',
+    'glass-bg-subtle': '0 0% 100% / 0.6',
     'glass-border': `${h} 14% 86% / 0.4`,
+    'glass-border-strong': `${h} 14% 86% / 0.6`,
+    'glass-shadow': `0 4px 30px hsl(222 25% 10% / 0.06)`,
+    // Gradients
     'gradient-primary': `linear-gradient(135deg, hsl(${primary}), hsl(${primaryGlow}))`,
-    'gradient-secondary': `linear-gradient(135deg, hsl(${secondary}), hsl(${sh} ${ss}% ${sl + 10}%))`,
+    'gradient-secondary': `linear-gradient(135deg, hsl(${secondary}), hsl(${sh} ${ss}% ${Math.min(sl + 10, 95)}%))`,
+    'gradient-success': `linear-gradient(135deg, hsl(${successH} ${successS}% ${successL}%), hsl(${successH + 10} ${successS}% ${successL + 10}%))`,
     'gradient-surface': `linear-gradient(180deg, hsl(0 0% 100%), hsl(${h} 14% 96%))`,
     'gradient-divider': `linear-gradient(90deg, transparent, hsl(${h} 14% 86% / 0.5), transparent)`,
+    'gradient-hero': `linear-gradient(135deg, hsl(${primary} / 0.08) 0%, hsl(${primaryGlow} / 0.04) 100%)`,
+    'gradient-novelty': `linear-gradient(135deg, hsl(${successH} ${successS}% ${successL}%), hsl(${successH + 10} 76% 40%))`,
+    // Shadows
+    'shadow-glow': `0 0 20px hsl(${primary} / 0.2)`,
     'shadow-glow-primary': `0 0 20px hsl(${primary} / 0.2)`,
     'shadow-glow-secondary': `0 0 20px hsl(${secondary} / 0.3)`,
+    'shadow-glow-success': `0 0 20px hsl(${successH} ${successS}% ${successL}% / 0.2)`,
+    'shadow-glow-warning': `0 0 20px hsl(${warningH} ${warningS}% ${warningL}% / 0.25)`,
+    'shadow-lg': `0 10px 15px -3px hsl(222 25% 10% / 0.08), 0 4px 6px -4px hsl(222 25% 10% / 0.05)`,
+    'shadow-xl': `0 20px 25px -5px hsl(222 25% 10% / 0.1), 0 8px 10px -6px hsl(222 25% 10% / 0.06)`,
+    'shadow-header': `0 1px 3px hsl(222 25% 10% / 0.06), 0 1px 2px hsl(222 25% 10% / 0.04)`,
     'chart-1': primary,
   };
 
@@ -236,14 +283,30 @@ function buildPreset(p: PresetParams): ThemePreset {
     'sidebar-ring': primary,
     elevated: '240 5% 12%',
     'elevated-hover': '240 5% 15%',
-    'glass-bg': '240 6% 8% / 0.8',
-    'glass-border': '240 4% 18% / 0.4',
+    // Glass — dark mode with primary tint
+    'glass-bg': '240 6% 8% / 0.85',
+    'glass-bg-strong': '240 8% 6% / 0.92',
+    'glass-bg-subtle': '240 5% 10% / 0.65',
+    'glass-border': `${h} 30% 30% / 0.15`,
+    'glass-border-strong': `${h} 40% 35% / 0.25`,
+    'glass-shadow': `0 4px 30px hsl(225 20% 2% / 0.4), 0 0 40px hsl(${primary} / 0.03)`,
+    // Gradients — all tinted with primary
     'gradient-primary': `linear-gradient(135deg, hsl(${primary}), hsl(${primaryGlow}))`,
-    'gradient-secondary': `linear-gradient(135deg, hsl(${secondary}), hsl(${sh} ${ss}% ${sl + 10}%))`,
+    'gradient-secondary': `linear-gradient(135deg, hsl(${secondary}), hsl(${sh} ${ss}% ${Math.min(sl + 10, 95)}%))`,
+    'gradient-success': `linear-gradient(135deg, hsl(${successH} 76% 48%), hsl(${successH + 10} 80% 42%))`,
     'gradient-surface': `linear-gradient(180deg, hsl(240 5% 10%), hsl(240 6% 6%))`,
-    'gradient-divider': `linear-gradient(90deg, transparent, hsl(240 4% 20% / 0.5), transparent)`,
-    'shadow-glow-primary': `0 0 20px hsl(${primary} / 0.25)`,
-    'shadow-glow-secondary': `0 0 20px hsl(${secondary} / 0.2)`,
+    'gradient-divider': `linear-gradient(90deg, transparent, hsl(${h} 50% 40% / 0.15), transparent)`,
+    'gradient-hero': `linear-gradient(135deg, hsl(${primary} / 0.12) 0%, hsl(${gh} 60% 50% / 0.06) 50%, hsl(${primary} / 0.08) 100%)`,
+    'gradient-novelty': `linear-gradient(135deg, hsl(${successH} 76% 48%), hsl(${successH + 10} 80% 42%))`,
+    // Shadows — dramatic glow with primary color
+    'shadow-glow': `0 0 30px hsl(${primary} / 0.4), 0 0 60px hsl(${primary} / 0.15)`,
+    'shadow-glow-primary': `0 0 30px hsl(${primary} / 0.4), 0 0 60px hsl(${primary} / 0.15)`,
+    'shadow-glow-secondary': `0 0 25px hsl(${secondary} / 0.5)`,
+    'shadow-glow-success': `0 0 25px hsl(${successH} 76% 48% / 0.35)`,
+    'shadow-glow-warning': `0 0 25px hsl(${warningH} 95% 52% / 0.4)`,
+    'shadow-lg': `0 10px 15px -3px hsl(225 20% 2% / 0.7), 0 4px 6px -4px hsl(225 20% 2% / 0.5), 0 0 20px hsl(${primary} / 0.04)`,
+    'shadow-xl': `0 20px 25px -5px hsl(225 20% 2% / 0.8), 0 8px 10px -6px hsl(225 20% 2% / 0.6), 0 0 30px hsl(${primary} / 0.06)`,
+    'shadow-header': `0 1px 3px hsl(225 20% 2% / 0.7), 0 0 20px hsl(${primary} / 0.03), inset 0 1px 0 hsl(225 15% 18% / 0.3)`,
     'chart-1': primary,
   };
 
@@ -284,6 +347,8 @@ const diversityPreset: ThemePreset = {
     ...diversityBase.light,
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
+    'gradient-hero': `linear-gradient(135deg, hsl(0 85% 55% / 0.08), hsl(130 70% 45% / 0.06), hsl(280 80% 58% / 0.08))`,
+    'shadow-glow': '0 0 20px hsl(280 80% 58% / 0.2)',
     'shadow-glow-primary': '0 0 20px hsl(280 80% 58% / 0.25)',
     'shadow-glow-secondary': '0 0 20px hsl(130 70% 45% / 0.25)',
   },
@@ -291,8 +356,10 @@ const diversityPreset: ThemePreset = {
     ...diversityBase.dark,
     'gradient-primary': rainbowGrad,
     'gradient-secondary': rainbowGrad,
-    'shadow-glow-primary': '0 0 20px hsl(280 80% 58% / 0.3)',
-    'shadow-glow-secondary': '0 0 20px hsl(130 70% 45% / 0.3)',
+    'gradient-hero': `linear-gradient(135deg, hsl(0 85% 55% / 0.12), hsl(130 70% 45% / 0.08), hsl(280 80% 58% / 0.12))`,
+    'shadow-glow': '0 0 30px hsl(280 80% 58% / 0.4), 0 0 60px hsl(130 70% 45% / 0.15)',
+    'shadow-glow-primary': '0 0 30px hsl(280 80% 58% / 0.3)',
+    'shadow-glow-secondary': '0 0 25px hsl(130 70% 45% / 0.3)',
   },
 };
 
@@ -324,7 +391,6 @@ export function loadThemeConfig(): ThemeConfig {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = { ...getDefaultConfig(), ...JSON.parse(stored) };
-      // Fallback if preset no longer exists
       if (!THEME_PRESETS.find(p => p.id === parsed.presetId)) {
         parsed.presetId = 'corporate';
       }
