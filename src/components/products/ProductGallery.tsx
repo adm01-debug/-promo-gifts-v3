@@ -428,7 +428,7 @@ export function ProductGallery({
                         className="absolute bottom-1 right-1 w-6 h-6 rounded-full flex items-center justify-center shadow-lg"
                         style={{ backgroundColor: `${color.hex}cc` }}
                       >
-                        <Play className="h-3 w-3 text-white ml-0.5" />
+                        <Play className="h-3 w-3 text-primary-foreground ml-0.5" />
                       </div>
                     )}
                     
@@ -669,12 +669,12 @@ export function ProductGallery({
             <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
               <div className="flex items-center gap-2">
                 {productVideos.length > 1 && (
-                  <span className="text-white/80 text-sm font-medium">
+                  <span className="text-primary-foreground/80 text-sm font-medium">
                     Vídeo {activeVideoIndex + 1} de {productVideos.length}
                   </span>
                 )}
                 {productVideos[activeVideoIndex]?.title && (
-                  <span className="text-white/60 text-sm">
+                  <span className="text-primary-foreground/60 text-sm">
                     — {productVideos[activeVideoIndex].title}
                   </span>
                 )}
@@ -682,7 +682,7 @@ export function ProductGallery({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-9 w-9 rounded-full text-white hover:bg-white/20"
+                className="h-9 w-9 rounded-full text-primary-foreground hover:bg-white/20"
                 onClick={() => setIsVideoPlayerOpen(false)}
               >
                 <X className="h-5 w-5" />
@@ -738,7 +738,7 @@ export function ProductGallery({
                       </div>
                     )}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <Play className="h-5 w-5 text-white drop-shadow-lg fill-white/50" />
+                      <Play className="h-5 w-5 text-primary-foreground drop-shadow-lg fill-white/50" />
                     </div>
                   </button>
                 ))}

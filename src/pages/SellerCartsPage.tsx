@@ -328,8 +328,8 @@ function SellerCartsContent() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-            <ShoppingCart className="h-6 w-6 text-emerald-500" />
+          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+            <ShoppingCart className="h-6 w-6 text-primary" />
           </div>
           <div>
             <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
@@ -349,7 +349,7 @@ function SellerCartsContent() {
           {canCreateCart && (
             <Button
               onClick={() => setShowNewCart(true)}
-              className="gap-2 bg-emerald-500 hover:bg-emerald-600 text-white"
+              className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               <Plus className="h-4 w-4" />
               Novo Carrinho
@@ -366,7 +366,7 @@ function SellerCartsContent() {
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
           >
-            <Card className="p-4 border-emerald-500/20 bg-emerald-500/5">
+            <Card className="p-4 border-primary/20 bg-primary/5">
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-sm">Vincular a uma empresa</h3>
                 <Button variant="ghost" size="sm" onClick={() => setShowNewCart(false)}>
@@ -394,19 +394,19 @@ function SellerCartsContent() {
                 className={cn(
                   "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all duration-200 whitespace-nowrap flex-shrink-0",
                   isActive
-                    ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-500 shadow-sm ring-2 ring-emerald-500/20 animate-pulse-subtle"
+                    ? "border-primary/40 bg-primary/10 text-primary shadow-sm ring-2 ring-primary/20 animate-pulse-subtle"
                     : "border-border/40 hover:border-border/60 hover:bg-muted/30 text-muted-foreground"
                 )}
               >
                 {cart.company_logo_url ? (
                   <img src={cart.company_logo_url} alt="" className="w-7 h-7 rounded-lg object-contain bg-background border border-border/50 p-0.5" />
                 ) : (
-                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", isActive ? "bg-emerald-500/15" : "bg-muted")}>
+                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", isActive ? "bg-primary/15" : "bg-muted")}>
                     <Building2 className="h-3.5 w-3.5" />
                   </div>
                 )}
                 <span className="text-sm font-medium">{cart.company_name}</span>
-                <Badge variant="secondary" className={cn("text-[10px] px-1.5", isActive && "bg-emerald-500/15 text-emerald-500")}>
+                <Badge variant="secondary" className={cn("text-[10px] px-1.5", isActive && "bg-primary/15 text-primary")}>
                   {cart.items.length}
                 </Badge>
               </button>
@@ -448,8 +448,8 @@ function SellerCartsContent() {
                 {activeCart.company_logo_url ? (
                   <img src={activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/50 p-1" />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/10 flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-emerald-500" />
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                    <Building2 className="h-5 w-5 text-primary" />
                   </div>
                 )}
                 <div>
@@ -578,9 +578,9 @@ function SellerCartsContent() {
           {/* Sidebar: Summary */}
           {activeCart.items.length > 0 && (
             <div className="hidden md:block xl:sticky xl:top-20 xl:self-start space-y-4">
-              <Card className="p-5 space-y-4 border-emerald-500/10">
+              <Card className="p-5 space-y-4 border-primary/10">
                 <h3 className="font-semibold flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-emerald-500" />
+                  <FileText className="h-4 w-4 text-primary" />
                   Resumo do Carrinho
                 </h3>
 
@@ -629,14 +629,14 @@ function SellerCartsContent() {
 
                   <div className="border-t border-border/30 pt-2.5 flex justify-between">
                     <span className="font-medium">Subtotal</span>
-                    <span className="font-bold text-lg text-emerald-500 tabular-nums">
+                    <span className="font-bold text-lg text-primary tabular-nums">
                       {formatCurrency(cartSubtotal)}
                     </span>
                   </div>
                 </div>
 
                 <Button
-                  className="w-full gap-2 h-11 font-semibold bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl"
+                  className="w-full gap-2 h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
                   onClick={() => handleGenerateQuote(activeCart)}
                 >
                   <ArrowRight className="h-4 w-4" />
@@ -734,7 +734,7 @@ function SellerCartsContent() {
                     </span>
                     <span className={cn(
                       "font-bold tabular-nums",
-                      activeCart.items.length >= 5 ? "text-emerald-500" :
+                      activeCart.items.length >= 5 ? "text-primary" :
                         activeCart.items.length >= 3 ? "text-amber-500" : "text-muted-foreground"
                     )}>
                       {Math.min(100, Math.round(

@@ -562,7 +562,7 @@ function QuantityScenarioCard({
       className={cn(
         "p-3 rounded-lg border",
         isTop 
-          ? "bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/30" 
+          ? "bg-gradient-to-r from-primary/10 to-primary/10 border-primary/30" 
           : "bg-card/50 border-border/50"
       )}
     >
@@ -571,7 +571,7 @@ function QuantityScenarioCard({
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={isTop ? "default" : "secondary"} className={cn(
               "text-xs gap-1",
-              isTop && "bg-green-500 hover:bg-green-600"
+              isTop && "bg-primary hover:bg-primary/90"
             )}>
               <TrendingUp className="h-3 w-3" />
               ROI {scenario.roi.toFixed(0)}%
@@ -591,10 +591,10 @@ function QuantityScenarioCard({
             <span>
               <span className="line-through">{formatCurrency(scenario.currentCostPerUnit)}</span>
               {" → "}
-              <span className="font-semibold text-green-600">{formatCurrency(scenario.newCostPerUnit)}</span>
+              <span className="font-semibold text-primary">{formatCurrency(scenario.newCostPerUnit)}</span>
               /un
             </span>
-            <span className="text-green-600 font-medium">
+            <span className="text-primary font-medium">
               Economia: {formatCurrency(scenario.totalSavings)}
             </span>
           </div>
@@ -608,7 +608,7 @@ function QuantityScenarioCard({
         <Button
           size="sm"
           variant={isTop ? "default" : "outline"}
-          className={cn("shrink-0", isTop && "bg-green-500 hover:bg-green-600")}
+          className={cn("shrink-0", isTop && "bg-primary hover:bg-primary/90")}
           onClick={onApply}
         >
           <CheckCircle className="h-4 w-4 mr-1" />
@@ -639,7 +639,7 @@ function AlternativeTechniqueCard({
               <Zap className="h-3 w-3" />
               Técnica Alternativa
             </Badge>
-            <Badge variant="outline" className="text-xs text-green-600 border-green-500/30">
+            <Badge variant="outline" className="text-xs text-primary border-primary/30">
               -{scenario.savingsPercent.toFixed(1)}%
             </Badge>
           </div>
@@ -654,7 +654,7 @@ function AlternativeTechniqueCard({
             <span className="text-muted-foreground">
               <span className="line-through">{formatCurrency(scenario.currentCostPerUnit)}</span>
               {" → "}
-              <span className="font-semibold text-green-600">{formatCurrency(scenario.newCostPerUnit)}</span>
+              <span className="font-semibold text-primary">{formatCurrency(scenario.newCostPerUnit)}</span>
               /un
             </span>
             <span className="flex items-center gap-1 text-muted-foreground">
@@ -740,7 +740,7 @@ function PromotionCard({ promotion }: { promotion: PromotionScenario }) {
           </p>
 
           <p className="text-xs text-muted-foreground mt-1">
-            Economia potencial: <span className="font-semibold text-green-600">{formatCurrency(promotion.potentialSavings)}</span>
+            Economia potencial: <span className="font-semibold text-primary">{formatCurrency(promotion.potentialSavings)}</span>
           </p>
         </div>
       </div>

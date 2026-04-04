@@ -211,7 +211,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                     severityFilter === opt.value
                       ? opt.value === 'critical' ? 'bg-destructive/15 text-destructive'
                         : opt.value === 'warning' ? 'bg-amber-500/15 text-amber-600'
-                        : opt.value === 'ok' ? 'bg-emerald-500/15 text-emerald-600'
+                        : opt.value === 'ok' ? 'bg-primary/15 text-primary'
                         : 'bg-primary/15 text-primary'
                       : 'text-muted-foreground hover:bg-muted/50'
                   )}
@@ -274,7 +274,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                                   "text-[9px] px-1.5 py-0",
                                   product.severity === 'critical' ? 'bg-destructive/15 text-destructive border-destructive/30' :
                                   product.severity === 'warning' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
-                                  'bg-emerald-500/10 text-emerald-600 border-emerald-500/20'
+                                  'bg-primary/10 text-primary border-primary/20'
                                 )}
                               >
                                 {product.severity === 'critical' && <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />}
@@ -301,9 +301,9 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                 <p className="text-lg font-bold text-amber-600">{filteredCounts.warning}</p>
                 <p className="text-[9px] text-amber-600">Atenção</p>
               </div>
-              <div className="text-center p-1.5 rounded bg-emerald-500/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
-                <p className="text-lg font-bold text-emerald-600">{filteredCounts.ok}</p>
-                <p className="text-[9px] text-emerald-600">OK</p>
+              <div className="text-center p-1.5 rounded bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
+                <p className="text-lg font-bold text-primary">{filteredCounts.ok}</p>
+                <p className="text-[9px] text-primary">OK</p>
               </div>
             </div>
           </div>

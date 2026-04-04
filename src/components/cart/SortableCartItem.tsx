@@ -81,7 +81,7 @@ export function SortableCartItem({
       transition={{ delay: index * 0.03 }}
     >
       <Card className={cn(
-        "overflow-hidden group hover:border-emerald-500/20 transition-all duration-200",
+        "overflow-hidden group hover:border-primary/20 transition-all duration-200",
         isDragging && "shadow-xl ring-2 ring-emerald-500/30",
         isOutOfStock && "opacity-60"
       )}>
@@ -210,7 +210,7 @@ export function SortableCartItem({
           </h4>
 
           <div className="flex items-center justify-between">
-            <span className="text-sm font-bold text-emerald-500 tabular-nums">
+            <span className="text-sm font-bold text-primary tabular-nums">
               {formatCurrency(item.product_price)}
             </span>
           </div>

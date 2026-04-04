@@ -183,7 +183,7 @@ export function GlobalSearchPalette() {
                           "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors",
                           sug.type === "filter" && "bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30",
                           sug.type === "navigation" && "bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30",
-                          sug.type === "action" && "bg-green-500/10 hover:bg-green-500/20 text-green-400 border border-green-500/30",
+                          sug.type === "action" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
                           sug.type === "search" && "bg-muted hover:bg-muted/80",
                         )}>
                           <span>{sug.icon}</span><span>{sug.text}</span>

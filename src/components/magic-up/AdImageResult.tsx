@@ -140,9 +140,9 @@ export function AdImageResult({
                   className="w-full aspect-square object-cover"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
-                  <p className="text-[10px] text-white font-medium truncate">{item.product_name}</p>
+                  <p className="text-[10px] text-primary-foreground font-medium truncate">{item.product_name}</p>
                   {item.scene_title && (
-                    <p className="text-[9px] text-white/70 truncate">{item.scene_title}</p>
+                    <p className="text-[9px] text-primary-foreground/70 truncate">{item.scene_title}</p>
                   )}
                   <div className="flex gap-1 mt-1">
                     {onToggleHistoryFavorite && (
@@ -150,7 +150,7 @@ export function AdImageResult({
                         onClick={(e) => { e.stopPropagation(); onToggleHistoryFavorite(item.id, item.is_favorite); }}
                         className="p-1 rounded bg-white/20 hover:bg-white/30"
                       >
-                        <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-red-400 text-red-400" : "text-white")} />
+                        <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-red-400 text-red-400" : "text-primary-foreground")} />
                       </button>
                     )}
                     {onDeleteHistory && (
@@ -158,7 +158,7 @@ export function AdImageResult({
                         onClick={(e) => { e.stopPropagation(); onDeleteHistory(item.id); }}
                         className="p-1 rounded bg-white/20 hover:bg-red-500/50"
                       >
-                        <Trash2 className="h-3 w-3 text-white" />
+                        <Trash2 className="h-3 w-3 text-primary-foreground" />
                       </button>
                     )}
                   </div>
@@ -216,7 +216,7 @@ export function AdImageResult({
               onClick={onToggleFavorite}
               className="absolute top-3 right-3 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
             >
-              <Heart className={cn("h-5 w-5", isFavorite ? "fill-red-400 text-red-400" : "text-white")} />
+              <Heart className={cn("h-5 w-5", isFavorite ? "fill-red-400 text-red-400" : "text-primary-foreground")} />
             </button>
           )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-end justify-center opacity-0 group-hover:opacity-100">

@@ -44,7 +44,7 @@ interface StockAlertsIndicatorProps {
 const TABS: { key: NotificationType; label: string; color: string; activeColor: string }[] = [
   { key: "stock", label: "Zerou", color: "text-destructive", activeColor: "bg-destructive/10 text-destructive border-destructive" },
   { key: "new", label: "Novidade", color: "text-blue-500", activeColor: "bg-blue-500/10 text-blue-500 border-blue-500" },
-  { key: "restocked", label: "Chegou", color: "text-emerald-500", activeColor: "bg-emerald-500/10 text-emerald-500 border-emerald-500" },
+  { key: "restocked", label: "Chegou", color: "text-primary", activeColor: "bg-primary/10 text-primary border-emerald-500" },
 ];
 
 // ─── Trigger ─────────────────────────────────────────────────
@@ -69,7 +69,7 @@ const NotificationTrigger = forwardRef<HTMLButtonElement, TriggerProps>(
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
           className={cn(
-            "absolute -top-0.5 -right-0.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center text-[9px] font-bold rounded-full text-white",
+            "absolute -top-0.5 -right-0.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center text-[9px] font-bold rounded-full text-primary-foreground",
             dominantColor
           )}
         >
@@ -214,7 +214,7 @@ export function StockAlertsIndicator({
         ? "bg-orange"
         : counts.new > 0
           ? "bg-blue-500"
-          : "bg-emerald-500";
+          : "bg-primary";
 
     const dismiss = (id: string) => setDismissedIds(prev => new Set([...prev, id]));
 
@@ -224,7 +224,7 @@ export function StockAlertsIndicator({
         case "out":
           return <Badge variant="destructive" className="text-[10px] px-1.5 py-0">Esgotado</Badge>;
         case "critical":
-          return <Badge className="bg-orange text-white text-[10px] px-1.5 py-0">Crítico</Badge>;
+          return <Badge className="bg-orange text-primary-foreground text-[10px] px-1.5 py-0">Crítico</Badge>;
         default:
           return <Badge variant="secondary" className="text-[10px] px-1.5 py-0">Baixo</Badge>;
       }
@@ -243,14 +243,14 @@ export function StockAlertsIndicator({
 
     const getTypeBadge = (n: NotificationItem) => {
       if (n.type === "stock") return getStockBadge(n.alertLevel);
-      if (n.type === "new") return <Badge className="bg-blue-500 text-white text-[10px] px-1.5 py-0">Novo</Badge>;
-      return <Badge className="bg-emerald-500 text-white text-[10px] px-1.5 py-0">Reposto</Badge>;
+      if (n.type === "new") return <Badge className="bg-blue-500 text-primary-foreground text-[10px] px-1.5 py-0">Novo</Badge>;
+      return <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">Reposto</Badge>;
     };
 
     const getTypeIcon = (n: NotificationItem) => {
       if (n.type === "stock") return getStockIcon(n.alertLevel);
       if (n.type === "new") return <Sparkles className="h-3.5 w-3.5 text-blue-500" />;
-      return <RefreshCw className="h-3.5 w-3.5 text-emerald-500" />;
+      return <RefreshCw className="h-3.5 w-3.5 text-primary" />;
     };
 
     if (isLoading || counts.total === 0) return null;
@@ -371,8 +371,8 @@ export function StockAlertsIndicator({
                           )}
                           {item.type === "restocked" && item.currentStock !== undefined && (
                             <span className="flex items-center gap-1">
-                              <RefreshCw className="h-3 w-3 text-emerald-500" />
-                              <span className="font-medium text-emerald-600">{item.currentStock} un.</span>
+                              <RefreshCw className="h-3 w-3 text-primary" />
+                              <span className="font-medium text-primary">{item.currentStock} un.</span>
                             </span>
                           )}
                           {item.type === "new" && (

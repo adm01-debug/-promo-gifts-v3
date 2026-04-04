@@ -61,7 +61,7 @@ const variants: Record<EmptyStateVariant, {
     icon: FileText,
     title: "Nenhum orçamento ainda",
     description: "Comece criando seu primeiro orçamento para um cliente.",
-    color: "text-emerald-500"
+    color: "text-primary"
   },
   orders: {
     icon: ShoppingCart,

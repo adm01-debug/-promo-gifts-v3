@@ -103,7 +103,7 @@ export function QuoteBuilderProductSearch({
                               <div className="h-11 w-11 bg-muted rounded-lg flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground" /></div>
                             )}
                             {isOutOfStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive flex items-center justify-center"><X className="h-2.5 w-2.5 text-destructive-foreground" /></div>}
-                            {isLowStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center"><AlertTriangle className="h-2.5 w-2.5 text-white" /></div>}
+                            {isLowStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center"><AlertTriangle className="h-2.5 w-2.5 text-primary-foreground" /></div>}
                           </div>
                           <div className="flex-1 min-w-0 space-y-0.5">
                             <p className="font-medium truncate text-sm">{product.name}</p>

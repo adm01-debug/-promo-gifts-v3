@@ -163,7 +163,7 @@ export function QuantityAndResult({
                       className="font-mono gap-2"
                     >
                       {copied ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                        <CheckCircle2 className="w-4 h-4 text-primary dark:text-primary" />
                       ) : (
                         <Copy className="w-4 h-4" />
                       )}
@@ -252,9 +252,9 @@ export function QuantityAndResult({
 
               {/* Margem */}
               {priceData && priceData.margin_percent > 0 && (
-                <div className="flex items-center gap-2 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                  <TrendingDown className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                  <span className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
+                <div className="flex items-center gap-2 p-3 rounded-lg bg-primary/10 border border-primary/20">
+                  <TrendingDown className="w-5 h-5 text-primary dark:text-primary" />
+                  <span className="text-sm font-medium text-primary dark:text-primary">
                     Margem: {priceData.margin_percent.toFixed(1)}%
                   </span>
                 </div>

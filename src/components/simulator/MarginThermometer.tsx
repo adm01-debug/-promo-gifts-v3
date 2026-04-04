@@ -48,8 +48,8 @@ export function MarginThermometer({
   const colors = {
     danger: { bg: 'from-red-500 to-red-600', text: 'text-red-500', icon: AlertTriangle },
     warning: { bg: 'from-amber-500 to-orange-500', text: 'text-amber-500', icon: TrendingUp },
-    good: { bg: 'from-emerald-500 to-green-500', text: 'text-emerald-500', icon: CheckCircle },
-    excellent: { bg: 'from-emerald-400 to-cyan-500', text: 'text-emerald-400', icon: Sparkles },
+    good: { bg: 'from-emerald-500 to-green-500', text: 'text-primary', icon: CheckCircle },
+    excellent: { bg: 'from-emerald-400 to-cyan-500', text: 'text-primary', icon: Sparkles },
     neutral: { bg: 'from-gray-400 to-gray-500', text: 'text-gray-400', icon: Target },
   };
 
@@ -179,8 +179,8 @@ function StatusBadge({
   const styles = {
     danger: "bg-red-500/10 text-red-500 border-red-500/20",
     warning: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-    good: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20",
-    excellent: "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 text-emerald-500 border-emerald-500/20",
+    good: "bg-primary/10 text-primary border-primary/20",
+    excellent: "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 text-primary border-primary/20",
     neutral: "bg-muted text-muted-foreground border-border",
   };
 
@@ -216,7 +216,7 @@ export function MarginIndicator({
   const colors = {
     danger: 'bg-red-500',
     warning: 'bg-amber-500',
-    good: 'bg-emerald-500',
+    good: 'bg-primary',
     excellent: 'bg-cyan-500',
   };
 
@@ -249,7 +249,7 @@ export function MarginIndicator({
         "text-sm font-semibold",
         status === 'danger' && 'text-red-500',
         status === 'warning' && 'text-amber-500',
-        status === 'good' && 'text-emerald-500',
+        status === 'good' && 'text-primary',
         status === 'excellent' && 'text-cyan-500',
       )}>
         {margin.toFixed(0)}%

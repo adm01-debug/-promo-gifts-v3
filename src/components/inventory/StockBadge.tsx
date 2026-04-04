@@ -26,8 +26,8 @@ const statusConfig: Record<StockStatus, {
     label: 'Em Estoque',
     shortLabel: 'Disponível',
     icon: Package,
-    className: 'text-emerald-700 dark:text-emerald-400',
-    bgClass: 'bg-emerald-100 dark:bg-emerald-900/30 border-emerald-200 dark:border-emerald-800',
+    className: 'text-primary dark:text-primary',
+    bgClass: 'bg-emerald-100 dark:bg-emerald-900/30 border-primary/30 dark:border-emerald-800',
   },
   'low-stock': {
     label: 'Estoque Baixo',
@@ -158,7 +158,7 @@ interface StockIndicatorProps {
 
 export function StockIndicator({ status, className }: StockIndicatorProps) {
   const dotColor = {
-    'in-stock': 'bg-emerald-500',
+    'in-stock': 'bg-primary',
     'low-stock': 'bg-amber-500',
     'out-of-stock': 'bg-red-500',
     'pre-order': 'bg-blue-500',

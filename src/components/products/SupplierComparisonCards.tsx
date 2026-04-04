@@ -77,7 +77,7 @@ export function SupplierComparisonCards({ velocities, supplierNames }: SupplierC
                   <p className="text-muted-foreground">Tendência</p>
                   <p className={cn(
                     "font-bold flex items-center gap-0.5",
-                    trend > 1 ? 'text-emerald-500' : trend < 0.8 ? 'text-destructive' : 'text-muted-foreground'
+                    trend > 1 ? 'text-primary' : trend < 0.8 ? 'text-destructive' : 'text-muted-foreground'
                   )}>
                     {trend > 1 ? <TrendingUp className="h-2.5 w-2.5" /> :
                      trend < 0.8 ? <TrendingDown className="h-2.5 w-2.5" /> :

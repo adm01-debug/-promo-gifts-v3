@@ -142,7 +142,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
                 variant="outline"
                 className={cn(
                   "font-bold text-xs",
-                  kpis.conversionRate >= 40 ? 'bg-emerald-500/15 text-emerald-600 border-emerald-500/30' :
+                  kpis.conversionRate >= 40 ? 'bg-primary/15 text-primary border-primary/30' :
                   kpis.conversionRate >= 20 ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
                   'bg-destructive/15 text-destructive border-destructive/30'
                 )}

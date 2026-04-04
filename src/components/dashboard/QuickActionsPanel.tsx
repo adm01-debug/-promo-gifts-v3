@@ -94,7 +94,7 @@ export function QuickActionsPanel() {
       label: "Valor Total (Mês)",
       value: formatCurrency(stats.monthTotal),
       icon: DollarSign,
-      color: "text-emerald-500",
+      color: "text-primary",
     },
     {
       label: "Taxa de Conversão",

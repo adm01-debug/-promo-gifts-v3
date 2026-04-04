@@ -112,7 +112,7 @@ export function ResultsComparisonCards({
         )}>
           {/* Ribbon */}
           <div className={cn(
-            "absolute top-0 right-0 px-4 py-1 text-xs font-bold text-white",
+            "absolute top-0 right-0 px-4 py-1 text-xs font-bold text-primary-foreground",
             isWinner ? "bg-success" : "bg-primary"
           )}>
             {isWinner ? (

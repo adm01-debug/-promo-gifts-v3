@@ -228,8 +228,8 @@ export default function MockupGenerator() {
         {/* Notices */}
         {mg.showDraftRestoredNotice && (
           <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
-            <CheckCircle2 className="h-4 w-4 text-green-600" />
-            <AlertTitle className="text-green-800 dark:text-green-400">Rascunho restaurado</AlertTitle>
+            <CheckCircle2 className="h-4 w-4 text-success" />
+            <AlertTitle className="text-green-800 dark:text-primary">Rascunho restaurado</AlertTitle>
             <AlertDescription className="text-green-700 dark:text-green-300">
               Seu progresso anterior foi restaurado automaticamente.
             </AlertDescription>

@@ -39,7 +39,7 @@ export function formatCurrency(value: number) {
 export const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }> = {
   novo: { label: "Novo", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
   em_negociacao: { label: "Em negociação", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
-  pronto_orcamento: { label: "Pronto p/ orçamento", color: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20" },
+  pronto_orcamento: { label: "Pronto p/ orçamento", color: "bg-primary/10 text-primary border-primary/20" },
 };
 
 export function getStatusCfg(status: string | undefined | null) {
@@ -179,7 +179,7 @@ export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
                     </div>
                     <div className="flex justify-between border-t border-border/30 pt-1.5">
                       <span className="font-medium">Subtotal</span>
-                      <span className="font-bold text-emerald-500">{formatCurrency(subtotal)}</span>
+                      <span className="font-bold text-primary">{formatCurrency(subtotal)}</span>
                     </div>
                   </div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
@@ -462,7 +462,7 @@ export function SaveTemplateDialog({ cart, onSave }: { cart: SellerCart; onSave:
               setName("");
               setDesc("");
             }}
-            className="bg-emerald-500 hover:bg-emerald-600 text-white"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
           >
             Salvar
           </Button>
@@ -558,7 +558,7 @@ export function MobileSummarySheet({
         >
           <div className="flex items-center gap-3">
             <span className="text-sm font-semibold">{cart.items.length} SKUs • {totalQty} un.</span>
-            <span className="text-sm font-bold text-emerald-500 tabular-nums">{formatCurrency(subtotal)}</span>
+            <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(subtotal)}</span>
           </div>
           <ChevronUp className={cn("h-4 w-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
         </button>
@@ -588,7 +588,7 @@ export function MobileSummarySheet({
 
         <div className="px-5 pb-1">
           <Button
-            className="w-full gap-2 h-11 font-semibold bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl"
+            className="w-full gap-2 h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
             onClick={onGenerateQuote}
           >
             <ArrowRight className="h-4 w-4" />

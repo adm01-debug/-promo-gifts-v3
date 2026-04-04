@@ -118,7 +118,7 @@ export function WhatsAppPreview({
                     />
                     {selectedPhotos.length > 4 && idx === 3 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <span className="text-white text-lg font-bold">
+                        <span className="text-primary-foreground text-lg font-bold">
                           +{selectedPhotos.length - 4}
                         </span>
                       </div>

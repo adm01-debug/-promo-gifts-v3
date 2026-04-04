@@ -80,7 +80,7 @@ const STEP_TYPES = [
   { value: "agent", label: "Agente IA", icon: Bot, color: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/30" },
   { value: "tool", label: "Ferramenta", icon: Zap, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/30" },
   { value: "condition", label: "Condição", icon: Search, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/30" },
-  { value: "output", label: "Saída", icon: FileText, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-emerald-500/30" },
+  { value: "output", label: "Saída", icon: FileText, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" },
 ];
 
 const AI_MODELS = [
@@ -273,7 +273,7 @@ export function WorkflowCanvas() {
 
   const statusColor = {
     draft: "bg-muted text-muted-foreground",
-    active: "bg-emerald-500/10 text-emerald-600",
+    active: "bg-primary/10 text-primary",
     paused: "bg-amber-500/10 text-amber-600",
   };
 

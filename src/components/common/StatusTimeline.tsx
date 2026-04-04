@@ -78,7 +78,7 @@ const statusConfig: Record<TimelineStatus, {
   },
   paid: {
     icon: CreditCard,
-    color: "text-emerald-500",
+    color: "text-primary",
     bgColor: "bg-emerald-100 dark:bg-emerald-900/30"
   },
   production: {

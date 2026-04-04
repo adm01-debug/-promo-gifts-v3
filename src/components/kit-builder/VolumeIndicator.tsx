@@ -30,13 +30,13 @@ export function VolumeIndicator({
   const label = getVolumeStatusLabel(usagePercent);
 
   const statusTextColors = {
-    success: 'text-green-600',
+    success: 'text-primary',
     warning: 'text-yellow-600',
     destructive: 'text-destructive',
   };
 
   const progressBgColors = {
-    success: 'bg-green-500',
+    success: 'bg-primary',
     warning: 'bg-yellow-500',
     destructive: 'bg-destructive',
   };
@@ -69,7 +69,7 @@ export function VolumeIndicator({
           {status === 'destructive' ? (
             <AlertTriangle className="h-4 w-4 text-destructive" />
           ) : status === 'success' ? (
-            <CheckCircle className="h-4 w-4 text-green-600" />
+            <CheckCircle className="h-4 w-4 text-primary" />
           ) : null}
           <span className={cn("text-sm font-medium", statusTextColors[status])}>
             {label}

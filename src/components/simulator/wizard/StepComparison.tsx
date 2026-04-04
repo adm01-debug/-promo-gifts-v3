@@ -255,7 +255,7 @@ ${persText}
             exit={{ opacity: 0, y: 20 }}
             className="sticky bottom-4 z-10"
           >
-            <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-700 text-white shadow-2xl shadow-emerald-900/40 border border-emerald-500/30">
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-2xl shadow-primary/40 border border-primary/30">
               <div>
                 <p className="font-bold text-base">
                   {selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}
@@ -270,7 +270,7 @@ ${persText}
               </div>
               <Button 
                 size="lg" 
-                className="gap-2 font-bold bg-white text-emerald-700 hover:bg-emerald-50 shadow-lg"
+                className="gap-2 font-bold bg-white text-primary hover:bg-emerald-50 shadow-lg"
                 onClick={handleConfirmSelected}
               >
                 <Check className="h-5 w-5" />
@@ -370,7 +370,7 @@ function ComparisonCard({
               </Badge>
               {/* #1: Larger trophy for best value */}
               {isBestValue && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
+                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
                   <Trophy className="h-4 w-4" />
                   Melhor Custo-Benefício
                 </Badge>
@@ -382,7 +382,7 @@ function ComparisonCard({
                 </Badge>
               )}
               {savingsPercent > 0 && (
-                <Badge variant="outline" className="gap-1 text-emerald-600 border-emerald-400 dark:text-emerald-400 dark:border-emerald-700">
+                <Badge variant="outline" className="gap-1 text-primary border-emerald-400 dark:text-primary dark:border-emerald-700">
                   ↓ {savingsPercent}% vs mais caro
                 </Badge>
               )}
@@ -522,9 +522,9 @@ function ConfirmedSummary({
             animate={{ scale: 1 }}
             transition={{ type: "spring", delay: 0.1, stiffness: 200 }}
           >
-            <div className="absolute inset-0 bg-green-500/20 rounded-full blur-lg" />
-            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center shadow-md">
-              <Check className="h-5 w-5 text-white" />
+            <div className="absolute inset-0 bg-primary/20 rounded-full blur-lg" />
+            <div className="relative w-full h-full rounded-full bg-gradient-to-br from-primary to-primary/90 flex items-center justify-center shadow-md">
+              <Check className="h-5 w-5 text-primary-foreground" />
             </div>
           </motion.div>
           <div>
@@ -611,24 +611,24 @@ function ConfirmedSummary({
         <div className="bg-gradient-to-br from-primary via-primary to-primary/90 p-5 text-primary-foreground">
           <div className="grid grid-cols-[2fr_1.5fr_1fr] gap-3 items-stretch">
             <div className="p-4 rounded-xl bg-black/25 backdrop-blur-sm border border-white/10 shadow-lg shadow-black/20">
-              <p className="text-xs font-semibold tracking-wider text-white/70 mb-1.5">Total geral</p>
-              <p className="text-4xl font-extrabold tracking-tight text-white">{formatCurrency(wizard.totals.grandTotal)}</p>
+              <p className="text-xs font-semibold tracking-wider text-primary-foreground/70 mb-1.5">Total geral</p>
+              <p className="text-4xl font-extrabold tracking-tight text-primary-foreground">{formatCurrency(wizard.totals.grandTotal)}</p>
             </div>
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10">
-              <p className="text-xs font-semibold tracking-wider text-white/70 mb-0.5">Por unidade</p>
-              <p className="text-[11px] text-white/50 mb-1.5">(produto + gravação)</p>
-              <p className="text-2xl font-bold text-white">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
+              <p className="text-xs font-semibold tracking-wider text-primary-foreground/70 mb-0.5">Por unidade</p>
+              <p className="text-[11px] text-primary-foreground/50 mb-1.5">(produto + gravação)</p>
+              <p className="text-2xl font-bold text-primary-foreground">{formatCurrency(wizard.totals.grandTotalPerUnit)}</p>
             </div>
             <div className="p-4 rounded-xl bg-black/15 backdrop-blur-sm border border-white/10 flex flex-col justify-between">
-              <p className="text-xs font-semibold tracking-wider text-white/70 mb-1.5">Prazo máx.</p>
+              <p className="text-xs font-semibold tracking-wider text-primary-foreground/70 mb-1.5">Prazo máx.</p>
               {wizard.totals.maxDays > 0 ? (
-                <p className="text-2xl font-bold text-white">~{wizard.totals.maxDays}d</p>
+                <p className="text-2xl font-bold text-primary-foreground">~{wizard.totals.maxDays}d</p>
               ) : (
                 <div className="group relative flex items-center gap-2 cursor-help">
-                  <AlertCircle className="h-4 w-4 text-white/70 shrink-0" />
-                  <p className="text-lg font-bold text-white">A consultar</p>
+                  <AlertCircle className="h-4 w-4 text-primary-foreground/70 shrink-0" />
+                  <p className="text-lg font-bold text-primary-foreground">A consultar</p>
                   {/* #6: Tooltip explaining "A consultar" */}
-                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 rounded-lg bg-black/90 text-white text-xs w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-10">
+                  <div className="absolute bottom-full left-0 mb-2 px-3 py-2 rounded-lg bg-black/90 text-primary-foreground text-xs w-48 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-xl z-10">
                     Prazo depende da confirmação do fornecedor para esta técnica e quantidade.
                   </div>
                 </div>

@@ -17,7 +17,7 @@ export function QuoteMobileActionBar({ onDownloadPDF, onWhatsApp, onShare, onSyn
         variant="outline"
         size="sm"
         onClick={onWhatsApp}
-        className="flex-1 gap-2 text-emerald-600 border-emerald-600/30 dark:text-emerald-400 dark:border-emerald-400/30"
+        className="flex-1 gap-2 text-primary border-primary/30 dark:text-primary dark:border-primary/30"
       >
         <MessageCircle className="h-4 w-4" />
         WhatsApp
@@ -35,7 +35,7 @@ export function QuoteMobileActionBar({ onDownloadPDF, onWhatsApp, onShare, onSyn
           size="sm"
           onClick={onSync}
           disabled={isSyncing}
-          className="flex-1 gap-1 bg-emerald-600 hover:bg-emerald-700 text-white shrink-0"
+          className="flex-1 gap-1 bg-primary hover:bg-primary/90 text-primary-foreground shrink-0"
         >
           {isSyncing ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           {isSyncing ? "..." : "Sincronizar"}

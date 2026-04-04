@@ -39,7 +39,7 @@ interface SmartSearchInputProps {
 const typeIcons: Record<string, React.ReactNode> = {
   product: <Package className="h-4 w-4 text-blue-500" />,
   category: <Folder className="h-4 w-4 text-amber-500" />,
-  supplier: <Building2 className="h-4 w-4 text-emerald-500" />,
+  supplier: <Building2 className="h-4 w-4 text-primary" />,
   history: <Clock className="h-4 w-4 text-muted-foreground" />,
 };
 
@@ -328,7 +328,7 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
           <div>
             {(products.length > 0 || categories.length > 0) && <Separator className="my-1.5 opacity-50" />}
             <div className="flex items-center gap-1.5 px-3 pt-1 pb-0.5">
-              <Building2 className="h-3 w-3 text-emerald-400" />
+              <Building2 className="h-3 w-3 text-primary" />
               <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">
                 Fornecedores ({suppliers.length})
               </span>

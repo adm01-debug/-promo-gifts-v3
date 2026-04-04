@@ -44,7 +44,7 @@ import { StockStatus, StockAlert } from "@/types/stock";
 const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: React.ReactNode }> = {
   in_stock: { 
     label: 'Em Estoque', 
-    color: 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+    color: 'bg-primary/10 text-primary border-primary/20',
     icon: <CheckCircle2 className="h-4 w-4" />
   },
   low_stock: { 
