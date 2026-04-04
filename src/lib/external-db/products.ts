@@ -252,7 +252,7 @@ async function enrichProducts(
     const r = batchResults[idx];
     if (r?.success && r.data?.records) colorVariationsRecords = r.data.records as unknown[];
   }
-  let colorGroupsRecords: any[] = [];
+  let colorGroupsRecords: Record<string, unknown>[] = [];
   for (const idx of queryMap.colorGroups) {
     const r = batchResults[idx];
     if (r?.success && r.data?.records) colorGroupsRecords = r.data.records as unknown[];
