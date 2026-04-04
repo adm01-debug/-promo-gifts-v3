@@ -157,9 +157,9 @@ export function useMockupDraft(options: UseMockupDraftOptions = {}) {
       setLastSaved(new Date());
       setError(null);
       return true;
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Erro ao salvar rascunho no backend:", err);
-      setError(err.message || "Erro ao salvar rascunho");
+      setError(err instanceof Error ? err.message : "Erro ao salvar rascunho");
       return false;
     } finally {
       setIsSaving(false);
