@@ -512,14 +512,30 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
   const downloadTemplateXLSX = useCallback(async () => {
     try {
       const XLSX = await import('@e965/xlsx');
+      const exampleValues = TARGET_FIELDS.map(f => {
+        const examples: Record<string, string | number> = {
+          sku: 'PROD-001', name: 'Caneta Personalizada', sale_price: 5.99,
+          description: 'Caneta esferográfica para brindes', short_description: 'Caneta brinde',
+          meta_description: 'Caneta personalizada para brindes corporativos',
+          brand: 'Marca XYZ', supplier_reference: 'REF-001', supplier_id: '',
+          cost_price: 2.50, stock_quantity: 1000, min_quantity: 50,
+          category_id: '', main_category_id: '',
+          height_cm: 14, width_cm: 1.2, length_cm: 1.2, diameter_cm: 1.0,
+          weight_g: 10, capacity_ml: '',
+          packing_type: 'Caixa Individual', packing_classification: 'Premium',
+          has_commercial_packaging: 'Sim', repacking_type: '', packaging_context: '',
+          box_width_mm: 150, box_height_mm: 30, box_length_mm: 30,
+          box_weight_kg: 0.5, box_quantity: 500, box_volume_cm3: 135, box_image: '',
+          image_url: 'https://exemplo.com/imagem.jpg', primary_image_url: '', og_image_url: '',
+          is_active: 'Sim', is_featured: 'Não', is_bestseller: 'Não',
+          is_new: 'Sim', is_on_sale: 'Não', is_kit: 'Não',
+          gender: 'Unissex', dimensions: '14 x 1.2 cm',
+        };
+        return examples[f.key] ?? '';
+      });
       const ws = XLSX.utils.aoa_to_sheet([
         TARGET_FIELDS.map(f => `${f.label}${f.required ? ' *' : ''}`),
-        [
-          'PROD-001', 'Caneta Personalizada', 5.99, 'Caneta esferográfica para brindes',
-          'Caneta brinde', 'Caneta personalizada para brindes', 'Marca XYZ',
-          'REF-001', 2.50, 1000, 50, 14, 1.2, 15, 10, 'Caixa Individual',
-          'https://exemplo.com/imagem.jpg',
-        ],
+        exampleValues,
       ]);
 
       // Set column widths
