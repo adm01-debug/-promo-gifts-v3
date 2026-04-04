@@ -140,7 +140,7 @@ export function useCatalogState() {
 
     if (filters.colors.length) {
       result = result.filter((p) =>
-        p.colors?.some((c: any) => filters.colors.includes(c.name)) || false
+        p.colors?.some((c: Record<string, string>) => filters.colors.includes(c.name)) || false
       );
     }
 
