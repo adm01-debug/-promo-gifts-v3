@@ -40,7 +40,7 @@ const quickActions: QuickAction[] = [
     description: "Visualização com logo",
     icon: Wand2,
     href: "/mockup-generator",
-    color: "bg-purple-500 text-white",
+    color: "bg-primary/80 text-primary-foreground",
   },
   {
     id: "simulator",
