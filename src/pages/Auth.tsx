@@ -4,13 +4,11 @@ import { useNavigate } from "react-router-dom";
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff, Loader2, Gift, Mail, Lock, User, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket } from "lucide-react";
-import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
+import { Eye, EyeOff, Loader2, Gift, Mail, Lock, Package, Factory, SlidersHorizontal, Brain, ShieldAlert, Rocket } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { ForgotPasswordForm } from "@/components/auth/ForgotPasswordForm";
