@@ -1,34 +1,35 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook } from '@testing-library/react';
-import { createElement } from 'react';
 
-// Mock the OrganizationContext
-const mockCurrentOrg = { id: 'org-123', name: 'Test Org' };
+const mockUseOrganization = vi.fn();
 
 vi.mock('@/contexts/OrganizationContext', () => ({
-  useOrganization: () => ({
-    currentOrg: mockCurrentOrg,
-    organizations: [mockCurrentOrg],
-    currentRole: 'member',
-    isLoading: false,
-    switchOrganization: vi.fn(),
-    createOrganization: vi.fn(),
-    refetch: vi.fn(),
-  }),
+  useOrganization: (...args: any[]) => mockUseOrganization(...args),
 }));
 
 import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
 
 describe('useCurrentOrgId', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it('returns current org id', () => {
+    mockUseOrganization.mockReturnValue({
+      currentOrg: { id: 'org-123', name: 'Test Org' },
+      organizations: [{ id: 'org-123', name: 'Test Org' }],
+      currentRole: 'member',
+      isLoading: false,
+      switchOrganization: vi.fn(),
+      createOrganization: vi.fn(),
+      refetch: vi.fn(),
+    });
     const { result } = renderHook(() => useCurrentOrgId());
     expect(result.current).toBe('org-123');
   });
 
   it('returns null when no org selected', () => {
-    // Override mock for this test
-    const mod = vi.mocked(require('@/contexts/OrganizationContext'));
-    mod.useOrganization = () => ({
+    mockUseOrganization.mockReturnValue({
       currentOrg: null,
       organizations: [],
       currentRole: null,
@@ -37,7 +38,6 @@ describe('useCurrentOrgId', () => {
       createOrganization: vi.fn(),
       refetch: vi.fn(),
     });
-
     const { result } = renderHook(() => useCurrentOrgId());
     expect(result.current).toBeNull();
   });
