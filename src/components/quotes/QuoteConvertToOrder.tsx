@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { useOrganization } from "@/contexts/OrganizationContext";
 import { convertQuoteToOrder } from "@/services/orderService";
 import {
   AlertDialog,
