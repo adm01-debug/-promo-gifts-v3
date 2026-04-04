@@ -481,7 +481,7 @@ async function handleCrud(body: any, req: Request, corsHeaders: Record<string, s
     return jsonResponse({ error: `Operação '${operation}' não permitida para '${resourceGroup}'`, allowed: PERMISSIONS[resourceGroup] }, 403, corsHeaders);
   }
 
-  if (['insert', 'update', 'delete'].includes(operation)) {
+  if (['insert', 'update', 'delete', 'upsert', 'batch_insert'].includes(operation)) {
     if (!['admin', 'gerente', 'vendedor'].includes(userRole)) {
       return jsonResponse({ error: 'Permissão insuficiente para esta operação' }, 403, corsHeaders);
     }
