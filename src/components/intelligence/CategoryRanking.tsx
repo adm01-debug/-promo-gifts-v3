@@ -118,18 +118,8 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
   const hasData = sortedCategories.length > 0;
   const maxVal = hasData ? Math.max(...sortedCategories.map(getBarValue)) : 0;
 
-  const barColors = [
-    "from-violet-500 to-purple-400",
-    "from-blue-500 to-cyan-400",
-    "from-emerald-500 to-green-400",
-    "from-amber-500 to-yellow-400",
-    "from-rose-500 to-pink-400",
-    "from-indigo-500 to-blue-400",
-    "from-teal-500 to-emerald-400",
-    "from-orange-500 to-amber-400",
-    "from-fuchsia-500 to-violet-400",
-    "from-sky-500 to-blue-400",
-  ];
+  // Use opacity-based approach so bars follow the skin
+  const getBarOpacity = (i: number) => Math.max(1 - i * 0.06, 0.35);
 
   const medalEmojis = ['🥇', '🥈', '🥉'];
 
