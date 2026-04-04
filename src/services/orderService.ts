@@ -4,6 +4,7 @@ import { logger } from "@/lib/logger";
 export interface ConvertQuoteToOrderParams {
   quoteId: string;
   sellerId: string;
+  organizationId?: string | null;
 }
 
 export interface ConvertedOrder {
