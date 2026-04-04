@@ -22,6 +22,7 @@ export default function CollectionDetailPage() {
   } = useCollectionsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
+  const [showPresentation, setShowPresentation] = useState(false);
 
   const collection = useMemo(() => {
     return collections.find((c) => c.id === id);
