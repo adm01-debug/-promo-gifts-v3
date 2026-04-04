@@ -835,6 +835,104 @@ async function handleDelete(externalSupabase: any, table: string, opts: any) {
 }
 
 // ============================================
+// UPSERT (single row, merge on SKU)
+// ============================================
+
+async function handleUpsert(externalSupabase: any, table: string, opts: any) {
+  const { data, corsHeaders } = opts;
+  if (!data) return jsonResponse({ error: 'Dados obrigatórios para upsert' }, 400, corsHeaders);
+
+  const canInjectCreatedAt = !TABLES_WITHOUT_CREATED_AT.includes(table);
+  const canInjectUpdatedAt = !TABLES_WITHOUT_UPDATED_AT.includes(table);
+  const upsertData: Record<string, unknown> = sanitizeExternalWriteData(table, {
+    ...data,
+    ...(canInjectUpdatedAt ? { updated_at: new Date().toISOString() } : {}),
+  });
+  if (canInjectCreatedAt && !upsertData.created_at) upsertData.created_at = new Date().toISOString();
+
+  // Default merge on 'sku' for products, 'id' for others
+  const onConflict = table === 'products' ? 'sku' : 'id';
+
+  console.log(`Upserting into ${table} (onConflict=${onConflict}):`, JSON.stringify(upsertData).substring(0, 500));
+  const { data: result, error } = await externalSupabase
+    .from(table)
+    .upsert(upsertData, { onConflict })
+    .select()
+    .maybeSingle();
+
+  if (error) {
+    console.error('Upsert error:', error.message, error.details, error.hint);
+    return jsonResponse({ error: error.message, details: error.details, hint: error.hint }, 400, corsHeaders);
+  }
+
+  console.log(`Upserted record in ${table}:`, result?.id);
+  return result;
+}
+
+// ============================================
+// BATCH INSERT (multiple rows in one call)
+// ============================================
+
+async function handleBatchInsert(externalSupabase: any, table: string, opts: any) {
+  const { data, corsHeaders, onConflict } = opts;
+
+  if (!Array.isArray(data) || data.length === 0) {
+    return jsonResponse({ error: 'batch_insert requer "data" como array não-vazio' }, 400, corsHeaders);
+  }
+  if (data.length > 100) {
+    return jsonResponse({ error: 'batch_insert limitado a 100 registros por chamada' }, 400, corsHeaders);
+  }
+
+  const canInjectCreatedAt = !TABLES_WITHOUT_CREATED_AT.includes(table);
+  const canInjectUpdatedAt = !TABLES_WITHOUT_UPDATED_AT.includes(table);
+  const now = new Date().toISOString();
+
+  const sanitizedRows = data.map((row: Record<string, unknown>) => {
+    const sanitized = sanitizeExternalWriteData(table, {
+      ...row,
+      ...(canInjectUpdatedAt ? { updated_at: now } : {}),
+    });
+    if (canInjectCreatedAt && !sanitized.created_at) sanitized.created_at = now;
+    return sanitized;
+  });
+
+  const useUpsert = !!onConflict;
+  const conflictColumn = typeof onConflict === 'string' ? onConflict : (table === 'products' ? 'sku' : 'id');
+
+  console.log(`Batch ${useUpsert ? 'upsert' : 'insert'} into ${table}: ${sanitizedRows.length} rows${useUpsert ? ` (onConflict=${conflictColumn})` : ''}`);
+
+  let result, error;
+
+  if (useUpsert) {
+    const response = await externalSupabase
+      .from(table)
+      .upsert(sanitizedRows, { onConflict: conflictColumn, ignoreDuplicates: false })
+      .select('id,sku,name');
+    result = response.data;
+    error = response.error;
+  } else {
+    const response = await externalSupabase
+      .from(table)
+      .insert(sanitizedRows)
+      .select('id,sku,name');
+    result = response.data;
+    error = response.error;
+  }
+
+  if (error) {
+    console.error('Batch insert error:', error.message, error.details, error.hint);
+    return jsonResponse({
+      error: error.message,
+      details: error.details,
+      hint: error.hint,
+    }, 400, corsHeaders);
+  }
+
+  console.log(`Batch ${useUpsert ? 'upserted' : 'inserted'} ${result?.length ?? 0} records in ${table}`);
+  return { records: result || [], count: result?.length ?? 0 };
+}
+
+// ============================================
 // UTILITIES
 // ============================================
 
