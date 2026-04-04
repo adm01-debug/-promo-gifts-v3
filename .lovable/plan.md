@@ -1,31 +1,28 @@
-## Plano de Implementação — Melhorias Frontend
 
-### Fase 1: Cron Jobs (cleanup/digest/process-queue)
-1. Garantir que `cleanup-notifications`, `cleanup-novelties`, `send-digest`, e `process-queue` estão configurados como pg_cron jobs (sem necessidade de UI)
+## Plano: Importação em Massa Robusta
 
-### Fase 2: Integração `ai-recommendations` no Frontend
-2. Criar hook `useAIRecommendations` e componente de recomendações no catálogo/dashboard
+### 1. Refatorar `BulkImportDialog.tsx` (componente principal)
+- Corrigir bug do `autoMapColumns` (state stale)
+- Adicionar seleção de modo: **Inserir** / **Atualizar** / **Upsert** (inserir ou atualizar por SKU)
+- Adicionar verificação de SKUs existentes antes da importação (batch query ao BD externo)
+- Mostrar no preview quais linhas são novas vs. existentes
+- Enforçar limite de 10.000 linhas
+- Adicionar download de template Excel (.xlsx) além do CSV
 
-### Fase 3: Integração `send-notification` no Frontend  
-3. Criar `notificationService` que dispara notificações nos eventos-chave (mudança status orçamento, novo pedido, etc.)
+### 2. Importação em lotes (batch processing)
+- Enviar produtos em chunks de 25 para o `external-db-bridge` em vez de 1-a-1
+- Reduz tempo de ~500 chamadas para ~20 chamadas
+- Manter progress bar funcional
 
-### Fase 4: UI Admin — Login Attempts Dashboard
-4. Criar página `/admin/login-attempts` com tabela de tentativas de login
+### 3. Relatório de erros exportável
+- Botão "Baixar Relatório de Erros" no step final
+- CSV com: Linha, SKU, Nome, Erro(s)
 
-### Fase 5: UI — Histórico de Mockups  
-5. Criar página `/mockups/historico` dedicada
+### 4. Deprecar `BulkImportPanel.tsx`
+- Redirecionar para `BulkImportDialog` que é mais flexível
+- Remover validações excessivas (cores/materiais/imagens obrigatórios para import)
 
-### Fase 6: UI Admin — Video Variant Links
-6. Criar gerenciamento de vídeos por variante de produto
-
-### Fase 7: Integração `generate-mockup-nanobanana`
-7. Conectar gerador alternativo de mockup no fluxo existente
-
-### Fase 8: Integração `dropbox-list`
-8. Criar componente de navegação de arquivos Dropbox
-
-### Fase 9: `external-db-inspect` Admin Tool
-9. Criar ferramenta de debug admin para inspeção do banco externo
-
-### Fase 10: Webhooks (product-webhook, webhook-dispatcher)
-10. Criar painel admin de webhooks com logs
+### Arquivos afetados:
+- `src/components/admin/products/BulkImportDialog.tsx` — refatoração principal
+- `src/components/product-registration/BulkImportPanel.tsx` — deprecar
+- `src/lib/external-db/bridge.ts` — adicionar helper de batch insert/upsert
