@@ -3,7 +3,7 @@
  * Conteúdo ocupa a tela inteira, sem duplicações.
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
 
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,24 +11,23 @@ import { productFormSchema, type ProductFormData, defaultFormValues } from './Pr
 import { FieldLabel, SectionCard } from './ProductFormHelpers';
 import { CategoryCascadeSelector } from './CategoryCascadeSelector';
 import { ProductPreviewPanel } from './ProductPreviewPanel';
+import { HorizontalStepper, type StepDef } from './HorizontalStepper';
+import { useProductFormDraft } from './hooks/useProductFormDraft';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
-  AlertCircle, Globe, FileText, ShieldCheck, Save, X,
-  PanelRightClose, PanelRightOpen, CheckCircle2,
-  ChevronLeft, ChevronRight, Truck, Info, Ruler, Boxes, Wand2,
+  AlertCircle, FileText, Save, X,
+  PanelRightClose, PanelRightOpen,
+  ChevronLeft, ChevronRight, Info, Boxes, Wand2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { motion, AnimatePresence } from 'framer-motion';
-import { toast } from 'sonner';
 
 import { ProductSupplierSection } from './sections/ProductSupplierSection';
 import { ProductInfoSection } from './sections/ProductInfoSection';
@@ -41,7 +40,6 @@ import { ProductSeoSection } from './sections/ProductSeoSection';
 import { ProductMarketingTextsSection } from './sections/ProductMarketingTextsSection';
 import { useSkuValidation } from './hooks/useSkuValidation';
 import { useProductSeoAI } from '@/hooks/useProductSeoAI';
-// ProductSupplierSourcesSection merged into ProductSupplierSection
 
 const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
 const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
@@ -61,7 +59,7 @@ function SectionSkeleton() {
 }
 
 // ============================================
-// TYPES
+// TYPES & STEPS
 // ============================================
 
 interface ProductFormFullscreenProps {
@@ -74,17 +72,6 @@ interface ProductFormFullscreenProps {
   isEdit: boolean;
 }
 
-type StepId = 'essentials' | 'commercial' | 'packaging' | 'fiscal' | 'engraving' | 'classification' | 'media' | 'content';
-
-interface StepDef {
-  id: StepId;
-  label: string;
-  description: string;
-  icon: React.ElementType;
-  requiredFields: (keyof ProductFormData)[];
-  fieldLabels: Record<string, string>;
-}
-
 const STEPS: StepDef[] = [
   { id: 'essentials', label: 'Identificação', description: 'Fornecedor e dados', icon: Info, requiredFields: ['supplier_id', 'sku', 'name'], fieldLabels: { supplier_id: 'Fornecedor', sku: 'SKU Interno', name: 'Nome do Produto' } },
   { id: 'fiscal', label: 'Financeiro e Fiscal', description: 'Preços, estoque e tributos', icon: FileText, requiredFields: ['sale_price'], fieldLabels: { sale_price: 'Preço de Venda' } },
@@ -92,188 +79,10 @@ const STEPS: StepDef[] = [
   { id: 'commercial', label: 'Categorias e Dimensões', description: 'Categoria, dimensões e flags', icon: Tag, requiredFields: [], fieldLabels: {} },
   { id: 'engraving', label: 'Gravação', description: 'Áreas de personalização', icon: Paintbrush, requiredFields: [], fieldLabels: {} },
   { id: 'packaging', label: 'Embalagem', description: 'Dados da embalagem', icon: Package, requiredFields: [], fieldLabels: {} },
-  { id: 'kits', label: 'Kits', description: 'Gestão de kits nativos', icon: Boxes, requiredFields: [], fieldLabels: {} },
+  { id: 'kits', label: 'Kits', description: 'Gestão de kits nativos', icon: Boxes, requiredFields: [], fieldLabels: {} } as StepDef,
   { id: 'media', label: 'Mídia', description: 'Imagens e vídeos', icon: ImageIcon, requiredFields: [], fieldLabels: {} },
   { id: 'content', label: 'SEO', description: 'Meta tags e marketing', icon: Megaphone, requiredFields: [], fieldLabels: {} },
 ];
-
-// ============================================
-// STEPPER
-// ============================================
-
-function HorizontalStepper({
-  steps,
-  activeIndex,
-  stepReady,
-  stepErrors,
-  onStepClick,
-  missingFields,
-  showValidation,
-}: {
-  steps: StepDef[];
-  activeIndex: number;
-  stepReady: boolean[];
-  stepErrors: number[];
-  onStepClick: (i: number) => void;
-  missingFields: string[][];
-  showValidation: boolean;
-}) {
-  const [hoveredStep, setHoveredStep] = useState<number | null>(null);
-  const completedSteps = stepReady.filter(Boolean).length;
-  const progressPercent = (completedSteps / steps.length) * 100;
-
-  return (
-    <div className="w-full" role="navigation" aria-label="Etapas do cadastro de produto">
-      {/* Desktop Stepper */}
-      <div className="hidden md:block">
-        <div className="relative flex items-start justify-between" role="tablist" aria-label="Etapas">
-          {/* Progress line background */}
-          <div className="absolute top-5 left-[5%] right-[5%] h-0.5 bg-muted" />
-          
-          {/* Progress line filled */}
-          <div
-            className="absolute top-5 left-[5%] h-0.5 bg-gradient-to-r from-primary to-primary/80 transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent * 0.9}%` }}
-          />
-
-          {steps.map((step, i) => {
-            const Icon = step.icon;
-            const isActive = i === activeIndex;
-            const isDone = stepReady[i];
-            const hasError = stepErrors[i] > 0;
-            const hasMissing = showValidation && missingFields[i].length > 0;
-            const isClickable = true;
-
-            return (
-              <div
-                key={step.id}
-                className={cn(
-                  "relative z-10 flex flex-col items-center",
-                  "flex-1 first:flex-initial last:flex-initial",
-                  isClickable && "cursor-pointer group/step"
-                )}
-                onClick={() => onStepClick(i)}
-                onMouseEnter={() => setHoveredStep(i)}
-                onMouseLeave={() => setHoveredStep(null)}
-                role="tab"
-                aria-selected={isActive}
-                aria-label={`${step.label}: ${isDone ? 'completo' : hasMissing ? 'campos pendentes' : 'incompleto'}`}
-                tabIndex={isActive ? 0 : -1}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onStepClick(i); }
-                  if (e.key === 'ArrowRight' && i < steps.length - 1) { e.preventDefault(); onStepClick(i + 1); }
-                  if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); onStepClick(i - 1); }
-                }}
-              >
-                {/* Step Circle */}
-                <div
-                  className={cn(
-                    "relative flex items-center justify-center w-10 h-10 rounded-full border-2 transition-all duration-300",
-                    "font-semibold text-sm",
-                    isDone && !isActive && "bg-primary/20 border-primary text-primary shadow-md shadow-primary/15",
-                    isActive && "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg shadow-primary/25 scale-110",
-                    !isActive && !isDone && "bg-muted border-muted-foreground/30 text-muted-foreground",
-                    hasMissing && !isActive && "border-amber-500 ring-2 ring-amber-500/20",
-                    hasError && !isActive && "border-destructive ring-2 ring-destructive/20",
-                    "group-hover/step:scale-110 group-hover/step:shadow-lg transition-transform"
-                  )}
-                >
-                  {isDone && !isActive ? (
-                    <CheckCircle2 className="h-5 w-5" />
-                  ) : (
-                    <Icon className="h-4 w-4" />
-                  )}
-
-                  {/* Error/Missing badge */}
-                  {hasError && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-destructive text-[9px] font-bold text-destructive-foreground">
-                      {stepErrors[i]}
-                    </span>
-                  )}
-                  {hasMissing && !hasError && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white">
-                      {missingFields[i].length}
-                    </span>
-                  )}
-                </div>
-
-                {/* Label + Description */}
-                <div className="mt-2 text-center max-w-[100px]">
-                  <p
-                    className={cn(
-                      "text-xs font-medium transition-colors",
-                      isActive && "text-primary",
-                      isDone && !isActive && "text-foreground",
-                      !isActive && !isDone && "text-muted-foreground",
-                      "group-hover/step:text-primary"
-                    )}
-                  >
-                    {step.label}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-0.5 line-clamp-2">
-                    {step.description}
-                  </p>
-                </div>
-
-                {/* Tooltip com campos faltantes */}
-                {hoveredStep === i && hasMissing && (
-                  <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-lg border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
-                    <p className="text-[10px] font-semibold text-amber-500 mb-1.5">Campos obrigatórios:</p>
-                    <ul className="space-y-0.5">
-                      {missingFields[i].map((label) => (
-                        <li key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                          <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
-                          {label}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Mobile Stepper - Progress Bar */}
-      <div className="md:hidden space-y-3">
-        <div className="relative h-2 bg-muted rounded-full overflow-hidden">
-          <div
-            className="absolute inset-y-0 left-0 bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent}%` }}
-          />
-        </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary">
-              {React.createElement(steps[activeIndex]?.icon || Info, { className: "h-4 w-4" })}
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{steps[activeIndex]?.label}</p>
-              <p className="text-xs text-muted-foreground">{steps[activeIndex]?.description}</p>
-            </div>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Passo {activeIndex + 1} de {steps.length}
-          </p>
-        </div>
-        <div className="flex items-center justify-center gap-1.5">
-          {steps.map((step, i) => (
-            <div
-              key={step.id}
-              className={cn(
-                "h-1.5 rounded-full transition-all duration-300",
-                i === activeIndex ? "w-6 bg-primary" : "w-1.5",
-                stepReady[i] && i !== activeIndex && "bg-primary",
-                !stepReady[i] && i !== activeIndex && "bg-muted"
-              )}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ============================================
 // MAIN
@@ -347,7 +156,12 @@ export function ProductFormFullscreen({
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
 
-  // Effects (same as before)
+  // Draft auto-save
+  const { clearDraft } = useProductFormDraft(
+    productId, setValue, formValues, images, stepIndex, setImages, setStepIndex,
+  );
+
+  // Effects
   useEffect(() => {
     if (!skuManuallyEdited && !isEdit && supplierRefValue) {
       setValue('sku', supplierRefValue, { shouldValidate: true });
@@ -374,74 +188,6 @@ export function ProductFormFullscreen({
     }
   }, [costPriceValue, supplierMarkup, priceManuallyEdited, setValue]);
 
-  // ============================================
-  // AUTOSAVE — localStorage draft
-  // ============================================
-  const DRAFT_KEY = `product-draft-${productId || 'new'}`;
-  const draftRestoredRef = useRef(false);
-  const [hasDraft, setHasDraft] = useState(false);
-
-  // Restore draft on mount (only once)
-  useEffect(() => {
-    if (draftRestoredRef.current) return;
-    draftRestoredRef.current = true;
-    try {
-      const raw = localStorage.getItem(DRAFT_KEY);
-      if (!raw) return;
-      const draft = JSON.parse(raw) as { formData: Partial<ProductFormData>; images: string[]; stepIndex: number; savedAt: number };
-      if (Date.now() - draft.savedAt > 24 * 60 * 60 * 1000) {
-        localStorage.removeItem(DRAFT_KEY);
-        return;
-      }
-      const keys = Object.keys(draft.formData) as (keyof ProductFormData)[];
-      keys.forEach((key) => {
-        const val = draft.formData[key];
-        if (val !== undefined) setValue(key, val as any);
-      });
-      if (draft.images?.length) setImages(draft.images);
-      if (typeof draft.stepIndex === 'number') setStepIndex(draft.stepIndex);
-      setHasDraft(true);
-    } catch { /* ignore corrupt drafts */ }
-  }, [DRAFT_KEY, setValue]);
-
-  // Show draft restored notification
-  useEffect(() => {
-    if (!hasDraft) return;
-    toast.info('Rascunho restaurado', {
-      description: 'Seus dados não salvos foram recuperados automaticamente.',
-      action: {
-        label: 'Descartar',
-        onClick: () => {
-          localStorage.removeItem(DRAFT_KEY);
-          window.location.reload();
-        },
-      },
-      duration: 8000,
-    });
-  }, [hasDraft, DRAFT_KEY]);
-
-  // Save draft with debounce (2s)
-  const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  useEffect(() => {
-    if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
-    saveTimerRef.current = setTimeout(() => {
-      if (!formValues.name && !formValues.sku) return;
-      try {
-        localStorage.setItem(DRAFT_KEY, JSON.stringify({
-          formData: formValues,
-          images,
-          stepIndex,
-          savedAt: Date.now(),
-        }));
-      } catch { /* quota exceeded */ }
-    }, 2000);
-    return () => { if (saveTimerRef.current) clearTimeout(saveTimerRef.current); };
-  }, [formValues, images, stepIndex, DRAFT_KEY]);
-
-  const clearDraft = useCallback(() => {
-    localStorage.removeItem(DRAFT_KEY);
-  }, [DRAFT_KEY]);
-
   const numericProps = (name: keyof ProductFormData) => ({
     ...register(name, { valueAsNumber: true }),
     type: 'number' as const,
@@ -453,30 +199,27 @@ export function ProductFormFullscreen({
 
   const [showValidation, setShowValidation] = useState(false);
 
-  // Missing fields per step (human-readable labels)
   const missingFields = useMemo(() => {
-    return STEPS.map(step => {
-      return step.requiredFields
+    return STEPS.map(step =>
+      step.requiredFields
         .filter(f => {
           const val = formValues[f];
           if (typeof val === 'number') return val <= 0 || val === undefined || val === null;
           return !val;
         })
-        .map(f => step.fieldLabels[f] || f);
-    });
+        .map(f => step.fieldLabels[f] || f)
+    );
   }, [formValues]);
 
-  // Step readiness
-  // stepReady must match STEPS length (8 entries)
   const stepReady = useMemo(() => [
-    /* essentials */      Boolean(formValues.supplier_id && formValues.sku && formValues.name),
-    /* commercial */      Boolean((formValues.sale_price ?? 0) > 0),
-    /* packaging */       Boolean(formValues.packing_type),
-    /* fiscal */          Boolean(formValues.ncm_code || formValues.ean),
-    /* engraving */       isEdit && !!productId,
-    /* classification */  true, // optional section, always "ready"
-    /* media */           images.length > 0 || Boolean(formValues.video_url),
-    /* content (SEO) */   Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
+    Boolean(formValues.supplier_id && formValues.sku && formValues.name),
+    Boolean((formValues.sale_price ?? 0) > 0),
+    Boolean(formValues.packing_type),
+    Boolean(formValues.ncm_code || formValues.ean),
+    isEdit && !!productId,
+    true,
+    images.length > 0 || Boolean(formValues.video_url),
+    Boolean(formValues.meta_title || formValues.meta_description || formValues.key_benefits),
   ], [formValues, images.length, isEdit, productId]);
 
   const stepErrors = useMemo(() => {
@@ -494,7 +237,7 @@ export function ProductFormFullscreen({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [stepIndex]);
 
-  // Keyboard shortcuts: Ctrl+S save, Ctrl+←/→ navigate steps
+  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
@@ -514,24 +257,13 @@ export function ProductFormFullscreen({
     return () => window.removeEventListener('keydown', handler);
   }, [stepIndex, goStep]);
 
-  const onFormSubmit = handleSubmit(async (data) => {
-    if (skuStatus === 'duplicate') return;
-    await onSubmit(data, images);
-  });
-
-  // Intercept submit: run full Zod validation via trigger(), then check missing fields
   const handleSubmitWithValidation = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    // 1) Run full Zod validation via react-hook-form
     const isValid = await trigger();
-
-    // 2) Also check custom missing-fields logic
     const totalMissing = missingFields.reduce((sum, arr) => sum + arr.length, 0);
 
     if (!isValid || totalMissing > 0) {
       setShowValidation(true);
-      // Navigate to first step with missing fields (missingFields is always up-to-date)
       const firstBadStep = missingFields.findIndex(arr => arr.length > 0);
       if (firstBadStep >= 0 && firstBadStep !== stepIndex) {
         goStep(firstBadStep);
@@ -539,7 +271,6 @@ export function ProductFormFullscreen({
       return;
     }
 
-    // 3) All good — clear draft and submit
     clearDraft();
     handleSubmit(async (data) => {
       if (skuStatus === 'duplicate') return;
@@ -637,14 +368,14 @@ export function ProductFormFullscreen({
       case 'classification':
         return (
           <Suspense fallback={<SectionSkeleton />}>
-              <ProductClassificationSection
-                productId={productId}
-                isEdit={isEdit}
-                productName={formValues.name}
-                productSku={formValues.sku}
-                gender={formValues.gender || ''}
-                onGenderChange={(v) => setValue('gender', v)}
-              />
+            <ProductClassificationSection
+              productId={productId}
+              isEdit={isEdit}
+              productName={formValues.name}
+              productSku={formValues.sku}
+              gender={formValues.gender || ''}
+              onGenderChange={(v) => setValue('gender', v)}
+            />
           </Suspense>
         );
       case 'kits':
@@ -748,7 +479,6 @@ export function ProductFormFullscreen({
 
       {/* ===== CONTENT + PREVIEW ===== */}
       <div className="flex gap-6">
-        {/* Main content */}
         <div className="flex-1 min-w-0 space-y-5">
           {skuStatus === 'duplicate' && (
             <Card className="border-destructive/20 bg-destructive/5 p-4">
@@ -778,7 +508,6 @@ export function ProductFormFullscreen({
             </motion.div>
           </AnimatePresence>
 
-          {/* Validation summary for current step */}
           {showValidation && missingFields[stepIndex].length > 0 && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
