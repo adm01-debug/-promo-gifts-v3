@@ -100,15 +100,21 @@ export function CustomizableDashboard() {
     }
   }, []);
 
+  const orgId = useCurrentOrgId();
+  
   // Fetch real metrics
   useEffect(() => {
     if (!user) return;
     const fetchMetrics = async () => {
-      const [quotesRes, ordersRes, draftRes] = await Promise.all([
-        supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('seller_id', user.id),
-        supabase.from('orders').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'pending'),
-        supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'draft'),
-      ]);
+      let quotesQ = supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('seller_id', user.id);
+      let ordersQ = supabase.from('orders').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'pending');
+      let draftQ = supabase.from('quotes').select('id', { count: 'exact', head: true }).eq('seller_id', user.id).eq('status', 'draft');
+      if (orgId) {
+        quotesQ = quotesQ.eq('organization_id', orgId);
+        ordersQ = ordersQ.eq('organization_id', orgId);
+        draftQ = draftQ.eq('organization_id', orgId);
+      }
+      const [quotesRes, ordersRes, draftRes] = await Promise.all([quotesQ, ordersQ, draftQ]);
       setMetrics({
         quotes: quotesRes.count || 0,
         orders: ordersRes.count || 0,
@@ -116,7 +122,7 @@ export function CustomizableDashboard() {
       });
     };
     fetchMetrics();
-  }, [user]);
+  }, [user, orgId]);
 
   const saveLayout = useCallback((configs: WidgetConfig[]) => {
     localStorage.setItem(LAYOUT_KEY, JSON.stringify(configs));
