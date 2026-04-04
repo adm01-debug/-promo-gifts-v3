@@ -1,8 +1,16 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "npm:zod@3.23.8";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const BitrixSyncSchema = z.object({
+  action: z.enum([
+    'get_companies', 'get_company', 'search_companies',
+    'get_deals', 'get_deal_products', 'sync_full',
+    'get_stored_clients', 'get_stored_deals',
+    'create_deal', 'update_deal', 'get_sync_logs',
+  ]),
+  data: z.record(z.unknown()).optional(),
+});
 
 // Initialize Supabase client for database operations
 function getSupabaseClient() {
@@ -13,7 +21,6 @@ function getSupabaseClient() {
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -22,15 +29,20 @@ Deno.serve(async (req) => {
     const bitrixWebhookUrl = Deno.env.get('BITRIX24_WEBHOOK_URL');
     
     if (!bitrixWebhookUrl) {
-      console.error('BITRIX24_WEBHOOK_URL not configured');
       return new Response(
         JSON.stringify({ error: 'Bitrix24 webhook URL not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    const { action, data } = await req.json();
-    console.log('Bitrix24 sync action:', action, data);
+    const parsed = BitrixSyncSchema.safeParse(await req.json());
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid request', details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { action, data } = parsed.data;
 
     let result;
 

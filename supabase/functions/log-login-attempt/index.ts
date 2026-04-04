@@ -46,21 +46,6 @@ Deno.serve(async (req) => {
     }
     const { email, user_id, ip_address, success, failure_reason, user_agent } = parsed.data;
 
-    // Sanitize inputs
-    const sanitizedEmail = emailStr.slice(0, 255);
-    const sanitizedIP = String(ip_address || "unknown").slice(0, 45);
-    const sanitizedUA = user_agent ? String(user_agent).slice(0, 512) : null;
-    const sanitizedReason = failure_reason ? String(failure_reason).slice(0, 500) : null;
-
-    // Validate user_id format if provided (must be UUID-like)
-    let sanitizedUserId: string | null = null;
-    if (user_id) {
-      const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-      if (uuidRegex.test(String(user_id))) {
-        sanitizedUserId = String(user_id);
-      }
-    }
-
     // Use service_role to bypass RLS
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL")!,
@@ -68,12 +53,12 @@ Deno.serve(async (req) => {
     );
 
     const { error } = await supabaseAdmin.from("login_attempts").insert({
-      email: sanitizedEmail,
-      user_id: sanitizedUserId,
-      ip_address: sanitizedIP,
+      email,
+      user_id: user_id || null,
+      ip_address: ip_address || "unknown",
       success,
-      failure_reason: sanitizedReason,
-      user_agent: sanitizedUA,
+      failure_reason: failure_reason || null,
+      user_agent: user_agent || null,
     });
 
     if (error) {
