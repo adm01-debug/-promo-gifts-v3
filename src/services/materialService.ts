@@ -125,7 +125,7 @@ class MaterialService {
 
   // Buscar tipos de um grupo específico por slug
   async getTypesByGroupSlug(groupSlug: string): Promise<{ types: MaterialType[]; count: number; groupSlug: string }> {
-    const res = await this.callApi<{ types: any[]; count?: number }>("types_by_group", { groupId: groupSlug });
+    const res = await this.callApi<{ types: Record<string, unknown>[]; count?: number }>("types_by_group", { groupId: groupSlug });
 
     const types: MaterialType[] = (res.types || []).map((t) => ({
       id: t.id ?? t.material_id ?? "",
