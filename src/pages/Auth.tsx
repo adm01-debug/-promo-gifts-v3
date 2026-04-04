@@ -100,11 +100,9 @@ export default function Auth() {
   const { validateIPForAuthenticatedUser, logLoginAttempt, fetchCurrentIP } = useIPValidation();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [activeTab, setActiveTab] = useState("login");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [ipBlocked, setIpBlocked] = useState(false);
   const [blockedIP, setBlockedIP] = useState<string | null>(null);
-  const [isPasswordSafe, setIsPasswordSafe] = useState(false);
 
   // Redirect if already logged in
   useEffect(() => {
