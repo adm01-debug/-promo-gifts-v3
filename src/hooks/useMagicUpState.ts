@@ -20,7 +20,7 @@ export interface MagicUpProduct {
   id: string;
   name: string;
   sku: string;
-  images: any;
+  images: Array<{ url_cdn?: string; url_original?: string; is_primary?: boolean; is_og_image?: boolean; image_type?: string; supplier_code?: string }> | null;
   primary_image_url?: string | null;
   og_image_url?: string | null;
 }
@@ -200,8 +200,8 @@ export function useMagicUpState() {
         ]);
 
         const images: ProductImage[] = (imagesResult.records || [])
-          .filter((img: any) => img.image_type !== "box")
-          .map((img: any) => ({
+          .filter((img: Record<string, unknown>) => img.image_type !== "box")
+          .map((img: Record<string, unknown>) => ({
             url: img.url_cdn || img.url_original || "",
             supplierCode: img.supplier_code || null,
             isPrimary: img.is_primary,
@@ -211,7 +211,7 @@ export function useMagicUpState() {
         setProductImages(images);
 
         const uniqueColors = new Map<string, ProductColor>();
-        (variantsResult.records || []).forEach((v: any) => {
+        (variantsResult.records || []).forEach((v: Record<string, unknown>) => {
           if (!v.color_name || uniqueColors.has(v.color_name)) return;
           uniqueColors.set(v.color_name, {
             hex: v.color_hex || "#CCCCCC",

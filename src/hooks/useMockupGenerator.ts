@@ -51,7 +51,7 @@ export interface GeneratedMockup {
   logo_height_cm: number | null;
   location_name?: string | null;
   colors_count?: number | null;
-  annotations?: any[] | null;
+  annotations?: Array<Record<string, unknown>> | null;
   client_name?: string | null;
   created_at: string;
   client_id: string | null;
@@ -359,12 +359,12 @@ export function useMockupGenerator() {
       }
 
       const records = techniquesRes?.data?.records || techniquesRes?.records || [];
-      const techniquesData = records.map((r: any) => ({
+      const techniquesData = records.map((r: Record<string, unknown>) => ({
         id: r.id,
         name: r.nome,
         code: r.codigo_curto || r.codigo_tabela || null,
       }));
-      techniquesData.sort((a: any, b: any) => (a.name || '').localeCompare(b.name || ''));
+      techniquesData.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
       setTechniques(techniquesData);
     } catch (error) {
       console.error("Error fetching data:", error);

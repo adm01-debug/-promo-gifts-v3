@@ -140,13 +140,13 @@ export function useCatalogState() {
 
     if (filters.colors.length) {
       result = result.filter((p) =>
-        p.colors?.some((c: any) => filters.colors.includes(c.name)) || false
+        p.colors?.some((c: Record<string, string>) => filters.colors.includes(c.name)) || false
       );
     }
 
     if (filters.colorGroups?.length) {
       result = result.filter((p) =>
-        p.colors?.some((c: any) => {
+        p.colors?.some((c: Record<string, string>) => {
           const colorGroupSlug = c.groupSlug || '';
           const colorGroup = (c.group || '').toLowerCase().trim();
           const colorName = (c.name || '').toLowerCase().trim();
@@ -164,7 +164,7 @@ export function useCatalogState() {
 
     if (filters.colorVariations?.length) {
       result = result.filter((p) =>
-        p.colors?.some((c: any) => {
+        p.colors?.some((c: Record<string, string>) => {
           const colorVariationSlug = c.variationSlug || '';
           const colorName = (c.name || '').toLowerCase().trim();
           return filters.colorVariations.some(slug => {

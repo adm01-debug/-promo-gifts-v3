@@ -115,11 +115,11 @@ export function useAuditLog() {
   /**
    * Wrapper para CREATE com auditoria automática
    */
-  const auditedInsert = async <T extends Record<string, any>>(
+  const auditedInsert = async <T extends Record<string, unknown>>(
     table: AuditEntityType,
     data: T,
-    insertFn: () => Promise<{ data: T & { id: string } | null; error: any }>
-  ): Promise<{ data: (T & { id: string }) | null; error: any }> => {
+    insertFn: () => Promise<{ data: (T & { id: string }) | null; error: Error | null }>
+  ): Promise<{ data: (T & { id: string }) | null; error: Error | null }> => {
     const result = await insertFn();
     
     if (result.data && !result.error) {
@@ -138,13 +138,13 @@ export function useAuditLog() {
   /**
    * Wrapper para UPDATE com auditoria automática
    */
-  const auditedUpdate = async <T extends Record<string, any>>(
+  const auditedUpdate = async <T extends Record<string, unknown>>(
     table: AuditEntityType,
     entityId: string,
     oldRecord: T,
     updates: Partial<T>,
-    updateFn: () => Promise<{ data: T | null; error: any }>
-  ): Promise<{ data: T | null; error: any }> => {
+    updateFn: () => Promise<{ data: T | null; error: Error | null }>
+  ): Promise<{ data: T | null; error: Error | null }> => {
     const result = await updateFn();
     
     if (result.data && !result.error) {
@@ -168,12 +168,12 @@ export function useAuditLog() {
   /**
    * Wrapper para DELETE com auditoria automática
    */
-  const auditedDelete = async <T extends Record<string, any>>(
+  const auditedDelete = async <T extends Record<string, unknown>>(
     table: AuditEntityType,
     entityId: string,
     oldRecord: T,
-    deleteFn: () => Promise<{ error: any }>
-  ): Promise<{ error: any }> => {
+    deleteFn: () => Promise<{ error: Error | null }>
+  ): Promise<{ error: Error | null }> => {
     const result = await deleteFn();
     
     if (!result.error) {

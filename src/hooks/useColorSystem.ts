@@ -76,15 +76,15 @@ async function fetchExternalColors() {
   const variations = variationsResponse.data?.data?.records || [];
 
   // Mapear variações para seus grupos
-  const groupsWithVariations: ColorGroup[] = groups.map((group: any) => ({
+  const groupsWithVariations: ColorGroup[] = groups.map((group: Record<string, string>) => ({
     id: group.id,
     name: group.name,
     slug: group.slug || group.name.toLowerCase().replace(/\s+/g, '-'),
     hex_code: group.hex_code,
     internal_code: group.internal_code,
     variations: variations
-      .filter((v: any) => v.group_id === group.id)
-      .map((v: any) => ({
+      .filter((v: Record<string, string>) => v.group_id === group.id)
+      .map((v: Record<string, string>) => ({
         id: v.id,
         name: v.name,
         slug: v.slug || v.name.toLowerCase().replace(/\s+/g, '-'),
@@ -193,7 +193,7 @@ export function useColorVariations(groupId: string | null) {
         throw new Error(`Falha ao carregar variações: ${response.error.message}`);
       }
 
-      return (response.data?.data?.records || []).map((v: any) => ({
+      return (response.data?.data?.records || []).map((v: Record<string, string>) => ({
         id: v.id,
         name: v.name,
         slug: v.slug || v.name.toLowerCase().replace(/\s+/g, '-'),
