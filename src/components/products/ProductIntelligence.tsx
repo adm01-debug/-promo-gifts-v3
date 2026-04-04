@@ -68,7 +68,7 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
         <Card>
           <CardContent className="p-3">
             <div className="flex items-center gap-1.5 mb-2">
-              <Zap className="h-3.5 w-3.5 text-amber-500" />
+              <Zap className="h-3.5 w-3.5 text-warning" />
               <span className="text-xs font-medium text-muted-foreground">Comprados Juntos</span>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-1">
