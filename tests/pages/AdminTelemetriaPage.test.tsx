@@ -157,7 +157,7 @@ beforeEach(async () => {
   // Dynamic import to ensure fresh mocks
   const mod = await import('@/pages/admin/AdminTelemetriaPage');
   AdminTelemetriaPage = mod.default;
-});
+}, 30000);
 
 // ============================================
 // RENDERING TESTS

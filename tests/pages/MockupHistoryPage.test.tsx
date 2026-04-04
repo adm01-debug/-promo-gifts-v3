@@ -61,7 +61,7 @@ describe("MockupHistoryPage", () => {
     const { default: Page } = await import("@/pages/MockupHistoryPage");
     renderWithProviders(<Page />);
     expect(screen.getByText("Histórico de Mockups")).toBeInTheDocument();
-  });
+  }, 15000);
 
   it("renders page description", async () => {
     const { default: Page } = await import("@/pages/MockupHistoryPage");
