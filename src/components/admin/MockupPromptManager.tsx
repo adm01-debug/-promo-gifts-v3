@@ -171,8 +171,8 @@ export function MockupPromptManager() {
         return next;
       });
       fetchAll();
-    } catch (err: any) {
-      toast.error("Erro ao salvar", { description: err.message });
+    } catch (err: unknown) {
+      toast.error("Erro ao salvar", { description: err instanceof Error ? err.message : undefined });
     } finally {
       setSavingId(null);
     }
