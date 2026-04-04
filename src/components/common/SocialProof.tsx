@@ -33,22 +33,22 @@ export function PopularityBadge({
     views: {
       icon: Users,
       label: `${views?.toLocaleString("pt-BR")} visualizações`,
-      color: "bg-blue-500/10 text-blue-600 dark:text-blue-400"
+      color: "bg-primary/10 text-primary"
     },
     sales: {
       icon: TrendingUp,
       label: `${sales?.toLocaleString("pt-BR")} vendidos`,
-      color: "bg-green-500/10 text-green-600 dark:text-green-400"
+      color: "bg-success/10 text-success"
     },
     trending: {
       icon: Flame,
       label: "Em alta",
-      color: "bg-orange-500/10 text-orange-600 dark:text-orange-400"
+      color: "bg-primary/10 text-primary"
     },
     bestseller: {
       icon: Crown,
       label: "Mais vendido",
-      color: "bg-amber-500/10 text-amber-600 dark:text-amber-400"
+      color: "bg-warning/10 text-warning"
     }
   };
 
