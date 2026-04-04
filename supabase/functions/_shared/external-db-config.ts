@@ -2,7 +2,7 @@
 // Table whitelists, permissions, types for external-db-bridge
 
 export type ResourceGroup = 'products' | 'companies' | 'views';
-export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'rpc';
+export type Operation = 'select' | 'insert' | 'update' | 'delete' | 'rpc' | 'upsert' | 'batch_insert';
 
 // Whitelist de RPCs permitidas
 export const ALLOWED_RPCS = [
