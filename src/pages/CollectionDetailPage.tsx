@@ -86,6 +86,12 @@ export default function CollectionDetailPage() {
                 {products.length} produtos
               </Badge>
             </div>
+            {products.length > 0 && (
+              <Button variant="outline" className="shrink-0 gap-2" onClick={() => setShowPresentation(true)}>
+                <Monitor className="h-4 w-4" />
+                Apresentar
+              </Button>
+            )}
           </div>
         </div>
 
