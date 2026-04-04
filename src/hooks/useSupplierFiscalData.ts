@@ -252,8 +252,8 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           });
           if (createResult.records?.length) {
             variantId = createResult.records[0].id;
-          } else if ((createResult as any).id) {
-            variantId = (createResult as any).id;
+          } else if ((createResult as Record<string, unknown>).id) {
+            variantId = (createResult as Record<string, unknown>).id as string;
           }
         } catch (err) {
           console.error('[saveFiscalOverride] Failed to create default variant:', err);

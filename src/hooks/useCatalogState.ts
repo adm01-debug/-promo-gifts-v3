@@ -200,10 +200,10 @@ export function useCatalogState() {
     }
 
     // Gender filter
-    if ((filters as any).gender?.length) {
-      const genderFilter = (filters as any).gender as string[];
+    if (filters.gender?.length) {
+      const genderFilter = filters.gender;
       result = result.filter((p) => {
-        const productGender = ((p as any).gender || '').toLowerCase().trim();
+        const productGender = (p.gender || '').toLowerCase().trim();
         if (!productGender) return false;
         return genderFilter.some(g => productGender === g.toLowerCase());
       });

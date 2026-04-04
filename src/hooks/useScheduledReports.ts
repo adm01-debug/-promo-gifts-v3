@@ -104,7 +104,7 @@ export function useScheduledReports() {
     try {
       const { error } = await supabase
         .from('scheduled_reports')
-        .update({ is_active: active, updated_at: new Date().toISOString() } as any)
+        .update({ is_active: active, updated_at: new Date().toISOString() })
         .eq('id', reportId);
 
       if (error) throw error;

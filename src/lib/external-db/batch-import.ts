@@ -156,7 +156,7 @@ export async function executeBatchImport(
         ...(mode === 'upsert' ? { onConflict: 'sku' } : {}),
       });
 
-      const records = response?.data?.records ?? (response as any)?.records ?? [];
+      const records = response?.data?.records ?? (response as Record<string, unknown>)?.records ?? [];
       const insertedCount = Array.isArray(records) ? records.length : 0;
 
       result.succeeded += insertedCount;

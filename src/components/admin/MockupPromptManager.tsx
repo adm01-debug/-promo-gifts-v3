@@ -238,8 +238,8 @@ export function MockupPromptManager() {
       setAddTechniqueDialog(false);
       setSelectedTechnique("");
       fetchAll();
-    } catch (err: any) {
-      toast.error("Erro ao criar prompt", { description: err.message });
+    } catch (err: unknown) {
+      toast.error("Erro ao criar prompt", { description: err instanceof Error ? err.message : undefined });
     }
   };
 

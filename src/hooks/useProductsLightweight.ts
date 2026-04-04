@@ -62,7 +62,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     newArrival: false,
     onSale: false,
     isKit: p.is_kit ?? false,
-    gender: (p as any).gender || null,
+    gender: (p as PromobrindProduct & { gender?: string }).gender || null,
     category: {
       id: parseInt(p.category_id || p.main_category_id || "0") || 0,
       name: "Sem categoria",

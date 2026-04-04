@@ -350,7 +350,7 @@ export function useProductInsights(productId?: string, productSku?: string) {
         
         if (clientIds.length > 0) {
           const { selectCrm } = await import("@/lib/crm-db");
-          const clients = await selectCrm<any>("companies", {
+          const clients = await selectCrm<{ id: string; ramo_atividade?: string }>("companies", {
             select: "id, ramo_atividade",
             filters: { id: { in: clientIds } },
           });

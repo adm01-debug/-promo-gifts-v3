@@ -150,7 +150,7 @@ export function useProductsByColor({
 
           const variantResults = await invokeBatchBridge(variantQueries);
           if (variantResults[0]?.success && variantResults[0].data?.records) {
-            for (const r of variantResults[0].data.records as any[]) {
+            for (const r of variantResults[0].data.records as Array<{ product_id: string }>) {
               matchingProductIds.add(r.product_id);
             }
           }

@@ -424,9 +424,9 @@ export function ProductsManager() {
       toast.success(`${selectedIds.size} produto(s) ${activate ? 'ativado(s)' : 'desativado(s)'}`);
       setSelectedIds(new Set());
       fetchProducts(currentPage, pageSize, searchTerm);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Bulk update error:', error);
-      toast.error(error.message || 'Erro ao atualizar produtos em lote');
+      toast.error(error instanceof Error ? error.message : 'Erro ao atualizar produtos em lote');
     } finally {
       setIsBulkUpdating(false);
     }
