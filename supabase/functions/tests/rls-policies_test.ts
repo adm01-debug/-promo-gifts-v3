@@ -16,11 +16,17 @@ import { createClient, SupabaseClient } from "https://esm.sh/@supabase/supabase-
 
 // ---------- helpers ----------
 
-const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? Deno.env.get("EXTERNAL_SUPABASE_URL") ?? "";
+// Env vars available in the test runner
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL") ?? "";
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
+const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? Deno.env.get("SUPABASE_PUBLISHABLE_KEY") ?? "";
+
+if (!SUPABASE_URL || !SERVICE_KEY || !ANON_KEY) {
+  console.error("Available env vars:", Object.keys(Deno.env.toObject()).filter(k => k.includes("SUPA")).join(", "));
+}
 
 function serviceClient(): SupabaseClient {
+  if (!SERVICE_KEY) throw new Error(`Missing SUPABASE_SERVICE_ROLE_KEY. Available: ${Object.keys(Deno.env.toObject()).filter(k => k.includes("SUPA")).join(", ")}`);
   return createClient(SUPABASE_URL, SERVICE_KEY, {
     auth: { autoRefreshToken: false, persistSession: false },
   });
