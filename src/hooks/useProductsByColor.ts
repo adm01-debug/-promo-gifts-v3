@@ -117,8 +117,8 @@ export function useProductsByColor({
       for (const colorName of colors) {
         const lower = colorName.toLowerCase();
         for (const v of variationsData) {
-          if ((v as any).name?.toLowerCase() === lower) {
-            targetColorIds.add((v as any).id);
+          if (((v as Record<string, unknown>).name as string)?.toLowerCase() === lower) {
+            targetColorIds.add((v as Record<string, unknown>).id as string);
           }
         }
       }
