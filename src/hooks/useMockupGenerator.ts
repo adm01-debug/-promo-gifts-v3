@@ -51,7 +51,7 @@ export interface GeneratedMockup {
   logo_height_cm: number | null;
   location_name?: string | null;
   colors_count?: number | null;
-  annotations?: any[] | null;
+  annotations?: Array<Record<string, unknown>> | null;
   client_name?: string | null;
   created_at: string;
   client_id: string | null;
