@@ -96,7 +96,7 @@ function ContinuousRockets() {
 export default function Auth() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user, isLoading: authLoading, signIn, signUp, signOut } = useAuth();
+  const { user, isLoading: authLoading, signIn, signOut } = useAuth();
   const { validateIPForAuthenticatedUser, logLoginAttempt, fetchCurrentIP } = useIPValidation();
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
