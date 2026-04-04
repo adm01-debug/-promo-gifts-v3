@@ -158,5 +158,22 @@ export default function CollectionDetailPage() {
         )}
       </div>
     </MainLayout>
+
+    {showPresentation && products.length > 0 && (
+      <PresentationMode
+        title={collection.name}
+        subtitle={collection.description || undefined}
+        brandName="Promo Brindes"
+        onClose={() => setShowPresentation(false)}
+        slides={products.map((p) => ({
+          id: p.id,
+          title: p.name,
+          subtitle: p.sku ? `SKU: ${p.sku}` : undefined,
+          imageUrl: p.images?.[0] || null,
+          badge: p.brand || null,
+        }))}
+      />
+    )}
+    </>
   );
 }
