@@ -456,7 +456,7 @@ export function ConversionStats({
         <div className="text-xs text-muted-foreground">Usuários ativos</div>
       </div>
       <div className="text-center">
-        <div className="text-2xl font-bold text-green-500">{satisfactionRate}%</div>
+        <div className="text-2xl font-bold text-success">{satisfactionRate}%</div>
         <div className="text-xs text-muted-foreground">Satisfação</div>
       </div>
     </div>
