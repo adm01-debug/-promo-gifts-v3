@@ -3,7 +3,8 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const VALID_VOICE_IDS = [
-  'FGY2WhTYpPnrIDTdsKH5', // Laura (default)
+  '5lrBPYY4YvMbKHTo8kvZ', // Chosen voice (default)
+  'FGY2WhTYpPnrIDTdsKH5', // Laura
   'CwhRBWXzGAHq8TQ4Fs17', // Roger
   'EXAVITQu4vr4xnSDxMaL', // Sarah
   'IKne3meq5aSn9XLyUdCD', // Charlie
