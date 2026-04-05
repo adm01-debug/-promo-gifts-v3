@@ -103,8 +103,7 @@ export function MockupAnnotations({
           src={imageUrl}
           alt="Mockup com anotações"
           className="w-full object-contain"
-          draggable={false}
-        />
+          draggable={false} loading="lazy" />
 
         {/* Annotation pins */}
         {annotations.map((ann, idx) => (

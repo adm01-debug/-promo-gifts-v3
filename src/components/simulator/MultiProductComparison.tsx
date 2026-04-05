@@ -223,7 +223,7 @@ export function MultiProductComparison({
                                 src={comparison.product.image_url} 
                                 alt={comparison.product.name}
                                 className="h-10 w-10 rounded-lg object-cover"
-                              />
+                               loading="lazy"/>
                             )}
                             <div>
                               <CardTitle className="text-sm flex items-center gap-2">

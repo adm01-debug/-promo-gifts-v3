@@ -56,8 +56,7 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
                     <img
                       src={product.images[0]}
                       alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[200px]">

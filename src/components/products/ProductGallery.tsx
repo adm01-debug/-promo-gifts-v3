@@ -53,6 +53,7 @@ function ColorThumb({ src, alt, title }: { src: string; alt: string; title: stri
         loaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-sm scale-105"
       )}
       onLoad={() => setLoaded(true)}
+      loading="lazy"
     />
   );
 }
@@ -651,8 +652,7 @@ export function ProductGallery({
                     <img
                       src={getCdnUrl(media, 'thumbnail')}
                       alt={`${productName} - Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                   )}
                 </button>
               ))}
@@ -731,7 +731,7 @@ export function ProductGallery({
                     )}
                   >
                     {pv.url_thumbnail ? (
-                      <img src={pv.url_thumbnail} alt={pv.title || `Vídeo ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={pv.url_thumbnail} alt={pv.title || `Vídeo ${idx + 1}`} className="w-full h-full object-cover"  loading="lazy" />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center">
                         <Play className="h-4 w-4 text-foreground" />

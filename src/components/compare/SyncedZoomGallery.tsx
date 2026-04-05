@@ -208,8 +208,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                   style={{
                     transform: `scale(${zoom}) translate(${pan.x / zoom}px, ${pan.y / zoom}px)`,
                   }}
-                  draggable={false}
-                />
+                  draggable={false} loading="lazy" />
               </div>
 
               {/* Thumbnails */}
@@ -229,8 +228,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                       <img
                         src={img}
                         alt={`${product.name} - ${idx + 1}`}
-                        className="w-full h-full object-cover"
-                      />
+                        className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   ))}
                   {product.images.length > 5 && (

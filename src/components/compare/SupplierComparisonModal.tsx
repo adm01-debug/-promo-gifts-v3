@@ -193,8 +193,7 @@ export function SupplierComparisonModal({
                           <img
                             src={product.images[0]}
                             alt={product.name}
-                            className="w-16 h-16 rounded-lg object-cover"
-                          />
+                            className="w-16 h-16 rounded-lg object-cover" loading="lazy" />
                           {isBase && (
                             <Badge
                               variant="default"

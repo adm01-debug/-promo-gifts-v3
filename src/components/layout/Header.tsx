@@ -249,8 +249,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                       <img
                         src={profile.avatar_url}
                         alt={displayName}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
+                        className="w-8 h-8 rounded-full object-cover" loading="lazy" />
                     ) : (
                       <User className="h-4 w-4 text-primary-foreground" />
                     )}

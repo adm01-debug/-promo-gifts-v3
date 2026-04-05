@@ -51,7 +51,7 @@ export function WizardContextBar({ wizard }: WizardContextBarProps) {
       {/* Product image/icon */}
       <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
         {selectedProduct.imageUrl ? (
-          <img src={selectedProduct.imageUrl} alt="" className="w-8 h-8 rounded object-cover" />
+          <img src={selectedProduct.imageUrl} alt="" className="w-8 h-8 rounded object-cover"  loading="lazy"/>
         ) : (
           <Package className="h-5 w-5 text-primary" />
         )}

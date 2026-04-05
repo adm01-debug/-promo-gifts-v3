@@ -114,8 +114,7 @@ export function WhatsAppPreview({
                     <img
                       src={img}
                       alt={`Foto ${idx + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                     {selectedPhotos.length > 4 && idx === 3 && (
                       <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                         <span className="text-primary-foreground text-lg font-bold">

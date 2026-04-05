@@ -26,8 +26,7 @@ function ProductMiniCard({ product, onClick }: { product: Product; onClick: () =
         <img
           src={product.images[0]}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-        />
+          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
         {product.newArrival && (
           <div className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-primary text-primary-foreground text-[10px] font-medium">
             Novo

@@ -160,6 +160,7 @@ function ProductCardResult({
               src={product.image} 
               alt={product.name}
               className="w-full h-full object-contain p-4"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -284,8 +285,9 @@ function ProductTableResult({
                     {product.image && (
                       <img 
                         src={product.image} 
-                        alt="" 
+                        alt={product.name} 
                         className="w-10 h-10 object-contain rounded"
+                        loading="lazy"
                       />
                     )}
                     <span className="text-sm font-medium line-clamp-1 max-w-[200px]">
@@ -358,8 +360,9 @@ function ProductListResult({
                   {product.image ? (
                     <img 
                       src={product.image} 
-                      alt="" 
+                      alt={product.name} 
                       className="w-full h-full object-contain p-1"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">

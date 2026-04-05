@@ -124,8 +124,7 @@ export default function DropboxBrowserPage() {
                       <img
                         src={entry.thumbnail_url}
                         alt={entry.name}
-                        className="h-10 w-10 object-cover rounded border shrink-0"
-                      />
+                        className="h-10 w-10 object-cover rounded border shrink-0" loading="lazy" />
                     ) : /\.(jpg|jpeg|png|gif|svg)$/i.test(entry.name) ? (
                       <Image className="h-5 w-5 text-muted-foreground shrink-0" />
                     ) : (

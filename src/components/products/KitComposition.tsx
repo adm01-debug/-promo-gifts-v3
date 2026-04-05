@@ -84,7 +84,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
             <div className="hidden sm:flex -space-x-2">
               {items.slice(0, 4).map((item) => (
                 <div key={item.id} className="w-8 h-8 rounded-lg bg-muted border-2 border-card flex items-center justify-center overflow-hidden">
-                  {item.imageUrl ? <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-0.5" /> : <Package className="h-3.5 w-3.5 text-muted-foreground/50" />}
+                  {item.imageUrl ? <img src={item.imageUrl} alt="" className="w-full h-full object-contain p-0.5"  loading="lazy" /> : <Package className="h-3.5 w-3.5 text-muted-foreground/50" />}
                 </div>
               ))}
               {items.length > 4 && <div className="w-8 h-8 rounded-lg bg-muted border-2 border-card flex items-center justify-center text-[10px] font-bold text-muted-foreground">+{items.length - 4}</div>}
@@ -167,7 +167,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
       {/* Image Zoom Dialog */}
       <Dialog open={!!zoomImageUrl} onOpenChange={() => setZoomImageUrl(null)}>
         <DialogContent className="max-w-2xl p-2 bg-background/95 backdrop-blur-xl">
-          {zoomImageUrl && <img src={zoomImageUrl} alt="Zoom" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" />}
+          {zoomImageUrl && <img src={zoomImageUrl} alt="Zoom" className="w-full h-auto max-h-[80vh] object-contain rounded-lg"  loading="lazy" />}
         </DialogContent>
       </Dialog>
     </>

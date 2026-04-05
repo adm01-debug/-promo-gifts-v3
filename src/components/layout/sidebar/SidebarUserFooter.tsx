@@ -39,8 +39,7 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
           <img
             src={profile.avatar_url}
             alt={displayName}
-            className="h-full w-full rounded-lg object-cover"
-          />
+            className="h-full w-full rounded-lg object-cover" loading="lazy" />
         ) : (
           initials
         )}

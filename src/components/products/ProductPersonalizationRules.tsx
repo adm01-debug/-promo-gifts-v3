@@ -381,7 +381,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
                           src={location.areaImageUrl} 
                           alt={`Área de impressão - ${location.name}`}
                           className="w-full max-h-40 object-contain"
-                        />
+                         loading="lazy"/>
                         <div className="absolute bottom-2 left-2 px-2 py-1 rounded bg-background/80 backdrop-blur-sm text-xs text-muted-foreground">
                           Área de impressão
                         </div>

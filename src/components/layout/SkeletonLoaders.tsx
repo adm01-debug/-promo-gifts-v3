@@ -139,6 +139,59 @@ export function OrdersSkeleton() {
   );
 }
 
+/** Tools page skeleton (Mockup, Kit Builder, Simulador) */
+export function ToolsSkeleton() {
+  return (
+    <div className="p-4 lg:p-6 space-y-6">
+      <div className="flex items-center justify-between">
+        <Skeleton className="h-8 w-52" />
+        <div className="flex gap-2">
+          <Skeleton className="h-10 w-10 rounded-lg" />
+          <Skeleton className="h-10 w-10 rounded-lg" />
+        </div>
+      </div>
+      {/* Wizard steps */}
+      <div className="flex gap-2 justify-center">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-2 w-16 rounded-full" />
+        ))}
+      </div>
+      {/* Main content area */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 space-y-4">
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-10 w-full rounded-lg" />
+        </div>
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full rounded-xl" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Profile page skeleton */
+export function ProfileSkeleton() {
+  return (
+    <div className="p-4 lg:p-6 space-y-6 max-w-2xl mx-auto">
+      <div className="flex items-center gap-4">
+        <Skeleton className="h-20 w-20 rounded-full" />
+        <div className="space-y-2">
+          <Skeleton className="h-6 w-48" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </div>
+      <div className="space-y-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <Skeleton key={i} className="h-14 w-full rounded-lg" />
+        ))}
+      </div>
+      <Skeleton className="h-12 w-32 rounded-lg" />
+    </div>
+  );
+}
+
 /** Generic page skeleton (fallback) */
 export function GenericSkeleton() {
   return (
@@ -165,5 +218,15 @@ export function getFallback(pathname: string): React.ReactNode {
     return <AdminSkeleton />;
   if (pathname === "/dashboard") return <DashboardSkeleton />;
   if (pathname.startsWith("/pedidos")) return <OrdersSkeleton />;
+  if (pathname === "/perfil") return <ProfileSkeleton />;
+  if (
+    pathname === "/mockup-generator" ||
+    pathname === "/montar-kit" ||
+    pathname === "/simulador" ||
+    pathname === "/magic-up" ||
+    pathname === "/simulador-precos" ||
+    pathname === "/busca-preco"
+  )
+    return <ToolsSkeleton />;
   return <GenericSkeleton />;
 }

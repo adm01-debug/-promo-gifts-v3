@@ -49,8 +49,7 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
                 <img
                   src={selectedProduct.images[0]}
                   alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <Package className="w-6 h-6 text-muted-foreground" />
               )}
@@ -120,8 +119,7 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
                     <img
                       src={product.images[0]}
                       alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <Package className="w-5 h-5 text-muted-foreground" />
                   )}

@@ -490,8 +490,7 @@ function TechniquePreview({
           <img
             src={thumbnail.replace('w=100&h=100', 'w=400&h=225')}
             alt={technique.name}
-            className="w-full h-full object-cover"
-          />
+            className="w-full h-full object-cover" loading="lazy" />
         </div>
       )}
       

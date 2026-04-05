@@ -144,8 +144,7 @@ function SortableItem({
                 <img
                   src={item.product_image_url}
                   alt={item.product_name}
-                  className="w-full h-full object-cover"
-                />
+                  className="w-full h-full object-cover" loading="lazy" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Package className="h-6 w-6 text-muted-foreground" />
@@ -376,8 +375,7 @@ export function DraggableQuoteItems({
                     <img
                       src={activeItem.product_image_url}
                       alt={activeItem.product_name}
-                      className="w-full h-full object-cover rounded-lg"
-                    />
+                      className="w-full h-full object-cover rounded-lg" loading="lazy" />
                   ) : (
                     <Package className="h-5 w-5 text-muted-foreground" />
                   )}

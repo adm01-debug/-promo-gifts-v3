@@ -662,8 +662,7 @@ export function ProductsManager() {
                               <img
                                 src={product.images[0]}
                                 alt={product.name}
-                                className="w-12 h-12 object-cover rounded-lg border border-border/50 group-hover:border-primary/30 transition-colors"
-                              />
+                                className="w-12 h-12 object-cover rounded-lg border border-border/50 group-hover:border-primary/30 transition-colors" loading="lazy" />
                               {product.images.length > 1 && (
                                 <span className="absolute -bottom-1 -right-1 text-[9px] bg-muted border border-border rounded-full h-4 w-4 flex items-center justify-center font-medium">
                                   +{product.images.length - 1}

@@ -57,8 +57,7 @@ export function ProductStickyHeader({
               <img
                 src={productImage}
                 alt={productName}
-                className="w-full h-full object-contain"
-              />
+                className="w-full h-full object-contain" loading="lazy" />
             </div>
 
             {/* Name */}

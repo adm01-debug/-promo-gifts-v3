@@ -45,8 +45,7 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
               <img
                 src={item.imageUrl}
                 alt={item.name}
-                className="w-full h-full object-cover"
-              />
+                className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-6 w-6 text-muted-foreground" />

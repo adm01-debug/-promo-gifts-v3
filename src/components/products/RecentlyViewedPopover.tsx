@@ -97,8 +97,7 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
                     <img
                       src={product.images[0]}
                       alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                   </button>
                   <button
                     onClick={(e) => {

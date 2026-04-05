@@ -135,7 +135,7 @@ export function TemplatePreviewExpanded({
           src={productImage} 
           alt="Produto" 
           className="absolute inset-0 w-full h-full object-contain opacity-30"
-        />
+         loading="lazy"/>
       )}
       
       {/* Grid overlay */}

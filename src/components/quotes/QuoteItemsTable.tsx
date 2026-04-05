@@ -76,7 +76,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
                 src={item.product_image_url} 
                 alt={item.product_name}
                 className="w-16 h-16 object-cover rounded border border-border print:hidden"
-              />
+               loading="lazy"/>
             )}
             <div>
               {item.product_sku && (

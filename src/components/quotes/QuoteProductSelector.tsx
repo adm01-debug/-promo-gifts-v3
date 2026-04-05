@@ -406,8 +406,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             <img
               src={selectedProduct.images?.[0] || '/placeholder.svg'}
               alt={selectedProduct.name}
-              className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-md"
-            />
+              className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-md" loading="lazy" />
             <div className="flex-1">
               <h3 className="font-semibold text-base sm:text-lg">{selectedProduct.name}</h3>
               <p className="text-sm text-muted-foreground">{selectedProduct.sku || 'N/A'}</p>

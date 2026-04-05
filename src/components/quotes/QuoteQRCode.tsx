@@ -106,8 +106,7 @@ export function QuoteQRCode({
               alt={`QR Code para aprovação do orçamento ${quoteNumber}`}
               width={size}
               height={size}
-              className="rounded"
-            />
+              className="rounded" loading="lazy" />
           </div>
         </div>
 
@@ -192,8 +191,7 @@ export function QuoteQRCodeSimple({
         src={qrCodeUrl}
         alt="QR Code para aprovação"
         width={size}
-        height={size}
-      />
+        height={size} loading="lazy" />
     </div>
   );
 }

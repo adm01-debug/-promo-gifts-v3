@@ -188,8 +188,7 @@ export default function CollectionsPage() {
                         <img
                           src={collection.image_url}
                           alt={collection.name}
-                          className="w-full h-full object-cover"
-                        />
+                          className="w-full h-full object-cover" loading="lazy" />
                       ) : (
                         <FolderOpen
                           className="h-16 w-16"
@@ -303,8 +302,7 @@ export default function CollectionsPage() {
                               <img
                                 src={img}
                                 alt=""
-                                className="w-full h-full object-cover"
-                              />
+                                className="w-full h-full object-cover" loading="lazy" />
                             </div>
                           ))}
                           {previewImages.length < 4 &&

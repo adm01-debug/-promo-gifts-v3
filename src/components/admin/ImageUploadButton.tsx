@@ -122,8 +122,7 @@ export function ImageUploadButton({
               <img
                 src={currentImageUrl}
                 alt="Área de gravação"
-                className="max-w-64 max-h-48 rounded"
-              />
+                className="max-w-64 max-h-48 rounded" loading="lazy" />
             </TooltipContent>
           </Tooltip>
           <Button
