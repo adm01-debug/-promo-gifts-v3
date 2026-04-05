@@ -42,9 +42,11 @@ vi.mock("@/hooks/useLoginAttempts", () => ({
 function renderWithProviders(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={qc}>
-      <BrowserRouter>{ui}</BrowserRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={qc}>
+        <BrowserRouter>{ui}</BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 
