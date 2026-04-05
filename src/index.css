@@ -1,4 +1,10 @@
 /* Google Fonts loaded asynchronously in index.html for better FCP */
+
+@keyframes brain-glow {
+  0%, 100% { opacity: 0; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.35); }
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
