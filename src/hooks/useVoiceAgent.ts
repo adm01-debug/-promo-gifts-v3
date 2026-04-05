@@ -19,6 +19,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   const [currentAction, setCurrentAction] = useState<VoiceAgentAction | null>(null);
   const stopSpeakingRef = useRef<(() => void) | null>(null);
   const isProcessingRef = useRef(false);
+  const isStartingRef = useRef(false);
 
   const processTranscript = useCallback(async (text: string) => {
     if (isProcessingRef.current || !text.trim()) return;
@@ -67,10 +68,52 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     }
   }, [onAction, onError]);
 
+  const handleScribeError = useCallback((err: unknown) => {
+    console.error("[Voice] Scribe runtime error:", err);
+    isStartingRef.current = false;
+    const message = friendlyErrorMessage(err);
+    setError(message);
+    setPhase("error");
+    onError?.(message);
+    setTimeout(() => setPhase("idle"), 5000);
+  }, [onError]);
+
   // ElevenLabs Scribe for STT
   const scribe = useScribe({
     modelId: "scribe_v2_realtime",
     commitStrategy: "vad",
+    onConnect: () => {
+      console.log("[Voice] Scribe socket connected");
+    },
+    onSessionStarted: () => {
+      console.log("[Voice] Scribe session started");
+      isStartingRef.current = false;
+      setError(null);
+      setPhase("listening");
+    },
+    onDisconnect: () => {
+      console.log("[Voice] Scribe disconnected");
+      isStartingRef.current = false;
+      setPartialTranscript("");
+      setPhase((current) => (
+        current === "processing" || current === "speaking" || current === "error"
+          ? current
+          : "idle"
+      ));
+    },
+    onError: handleScribeError,
+    onAuthError: ({ error }) => handleScribeError(new Error(error)),
+    onQuotaExceededError: ({ error }) => handleScribeError(new Error(error)),
+    onCommitThrottledError: ({ error }) => handleScribeError(new Error(error)),
+    onTranscriberError: ({ error }) => handleScribeError(new Error(error)),
+    onUnacceptedTermsError: ({ error }) => handleScribeError(new Error(error)),
+    onRateLimitedError: ({ error }) => handleScribeError(new Error(error)),
+    onInputError: ({ error }) => handleScribeError(new Error(error)),
+    onQueueOverflowError: ({ error }) => handleScribeError(new Error(error)),
+    onResourceExhaustedError: ({ error }) => handleScribeError(new Error(error)),
+    onSessionTimeLimitExceededError: ({ error }) => handleScribeError(new Error(error)),
+    onChunkSizeExceededError: ({ error }) => handleScribeError(new Error(error)),
+    onInsufficientAudioActivityError: ({ error }) => handleScribeError(new Error(error)),
     onPartialTranscript: (data) => {
       setPartialTranscript(data.text);
     },
@@ -83,12 +126,14 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   });
 
   const startListening = useCallback(async () => {
+    if (isStartingRef.current || scribe.isConnected || scribe.status === "connecting") return;
+    isStartingRef.current = true;
     setError(null);
     setPartialTranscript("");
     setFinalTranscript("");
     setAgentResponse("");
     setCurrentAction(null);
-    setPhase("listening");
+    setPhase("idle");
 
     try {
       // Skip pre-check — let ElevenLabs Scribe handle mic access directly
@@ -107,11 +152,13 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         microphone: {
           echoCancellation: true,
           noiseSuppression: true,
+          autoGainControl: true,
         },
       });
 
-      console.log("[Voice] Scribe connected successfully");
+      console.log("[Voice] Scribe connection initiated");
     } catch (err) {
+      isStartingRef.current = false;
       console.error("[Voice] startListening error:", err);
       const message = friendlyErrorMessage(err);
       setError(message);
@@ -122,6 +169,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   }, [scribe, onError]);
 
   const stopListening = useCallback(() => {
+    isStartingRef.current = false;
     scribe.disconnect();
     if (phase === "listening") {
       if (partialTranscript.trim()) {
@@ -129,6 +177,8 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       } else {
         setPhase("idle");
       }
+    } else if (phase !== "processing" && phase !== "speaking") {
+      setPhase("idle");
     }
   }, [scribe, phase, partialTranscript, processTranscript]);
 
@@ -139,6 +189,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   }, []);
 
   const reset = useCallback(() => {
+    isStartingRef.current = false;
     scribe.disconnect();
     stopSpeakingRef.current?.();
     stopSpeakingRef.current = null;
