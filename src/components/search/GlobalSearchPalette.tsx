@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   Package, Users, FileText, ShoppingCart, ArrowRight, Loader2,
   BarChart3, Calculator, Wand2, Heart, TrendingUp, Sparkles,
-  Brain, Clock, Flame, X, Mic, FolderOpen,
+  Brain, Clock, Flame, X, Mic, FolderOpen, Search, Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
