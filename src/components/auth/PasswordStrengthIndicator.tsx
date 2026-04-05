@@ -168,8 +168,8 @@ export function PasswordStrengthIndicator({
             </>
           ) : hasCheckedBreach ? (
             <>
-              <Shield className="h-4 w-4 text-green-600 flex-shrink-0" />
-              <span className="text-green-600">Senha não encontrada em vazamentos conhecidos</span>
+              <Shield className="h-4 w-4 text-success flex-shrink-0" />
+              <span className="text-success">Senha não encontrada em vazamentos conhecidos</span>
             </>
           ) : null}
         </div>

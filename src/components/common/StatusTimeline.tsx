@@ -53,58 +53,58 @@ const statusConfig: Record<TimelineStatus, {
 }> = {
   created: {
     icon: FileText,
-    color: "text-blue-500",
-    bgColor: "bg-blue-100 dark:bg-blue-900/30"
+    color: "text-info",
+    bgColor: "bg-info/10"
   },
   sent: {
     icon: Send,
-    color: "text-indigo-500",
-    bgColor: "bg-indigo-100 dark:bg-indigo-900/30"
+    color: "text-info",
+    bgColor: "bg-info/10"
   },
   viewed: {
     icon: Eye,
-    color: "text-purple-500",
-    bgColor: "bg-purple-100 dark:bg-purple-900/30"
+    color: "text-accent-foreground",
+    bgColor: "bg-accent"
   },
   approved: {
     icon: CheckCircle2,
-    color: "text-green-500",
-    bgColor: "bg-green-100 dark:bg-green-900/30"
+    color: "text-success",
+    bgColor: "bg-success/10"
   },
   rejected: {
     icon: XCircle,
-    color: "text-red-500",
-    bgColor: "bg-red-100 dark:bg-red-900/30"
+    color: "text-destructive",
+    bgColor: "bg-destructive/10"
   },
   paid: {
     icon: CreditCard,
     color: "text-primary",
-    bgColor: "bg-emerald-100 dark:bg-emerald-900/30"
+    bgColor: "bg-primary/10"
   },
   production: {
     icon: Package,
-    color: "text-orange-500",
-    bgColor: "bg-orange-100 dark:bg-orange-900/30"
+    color: "text-warning",
+    bgColor: "bg-warning/10"
   },
   shipped: {
     icon: Truck,
-    color: "text-cyan-500",
-    bgColor: "bg-cyan-100 dark:bg-cyan-900/30"
+    color: "text-info",
+    bgColor: "bg-info/10"
   },
   delivered: {
     icon: CheckCircle2,
-    color: "text-green-600",
-    bgColor: "bg-green-100 dark:bg-green-900/30"
+    color: "text-success",
+    bgColor: "bg-success/10"
   },
   cancelled: {
     icon: XCircle,
-    color: "text-red-600",
-    bgColor: "bg-red-100 dark:bg-red-900/30"
+    color: "text-destructive",
+    bgColor: "bg-destructive/10"
   },
   comment: {
     icon: MessageSquare,
-    color: "text-gray-500",
-    bgColor: "bg-gray-100 dark:bg-gray-800"
+    color: "text-muted-foreground",
+    bgColor: "bg-muted"
   }
 };
 
