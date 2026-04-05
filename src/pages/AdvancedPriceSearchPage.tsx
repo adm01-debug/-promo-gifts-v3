@@ -360,8 +360,9 @@ function ProductListResult({
                   {product.image ? (
                     <img 
                       src={product.image} 
-                      alt="" 
+                      alt={product.name} 
                       className="w-full h-full object-contain p-1"
+                      loading="lazy"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
