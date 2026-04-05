@@ -85,7 +85,6 @@ interface ColumnSelectorProps {
 }
 
 export function ColumnSelector({ value, onChange, className }: ColumnSelectorProps) {
-  const isMobile = useIsMobile();
   const [screenWidth, setScreenWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1280);
 
   useEffect(() => {
