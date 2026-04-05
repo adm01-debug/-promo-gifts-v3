@@ -22,6 +22,12 @@ const SCRIBE_CONNECT_OPTIONS = {
 } as const;
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
+  // === Stable refs for callbacks to avoid dependency churn ===
+  const onActionRef = useRef(onAction);
+  const onErrorRef = useRef(onError);
+  useEffect(() => { onActionRef.current = onAction; }, [onAction]);
+  useEffect(() => { onErrorRef.current = onError; }, [onError]);
+
   const [phase, setPhase] = useState<VoiceAgentPhase>("idle");
   const [partialTranscript, setPartialTranscript] = useState("");
   const [finalTranscript, setFinalTranscript] = useState("");
@@ -68,6 +74,53 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     }
   }, [clearSessionStartTimer]);
 
+  // === useScribe MUST be called before any callbacks that reference `scribe` ===
+  // This ensures the hook order is always consistent.
+  const handleScribeErrorRef = useRef<(err: unknown) => void>(() => undefined);
+
+  const scribe = useScribe({
+    modelId: "scribe_v2_realtime",
+    commitStrategy: "vad",
+    onConnect: () => {
+      console.log("[Voice] Scribe socket connected");
+    },
+    onSessionStarted: () => {
+      console.log("[Voice] Scribe session started");
+      isStartingRef.current = false;
+      clearResetPhaseTimer();
+      clearSessionStartTimer();
+      setError(null);
+      setPhase("listening");
+    },
+    onDisconnect: () => {
+      console.log("[Voice] Scribe disconnected");
+      isStartingRef.current = false;
+      clearSessionStartTimer();
+      setPartialTranscript("");
+      setPhase((current) => (
+        current === "processing" || current === "speaking" || current === "error"
+          ? current
+          : "idle"
+      ));
+    },
+    onError: (err: unknown) => handleScribeErrorRef.current(err),
+    onPartialTranscript: (data: { text: string }) => {
+      setPartialTranscript(data.text);
+    },
+    onCommittedTranscript: (data: { text: string }) => {
+      if (data.text.trim()) {
+        setPartialTranscript("");
+        processTranscriptRef.current(data.text.trim());
+      }
+    },
+  });
+
+  disconnectScribeRef.current = () => scribe.disconnect();
+
+  // === Callbacks that depend on scribe ===
+
+  const processTranscriptRef = useRef<(text: string) => void>(() => undefined);
+
   const processTranscript = useCallback(async (text: string) => {
     if (isProcessingRef.current || !text.trim()) return;
 
@@ -102,12 +155,12 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       });
 
       setPhase("idle");
-      onAction?.(action);
+      onActionRef.current?.(action);
     } catch (err) {
       const message = friendlyErrorMessage(err);
       setError(message);
       setPhase("error");
-      onError?.(message);
+      onErrorRef.current?.(message);
 
       logVoiceCommand(
         { action: "answer", response: message, data: {} },
@@ -122,7 +175,10 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     } finally {
       isProcessingRef.current = false;
     }
-  }, [clearResetPhaseTimer, onAction, onError, scheduleIdleReset]);
+  }, [clearResetPhaseTimer, scheduleIdleReset]);
+
+  // Keep refs in sync
+  useEffect(() => { processTranscriptRef.current = processTranscript; }, [processTranscript]);
 
   const handleScribeError = useCallback((err: unknown) => {
     console.error("[Voice] Scribe runtime error:", err);
@@ -135,48 +191,11 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     const message = friendlyErrorMessage(err);
     setError(message);
     setPhase("error");
-    onError?.(message);
+    onErrorRef.current?.(message);
     scheduleIdleReset();
-  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, onError, scheduleIdleReset]);
+  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, scheduleIdleReset]);
 
-  const scribe = useScribe({
-    modelId: "scribe_v2_realtime",
-    commitStrategy: "vad",
-    onConnect: () => {
-      console.log("[Voice] Scribe socket connected");
-    },
-    onSessionStarted: () => {
-      console.log("[Voice] Scribe session started");
-      isStartingRef.current = false;
-      clearResetPhaseTimer();
-      clearSessionStartTimer();
-      setError(null);
-      setPhase("listening");
-    },
-    onDisconnect: () => {
-      console.log("[Voice] Scribe disconnected");
-      isStartingRef.current = false;
-      clearSessionStartTimer();
-      setPartialTranscript("");
-      setPhase((current) => (
-        current === "processing" || current === "speaking" || current === "error"
-          ? current
-          : "idle"
-      ));
-    },
-    onError: handleScribeError,
-    onPartialTranscript: (data) => {
-      setPartialTranscript(data.text);
-    },
-    onCommittedTranscript: (data) => {
-      if (data.text.trim()) {
-        setPartialTranscript("");
-        processTranscript(data.text.trim());
-      }
-    },
-  });
-
-  disconnectScribeRef.current = () => scribe.disconnect();
+  useEffect(() => { handleScribeErrorRef.current = handleScribeError; }, [handleScribeError]);
 
   const startListening = useCallback(async () => {
     const scribeStatus = scribe.status ?? "disconnected";
@@ -224,10 +243,10 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       const message = friendlyErrorMessage(err);
       setError(message);
       setPhase("error");
-      onError?.(message);
+      onErrorRef.current?.(message);
       scheduleIdleReset();
     }
-  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, handleScribeError, onError, scheduleIdleReset, scribe]);
+  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, handleScribeError, scheduleIdleReset, scribe]);
 
   const stopListening = useCallback(() => {
     isStartingRef.current = false;
