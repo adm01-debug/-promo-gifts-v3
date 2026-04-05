@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, useState } from "react";
+import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle } from "lucide-react";
@@ -108,6 +108,20 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     const colors = usePhaseColors(phase, showBooting);
     const isWaveformActive = phase === "listening" || phase === "speaking" || showBooting;
 
+    // Extract border glow colors from phase colors (convert hsl to hsla for border effects)
+    const borderGlow = useMemo(() => {
+      // Parse "hsl(h, s%, l%)" to get h, s, l
+      const match = colors.primary.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+      const [h, s, l] = match ? [match[1], match[2], match[3]] : ["220", "80", "55"];
+      return {
+        border: `hsla(${h}, ${s}%, ${l}%, 0.35)`,
+        shadowDim: `0 0 12px 1px hsla(${h}, ${s}%, ${l}%, 0.15), 0 0 30px 4px hsla(${h}, ${s}%, ${l}%, 0.08), inset 0 0 10px 0px hsla(${h}, ${s}%, ${l}%, 0.05)`,
+        shadowBright: `0 0 25px 5px hsla(${h}, ${s}%, ${l}%, 0.35), 0 0 60px 10px hsla(${h}, ${s}%, ${l}%, 0.15), inset 0 0 18px 0px hsla(${h}, ${s}%, ${l}%, 0.1)`,
+        borderDim: `hsla(${h}, ${s}%, ${l}%, 0.3)`,
+        borderBright: `hsla(${h}, ${s}%, ${l}%, 0.7)`,
+      };
+    }, [colors.primary]);
+
     // Haptic feedback for mobile
     const vibrate = useCallback((pattern: number | number[]) => {
       try { navigator?.vibrate?.(pattern); } catch { /* unsupported */ }
@@ -166,23 +180,23 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative max-w-xs w-full pointer-events-auto"
               >
-                {/* Inner card with glowing pulsing border */}
+                {/* Inner card with glowing pulsing border — color synced to phase */}
                 <motion.div
                   className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl max-h-[90vh] overflow-hidden"
                   style={{
                     background: "rgba(8,8,18,0.95)",
-                    border: "1.5px solid rgba(56,130,246,0.35)",
+                    border: `1.5px solid ${borderGlow.border}`,
                   }}
                   animate={{
                     boxShadow: [
-                      "0 0 12px 1px rgba(56,130,246,0.15), 0 0 30px 4px rgba(56,130,246,0.08), inset 0 0 10px 0px rgba(56,130,246,0.05)",
-                      "0 0 25px 5px rgba(56,130,246,0.35), 0 0 60px 10px rgba(56,130,246,0.15), inset 0 0 18px 0px rgba(56,130,246,0.1)",
-                      "0 0 12px 1px rgba(56,130,246,0.15), 0 0 30px 4px rgba(56,130,246,0.08), inset 0 0 10px 0px rgba(56,130,246,0.05)",
+                      borderGlow.shadowDim,
+                      borderGlow.shadowBright,
+                      borderGlow.shadowDim,
                     ],
                     borderColor: [
-                      "rgba(56,130,246,0.3)",
-                      "rgba(56,130,246,0.7)",
-                      "rgba(56,130,246,0.3)",
+                      borderGlow.borderDim,
+                      borderGlow.borderBright,
+                      borderGlow.borderDim,
                     ],
                   }}
                   transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
