@@ -2,6 +2,7 @@ import { ProductCard } from "./ProductCard";
 import type { Product } from "@/hooks/useProducts";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useEffect, useState, useRef } from "react";
+import { useReducedMotion } from "@/hooks/useReducedMotion";
 
 export interface ProductGridProps {
   products: Product[];
