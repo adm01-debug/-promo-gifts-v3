@@ -37,7 +37,7 @@ export function formatCurrency(value: number) {
 }
 
 export const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }> = {
-  novo: { label: "Novo", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
+  novo: { label: "Novo", color: "bg-primary/10 text-primary border-primary/20" },
   em_negociacao: { label: "Em negociação", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
   pronto_orcamento: { label: "Pronto p/ orçamento", color: "bg-primary/10 text-primary border-primary/20" },
 };

@@ -41,7 +41,7 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   },
   'emergente': {
     icon: Rocket,
-    colors: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
     animation: 'animate-pulse',
   },
   'last-units': {

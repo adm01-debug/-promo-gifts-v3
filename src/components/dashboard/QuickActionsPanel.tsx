@@ -106,7 +106,7 @@ export function QuickActionsPanel() {
       label: "Aprovados / Rejeitados",
       value: `${stats.approved} / ${stats.rejected}`,
       icon: TrendingUp,
-      color: "text-blue-500",
+      color: "text-primary",
     },
   ];
 

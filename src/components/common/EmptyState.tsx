@@ -103,7 +103,7 @@ const variants: Record<EmptyStateVariant, {
     icon: Bell,
     title: "Nenhuma notificação",
     description: "Você está em dia! Novas notificações aparecerão aqui.",
-    color: "text-cyan-500"
+    color: "text-primary"
   },
   analytics: {
     icon: TrendingUp,
