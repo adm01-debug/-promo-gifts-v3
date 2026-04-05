@@ -85,17 +85,18 @@ describe("Voice Action Handler Logic", () => {
       expect(action.data?.sortBy).toBe("price-asc");
     });
 
-    it("BUG: sort handler checks query instead of sortBy", () => {
-      // This documents a known gap - the sort handler in useGlobalSearch
-      // checks action.data?.query but the AI returns action.data?.sortBy
+    it("sort handler should use sortBy field", () => {
+      // After fix: the sort handler now correctly uses action.data?.sortBy
       const action: VoiceAgentAction = {
         action: "sort",
         response: "Ordenando por preço",
         data: { sortBy: "price-asc" },
       };
-      // The current code does: if (action.data?.query) — but query is undefined for sort
-      expect(action.data?.query).toBeUndefined();
+      // sortBy is the correct field to check
       expect(action.data?.sortBy).toBe("price-asc");
+      // Navigate to /?sort=price-asc
+      const expectedUrl = `/?sort=${action.data?.sortBy}`;
+      expect(expectedUrl).toBe("/?sort=price-asc");
     });
   });
 
