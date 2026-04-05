@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, Volume2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
