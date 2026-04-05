@@ -165,13 +165,20 @@ export function GlobalSearchPalette() {
               {s.popularProducts.length > 0 && (
                 <>
                   <CommandSeparator />
-                  <CommandGroup heading="Produtos Populares">
-                    {s.popularProducts.map(product => (
+                   <CommandGroup heading="Produtos Populares">
+                    {s.popularProducts.map((product, idx) => (
                       <CommandItem key={`pop-${product.id}`} value={`popular-${product.name}`} onSelect={() => s.handleSelect(`/produto/${product.id}`, false)} className="flex items-center gap-3 py-2">
-                        <div className="p-2 rounded-lg bg-orange-500/10"><Flame className="h-4 w-4 text-orange-500" /></div>
+                        <div className={cn(
+                          "p-2 rounded-lg font-bold text-xs flex items-center justify-center w-8 h-8",
+                          idx === 0 ? "bg-orange/15 text-orange" : "bg-muted text-muted-foreground"
+                        )}>
+                          {idx === 0 ? <Flame className="h-4 w-4" /> : `#${idx + 1}`}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.sku} • {product.view_count} visualizações</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            {product.sku} • <Eye className="h-3 w-3 inline" /> {product.view_count}
+                          </p>
                         </div>
                         <Badge variant="outline" className="shrink-0 text-xs">Popular</Badge>
                       </CommandItem>
