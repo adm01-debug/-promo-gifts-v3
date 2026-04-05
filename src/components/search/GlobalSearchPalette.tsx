@@ -447,7 +447,7 @@ export function GlobalSearchPalette() {
 
               {/* ── Ir Para — 2-column navigation grid ── */}
               <div className="pb-2 animate-in fade-in-0 duration-300" style={{ animationDelay: '320ms' }}>
-                <SectionHeader icon={<Compass />} label="Ir Para" count={quickActions.length} gradient="bg-gradient-to-br from-sky-500/12 to-sky-500/4" />
+                <SectionHeader icon={<Compass />} label="Ir Para" count={quickActions.length} gradient="bg-gradient-to-br from-primary/10 to-primary/4" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 px-2">
                   {quickActions.map((action, i) => (
                     <NavCard
