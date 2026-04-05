@@ -205,23 +205,12 @@ export function GlobalSearchPalette() {
               </CommandGroup>
 
               <CommandSeparator />
-              <CommandGroup heading="Ações Rápidas">
-                {quickActions.slice(0, 5).map(action => (
+              <CommandGroup heading="Ir Para">
+                {quickActions.map(action => (
                   <CommandItem key={action.id} value={action.title} onSelect={() => s.handleSelect(action.href, false)} className="flex items-center gap-3 py-2">
-                    <div className="p-2 rounded-lg bg-primary/10">{action.icon}</div>
+                    <div className={cn("p-2 rounded-lg", action.shortcut ? "bg-primary/10" : "bg-muted")}>{action.icon}</div>
                     <div className="flex-1"><p className="font-medium">{action.title}</p><p className="text-sm text-muted-foreground">{action.description}</p></div>
                     {action.shortcut && <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">{action.shortcut}</kbd>}
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-
-              <CommandSeparator />
-              <CommandGroup heading="Navegação">
-                {quickActions.slice(5).map(action => (
-                  <CommandItem key={action.id} value={action.title} onSelect={() => s.handleSelect(action.href, false)} className="flex items-center gap-3 py-2">
-                    <div className="p-2 rounded-lg bg-muted">{action.icon}</div>
-                    <div className="flex-1"><p className="font-medium">{action.title}</p><p className="text-sm text-muted-foreground">{action.description}</p></div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </CommandItem>
                 ))}
