@@ -6,6 +6,8 @@ import { useEffect, useState, useCallback } from "react";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
+import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
 import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
