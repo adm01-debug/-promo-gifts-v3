@@ -1,4 +1,5 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
