@@ -245,7 +245,7 @@ export default function SystemStatusPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Status do Sistema</h1>
+          <h1 className="text-3xl font-bold font-display">Status do Sistema</h1>
           <p className="text-muted-foreground">Diagnóstico de saúde da aplicação</p>
         </div>
 
@@ -262,7 +262,7 @@ export default function SystemStatusPage() {
                   <XCircle className="h-10 w-10 text-destructive" />
                 )}
                 <div>
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold font-display">
                     {overallStatus === "ok" ? "Sistema Operacional" : "Problemas Detectados"}
                   </h2>
                   <p className="text-muted-foreground text-sm">

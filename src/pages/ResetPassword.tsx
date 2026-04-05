@@ -129,7 +129,7 @@ export default function ResetPassword() {
               <Lock className="h-8 w-8 text-destructive" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-foreground">Link inválido ou expirado</h2>
+              <h2 className="text-xl font-semibold font-display text-foreground">Link inválido ou expirado</h2>
               <p className="text-sm text-muted-foreground">
                 Este link de recuperação de senha não é mais válido. Por favor, solicite um novo link.
               </p>
@@ -156,7 +156,7 @@ export default function ResetPassword() {
               <CheckCircle className="h-8 w-8 text-success" />
             </div>
             <div className="space-y-2">
-              <h2 className="text-xl font-semibold text-foreground">Senha redefinida!</h2>
+              <h2 className="text-xl font-semibold font-display text-foreground">Senha redefinida!</h2>
               <p className="text-sm text-muted-foreground">
                 Sua senha foi alterada com sucesso. Você será redirecionado automaticamente...
               </p>
@@ -192,7 +192,7 @@ export default function ResetPassword() {
         <Card className="border-border bg-card shadow-xl">
           <CardHeader className="pb-4">
             <div className="text-center space-y-1">
-              <h2 className="text-xl font-semibold text-foreground">Redefinir senha</h2>
+              <h2 className="text-xl font-semibold font-display text-foreground">Redefinir senha</h2>
               <p className="text-sm text-muted-foreground">
                 Digite sua nova senha abaixo
               </p>
