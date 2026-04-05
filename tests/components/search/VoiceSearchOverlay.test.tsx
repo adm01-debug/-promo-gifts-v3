@@ -73,7 +73,8 @@ describe("VoiceSearchOverlay", () => {
 
   it("displays final transcript", () => {
     render(<VoiceSearchOverlay {...defaultProps} phase="processing" finalTranscript="buscar canetas" />);
-    expect(screen.getByText(/buscar canetas/)).toBeDefined();
+    const matches = screen.getAllByText(/buscar canetas/);
+    expect(matches.length).toBeGreaterThanOrEqual(1);
   });
 
   it("displays agent response when speaking", () => {

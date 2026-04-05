@@ -23,8 +23,8 @@ interface VoiceSearchOverlayProps {
 const phaseConfig: Record<VoiceAgentPhase, { title: string; subtitle: string; color: string }> = {
   idle: { title: "Assistente de Voz", subtitle: "Clique no microfone para começar", color: "bg-secondary" },
   listening: { title: "Ouvindo...", subtitle: "Diga o que você precisa", color: "bg-primary" },
-  processing: { title: "Processando...", subtitle: "IA interpretando seu comando", color: "bg-amber-500" },
-  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta", color: "bg-emerald-500" },
+  processing: { title: "Processando...", subtitle: "IA interpretando seu comando", color: "bg-warning" },
+  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta", color: "bg-success" },
   error: { title: "Erro", subtitle: "Tente novamente", color: "bg-destructive" },
 };
 
@@ -100,6 +100,13 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     return <Mic className="h-10 w-10" />;
   };
 
+  const getMicLabel = () => {
+    if (phase === "listening") return "Parar de ouvir";
+    if (phase === "processing") return "Processando comando de voz";
+    if (phase === "speaking") return "Parar resposta de voz";
+    return "Iniciar microfone";
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -109,6 +116,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
           exit={{ opacity: 0 }}
           transition={{ duration: 0.2 }}
           className="fixed inset-0 z-50 flex items-center justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Assistente de Voz"
         >
           {/* Backdrop */}
           <motion.div
@@ -133,6 +143,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               size="icon"
               className="absolute top-0 right-0 h-10 w-10 rounded-full"
               onClick={onClose}
+              aria-label="Fechar assistente de voz"
             >
               <X className="h-5 w-5" />
             </Button>
@@ -180,7 +191,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 <motion.div
                   animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.2, 0.5] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-full bg-amber-500"
+                  className="absolute inset-0 rounded-full bg-warning"
                 />
               )}
 
@@ -189,7 +200,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 <motion.div
                   animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-full bg-emerald-500"
+                  className="absolute inset-0 rounded-full bg-success"
                 />
               )}
 
@@ -202,17 +213,24 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 className={cn(
                   "relative z-10 flex items-center justify-center w-28 h-28 rounded-full transition-all duration-300 disabled:opacity-70",
                   phase === "listening" && "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(var(--primary),0.5)]",
-                  phase === "processing" && "bg-amber-500 text-white",
-                  phase === "speaking" && "bg-emerald-500 text-white shadow-[0_0_40px_rgba(16,185,129,0.4)]",
+                  phase === "processing" && "bg-warning text-warning-foreground",
+                  phase === "speaking" && "bg-success text-success-foreground shadow-glow-success",
                   phase === "error" && "bg-destructive text-destructive-foreground",
                   phase === "idle" && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 )}
+                aria-label={getMicLabel()}
               >
                 {getMicIcon()}
               </motion.button>
             </div>
 
-            {/* Sound wave visualization - listening */}
+            {/* Live region for screen reader announcements */}
+            <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+              {phase === "listening" && "Ouvindo. Fale seu comando."}
+              {phase === "processing" && `Processando: ${finalTranscript}`}
+              {phase === "speaking" && `Resposta: ${agentResponse}`}
+              {phase === "error" && `Erro: ${error}`}
+            </div>
             {phase === "listening" && (
               <motion.div
                 initial={{ opacity: 0 }}
@@ -243,7 +261,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 animate={{ opacity: 1 }}
                 className="flex items-center gap-2"
               >
-                <Volume2 className="h-5 w-5 text-emerald-500" />
+                <Volume2 className="h-5 w-5 text-success" />
                 {[...Array(5)].map((_, i) => (
                   <motion.div
                     key={i}
@@ -254,7 +272,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       delay: i * 0.08,
                       ease: "easeInOut",
                     }}
-                    className="w-1.5 bg-emerald-500 rounded-full"
+                    className="w-1.5 bg-success rounded-full"
                     style={{ height: 8 }}
                   />
                 ))}
@@ -335,17 +353,17 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   <div className={cn(
                     "rounded-xl p-4 border",
                     phase === "speaking"
-                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      ? "bg-success/10 border-success/20"
                       : "bg-primary/5 border-primary/20"
                   )}>
                     <div className="flex items-start gap-3">
                       <div className={cn(
                         "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
-                        phase === "speaking" ? "bg-emerald-500/20" : "bg-primary/10"
+                        phase === "speaking" ? "bg-success/20" : "bg-primary/10"
                       )}>
                         <MessageCircle className={cn(
                           "h-4 w-4",
-                          phase === "speaking" ? "text-emerald-500" : "text-primary"
+                          phase === "speaking" ? "text-success" : "text-primary"
                         )} />
                       </div>
                       <div>
