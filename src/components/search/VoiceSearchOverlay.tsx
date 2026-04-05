@@ -100,6 +100,13 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     return <Mic className="h-10 w-10" />;
   };
 
+  const getMicLabel = () => {
+    if (phase === "listening") return "Parar de ouvir";
+    if (phase === "processing") return "Processando comando de voz";
+    if (phase === "speaking") return "Parar resposta de voz";
+    return "Iniciar microfone";
+  };
+
   return (
     <AnimatePresence>
       {isOpen && (
