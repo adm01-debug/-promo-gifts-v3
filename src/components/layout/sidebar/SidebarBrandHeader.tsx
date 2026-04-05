@@ -12,7 +12,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
       return (
         <div ref={ref} className="flex items-center justify-center px-2 py-3 mb-2">
           <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <Gift className="h-4 w-4 text-primary-foreground" />
+            <span className="text-[10px] font-bold text-primary-foreground tracking-tight">PG</span>
           </div>
         </div>
       );
