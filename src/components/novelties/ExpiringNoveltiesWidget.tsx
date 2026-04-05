@@ -75,7 +75,7 @@ export function ExpiringNoveltiesWidget() {
                   {/* Imagem pequena */}
                   <div className="shrink-0 w-10 h-10 rounded bg-muted overflow-hidden">
                     {item.product_image ? (
-                      <img loading="lazy" src={item.product_image} 
+                      <img src={item.product_image} 
                         alt={item.product_name}
                         className="w-full h-full object-cover"
                         loading="lazy"
