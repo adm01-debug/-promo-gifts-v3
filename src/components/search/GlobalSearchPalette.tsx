@@ -1,5 +1,6 @@
 /**
- * GlobalSearchPalette — Premium 10/10 with framer-motion animations
+ * GlobalSearchPalette — Premium 10/10 with CSS animations (cmdk-compatible)
+ * framer-motion used only for standalone elements outside cmdk tree
  */
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
@@ -14,44 +15,11 @@ import {
   Brain, Clock, Flame, X, Mic, FolderOpen, Search, Eye,
   Compass, Zap, Trophy, Medal, Hash, ChevronRight,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 import { useGlobalSearch } from "./useGlobalSearch";
 import { typeConfig } from "./search-types";
-
-/* ── Animation variants ── */
-const fadeSlideUp = {
-  initial: { opacity: 0, y: 8 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -4 },
-  transition: { duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] },
-};
-
-const staggerContainer = {
-  animate: { transition: { staggerChildren: 0.04 } },
-};
-
-const staggerItem = {
-  initial: { opacity: 0, y: 6 },
-  animate: { opacity: 1, y: 0, transition: { duration: 0.2, ease: "easeOut" } },
-};
-
-const chipReveal = {
-  initial: { opacity: 0, scale: 0.9 },
-  animate: { opacity: 1, scale: 1, transition: { duration: 0.15, ease: "easeOut" } },
-};
-
-const pulseGlow = {
-  animate: {
-    boxShadow: [
-      "0 0 0 0 hsl(var(--primary) / 0)",
-      "0 0 0 6px hsl(var(--primary) / 0.08)",
-      "0 0 0 0 hsl(var(--primary) / 0)",
-    ],
-    transition: { duration: 2, repeat: Infinity, ease: "easeInOut" },
-  },
-};
 
 /* ── Quick Actions ── */
 const quickActions = [
@@ -69,12 +37,9 @@ const quickActions = [
 /* ── Rank icon per position ── */
 function RankIcon({ index }: { index: number }) {
   if (index === 0) return (
-    <motion.div
-      className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange to-orange/70 flex items-center justify-center shadow-sm shadow-orange/20"
-      {...pulseGlow}
-    >
+    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange to-orange/70 flex items-center justify-center shadow-sm shadow-orange/20 animate-[pulse-glow_2s_ease-in-out_infinite]">
       <Trophy className="h-4 w-4 text-white" />
-    </motion.div>
+    </div>
   );
   if (index === 1) return (
     <div className="h-8 w-8 rounded-lg bg-muted/80 flex items-center justify-center border border-border/50">
@@ -110,21 +75,15 @@ function SectionDivider({ icon, label, count, action }: {
   );
 }
 
+/* ── CSS stagger animation style helper ── */
+function staggerStyle(index: number, baseDelay = 0): React.CSSProperties {
+  return {
+    animationDelay: `${baseDelay + index * 40}ms`,
+  };
+}
+
 export function GlobalSearchPalette() {
   const s = useGlobalSearch();
-
-  // Determine current state key for AnimatePresence
-  const stateKey = s.isAIProcessing
-    ? "ai"
-    : s.isSearching
-    ? "loading"
-    : s.query.length >= 3 && s.results.length === 0
-    ? "empty"
-    : s.query.length >= 1 && s.query.length < 3
-    ? "hint"
-    : s.results.length > 0
-    ? "results"
-    : "idle";
 
   return (
     <>
@@ -134,7 +93,6 @@ export function GlobalSearchPalette() {
           onClick={() => s.setOpen(true)}
           className="group relative flex items-center gap-2.5 px-3.5 py-2 text-sm rounded-xl border border-border/30 hover:border-primary/30 bg-muted/20 hover:bg-muted/40 transition-all duration-300 flex-1 md:w-64 overflow-hidden"
         >
-          {/* Gradient shimmer on hover */}
           <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/[0.03] to-primary/0 group-hover:via-primary/[0.06] transition-all duration-500 pointer-events-none" />
           <div className="relative h-6 w-6 rounded-lg bg-primary/8 group-hover:bg-primary/12 flex items-center justify-center transition-colors duration-300">
             <Brain className="h-3.5 w-3.5 text-primary/60 group-hover:text-primary transition-colors duration-300" />
@@ -178,337 +136,296 @@ export function GlobalSearchPalette() {
         </div>
 
         <CommandList className="max-h-[480px] scrollbar-thin">
-          <AnimatePresence mode="wait">
-            {/* ── AI Processing ── */}
-            {s.isAIProcessing && (
-              <motion.div
-                key="ai-processing"
-                {...fadeSlideUp}
-                className="flex items-center gap-3 px-4 py-3 mx-2 mt-2 rounded-xl bg-gradient-to-r from-primary/8 via-primary/5 to-transparent border border-primary/10"
-              >
-                <motion.div
-                  className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center"
-                  animate={{ rotate: [0, 5, -5, 0] }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Sparkles className="h-4 w-4 text-primary" />
-                </motion.div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-primary font-display">Analisando sua busca...</p>
-                  <p className="text-[11px] text-muted-foreground/60 mt-0.5">IA identificando intenção e filtros</p>
-                </div>
-                <Loader2 className="h-4 w-4 text-primary/40 animate-spin" />
-              </motion.div>
-            )}
+          {/* ── AI Processing ── */}
+          {s.isAIProcessing && (
+            <div className="flex items-center gap-3 px-4 py-3 mx-2 mt-2 rounded-xl bg-gradient-to-r from-primary/8 via-primary/5 to-transparent border border-primary/10 animate-in fade-in-0 slide-in-from-top-2 duration-300">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center animate-pulse">
+                <Sparkles className="h-4 w-4 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-primary font-display">Analisando sua busca...</p>
+                <p className="text-[11px] text-muted-foreground/60 mt-0.5">IA identificando intenção e filtros</p>
+              </div>
+              <Loader2 className="h-4 w-4 text-primary/40 animate-spin" />
+            </div>
+          )}
 
-            {/* ── Intent display ── */}
-            {s.searchIntent && !s.isSearching && s.results.length > 0 && (
-              <motion.div
-                key="intent"
-                initial={{ opacity: 0, y: -4 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.2, delay: 0.1 }}
-                className="flex flex-wrap items-center gap-2 px-4 py-2.5 mx-2 mt-2 rounded-lg bg-muted/30 border border-border/30"
-              >
-                <div className="h-5 w-5 rounded-md bg-primary/10 flex items-center justify-center">
-                  <Brain className="h-3 w-3 text-primary" />
-                </div>
-                <span className="text-[11px] font-medium text-muted-foreground/70">Entendi:</span>
-                {s.searchIntent.type !== "mixed" && (
-                  <Badge variant="outline" className="text-[11px] h-5 rounded-md">
-                    {{ product: "Produtos", client: "Clientes", quote: "Orçamentos", order: "Pedidos" }[s.searchIntent.type]}
-                  </Badge>
-                )}
-                {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">{s.searchIntent.filters.category}</Badge>}
-                {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Cor: {s.searchIntent.filters.color}</Badge>}
-                {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
-                {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Status: {s.searchIntent.filters.status}</Badge>}
-                {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Cliente: {s.searchIntent.filters.clientName}</Badge>}
-              </motion.div>
-            )}
+          {/* ── Intent display ── */}
+          {s.searchIntent && !s.isSearching && s.results.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 mx-2 mt-2 rounded-lg bg-muted/30 border border-border/30 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+              <div className="h-5 w-5 rounded-md bg-primary/10 flex items-center justify-center">
+                <Brain className="h-3 w-3 text-primary" />
+              </div>
+              <span className="text-[11px] font-medium text-muted-foreground/70">Entendi:</span>
+              {s.searchIntent.type !== "mixed" && (
+                <Badge variant="outline" className="text-[11px] h-5 rounded-md">
+                  {{ product: "Produtos", client: "Clientes", quote: "Orçamentos", order: "Pedidos" }[s.searchIntent.type]}
+                </Badge>
+              )}
+              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">{s.searchIntent.filters.category}</Badge>}
+              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Cor: {s.searchIntent.filters.color}</Badge>}
+              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
+              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Status: {s.searchIntent.filters.status}</Badge>}
+              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Cliente: {s.searchIntent.filters.clientName}</Badge>}
+            </div>
+          )}
 
-            {/* ── Loading ── */}
-            {s.isSearching && !s.isAIProcessing && (
-              <motion.div
-                key="loading"
-                {...fadeSlideUp}
-                className="flex flex-col items-center justify-center py-12 gap-3"
-              >
-                <motion.div
-                  className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center"
-                  animate={{ scale: [1, 1.05, 1] }}
-                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
-                >
-                  <Loader2 className="h-5 w-5 animate-spin text-primary/60" />
-                </motion.div>
-                <p className="text-xs text-muted-foreground/60">Buscando resultados...</p>
-              </motion.div>
-            )}
+          {/* ── Loading ── */}
+          {s.isSearching && !s.isAIProcessing && (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 animate-in fade-in-0 duration-300">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center animate-pulse">
+                <Loader2 className="h-5 w-5 animate-spin text-primary/60" />
+              </div>
+              <p className="text-xs text-muted-foreground/60">Buscando resultados...</p>
+            </div>
+          )}
 
-            {/* ── Empty state ── */}
-            {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
-              <motion.div
-                key="empty"
-                {...fadeSlideUp}
-                className="flex flex-col items-center justify-center py-12 gap-3"
-              >
-                <motion.div
-                  className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/30"
-                  initial={{ scale: 0.8 }}
-                  animate={{ scale: 1 }}
-                  transition={{ duration: 0.3, ease: "backOut" }}
-                >
-                  <Search className="h-6 w-6 text-muted-foreground/30" />
-                </motion.div>
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground/70">Nenhum resultado para "<span className="font-semibold text-foreground/80">{s.query}</span>"</p>
-                  <p className="text-xs text-muted-foreground/40 mt-1">Tente termos diferentes ou mais curtos</p>
-                </div>
-              </motion.div>
-            )}
+          {/* ── Empty state ── */}
+          {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 gap-3 animate-in fade-in-0 zoom-in-95 duration-300">
+              <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/30">
+                <Search className="h-6 w-6 text-muted-foreground/30" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground/70">Nenhum resultado para "<span className="font-semibold text-foreground/80">{s.query}</span>"</p>
+                <p className="text-xs text-muted-foreground/40 mt-1">Tente termos diferentes ou mais curtos</p>
+              </div>
+            </div>
+          )}
 
-            {/* ── Short query hint ── */}
-            {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
-              <motion.div
-                key="hint"
-                {...fadeSlideUp}
-                className="flex items-center justify-center gap-2 px-4 py-5"
-              >
-                <div className="h-6 w-6 rounded-md bg-muted/50 flex items-center justify-center">
-                  <Search className="h-3 w-3 text-muted-foreground/30" />
-                </div>
-                <span className="text-xs text-muted-foreground/40">Continue digitando para buscar...</span>
-              </motion.div>
-            )}
+          {/* ── Short query hint ── */}
+          {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
+            <div className="flex items-center justify-center gap-2 px-4 py-5 animate-in fade-in-0 duration-200">
+              <div className="h-6 w-6 rounded-md bg-muted/50 flex items-center justify-center">
+                <Search className="h-3 w-3 text-muted-foreground/30" />
+              </div>
+              <span className="text-xs text-muted-foreground/40">Continue digitando para buscar...</span>
+            </div>
+          )}
 
-            {/* ── Search Results ── */}
-            {!s.isSearching && s.results.length > 0 && (
-              <motion.div key="results" variants={staggerContainer} initial="initial" animate="animate">
-                {Object.entries(s.groupedResults).map(([type, items]) => {
-                  const config = typeConfig[type];
-                  if (!config) return null;
-                  const Icon = config.icon;
-                  return (
-                    <CommandGroup key={type} heading={config.label + "s"}>
-                      {items.map((result, i) => (
-                        <motion.div key={result.id} variants={staggerItem} custom={i}>
-                          <CommandItem value={result.title} onSelect={() => s.handleSelect(result.href)} className="flex items-center gap-3 py-2.5 rounded-xl mx-1.5 px-2.5">
-                            <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center shrink-0", `${config.color}/10`)}>
-                              <Icon className={cn("h-4 w-4", config.color.replace("bg-", "text-"))} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium truncate text-sm">{result.title}</p>
-                              {result.subtitle && <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">{result.subtitle}</p>}
-                            </div>
-                            <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-md border-border/40">{config.label}</Badge>
-                            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
-                          </CommandItem>
-                        </motion.div>
-                      ))}
-                    </CommandGroup>
-                  );
-                })}
-              </motion.div>
-            )}
-
-            {/* ── Typing suggestions ── */}
-            {s.typingSuggestions.length > 0 && s.query.length >= 2 && s.query.length < 5 && !s.isSearching && (
-              <motion.div key="type-sug" variants={staggerContainer} initial="initial" animate="animate">
-                <CommandGroup heading="Sugestões">
-                  {s.typingSuggestions.map((suggestion, i) => (
-                    <motion.div key={`sug-${i}`} variants={staggerItem}>
-                      <CommandItem value={`suggestion-${suggestion}`} onSelect={() => s.handleSuggestionClick(suggestion)} className="flex items-center gap-3 py-2.5 rounded-xl mx-1.5 px-2.5">
-                        <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center">
-                          <Sparkles className="h-3.5 w-3.5 text-primary/70" />
-                        </div>
-                        <span className="flex-1 text-sm">{suggestion}</span>
-                        <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
-                      </CommandItem>
-                    </motion.div>
-                  ))}
-                </CommandGroup>
-              </motion.div>
-            )}
-
-            {/* ═══════════════════════════════════════ */}
-            {/* ── IDLE STATE (no search query) ──      */}
-            {/* ═══════════════════════════════════════ */}
-            {s.query.length < 2 && !s.isSearching && (
-              <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2 }}>
-                {/* ── Buscas Recentes ── */}
-                {s.history.length > 0 && (
-                  <motion.div className="px-1" variants={staggerContainer} initial="initial" animate="animate">
-                    <SectionDivider icon={<Clock />} label="Recentes" count={s.history.length} />
-                    <div className="space-y-0.5 px-1">
-                      {s.history.slice(0, 4).map((term, i) => (
-                        <motion.div key={`h-${i}`} variants={staggerItem}>
-                          <CommandItem value={`history-${term}`} onSelect={() => s.handleSuggestionClick(term)} className="flex items-center gap-3 py-2 rounded-xl px-2.5 group">
-                            <div className="h-8 w-8 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 group-data-[selected=true]:bg-accent">
-                              <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
-                            </div>
-                            <span className="flex-1 text-sm truncate">{term}</span>
-                            <button
-                              onClick={e => s.handleRemoveFromHistory(e, term)}
-                              aria-label={`Remover "${term}" do histórico`}
-                              className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
-                            >
-                              <X className="h-3 w-3 text-muted-foreground/50 hover:text-destructive" aria-hidden="true" />
-                            </button>
-                          </CommandItem>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* ── Produtos Populares ── */}
-                {s.popularProducts.length > 0 && (
-                  <motion.div className="px-1" variants={staggerContainer} initial="initial" animate="animate">
-                    <SectionDivider icon={<Flame />} label="Mais Populares" count={s.popularProducts.length} />
-                    <div className="space-y-0.5 px-1">
-                      {s.popularProducts.map((product, idx) => (
-                        <motion.div key={`pop-${product.id}`} variants={staggerItem}>
-                          <CommandItem
-                            value={`popular-${product.name}`}
-                            onSelect={() => s.handleSelect(`/produto/${product.id}`, false)}
-                            className={cn(
-                              "flex items-center gap-3 py-2.5 rounded-xl px-2.5",
-                              idx === 0 && "bg-orange/[0.04]"
-                            )}
-                          >
-                            <RankIcon index={idx} />
-                            <div className="flex-1 min-w-0">
-                              <p className={cn("text-sm truncate", idx === 0 ? "font-semibold" : "font-medium")}>{product.name}</p>
-                              <div className="flex items-center gap-1.5 mt-0.5">
-                                <span className="text-[11px] text-muted-foreground/50 font-mono">{product.sku}</span>
-                                <span className="text-muted-foreground/20">·</span>
-                                <div className="flex items-center gap-0.5 text-[11px] text-muted-foreground/40">
-                                  <Eye className="h-3 w-3" />
-                                  <span>{product.view_count} views</span>
-                                </div>
-                              </div>
-                            </div>
-                            {idx === 0 ? (
-                              <Badge className="shrink-0 text-[10px] h-5 rounded-md bg-orange/15 text-orange border-orange/20 hover:bg-orange/20">
-                                🔥 Top
-                              </Badge>
-                            ) : (
-                              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
-                            )}
-                          </CommandItem>
-                        </motion.div>
-                      ))}
-                    </div>
-                  </motion.div>
-                )}
-
-                {/* ── Sugestões Contextuais ── */}
-                {s.contextualSuggestions.length > 0 && (
-                  <div className="px-1">
-                    <SectionDivider
-                      icon={<Sparkles />}
-                      label={s.routeContext.section === "products" ? "Para o Catálogo" : s.routeContext.section === "quotes" ? "Para Orçamentos" : "Sugestões"}
-                    />
-                    <motion.div
-                      className="flex flex-wrap gap-2 px-3 pb-3"
-                      role="group"
-                      aria-label="Sugestões contextuais"
-                      variants={staggerContainer}
-                      initial="initial"
-                      animate="animate"
-                    >
-                      {s.contextualSuggestions.slice(0, 6).map(sug => (
-                        <motion.button
-                          key={sug.id}
-                          variants={chipReveal}
-                          onClick={() => s.handleSuggestionClick(sug.text)}
-                          aria-label={`Buscar ${sug.text}`}
-                          whileHover={{ scale: 1.03 }}
-                          whileTap={{ scale: 0.97 }}
-                          className={cn(
-                            "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150",
-                            sug.type === "filter" && "bg-primary/6 hover:bg-primary/12 text-primary/80 hover:text-primary border border-primary/15 hover:border-primary/30",
-                            sug.type === "navigation" && "bg-accent/40 hover:bg-accent/70 text-accent-foreground/80 border border-accent-foreground/8",
-                            sug.type === "action" && "bg-orange/6 hover:bg-orange/12 text-orange/80 hover:text-orange border border-orange/15 hover:border-orange/30",
-                            sug.type === "search" && "bg-muted/50 hover:bg-muted/80 text-muted-foreground/70 hover:text-muted-foreground border border-border/30 hover:border-border/60",
-                          )}
-                        >
-                          <span className="text-sm leading-none">{sug.icon}</span>
-                          <span>{sug.text}</span>
-                        </motion.button>
-                      ))}
-                    </motion.div>
-                  </div>
-                )}
-
-                {/* ── Atalhos Rápidos ── */}
-                <div className="px-1">
-                  <SectionDivider icon={<Zap />} label="Atalhos" />
-                  <motion.div
-                    className="flex flex-wrap gap-1.5 px-3 pb-3"
-                    role="group"
-                    aria-label="Atalhos rápidos"
-                    variants={staggerContainer}
-                    initial="initial"
-                    animate="animate"
+          {/* ── Search Results ── */}
+          {!s.isSearching && Object.entries(s.groupedResults).map(([type, items]) => {
+            const config = typeConfig[type];
+            if (!config) return null;
+            const Icon = config.icon;
+            return (
+              <CommandGroup key={type} heading={config.label + "s"} className="animate-in fade-in-0 slide-in-from-bottom-2 duration-300">
+                {items.map((result, i) => (
+                  <CommandItem
+                    key={result.id}
+                    value={result.title}
+                    onSelect={() => s.handleSelect(result.href)}
+                    className="flex items-center gap-3 py-2.5 rounded-xl mx-1.5 px-2.5 animate-in fade-in-0 slide-in-from-bottom-1 duration-200"
+                    style={staggerStyle(i, 50)}
                   >
-                    {s.quickSuggestions.map((qs, i) => (
-                      <motion.button
-                        key={`q-${i}`}
-                        variants={chipReveal}
-                        onClick={() => s.handleSuggestionClick(qs.label)}
-                        aria-label={`Buscar ${qs.label}`}
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/30 hover:bg-muted/60 rounded-lg text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-150 border border-transparent hover:border-border/30"
+                    <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center shrink-0", `${config.color}/10`)}>
+                      <Icon className={cn("h-4 w-4", config.color.replace("bg-", "text-"))} />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate text-sm">{result.title}</p>
+                      {result.subtitle && <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">{result.subtitle}</p>}
+                    </div>
+                    <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-md border-border/40">{config.label}</Badge>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            );
+          })}
+
+          {/* ── Typing suggestions ── */}
+          {s.typingSuggestions.length > 0 && s.query.length >= 2 && s.query.length < 5 && !s.isSearching && (
+            <CommandGroup heading="Sugestões" className="animate-in fade-in-0 duration-200">
+              {s.typingSuggestions.map((suggestion, i) => (
+                <CommandItem
+                  key={`sug-${i}`}
+                  value={`suggestion-${suggestion}`}
+                  onSelect={() => s.handleSuggestionClick(suggestion)}
+                  className="flex items-center gap-3 py-2.5 rounded-xl mx-1.5 px-2.5 animate-in fade-in-0 slide-in-from-bottom-1 duration-200"
+                  style={staggerStyle(i)}
+                >
+                  <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                    <Sparkles className="h-3.5 w-3.5 text-primary/70" />
+                  </div>
+                  <span className="flex-1 text-sm">{suggestion}</span>
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
+          {/* ═══════════════════════════════════════ */}
+          {/* ── IDLE STATE (no search query) ──      */}
+          {/* ═══════════════════════════════════════ */}
+          {s.query.length < 2 && !s.isSearching && (
+            <>
+              {/* ── Buscas Recentes ── */}
+              {s.history.length > 0 && (
+                <div className="px-1 animate-in fade-in-0 duration-200">
+                  <SectionDivider icon={<Clock />} label="Recentes" count={s.history.length} />
+                  <div className="space-y-0.5 px-1">
+                    {s.history.slice(0, 4).map((term, i) => (
+                      <CommandItem
+                        key={`h-${i}`}
+                        value={`history-${term}`}
+                        onSelect={() => s.handleSuggestionClick(term)}
+                        className="flex items-center gap-3 py-2 rounded-xl px-2.5 group animate-in fade-in-0 slide-in-from-left-2 duration-200"
+                        style={staggerStyle(i)}
                       >
-                        <span className="text-sm leading-none opacity-60">{qs.icon}</span>
-                        <span>{qs.label}</span>
+                        <div className="h-8 w-8 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 group-data-[selected=true]:bg-accent">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                        </div>
+                        <span className="flex-1 text-sm truncate">{term}</span>
+                        <button
+                          onClick={e => s.handleRemoveFromHistory(e, term)}
+                          aria-label={`Remover "${term}" do histórico`}
+                          className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
+                        >
+                          <X className="h-3 w-3 text-muted-foreground/50 hover:text-destructive" aria-hidden="true" />
+                        </button>
+                      </CommandItem>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Produtos Populares ── */}
+              {s.popularProducts.length > 0 && (
+                <div className="px-1 animate-in fade-in-0 duration-300" style={{ animationDelay: '80ms' }}>
+                  <SectionDivider icon={<Flame />} label="Mais Populares" count={s.popularProducts.length} />
+                  <div className="space-y-0.5 px-1">
+                    {s.popularProducts.map((product, idx) => (
+                      <CommandItem
+                        key={`pop-${product.id}`}
+                        value={`popular-${product.name}`}
+                        onSelect={() => s.handleSelect(`/produto/${product.id}`, false)}
+                        className={cn(
+                          "flex items-center gap-3 py-2.5 rounded-xl px-2.5 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
+                          idx === 0 && "bg-orange/[0.04]"
+                        )}
+                        style={staggerStyle(idx, 100)}
+                      >
+                        <RankIcon index={idx} />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn("text-sm truncate", idx === 0 ? "font-semibold" : "font-medium")}>{product.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[11px] text-muted-foreground/50 font-mono">{product.sku}</span>
+                            <span className="text-muted-foreground/20">·</span>
+                            <div className="flex items-center gap-0.5 text-[11px] text-muted-foreground/40">
+                              <Eye className="h-3 w-3" />
+                              <span>{product.view_count} views</span>
+                            </div>
+                          </div>
+                        </div>
+                        {idx === 0 ? (
+                          <Badge className="shrink-0 text-[10px] h-5 rounded-md bg-orange/15 text-orange border-orange/20 hover:bg-orange/20">
+                            🔥 Top
+                          </Badge>
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
+                        )}
+                      </CommandItem>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* ── Sugestões Contextuais ── */}
+              {s.contextualSuggestions.length > 0 && (
+                <div className="px-1 animate-in fade-in-0 duration-300" style={{ animationDelay: '160ms' }}>
+                  <SectionDivider
+                    icon={<Sparkles />}
+                    label={s.routeContext.section === "products" ? "Para o Catálogo" : s.routeContext.section === "quotes" ? "Para Orçamentos" : "Sugestões"}
+                  />
+                  <div className="flex flex-wrap gap-2 px-3 pb-3" role="group" aria-label="Sugestões contextuais">
+                    {s.contextualSuggestions.slice(0, 6).map((sug, i) => (
+                      <motion.button
+                        key={sug.id}
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 0.15, delay: 0.2 + i * 0.04 }}
+                        onClick={() => s.handleSuggestionClick(sug.text)}
+                        aria-label={`Buscar ${sug.text}`}
+                        whileHover={{ scale: 1.03 }}
+                        whileTap={{ scale: 0.97 }}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors duration-150",
+                          sug.type === "filter" && "bg-primary/6 hover:bg-primary/12 text-primary/80 hover:text-primary border border-primary/15 hover:border-primary/30",
+                          sug.type === "navigation" && "bg-accent/40 hover:bg-accent/70 text-accent-foreground/80 border border-accent-foreground/8",
+                          sug.type === "action" && "bg-orange/6 hover:bg-orange/12 text-orange/80 hover:text-orange border border-orange/15 hover:border-orange/30",
+                          sug.type === "search" && "bg-muted/50 hover:bg-muted/80 text-muted-foreground/70 hover:text-muted-foreground border border-border/30 hover:border-border/60",
+                        )}
+                      >
+                        <span className="text-sm leading-none">{sug.icon}</span>
+                        <span>{sug.text}</span>
                       </motion.button>
                     ))}
-                  </motion.div>
-                </div>
-
-                {/* ── Ir Para ── */}
-                <motion.div className="px-1 pb-1" variants={staggerContainer} initial="initial" animate="animate">
-                  <SectionDivider icon={<Compass />} label="Ir Para" count={quickActions.length} />
-                  <div className="grid grid-cols-1 gap-0.5 px-1">
-                    {quickActions.map((action, i) => (
-                      <motion.div key={action.id} variants={staggerItem}>
-                        <CommandItem
-                          value={action.title}
-                          onSelect={() => s.handleSelect(action.href, false)}
-                          className={cn(
-                            "flex items-center gap-3 py-2 rounded-xl px-2.5",
-                            (action as any).highlight && "bg-gradient-to-r from-primary/6 to-transparent"
-                          )}
-                        >
-                          <div className={cn(
-                            "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
-                            (action as any).highlight
-                              ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm shadow-primary/10"
-                              : "bg-muted/50 text-muted-foreground/60"
-                          )}>
-                            {action.icon}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className={cn("text-sm truncate", (action as any).highlight ? "font-semibold text-primary" : "font-medium")}>{action.title}</p>
-                            <p className="text-[11px] text-muted-foreground/40 truncate">{action.description}</p>
-                          </div>
-                          {action.shortcut && (
-                            <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-md bg-muted/50 border border-border/30 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/40">
-                              {action.shortcut}
-                            </kbd>
-                          )}
-                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
-                        </CommandItem>
-                      </motion.div>
-                    ))}
                   </div>
-                </motion.div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                </div>
+              )}
+
+              {/* ── Atalhos Rápidos ── */}
+              <div className="px-1 animate-in fade-in-0 duration-300" style={{ animationDelay: '240ms' }}>
+                <SectionDivider icon={<Zap />} label="Atalhos" />
+                <div className="flex flex-wrap gap-1.5 px-3 pb-3" role="group" aria-label="Atalhos rápidos">
+                  {s.quickSuggestions.map((qs, i) => (
+                    <motion.button
+                      key={`q-${i}`}
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ duration: 0.15, delay: 0.28 + i * 0.03 }}
+                      onClick={() => s.handleSuggestionClick(qs.label)}
+                      aria-label={`Buscar ${qs.label}`}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/30 hover:bg-muted/60 rounded-lg text-xs text-muted-foreground/60 hover:text-muted-foreground transition-colors duration-150 border border-transparent hover:border-border/30"
+                    >
+                      <span className="text-sm leading-none opacity-60">{qs.icon}</span>
+                      <span>{qs.label}</span>
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+
+              {/* ── Ir Para ── */}
+              <div className="px-1 pb-1 animate-in fade-in-0 duration-300" style={{ animationDelay: '320ms' }}>
+                <SectionDivider icon={<Compass />} label="Ir Para" count={quickActions.length} />
+                <div className="grid grid-cols-1 gap-0.5 px-1">
+                  {quickActions.map((action, i) => (
+                    <CommandItem
+                      key={action.id}
+                      value={action.title}
+                      onSelect={() => s.handleSelect(action.href, false)}
+                      className={cn(
+                        "flex items-center gap-3 py-2 rounded-xl px-2.5 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
+                        (action as any).highlight && "bg-gradient-to-r from-primary/6 to-transparent"
+                      )}
+                      style={staggerStyle(i, 340)}
+                    >
+                      <div className={cn(
+                        "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                        (action as any).highlight
+                          ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm shadow-primary/10"
+                          : "bg-muted/50 text-muted-foreground/60"
+                      )}>
+                        {action.icon}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className={cn("text-sm truncate", (action as any).highlight ? "font-semibold text-primary" : "font-medium")}>{action.title}</p>
+                        <p className="text-[11px] text-muted-foreground/40 truncate">{action.description}</p>
+                      </div>
+                      {action.shortcut && (
+                        <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-md bg-muted/50 border border-border/30 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/40">
+                          {action.shortcut}
+                        </kbd>
+                      )}
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
+                    </CommandItem>
+                  ))}
+                </div>
+              </div>
+            </>
+          )}
         </CommandList>
 
         {/* ── Keyboard shortcuts footer ── */}
