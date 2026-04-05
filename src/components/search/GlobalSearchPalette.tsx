@@ -375,7 +375,7 @@ export function GlobalSearchPalette() {
                           </div>
                         </div>
                         {idx === 0 ? (
-                          <Badge className="shrink-0 text-[10px] h-6 rounded-lg bg-gradient-to-r from-orange/20 to-amber-500/15 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
+                          <Badge className="shrink-0 text-[10px] h-6 rounded-lg bg-gradient-to-r from-orange/20 to-orange/10 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
                             🔥 Top 1
                           </Badge>
                         ) : (
