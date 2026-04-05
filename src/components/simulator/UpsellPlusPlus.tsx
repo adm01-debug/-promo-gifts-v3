@@ -630,12 +630,12 @@ function AlternativeTechniqueCard({
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      className="p-3 rounded-lg border bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border-blue-500/30"
+      className="p-3 rounded-lg border bg-gradient-to-r from-primary/10 to-primary/5 border-primary/30"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className="bg-blue-500 text-xs gap-1">
+            <Badge className="bg-primary text-xs gap-1">
               <Zap className="h-3 w-3" />
               Técnica Alternativa
             </Badge>
@@ -676,7 +676,7 @@ function AlternativeTechniqueCard({
         <Button
           size="sm"
           variant="outline"
-          className="shrink-0 border-blue-500/30 hover:bg-blue-500/10"
+          className="shrink-0 border-primary/30 hover:bg-primary/10"
           onClick={onApply}
         >
           <ArrowRight className="h-4 w-4 mr-1" />
@@ -698,18 +698,18 @@ function PromotionCard({ promotion }: { promotion: PromotionScenario }) {
         "p-3 rounded-lg border",
         isUrgent 
           ? "bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/30 animate-pulse" 
-          : "bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/30"
+          : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary/25"
       )}
     >
       <div className="flex items-start gap-3">
         <div className={cn(
           "p-2 rounded-lg",
-          isUrgent ? "bg-red-500/20" : "bg-purple-500/20"
+          isUrgent ? "bg-red-500/20" : "bg-primary/20"
         )}>
           {isUrgent ? (
             <Flame className="h-4 w-4 text-red-500" />
           ) : (
-            <Tag className="h-4 w-4 text-purple-500" />
+            <Tag className="h-4 w-4 text-primary" />
           )}
         </div>
 
@@ -717,7 +717,7 @@ function PromotionCard({ promotion }: { promotion: PromotionScenario }) {
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={cn(
               "text-xs gap-1",
-              isUrgent ? "bg-red-500" : "bg-purple-500"
+              isUrgent ? "bg-red-500" : "bg-primary"
             )}>
               -{promotion.discount}% {promotion.techniqueName}
             </Badge>
@@ -761,16 +761,16 @@ function SimilarClientsCard({
     <motion.div
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
-      className="p-3 rounded-lg border bg-gradient-to-r from-violet-500/10 to-indigo-500/10 border-violet-500/30"
+      className="p-3 rounded-lg border bg-gradient-to-r from-primary/15 to-primary/5 border-primary/30"
     >
       <div className="flex items-start gap-3">
-        <div className="p-2 rounded-lg bg-violet-500/20">
-          <Users className="h-4 w-4 text-violet-500" />
+        <div className="p-2 rounded-lg bg-primary/20">
+          <Users className="h-4 w-4 text-primary" />
         </div>
 
         <div className="flex-1">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge className="bg-violet-500 text-xs gap-1">
+            <Badge className="bg-primary text-xs gap-1">
               <BarChart3 className="h-3 w-3" />
               Clientes Similares
             </Badge>
@@ -816,7 +816,7 @@ function SimilarClientsCard({
           <Button
             size="sm"
             variant="outline"
-            className="mt-2 border-violet-500/30 hover:bg-violet-500/10"
+            className="mt-2 border-primary/30 hover:bg-primary/10"
             onClick={onApplyQuantity}
           >
             Usar {insight.suggestedQuantity} un

@@ -197,8 +197,8 @@ export function PushNotificationSettings() {
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-blue-500/10">
-                      <Bell className="h-4 w-4 text-blue-500" />
+                    <div className="p-1.5 rounded bg-primary/10">
+                      <Bell className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Alertas gerais de segurança</p>

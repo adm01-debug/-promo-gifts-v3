@@ -141,7 +141,7 @@ export function ResultsComparisonCards({
                 </div>
                 <div className="flex flex-wrap gap-2 mb-4">
                   {isFastest && (
-                    <Badge variant="outline" className="text-blue-500 border-blue-500/50 gap-1">
+                    <Badge variant="outline" className="text-primary border-primary/50 gap-1">
                       <Zap className="h-3 w-3" /> Mais Rápido
                     </Badge>
                   )}
@@ -269,7 +269,7 @@ export function ResultsComparisonCards({
                 <div className="flex items-center gap-2">
                   <span className="font-medium truncate">{option.techniqueName}</span>
                   {isFastest && (
-                    <Zap className="h-4 w-4 text-blue-500 shrink-0" />
+                    <Zap className="h-4 w-4 text-primary shrink-0" />
                   )}
                 </div>
                 <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">

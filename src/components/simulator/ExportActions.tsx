@@ -292,7 +292,7 @@ export function ExportActions({
               WhatsApp
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEmail} className="gap-2 cursor-pointer">
-              <Mail className="h-4 w-4 text-blue-500" />
+              <Mail className="h-4 w-4 text-primary" />
               E-mail
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -308,7 +308,7 @@ export function ExportActions({
               {isGeneratingImage ? (
                 <Loader2 className="h-4 w-4 animate-spin" />
               ) : (
-                <FileImage className="h-4 w-4 text-purple-500" />
+                <FileImage className="h-4 w-4 text-primary" />
               )}
               Baixar Imagem
             </DropdownMenuItem>

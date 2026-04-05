@@ -42,8 +42,8 @@ interface SmartSuggestionsProps {
 
 const typeConfig = {
   trending: { icon: TrendingUp, label: "Em alta", color: "text-orange-500", bg: "bg-orange-500/10" },
-  recent: { icon: Clock, label: "Recente", color: "text-blue-500", bg: "bg-blue-500/10" },
-  recommended: { icon: Sparkles, label: "Recomendado", color: "text-purple-500", bg: "bg-purple-500/10" },
+  recent: { icon: Clock, label: "Recente", color: "text-primary", bg: "bg-primary/10" },
+  recommended: { icon: Sparkles, label: "Recomendado", color: "text-primary", bg: "bg-primary/10" },
   related: { icon: Tag, label: "Relacionado", color: "text-primary", bg: "bg-primary/10" },
   promotion: { icon: Percent, label: "Promoção", color: "text-red-500", bg: "bg-red-500/10" },
 };

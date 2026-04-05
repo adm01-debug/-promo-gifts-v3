@@ -49,7 +49,7 @@ const categoryConfig = {
   client: { icon: Users, label: "Cliente", color: "text-primary" },
   order: { icon: ShoppingCart, label: "Pedido", color: "text-orange-500" },
   page: { icon: ArrowRight, label: "Página", color: "text-gray-500" },
-  action: { icon: Sparkles, label: "Ação", color: "text-pink-500" },
+  action: { icon: Sparkles, label: "Ação", color: "text-primary" },
 };
 
 const quickActions = [

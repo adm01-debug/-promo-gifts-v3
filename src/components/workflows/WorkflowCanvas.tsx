@@ -77,9 +77,9 @@ export interface WorkflowDefinition {
 }
 
 const STEP_TYPES = [
-  { value: "agent", label: "Agente IA", icon: Bot, color: "text-violet-500", bg: "bg-violet-500/10", border: "border-violet-500/30" },
+  { value: "agent", label: "Agente IA", icon: Bot, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" },
   { value: "tool", label: "Ferramenta", icon: Zap, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/30" },
-  { value: "condition", label: "Condição", icon: Search, color: "text-blue-500", bg: "bg-blue-500/10", border: "border-blue-500/30" },
+  { value: "condition", label: "Condição", icon: Search, color: "text-primary/80", bg: "bg-primary/10", border: "border-primary/25" },
   { value: "output", label: "Saída", icon: FileText, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" },
 ];
 
