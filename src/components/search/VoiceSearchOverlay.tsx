@@ -295,7 +295,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-50 overflow-y-auto"
             role="dialog"
             aria-modal="true"
             aria-label="Assistente de Voz"
@@ -305,7 +305,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 backdrop-blur-3xl"
+              className="fixed inset-0 backdrop-blur-3xl"
               style={{ background: "radial-gradient(ellipse at center, rgba(10,10,20,0.75) 0%, rgba(2,2,8,0.85) 100%)" }}
               onClick={onClose}
             />
@@ -317,19 +317,22 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               exit={{ opacity: 0, scale: 0.8 }}
               transition={{ delay: 0.1 }}
               onClick={onClose}
-              className="absolute top-6 right-6 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors"
+              className="fixed top-6 right-6 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors"
               aria-label="Fechar assistente de voz"
             >
               <X className="h-5 w-5" />
             </motion.button>
 
-            {/* Centered card panel — absolute center */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, x: "-50%", y: "-50%" }}
-              animate={{ scale: 1, opacity: 1, x: "-50%", y: "-50%" }}
-              exit={{ scale: 0.9, opacity: 0, x: "-50%", y: "-50%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="absolute top-1/2 left-1/2 z-10 flex flex-col items-center gap-6 max-w-md w-[calc(100%-2rem)] px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto"
+            {/* Centering wrapper */}
+            <div className="min-h-full flex items-center justify-center p-4">
+              {/* Card panel */}
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                transition={{ type: "spring", damping: 25, stiffness: 250 }}
+                className="relative z-10 flex flex-col items-center gap-6 max-w-md w-full px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl"
+              >
             >
               {/* Title */}
               <motion.div
