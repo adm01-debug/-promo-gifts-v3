@@ -185,7 +185,6 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl max-h-[90vh] overflow-hidden"
                   style={{
                     background: "rgba(8,8,18,0.95)",
-                    border: `1.5px solid ${borderGlow.border}`,
                   }}
                   animate={{
                     boxShadow: [
@@ -198,8 +197,13 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       borderGlow.borderBright,
                       borderGlow.borderDim,
                     ],
+                    border: `1.5px solid ${borderGlow.border}`,
                   }}
-                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{
+                    boxShadow: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
+                    borderColor: { duration: 3.5, repeat: Infinity, ease: "easeInOut" },
+                    border: { duration: 0.8, ease: "easeInOut" },
+                  }}
                 >
                 {/* Title */}
                 <motion.div
