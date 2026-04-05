@@ -147,6 +147,7 @@ describe('invokeExternalDbDelete', () => {
     await invokeExternalDbDelete('products', 'del-1');
     expect(mockInvoke).toHaveBeenCalledWith('external-db-bridge', {
       body: { table: 'products', operation: 'delete', id: 'del-1' },
+      headers: { Authorization: 'Bearer mock-token' },
     });
   });
 });
