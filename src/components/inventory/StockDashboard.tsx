@@ -133,14 +133,14 @@ function StatCard({
 function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => void }) {
   const severityStyles = {
     info: 'border-primary/30 bg-primary/5',
-    warning: 'border-amber-500/30 bg-amber-500/5',
-    error: 'border-red-500/30 bg-red-500/5',
+    warning: 'border-warning/30 bg-warning/5',
+    error: 'border-destructive/30 bg-destructive/5',
   };
 
   const severityIcons = {
     info: <AlertCircle className="h-5 w-5 text-primary" />,
-    warning: <AlertTriangle className="h-5 w-5 text-amber-600" />,
-    error: <XCircle className="h-5 w-5 text-red-600" />,
+    warning: <AlertTriangle className="h-5 w-5 text-warning" />,
+    error: <XCircle className="h-5 w-5 text-destructive" />,
   };
 
   return (
