@@ -274,13 +274,13 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       clearResetPhaseTimer();
       clearSessionStartTimer();
       try {
-        scribe.disconnect();
+        disconnectScribeRef.current();
       } catch {
       }
       stopSpeakingRef.current?.();
       stopSpeakingRef.current = null;
     };
-  }, [clearResetPhaseTimer, clearSessionStartTimer, scribe]);
+  }, [clearResetPhaseTimer, clearSessionStartTimer]);
 
   return {
     phase,
