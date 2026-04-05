@@ -44,16 +44,16 @@ const actionIcons: Record<string, React.ReactNode> = {
 const actionColors: Record<string, string> = {
   created: "bg-primary/10 text-primary border-primary/20",
   updated: "bg-primary/10 text-primary border-primary/20",
-  status_changed: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+  status_changed: "bg-warning/10 text-warning border-warning/20",
   item_added: "bg-primary/10 text-primary border-primary/20",
-  item_removed: "bg-red-500/10 text-red-600 border-red-500/20",
+  item_removed: "bg-destructive/10 text-destructive border-destructive/20",
   item_updated: "bg-primary/15 text-primary/80 border-primary/25",
   // Sync events
   sync_started: "bg-primary/10 text-primary/70 border-primary/20",
   sync_pdf_ok: "bg-primary/10 text-primary/60 border-primary/15",
-  sync_pdf_error: "bg-orange-500/10 text-orange-600 border-orange-500/20",
+  sync_pdf_error: "bg-warning/10 text-warning border-warning/20",
   sync_success: "bg-primary/10 text-primary border-primary/30",
-  sync_error: "bg-red-500/10 text-red-600 border-red-500/20",
+  sync_error: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 export function QuoteHistoryPanel({ quoteId }: QuoteHistoryPanelProps) {

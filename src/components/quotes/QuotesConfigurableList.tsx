@@ -99,9 +99,9 @@ function getValidityInfo(validUntil: string | undefined | null) {
   const date = new Date(validUntil);
   const days = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const expired = days < 0;
-  if (expired) return { label: "Vencido", color: "text-red-400", bgColor: "bg-red-500/10", urgent: true };
-  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-red-400", bgColor: "bg-red-500/10", urgent: true };
-  if (days <= 7) return { label: `${days}d restantes`, color: "text-yellow-400", bgColor: "bg-yellow-500/10", urgent: true };
+  if (expired) return { label: "Vencido", color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
+  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
+  if (days <= 7) return { label: `${days}d restantes`, color: "text-warning", bgColor: "bg-warning/10", urgent: true };
   return null;
 }
 
