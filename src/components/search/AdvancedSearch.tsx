@@ -361,10 +361,16 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
       {/* Voice Search Overlay */}
       <VoiceSearchOverlay
         isOpen={isVoiceOverlayOpen}
-        isListening={isListening}
-        transcript={transcript}
+        phase={voiceAgent.phase}
+        partialTranscript={voiceAgent.partialTranscript}
+        finalTranscript={voiceAgent.finalTranscript}
+        agentResponse={voiceAgent.agentResponse}
+        error={voiceAgent.error}
         onClose={handleCloseVoiceOverlay}
-        onToggleListening={handleVoiceSearch}
+        onStartListening={voiceAgent.startListening}
+        onStopListening={voiceAgent.stopListening}
+        onStopSpeaking={voiceAgent.stopSpeaking}
+        onCommandSelect={handleVoiceCommandSelect}
       />
     </div>
   );
