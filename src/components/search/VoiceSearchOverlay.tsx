@@ -96,11 +96,11 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
               key={i}
               className="absolute rounded-full"
               style={{
-                width: 4,
-                height: 4,
+                width: 3,
+                height: 3,
                 background: i % 2 === 0 ? colors.inner : colors.outer,
-                left: 90 + r * Math.cos(rad) - 2,
-                top: 90 + r * Math.sin(rad) - 2,
+                left: 63 + r * Math.cos(rad) - 1.5,
+                top: 63 + r * Math.sin(rad) - 1.5,
               }}
               animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.4, 0.8] }}
               transition={{
