@@ -382,7 +382,7 @@ export default function MagicUp() {
                       <>
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-background border">
                           
-<img src={m.logoPreview} alt="Logo" className="w-full h-full object-contain" loading="lazy" loading="lazy" />
+<img src={m.logoPreview} alt="Logo" className="w-full h-full object-contain" loading="lazy" />
                         </div>
                         <Button variant="outline" size="sm" type="button">Trocar logo</Button>
                       </>
