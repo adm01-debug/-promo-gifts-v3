@@ -264,7 +264,7 @@ export function TechniquesPanel() {
                     </TableCell>
                     <TableCell className="text-center">
                       {tecnica.aplicaSuperficieCurva ? (
-                        <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
+                        <CheckCircle className="h-4 w-4 text-success mx-auto" />
                       ) : (
                         <XCircle className="h-4 w-4 text-muted-foreground mx-auto" />
                       )}
