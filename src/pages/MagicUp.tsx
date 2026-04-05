@@ -183,7 +183,7 @@ export default function MagicUp() {
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/5 border border-primary/20">
                     {m.selectedClient.logo_url && (
                       
-<img src={m.selectedClient.logo_url} alt="" className="w-8 h-8 rounded object-contain bg-background border" loading="lazy" loading="lazy" />
+<img src={m.selectedClient.logo_url} alt="" className="w-8 h-8 rounded object-contain bg-background border" loading="lazy" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{m.selectedClient.name}</p>
