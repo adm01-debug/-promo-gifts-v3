@@ -14,7 +14,6 @@ import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
-import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
 export interface SearchResult {
