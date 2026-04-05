@@ -192,7 +192,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     ? { duration: 6.6, repeat: Infinity, ease: "easeInOut" }
                     : { duration: 0.5 },
                 }}
-                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border-0 bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-y-auto"
+                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border-0 bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-hidden"
               >
                 {/* Title */}
                 <motion.div
