@@ -28,148 +28,321 @@ const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string }> =
 };
 
 /* ------------------------------------------------------------------ */
-/*  Animated Orb Component — the visual core                          */
+/*  Color palettes per phase                                           */
+/* ------------------------------------------------------------------ */
+function usePhaseColors(phase: VoiceAgentPhase, isBooting: boolean) {
+  const effectivePhase = isBooting ? "booting" : phase;
+  return useMemo(() => {
+    switch (effectivePhase) {
+      case "listening":
+        return {
+          primary: "#06b6d4", secondary: "#f97316", accent: "#22d3ee",
+          glow1: "rgba(6,182,212,0.5)", glow2: "rgba(249,115,22,0.35)",
+          particles: ["#06b6d4", "#22d3ee", "#67e8f9", "#f97316", "#fb923c", "#fbbf24"],
+        };
+      case "processing":
+        return {
+          primary: "#f59e0b", secondary: "#8b5cf6", accent: "#fbbf24",
+          glow1: "rgba(245,158,11,0.5)", glow2: "rgba(139,92,246,0.35)",
+          particles: ["#f59e0b", "#fbbf24", "#fde68a", "#8b5cf6", "#a78bfa", "#c4b5fd"],
+        };
+      case "speaking":
+        return {
+          primary: "#10b981", secondary: "#06b6d4", accent: "#34d399",
+          glow1: "rgba(16,185,129,0.5)", glow2: "rgba(6,182,212,0.35)",
+          particles: ["#10b981", "#34d399", "#6ee7b7", "#06b6d4", "#22d3ee", "#a7f3d0"],
+        };
+      case "error":
+        return {
+          primary: "#ef4444", secondary: "#f97316", accent: "#f87171",
+          glow1: "rgba(239,68,68,0.45)", glow2: "rgba(249,115,22,0.3)",
+          particles: ["#ef4444", "#f87171", "#fca5a5", "#f97316"],
+        };
+      case "booting":
+        return {
+          primary: "#8b5cf6", secondary: "#ec4899", accent: "#a78bfa",
+          glow1: "rgba(139,92,246,0.45)", glow2: "rgba(236,72,153,0.3)",
+          particles: ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ec4899", "#f472b6"],
+        };
+      default:
+        return {
+          primary: "#a855f7", secondary: "#06b6d4", accent: "#c084fc",
+          glow1: "rgba(168,85,247,0.35)", glow2: "rgba(6,182,212,0.25)",
+          particles: ["#a855f7", "#c084fc", "#d8b4fe", "#06b6d4", "#22d3ee"],
+        };
+    }
+  }, [effectivePhase]);
+}
+
+/* ------------------------------------------------------------------ */
+/*  Flowing Wave Ring — SVG animated wave loops                        */
+/* ------------------------------------------------------------------ */
+function FlowingWaveRing({ radius, color, speed, amplitude, waves, opacity, strokeWidth = 1.5, reverse = false }: {
+  radius: number; color: string; speed: number; amplitude: number; waves: number;
+  opacity: number; strokeWidth?: number; reverse?: boolean;
+}) {
+  const paths = useMemo(() => {
+    return Array.from({ length: waves }).map((_, w) => {
+      const points: string[] = [];
+      const segments = 100;
+      for (let i = 0; i <= segments; i++) {
+        const angle = (i / segments) * Math.PI * 2;
+        const waveOffset = Math.sin(angle * (3 + w) + w * 1.5) * amplitude * (1 + w * 0.25);
+        const r = radius - 8 + waveOffset;
+        const x = radius + r * Math.cos(angle);
+        const y = radius + r * Math.sin(angle);
+        points.push(`${x},${y}`);
+      }
+      return points.join(" ");
+    });
+  }, [radius, amplitude, waves]);
+
+  return (
+    <motion.div
+      className="absolute"
+      style={{
+        width: radius * 2,
+        height: radius * 2,
+        left: `calc(50% - ${radius}px)`,
+        top: `calc(50% - ${radius}px)`,
+      }}
+      animate={{ rotate: reverse ? -360 : 360 }}
+      transition={{ duration: speed, repeat: Infinity, ease: "linear" }}
+    >
+      <svg width={radius * 2} height={radius * 2} viewBox={`0 0 ${radius * 2} ${radius * 2}`}>
+        <defs>
+          <filter id={`wave-glow-${color.replace('#', '')}-${radius}`}>
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feMerge>
+              <feMergeNode in="blur" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+        {paths.map((points, w) => (
+          <motion.polyline
+            key={w}
+            points={points}
+            fill="none"
+            stroke={color}
+            strokeWidth={strokeWidth}
+            strokeLinecap="round"
+            filter={`url(#wave-glow-${color.replace('#', '')}-${radius})`}
+            animate={{ opacity: [opacity * (1 - w * 0.12), opacity * 0.3, opacity * (1 - w * 0.12)] }}
+            transition={{ duration: 2.5 + w * 0.6, repeat: Infinity, ease: "easeInOut" }}
+          />
+        ))}
+      </svg>
+    </motion.div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Particle Field — sparkling dots orbiting the core                  */
+/* ------------------------------------------------------------------ */
+function ParticleField({ colors, count, radius, isActive }: {
+  colors: string[]; count: number; radius: number; isActive: boolean;
+}) {
+  const particles = useMemo(() =>
+    Array.from({ length: count }).map((_, i) => ({
+      angle: (i / count) * 360 + Math.random() * 25,
+      dist: radius * 0.4 + Math.random() * radius * 0.65,
+      size: 1 + Math.random() * 3.5,
+      color: colors[i % colors.length],
+      speed: 1.8 + Math.random() * 3,
+      delay: Math.random() * 2.5,
+    })),
+    [colors, count, radius]
+  );
+
+  return (
+    <>
+      {particles.map((p, i) => {
+        const rad = (p.angle * Math.PI) / 180;
+        const x = Math.cos(rad) * p.dist;
+        const y = Math.sin(rad) * p.dist;
+        return (
+          <motion.div
+            key={i}
+            className="absolute rounded-full"
+            style={{
+              width: p.size,
+              height: p.size,
+              background: p.color,
+              left: `calc(50% + ${x}px)`,
+              top: `calc(50% + ${y}px)`,
+              boxShadow: `0 0 ${p.size * 4}px ${p.color}`,
+            }}
+            animate={isActive ? {
+              opacity: [0.15, 1, 0.15],
+              scale: [0.4, 2, 0.4],
+              x: [0, Math.cos(rad) * 10, 0],
+              y: [0, Math.sin(rad) * 10, 0],
+            } : {
+              opacity: [0.1, 0.5, 0.1],
+              scale: [0.7, 1.3, 0.7],
+            }}
+            transition={{
+              duration: p.speed,
+              repeat: Infinity,
+              delay: p.delay,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Light Rays — radial beams shooting from the core                   */
+/* ------------------------------------------------------------------ */
+function LightRays({ color1, color2, count, isActive }: {
+  color1: string; color2: string; count: number; isActive: boolean;
+}) {
+  return (
+    <motion.div
+      className="absolute inset-0"
+      animate={{ rotate: 360 }}
+      transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+    >
+      {Array.from({ length: count }).map((_, i) => {
+        const angle = (i / count) * 360;
+        const color = i % 2 === 0 ? color1 : color2;
+        return (
+          <motion.div
+            key={i}
+            className="absolute"
+            style={{
+              width: 1.5,
+              background: `linear-gradient(to top, ${color}, transparent)`,
+              left: "50%",
+              top: "50%",
+              transformOrigin: "bottom center",
+              transform: `rotate(${angle}deg) translateY(-50px)`,
+              borderRadius: 2,
+            }}
+            animate={{
+              opacity: isActive ? [0.05, 0.6, 0.05] : [0.03, 0.25, 0.03],
+              height: isActive ? [25, 55, 25] : [12, 25, 12],
+            }}
+            transition={{
+              duration: 1.2 + (i % 4) * 0.3,
+              repeat: Infinity,
+              delay: i * 0.12,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
+    </motion.div>
+  );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Animated Orb — the spectacular visual core                         */
 /* ------------------------------------------------------------------ */
 function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boolean }) {
   const effectivePhase = isBooting ? "booting" : phase;
-
-  // Color config per phase
-  const colors = useMemo(() => {
-    switch (effectivePhase) {
-      case "listening":
-        return { inner: "#06b6d4", outer: "#0891b2", glow: "rgba(6,182,212,0.4)", ring: "rgba(6,182,212,0.15)" };
-      case "processing":
-        return { inner: "#f59e0b", outer: "#d97706", glow: "rgba(245,158,11,0.4)", ring: "rgba(245,158,11,0.15)" };
-      case "speaking":
-        return { inner: "#10b981", outer: "#059669", glow: "rgba(16,185,129,0.4)", ring: "rgba(16,185,129,0.15)" };
-      case "error":
-        return { inner: "#ef4444", outer: "#dc2626", glow: "rgba(239,68,68,0.35)", ring: "rgba(239,68,68,0.12)" };
-      case "booting":
-        return { inner: "#8b5cf6", outer: "#7c3aed", glow: "rgba(139,92,246,0.35)", ring: "rgba(139,92,246,0.12)" };
-      default: // idle
-        return { inner: "#a855f7", outer: "#7c3aed", glow: "rgba(168,85,247,0.3)", ring: "rgba(168,85,247,0.1)" };
-    }
-  }, [effectivePhase]);
-
-  // Listening uses faster, more dramatic animation
+  const colors = usePhaseColors(phase, isBooting);
   const isActive = effectivePhase === "listening" || effectivePhase === "speaking";
+  const SIZE = 200;
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
-      {/* Outer glow rings */}
-      {[0, 1, 2].map((i) => (
-        <motion.div
-          key={`ring-${i}`}
-          className="absolute rounded-full"
-          style={{
-            width: 140 + i * 28,
-            height: 140 + i * 28,
-            background: `radial-gradient(circle, ${colors.ring} 0%, transparent 70%)`,
-          }}
-          animate={
-            isActive
-              ? { scale: [1, 1.15, 1], opacity: [0.6, 0.2, 0.6] }
-              : { scale: [1, 1.05, 1], opacity: [0.4, 0.15, 0.4] }
-          }
-          transition={{
-            duration: isActive ? 1.2 : 2.5,
-            repeat: Infinity,
-            ease: "easeInOut",
-            delay: i * 0.3,
-          }}
-        />
-      ))}
-
-      {/* Particle ring — rotating dots */}
-      <motion.div
-        className="absolute"
-        style={{ width: 126, height: 126 }}
-        animate={{ rotate: 360 }}
-        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-      >
-        {Array.from({ length: 12 }).map((_, i) => {
-          const angle = (i / 12) * 360;
-          const rad = (angle * Math.PI) / 180;
-          const r = 58;
-          return (
-            <motion.div
-              key={i}
-              className="absolute rounded-full"
-              style={{
-                width: 3,
-                height: 3,
-                background: i % 2 === 0 ? colors.inner : colors.outer,
-                left: 63 + r * Math.cos(rad) - 1.5,
-                top: 63 + r * Math.sin(rad) - 1.5,
-              }}
-              animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.4, 0.8] }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                delay: i * 0.12,
-                ease: "easeInOut",
-              }}
-            />
-          );
-        })}
-      </motion.div>
-
-      {/* Inner orb */}
+    <div className="relative flex items-center justify-center" style={{ width: SIZE, height: SIZE }}>
+      {/* Deep ambient glow */}
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 84,
-          height: 84,
-          background: `radial-gradient(circle at 35% 35%, ${colors.inner}, ${colors.outer})`,
-          boxShadow: `0 0 40px ${colors.glow}, 0 0 80px ${colors.glow}, inset 0 0 20px rgba(255,255,255,0.1)`,
+          width: SIZE + 100,
+          height: SIZE + 100,
+          background: `radial-gradient(circle, ${colors.glow1} 0%, ${colors.glow2} 35%, transparent 70%)`,
+          filter: "blur(25px)",
         }}
-        animate={
-          isActive
-            ? { scale: [1, 1.08, 0.96, 1.04, 1] }
-            : effectivePhase === "processing" || effectivePhase === "booting"
-              ? { scale: [1, 1.06, 1] }
-              : { scale: [1, 1.03, 1] }
+        animate={isActive
+          ? { scale: [1, 1.25, 0.95, 1.15, 1], opacity: [0.4, 0.75, 0.4] }
+          : { scale: [1, 1.1, 1], opacity: [0.25, 0.45, 0.25] }
         }
-        transition={{
-          duration: isActive ? 1.0 : 2.0,
-          repeat: Infinity,
-          ease: "easeInOut",
-        }}
+        transition={{ duration: isActive ? 1.5 : 3.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Inner highlight/reflection */}
+      {/* Outer flowing wave */}
+      <FlowingWaveRing radius={92} color={colors.primary} speed={10} amplitude={7} waves={4} opacity={0.65} strokeWidth={1.5} />
+      {/* Mid flowing wave — counter rotation */}
+      <FlowingWaveRing radius={78} color={colors.secondary} speed={14} amplitude={5} waves={3} opacity={0.45} strokeWidth={1.2} reverse />
+      {/* Inner flowing wave */}
+      <FlowingWaveRing radius={65} color={colors.accent} speed={18} amplitude={4} waves={2} opacity={0.3} strokeWidth={0.8} />
+
+      {/* Light rays */}
+      <LightRays color1={colors.primary} color2={colors.secondary} count={isActive ? 18 : 12} isActive={isActive} />
+
+      {/* Particle field */}
+      <ParticleField colors={colors.particles} count={isActive ? 35 : 20} radius={88} isActive={isActive} />
+
+      {/* Core orb — rich multi-stop gradient */}
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 35,
-          height: 35,
-          top: 38,
-          left: 42,
-          background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25), transparent 70%)",
+          width: 65,
+          height: 65,
+          background: `radial-gradient(circle at 30% 30%, ${colors.accent}, ${colors.primary} 50%, ${colors.secondary})`,
+          boxShadow: `
+            0 0 25px ${colors.glow1},
+            0 0 50px ${colors.glow1},
+            0 0 90px ${colors.glow2},
+            inset 0 0 20px rgba(255,255,255,0.12)
+          `,
         }}
-        animate={{ opacity: [0.5, 0.8, 0.5] }}
-        transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        animate={isActive
+          ? { scale: [1, 1.14, 0.9, 1.08, 1] }
+          : effectivePhase === "processing" || effectivePhase === "booting"
+            ? { scale: [1, 1.09, 1] }
+            : { scale: [1, 1.04, 1] }
+        }
+        transition={{ duration: isActive ? 0.8 : 2.2, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Processing spinner overlay */}
+      {/* Core white highlight */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: 32,
+          height: 32,
+          background: "radial-gradient(circle at 40% 35%, rgba(255,255,255,0.35), rgba(255,255,255,0.03) 65%, transparent)",
+        }}
+        animate={{ opacity: [0.5, 0.9, 0.5], scale: [0.85, 1.15, 0.85] }}
+        transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Accent ring — subtle spinning border */}
+      <motion.div
+        className="absolute rounded-full"
+        style={{
+          width: 52,
+          height: 52,
+          border: `1px solid ${colors.secondary}30`,
+        }}
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.7, 0.3], rotate: [0, 180, 360] }}
+        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+      />
+
+      {/* Processing spinner */}
       {(effectivePhase === "processing" || effectivePhase === "booting") && (
-        <motion.div
-          className="absolute flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-        >
-          <Loader2 className="h-8 w-8 text-white/70 animate-spin" />
+        <motion.div className="absolute flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <Loader2 className="h-6 w-6 text-white/80 animate-spin" />
         </motion.div>
       )}
 
-      {/* Speaking wave icon */}
+      {/* Speaking icon */}
       {effectivePhase === "speaking" && (
         <motion.div
           className="absolute flex items-center justify-center"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ type: "spring", damping: 12 }}
         >
-          <Volume2 className="h-8 w-8 text-white/80" />
+          <Volume2 className="h-6 w-6 text-white/90" />
         </motion.div>
       )}
     </div>
@@ -177,25 +350,41 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
 }
 
 /* ------------------------------------------------------------------ */
-/*  Waveform bars                                                      */
+/*  Spectrum Waveform — brilliant animated bars                        */
 /* ------------------------------------------------------------------ */
-function WaveformBars({ color, count = 9 }: { color: string; count?: number }) {
+function SpectrumWaveform({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boolean }) {
+  const colors = usePhaseColors(phase, isBooting);
+  const isActive = phase === "listening" || phase === "speaking" || isBooting;
+  const barCount = 15;
+
   return (
-    <div className="flex items-center gap-1 h-8">
-      {Array.from({ length: count }).map((_, i) => (
-        <motion.div
-          key={i}
-          animate={{ height: [8, 28, 8] }}
-          transition={{
-            duration: 0.5 + Math.random() * 0.3,
-            repeat: Infinity,
-            delay: i * 0.08,
-            ease: "easeInOut",
-          }}
-          className="w-1 rounded-full"
-          style={{ background: color, height: 8 }}
-        />
-      ))}
+    <div className="flex items-center justify-center gap-[3px] h-8">
+      {Array.from({ length: barCount }).map((_, i) => {
+        const center = (barCount - 1) / 2;
+        const distFromCenter = Math.abs(i - center) / center;
+        const maxH = isActive ? 26 - distFromCenter * 12 : 10 - distFromCenter * 5;
+        const minH = 3;
+        const color = i % 3 === 0 ? colors.primary : i % 3 === 1 ? colors.secondary : colors.accent;
+
+        return (
+          <motion.div
+            key={i}
+            className="rounded-full"
+            style={{
+              width: 2.5,
+              background: `linear-gradient(to top, ${color}, ${colors.accent})`,
+              boxShadow: `0 0 6px ${color}50`,
+            }}
+            animate={{ height: [minH, maxH, minH] }}
+            transition={{
+              duration: isActive ? 0.35 + Math.random() * 0.25 : 1 + Math.random() * 0.5,
+              repeat: Infinity,
+              delay: i * 0.05,
+              ease: "easeInOut",
+            }}
+          />
+        );
+      })}
     </div>
   );
 }
@@ -301,199 +490,187 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             aria-modal="true"
             aria-label="Assistente de Voz"
           >
-            {/* Full-screen glass backdrop — content visible through */}
+            {/* Glass backdrop */}
             <div
               className="absolute inset-0 backdrop-blur-md"
               style={{ background: "rgba(5,5,15,0.15)" }}
               onClick={onClose}
             />
 
-            {/* Absolutely centered card */}
+            {/* Centered card */}
             <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 30 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
-                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/10 bg-[rgba(10,10,20,0.88)] shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
               >
-              {/* Title */}
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.15 }}
-                className="text-center"
-              >
-                <h2 className="text-xs font-medium text-white/50 mb-0.5">
-                  {title}
-                </h2>
-                <p className="text-white/25 text-[10px]">{subtitle}</p>
-              </motion.div>
+                {/* Title */}
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="text-center"
+                >
+                  <h2 className="text-xs font-medium text-white/50 mb-0.5">{title}</h2>
+                  <p className="text-white/25 text-[10px]">{subtitle}</p>
+                </motion.div>
 
-              {/* Clickable Orb */}
-              <motion.div
-                className="cursor-pointer select-none"
-                onClick={handleOrbClick}
-                whileHover={{ scale: 1.03 }}
-                whileTap={{ scale: 0.97 }}
-                role="button"
-                aria-label={
-                  showBooting ? "Ativando microfone"
-                    : phase === "listening" ? "Parar de ouvir"
-                    : phase === "processing" ? "Processando comando"
-                    : phase === "speaking" ? "Parar resposta"
-                    : "Iniciar microfone"
-                }
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleOrbClick(); }}
-              >
-                <VoiceOrb phase={phase} isBooting={showBooting} />
-              </motion.div>
+                {/* Clickable Orb */}
+                <motion.div
+                  className="cursor-pointer select-none"
+                  onClick={handleOrbClick}
+                  whileHover={{ scale: 1.03 }}
+                  whileTap={{ scale: 0.97 }}
+                  role="button"
+                  aria-label={
+                    showBooting ? "Ativando microfone"
+                      : phase === "listening" ? "Parar de ouvir"
+                      : phase === "processing" ? "Processando comando"
+                      : phase === "speaking" ? "Parar resposta"
+                      : "Iniciar microfone"
+                  }
+                  tabIndex={0}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleOrbClick(); }}
+                >
+                  <VoiceOrb phase={phase} isBooting={showBooting} />
+                </motion.div>
 
-              {/* Waveform bars */}
-              <AnimatePresence mode="wait">
-                {(phase === "listening" || showBooting) && (
-                  <motion.div
-                    key="waveform-listen"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
-                    <WaveformBars color={showBooting ? "#8b5cf6" : "#06b6d4"} />
-                  </motion.div>
-                )}
-                {phase === "speaking" && (
-                  <motion.div
-                    key="waveform-speak"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                  >
-                    <WaveformBars color="#10b981" count={7} />
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                {/* Spectrum waveform */}
+                <AnimatePresence mode="wait">
+                  {(phase === "listening" || phase === "speaking" || showBooting) && (
+                    <motion.div
+                      key="spectrum"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                    >
+                      <SpectrumWaveform phase={phase} isBooting={showBooting} />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              {/* Live transcript */}
-              <AnimatePresence mode="wait">
-                {showTranscript && (
-                  <motion.div
-                    key="transcript"
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="w-full"
-                  >
-                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4 backdrop-blur-sm">
-                      <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">
-                        {phase === "listening" ? "Você está dizendo:" : "Você disse:"}
-                      </p>
-                      <p className="text-base font-medium text-white/90">
-                        "{partialTranscript || finalTranscript}"
-                        {phase === "listening" && partialTranscript && (
-                          <motion.span
-                            animate={{ opacity: [1, 0] }}
-                            transition={{ duration: 0.5, repeat: Infinity }}
-                            className="text-cyan-400"
-                          >
-                            |
-                          </motion.span>
-                        )}
-                      </p>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                {/* Live transcript */}
+                <AnimatePresence mode="wait">
+                  {showTranscript && (
+                    <motion.div
+                      key="transcript"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="w-full"
+                    >
+                      <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+                        <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">
+                          {phase === "listening" ? "Você está dizendo:" : "Você disse:"}
+                        </p>
+                        <p className="text-base font-medium text-white/90">
+                          "{partialTranscript || finalTranscript}"
+                          {phase === "listening" && partialTranscript && (
+                            <motion.span
+                              animate={{ opacity: [1, 0] }}
+                              transition={{ duration: 0.5, repeat: Infinity }}
+                              style={{ color: "#22d3ee" }}
+                            >
+                              |
+                            </motion.span>
+                          )}
+                        </p>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
-              {/* Agent response */}
-              <AnimatePresence mode="wait">
-                {agentResponse && (phase === "speaking" || phase === "idle") && (
-                  <motion.div
-                    key="agent-response"
-                    initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                    className="w-full"
-                  >
-                    <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4 backdrop-blur-sm">
-                      <div className="flex items-start gap-3">
-                        <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
-                        </div>
-                        <div>
-                          <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">Assistente</p>
-                          <p className="text-sm font-medium text-white/90">{agentResponse}</p>
+                {/* Agent response */}
+                <AnimatePresence mode="wait">
+                  {agentResponse && (phase === "speaking" || phase === "idle") && (
+                    <motion.div
+                      key="agent-response"
+                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
+                      className="w-full"
+                    >
+                      <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+                        <div className="flex items-start gap-3">
+                          <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
+                          </div>
+                          <div>
+                            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">Assistente</p>
+                            <p className="text-sm font-medium text-white/90">{agentResponse}</p>
+                          </div>
                         </div>
                       </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Error */}
+                <AnimatePresence>
+                  {error && (
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      className="w-full bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 text-center"
+                    >
+                      <p className="text-sm text-red-300">{error}</p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Suggestions */}
+                {phase === "idle" && !showBooting && (
+                  <motion.div
+                    initial={{ y: 15, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.25 }}
+                    className="space-y-3 text-center w-full"
+                  >
+                    <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
+                      Experimente dizer
+                    </p>
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {[
+                        "Quero canetas azuis baratas",
+                        "Mostra mochilas ecológicas",
+                        "Abre os orçamentos",
+                        "Qual o produto mais vendido?",
+                      ].map((cmd) => (
+                        <button
+                          key={cmd}
+                          onClick={() => onCommandSelect?.(cmd)}
+                          className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-xs text-white/40 hover:text-white/70 border border-white/8 hover:border-white/15 transition-all cursor-pointer"
+                        >
+                          "{cmd}"
+                        </button>
+                      ))}
                     </div>
                   </motion.div>
                 )}
-              </AnimatePresence>
 
-              {/* Error */}
-              <AnimatePresence>
-                {error && (
-                  <motion.div
+                {/* Footer: ESC hint + close button */}
+                <div className="w-full flex items-center justify-between mt-1">
+                  <motion.p
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="w-full bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 text-center"
+                    transition={{ delay: 0.4 }}
+                    className="text-[10px] text-white/20"
                   >
-                    <p className="text-sm text-red-300">{error}</p>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-
-              {/* Suggestions — idle only, not booting */}
-              {phase === "idle" && !showBooting && (
-                <motion.div
-                  initial={{ y: 15, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.25 }}
-                  className="space-y-3 text-center w-full"
-                >
-                  <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
-                    Experimente dizer
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    {[
-                      "Quero canetas azuis baratas",
-                      "Mostra mochilas ecológicas",
-                      "Abre os orçamentos",
-                      "Qual o produto mais vendido?",
-                    ].map((cmd) => (
-                      <button
-                        key={cmd}
-                        onClick={() => onCommandSelect?.(cmd)}
-                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-xs text-white/40 hover:text-white/70 border border-white/8 hover:border-white/15 transition-all cursor-pointer"
-                      >
-                        "{cmd}"
-                      </button>
-                    ))}
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Footer: ESC hint + close button */}
-              <div className="w-full flex items-center justify-between mt-1">
-                <motion.p
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="text-[10px] text-white/20"
-                >
-                  <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> para fechar
-                </motion.p>
-                <button
-                  onClick={onClose}
-                  className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
-                  aria-label="Fechar assistente de voz"
-                >
-                  <X className="h-3.5 w-3.5" />
-                </button>
-              </div>
-            </motion.div>
-            </div>{/* end centering wrapper */}
+                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> para fechar
+                  </motion.p>
+                  <button
+                    onClick={onClose}
+                    className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
+                    aria-label="Fechar assistente de voz"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              </motion.div>
+            </div>
 
             {/* Screen-reader live region */}
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
