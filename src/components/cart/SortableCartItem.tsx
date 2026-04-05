@@ -104,7 +104,8 @@ export function SortableCartItem({
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
             {item.product_image_url ? (
-              <img src={item.product_image_url} alt={item.product_name} className="w-full h-full object-contain p-4" loading="lazy" />
+              
+<img src={item.product_image_url} alt={item.product_name} className="w-full h-full object-contain p-4" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-12 w-12 text-muted-foreground/30" />

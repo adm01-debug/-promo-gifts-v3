@@ -86,7 +86,8 @@ export function BoxSelector({
           <div className="flex items-start gap-4">
             <div className="w-24 h-24 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
               {selectedBox.imageUrl ? (
-                <img src={selectedBox.imageUrl} alt={selectedBox.name} className="w-full h-full object-cover"  loading="lazy" />
+                
+<img src={selectedBox.imageUrl} alt={selectedBox.name} className="w-full h-full object-cover"  loading="lazy" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <Package className="h-10 w-10 text-muted-foreground" />

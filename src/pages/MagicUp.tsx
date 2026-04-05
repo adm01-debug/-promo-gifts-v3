@@ -182,7 +182,8 @@ export default function MagicUp() {
                 {m.selectedClient ? (
                   <div className="flex items-center gap-3 p-2 rounded-lg bg-primary/5 border border-primary/20">
                     {m.selectedClient.logo_url && (
-                      <img src={m.selectedClient.logo_url} alt="" className="w-8 h-8 rounded object-contain bg-background border" loading="lazy" loading="lazy" />
+                      
+<img src={m.selectedClient.logo_url} alt="" className="w-8 h-8 rounded object-contain bg-background border" loading="lazy" loading="lazy" />
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{m.selectedClient.name}</p>
@@ -221,7 +222,8 @@ export default function MagicUp() {
                               onClick={() => m.handleSelectClient(c)}
                             >
                               {c.logo_url && (
-                                <img src={c.logo_url} alt="" className="w-6 h-6 rounded object-contain border bg-background" loading="lazy" loading="lazy" />
+                                
+<img src={c.logo_url} alt="" className="w-6 h-6 rounded object-contain border bg-background" loading="lazy" loading="lazy" />
                               )}
                               <div className="min-w-0">
                                 <p className="font-medium truncate">{getCompanyDisplayName(c)}</p>
@@ -259,7 +261,8 @@ export default function MagicUp() {
                   <div className="flex gap-4">
                     {m.currentImage && (
                       <div className="w-24 h-24 rounded-lg overflow-hidden bg-background border shrink-0">
-                        <img src={m.currentImage} alt={m.selectedProduct.name} className="w-full h-full object-contain" loading="lazy" loading="lazy" />
+                        
+<img src={m.currentImage} alt={m.selectedProduct.name} className="w-full h-full object-contain" loading="lazy" loading="lazy" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 space-y-2">
@@ -378,7 +381,8 @@ export default function MagicUp() {
                     ) : m.logoPreview ? (
                       <>
                         <div className="w-20 h-20 rounded-lg overflow-hidden bg-background border">
-                          <img src={m.logoPreview} alt="Logo" className="w-full h-full object-contain" loading="lazy" loading="lazy" />
+                          
+<img src={m.logoPreview} alt="Logo" className="w-full h-full object-contain" loading="lazy" loading="lazy" />
                         </div>
                         <Button variant="outline" size="sm" type="button">Trocar logo</Button>
                       </>
@@ -604,7 +608,8 @@ export default function MagicUp() {
                         : "border-border hover:border-primary/40"
                     )}
                   >
-                    <img src={v.imageUrl} alt={`Variação ${i + 1}`} className="w-full h-full object-cover" loading="lazy" loading="lazy" />
+                    
+<img src={v.imageUrl} alt={`Variação ${i + 1}`} className="w-full h-full object-cover" loading="lazy" loading="lazy" />
                   </button>
                 ))}
               </div>

@@ -171,7 +171,8 @@ function ItemPersonalizationCard({
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-md bg-secondary overflow-hidden flex-shrink-0">
                 {imageUrl ? (
-                  <img src={imageUrl} alt={displayName} className="w-full h-full object-cover"  loading="lazy" />
+                  
+<img src={imageUrl} alt={displayName} className="w-full h-full object-cover"  loading="lazy" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     {isBox ? <Package className="h-5 w-5 text-muted-foreground" /> : <Palette className="h-5 w-5 text-muted-foreground" />}

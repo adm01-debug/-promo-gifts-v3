@@ -109,7 +109,8 @@ export default function PublicKitViewPage() {
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             {organization?.logo_url ? (
-              <img src={organization.logo_url} alt={organization.name} className="h-10 w-auto object-contain"  loading="lazy" />
+              
+<img src={organization.logo_url} alt={organization.name} className="h-10 w-auto object-contain"  loading="lazy" />
             ) : (
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Package className="h-5 w-5 text-primary" />
@@ -150,7 +151,8 @@ export default function PublicKitViewPage() {
             <CardContent>
               <div className="flex items-center gap-4">
                 {kit.box.imageUrl && (
-                  <img src={kit.box.imageUrl} alt={kit.box.name} className="w-20 h-20 object-contain rounded-lg border bg-muted/50"  loading="lazy" />
+                  
+<img src={kit.box.imageUrl} alt={kit.box.name} className="w-20 h-20 object-contain rounded-lg border bg-muted/50"  loading="lazy" />
                 )}
                 <div>
                   <p className="font-medium">{kit.box.name}</p>
@@ -176,7 +178,8 @@ export default function PublicKitViewPage() {
               {kit.items.map((item, idx) => (
                 <div key={idx} className="flex items-center gap-4 py-3 first:pt-0 last:pb-0">
                   {item.imageUrl ? (
-                    <img src={item.imageUrl} alt={item.name} className="w-14 h-14 object-contain rounded-lg border bg-muted/50 flex-shrink-0"  loading="lazy" />
+                    
+<img src={item.imageUrl} alt={item.name} className="w-14 h-14 object-contain rounded-lg border bg-muted/50 flex-shrink-0"  loading="lazy" />
                   ) : (
                     <div className="w-14 h-14 rounded-lg border bg-muted/50 flex items-center justify-center flex-shrink-0">
                       <Package className="h-5 w-5 text-muted-foreground" />

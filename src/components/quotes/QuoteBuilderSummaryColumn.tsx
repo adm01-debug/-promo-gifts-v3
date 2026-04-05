@@ -75,7 +75,8 @@ export function QuoteBuilderSummaryColumn({
                       <div className="flex items-start gap-3">
                         <div className="shrink-0">
                           {item.product_image_url ? (
-                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-lg bg-muted"  loading="lazy" />
+                            
+<img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-lg bg-muted"  loading="lazy" />
                           ) : (
                             <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                               <Package className="h-5 w-5 text-muted-foreground" />

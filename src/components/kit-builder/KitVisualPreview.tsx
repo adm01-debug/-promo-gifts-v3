@@ -65,7 +65,8 @@ export function KitVisualPreview({ kitState }: KitVisualPreviewProps) {
                       style={{ width: relativeSize, height: relativeSize }}
                     >
                       {item.imageUrl ? (
-                        <img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-1"  loading="lazy" />
+                        
+<img src={item.imageUrl} alt={item.name} className="w-full h-full object-contain p-1"  loading="lazy" />
                       ) : (
                         <Package className="h-5 w-5 text-muted-foreground" />
                       )}
