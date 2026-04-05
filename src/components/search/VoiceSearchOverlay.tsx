@@ -42,6 +42,21 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     onCommandSelect,
   }, ref) {
   const [isAutoStarting, setIsAutoStarting] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+  const wasOpenRef = useRef(false);
+
+  // Track closing transition to suppress idle flash during exit animation
+  useEffect(() => {
+    if (isOpen) {
+      wasOpenRef.current = true;
+      setIsClosing(false);
+    } else if (wasOpenRef.current) {
+      wasOpenRef.current = false;
+      setIsClosing(true);
+      const timer = setTimeout(() => setIsClosing(false), 300);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
 
   // Close on escape key
   useEffect(() => {
@@ -86,7 +101,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     prevPhaseRef.current = phase;
   }, [isOpen, phase, onStartListening]);
 
-  const showBootingState = isAutoStarting && phase === "idle";
+  const showBootingState = (isAutoStarting && phase === "idle") || isClosing;
   const config = phaseConfig[phase];
   const title = showBootingState ? "Ativando microfone..." : config.title;
   const subtitle = showBootingState ? "Preparando sua conversa por voz" : config.subtitle;
