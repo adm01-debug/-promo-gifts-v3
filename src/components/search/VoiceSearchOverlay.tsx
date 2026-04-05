@@ -171,21 +171,21 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl max-h-[90vh] overflow-hidden"
                   style={{
                     background: "rgba(8,8,18,0.95)",
-                    border: "1px solid rgba(56,130,246,0.25)",
+                    border: "1.5px solid rgba(56,130,246,0.35)",
                   }}
                   animate={{
                     boxShadow: [
-                      "0 0 8px 0px rgba(56,130,246,0.08), 0 0 20px 0px rgba(56,130,246,0.04), inset 0 0 8px 0px rgba(56,130,246,0.03)",
-                      "0 0 15px 2px rgba(56,130,246,0.18), 0 0 40px 4px rgba(56,130,246,0.08), inset 0 0 12px 0px rgba(56,130,246,0.06)",
-                      "0 0 8px 0px rgba(56,130,246,0.08), 0 0 20px 0px rgba(56,130,246,0.04), inset 0 0 8px 0px rgba(56,130,246,0.03)",
+                      "0 0 12px 1px rgba(56,130,246,0.15), 0 0 30px 4px rgba(56,130,246,0.08), inset 0 0 10px 0px rgba(56,130,246,0.05)",
+                      "0 0 25px 5px rgba(56,130,246,0.35), 0 0 60px 10px rgba(56,130,246,0.15), inset 0 0 18px 0px rgba(56,130,246,0.1)",
+                      "0 0 12px 1px rgba(56,130,246,0.15), 0 0 30px 4px rgba(56,130,246,0.08), inset 0 0 10px 0px rgba(56,130,246,0.05)",
                     ],
                     borderColor: [
-                      "rgba(56,130,246,0.2)",
-                      "rgba(56,130,246,0.45)",
-                      "rgba(56,130,246,0.2)",
+                      "rgba(56,130,246,0.3)",
+                      "rgba(56,130,246,0.7)",
+                      "rgba(56,130,246,0.3)",
                     ],
                   }}
-                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                  transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
                 >
                 {/* Title */}
                 <motion.div
