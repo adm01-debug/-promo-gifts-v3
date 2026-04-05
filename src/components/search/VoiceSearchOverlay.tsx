@@ -90,7 +90,7 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
         {Array.from({ length: 12 }).map((_, i) => {
           const angle = (i / 12) * 360;
           const rad = (angle * Math.PI) / 180;
-          const r = 85;
+          const r = 58;
           return (
             <motion.div
               key={i}
