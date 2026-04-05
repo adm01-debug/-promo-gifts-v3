@@ -17,7 +17,7 @@ import {
 } from '@/lib/theme-presets';
 import { PresetCard } from '@/components/settings/theme/PresetCard';
 import { BorderRadiusControl } from '@/components/settings/theme/BorderRadiusControl';
-import { ThemeExportImport } from '@/components/settings/theme/ThemeExportImport';
+
 import { ThemeResetDialog } from '@/components/settings/theme/ThemeResetDialog';
 import { useNavigate } from 'react-router-dom';
 
@@ -123,7 +123,6 @@ export default function AdminTemasPage() {
           </div>
         </div>
         <div className="flex items-center gap-2 ml-12 sm:ml-0">
-          <ThemeExportImport config={config} onImport={handleImport} />
           <Button size="sm" onClick={handleSave} className="gap-1.5 relative">
             <Save className="h-3.5 w-3.5" /> Salvar
             {hasUnsavedChanges && (
