@@ -73,7 +73,7 @@ const variants: Record<EmptyStateVariant, {
     icon: Users,
     title: "Nenhum cliente cadastrado",
     description: "Adicione clientes para começar a criar orçamentos personalizados.",
-    color: "text-purple-500"
+    color: "text-primary"
   },
   search: {
     icon: Search,
