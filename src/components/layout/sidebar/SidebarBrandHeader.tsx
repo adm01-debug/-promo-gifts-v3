@@ -1,6 +1,5 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
-import { Gift } from "lucide-react";
 
 interface SidebarBrandHeaderProps {
   isCollapsed: boolean;
