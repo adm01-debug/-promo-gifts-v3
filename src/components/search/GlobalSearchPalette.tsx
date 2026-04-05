@@ -12,7 +12,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import {
   Package, Users, FileText, ShoppingCart, ArrowRight, Loader2,
   BarChart3, Calculator, Wand2, Heart, TrendingUp, Sparkles,
-  Brain, Clock, Flame, X, Mic, FolderOpen,
+  Brain, Clock, Flame, X, Mic, FolderOpen, Search, Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
@@ -102,6 +102,14 @@ export function GlobalSearchPalette() {
             <CommandEmpty>Nenhum resultado encontrado para "{s.query}"</CommandEmpty>
           )}
 
+          {/* Hint for short queries */}
+          {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
+            <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground/60">
+              <Search className="h-4 w-4" />
+              <span>Digite mais para buscar...</span>
+            </div>
+          )}
+
           {/* Results */}
           {!s.isSearching && Object.entries(s.groupedResults).map(([type, items]) => {
             const config = typeConfig[type];
@@ -146,8 +154,8 @@ export function GlobalSearchPalette() {
                     <CommandItem key={`h-${i}`} value={`history-${term}`} onSelect={() => s.handleSuggestionClick(term)} className="flex items-center gap-3 py-2 group">
                       <div className="p-2 rounded-lg bg-muted"><Clock className="h-4 w-4 text-muted-foreground" /></div>
                       <span className="flex-1">{term}</span>
-                      <button onClick={e => s.handleRemoveFromHistory(e, term)} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity">
-                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                      <button onClick={e => s.handleRemoveFromHistory(e, term)} aria-label={`Remover "${term}" do histórico`} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity">
+                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" aria-hidden="true" />
                       </button>
                     </CommandItem>
                   ))}
@@ -157,13 +165,20 @@ export function GlobalSearchPalette() {
               {s.popularProducts.length > 0 && (
                 <>
                   <CommandSeparator />
-                  <CommandGroup heading="Produtos Populares">
-                    {s.popularProducts.map(product => (
+                   <CommandGroup heading="Produtos Populares">
+                    {s.popularProducts.map((product, idx) => (
                       <CommandItem key={`pop-${product.id}`} value={`popular-${product.name}`} onSelect={() => s.handleSelect(`/produto/${product.id}`, false)} className="flex items-center gap-3 py-2">
-                        <div className="p-2 rounded-lg bg-orange-500/10"><Flame className="h-4 w-4 text-orange-500" /></div>
+                        <div className={cn(
+                          "p-2 rounded-lg font-bold text-xs flex items-center justify-center w-8 h-8",
+                          idx === 0 ? "bg-orange/15 text-orange" : "bg-muted text-muted-foreground"
+                        )}>
+                          {idx === 0 ? <Flame className="h-4 w-4" /> : `#${idx + 1}`}
+                        </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-medium truncate">{product.name}</p>
-                          <p className="text-xs text-muted-foreground">{product.sku} • {product.view_count} visualizações</p>
+                          <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            {product.sku} • <Eye className="h-3 w-3 inline" /> {product.view_count}
+                          </p>
                         </div>
                         <Badge variant="outline" className="shrink-0 text-xs">Popular</Badge>
                       </CommandItem>
@@ -175,15 +190,15 @@ export function GlobalSearchPalette() {
               {s.contextualSuggestions.length > 0 && (
                 <>
                   <CommandSeparator />
-                  <CommandGroup heading={`Sugestões para ${s.routeContext.section === "products" ? "Catálogo" : s.routeContext.section === "quotes" ? "Orçamentos" : s.routeContext.section === "orders" ? "Pedidos" : s.routeContext.section === "clients" ? "Clientes" : "Esta Página"}`}>
-                    <div className="flex flex-wrap gap-2 p-2">
+                   <CommandGroup heading={`Sugestões para ${s.routeContext.section === "products" ? "Catálogo" : s.routeContext.section === "quotes" ? "Orçamentos" : s.routeContext.section === "orders" ? "Pedidos" : s.routeContext.section === "clients" ? "Clientes" : "Esta Página"}`}>
+                    <div className="flex flex-wrap gap-2 p-2" role="group" aria-label="Sugestões contextuais">
                       {s.contextualSuggestions.slice(0, 6).map(sug => (
-                        <button key={sug.id} onClick={() => s.handleSuggestionClick(sug.text)} className={cn(
-                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors",
-                          sug.type === "filter" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
-                          sug.type === "navigation" && "bg-primary/15 hover:bg-primary/25 text-primary/80 border border-primary/25",
-                          sug.type === "action" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
-                          sug.type === "search" && "bg-muted hover:bg-muted/80",
+                        <button key={sug.id} onClick={() => s.handleSuggestionClick(sug.text)} aria-label={`Buscar ${sug.text}`} className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all shadow-sm",
+                          sug.type === "filter" && "bg-primary/10 hover:bg-primary/20 text-primary border-2 border-primary/40 hover:border-primary/60",
+                          sug.type === "navigation" && "bg-accent hover:bg-accent/80 text-accent-foreground border-2 border-accent-foreground/20",
+                          sug.type === "action" && "bg-orange/10 hover:bg-orange/20 text-orange border-2 border-orange/40",
+                          sug.type === "search" && "bg-muted hover:bg-muted/80 border border-border",
                         )}>
                           <span>{sug.icon}</span><span>{sug.text}</span>
                         </button>
@@ -195,33 +210,22 @@ export function GlobalSearchPalette() {
 
               <CommandSeparator />
               <CommandGroup heading="Sugestões Rápidas">
-                <div className="flex flex-wrap gap-2 p-2">
+                <div className="flex flex-wrap gap-2 p-2" role="group" aria-label="Sugestões rápidas">
                   {s.quickSuggestions.map((qs, i) => (
-                    <button key={`q-${i}`} onClick={() => s.handleSuggestionClick(qs.label)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted/80 rounded-full text-sm transition-colors">
-                      <span>{qs.icon}</span><span>{qs.label}</span>
+                    <button key={`q-${i}`} onClick={() => s.handleSuggestionClick(qs.label)} aria-label={`Buscar ${qs.label}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/60 hover:bg-muted rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors border border-transparent hover:border-border">
+                      <span className="text-sm">{qs.icon}</span><span>{qs.label}</span>
                     </button>
                   ))}
                 </div>
               </CommandGroup>
 
               <CommandSeparator />
-              <CommandGroup heading="Ações Rápidas">
-                {quickActions.slice(0, 5).map(action => (
+              <CommandGroup heading="Ir Para">
+                {quickActions.map(action => (
                   <CommandItem key={action.id} value={action.title} onSelect={() => s.handleSelect(action.href, false)} className="flex items-center gap-3 py-2">
-                    <div className="p-2 rounded-lg bg-primary/10">{action.icon}</div>
+                    <div className={cn("p-2 rounded-lg", action.shortcut ? "bg-primary/10" : "bg-muted")}>{action.icon}</div>
                     <div className="flex-1"><p className="font-medium">{action.title}</p><p className="text-sm text-muted-foreground">{action.description}</p></div>
                     {action.shortcut && <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">{action.shortcut}</kbd>}
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-
-              <CommandSeparator />
-              <CommandGroup heading="Navegação">
-                {quickActions.slice(5).map(action => (
-                  <CommandItem key={action.id} value={action.title} onSelect={() => s.handleSelect(action.href, false)} className="flex items-center gap-3 py-2">
-                    <div className="p-2 rounded-lg bg-muted">{action.icon}</div>
-                    <div className="flex-1"><p className="font-medium">{action.title}</p><p className="text-sm text-muted-foreground">{action.description}</p></div>
                     <ArrowRight className="h-4 w-4 text-muted-foreground" />
                   </CommandItem>
                 ))}
@@ -229,6 +233,26 @@ export function GlobalSearchPalette() {
             </>
           )}
         </CommandList>
+
+        {/* Keyboard shortcuts footer */}
+        <div className="flex items-center justify-center gap-4 px-4 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground/60">
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">↵</kbd>
+            Selecionar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">↑↓</kbd>
+            Navegar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">ESC</kbd>
+            Fechar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">⌘K</kbd>
+            Busca
+          </span>
+        </div>
       </CommandDialog>
     </>
   );
