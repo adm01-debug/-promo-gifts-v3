@@ -8,6 +8,13 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    try {
+      await authenticateRequest(req);
+    } catch (authErr) {
+      return authErrorResponse(authErr, corsHeaders);
+    }
+
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
       throw new Error('ELEVENLABS_API_KEY is not configured');
