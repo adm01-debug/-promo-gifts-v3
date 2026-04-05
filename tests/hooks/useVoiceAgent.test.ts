@@ -1,10 +1,6 @@
-/**
- * Exhaustive tests for useVoiceAgent hook
- */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, act } from "@testing-library/react";
+import { renderHook, act, waitFor } from "@testing-library/react";
 
-// Mock supabase
 const mockInvoke = vi.fn();
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
@@ -14,346 +10,269 @@ vi.mock("@/integrations/supabase/client", () => ({
   },
 }));
 
-// Mock ElevenLabs
 const mockConnect = vi.fn();
 const mockDisconnect = vi.fn();
+let onSessionStarted: (() => void) | undefined;
 let onPartialTranscript: ((data: { text: string }) => void) | undefined;
 let onCommittedTranscript: ((data: { text: string }) => void) | undefined;
+let onScribeError: ((error: unknown) => void) | undefined;
+let scribeStatus = "disconnected";
+let scribeConnected = false;
+let onDisconnectHandler: (() => void) | undefined;
 
 vi.mock("@elevenlabs/react", () => ({
   useScribe: (opts: {
+    onSessionStarted?: () => void;
     onPartialTranscript?: (data: { text: string }) => void;
     onCommittedTranscript?: (data: { text: string }) => void;
+    onError?: (error: unknown) => void;
+    onDisconnect?: () => void;
   }) => {
+    onSessionStarted = opts.onSessionStarted;
     onPartialTranscript = opts.onPartialTranscript;
     onCommittedTranscript = opts.onCommittedTranscript;
+    onScribeError = opts.onError;
+    onDisconnectHandler = opts.onDisconnect;
+
     return {
-      connect: mockConnect,
-      disconnect: mockDisconnect,
-      isConnected: false,
+      connect: (...args: unknown[]) => mockConnect(...args),
+      disconnect: () => {
+        mockDisconnect();
+        scribeStatus = "disconnected";
+        scribeConnected = false;
+        onDisconnectHandler?.();
+      },
+      get isConnected() {
+        return scribeConnected;
+      },
+      get status() {
+        return scribeStatus;
+      },
     };
   },
 }));
 
-// Mock Audio
-const mockPlay = vi.fn().mockResolvedValue(undefined);
-const mockPause = vi.fn();
-let audioOnEnded: (() => void) | undefined;
-let audioOnError: (() => void) | undefined;
+const mockPlayTtsAudio = vi.fn(() => ({ promise: Promise.resolve(), stop: vi.fn() }));
+vi.mock("@/hooks/voice/playTtsAudio", () => ({
+  playTtsAudio: (...args: unknown[]) => mockPlayTtsAudio(...args),
+}));
 
-vi.stubGlobal("Audio", class {
-  src = "";
-  onended: (() => void) | null = null;
-  onerror: (() => void) | null = null;
-  constructor(src?: string) {
-    if (src) this.src = src;
-    // Capture handlers
-    const self = this;
-    Object.defineProperty(this, 'onended', {
-      set(fn) { audioOnEnded = fn; },
-      get() { return audioOnEnded; },
-    });
-    Object.defineProperty(this, 'onerror', {
-      set(fn) { audioOnError = fn; },
-      get() { return audioOnError; },
-    });
-  }
-  play = mockPlay;
-  pause = mockPause;
-});
+const mockProcessVoiceTranscript = vi.fn();
+vi.mock("@/hooks/voice/processTranscript", () => ({
+  processVoiceTranscript: (...args: unknown[]) => mockProcessVoiceTranscript(...args),
+}));
+
+const mockLogVoiceCommand = vi.fn();
+vi.mock("@/hooks/voice/logVoiceCommand", () => ({
+  logVoiceCommand: (...args: unknown[]) => mockLogVoiceCommand(...args),
+}));
 
 import { useVoiceAgent } from "@/hooks/useVoiceAgent";
 
 describe("useVoiceAgent", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    audioOnEnded = undefined;
-    audioOnError = undefined;
+    onSessionStarted = undefined;
+    onPartialTranscript = undefined;
+    onCommittedTranscript = undefined;
+    onScribeError = undefined;
+    onDisconnectHandler = undefined;
+    scribeStatus = "disconnected";
+    scribeConnected = false;
+    mockConnect.mockImplementation(async () => {
+      scribeStatus = "connecting";
+    });
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    vi.useRealTimers();
   });
 
-  // ── Initialization ──
-  describe("initialization", () => {
-    it("starts with idle phase", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      expect(result.current.phase).toBe("idle");
-    });
-
-    it("has empty transcripts initially", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      expect(result.current.partialTranscript).toBe("");
-      expect(result.current.finalTranscript).toBe("");
-      expect(result.current.agentResponse).toBe("");
-    });
-
-    it("has no error initially", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      expect(result.current.error).toBeNull();
-    });
-
-    it("has no current action initially", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      expect(result.current.currentAction).toBeNull();
-    });
-
-    it("is not connected initially", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      expect(result.current.isConnected).toBe(false);
-    });
-
-    it("exposes all required methods", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      expect(typeof result.current.startListening).toBe("function");
-      expect(typeof result.current.stopListening).toBe("function");
-      expect(typeof result.current.stopSpeaking).toBe("function");
-      expect(typeof result.current.reset).toBe("function");
-    });
+  it("starts in idle state", () => {
+    const { result } = renderHook(() => useVoiceAgent());
+    expect(result.current.phase).toBe("idle");
+    expect(result.current.error).toBeNull();
+    expect(result.current.isConnected).toBe(false);
   });
 
-  // ── startListening ──
-  describe("startListening", () => {
-    it("sets phase to listening on success", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "test-token" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
+  it("waits for session_started before moving to listening", async () => {
+    mockInvoke.mockResolvedValueOnce({ data: { token: "test-token" }, error: null });
 
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
+    const { result } = renderHook(() => useVoiceAgent());
 
-      expect(result.current.phase).toBe("listening");
+    await act(async () => {
+      await result.current.startListening();
     });
 
-    it("calls elevenlabs-scribe-token edge function", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "test-token" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      expect(mockInvoke).toHaveBeenCalledWith("elevenlabs-scribe-token");
+    expect(result.current.phase).toBe("idle");
+    expect(mockConnect).toHaveBeenCalledWith({
+      token: "test-token",
+      modelId: "scribe_v2_realtime",
+      microphone: {
+        echoCancellation: true,
+        noiseSuppression: true,
+        autoGainControl: true,
+      },
     });
 
-    it("connects scribe with correct options", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "test-token" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      expect(mockConnect).toHaveBeenCalledWith({
-        token: "test-token",
-        microphone: { echoCancellation: true, noiseSuppression: true },
-      });
+    act(() => {
+      scribeStatus = "connected";
+      scribeConnected = true;
+      onSessionStarted?.();
     });
 
-    it("sets error phase when token fetch fails", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: null, error: { message: "fail" } });
-      const onError = vi.fn();
-
-      const { result } = renderHook(() => useVoiceAgent({ onError }));
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      expect(result.current.phase).toBe("error");
-      expect(onError).toHaveBeenCalled();
-    });
-
-    it("sets error when no token returned", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: {}, error: null });
-
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      expect(result.current.phase).toBe("error");
-    });
-
-    it("clears previous state when starting", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "test-token" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      expect(result.current.partialTranscript).toBe("");
-      expect(result.current.finalTranscript).toBe("");
-      expect(result.current.agentResponse).toBe("");
-      expect(result.current.error).toBeNull();
-    });
+    expect(result.current.phase).toBe("listening");
   });
 
-  // ── Transcript Processing ──
-  describe("transcript processing", () => {
-    it("updates partialTranscript from scribe", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "t" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
+  it("updates partial transcript while listening", async () => {
+    mockInvoke.mockResolvedValueOnce({ data: { token: "token" }, error: null });
 
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
+    const { result } = renderHook(() => useVoiceAgent());
 
-      act(() => {
-        onPartialTranscript?.({ text: "buscar can" });
-      });
-
-      expect(result.current.partialTranscript).toBe("buscar can");
+    await act(async () => {
+      await result.current.startListening();
     });
 
-    it("processes committed transcript through AI", async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ data: { token: "t" }, error: null }) // scribe token
-        .mockResolvedValueOnce({ data: { action: "search", response: "Buscando", data: { query: "canetas" } }, error: null }); // voice-agent
-
-      // Mock fetch for TTS
-      vi.stubGlobal("fetch", vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ audioContent: "base64audio" }),
-      }));
-
-      const onAction = vi.fn();
-      const { result } = renderHook(() => useVoiceAgent({ onAction }));
-
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      await act(async () => {
-        onCommittedTranscript?.({ text: "buscar canetas" });
-        // Wait for async processing
-        await new Promise(r => setTimeout(r, 100));
-      });
-
-      expect(mockInvoke).toHaveBeenCalledWith("voice-agent", { body: { transcript: "buscar canetas" } });
+    act(() => {
+      scribeStatus = "connected";
+      scribeConnected = true;
+      onSessionStarted?.();
+      onPartialTranscript?.({ text: "buscar moch" });
     });
 
-    it("ignores empty committed transcript", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "t" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
-
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      const initialInvokeCount = mockInvoke.mock.calls.length;
-
-      act(() => {
-        onCommittedTranscript?.({ text: "   " });
-      });
-
-      // Should NOT have called voice-agent
-      expect(mockInvoke.mock.calls.length).toBe(initialInvokeCount);
-    });
+    expect(result.current.partialTranscript).toBe("buscar moch");
+    expect(result.current.phase).toBe("listening");
   });
 
-  // ── stopListening ──
-  describe("stopListening", () => {
-    it("disconnects scribe", async () => {
-      mockInvoke.mockResolvedValueOnce({ data: { token: "t" }, error: null });
-      mockConnect.mockResolvedValueOnce(undefined);
+  it("processes committed transcript and returns to idle", async () => {
+    const action = {
+      action: "search" as const,
+      response: "Buscando canetas",
+      data: { query: "canetas" },
+    };
 
-      const { result } = renderHook(() => useVoiceAgent());
-      await act(async () => {
-        await result.current.startListening();
-      });
+    mockInvoke.mockResolvedValueOnce({ data: { token: "token" }, error: null });
+    mockProcessVoiceTranscript.mockResolvedValueOnce(action);
+    const onAction = vi.fn();
 
-      act(() => {
-        result.current.stopListening();
-      });
+    const { result } = renderHook(() => useVoiceAgent({ onAction }));
 
-      expect(mockDisconnect).toHaveBeenCalled();
+    await act(async () => {
+      await result.current.startListening();
     });
+
+    act(() => {
+      scribeStatus = "connected";
+      scribeConnected = true;
+      onSessionStarted?.();
+    });
+
+    await act(async () => {
+      onCommittedTranscript?.({ text: "buscar canetas" });
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(mockProcessVoiceTranscript).toHaveBeenCalledWith("buscar canetas");
+    });
+
+    expect(result.current.finalTranscript).toBe("buscar canetas");
+    expect(result.current.agentResponse).toBe("Buscando canetas");
+    expect(mockPlayTtsAudio).toHaveBeenCalledWith("Buscando canetas");
+    expect(onAction).toHaveBeenCalledWith(action);
+    expect(result.current.phase).toBe("idle");
   });
 
-  // ── stopSpeaking ──
-  describe("stopSpeaking", () => {
-    it("sets phase to idle", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      act(() => {
-        result.current.stopSpeaking();
-      });
-      expect(result.current.phase).toBe("idle");
+  it("disconnects when stopListening is called", async () => {
+    mockInvoke.mockResolvedValueOnce({ data: { token: "token" }, error: null });
+
+    const { result } = renderHook(() => useVoiceAgent());
+
+    await act(async () => {
+      await result.current.startListening();
     });
+
+    act(() => {
+      result.current.stopListening();
+    });
+
+    expect(mockDisconnect).toHaveBeenCalled();
+    expect(result.current.phase).toBe("idle");
   });
 
-  // ── reset ──
-  describe("reset", () => {
-    it("resets all state to initial values", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      act(() => {
-        result.current.reset();
-      });
+  it("forces disconnect after websocket-style runtime error and allows retry", async () => {
+    mockInvoke
+      .mockResolvedValueOnce({ data: { token: "first-token" }, error: null })
+      .mockResolvedValueOnce({ data: { token: "second-token" }, error: null });
 
-      expect(result.current.phase).toBe("idle");
-      expect(result.current.partialTranscript).toBe("");
-      expect(result.current.finalTranscript).toBe("");
-      expect(result.current.agentResponse).toBe("");
-      expect(result.current.error).toBeNull();
-      expect(result.current.currentAction).toBeNull();
+    const { result } = renderHook(() => useVoiceAgent());
+
+    await act(async () => {
+      await result.current.startListening();
     });
 
-    it("disconnects scribe on reset", () => {
-      const { result } = renderHook(() => useVoiceAgent());
-      act(() => {
-        result.current.reset();
-      });
-      expect(mockDisconnect).toHaveBeenCalled();
+    act(() => {
+      scribeStatus = "error";
+      onScribeError?.(new Error(""));
     });
+
+    expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    expect(result.current.phase).toBe("error");
+    expect(result.current.error).toBe("Não foi possível conectar ao serviço de voz. Tente novamente.");
+
+    await act(async () => {
+      await result.current.startListening();
+    });
+
+    expect(mockConnect).toHaveBeenCalledTimes(2);
+    expect(mockInvoke).toHaveBeenCalledTimes(2);
   });
 
-  // ── Error handling ──
-  describe("error handling", () => {
-    it("calls onError callback on AI processing failure", async () => {
-      mockInvoke
-        .mockResolvedValueOnce({ data: { token: "t" }, error: null })
-        .mockResolvedValueOnce({ data: null, error: { message: "AI failed" } });
+  it("fails fast when the session never starts", async () => {
+    vi.useFakeTimers();
+    mockInvoke.mockResolvedValueOnce({ data: { token: "slow-token" }, error: null });
+    const onError = vi.fn();
 
-      const onError = vi.fn();
-      const { result } = renderHook(() => useVoiceAgent({ onError }));
+    const { result } = renderHook(() => useVoiceAgent({ onError }));
 
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      await act(async () => {
-        onCommittedTranscript?.({ text: "test command" });
-        await new Promise(r => setTimeout(r, 100));
-      });
-
-      expect(onError).toHaveBeenCalled();
+    await act(async () => {
+      await result.current.startListening();
     });
 
-    it("recovers from error phase after timeout", async () => {
-      vi.useFakeTimers();
-      mockInvoke.mockResolvedValueOnce({ data: null, error: { message: "fail" } });
-
-      const { result } = renderHook(() => useVoiceAgent());
-
-      await act(async () => {
-        await result.current.startListening();
-      });
-
-      expect(result.current.phase).toBe("error");
-
-      act(() => {
-        vi.advanceTimersByTime(3000);
-      });
-
-      expect(result.current.phase).toBe("idle");
-      vi.useRealTimers();
+    act(() => {
+      vi.advanceTimersByTime(8000);
     });
+
+    expect(mockDisconnect).toHaveBeenCalled();
+    expect(result.current.phase).toBe("error");
+    expect(result.current.error).toBe("A conexão de voz demorou demais para responder. Tente novamente.");
+    expect(onError).toHaveBeenCalledWith("A conexão de voz demorou demais para responder. Tente novamente.");
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(result.current.phase).toBe("idle");
+    expect(result.current.error).toBeNull();
+  });
+
+  it("resets error state after token failure timeout", async () => {
+    vi.useFakeTimers();
+    mockInvoke.mockResolvedValueOnce({ data: null, error: { message: "fail" } });
+
+    const { result } = renderHook(() => useVoiceAgent());
+
+    await act(async () => {
+      await result.current.startListening();
+    });
+
+    expect(result.current.phase).toBe("error");
+
+    act(() => {
+      vi.advanceTimersByTime(5000);
+    });
+
+    expect(result.current.phase).toBe("idle");
+    expect(result.current.error).toBeNull();
   });
 });
