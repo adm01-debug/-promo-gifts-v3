@@ -306,16 +306,24 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   )}
                 </AnimatePresence>
 
-                {/* Error */}
+                {/* Error with friendly mic feedback */}
                 <AnimatePresence>
                   {error && (
                     <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      exit={{ opacity: 0 }}
-                      className="w-full bg-destructive/10 border border-destructive/20 rounded-2xl px-5 py-4 text-center"
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="w-full bg-destructive/10 border border-destructive/20 rounded-2xl px-5 py-4"
                     >
-                      <p className="text-sm text-destructive">{error}</p>
+                      <div className="flex items-start gap-3">
+                        <div className="h-7 w-7 rounded-full bg-destructive/20 flex items-center justify-center shrink-0 mt-0.5">
+                          <MicOff className="h-3.5 w-3.5 text-destructive" />
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-destructive">{error}</p>
+                          <p className="text-xs text-white/40 mt-1">Toque no orbe para tentar novamente</p>
+                        </div>
+                      </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
