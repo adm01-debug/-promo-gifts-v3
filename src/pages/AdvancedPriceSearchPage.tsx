@@ -157,7 +157,7 @@ function ProductCardResult({
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
         <div className="aspect-square relative bg-muted/30">
           {product.image ? (
-            <img src={product.image} 
+            <img loading="lazy" src={product.image} 
               alt={product.name}
               className="w-full h-full object-contain p-4"
               loading="lazy"
@@ -283,7 +283,7 @@ function ProductTableResult({
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {product.image && (
-                      <img src={product.image} 
+                      <img loading="lazy" src={product.image} 
                         alt={product.name} 
                         className="w-10 h-10 object-contain rounded"
                         loading="lazy"
@@ -357,7 +357,7 @@ function ProductListResult({
                 {/* Imagem */}
                 <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-muted/50 overflow-hidden">
                   {product.image ? (
-                    <img src={product.image} 
+                    <img loading="lazy" src={product.image} 
                       alt={product.name} 
                       className="w-full h-full object-contain p-1"
                       loading="lazy"
