@@ -234,6 +234,7 @@ const App = () => {
                             <Route path="/kit-builder" element={<Navigate to="/montar-kit" replace />} />
                             <Route path="/meus-kits" element={<MeusKitsPage />} />
                             <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
+                            <Route path="/gerador-mockup" element={<Navigate to="/mockup-generator" replace />} />
                             <Route path="/mockup-generator" element={<MockupGenerator />} />
                             <Route path="/mockups/historico" element={<MockupHistoryPage />} />
                             <Route path="/magic-up" element={<MagicUp />} />
