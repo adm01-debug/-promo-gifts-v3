@@ -543,7 +543,7 @@ export function SecurityDashboard() {
                         className={`p-3 rounded-lg border ${!notif.is_read ? 'bg-primary/5 border-primary/20' : ''}`}
                       >
                         <div className="flex items-start gap-3">
-                          <AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5" />
+                          <AlertTriangle className="h-4 w-4 text-orange mt-0.5" />
                           <div className="flex-1">
                             <p className="text-sm font-medium">{notif.title}</p>
                             <p className="text-xs text-muted-foreground mt-1">{notif.message}</p>
