@@ -20,7 +20,7 @@ import { PresetCard } from '@/components/settings/theme/PresetCard';
 import { BorderRadiusControl } from '@/components/settings/theme/BorderRadiusControl';
 
 import { ThemeResetDialog } from '@/components/settings/theme/ThemeResetDialog';
-import { useNavigate } from 'react-router-dom';
+
 
 const fadeUp = {
   hidden: { opacity: 0, y: 16 },
