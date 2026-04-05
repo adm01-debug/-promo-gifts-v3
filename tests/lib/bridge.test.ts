@@ -5,6 +5,9 @@ vi.mock('@/integrations/supabase/client', () => ({
     functions: {
       invoke: vi.fn(),
     },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'mock-token' } } }),
+    },
   },
 }));
 
