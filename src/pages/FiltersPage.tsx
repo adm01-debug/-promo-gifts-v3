@@ -17,8 +17,8 @@ import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
-import { useVoiceCommands } from "@/hooks/useVoiceCommands";
+import { useVoiceAgent } from "@/hooks/useVoiceAgent";
+import type { VoiceAgentAction } from "@/hooks/useVoiceAgent";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
 
