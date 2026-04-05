@@ -124,10 +124,10 @@ function StockProgressBar({ current, min, max }: { current: number; min: number;
   const percentage = min > 0 ? Math.min((current / min) * 100, 100) : (current > 0 ? 100 : 0);
   
   const progressColor = 
-    current <= 0 ? 'bg-red-500' :
-    current <= min * 0.25 ? 'bg-red-500' :
-    current <= min ? 'bg-amber-500' :
-    'bg-green-500';
+    current <= 0 ? 'bg-destructive' :
+    current <= min * 0.25 ? 'bg-destructive' :
+    current <= min ? 'bg-warning' :
+    'bg-success';
   
   return (
     <div className="w-24">
