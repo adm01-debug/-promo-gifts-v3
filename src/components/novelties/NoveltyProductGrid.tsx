@@ -32,7 +32,7 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
           {/* Imagem pequena */}
           <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden">
             {product.product_image ? (
-              <img loading="lazy" src={product.product_image} 
+              <img src={product.product_image} 
                 alt={product.product_name}
                 className="w-full h-full object-cover"
                 loading="lazy"
