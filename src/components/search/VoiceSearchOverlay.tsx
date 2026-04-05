@@ -108,6 +108,20 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     const colors = usePhaseColors(phase, showBooting);
     const isWaveformActive = phase === "listening" || phase === "speaking" || showBooting;
 
+    // Extract border glow colors from phase colors (convert hsl to hsla for border effects)
+    const borderGlow = useMemo(() => {
+      // Parse "hsl(h, s%, l%)" to get h, s, l
+      const match = colors.primary.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
+      const [h, s, l] = match ? [match[1], match[2], match[3]] : ["220", "80", "55"];
+      return {
+        border: `hsla(${h}, ${s}%, ${l}%, 0.35)`,
+        shadowDim: `0 0 12px 1px hsla(${h}, ${s}%, ${l}%, 0.15), 0 0 30px 4px hsla(${h}, ${s}%, ${l}%, 0.08), inset 0 0 10px 0px hsla(${h}, ${s}%, ${l}%, 0.05)`,
+        shadowBright: `0 0 25px 5px hsla(${h}, ${s}%, ${l}%, 0.35), 0 0 60px 10px hsla(${h}, ${s}%, ${l}%, 0.15), inset 0 0 18px 0px hsla(${h}, ${s}%, ${l}%, 0.1)`,
+        borderDim: `hsla(${h}, ${s}%, ${l}%, 0.3)`,
+        borderBright: `hsla(${h}, ${s}%, ${l}%, 0.7)`,
+      };
+    }, [colors.primary]);
+
     // Haptic feedback for mobile
     const vibrate = useCallback((pattern: number | number[]) => {
       try { navigator?.vibrate?.(pattern); } catch { /* unsupported */ }
