@@ -394,8 +394,8 @@ export function SecurityDashboard() {
             <div className="flex items-center gap-2">
               {metrics.securityAlerts > 0 ? (
                 <>
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  <span className="text-lg font-semibold text-orange-500">{metrics.securityAlerts}</span>
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                  <span className="text-lg font-semibold text-warning">{metrics.securityAlerts}</span>
                 </>
               ) : (
                 <>
@@ -413,10 +413,10 @@ export function SecurityDashboard() {
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <Card className="border-orange-500/20 bg-orange-500/5">
+        <Card className="border-warning/20 bg-warning/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
+              <AlertTriangle className="h-4 w-4 text-warning" />
               Recomendações de Segurança
             </CardTitle>
           </CardHeader>
