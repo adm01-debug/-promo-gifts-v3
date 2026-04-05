@@ -166,20 +166,16 @@ export function GlobalSearchPalette() {
         </Tooltip>
       </div>
 
-      {/* ── Voice overlay ── */}
-      <VoiceSearchOverlay
-        isOpen={s.voiceOverlayOpen}
-        phase={s.voiceAgent.phase}
-        partialTranscript={s.voiceAgent.partialTranscript}
-        finalTranscript={s.voiceAgent.finalTranscript}
-        agentResponse={s.voiceAgent.agentResponse}
-        error={s.voiceAgent.error}
-        onClose={s.handleCloseVoiceOverlay}
-        onStartListening={s.voiceAgent.startListening}
-        onStopListening={s.voiceAgent.stopListening}
-        onStopSpeaking={s.voiceAgent.stopSpeaking}
-        onCommandSelect={s.handleVoiceCommandSelect}
-      />
+      {/* ── Voice overlay (lazy-loaded — @elevenlabs/react only loads when activated) ── */}
+      {s.voiceOverlayOpen && (
+        <Suspense fallback={null}>
+          <LazyVoiceOverlay
+            isOpen={s.voiceOverlayOpen}
+            onClose={s.handleCloseVoiceOverlay}
+            onAction={s.handleVoiceAction}
+          />
+        </Suspense>
+      )}
 
       {/* ── Command Dialog ── */}
       <CommandDialog open={s.open} onOpenChange={s.setOpen}>
