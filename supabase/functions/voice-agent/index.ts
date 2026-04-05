@@ -1,4 +1,5 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const TranscriptSchema = z.object({
@@ -57,6 +58,13 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    try {
+      await authenticateRequest(req);
+    } catch (authErr) {
+      return authErrorResponse(authErr, corsHeaders);
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');

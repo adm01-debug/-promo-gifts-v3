@@ -1,4 +1,5 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 
 const VALID_VOICE_IDS = [
@@ -22,6 +23,13 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate user
+    try {
+      await authenticateRequest(req);
+    } catch (authErr) {
+      return authErrorResponse(authErr, corsHeaders);
+    }
+
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {
       throw new Error('ELEVENLABS_API_KEY is not configured');

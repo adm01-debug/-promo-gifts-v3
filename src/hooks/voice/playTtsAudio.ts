@@ -1,7 +1,10 @@
 /**
  * playTtsAudio — Fetches TTS audio from the edge function and plays it.
  * Returns a promise that resolves when audio finishes or rejects on error.
+ * Includes user auth token for authenticated edge functions.
  */
+import { supabase } from "@/integrations/supabase/client";
+
 export function playTtsAudio(
   text: string,
   options?: { onStart?: () => void }
@@ -10,6 +13,10 @@ export function playTtsAudio(
   let objectUrl: string | null = null;
 
   const promise = (async () => {
+    // Get current session token for authenticated requests
+    const { data: { session } } = await supabase.auth.getSession();
+    const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
     const ttsResponse = await fetch(
       `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
       {
@@ -17,7 +24,7 @@ export function playTtsAudio(
         headers: {
           "Content-Type": "application/json",
           apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          Authorization: `Bearer ${authToken}`,
         },
         body: JSON.stringify({ text }),
       }
