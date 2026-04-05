@@ -22,6 +22,7 @@ import {
   FolderOpen,
   CheckCircle,
   AlertTriangle,
+  Sparkles,
 } from "lucide-react";
 import { 
   BarChart, 
