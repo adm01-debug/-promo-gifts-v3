@@ -96,6 +96,7 @@ export function GlobalSearchPalette() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/[0.03] to-primary/0 group-hover:via-primary/[0.06] transition-all duration-500 pointer-events-none" />
           <div className="relative h-6 w-6 rounded-lg bg-primary/8 group-hover:bg-primary/12 flex items-center justify-center transition-colors duration-300">
             <Brain className="h-3.5 w-3.5 text-primary/60 group-hover:text-primary transition-colors duration-300" />
+            <div className="absolute inset-0 rounded-lg bg-primary/10 animate-[brain-glow_3s_ease-in-out_infinite] pointer-events-none" />
           </div>
           <span className="relative flex-1 text-left text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors duration-300 text-[13px]">Busca inteligente...</span>
           <kbd className="relative hidden md:inline-flex h-5 items-center gap-0.5 rounded-md border border-border/30 bg-muted/30 group-hover:border-primary/20 group-hover:bg-primary/5 px-1.5 font-mono text-[10px] text-muted-foreground/40 group-hover:text-primary/50 transition-all duration-300">
