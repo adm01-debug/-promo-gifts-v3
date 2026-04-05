@@ -168,12 +168,12 @@ export function useGlobalSearch() {
                 }
               );
               if (ttsResponse.ok) {
-                const ttsData = await ttsResponse.json();
-                if (ttsData.audioContent) {
-                  const audioUrl = `data:audio/mpeg;base64,${ttsData.audioContent}`;
+                const audioBlob = await ttsResponse.blob();
+                if (audioBlob.size > 0) {
+                  const audioUrl = URL.createObjectURL(audioBlob);
                   const audio = new Audio(audioUrl);
-                  audio.onended = () => handleVoiceAction(action);
-                  audio.onerror = () => handleVoiceAction(action);
+                  audio.onended = () => { URL.revokeObjectURL(audioUrl); handleVoiceAction(action); };
+                  audio.onerror = () => { URL.revokeObjectURL(audioUrl); handleVoiceAction(action); };
                   await audio.play();
                   return;
                 }

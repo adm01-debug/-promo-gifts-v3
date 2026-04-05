@@ -75,17 +75,19 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
           );
 
           if (ttsResponse.ok) {
-            const ttsData = await ttsResponse.json();
-            if (ttsData.audioContent) {
-              const audioUrl = `data:audio/mpeg;base64,${ttsData.audioContent}`;
+            const audioBlob = await ttsResponse.blob();
+            if (audioBlob.size > 0) {
+              const audioUrl = URL.createObjectURL(audioBlob);
               const audio = new Audio(audioUrl);
               audioRef.current = audio;
               
               audio.onended = () => {
+                URL.revokeObjectURL(audioUrl);
                 setPhase("idle");
                 onAction?.(action);
               };
               audio.onerror = () => {
+                URL.revokeObjectURL(audioUrl);
                 setPhase("idle");
                 onAction?.(action);
               };
@@ -95,12 +97,10 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
               onAction?.(action);
             }
           } else {
-            // TTS failed but still execute the action
             setPhase("idle");
             onAction?.(action);
           }
         } catch {
-          // TTS failed, still execute action
           setPhase("idle");
           onAction?.(action);
         }
