@@ -30,7 +30,7 @@ const actionConfig = {
     label: "Edição",
     icon: FileEdit,
     variant: "secondary" as const,
-    className: "bg-blue-500/10 text-blue-600 border-blue-500/20"
+    className: "bg-info/10 text-info border-info/20"
   },
   DELETE: {
     label: "Exclusão",
