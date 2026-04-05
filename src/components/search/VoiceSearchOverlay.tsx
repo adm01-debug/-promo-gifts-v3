@@ -305,8 +305,8 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="absolute inset-0 backdrop-blur-xl"
-              style={{ background: "radial-gradient(ellipse at center, rgba(10,10,20,0.88) 0%, rgba(2,2,8,0.96) 100%)" }}
+              className="absolute inset-0 backdrop-blur-3xl"
+              style={{ background: "radial-gradient(ellipse at center, rgba(10,10,20,0.75) 0%, rgba(2,2,8,0.85) 100%)" }}
               onClick={onClose}
             />
 
