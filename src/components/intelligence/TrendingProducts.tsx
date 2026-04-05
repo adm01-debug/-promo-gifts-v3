@@ -80,7 +80,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
                 <div className="w-9 h-9 rounded-md overflow-hidden bg-muted border border-border/50 shrink-0">
                   {product.productImage ? (
                     
-<img src={product.productImage} alt="" className="w-full h-full object-contain" loading="lazy" />
+<img src={product.productImage} alt="Imagem do produto" className="w-full h-full object-contain" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Package className="h-3.5 w-3.5 text-muted-foreground" />

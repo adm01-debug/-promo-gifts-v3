@@ -191,7 +191,7 @@ export function CartHeaderButton() {
                               {cart.company_logo_url ? (
                                 <img
                                   src={cart.company_logo_url}
-                                  alt=""
+                                  alt="Logo da empresa"
                                   className="w-9 h-9 rounded-lg object-contain bg-background border border-border/50 flex-shrink-0 p-0.5" loading="lazy" />
                               ) : (
                                 <div className={cn(
@@ -274,7 +274,7 @@ export function CartHeaderButton() {
                                     {item.product_image_url ? (
                                       <img
                                         src={item.product_image_url}
-                                        alt=""
+                                        alt="Logo da empresa"
                                         className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5 mt-0.5" loading="lazy" />
                                     ) : (
                                       <div className="w-9 h-9 rounded-lg bg-muted/40 flex-shrink-0 flex items-center justify-center mt-0.5">

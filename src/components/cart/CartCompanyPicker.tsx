@@ -167,7 +167,7 @@ export function CartCompanyPicker({ onCreated, onCancel }: CartCompanyPickerProp
               {company.logo_url ? (
                 <img
                   src={company.logo_url}
-                  alt=""
+                  alt="Logo da empresa"
                   className="w-6 h-6 rounded object-contain bg-background border border-border flex-shrink-0" loading="lazy" />
               ) : (
                 <div className="w-6 h-6 rounded bg-muted flex items-center justify-center flex-shrink-0">
