@@ -28,63 +28,42 @@ export default function FiltersPage() {
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
 
   const state = useFiltersPageState();
-  const { parseCommand } = useVoiceCommands();
 
-  const handleVoiceResult = useCallback((transcript: string) => {
-    const command = parseCommand(transcript);
-    state.setAppliedFilters([]);
-    
-    switch (command.type) {
-      case "compound":
-        if (command.filters && command.filters.length > 0) {
-          const newAppliedFilters: typeof state.appliedFilters = [];
-          state.setFilters((prev: FilterState) => {
-            const newFilters = { ...prev };
-            command.filters!.forEach(filter => {
-              if (filter.filterKey === "colors" && Array.isArray(filter.value)) { newFilters.colors = [...prev.colors, ...(filter.value as string[])]; (filter.value as string[]).forEach(c => newAppliedFilters.push({ type: "color", label: c })); }
-              else if (filter.filterKey === "categories" && Array.isArray(filter.value)) { newFilters.categories = [...prev.categories, ...(filter.value as number[])]; newAppliedFilters.push({ type: "category", label: "Categoria" }); }
-              else if (filter.filterKey === "materiais" && Array.isArray(filter.value)) { newFilters.materiais = [...prev.materiais, ...(filter.value as string[])]; (filter.value as string[]).forEach(m => newAppliedFilters.push({ type: "material", label: m })); }
-              else if (filter.filterKey === "priceRange" && Array.isArray(filter.value)) { const [min, max] = filter.value as string[]; newFilters.priceRange = [parseInt(min) || 0, parseInt(max) || 500]; newAppliedFilters.push({ type: "price", label: `Até R$${max}` }); }
-              else if (filter.filterKey === "isKit") { newFilters.isKit = true; newAppliedFilters.push({ type: "kit", label: "Kits" }); }
-              else if (filter.filterKey === "inStock") { newFilters.inStock = true; newAppliedFilters.push({ type: "stock", label: "Em estoque" }); }
-              else if (filter.filterKey === "featured") { newFilters.featured = true; newAppliedFilters.push({ type: "featured", label: "Destaques" }); }
-            });
-            return newFilters;
-          });
-          state.setAppliedFilters(newAppliedFilters);
-          state.setCommandAction(command.action || "Filtros aplicados");
-          toast.success(`${newAppliedFilters.length} filtros aplicados`);
-        }
-        break;
-      case "filter":
-        if (command.filterKey === "colors" && command.value) { state.setFilters((prev: FilterState) => ({ ...prev, colors: [...prev.colors, ...(command.value as string[])] })); }
-        else if (command.filterKey === "categories" && command.value) { state.setFilters((prev: FilterState) => ({ ...prev, categories: [...prev.categories, ...(command.value as string[])] })); }
-        else if (command.filterKey === "materiais" && command.value) { state.setFilters((prev: FilterState) => ({ ...prev, materiais: [...prev.materiais, ...(command.value as string[])] })); }
-        else if (command.filterKey === "priceRange" && command.value) { const [min, max] = command.value as string[]; state.setFilters((prev: FilterState) => ({ ...prev, priceRange: [parseInt(min) || 0, parseInt(max) || 500] })); }
-        else if (command.filterKey === "isKit") { state.setFilters((prev: FilterState) => ({ ...prev, isKit: true })); }
-        else if (command.filterKey === "inStock") { state.setFilters((prev: FilterState) => ({ ...prev, inStock: true })); }
-        else if (command.filterKey === "featured") { state.setFilters((prev: FilterState) => ({ ...prev, featured: true })); }
-        if (command.action) toast.success(command.action);
-        state.setCommandAction(command.action || null);
-        break;
-      case "sort":
-        if (command.sortValue) { state.setSortBy(command.sortValue); state.setCommandAction(command.action || null); toast.success(command.action || "Ordenação aplicada"); }
-        break;
-      case "clear":
-        state.setFilters(defaultFilters); state.setCommandAction("Filtros limpos"); toast.success("Filtros limpos");
-        break;
-      case "search":
-        state.setCommandAction(`Buscar "${command.value}"`); toast.info(`Busca: "${command.value}"`);
-        break;
-      default:
-        state.setCommandAction("Comando não reconhecido"); toast.warning("Comando não reconhecido");
+  const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
+    if (!action.data) return;
+
+    if (action.action === "filter" && action.data.filters) {
+      const f = action.data.filters;
+      state.setFilters((prev: FilterState) => {
+        const next = { ...prev };
+        if (f.color) next.colors = [...prev.colors, f.color];
+        if (f.category) next.categories = [...prev.categories, f.category];
+        if (f.material) next.materiais = [...prev.materiais, f.material];
+        if (f.maxPrice) next.priceRange = [prev.priceRange[0], f.maxPrice];
+        if (f.minPrice) next.priceRange = [f.minPrice, prev.priceRange[1]];
+        if (f.inStock) next.inStock = true;
+        if (f.isKit) next.isKit = true;
+        return next;
+      });
+      toast.success(action.response);
+    } else if (action.action === "search" && action.data.query) {
+      state.setFilters((prev: FilterState) => ({ ...prev, search: action.data!.query! }));
+      toast.success(action.response);
+    } else if (action.action === "sort" && action.data.sortBy) {
+      const sortMap: Record<string, string> = { "price-asc": "price-asc", "price-desc": "price-desc", name: "name", stock: "stock" };
+      const sortValue = sortMap[action.data.sortBy] || "name";
+      state.setSortBy(sortValue);
+      toast.success(action.response);
+    } else if (action.action === "clear") {
+      state.setFilters(defaultFilters);
+      toast.success(action.response);
+    } else if (action.action === "navigate" && action.data.route) {
+      navigate(action.data.route);
+      toast.success(action.response);
     }
-    setTimeout(() => { state.setCommandAction(null); state.setAppliedFilters([]); }, 3000);
-    setTimeout(() => state.setVoiceOverlayOpen(false), 2000);
-  }, [parseCommand]);
+  }, [state, navigate]);
 
-  const { isListening, transcript, startListening, stopListening, error } = useSpeechRecognition({ onResult: handleVoiceResult, language: "pt-BR" });
-  const handleToggleListening = useCallback(() => { isListening ? stopListening() : startListening(); }, [isListening, startListening, stopListening]);
+  const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
 
   return (
     <MainLayout>
