@@ -11,9 +11,7 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
     if (isCollapsed) {
       return (
         <div ref={ref} className="flex items-center justify-center px-2 py-3 mb-2">
-          <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-orange to-orange-hover flex items-center justify-center shadow-lg shadow-orange/20">
-            <Gift className="h-5 w-5 text-orange-foreground" />
-          </div>
+          <span className="text-sm font-bold text-sidebar-foreground">PG</span>
         </div>
       );
     }
