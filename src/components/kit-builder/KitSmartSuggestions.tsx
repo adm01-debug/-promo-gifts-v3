@@ -88,7 +88,7 @@ export function KitSmartSuggestions({ selectedItems, onAddItem }: KitSmartSugges
         {visibleSuggestions.map(item => (
           <div key={item.id} className="flex items-center gap-2 text-sm">
             {item.imageUrl && (
-              <img src={item.imageUrl} alt="" className="w-7 h-7 rounded object-contain border bg-card" />
+              <img src={item.imageUrl} alt="" className="w-7 h-7 rounded object-contain border bg-card"  loading="lazy" />
             )}
             <span className="flex-1 truncate">{item.name}</span>
             <Badge variant="secondary" className="text-[10px]">

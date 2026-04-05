@@ -17,7 +17,7 @@ export function ImagePreviewDialog({ previewUrl, onClose, extImageMap, variantMa
       <DialogContent className="max-w-3xl p-2">
         {previewUrl && (
           <div className="space-y-2">
-            <img src={previewUrl} alt="Preview" className="w-full h-auto max-h-[80vh] object-contain rounded" />
+            <img src={previewUrl} alt="Preview" className="w-full h-auto max-h-[80vh] object-contain rounded"  loading="lazy" />
             {extImageMap.get(previewUrl) && (() => {
               const ext = extImageMap.get(previewUrl)!;
               const typeInfo = ext.image_type ? IMAGE_TYPES.find(t => t.value === ext.image_type) : null;

@@ -94,7 +94,7 @@ export function AreaCard({
         <div className="flex items-center gap-1 flex-shrink-0">
           {/* Logo thumbnail */}
           <div className="relative h-7 w-7 rounded border border-border/30 bg-background overflow-hidden">
-            <img src={area.logoPreview} alt="Logo" className="w-full h-full object-contain" />
+            <img src={area.logoPreview} alt="Logo" className="w-full h-full object-contain"  loading="lazy" />
           </div>
 
           {/* Replace button */}

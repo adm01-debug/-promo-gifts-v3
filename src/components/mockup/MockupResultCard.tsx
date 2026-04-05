@@ -244,7 +244,7 @@ export function MockupResultCard({
                 </Button>
               </div>
               <div className="overflow-auto w-full h-full flex items-center justify-center p-8" style={{ cursor: fullscreenZoom > 1 ? 'grab' : 'default' }}>
-                <img src={generatedMockup} alt="Mockup em tela cheia" className="max-w-full max-h-[85vh] object-contain transition-transform duration-200" style={{ transform: `scale(${fullscreenZoom})` }} />
+                <img src={generatedMockup} alt="Mockup em tela cheia" className="max-w-full max-h-[85vh] object-contain transition-transform duration-200" style={{ transform: `scale(${fullscreenZoom})` }}  loading="lazy" />
               </div>
               {(productName || techniqueName) && (
                 <div className="absolute top-3 left-3 z-10">

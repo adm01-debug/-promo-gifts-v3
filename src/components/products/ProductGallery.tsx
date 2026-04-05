@@ -731,7 +731,7 @@ export function ProductGallery({
                     )}
                   >
                     {pv.url_thumbnail ? (
-                      <img src={pv.url_thumbnail} alt={pv.title || `Vídeo ${idx + 1}`} className="w-full h-full object-cover" />
+                      <img src={pv.url_thumbnail} alt={pv.title || `Vídeo ${idx + 1}`} className="w-full h-full object-cover"  loading="lazy" />
                     ) : (
                       <div className="w-full h-full bg-muted flex items-center justify-center">
                         <Play className="h-4 w-4 text-foreground" />
