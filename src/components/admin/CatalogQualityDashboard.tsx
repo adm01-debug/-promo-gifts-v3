@@ -293,7 +293,7 @@ export function CatalogQualityDashboard({
                 <p className="font-medium text-warning">
                   Dica para melhorar
                 </p>
-                <p className="text-amber-700 dark:text-amber-400">
+                <p className="text-warning">
                   {metrics[0]?.value > 0
                     ? `Adicione imagens em ${metrics[0].value} produtos para aumentar conversões.`
                     : metrics[1]?.value > 0

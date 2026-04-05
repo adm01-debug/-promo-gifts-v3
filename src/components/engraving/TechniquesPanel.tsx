@@ -295,7 +295,7 @@ export function TechniquesPanel() {
             <span>Por Área</span>
           </div>
           <div className="flex items-center gap-1">
-            <Hash className="h-3 w-3 text-purple-500" />
+            <Hash className="h-3 w-3 text-primary" />
             <span>Por Pontos</span>
           </div>
           <div className="flex items-center gap-1">
