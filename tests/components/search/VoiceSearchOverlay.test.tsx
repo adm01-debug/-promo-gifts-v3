@@ -43,7 +43,8 @@ describe("VoiceSearchOverlay", () => {
 
   it("renders when open", () => {
     render(<VoiceSearchOverlay {...defaultProps} />);
-    expect(screen.getByText("Assistente de Voz")).toBeDefined();
+    expect(screen.getByRole("dialog", { name: "Assistente de Voz" })).toBeDefined();
+    expect(screen.getByText("Ativando microfone...")).toBeDefined();
   });
 
   it("does not render when closed", () => {
@@ -115,7 +116,10 @@ describe("VoiceSearchOverlay", () => {
   });
 
   it("calls onCommandSelect when clicking suggestion chip", () => {
-    render(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
+    const { rerender } = render(<VoiceSearchOverlay {...defaultProps} phase="listening" />);
+    // Go back to idle after listening (not first open, so no booting state)
+    rerender(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
+    act(() => { vi.advanceTimersByTime(200); });
     const chip = screen.getByText(/"Quero canetas azuis baratas"/);
     fireEvent.click(chip);
     expect(defaultProps.onCommandSelect).toHaveBeenCalledWith("Quero canetas azuis baratas");
