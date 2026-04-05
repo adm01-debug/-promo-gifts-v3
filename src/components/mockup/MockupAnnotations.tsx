@@ -165,7 +165,7 @@ export function MockupAnnotations({
               <span className="flex-1 truncate text-muted-foreground">
                 {ann.text || <em>Sem texto</em>}
               </span>
-              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={() => removeAnnotation(ann.id)}>
+              <Button variant="ghost" size="icon" aria-label="Fechar" className="h-5 w-5" onClick={() => removeAnnotation(ann.id)}>
                 <X className="h-3 w-3" />
               </Button>
             </div>

@@ -406,7 +406,7 @@ export function SimulationResultsCard({
                             <TableCell>
                               <Button
                                 variant="ghost"
-                                size="icon"
+                                size="icon" aria-label="Confirmar"
                                 className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                                 onClick={() => onCopy(option)}
                               >

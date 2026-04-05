@@ -216,7 +216,7 @@ function ItemPersonalizationCard({
               <Switch checked={personalization.enabled} onCheckedChange={handleToggle} />
               {personalization.enabled && (
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="ghost" size="icon" aria-label="Expandir" className="h-8 w-8">
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>

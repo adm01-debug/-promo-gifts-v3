@@ -115,7 +115,7 @@ export function StickyFilterBar({
                 <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon" aria-label="LayoutGrid"
                     className={cn("h-7 w-7", viewMode === "grid" && "bg-card shadow-sm")}
                     onClick={() => onViewModeChange("grid")}
                   >
@@ -123,7 +123,7 @@ export function StickyFilterBar({
                   </Button>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon" aria-label="Lista"
                     className={cn("h-7 w-7", viewMode === "list" && "bg-card shadow-sm")}
                     onClick={() => onViewModeChange("list")}
                   >

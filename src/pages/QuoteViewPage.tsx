@@ -363,7 +363,7 @@ export default function QuoteViewPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/orcamentos")}>
+            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/orcamentos")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>

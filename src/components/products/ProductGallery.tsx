@@ -325,7 +325,7 @@ export function ProductGallery({
           )}>
             <Button
               variant="secondary"
-              size="icon"
+              size="icon" aria-label="Maximizar"
               className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
               onClick={() => setIsFullscreen(true)}
             >
@@ -480,7 +480,7 @@ export function ProductGallery({
             {/* Navigation arrows over carousel */}
             <Button
               variant="secondary"
-              size="icon"
+              size="icon" aria-label="Voltar"
               className={cn(
                 "absolute left-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full",
                 "bg-card/95 backdrop-blur-md shadow-xl border border-border/50",
@@ -498,7 +498,7 @@ export function ProductGallery({
             </Button>
             <Button
               variant="secondary"
-              size="icon"
+              size="icon" aria-label="Avançar"
               className={cn(
                 "absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full",
                 "bg-card/95 backdrop-blur-md shadow-xl border border-border/50",
@@ -563,7 +563,7 @@ export function ProductGallery({
                     </Button>
                     <Button
                       variant="secondary"
-                      size="icon"
+                      size="icon" aria-label="Ampliar"
                       className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-105 transition-all duration-200"
                       onClick={handleZoomIn}
                       disabled={zoom >= 4}
@@ -583,7 +583,7 @@ export function ProductGallery({
                 )}
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="icon" aria-label="Fechar"
                   className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-destructive/10 hover:border-destructive/30 hover:scale-105 transition-all duration-200"
                   onClick={() => {
                     setIsFullscreen(false);
@@ -675,7 +675,7 @@ export function ProductGallery({
               </div>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="Fechar"
                 className="h-9 w-9 rounded-full text-primary-foreground hover:bg-white/20"
                 onClick={() => setIsVideoPlayerOpen(false)}
               >

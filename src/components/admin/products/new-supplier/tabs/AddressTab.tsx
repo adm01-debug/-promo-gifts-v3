@@ -66,7 +66,7 @@ export function AddressTab({ form }: AddressTabProps) {
         {form.transportadoraPadrao ? (
           <div className="flex items-center gap-2 mt-1">
             <div className={`${fieldClass} flex-1 flex items-center px-3 text-sm`}>{form.transportadoraPadrao}</div>
-            <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => { form.setTransportadoraPadrao(''); form.setTransportadoraId(''); form.setCarrierSearch(''); }}><X className="h-4 w-4" /></Button>
+            <Button type="button" variant="ghost" size="icon" aria-label="Fechar" className="h-9 w-9 shrink-0" onClick={() => { form.setTransportadoraPadrao(''); form.setTransportadoraId(''); form.setCarrierSearch(''); }}><X className="h-4 w-4" /></Button>
           </div>
         ) : (
           <div className="relative mt-1">

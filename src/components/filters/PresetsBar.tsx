@@ -137,7 +137,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
         <PopoverTrigger asChild>
           <Button
             variant="outline"
-            size="icon"
+            size="icon" aria-label="Bookmark"
             className={cn(
               "relative h-10 w-10 rounded-full border-border/50 transition-colors",
               presets.length > 0 ? "hover:border-primary/50" : "opacity-60 hover:opacity-100"
@@ -169,7 +169,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                 <TooltipTrigger asChild>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon" aria-label="Adicionar"
                     className="h-7 w-7 text-muted-foreground hover:text-primary"
                     onClick={() => {
                       if (!hasActiveFilters) {

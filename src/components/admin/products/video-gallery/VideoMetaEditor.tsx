@@ -38,7 +38,7 @@ export function VideoMetaEditor({ video, onSave, onCancel }: Props) {
       <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Descrição"
         className="h-6 text-[10px] bg-white/10 border-white/20 text-white placeholder:text-white/50" />
       <div className="flex gap-1 mt-auto">
-        <Button type="button" size="icon" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20"
+        <Button type="button" size="icon" aria-label="Salvar" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20"
           onClick={() => onSave({ title: title.trim() || null as any, description: description.trim() || null as any, video_type: videoType })}>
           <Save className="h-3 w-3" />
         </Button>

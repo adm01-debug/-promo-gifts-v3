@@ -453,7 +453,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
-                size="icon"
+                size="icon" aria-label="Remover"
                 className="h-10 w-10 shrink-0"
                 onClick={() => setQuantity(prev => Math.max(selectedProduct.minQuantity || 1, prev - 1))}
                 disabled={quantity <= (selectedProduct.minQuantity || 1)}
@@ -469,7 +469,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
               />
               <Button
                 variant="outline"
-                size="icon"
+                size="icon" aria-label="Adicionar"
                 className="h-10 w-10 shrink-0"
                 onClick={() => setQuantity(prev => prev + 1)}
               >

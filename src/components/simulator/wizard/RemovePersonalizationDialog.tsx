@@ -40,7 +40,7 @@ export function RemovePersonalizationDialog({
         {trigger || (
           <Button
             variant="ghost"
-            size="icon"
+            size="icon" aria-label="Fechar"
             className={cn(
               variant === 'icon' ? 'h-6 w-6 text-muted-foreground hover:text-destructive' : '',
               className

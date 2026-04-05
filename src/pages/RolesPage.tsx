@@ -178,10 +178,10 @@ export default function RolesPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => handleEdit(role)}>
+                                <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(role)}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(role.id)}>
+                                <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(role.id)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>

@@ -171,15 +171,15 @@ function SortableStep({
 
         {/* Actions */}
         <div className="flex items-center gap-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onDuplicate(step)}>
+          <Button variant="ghost" size="icon" aria-label="Copiar" className="h-7 w-7" onClick={() => onDuplicate(step)}>
             <Copy className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => onEdit(step)}>
+          <Button variant="ghost" size="icon" aria-label="Settings2" className="h-7 w-7" onClick={() => onEdit(step)}>
             <Settings2 className="h-3.5 w-3.5" />
           </Button>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon" aria-label="Excluir"
             className="h-7 w-7 text-muted-foreground hover:text-destructive"
             onClick={() => onDelete(step.id)}
           >

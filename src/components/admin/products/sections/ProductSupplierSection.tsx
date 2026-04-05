@@ -224,7 +224,7 @@ export function ProductSupplierSection({
                           {isPersisted && !src.is_preferred && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreferred(src.id)}>
+                                <Button variant="ghost" size="icon" aria-label="Favoritar" className="h-7 w-7" onClick={() => setPreferred(src.id)}>
                                   <Star className="h-3.5 w-3.5" />
                                 </Button>
                               </TooltipTrigger>
@@ -252,7 +252,7 @@ export function ProductSupplierSection({
                             </AlertDialog>
                           ) : (
                             <Button
-                              variant="ghost" size="icon"
+                              variant="ghost" size="icon" aria-label="Excluir"
                               className="h-7 w-7 text-destructive/70 hover:text-destructive"
                               onClick={() => removePending(src.id)}
                             >

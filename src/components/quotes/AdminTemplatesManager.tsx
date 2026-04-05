@@ -226,7 +226,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
           <div className="flex items-center border rounded-md">
             <Button
               variant={viewMode === "table" ? "secondary" : "ghost"}
-              size="icon"
+              size="icon" aria-label="Lista"
               className="h-9 w-9 rounded-r-none"
               onClick={() => setViewMode("table")}
             >
@@ -234,7 +234,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
             </Button>
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
+              size="icon" aria-label="LayoutGrid"
               className="h-9 w-9 rounded-l-none"
               onClick={() => setViewMode("grid")}
             >

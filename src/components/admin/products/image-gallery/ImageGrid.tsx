@@ -119,10 +119,10 @@ export function ImageGrid({
             {editingIndex !== globalIndex && !bulkMode && (
               <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-1">
                 <GripVertical className="absolute top-1 left-1 h-4 w-4 text-white/70 cursor-grab" />
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setPreviewUrl(img)}><ZoomIn className="h-3.5 w-3.5" /></Button>
-                {ext && <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingIndex(globalIndex)} title="Editar metadados"><Type className="h-3.5 w-3.5" /></Button>}
-                {!isFirst && <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-warning hover:bg-white/20" onClick={() => handleSetPrimary(img)} title="Definir como principal"><Star className="h-3.5 w-3.5" /></Button>}
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-white/20" onClick={() => requestRemove(img)}><X className="h-3.5 w-3.5" /></Button>
+                <Button type="button" variant="ghost" size="icon" aria-label="Ampliar" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setPreviewUrl(img)}><ZoomIn className="h-3.5 w-3.5" /></Button>
+                {ext && <Button type="button" variant="ghost" size="icon" aria-label="Type" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingIndex(globalIndex)} title="Editar metadados"><Type className="h-3.5 w-3.5" /></Button>}
+                {!isFirst && <Button type="button" variant="ghost" size="icon" aria-label="Favoritar" className="h-7 w-7 text-warning hover:bg-white/20" onClick={() => handleSetPrimary(img)} title="Definir como principal"><Star className="h-3.5 w-3.5" /></Button>}
+                <Button type="button" variant="ghost" size="icon" aria-label="Fechar" className="h-7 w-7 text-destructive hover:bg-white/20" onClick={() => requestRemove(img)}><X className="h-3.5 w-3.5" /></Button>
               </div>
             )}
           </div>

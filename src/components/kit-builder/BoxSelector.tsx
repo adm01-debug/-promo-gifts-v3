@@ -139,7 +139,7 @@ export function BoxSelector({
         </div>
         <Button
           variant={hasActiveFilters ? 'default' : 'outline'}
-          size="icon"
+          size="icon" aria-label="SlidersHorizontal"
           onClick={() => setFiltersOpen(!filtersOpen)}
           className="relative flex-shrink-0"
           title="Filtros avançados"

@@ -121,7 +121,7 @@ export function QuoteProductCustomization({
                 </Badge>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Excluir"
                   className="h-6 w-6 text-muted-foreground hover:text-destructive"
                   onClick={() => handleRemove(i)}
                 >

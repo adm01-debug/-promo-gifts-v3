@@ -33,7 +33,7 @@ export function ImageMetaEditor({ image, onSave, onCancel }: Props) {
       </Select>
       <Input value={caption} onChange={(e) => setCaption(e.target.value)} placeholder="Legenda" className="h-6 text-[10px] bg-white/10 border-white/20 text-white placeholder:text-white/50" />
       <div className="flex gap-1 mt-auto">
-        <Button type="button" size="icon" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20" onClick={() => onSave({ alt_text: altText, image_type: imageType, caption })}><Save className="h-3 w-3" /></Button>
+        <Button type="button" size="icon" aria-label="Salvar" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20" onClick={() => onSave({ alt_text: altText, image_type: imageType, caption })}><Save className="h-3 w-3" /></Button>
         <Button type="button" size="icon" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20" onClick={onCancel} aria-label="Fechar"><X className="h-3 w-3" /></Button>
       </div>
     </div>

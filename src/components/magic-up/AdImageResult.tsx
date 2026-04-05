@@ -191,7 +191,7 @@ export function AdImageResult({
             {history.length > 0 && (
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="Horário"
                 className="h-7 w-7"
                 onClick={() => setShowHistory(!showHistory)}
                 title="Ver histórico"

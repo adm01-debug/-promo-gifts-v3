@@ -240,7 +240,7 @@ export function NoveltyProductGrid() {
             <div className="flex border rounded-lg overflow-hidden">
               <Button
                 variant={viewMode === "grid" ? "secondary" : "ghost"}
-                size="icon"
+                size="icon" aria-label="Grid3X3"
                 className="h-8 w-8 rounded-none"
                 onClick={() => setViewMode("grid")}
               >
@@ -248,7 +248,7 @@ export function NoveltyProductGrid() {
               </Button>
               <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="icon"
+                size="icon" aria-label="Lista"
                 className="h-8 w-8 rounded-none"
                 onClick={() => setViewMode("list")}
               >

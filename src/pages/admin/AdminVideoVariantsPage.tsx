@@ -184,7 +184,7 @@ export default function AdminVideoVariantsPage() {
                     <TableCell>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         onClick={() => deleteLink.mutate(link.id)}
                         className="text-destructive hover:text-destructive"
                       >

@@ -144,7 +144,7 @@ export default function OrderDetailPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/pedidos")}>
+            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/pedidos")}>
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>

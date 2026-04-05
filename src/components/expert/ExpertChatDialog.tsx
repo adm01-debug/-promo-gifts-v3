@@ -460,7 +460,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
               )}
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="History"
                 onClick={() => setShowHistory(!showHistory)}
                 className="h-8 w-8"
                 title={showHistory ? "Voltar ao chat" : "Ver histórico"}
@@ -469,7 +469,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="Adicionar"
                 onClick={startNewConversation}
                 className="h-8 w-8"
                 title="Nova conversa"
@@ -517,7 +517,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         onClick={(e) => handleDeleteConversation(e, conv.id)}
                       >
@@ -648,7 +648,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                 <Button
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
-                  size="icon"
+                  size="icon" aria-label="Carregando"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

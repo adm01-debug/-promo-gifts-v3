@@ -267,7 +267,7 @@ export default function MockupGenerator() {
                   <span className="inline-flex">
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon" aria-label="Desfazer"
                       className="h-8 w-8"
                       disabled={!mg.positionHistory.canUndo}
                       onClick={() => {
@@ -286,7 +286,7 @@ export default function MockupGenerator() {
                   <span className="inline-flex">
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon" aria-label="Refazer"
                       className="h-8 w-8"
                       disabled={!mg.positionHistory.canRedo}
                       onClick={() => {

@@ -307,7 +307,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
               <>
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="icon" aria-label="Voltar"
                   className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg hover:bg-card"
                   onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
                 >
@@ -315,7 +315,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 </Button>
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="icon" aria-label="Avançar"
                   className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg hover:bg-card"
                   onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
                 >
@@ -409,7 +409,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
               <div className="flex items-center gap-3">
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="icon" aria-label="Remover"
                   className="h-9 w-9"
                   onClick={() => setQuantity(Math.max(1, quantity - 1))}
                   disabled={quantity <= 1}
@@ -419,7 +419,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 <span className="text-lg font-semibold w-12 text-center">{quantity}</span>
                 <Button
                   variant="outline"
-                  size="icon"
+                  size="icon" aria-label="Adicionar"
                   className="h-9 w-9"
                   onClick={() => setQuantity(quantity + 1)}
                 >
@@ -486,7 +486,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   <TooltipTrigger asChild>
                     <Button
                       variant="outline"
-                      size="icon"
+                      size="icon" aria-label="Compartilhar"
                       className="h-11 w-11"
                       onClick={() => onShare?.(product)}
                     >

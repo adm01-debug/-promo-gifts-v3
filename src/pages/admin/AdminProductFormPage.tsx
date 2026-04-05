@@ -348,7 +348,7 @@ export default function AdminProductFormPage() {
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Voltar"
               onClick={() => navigate('/admin/cadastros')}
               className="h-9 w-9 rounded-lg"
             >

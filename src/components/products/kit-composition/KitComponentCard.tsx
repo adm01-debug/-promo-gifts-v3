@@ -123,7 +123,7 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
             </div>
             <div className="flex items-center gap-0.5 shrink-0">
               {hasExpandableInfo && !selectable && (
-                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
+                <Button variant="ghost" size="icon" aria-label="Expandir" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
                   {expanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
                 </Button>
               )}
@@ -131,7 +131,7 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); onViewProduct(item.productId); }}>
+                      <Button variant="ghost" size="icon" aria-label="Visualizar" className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => { e.stopPropagation(); onViewProduct(item.productId); }}>
                         <Eye className="h-4 w-4 text-muted-foreground" />
                       </Button>
                     </TooltipTrigger>

@@ -204,7 +204,7 @@ export function DraggableWidget({
             {/* Collapse */}
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Maximizar"
               className="h-7 w-7"
               onClick={onToggleCollapse}
             >
@@ -220,7 +220,7 @@ export function DraggableWidget({
               <>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Bloquear"
                   className="h-7 w-7"
                   onClick={onToggleLock}
                 >

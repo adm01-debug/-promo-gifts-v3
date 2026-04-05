@@ -427,7 +427,7 @@ export default function KitBuilderPage() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" disabled={!canUndo} onClick={() => undo()}>
+                    <Button variant="ghost" size="icon" aria-label="Desfazer" disabled={!canUndo} onClick={() => undo()}>
                       <Undo2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
@@ -437,7 +437,7 @@ export default function KitBuilderPage() {
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" disabled={!canRedo} onClick={() => redo()}>
+                    <Button variant="ghost" size="icon" aria-label="Refazer" disabled={!canRedo} onClick={() => redo()}>
                       <Redo2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>

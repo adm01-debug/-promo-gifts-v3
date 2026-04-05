@@ -370,7 +370,7 @@ export default function MeusKitsPage() {
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Compartilhar"
                         title="Compartilhar apresentação"
                         onClick={async () => {
                           const link = await generateShareLink(kit.id);
@@ -385,7 +385,7 @@ export default function MeusKitsPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Editar"
                         title="Editar"
                         onClick={() => navigate(`/montar-kit?kit=${kit.id}`)}
                       >
@@ -393,7 +393,7 @@ export default function MeusKitsPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Copiar"
                         title="Duplicar"
                         disabled={duplicateMutation.isPending}
                         onClick={() => duplicateMutation.mutate(kit)}
@@ -402,7 +402,7 @@ export default function MeusKitsPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         title="Excluir"
                         className="text-destructive hover:text-destructive"
                         onClick={() => setDeleteId(kit.id)}

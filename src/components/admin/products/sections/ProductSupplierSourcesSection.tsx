@@ -154,7 +154,7 @@ export function ProductSupplierSourcesSection({ productId, isEdit, primarySuppli
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <Button
-                          variant="ghost" size="icon" className="h-7 w-7"
+                          variant="ghost" size="icon" aria-label="Favoritar" className="h-7 w-7"
                           onClick={() => setPreferred(src.id)}
                         >
                           <Star className="h-3.5 w-3.5" />

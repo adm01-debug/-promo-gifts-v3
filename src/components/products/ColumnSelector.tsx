@@ -113,7 +113,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
             <TooltipTrigger asChild>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="span"
                 className={cn(
                   "h-10 w-10 min-w-0 p-0 relative transition-all duration-200",
                   value === opt.value 

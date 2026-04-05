@@ -167,7 +167,7 @@ export function StepProduct({ wizard }: StepProductProps) {
         {searchTerm && (
           <Button
             variant="ghost"
-            size="icon"
+            size="icon" aria-label="Fechar"
             className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full"
             onClick={() => setSearchTerm('')}
           >

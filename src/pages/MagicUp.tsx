@@ -550,7 +550,7 @@ export default function MagicUp() {
             {m.variations.length > 1 && (
               <div className="flex items-center justify-between">
                 <Button
-                  variant="outline" size="icon" className="h-8 w-8"
+                  variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8"
                   disabled={m.activeVariation === 0}
                   onClick={() => m.setActiveVariation(m.activeVariation - 1)}
                 >
@@ -569,7 +569,7 @@ export default function MagicUp() {
                   ))}
                 </div>
                 <Button
-                  variant="outline" size="icon" className="h-8 w-8"
+                  variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8"
                   disabled={m.activeVariation === m.variations.length - 1}
                   onClick={() => m.setActiveVariation(m.activeVariation + 1)}
                 >

@@ -730,7 +730,7 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Editar"
                   className="h-7 w-7"
                   title="Editar variação"
                   onClick={() => {
@@ -743,7 +743,7 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Excluir"
                   className="h-7 w-7 text-destructive hover:text-destructive"
                   title="Excluir variação"
                   onClick={() => setDeleteTarget(variant)}

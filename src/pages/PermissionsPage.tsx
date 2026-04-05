@@ -216,10 +216,10 @@ export default function PermissionsPage() {
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex gap-2">
-                                      <Button variant="ghost" size="icon" onClick={() => handleEdit(perm)}>
+                                      <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(perm)}>
                                         <Edit className="h-4 w-4" />
                                       </Button>
-                                      <Button variant="ghost" size="icon" onClick={() => handleDelete(perm.id)}>
+                                      <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(perm.id)}>
                                         <Trash2 className="h-4 w-4 text-destructive" />
                                       </Button>
                                     </div>

@@ -279,7 +279,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
                       />
                       <Button
                         variant="outline"
-                        size="icon"
+                        size="icon" aria-label="Confirmar"
                         onClick={handleCopySecret}
                       >
                         {copied ? (

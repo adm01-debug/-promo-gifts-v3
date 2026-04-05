@@ -62,7 +62,7 @@ export function PersonalizationTabs({ wizard, onAddNew }: PersonalizationTabsPro
             trigger={
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="Fechar"
                 className="absolute right-0.5 top-1/2 -translate-y-1/2 h-6 w-6 text-muted-foreground hover:text-destructive"
                 onClick={(e) => e.stopPropagation()}
               >

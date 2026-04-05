@@ -165,7 +165,7 @@ export function QuantityRangeComparison({
             <p className="text-xs text-muted-foreground">Veja como o preço muda em diferentes tiragens</p>
           </div>
         </div>
-        <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)}>
+        <Button variant="ghost" size="icon" aria-label="Fechar" onClick={() => setIsOpen(false)}>
           <X className="h-4 w-4" />
         </Button>
       </div>

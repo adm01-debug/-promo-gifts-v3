@@ -424,7 +424,7 @@ export default function QuotesDashboardPage() {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Voltar"
               onClick={() => navigate("/orcamentos")}
             >
               <ArrowLeft className="h-5 w-5" />

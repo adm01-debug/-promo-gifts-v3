@@ -49,7 +49,7 @@ export function MockupCompareDialog({
               <h2 className="text-lg font-semibold">Comparação de Mockups</h2>
               <Badge variant="secondary">{mockups.length} selecionados</Badge>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => onOpenChange(false)}>
+            <Button variant="ghost" size="icon" aria-label="Fechar" onClick={() => onOpenChange(false)}>
               <X className="h-4 w-4" />
             </Button>
           </div>

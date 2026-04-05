@@ -202,7 +202,7 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
               <Button
                 type="button"
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="Fechar"
                 className="h-8 w-8"
                 onClick={() => {
                   setQuery("");
@@ -273,7 +273,7 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
                   {result.type === "history" && (
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon" aria-label="Fechar"
                       className="h-6 w-6 shrink-0 opacity-0 group-hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();

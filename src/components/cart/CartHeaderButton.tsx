@@ -96,7 +96,7 @@ export function CartHeaderButton() {
                 <h3 className="text-sm font-semibold">Novo Carrinho</h3>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Fechar"
                   className="h-6 w-6"
                   onClick={() => setShowPicker(false)}
                 >

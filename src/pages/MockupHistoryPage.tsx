@@ -180,7 +180,7 @@ export default function MockupHistoryPage() {
                         {m.mockup_url && (
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="icon" aria-label="Download"
                             onClick={() => window.open(m.mockup_url!, "_blank")}
                           >
                             <Download className="h-4 w-4" />
@@ -188,7 +188,7 @@ export default function MockupHistoryPage() {
                         )}
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="Excluir"
                           onClick={() => handleDelete(m.id)}
                           className="text-destructive hover:text-destructive"
                         >

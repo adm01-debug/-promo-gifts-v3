@@ -722,7 +722,7 @@ export function QuantityPriceCalculator({
                     {formatNumber(qty)}
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon" aria-label="Fechar"
                       className="h-5 w-5 hover:bg-destructive/20"
                       onClick={() => handleRemoveQuantity(qty)}
                       disabled={customQuantities.length <= 1}

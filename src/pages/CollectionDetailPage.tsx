@@ -132,7 +132,7 @@ export default function CollectionDetailPage() {
                   </div>
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon" aria-label="Excluir"
                     className="shrink-0 text-muted-foreground hover:text-destructive"
                     onClick={() => handleRemoveFromCollection(product.id)}
                   >

@@ -245,7 +245,7 @@ export function MultiProductComparison({
                           {!isCurrent && (
                             <Button
                               variant="ghost"
-                              size="icon"
+                              size="icon" aria-label="Excluir"
                               className="h-8 w-8 text-muted-foreground hover:text-destructive"
                               onClick={() => removeProduct(comparison.product.id)}
                             >
