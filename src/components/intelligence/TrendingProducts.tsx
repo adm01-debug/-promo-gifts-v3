@@ -16,7 +16,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
 
   const trendIcon = {
     up: <TrendingUp className="h-3 w-3 text-primary" />,
-    down: <TrendingDown className="h-3 w-3 text-red-500" />,
+    down: <TrendingDown className="h-3 w-3 text-destructive" />,
     stable: <Minus className="h-3 w-3 text-muted-foreground" />,
   };
 
