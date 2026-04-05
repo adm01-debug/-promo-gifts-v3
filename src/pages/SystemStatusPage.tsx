@@ -217,9 +217,9 @@ export default function SystemStatusPage() {
       case "error":
         return <XCircle className="h-5 w-5 text-destructive" />;
       case "warning":
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+        return <AlertCircle className="h-5 w-5 text-warning" />;
       case "loading":
-        return <AlertCircle className="h-5 w-5 text-yellow-500 animate-pulse" />;
+        return <AlertCircle className="h-5 w-5 text-warning animate-pulse" />;
     }
   };
 
