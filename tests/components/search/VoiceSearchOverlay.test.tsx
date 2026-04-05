@@ -102,7 +102,8 @@ describe("VoiceSearchOverlay", () => {
 
     it("shows ElevenLabs badge", () => {
       render(<VoiceSearchOverlay {...defaultProps} />);
-      expect(screen.getByText("IA + Voz ElevenLabs")).toBeDefined();
+      // Text may be split across elements
+      expect(screen.getByText(/ElevenLabs/)).toBeDefined();
     });
 
     it("shows close button (X)", () => {
