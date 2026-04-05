@@ -47,6 +47,9 @@ html[data-scroll-locked] body {
     /* ===== POPOVER/DIALOG ===== */
     --popover: 0 0% 100%;
     --popover-foreground: 222 25% 10%;
+    --command-surface: 0 0% 100%;
+    --command-border: 220 14% 86%;
+    --command-shadow: 222 25% 10% / 0.18;
     
     /* ===== CORES PRIMÁRIAS (LARANJA — IGUAL DARK) ===== */
     --primary: 25 95% 53%;
@@ -227,6 +230,9 @@ html[data-scroll-locked] body {
     /* ===== POPOVER/DIALOG ===== */
     --popover: 225 18% 8%;
     --popover-foreground: 210 40% 98%;
+    --command-surface: 0 0% 0%;
+    --command-border: 0 0% 10%;
+    --command-shadow: 0 0% 0% / 0.82;
     
     /* ===== CORES PRIMÁRIAS (LARANJA — mais vibrante) ===== */
     --primary: 24 100% 50%;
