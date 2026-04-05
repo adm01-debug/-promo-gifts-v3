@@ -189,7 +189,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{
                   type: "spring", damping: 25, stiffness: 250,
                   boxShadow: phase === "listening" || phase === "speaking" || phase === "processing"
-                    ? { duration: 4.6, repeat: Infinity, ease: "easeInOut" }
+                    ? { duration: 5.75, repeat: Infinity, ease: "easeInOut" }
                     : { duration: 0.5 },
                 }}
                 className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/[0.08] bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-y-auto"
