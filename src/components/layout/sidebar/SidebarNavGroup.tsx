@@ -1,6 +1,6 @@
-import React, { forwardRef, useState, useEffect } from "react";
+import React, { forwardRef, useState } from "react";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Plus } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -47,7 +47,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
   onToggle,
   onMobileClose,
   isMobileSidebarOpen,
-}, ref) {
+}, _ref) {
   const location = useLocation();
   const { isAdmin } = useAuth();
   const { hasPermission } = useRBAC();
@@ -64,6 +64,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
 
   const hasActiveItem = group.items.some((item) => isItemActive(item.href, item.exact));
   const GroupIcon = group.icon;
+  const groupToggleLabel = `${isOpen ? 'Recolher' : 'Expandir'} grupo ${group.label}`;
 
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
@@ -215,7 +216,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
       <CollapsibleTrigger asChild>
         <button
           aria-expanded={isOpen}
-          aria-label={`${isOpen ? 'Recolher' : 'Expandir'} grupo ${group.label}`}
+          aria-label={groupToggleLabel}
           className={cn(
             "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-200",
             "hover:bg-sidebar-accent/40 text-sidebar-foreground/50",
@@ -258,3 +259,5 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
     </Collapsible>
   );
 });
+
+SidebarNavGroup.displayName = "SidebarNavGroup";
