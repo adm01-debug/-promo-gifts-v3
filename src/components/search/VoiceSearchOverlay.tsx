@@ -333,7 +333,6 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative z-10 flex flex-col items-center gap-6 max-w-md w-full px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl"
               >
-            >
               {/* Title */}
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
