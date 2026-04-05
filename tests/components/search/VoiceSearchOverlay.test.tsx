@@ -116,10 +116,13 @@ describe("VoiceSearchOverlay", () => {
   });
 
   it("calls onCommandSelect when clicking suggestion chip", () => {
-    const { rerender } = render(<VoiceSearchOverlay {...defaultProps} phase="listening" />);
-    // Go back to idle after listening (not first open, so no booting state)
-    rerender(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
-    act(() => { vi.advanceTimersByTime(200); });
+    // Start with isOpen=false so hasAutoStarted doesn't fire
+    const { rerender } = render(<VoiceSearchOverlay {...defaultProps} isOpen={false} phase="idle" />);
+    // Open directly in listening phase (skips booting)
+    rerender(<VoiceSearchOverlay {...defaultProps} isOpen={true} phase="listening" />);
+    // Return to idle after listening — suggestions should appear
+    rerender(<VoiceSearchOverlay {...defaultProps} isOpen={true} phase="idle" />);
+    act(() => { vi.advanceTimersByTime(300); });
     const chip = screen.getByText(/"Quero canetas azuis baratas"/);
     fireEvent.click(chip);
     expect(defaultProps.onCommandSelect).toHaveBeenCalledWith("Quero canetas azuis baratas");
