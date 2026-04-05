@@ -29,7 +29,7 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   },
   'best-seller': {
     icon: Flame,
-    colors: 'bg-orange-500/15 text-orange-500 border-orange-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
   },
   'popular': {
     icon: Zap,
