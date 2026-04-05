@@ -1,4 +1,5 @@
 import { forwardRef } from "react";
+import { Gift } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarBrandHeaderProps {
@@ -10,20 +11,27 @@ export const SidebarBrandHeader = forwardRef<HTMLDivElement, SidebarBrandHeaderP
     if (isCollapsed) {
       return (
         <div ref={ref} className="flex items-center justify-center px-2 py-3 mb-2">
-          <span className="text-sm font-bold text-sidebar-foreground">PG</span>
+          <div className="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
+            <Gift className="h-4 w-4 text-primary-foreground" />
+          </div>
         </div>
       );
     }
 
     return (
       <div ref={ref} className="px-4 py-3 mb-2">
-        <div className="flex flex-col min-w-0">
-          <span className="text-sm font-bold text-sidebar-foreground tracking-tight">
-            Promo Gifts
-          </span>
-          <span className="text-[10px] text-sidebar-foreground/40 font-medium uppercase tracking-widest">
-            Plataforma de Vendas
-          </span>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-primary flex items-center justify-center shrink-0">
+            <Gift className="h-4.5 w-4.5 text-primary-foreground" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <span className="text-sm font-bold text-sidebar-foreground tracking-tight">
+              Promo Gifts
+            </span>
+            <span className="text-[10px] text-sidebar-foreground/40 font-medium uppercase tracking-widest">
+              Plataforma de Vendas
+            </span>
+          </div>
         </div>
       </div>
     );
