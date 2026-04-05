@@ -89,16 +89,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             <Menu className="h-5 w-5" />
           </Button>
 
-          <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="hidden sm:block">
-              <h1 className="font-display text-sm sm:text-base font-bold text-foreground leading-tight">
-                Promo Gifts
-              </h1>
-              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider -mt-0.5">
-                Plataforma de Vendas
-              </p>
-            </div>
-          </div>
 
         </div>
 
