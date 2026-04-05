@@ -86,7 +86,7 @@ export default function BIDashboard() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard de Produtos</h1>
+          <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard de Produtos</h1>
           <p className="text-muted-foreground mt-1">
             Visão geral do catálogo de produtos
           </p>

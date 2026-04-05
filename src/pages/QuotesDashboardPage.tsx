@@ -424,13 +424,13 @@ export default function QuotesDashboardPage() {
           <div className="flex items-center gap-4">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Voltar"
               onClick={() => navigate("/orcamentos")}
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Dashboard de Orçamentos</h1>
+              <h1 className="font-display text-2xl font-bold text-foreground">Dashboard de Orçamentos</h1>
               <p className="text-muted-foreground">Métricas e análises de performance</p>
             </div>
           </div>

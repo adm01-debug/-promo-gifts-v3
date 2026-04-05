@@ -460,7 +460,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
               )}
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="History"
                 onClick={() => setShowHistory(!showHistory)}
                 className="h-8 w-8"
                 title={showHistory ? "Voltar ao chat" : "Ver histórico"}
@@ -469,7 +469,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
               </Button>
               <Button
                 variant="ghost"
-                size="icon"
+                size="icon" aria-label="Adicionar"
                 onClick={startNewConversation}
                 className="h-8 w-8"
                 title="Nova conversa"
@@ -483,7 +483,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
         {showHistory ? (
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-2">
-              <h3 className="font-medium text-sm text-muted-foreground mb-3">
+              <h3 className="font-display font-medium text-sm text-muted-foreground mb-3">
                 Conversas anteriores
               </h3>
               {isLoadingConversations ? (
@@ -517,7 +517,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         className="h-7 w-7 text-muted-foreground hover:text-destructive"
                         onClick={(e) => handleDeleteConversation(e, conv.id)}
                       >
@@ -538,7 +538,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                     <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                       <Bot className="h-8 w-8 text-primary" />
                     </div>
-                    <h3 className="font-medium mb-2">Olá! Sou o Oráculo</h3>
+                    <h3 className="font-display font-medium mb-2">Olá! Sou o Oráculo</h3>
                     <p className="text-sm text-muted-foreground max-w-[300px] mx-auto">
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"} com base no perfil e histórico de compras.`
@@ -648,7 +648,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                 <Button
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
-                  size="icon"
+                  size="icon" aria-label="Carregando"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

@@ -69,7 +69,7 @@ export function UserTable({ users, currentUserId, updatingUserId, onEditUser, on
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex items-center justify-end gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onEditUser(userItem)} title="Editar usuário">
+                  <Button variant="ghost" size="icon" aria-label="Editar" className="h-8 w-8" onClick={() => onEditUser(userItem)} title="Editar usuário">
                     <Pencil className="h-4 w-4" />
                   </Button>
                   {userItem.user_id !== currentUserId && (
@@ -77,7 +77,7 @@ export function UserTable({ users, currentUserId, updatingUserId, onEditUser, on
                       <Button variant="outline" size="sm" onClick={() => onChangeRole(userItem)} disabled={updatingUserId === userItem.user_id}>
                         {updatingUserId === userItem.user_id ? <Loader2 className="h-4 w-4 animate-spin" /> : "Alterar Role"}
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onDeleteUser(userItem)} title="Excluir usuário">
+                      <Button variant="ghost" size="icon" aria-label="Excluir" className="h-8 w-8 text-destructive hover:text-destructive" onClick={() => onDeleteUser(userItem)} title="Excluir usuário">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </>

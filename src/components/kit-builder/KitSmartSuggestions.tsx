@@ -96,7 +96,7 @@ export function KitSmartSuggestions({ selectedItems, onAddItem }: KitSmartSugges
               {item.count}x usados juntos
             </Badge>
             {onAddItem && (
-              <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => onAddItem(item)}>
+              <Button variant="ghost" size="icon" aria-label="Adicionar" className="h-6 w-6" onClick={() => onAddItem(item)}>
                 <Plus className="h-3 w-3" />
               </Button>
             )}

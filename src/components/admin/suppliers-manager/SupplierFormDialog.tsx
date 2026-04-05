@@ -253,7 +253,7 @@ export function SupplierFormDialog({
                   <div className={`${fieldClass} flex-1 flex items-center px-3 text-sm`}>
                     {transportadoraPadrao}
                   </div>
-                  <Button type="button" variant="ghost" size="icon" className="h-9 w-9 shrink-0" onClick={() => {
+                  <Button type="button" variant="ghost" size="icon" aria-label="Fechar" className="h-9 w-9 shrink-0" onClick={() => {
                     setTransportadoraPadrao(''); setTransportadoraId(''); setCarrierSearch('');
                   }}>
                     <X className="h-4 w-4" />

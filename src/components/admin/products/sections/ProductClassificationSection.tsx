@@ -113,7 +113,7 @@ export default function ProductClassificationSection({
           <Layers className="h-5 w-5" />
         </div>
         <div>
-          <h3 className="text-base font-bold text-foreground">Classificação & Vínculos</h3>
+          <h3 className="font-display text-base font-bold text-foreground">Classificação & Vínculos</h3>
           <p className="text-xs text-muted-foreground">Configure variações, materiais, tags e vínculos comerciais</p>
         </div>
       </div>

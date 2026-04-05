@@ -218,7 +218,7 @@ export function PricingPanel() {
                         <ChevronRight className="h-5 w-5 text-muted-foreground" />
                       )}
                       <div>
-                        <h3 className="font-semibold">{tecnicaNome}</h3>
+                        <h3 className="font-display font-semibold">{tecnicaNome}</h3>
                         <p className="text-sm text-muted-foreground">
                           {tabelasGrupo.length} tabela{tabelasGrupo.length > 1 ? 's' : ''} de preço
                         </p>

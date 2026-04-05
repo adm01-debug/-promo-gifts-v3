@@ -122,7 +122,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
         
         <Button
           variant="ghost"
-          size="icon"
+          size="icon" aria-label="Ampliar"
           onClick={handleZoomIn}
           disabled={zoom >= 4}
           className="h-8 w-8"
@@ -146,7 +146,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
             <div className="w-px h-6 bg-border" />
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Maximizar"
               onClick={() => setIsFullscreen(true)}
               className="h-8 w-8"
             >
@@ -180,7 +180,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
             <div key={product.id} className="space-y-3">
               {/* Product name */}
               <h3 
-                className="text-sm font-medium text-center truncate cursor-pointer hover:text-primary transition-colors"
+                className="font-display text-sm font-medium text-center truncate cursor-pointer hover:text-primary transition-colors"
                 onClick={() => onProductClick?.(product.id)}
               >
                 {product.name}

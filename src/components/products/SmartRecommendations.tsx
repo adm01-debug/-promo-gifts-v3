@@ -118,7 +118,7 @@ export function SmartRecommendations({ clientId, clientName, showTabs = true }: 
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <History className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Baseado no seu Histórico</h3>
+                <h3 className="font-display font-semibold">Baseado no seu Histórico</h3>
               </div>
               <RecommendationGrid products={personalizedRecommendations.data} />
             </section>
@@ -129,7 +129,7 @@ export function SmartRecommendations({ clientId, clientName, showTabs = true }: 
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="h-4 w-4 text-success" />
-                <h3 className="font-semibold">Produtos em Alta</h3>
+                <h3 className="font-display font-semibold">Produtos em Alta</h3>
                 <Badge variant="secondary" className="text-xs">Últimos 30 dias</Badge>
               </div>
               <RecommendationGrid products={trendingProducts.data} />
@@ -198,7 +198,7 @@ function RecommendationGrid({ products, emptyMessage, emptyIcon: EmptyIcon = Pac
           {/* Score Badge */}
           {product.score >= 80 && (
             <div className="absolute top-2 right-2 z-10">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-warning/80 to-orange flex items-center justify-center shadow-lg">
                 <Star className="h-3 w-3 text-primary-foreground fill-white" />
               </div>
             </div>
@@ -282,7 +282,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
             <Users className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold text-lg mb-2">
+          <h3 className="font-display font-semibold text-lg mb-2">
             {clientName ? `Histórico de ${clientName}` : 'Selecione um Cliente'}
           </h3>
           <p className="text-muted-foreground text-sm max-w-sm">
@@ -327,7 +327,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
                   idx === 0 ? "bg-warning/20 text-warning" :
-                  idx === 1 ? "bg-slate-400/20 text-slate-600" :
+                  idx === 1 ? "bg-muted/40 text-muted-foreground" :
                   idx === 2 ? "bg-orange/20 text-orange" :
                   "bg-muted text-muted-foreground"
                 )}>

@@ -331,7 +331,7 @@ export function SavedFilters<T = Record<string, unknown>>({
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="Favoritar"
                           className="h-7 w-7"
                           onClick={() => handleSetDefault(filter.id, !!filter.isDefault)}
                         >
@@ -343,7 +343,7 @@ export function SavedFilters<T = Record<string, unknown>>({
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="Excluir"
                           className="h-7 w-7 text-destructive hover:text-destructive"
                           onClick={() => setDeleteConfirmId(filter.id)}
                         >

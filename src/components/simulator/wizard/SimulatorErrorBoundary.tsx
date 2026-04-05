@@ -63,7 +63,7 @@ export class SimulatorErrorBoundary extends Component<Props, State> {
           <AlertTriangle className="h-8 w-8 text-destructive" />
         </div>
 
-        <h3 className="text-xl font-bold mb-2">{fallbackTitle}</h3>
+        <h3 className="font-display text-xl font-bold mb-2">{fallbackTitle}</h3>
         <p className="text-muted-foreground mb-6 text-sm leading-relaxed">
           {tooManyRetries
             ? 'O erro persiste após várias tentativas. Tente recarregar a página ou voltar ao início.'

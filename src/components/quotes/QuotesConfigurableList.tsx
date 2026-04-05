@@ -494,16 +494,16 @@ export function QuotesConfigurableList({
           <span className="text-sm text-muted-foreground mr-2">
             Página {safePage} de {totalPages}
           </span>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage(1)}>
+          <Button variant="outline" size="icon" aria-label="ChevronsLeft" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage(1)}>
             <ChevronsLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage((p) => p - 1)}>
+          <Button variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8" disabled={safePage <= 1} onClick={() => setCurrentPage((p) => p - 1)}>
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
+          <Button variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage((p) => p + 1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage(totalPages)}>
+          <Button variant="outline" size="icon" aria-label="ChevronsRight" className="h-8 w-8" disabled={safePage >= totalPages} onClick={() => setCurrentPage(totalPages)}>
             <ChevronsRight className="h-4 w-4" />
           </Button>
         </div>

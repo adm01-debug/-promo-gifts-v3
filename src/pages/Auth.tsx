@@ -359,7 +359,7 @@ export default function Auth() {
                     <ShieldAlert className="h-6 w-6 text-destructive" />
                   </div>
                   <div className="space-y-2">
-                    <h3 className="text-lg font-semibold text-destructive">
+                    <h3 className="font-display text-lg font-semibold text-destructive">
                       Acesso Bloqueado
                     </h3>
                     <p className="text-sm text-muted-foreground">

@@ -294,7 +294,7 @@ export function CategorySidebarPanel({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Layers className="h-5 w-5 text-primary" />
-            <h3 className="font-semibold text-sm">Categorias</h3>
+            <h3 className="font-display font-semibold text-sm">Categorias</h3>
           </div>
           <div className="flex items-center gap-1">
             <Badge variant="outline" className="text-[10px]">

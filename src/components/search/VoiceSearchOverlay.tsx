@@ -237,7 +237,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   transition={{ delay: 0.15 }}
                   className="text-center"
                 >
-                  <h2 className="text-xs font-medium text-white/50 mb-0.5">{title}</h2>
+                  <h2 className="font-display text-xs font-medium text-white/50 mb-0.5">{title}</h2>
                   <p className="text-white/25 text-[10px]">{subtitle}</p>
                 </motion.div>
 

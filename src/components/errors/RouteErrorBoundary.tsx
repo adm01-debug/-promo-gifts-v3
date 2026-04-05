@@ -132,7 +132,7 @@ export function RouteErrorBoundary() {
             </motion.div>
             
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="font-display text-2xl font-bold text-foreground">
                 {errorDetails.title}
               </h1>
               <p className="text-muted-foreground">

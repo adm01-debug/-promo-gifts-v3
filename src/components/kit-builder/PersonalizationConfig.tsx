@@ -216,7 +216,7 @@ function ItemPersonalizationCard({
               <Switch checked={personalization.enabled} onCheckedChange={handleToggle} />
               {personalization.enabled && (
                 <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button variant="ghost" size="icon" aria-label="Expandir" className="h-8 w-8">
                     {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                   </Button>
                 </CollapsibleTrigger>
@@ -363,7 +363,7 @@ export function PersonalizationConfig({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
+          <h3 className="font-display text-lg font-semibold flex items-center gap-2">
             <Settings className="h-5 w-5" />
             Configurar Personalização
           </h3>

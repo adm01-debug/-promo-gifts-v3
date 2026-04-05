@@ -17,7 +17,7 @@ export function QuoteClientInfo({ clientCompany, clientName, clientEmail, client
       <div>
         <div className="flex items-center gap-2 mb-3">
           <Building2 className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Empresa</h3>
+          <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-muted-foreground">Empresa</h3>
         </div>
         {clientCompany || clientName ? (
           (() => {
@@ -56,7 +56,7 @@ export function QuoteClientInfo({ clientCompany, clientName, clientEmail, client
       <div>
         <div className="flex items-center gap-2 mb-3">
           <User className="h-4 w-4 text-primary" />
-          <h3 className="font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contato</h3>
+          <h3 className="font-display font-semibold text-sm uppercase tracking-wide text-muted-foreground">Contato</h3>
         </div>
         {clientName ? (
           <div className="space-y-1.5">

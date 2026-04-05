@@ -93,10 +93,10 @@ export function CartHeaderButton() {
               className="p-4"
             >
               <div className="flex items-center justify-between mb-3">
-                <h3 className="text-sm font-semibold">Novo Carrinho</h3>
+                <h3 className="font-display text-sm font-semibold">Novo Carrinho</h3>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Fechar"
                   className="h-6 w-6"
                   onClick={() => setShowPicker(false)}
                 >
@@ -122,7 +122,7 @@ export function CartHeaderButton() {
                   <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
                     <ShoppingCart className="h-3.5 w-3.5 text-primary" />
                   </div>
-                  <h3 className="font-semibold text-sm">Carrinhos</h3>
+                  <h3 className="font-display font-semibold text-sm">Carrinhos</h3>
                   <button
                     className="text-[10px] text-muted-foreground hover:text-primary font-medium underline-offset-2 hover:underline transition-colors"
                     onClick={() => { setOpen(false); navigate("/carrinhos"); }}

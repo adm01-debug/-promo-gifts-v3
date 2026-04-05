@@ -66,7 +66,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
 
             {/* Text */}
             <div className="text-center space-y-2">
-              <h1 className="text-2xl font-bold text-foreground tracking-tight">
+              <h1 className="font-display text-2xl font-bold text-foreground tracking-tight">
                 Ops! Algo deu errado
               </h1>
               <p className="text-muted-foreground text-sm leading-relaxed max-w-sm mx-auto">

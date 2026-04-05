@@ -198,7 +198,7 @@ export default function SimuladorWizard() {
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         className="h-6 w-6 shrink-0 text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();

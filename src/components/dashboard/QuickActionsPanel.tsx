@@ -114,7 +114,7 @@ export function QuickActionsPanel() {
     <div className="space-y-4">
       {/* Quick Actions */}
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Ações Rápidas
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -142,7 +142,7 @@ export function QuickActionsPanel() {
 
       {/* Metrics */}
       <div>
-        <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
+        <h3 className="font-display text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-3">
           Suas Métricas do Mês
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

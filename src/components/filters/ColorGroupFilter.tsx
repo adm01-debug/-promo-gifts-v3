@@ -87,7 +87,7 @@ function ColorSwatch({
         <Check 
           className={cn(
             'w-4 h-4',
-            isLight ? 'text-foreground' : 'text-white'
+            isLight ? 'text-foreground' : 'text-primary-foreground'
           )} 
         />
       )}
@@ -226,7 +226,7 @@ export function ColorGroupFilter({
         >
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex items-center gap-1.5">
-              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-red-500 via-green-500 to-blue-500" />
+              <div className="w-4 h-4 rounded-full bg-gradient-to-r from-destructive via-success to-info" />
               <span className="text-sm font-medium">Cores</span>
             </div>
             

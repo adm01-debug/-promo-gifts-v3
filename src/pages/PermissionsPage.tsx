@@ -115,7 +115,7 @@ export default function PermissionsPage() {
             <SidebarTrigger className="-ml-1" />
             <BackButton fallbackPath="/admin" />
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">Gestão de Permissões</h1>
+              <h1 className="font-display text-lg font-semibold">Gestão de Permissões</h1>
             </div>
           </header>
           <main className="flex-1 p-6">
@@ -194,7 +194,7 @@ export default function PermissionsPage() {
                     <div className="space-y-6">
                       {Object.entries(groupedPermissions).map(([category, perms]) => (
                         <div key={category}>
-                          <h3 className="font-medium mb-2 capitalize">{category}</h3>
+                          <h3 className="font-display font-medium mb-2 capitalize">{category}</h3>
                           <Table>
                             <TableHeader>
                               <TableRow>
@@ -216,10 +216,10 @@ export default function PermissionsPage() {
                                   </TableCell>
                                   <TableCell>
                                     <div className="flex gap-2">
-                                      <Button variant="ghost" size="icon" onClick={() => handleEdit(perm)}>
+                                      <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(perm)}>
                                         <Edit className="h-4 w-4" />
                                       </Button>
-                                      <Button variant="ghost" size="icon" onClick={() => handleDelete(perm.id)}>
+                                      <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(perm.id)}>
                                         <Trash2 className="h-4 w-4 text-destructive" />
                                       </Button>
                                     </div>

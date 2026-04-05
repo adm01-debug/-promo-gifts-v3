@@ -61,7 +61,7 @@ export function ProductStickyHeader({
             </div>
 
             {/* Name */}
-            <h2 className="text-sm font-semibold text-foreground truncate max-w-[300px] lg:max-w-[500px]">
+            <h2 className="font-display text-sm font-semibold text-foreground truncate max-w-[300px] lg:max-w-[500px]">
               {productName}
             </h2>
 

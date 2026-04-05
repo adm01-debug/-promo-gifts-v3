@@ -128,7 +128,7 @@ export function ProductSupplierSection({
               <Truck className="h-4 w-4 text-primary" />
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-foreground">Fornecedor Principal</h3>
+              <h3 className="font-display text-sm font-semibold text-foreground">Fornecedor Principal</h3>
               <p className="text-[11px] text-muted-foreground">Selecione ou cadastre o fornecedor do produto</p>
             </div>
           </div>
@@ -158,7 +158,7 @@ export function ProductSupplierSection({
               <Users className="h-4 w-4 text-muted-foreground" />
             </div>
             <div className="flex-1">
-              <h3 className="text-sm font-semibold text-foreground">Fornecedores Secundários</h3>
+              <h3 className="font-display text-sm font-semibold text-foreground">Fornecedores Secundários</h3>
               <p className="text-[11px] text-muted-foreground">Fontes alternativas com preços e prazos distintos</p>
             </div>
             <Badge variant="outline" className="text-[10px] text-muted-foreground shrink-0">
@@ -224,7 +224,7 @@ export function ProductSupplierSection({
                           {isPersisted && !src.is_preferred && (
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setPreferred(src.id)}>
+                                <Button variant="ghost" size="icon" aria-label="Favoritar" className="h-7 w-7" onClick={() => setPreferred(src.id)}>
                                   <Star className="h-3.5 w-3.5" />
                                 </Button>
                               </TooltipTrigger>
@@ -252,7 +252,7 @@ export function ProductSupplierSection({
                             </AlertDialog>
                           ) : (
                             <Button
-                              variant="ghost" size="icon"
+                              variant="ghost" size="icon" aria-label="Excluir"
                               className="h-7 w-7 text-destructive/70 hover:text-destructive"
                               onClick={() => removePending(src.id)}
                             >

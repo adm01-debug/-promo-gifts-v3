@@ -168,7 +168,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="PieChartIcon"
               className="h-7 w-7"
               onClick={() => setViewMode(v => v === "list" ? "chart" : "list")}
               title={viewMode === "list" ? "Ver gráfico" : "Ver lista"}

@@ -374,7 +374,7 @@ export function ProductRegistrationForm({ onSuccess, onCancel }: ProductRegistra
                         <Button
                           type="button"
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="Fechar"
                           onClick={() => removeImage(index)}
                           className="h-6 w-6 text-destructive"
                         >

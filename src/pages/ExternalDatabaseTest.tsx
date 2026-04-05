@@ -92,7 +92,7 @@ export default function ExternalDatabaseTest() {
           <div className="flex items-center gap-3">
             <Database className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-2xl font-bold">Teste de Conexão - Banco Externo</h1>
+              <h1 className="font-display text-2xl font-bold">Teste de Conexão - Banco Externo</h1>
               <p className="text-muted-foreground">Verificando conexão com o Supabase externo</p>
             </div>
           </div>

@@ -377,7 +377,7 @@ export function ProductPersonalizationRules({ productId, productSku, productName
                     {/* Area image */}
                     {location.areaImageUrl && (
                       <div className="relative rounded-lg overflow-hidden border border-border/50 bg-background">
-                        <img src={location.areaImageUrl} 
+                        <img loading="lazy" src={location.areaImageUrl} 
                           alt={`Área de impressão - ${location.name}`}
                           className="w-full max-h-40 object-contain"
                           loading="lazy"

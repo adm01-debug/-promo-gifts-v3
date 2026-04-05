@@ -280,7 +280,7 @@ export function StockAlertsIndicator({
                 <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
                   <Bell className="h-3.5 w-3.5 text-primary" />
                 </div>
-                <h3 className="font-semibold text-sm">Notificações</h3>
+                <h3 className="font-display font-semibold text-sm">Notificações</h3>
                 <span className="text-[10px] text-muted-foreground font-medium tabular-nums ml-auto">
                   {counts.total} {counts.total === 1 ? "alerta" : "alertas"}
                 </span>

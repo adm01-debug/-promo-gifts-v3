@@ -247,7 +247,7 @@ export function KitSummary({
                         <TooltipTrigger asChild>
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="icon" aria-label="Imagem"
                             className="h-8 w-8 text-muted-foreground hover:text-primary"
                             onClick={() => handleOpenMockup(
                               item.id,

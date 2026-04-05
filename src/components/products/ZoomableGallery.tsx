@@ -288,7 +288,7 @@ export function ZoomableGallery({
           >
             <Button
               variant="secondary"
-              size="icon"
+              size="icon" aria-label="Maximizar"
               className="h-9 w-9 rounded-full bg-card/90 backdrop-blur-sm shadow-lg"
               onClick={() => setIsFullscreen(true)}
             >
@@ -350,7 +350,7 @@ export function ZoomableGallery({
                 </div>
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="icon" aria-label="Ampliar"
                   className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                   onClick={handleZoomIn}
                   disabled={zoom >= 5}
@@ -377,7 +377,7 @@ export function ZoomableGallery({
                 {onShare && (
                   <Button
                     variant="secondary"
-                    size="icon"
+                    size="icon" aria-label="Compartilhar"
                     className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                     onClick={() => onShare(images[currentIndex])}
                   >
@@ -387,7 +387,7 @@ export function ZoomableGallery({
                 {onDownload && (
                   <Button
                     variant="secondary"
-                    size="icon"
+                    size="icon" aria-label="Download"
                     className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                     onClick={() => onDownload(images[currentIndex])}
                   >
@@ -396,7 +396,7 @@ export function ZoomableGallery({
                 )}
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="icon" aria-label="Fechar"
                   className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                   onClick={() => setIsFullscreen(false)}
                 >

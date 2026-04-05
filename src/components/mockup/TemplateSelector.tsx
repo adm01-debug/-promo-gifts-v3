@@ -122,7 +122,7 @@ export function TemplateSelector({
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         className="h-5 w-5 opacity-0 group-hover:opacity-100 text-destructive hover:text-destructive"
                         onClick={(e) => {
                           e.stopPropagation();

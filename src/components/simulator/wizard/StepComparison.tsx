@@ -164,7 +164,7 @@ ${persText}
             <BarChart3 className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Comparativo de Técnicas</h3>
+            <h3 className="font-display text-xl font-bold">Comparativo de Técnicas</h3>
             <p className="text-muted-foreground">
               {availableResults.length} {availableResults.length === 1 ? 'opção disponível' : 'opções disponíveis'}
               {unavailableResults.length > 0 && ` • ${unavailableResults.length} indisponível`}
@@ -326,7 +326,7 @@ function ComparisonCard({
     <div className="relative">
       {/* #1: Premium highlight for best value */}
       {isBestValue && !isSelected && (
-        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-warning/40 via-primary/30 to-amber-500/40 blur-sm pointer-events-none" />
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-warning/40 via-primary/30 to-warning/40 blur-sm pointer-events-none" />
       )}
       <button
         onClick={() => onSelect(result)}
@@ -334,7 +334,7 @@ function ComparisonCard({
           'relative w-full p-6 rounded-2xl text-left transition-all duration-300 group',
           'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
           isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
-          !isSelected && isBestValue && 'ring-2 ring-amber-500/50 border-warning/30 shadow-lg shadow-amber-500/10',
+          !isSelected && isBestValue && 'ring-2 ring-warning/50 border-warning/30 shadow-lg shadow-warning/10',
           !isSelected && !isBestValue && isFirst && 'ring-1 ring-primary/20'
         )}
       >
@@ -528,7 +528,7 @@ function ConfirmedSummary({
             </div>
           </motion.div>
           <div>
-            <h2 className="text-lg font-bold leading-tight">
+            <h2 className="font-display text-lg font-bold leading-tight">
               {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação pronta' : 'gravações prontas'}
             </h2>
             <p className="text-xs text-muted-foreground">

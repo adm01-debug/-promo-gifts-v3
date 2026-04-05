@@ -185,7 +185,7 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
+                size="icon" aria-label="Favoritar"
                 className={cn(
                   "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg",
                   "hover:scale-110 transition-all",
@@ -213,7 +213,7 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
+                size="icon" aria-label="GitCompare"
                 className={cn(
                   "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg",
                   "hover:scale-110 transition-all",
@@ -239,7 +239,7 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
+                size="icon" aria-label="Visualizar"
                 className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg hover:scale-110 transition-all"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
@@ -256,7 +256,7 @@ export function EnhancedProductCard({
             <TooltipTrigger asChild>
               <Button
                 variant="secondary"
-                size="icon"
+                size="icon" aria-label="Compartilhar"
                 className="h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg hover:scale-110 transition-all"
                 onClick={(e: React.MouseEvent) => {
                   e.stopPropagation();
@@ -357,7 +357,7 @@ export function EnhancedProductCard({
         </div>
 
         {/* Name */}
-        <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+        <h3 className="font-display font-medium text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
           {product.name}
         </h3>
 

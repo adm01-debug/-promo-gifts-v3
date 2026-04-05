@@ -32,7 +32,7 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
           {/* Imagem pequena */}
           <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden">
             {product.product_image ? (
-              <img src={product.product_image} 
+              <img loading="lazy" src={product.product_image} 
                 alt={product.product_name}
                 className="w-full h-full object-cover"
                 loading="lazy"
@@ -86,7 +86,7 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
         {/* Imagem */}
         <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30">
           {product.product_image ? (
-            <img src={product.product_image} 
+            <img loading="lazy" src={product.product_image} 
               alt={product.product_name}
               className="w-full h-full object-cover"
               loading="lazy"
@@ -240,7 +240,7 @@ export function NoveltyProductGrid() {
             <div className="flex border rounded-lg overflow-hidden">
               <Button
                 variant={viewMode === "grid" ? "secondary" : "ghost"}
-                size="icon"
+                size="icon" aria-label="Grid3X3"
                 className="h-8 w-8 rounded-none"
                 onClick={() => setViewMode("grid")}
               >
@@ -248,7 +248,7 @@ export function NoveltyProductGrid() {
               </Button>
               <Button
                 variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="icon"
+                size="icon" aria-label="Lista"
                 className="h-8 w-8 rounded-none"
                 onClick={() => setViewMode("list")}
               >

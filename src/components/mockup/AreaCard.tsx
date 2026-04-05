@@ -110,7 +110,7 @@ export function AreaCard({
             />
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Atualizar"
               className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-primary/10 pointer-events-none"
               title="Substituir logo"
             >

@@ -193,11 +193,11 @@ export function PrintAreasManager({ componentId, componentName }: { componentId:
                     </div>
                   </div>
                   <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <Button type="button" variant="ghost" size="icon" className="h-5 w-5"
+                    <Button type="button" variant="ghost" size="icon" aria-label="Editar" className="h-5 w-5"
                       onClick={() => { setEditingId(area.id); setIsCreating(false); }}>
                       <Pencil className="h-2.5 w-2.5" />
                     </Button>
-                    <Button type="button" variant="ghost" size="icon" className="h-5 w-5 text-destructive hover:text-destructive"
+                    <Button type="button" variant="ghost" size="icon" aria-label="Excluir" className="h-5 w-5 text-destructive hover:text-destructive"
                       onClick={() => setDeleteTarget(area)}>
                       <Trash2 className="h-2.5 w-2.5" />
                     </Button>

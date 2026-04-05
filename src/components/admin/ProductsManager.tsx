@@ -446,7 +446,7 @@ export function ProductsManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
+          <h2 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-primary/10">
               <Package className="h-5 w-5 text-primary" />
             </div>
@@ -728,12 +728,12 @@ export function ProductsManager() {
                         </TableCell>
                         <TableCell className="text-right pr-4">
                           <div className="flex justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity" onClick={e => e.stopPropagation()}>
-                            <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openEditForm(product)}>
+                            <Button variant="ghost" size="icon" aria-label="Editar" className="h-8 w-8 hover:bg-primary/10 hover:text-primary" onClick={() => openEditForm(product)}>
                               <Pencil className="h-3.5 w-3.5" />
                             </Button>
                             <Button
                               variant="ghost"
-                              size="icon"
+                              size="icon" aria-label="Excluir"
                               className="h-8 w-8 hover:bg-destructive/10 text-muted-foreground hover:text-destructive"
                               onClick={() => openDeleteDialog(product)}
                             >

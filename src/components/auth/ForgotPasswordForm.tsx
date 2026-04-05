@@ -70,7 +70,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
         </div>
         
         <div className="space-y-2">
-          <h2 className="text-xl font-semibold text-foreground">Solicitação enviada!</h2>
+          <h2 className="font-display text-xl font-semibold text-foreground">Solicitação enviada!</h2>
           <p className="text-sm text-muted-foreground">
             Sua solicitação de recuperação de senha para{' '}
             <span className="font-medium text-foreground">{form.getValues('email')}</span>{' '}
@@ -103,7 +103,7 @@ export function ForgotPasswordForm({ onBack }: ForgotPasswordFormProps) {
   return (
     <div className="space-y-6">
       <div className="text-center space-y-1">
-        <h2 className="text-xl font-semibold text-foreground">Esqueceu sua senha?</h2>
+        <h2 className="font-display text-xl font-semibold text-foreground">Esqueceu sua senha?</h2>
         <p className="text-sm text-muted-foreground">
           Digite seu email e enviaremos um link para redefinir sua senha
         </p>

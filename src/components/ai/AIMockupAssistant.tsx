@@ -184,7 +184,7 @@ export function AIMockupAssistant({
           <Bot className="h-4 w-4 text-[hsl(145,80%,30%)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm">Matheus — Expert em Layouts</h3>
+          <h3 className="font-display font-semibold text-sm">Matheus — Expert em Layouts</h3>
           {!isMinimized && (
             <p className="text-xs text-muted-foreground truncate">
               Powered by AI
@@ -196,7 +196,7 @@ export function AIMockupAssistant({
         </Badge>
         <Button
           variant="ghost"
-          size="icon"
+          size="icon" aria-label="Fechar"
           className="h-7 w-7"
           onClick={(e) => {
             e.stopPropagation();
@@ -305,7 +305,7 @@ export function AIMockupAssistant({
               />
               <Button
                 type="submit"
-                size="icon"
+                size="icon" aria-label="Carregando"
                 className="h-10 w-10 shrink-0 bg-[hsl(145,80%,30%)] hover:bg-[hsl(145,80%,25%)] text-white"
                 disabled={!input.trim() || isLoading}
               >

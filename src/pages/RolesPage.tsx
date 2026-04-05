@@ -101,7 +101,7 @@ export default function RolesPage() {
             <SidebarTrigger className="-ml-1" />
             <BackButton fallbackPath="/admin" />
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">Gestão de Roles</h1>
+              <h1 className="font-display text-lg font-semibold">Gestão de Roles</h1>
             </div>
           </header>
           <main className="flex-1 p-6">
@@ -178,10 +178,10 @@ export default function RolesPage() {
                             </TableCell>
                             <TableCell>
                               <div className="flex gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => handleEdit(role)}>
+                                <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(role)}>
                                   <Edit className="h-4 w-4" />
                                 </Button>
-                                <Button variant="ghost" size="icon" onClick={() => handleDelete(role.id)}>
+                                <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(role.id)}>
                                   <Trash2 className="h-4 w-4 text-destructive" />
                                 </Button>
                               </div>

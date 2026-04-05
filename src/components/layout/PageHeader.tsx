@@ -29,7 +29,7 @@ export function PageHeader({
       {/* Title row */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <h1 className="font-display text-2xl font-bold tracking-tight">{title}</h1>
           {description && (
             <p className="text-muted-foreground">{description}</p>
           )}
@@ -62,7 +62,7 @@ export function PageHeaderCompact({
   return (
     <header className={cn("flex items-center justify-between mb-4", className)}>
       <div>
-        <h2 className="text-lg font-semibold">{title}</h2>
+        <h2 className="font-display text-lg font-semibold">{title}</h2>
         {subtitle && (
           <p className="text-sm text-muted-foreground">{subtitle}</p>
         )}

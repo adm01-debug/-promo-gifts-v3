@@ -280,7 +280,7 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
       >
         <TableCell>
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="h-6 w-6">
+            <Button variant="ghost" size="icon" aria-label="Recolher" className="h-6 w-6">
               {isExpanded ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (

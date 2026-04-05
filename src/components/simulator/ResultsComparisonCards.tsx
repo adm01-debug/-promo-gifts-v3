@@ -131,7 +131,7 @@ export function ResultsComparisonCards({
               {/* Left: Technique Info */}
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
-                  <h3 className="text-xl font-bold">{option.techniqueName}</h3>
+                  <h3 className="font-display text-xl font-bold">{option.techniqueName}</h3>
                   {/* Melhoria #3: Recomendação por nicho */}
                   <NicheRecommendationBadge
                     techniqueCode={option.techniqueCode}
@@ -310,7 +310,7 @@ export function ResultsComparisonCards({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-primary" />
-          <h3 className="font-semibold">Ranking de Opções</h3>
+          <h3 className="font-display font-semibold">Ranking de Opções</h3>
           <Badge variant="secondary">{options.length} técnicas</Badge>
         </div>
       </div>

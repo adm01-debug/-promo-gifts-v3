@@ -90,7 +90,7 @@ export function StickyFilterBar({
                 <div className="hidden sm:flex border border-border rounded-lg p-0.5">
                   <Button
                     variant={viewMode === "grid" ? "secondary" : "ghost"}
-                    size="icon"
+                    size="icon" aria-label="LayoutGrid"
                     className="h-7 w-7"
                     onClick={() => onViewModeChange("grid")}
                   >
@@ -98,7 +98,7 @@ export function StickyFilterBar({
                   </Button>
                   <Button
                     variant={viewMode === "list" ? "secondary" : "ghost"}
-                    size="icon"
+                    size="icon" aria-label="Lista"
                     className="h-7 w-7"
                     onClick={() => onViewModeChange("list")}
                   >
@@ -123,7 +123,7 @@ export function StickyFilterBar({
                 {/* Voltar ao topo */}
                 <Button
                   variant="secondary"
-                  size="icon"
+                  size="icon" aria-label="Expandir"
                   className="h-8 w-8"
                   onClick={onScrollToTop}
                   title="Voltar ao topo"
@@ -210,7 +210,7 @@ export function InlineFilterBar({
           <div className="hidden sm:flex border border-border rounded-md p-0.5">
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
+              size="icon" aria-label="LayoutGrid"
               className="h-6 w-6"
               onClick={() => onViewModeChange("grid")}
             >
@@ -218,7 +218,7 @@ export function InlineFilterBar({
             </Button>
             <Button
               variant={viewMode === "list" ? "secondary" : "ghost"}
-              size="icon"
+              size="icon" aria-label="Lista"
               className="h-6 w-6"
               onClick={() => onViewModeChange("list")}
             >

@@ -256,7 +256,7 @@ export function GeoBlockingManager() {
                     <div className="flex items-center gap-1">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="ToggleRight"
                         onClick={() => handleToggleCountry(country.id, country.is_active)}
                       >
                         {country.is_active ? (
@@ -267,7 +267,7 @@ export function GeoBlockingManager() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         onClick={() => handleRemoveCountry(country.id, country.country_name)}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />

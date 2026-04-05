@@ -70,7 +70,7 @@ function MaterialDetailEditor({
       <Button
         type="button"
         variant="ghost"
-        size="icon"
+        size="icon" aria-label="Salvar"
         className="h-6 w-6"
         onClick={() => onSave({ part, percentage: percentage ? parseFloat(percentage) : null, notes })}
       >

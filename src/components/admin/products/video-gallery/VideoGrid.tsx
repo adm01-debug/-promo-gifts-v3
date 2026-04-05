@@ -119,7 +119,7 @@ export function VideoGrid({
               {/* Edit meta */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-primary text-primary-foreground"
+                  <Button type="button" size="icon" aria-label="Type" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-primary text-primary-foreground"
                     onClick={(e) => { e.stopPropagation(); setEditingVideoId(editingVideoId === video.id ? null : video.id); }}>
                     <Type className="h-3 w-3" />
                   </Button>
@@ -129,7 +129,7 @@ export function VideoGrid({
               {variants.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-primary text-primary-foreground"
+                    <Button type="button" size="icon" aria-label="Link2" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-primary text-primary-foreground"
                       onClick={(e) => { e.stopPropagation(); setLinkingVideoId(linkingVideoId === video.id ? null : video.id); }}>
                       <Link2 className="h-3 w-3" />
                     </Button>
@@ -140,7 +140,7 @@ export function VideoGrid({
               {!video.url_thumbnail && !video.source_youtube_id && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-warning text-primary-foreground"
+                    <Button type="button" size="icon" aria-label="Carregando" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-warning text-primary-foreground"
                       disabled={regeneratingId === video.id}
                       onClick={(e) => { e.stopPropagation(); regenerateThumbnail(video); }}>
                       {regeneratingId === video.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImagePlus className="h-3 w-3" />}
@@ -151,7 +151,7 @@ export function VideoGrid({
               )}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-destructive text-primary-foreground"
+                  <Button type="button" size="icon" aria-label="Excluir" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-destructive text-primary-foreground"
                     onClick={(e) => { e.stopPropagation(); requestRemove(video.id); }}>
                     <Trash2 className="h-3 w-3" />
                   </Button>

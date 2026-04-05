@@ -92,7 +92,7 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
         onClick={() => onSelect(null)}
         className="w-full flex items-center gap-3 p-3 rounded-lg border border-dashed border-border hover:border-primary/50 hover:bg-muted/50 transition-colors text-left text-sm text-muted-foreground"
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-red-400 via-green-400 to-blue-400 border border-border shrink-0" />
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/80 via-success/80 to-info/80 border border-border shrink-0" />
         <span>Adicionar sem cor específica</span>
       </button>
 

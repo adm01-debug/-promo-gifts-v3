@@ -110,7 +110,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* Mobile search trigger */}
           <Button
             variant="ghost"
-            size="icon"
+            size="icon" aria-label="Buscar"
             className="md:hidden h-8 w-8 hover:bg-primary/10 hover:text-primary"
             onClick={() => {
               const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
@@ -139,7 +139,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Favoritar"
                   className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                   onClick={() => navigate("/favoritos")}
                 >
@@ -160,7 +160,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="GitCompare"
                   className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                   onClick={() => navigate("/comparar")}
                 >

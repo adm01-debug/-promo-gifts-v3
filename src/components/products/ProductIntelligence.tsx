@@ -37,7 +37,7 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
           <BarChart3 className="h-3.5 w-3.5" />
         </div>
         <div>
-          <h2 className="font-semibold text-sm text-foreground">Inteligência do Produto</h2>
+          <h2 className="font-display font-semibold text-sm text-foreground">Inteligência do Produto</h2>
           <p className="text-[11px] text-muted-foreground leading-none">Dados e insights baseados em histórico real</p>
         </div>
       </div>
@@ -48,7 +48,7 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
             <div className="w-10 h-10 rounded-xl bg-muted flex items-center justify-center mb-2">
               <BarChart3 className="h-5 w-5 text-muted-foreground" />
             </div>
-            <h3 className="font-semibold text-sm mb-1">Ainda não há dados</h3>
+            <h3 className="font-display font-semibold text-sm mb-1">Ainda não há dados</h3>
             <p className="text-muted-foreground text-xs max-w-xs">
               Conforme o produto for visualizado e cotado, insights aparecerão aqui.
             </p>

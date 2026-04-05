@@ -348,14 +348,14 @@ export default function AdminProductFormPage() {
           <div className="flex items-center gap-3">
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Voltar"
               onClick={() => navigate('/admin/cadastros')}
               className="h-9 w-9 rounded-lg"
             >
               <ArrowLeft className="h-4 w-4" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">
+              <h1 className="font-display text-2xl font-bold tracking-tight">
                 {isEdit ? 'Editar Produto' : 'Novo Produto'}
               </h1>
               {isEdit && product && (

@@ -182,7 +182,7 @@ export function MockupResultCard({
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomOut} disabled={zoom <= 0.5} aria-label="Reduzir"><ZoomOut className="h-4 w-4" />
                 </Button>
                 <span className="text-xs font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomIn} disabled={zoom >= 3}>
+                <Button size="icon" aria-label="Ampliar" variant="ghost" className="h-7 w-7" onClick={handleZoomIn} disabled={zoom >= 3}>
                   <ZoomIn className="h-4 w-4" />
                 </Button>
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomReset} aria-label="Rotacionar"><RotateCcw className="h-3.5 w-3.5" />
@@ -224,19 +224,19 @@ export function MockupResultCard({
                 <Button size="sm" variant="secondary" onClick={onDownload} className="gap-1.5 shadow-md">
                   <Download className="h-4 w-4" /> Baixar
                 </Button>
-                <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => setIsFullscreen(false)}>
+                <Button size="icon" aria-label="Fechar" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => setIsFullscreen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 p-1.5 bg-background/90 backdrop-blur-sm rounded-lg border shadow-lg">
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.max(z - 0.25, 0.25))} disabled={fullscreenZoom <= 0.25}>
+                <Button size="icon" aria-label="Reduzir" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.max(z - 0.25, 0.25))} disabled={fullscreenZoom <= 0.25}>
                   <ZoomOut className="h-4 w-4" />
                 </Button>
                 <span className="text-xs font-medium w-14 text-center">{Math.round(fullscreenZoom * 100)}%</span>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.min(z + 0.25, 5))}>
+                <Button size="icon" aria-label="Ampliar" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(z => Math.min(z + 0.25, 5))}>
                   <ZoomIn className="h-4 w-4" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(1)}>
+                <Button size="icon" aria-label="Desfazer" variant="ghost" className="h-8 w-8" onClick={() => setFullscreenZoom(1)}>
                   <RotateCcw className="h-3.5 w-3.5" />
                 </Button>
               </div>

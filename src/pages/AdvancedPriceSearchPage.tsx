@@ -157,7 +157,7 @@ function ProductCardResult({
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
         <div className="aspect-square relative bg-muted/30">
           {product.image ? (
-            <img src={product.image} 
+            <img loading="lazy" src={product.image} 
               alt={product.name}
               className="w-full h-full object-contain p-4"
               loading="lazy"
@@ -175,7 +175,7 @@ function ProductCardResult({
         </div>
         <CardContent className="p-4 space-y-3">
           <div>
-            <h3 className="font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
+            <h3 className="font-display font-semibold text-sm line-clamp-2 group-hover:text-primary transition-colors">
               {product.name}
             </h3>
             <p className="text-xs text-muted-foreground mt-1">
@@ -283,7 +283,7 @@ function ProductTableResult({
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {product.image && (
-                      <img src={product.image} 
+                      <img loading="lazy" src={product.image} 
                         alt={product.name} 
                         className="w-10 h-10 object-contain rounded"
                         loading="lazy"
@@ -357,7 +357,7 @@ function ProductListResult({
                 {/* Imagem */}
                 <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-muted/50 overflow-hidden">
                   {product.image ? (
-                    <img src={product.image} 
+                    <img loading="lazy" src={product.image} 
                       alt={product.name} 
                       className="w-full h-full object-contain p-1"
                       loading="lazy"
@@ -582,7 +582,7 @@ export default function AdvancedPriceSearchPage() {
               <Search className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold">Busca Avançada por Preço</h1>
+              <h1 className="font-display text-2xl font-bold">Busca Avançada por Preço</h1>
               <p className="text-muted-foreground text-sm">
                 Encontre produtos que atendam ao orçamento do cliente
               </p>
@@ -845,7 +845,7 @@ export default function AdvancedPriceSearchPage() {
               <Card className="py-12">
                 <CardContent className="flex flex-col items-center justify-center text-center">
                   <AlertCircle className="h-12 w-12 text-muted-foreground/50 mb-4" />
-                  <h3 className="font-medium text-lg mb-2">
+                  <h3 className="font-display font-medium text-lg mb-2">
                     Nenhum produto encontrado
                   </h3>
                   <p className="text-muted-foreground text-sm max-w-md">
@@ -860,7 +860,7 @@ export default function AdvancedPriceSearchPage() {
               <Card className="py-12 border-dashed">
                 <CardContent className="flex flex-col items-center justify-center text-center">
                   <Sparkles className="h-12 w-12 text-primary/50 mb-4" />
-                  <h3 className="font-medium text-lg mb-2">
+                  <h3 className="font-display font-medium text-lg mb-2">
                     Encontre o produto ideal
                   </h3>
                   <p className="text-muted-foreground text-sm max-w-md">

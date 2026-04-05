@@ -71,7 +71,7 @@ export default function MockupHistoryPage() {
     <div className="space-y-6 p-6">
       <PageSEO title="Histórico de Mockups" description="Visualize todos os mockups gerados anteriormente." path="/mockup-historico" noIndex />
       <div>
-        <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+        <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
           <Image className="h-6 w-6" />
           Histórico de Mockups
         </h1>
@@ -180,7 +180,7 @@ export default function MockupHistoryPage() {
                         {m.mockup_url && (
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="icon" aria-label="Download"
                             onClick={() => window.open(m.mockup_url!, "_blank")}
                           >
                             <Download className="h-4 w-4" />
@@ -188,7 +188,7 @@ export default function MockupHistoryPage() {
                         )}
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="Excluir"
                           onClick={() => handleDelete(m.id)}
                           className="text-destructive hover:text-destructive"
                         >

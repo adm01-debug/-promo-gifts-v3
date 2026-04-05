@@ -197,7 +197,7 @@ export default function MeusKitsPage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold flex items-center gap-2">
+          <h1 className="font-display text-2xl font-bold flex items-center gap-2">
             <Package className="h-6 w-6 text-primary" />
             Meus Kits
           </h1>
@@ -292,7 +292,7 @@ export default function MeusKitsPage() {
         <Card>
           <CardContent className="py-16 text-center">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-            <h3 className="font-semibold text-lg mb-1">
+            <h3 className="font-display font-semibold text-lg mb-1">
               {search || hasActiveFilters ? 'Nenhum kit encontrado' : 'Nenhum kit salvo'}
             </h3>
             <p className="text-sm text-muted-foreground mb-6">
@@ -331,7 +331,7 @@ export default function MeusKitsPage() {
                     {/* Info */}
                     <div className="flex-1 min-w-0 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="font-semibold text-base truncate">{kit.name}</h3>
+                        <h3 className="font-display font-semibold text-base truncate">{kit.name}</h3>
                         <Badge variant={statusInfo.variant} className="text-[10px]">
                           {statusInfo.label}
                         </Badge>
@@ -370,7 +370,7 @@ export default function MeusKitsPage() {
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Compartilhar"
                         title="Compartilhar apresentação"
                         onClick={async () => {
                           const link = await generateShareLink(kit.id);
@@ -385,7 +385,7 @@ export default function MeusKitsPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Editar"
                         title="Editar"
                         onClick={() => navigate(`/montar-kit?kit=${kit.id}`)}
                       >
@@ -393,7 +393,7 @@ export default function MeusKitsPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Copiar"
                         title="Duplicar"
                         disabled={duplicateMutation.isPending}
                         onClick={() => duplicateMutation.mutate(kit)}
@@ -402,7 +402,7 @@ export default function MeusKitsPage() {
                       </Button>
                       <Button
                         variant="ghost"
-                        size="icon"
+                        size="icon" aria-label="Excluir"
                         title="Excluir"
                         className="text-destructive hover:text-destructive"
                         onClick={() => setDeleteId(kit.id)}

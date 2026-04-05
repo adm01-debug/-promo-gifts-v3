@@ -172,7 +172,7 @@ export function QuoteTemplatesList({
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-medium text-lg mb-2">Nenhum template encontrado</h3>
+            <h3 className="font-display font-medium text-lg mb-2">Nenhum template encontrado</h3>
             <p className="text-muted-foreground mb-4">
               {searchTerm 
                 ? "Tente buscar com outros termos" 
@@ -219,7 +219,7 @@ export function QuoteTemplatesList({
                       <DropdownMenuTrigger asChild>
                         <Button 
                           variant="ghost" 
-                          size="icon" 
+                          size="icon" aria-label="Mais opções" 
                           className="h-8 w-8 opacity-0 group-hover:opacity-100"
                           onClick={(e) => e.stopPropagation()}
                         >

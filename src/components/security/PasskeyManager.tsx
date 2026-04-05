@@ -173,7 +173,7 @@ export function PasskeyManager({ targetUserId }: PasskeyManagerProps) {
                   <AlertDialogTrigger asChild>
                     <Button
                       variant="ghost"
-                      size="icon"
+                      size="icon" aria-label="Carregando"
                       className="text-muted-foreground hover:text-destructive"
                       disabled={deletingId === passkey.id}
                     >

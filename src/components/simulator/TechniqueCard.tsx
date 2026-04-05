@@ -62,10 +62,10 @@ const getTechniqueStyle = (code: string) => {
     return { color: 'bg-violet-500', textColor: 'text-violet-600', icon: '🎨' };
   }
   if (c.includes('DTF')) {
-    return { color: 'bg-info', textColor: 'text-cyan-600', icon: '🖨️' };
+    return { color: 'bg-info', textColor: 'text-info', icon: '🖨️' };
   }
   if (c.includes('SUB') || c.includes('TRANSFER')) {
-    return { color: 'bg-pink-500', textColor: 'text-pink-600', icon: '🌈' };
+    return { color: 'bg-primary', textColor: 'text-primary', icon: '🌈' };
   }
   if (c.includes('BORD') || c.includes('EMBROID')) {
     return { color: 'bg-warning', textColor: 'text-warning', icon: '🧵' };
@@ -76,7 +76,7 @@ const getTechniqueStyle = (code: string) => {
   if (c.includes('UV')) {
     return { color: 'bg-primary', textColor: 'text-primary', icon: '💜' };
   }
-  return { color: 'bg-slate-500', textColor: 'text-slate-600', icon: '✨' };
+  return { color: 'bg-muted-foreground', textColor: 'text-muted-foreground', icon: '✨' };
 };
 
 // Encontrar thumbnail para técnica
@@ -199,7 +199,7 @@ export function TechniqueCard({
               
               {/* Recommendation badge */}
               {recommendation.isRecommended && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground text-[10px] px-1.5 h-5 gap-0.5">
+                <Badge className="bg-gradient-to-r from-warning to-orange text-primary-foreground text-[10px] px-1.5 h-5 gap-0.5">
                   <Sparkles className="h-2.5 w-2.5" />
                   IA
                 </Badge>
@@ -277,7 +277,7 @@ export function TechniqueCard({
         {/* Recommendation banner */}
         {recommendation.isRecommended && !isSelected && (
           <div className="absolute top-0 right-0 z-10">
-            <div className="bg-gradient-to-l from-amber-500 to-orange-500 text-primary-foreground text-[10px] font-medium px-2 py-0.5 rounded-bl-lg flex items-center gap-1">
+            <div className="bg-gradient-to-l from-warning to-orange text-primary-foreground text-[10px] font-medium px-2 py-0.5 rounded-bl-lg flex items-center gap-1">
               <Sparkles className="h-3 w-3" />
               Recomendada
             </div>
@@ -350,7 +350,7 @@ export function TechniqueCard({
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground text-xs gap-1">
+                        <Badge className="bg-gradient-to-r from-warning to-orange text-primary-foreground text-xs gap-1">
                           <Sparkles className="h-3 w-3" />
                           Recomendada IA
                         </Badge>

@@ -67,7 +67,7 @@ export function ProductSearch({ onSelect, selectedProduct }: ProductSearchProps)
           </div>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon" aria-label="Fechar"
             onClick={() => {
               onSelect(null);
               setIsSearching(true);

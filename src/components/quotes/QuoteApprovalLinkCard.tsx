@@ -157,11 +157,11 @@ export function QuoteApprovalLinkCard({ quoteId, clientName, clientEmail }: Quot
                 value={approvalLink}
                 className="text-xs font-mono bg-muted/30"
               />
-              <Button size="icon" variant="outline" onClick={handleCopy} className="shrink-0">
+              <Button size="icon" aria-label="Confirmar" variant="outline" onClick={handleCopy} className="shrink-0">
                 {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4" />}
               </Button>
               <Button
-                size="icon"
+                size="icon" aria-label="Abrir link"
                 variant="outline"
                 className="shrink-0"
                 onClick={() => window.open(approvalLink, "_blank")}

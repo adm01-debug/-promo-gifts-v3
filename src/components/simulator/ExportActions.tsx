@@ -337,7 +337,7 @@ export function ExportActions({
             <div className="space-y-4">
               {/* Header */}
               <div className="text-center pb-4 border-b">
-                <h2 className="text-xl font-bold text-primary">Simulação de Personalização</h2>
+                <h2 className="font-display text-xl font-bold text-primary">Simulação de Personalização</h2>
                 <p className="text-sm text-muted-foreground">
                   Gerado em {new Date().toLocaleDateString('pt-BR')}
                 </p>
@@ -353,7 +353,7 @@ export function ExportActions({
                      loading="lazy"/>
                   )}
                   <div>
-                    <h3 className="font-semibold">{selectedProduct?.name}</h3>
+                    <h3 className="font-display font-semibold">{selectedProduct?.name}</h3>
                     <p className="text-sm text-muted-foreground">
                       SKU: {selectedProduct?.sku} • {quantity} un • {formatCurrency(effectiveProductPrice)}/un
                     </p>

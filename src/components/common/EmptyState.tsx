@@ -175,7 +175,7 @@ export function EmptyState({
         transition={{ delay: 0.2 }}
         className="space-y-2 max-w-md"
       >
-        <h3 className="text-lg font-semibold text-foreground">
+        <h3 className="font-display text-lg font-semibold text-foreground">
           {title || config.title}
         </h3>
         <p className="text-muted-foreground">

@@ -203,7 +203,7 @@ export function OnboardingTour() {
 
             {/* Content */}
             <div className="p-4">
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                 {currentStepData.title}
               </h3>
               <p className="text-sm text-muted-foreground leading-relaxed">

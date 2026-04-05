@@ -307,7 +307,7 @@ export function ArtFileUpload({
                 {file.fileType === "pdf" && (
                   <Button
                     variant="ghost"
-                    size="icon"
+                    size="icon" aria-label="Visualizar"
                     className="h-7 w-7"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -323,7 +323,7 @@ export function ArtFileUpload({
 
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Download"
                   className="h-7 w-7"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -336,7 +336,7 @@ export function ArtFileUpload({
 
                 <Button
                   variant="ghost"
-                  size="icon"
+                  size="icon" aria-label="Fechar"
                   className="h-7 w-7 hover:bg-destructive/10 hover:text-destructive"
                   onClick={(e) => {
                     e.stopPropagation();
@@ -361,7 +361,7 @@ export function ArtFileUpload({
             </span>
             <Button
               variant="ghost"
-              size="icon"
+              size="icon" aria-label="Fechar"
               className="h-6 w-6"
               onClick={() => setPreviewPdfUrl(null)}
             >

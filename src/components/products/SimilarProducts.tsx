@@ -176,7 +176,7 @@ export function SimilarProducts({
         <div className="flex items-center gap-2 shrink-0 ml-4">
           <Button
             variant="outline"
-            size="icon"
+            size="icon" aria-label="Voltar"
             className="h-10 w-10 rounded-xl border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
             onClick={() => scroll("left")}
             disabled={!canScrollLeft}
@@ -185,7 +185,7 @@ export function SimilarProducts({
           </Button>
           <Button
             variant="outline"
-            size="icon"
+            size="icon" aria-label="Avançar"
             className="h-10 w-10 rounded-xl border-2 border-primary/40 bg-primary/10 hover:bg-primary/20 hover:border-primary/60 transition-all duration-200 shadow-md"
             onClick={() => scroll("right")}
             disabled={!canScrollRight}

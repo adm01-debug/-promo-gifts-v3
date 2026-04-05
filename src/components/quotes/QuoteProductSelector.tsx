@@ -408,7 +408,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
               alt={selectedProduct.name}
               className="w-20 h-20 sm:w-24 sm:h-24 object-cover rounded-md" loading="lazy" />
             <div className="flex-1">
-              <h3 className="font-semibold text-base sm:text-lg">{selectedProduct.name}</h3>
+              <h3 className="font-display font-semibold text-base sm:text-lg">{selectedProduct.name}</h3>
               <p className="text-sm text-muted-foreground">{selectedProduct.sku || 'N/A'}</p>
               <p className="text-primary font-bold text-lg sm:text-xl mt-2">
                 {formatCurrency(selectedProduct.price)}
@@ -453,7 +453,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
             <div className="flex items-center gap-1">
               <Button
                 variant="outline"
-                size="icon"
+                size="icon" aria-label="Remover"
                 className="h-10 w-10 shrink-0"
                 onClick={() => setQuantity(prev => Math.max(selectedProduct.minQuantity || 1, prev - 1))}
                 disabled={quantity <= (selectedProduct.minQuantity || 1)}
@@ -469,7 +469,7 @@ export function QuoteProductSelector({ onProductAdd, existingProductIds }: Quote
               />
               <Button
                 variant="outline"
-                size="icon"
+                size="icon" aria-label="Adicionar"
                 className="h-10 w-10 shrink-0"
                 onClick={() => setQuantity(prev => prev + 1)}
               >

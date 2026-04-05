@@ -112,7 +112,7 @@ export default function FavoritesPage() {
                 <div className="absolute top-3 right-3 z-10">
                   <Button
                     variant="secondary"
-                    size="icon"
+                    size="icon" aria-label="Favoritar"
                     className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
                     onClick={(e) => {
                       e.stopPropagation();

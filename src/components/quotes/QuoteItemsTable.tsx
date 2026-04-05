@@ -72,7 +72,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
         <td className="p-3">
           <div className="flex items-center gap-3">
             {item.product_image_url && (
-              <img src={item.product_image_url} 
+              <img loading="lazy" src={item.product_image_url} 
                 alt={item.product_name}
                 className="w-16 h-16 object-cover rounded border border-border print:hidden"
                 loading="lazy"
@@ -150,7 +150,7 @@ export function QuoteItemsTable({ items }: QuoteItemsTableProps) {
 
   return (
     <div>
-      <h3 className="font-semibold mb-4">Itens do Orçamento</h3>
+      <h3 className="font-display font-semibold mb-4">Itens do Orçamento</h3>
       <div className="overflow-x-auto rounded-lg border border-border">
         <table className="w-full border-collapse">
           <thead>

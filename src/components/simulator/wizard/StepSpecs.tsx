@@ -104,7 +104,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
           <SlidersHorizontal className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h3 className="text-xl font-bold">Especificações da Gravação</h3>
+          <h3 className="font-display text-xl font-bold">Especificações da Gravação</h3>
           <p className="text-muted-foreground">
             {techniques.length} {techniques.length === 1 ? 'técnica disponível' : 'técnicas disponíveis'} neste local
           </p>

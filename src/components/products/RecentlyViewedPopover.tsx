@@ -33,7 +33,7 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          size="icon"
+          size="icon" aria-label="Horário"
           className={cn(
             "relative h-10 w-10 rounded-full border-border/50 transition-colors",
             itemCount > 0 ? "hover:border-primary/50" : "opacity-60 hover:opacity-100"

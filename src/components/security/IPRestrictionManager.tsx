@@ -193,7 +193,7 @@ export function IPRestrictionManager({ targetUserId, readOnly = false }: IPRestr
                       <div className="flex items-center gap-1">
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="ToggleRight"
                           onClick={() => handleToggleIP(ip.id, ip.is_active)}
                         >
                           {ip.is_active ? (
@@ -204,7 +204,7 @@ export function IPRestrictionManager({ targetUserId, readOnly = false }: IPRestr
                         </Button>
                         <Button
                           variant="ghost"
-                          size="icon"
+                          size="icon" aria-label="Excluir"
                           onClick={() => handleRemoveIP(ip.id)}
                         >
                           <Trash2 className="h-4 w-4 text-destructive" />

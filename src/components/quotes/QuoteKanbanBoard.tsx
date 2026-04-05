@@ -128,7 +128,7 @@ function QuoteCard({ quote, isDragging }: QuoteCardProps) {
           </div>
           <Button
             variant="ghost"
-            size="icon"
+            size="icon" aria-label="Visualizar"
             className="h-6 w-6"
             onClick={(e) => {
               e.stopPropagation();

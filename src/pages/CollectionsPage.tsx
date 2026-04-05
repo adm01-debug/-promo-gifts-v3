@@ -151,7 +151,7 @@ export default function CollectionsPage() {
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Cloud className="h-4 w-4 text-primary" />
-              <h2 className="text-lg font-semibold">Coleções Sincronizadas</h2>
+              <h2 className="font-display text-lg font-semibold">Coleções Sincronizadas</h2>
               <Badge variant="secondary" className="text-xs">
                 BD Externo
               </Badge>
@@ -206,7 +206,7 @@ export default function CollectionsPage() {
                         {collection.icon || "📁"}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">
+                        <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
                         {collection.description && (
@@ -232,7 +232,7 @@ export default function CollectionsPage() {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <CloudOff className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-lg font-semibold">Coleções Locais</h2>
+            <h2 className="font-display text-lg font-semibold">Coleções Locais</h2>
             <Badge variant="outline" className="text-xs">
               Apenas neste dispositivo
             </Badge>
@@ -256,7 +256,7 @@ export default function CollectionsPage() {
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
-                            size="icon"
+                            size="icon" aria-label="Mais opções"
                             className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
                             onClick={(e) => e.stopPropagation()}
                           >
@@ -334,7 +334,7 @@ export default function CollectionsPage() {
                         {collection.icon}
                       </div>
                       <div className="min-w-0">
-                        <h3 className="font-semibold text-foreground truncate">
+                        <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
                         <p className="text-sm text-muted-foreground flex items-center gap-1">
@@ -350,7 +350,7 @@ export default function CollectionsPage() {
           ) : (
             <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed border-border">
               <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                 Nenhuma coleção local criada
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">

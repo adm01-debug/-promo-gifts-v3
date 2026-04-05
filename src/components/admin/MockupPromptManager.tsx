@@ -579,7 +579,7 @@ function PromptEditor({
         {isMain && (
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+              <h3 className="font-display text-lg font-semibold flex items-center gap-2">
                 <Brain className="h-5 w-5 text-primary" />
                 {config.label}
               </h3>

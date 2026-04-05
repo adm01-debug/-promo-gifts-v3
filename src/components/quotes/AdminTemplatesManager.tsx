@@ -226,7 +226,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
           <div className="flex items-center border rounded-md">
             <Button
               variant={viewMode === "table" ? "secondary" : "ghost"}
-              size="icon"
+              size="icon" aria-label="Lista"
               className="h-9 w-9 rounded-r-none"
               onClick={() => setViewMode("table")}
             >
@@ -234,7 +234,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
             </Button>
             <Button
               variant={viewMode === "grid" ? "secondary" : "ghost"}
-              size="icon"
+              size="icon" aria-label="LayoutGrid"
               className="h-9 w-9 rounded-l-none"
               onClick={() => setViewMode("grid")}
             >
@@ -255,7 +255,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12 text-center">
             <FileText className="h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="font-medium text-lg mb-2">Nenhum template encontrado</h3>
+            <h3 className="font-display font-medium text-lg mb-2">Nenhum template encontrado</h3>
             <p className="text-muted-foreground">
               {searchTerm || selectedSellerId !== "all"
                 ? "Tente ajustar os filtros de busca" 
@@ -360,7 +360,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
             <div key={sellerId}>
               <div className="flex items-center gap-2 mb-3">
                 <User className="h-4 w-4 text-muted-foreground" />
-                <h3 className="font-medium">{getSellerName(sellerId)}</h3>
+                <h3 className="font-display font-medium">{getSellerName(sellerId)}</h3>
                 <Badge variant="secondary" className="ml-auto">
                   {templates.length} templates
                 </Badge>

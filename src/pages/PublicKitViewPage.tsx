@@ -87,7 +87,7 @@ export default function PublicKitViewPage() {
         <Card className="max-w-md w-full">
           <CardContent className="pt-8 text-center space-y-4">
             <AlertTriangle className="h-16 w-16 text-destructive mx-auto" />
-            <h2 className="text-xl font-semibold">Link Indisponível</h2>
+            <h2 className="font-display text-xl font-semibold">Link Indisponível</h2>
             <p className="text-muted-foreground">{error}</p>
           </CardContent>
         </Card>
@@ -119,7 +119,7 @@ export default function PublicKitViewPage() {
               </div>
             )}
             <div>
-              <h1 className="font-semibold text-foreground">{organization?.name || "Proposta de Kit"}</h1>
+              <h1 className="font-display font-semibold text-foreground">{organization?.name || "Proposta de Kit"}</h1>
               {tokenInfo.client_name && (
                 <p className="text-xs text-muted-foreground">Para: {tokenInfo.client_name}</p>
               )}
@@ -135,7 +135,7 @@ export default function PublicKitViewPage() {
       <main className="max-w-4xl mx-auto px-4 py-8 space-y-6">
         {/* Kit Name & Quantity */}
         <div className="text-center space-y-2">
-          <h2 className="text-3xl font-bold text-foreground">{kit.name}</h2>
+          <h2 className="font-display text-3xl font-bold text-foreground">{kit.name}</h2>
           <p className="text-lg text-muted-foreground">
             Quantidade: <span className="font-semibold text-foreground">{kit.kit_quantity} {kit.kit_quantity === 1 ? "kit" : "kits"}</span>
           </p>

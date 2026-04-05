@@ -309,7 +309,7 @@ export function MockupHistoryPanel({
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
               <Wand2 className="h-10 w-10 text-primary/60" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
+            <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               Comece criando seu primeiro mockup!
             </p>
@@ -319,7 +319,7 @@ export function MockupHistoryPanel({
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
               <Search className="h-8 w-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Nenhum resultado</h3>
+            <h3 className="font-display text-lg font-semibold mb-2">Nenhum resultado</h3>
             <p className="text-muted-foreground mb-4">Ajuste os filtros de busca.</p>
             <Button variant="outline" size="sm" onClick={clearFilters}>
               <RefreshCw className="h-4 w-4 mr-2" /> Limpar filtros
@@ -435,7 +435,7 @@ export function MockupHistoryPanel({
                     <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}>
+                          <Button size="icon" aria-label="Desfazer" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}>
                             <RotateCcw className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -446,7 +446,7 @@ export function MockupHistoryPanel({
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
+                          <Button size="icon" aria-label="Download" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
                             <Download className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -455,7 +455,7 @@ export function MockupHistoryPanel({
 
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}>
+                          <Button size="icon" aria-label="Excluir" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -541,7 +541,7 @@ export function MockupHistoryPanel({
                     <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => onLoadFromHistory(mockup)}>
+                          <Button size="icon" aria-label="Desfazer" variant="secondary" className="h-8 w-8" onClick={() => onLoadFromHistory(mockup)}>
                             <RotateCcw className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -550,7 +550,7 @@ export function MockupHistoryPanel({
                       <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 [&>svg]:h-4 [&>svg]:w-4" />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
+                          <Button size="icon" aria-label="Download" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
                             <Download className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -558,7 +558,7 @@ export function MockupHistoryPanel({
                       </Tooltip>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <Button size="icon" variant="destructive" className="h-8 w-8" onClick={() => onDelete(mockup.id)}>
+                          <Button size="icon" aria-label="Excluir" variant="destructive" className="h-8 w-8" onClick={() => onDelete(mockup.id)}>
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </TooltipTrigger>
@@ -577,7 +577,7 @@ export function MockupHistoryPanel({
                 <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
                   Primeira
                 </Button>
-                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
+                <Button variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
                 <div className="flex items-center gap-1">
@@ -600,7 +600,7 @@ export function MockupHistoryPanel({
                     );
                   })}
                 </div>
-                <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
+                <Button variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
                   <ChevronRight className="h-4 w-4" />
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
@@ -626,7 +626,7 @@ export function MockupHistoryPanel({
           {lightboxMockup && (
             <div className="relative flex flex-col w-full h-full">
               {/* Top bar — solid dark */}
-              <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-border shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="min-w-0">
                     <p className="font-medium text-sm text-primary-foreground truncate">{lightboxMockup.product_name}</p>
@@ -652,14 +652,14 @@ export function MockupHistoryPanel({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0 ml-4">
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onLoadFromHistory(lightboxMockup)}>
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-border bg-muted text-foreground hover:bg-muted" onClick={() => onLoadFromHistory(lightboxMockup)}>
                     <RotateCcw className="h-3.5 w-3.5" /> Regenerar
                   </Button>
                   <ShareMenu mockupUrl={lightboxMockup.mockup_url} productName={lightboxMockup.product_name} techniqueName={lightboxMockup.technique_name} />
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-border bg-muted text-foreground hover:bg-muted" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
                     <Download className="h-3.5 w-3.5" /> Baixar PDF
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={closeLightbox} aria-label="Fechar"><X className="h-4 w-4" />
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={closeLightbox} aria-label="Fechar"><X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -683,16 +683,16 @@ export function MockupHistoryPanel({
               </div>
 
               {/* Bottom zoom bar — compact */}
-              <div className="flex items-center justify-center py-2 bg-zinc-900 border-t border-zinc-800 shrink-0">
+              <div className="flex items-center justify-center py-2 bg-card border-t border-border shrink-0">
                 <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
+                  <Button size="icon" aria-label="Reduzir" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
                     <ZoomOut className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="text-xs font-medium w-12 text-center text-zinc-300">{Math.round(lightboxZoom * 100)}%</span>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
+                  <span className="text-xs font-medium w-12 text-center text-muted-foreground">{Math.round(lightboxZoom * 100)}%</span>
+                  <Button size="icon" aria-label="Ampliar" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
                     <ZoomIn className="h-3.5 w-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(1)}>
+                  <Button size="icon" aria-label="Desfazer" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(1)}>
                     <RotateCcw className="h-3 w-3" />
                   </Button>
                 </div>

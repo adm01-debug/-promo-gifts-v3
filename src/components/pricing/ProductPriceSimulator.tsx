@@ -270,7 +270,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
         {/* Step 1: Produto */}
         <div className="space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
-            <h3 className="font-medium flex items-center gap-2">
+            <h3 className="font-display font-medium flex items-center gap-2">
               <Package className="w-4 h-4 text-primary" />
               1. Selecione o Produto
             </h3>
@@ -299,7 +299,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
         {selectedProduct && hasVariants && (
           <div className="space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-display font-medium flex items-center gap-2">
                 <Palette className="w-4 h-4 text-primary" />
                 2. {hasSizes ? 'Selecione Cor e Tamanho' : 'Selecione a Cor do Produto'}
               </h3>
@@ -317,7 +317,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
         {selectedProduct && (!hasVariants || selectedVariant) && (
           <div className="space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
-              <h3 className="font-medium flex items-center gap-2">
+              <h3 className="font-display font-medium flex items-center gap-2">
                 <Paintbrush className="w-4 h-4 text-primary" />
                 {hasVariants ? '3' : '2'}. Personalizações
               </h3>
@@ -395,7 +395,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
         {/* Step 4: Resultados */}
         {showResults && mode === 'list' && (
           <div className="space-y-4 animate-fade-in">
-            <h3 className="font-medium flex items-center gap-2">
+            <h3 className="font-display font-medium flex items-center gap-2">
               <Calculator className="w-4 h-4 text-primary" />
               {hasVariants ? '4' : '3'}. Quantidade e Resultado
             </h3>

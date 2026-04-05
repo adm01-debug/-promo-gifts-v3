@@ -214,7 +214,7 @@ export function NoveltiesSection() {
       <CardHeader className="pb-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-emerald-500 to-green-400 text-white shadow-lg">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-success to-success/80 text-primary-foreground shadow-lg">
               <Sparkles className="h-5 w-5" />
             </div>
             <div>

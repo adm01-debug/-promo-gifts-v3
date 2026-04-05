@@ -31,7 +31,7 @@ export default function AdminExternalDbPage() {
       <PageSEO title="Banco de Dados Externo" description="Configure conexões com bancos de dados externos." path="/admin/external-db" noIndex />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
             <Database className="h-6 w-6" />
             Inspeção do Banco Externo
           </h1>
