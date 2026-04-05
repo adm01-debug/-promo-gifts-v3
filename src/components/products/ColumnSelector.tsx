@@ -104,7 +104,7 @@ export function ColumnSelector({ value, onChange, className }: ColumnSelectorPro
     }
   }, [available, value, onChange]);
 
-  if (isMobile || available.length <= 1) return null;
+  if (available.length <= 1) return null;
 
   return (
     <div className={cn("flex items-center gap-0 p-0.5 rounded-lg bg-secondary/60 border border-border/30", className)}>
