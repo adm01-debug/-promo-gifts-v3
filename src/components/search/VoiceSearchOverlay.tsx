@@ -166,28 +166,8 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative max-w-xs w-full pointer-events-auto"
               >
-                {/* Rotating light border — conic gradient behind, card covers center */}
-                <motion.div
-                  className="absolute -inset-[2px] rounded-3xl"
-                  style={{
-                    background: "conic-gradient(from 0deg, transparent 0%, rgba(139,92,246,0.8) 10%, rgba(59,130,246,0.6) 20%, transparent 40%, transparent 60%, rgba(168,85,247,0.7) 75%, rgba(236,72,153,0.5) 85%, transparent 100%)",
-                    animation: "spin 3s linear infinite",
-                  }}
-                  animate={{ opacity: [0.6, 1, 0.6] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                />
 
-                {/* Soft outer glow that follows the light */}
-                <motion.div
-                  className="absolute -inset-[3px] rounded-3xl pointer-events-none"
-                  style={{
-                    background: "conic-gradient(from 0deg, transparent 0%, rgba(139,92,246,0.3) 10%, rgba(59,130,246,0.2) 20%, transparent 40%, transparent 60%, rgba(168,85,247,0.25) 75%, rgba(236,72,153,0.15) 85%, transparent 100%)",
-                    animation: "spin 3s linear infinite",
-                    filter: "blur(8px)",
-                  }}
-                  animate={{ opacity: [0.4, 0.8, 0.4] }}
-                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
-                />
+
 
                 {/* Inner card */}
                 <div
