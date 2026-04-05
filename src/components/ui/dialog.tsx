@@ -70,7 +70,7 @@ const DialogContent = React.forwardRef<
           "data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%]",
           "data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%]",
           "sm:rounded-lg",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+          "focus:outline-none focus-visible:outline-none focus-visible:ring-0",
           className,
         )}
         aria-modal="true"
