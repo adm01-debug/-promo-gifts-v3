@@ -409,6 +409,10 @@ export function applyThemePreset(presetId: string, mode: 'light' | 'dark'): void
   if (!preset) return;
 
   const root = document.documentElement;
+
+  // Enable smooth transition for all elements
+  root.classList.add('theme-transitioning');
+
   const colors = preset[mode];
 
   CSS_VARS_TO_APPLY.forEach(key => {
@@ -417,6 +421,9 @@ export function applyThemePreset(presetId: string, mode: 'light' | 'dark'): void
       root.style.setProperty(`--${key}`, value);
     }
   });
+
+  // Remove transition class after animation completes
+  setTimeout(() => root.classList.remove('theme-transitioning'), 500);
 }
 
 export function applyRadius(px: number): void {
