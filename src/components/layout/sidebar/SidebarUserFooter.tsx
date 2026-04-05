@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { Settings, LogOut, ChevronUp, Palette } from "lucide-react";
-import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
+import { Settings, LogOut, ChevronUp, Palette, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
