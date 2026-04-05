@@ -279,7 +279,7 @@ export function StockDashboard() {
         <StatCard
           title="Estoque Baixo"
           value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
-          icon={<TrendingDown className="h-6 w-6 text-amber-600" />}
+          icon={<TrendingDown className="h-6 w-6 text-warning" />}
           variant="warning"
         />
         <StatCard
