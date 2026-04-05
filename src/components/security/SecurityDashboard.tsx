@@ -425,7 +425,7 @@ export function SecurityDashboard() {
               {recommendations.map((rec, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-background">
                   <div className={`p-2 rounded-full ${
-                    rec.priority === 'high' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'
+                    rec.priority === 'high' ? 'bg-destructive/10 text-destructive' : 'bg-orange/10 text-orange'
                   }`}>
                     {rec.icon}
                   </div>
