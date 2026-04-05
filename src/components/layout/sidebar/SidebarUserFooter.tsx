@@ -100,8 +100,8 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
             <Palette className="mr-2 h-4 w-4" />
             Skins
           </DropdownMenuItem>
-          {onboardingCtx && !onboardingCtx.isLoading && onboardingCtx.hasCompletedTour && (
-            <DropdownMenuItem onClick={() => onboardingCtx!.restartTour()}>
+          {!onboardingLoading && hasCompletedTour && (
+            <DropdownMenuItem onClick={() => restartTour()}>
               <RotateCcw className="mr-2 h-4 w-4" />
               Reiniciar Tour
             </DropdownMenuItem>
