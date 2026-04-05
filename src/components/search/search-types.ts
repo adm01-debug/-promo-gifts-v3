@@ -11,8 +11,8 @@ export interface QuickAction {
 }
 
 export const typeConfig: Record<string, { label: string; color: string; icon: LucideIcon }> = {
-  product: { label: "Produto", color: "bg-blue-500", icon: Package },
-  client: { label: "Cliente", color: "bg-green-500", icon: Users },
-  quote: { label: "Orçamento", color: "bg-orange-500", icon: FileText },
-  order: { label: "Pedido", color: "bg-purple-500", icon: ShoppingCart },
+  product: { label: "Produto", color: "bg-primary", icon: Package },
+  client: { label: "Cliente", color: "bg-success", icon: Users },
+  quote: { label: "Orçamento", color: "bg-orange", icon: FileText },
+  order: { label: "Pedido", color: "bg-info", icon: ShoppingCart },
 };
