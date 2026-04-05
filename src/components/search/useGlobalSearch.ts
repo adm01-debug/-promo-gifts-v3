@@ -144,48 +144,19 @@ export function useGlobalSearch() {
 
   // Handle command select (from suggestion chips)
   const handleVoiceCommandSelect = useCallback(async (command: string) => {
-    // Process the command through the AI agent with TTS
     voiceAgent.reset();
-    // Small delay to ensure reset completes, then send to AI
     setTimeout(async () => {
       try {
-        const { data } = await supabase.functions.invoke("voice-agent", {
-          body: { transcript: command },
-        });
-        if (data) {
-          const action = data as VoiceAgentAction;
-          // Play TTS response before executing action
-          if (action.response) {
-            try {
-              const ttsResponse = await fetch(
-                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-                {
-                  method: "POST",
-                  headers: {
-                    "Content-Type": "application/json",
-                    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-                  },
-                  body: JSON.stringify({ text: action.response }),
-                }
-              );
-              if (ttsResponse.ok) {
-                const audioBlob = await ttsResponse.blob();
-                if (audioBlob.size > 0) {
-                  const audioUrl = URL.createObjectURL(audioBlob);
-                  const audio = new Audio(audioUrl);
-                  audio.onended = () => { URL.revokeObjectURL(audioUrl); handleVoiceAction(action); };
-                  audio.onerror = () => { URL.revokeObjectURL(audioUrl); handleVoiceAction(action); };
-                  await audio.play();
-                  return;
-                }
-              }
-            } catch {
-              // TTS failed, still execute action
-            }
+        const action = await processVoiceTranscript(command);
+        if (action.response) {
+          try {
+            const { promise } = playTtsAudio(action.response);
+            await promise;
+          } catch {
+            // TTS failed silently
           }
-          handleVoiceAction(action);
         }
+        handleVoiceAction(action);
       } catch {
         // Silent fail
       }
