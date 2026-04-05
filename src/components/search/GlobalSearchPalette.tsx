@@ -47,7 +47,7 @@ function RankBadge({ index }: { index: number }) {
     </div>
   );
   if (index === 2) return (
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-amber-900/20 to-muted/40 flex items-center justify-center border border-border/30">
+    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-muted/60 to-muted/40 flex items-center justify-center border border-border/30">
       <span className="text-xs font-bold text-muted-foreground/70">3º</span>
     </div>
   );
