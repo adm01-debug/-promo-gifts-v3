@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "./CartCompanyPicker";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 function formatCurrency(value: number) {
