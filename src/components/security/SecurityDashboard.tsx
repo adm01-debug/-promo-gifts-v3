@@ -623,17 +623,17 @@ export function SecurityDashboard() {
                     <div 
                       key={attempt.id} 
                       className={`flex items-center justify-between p-3 rounded-lg border ${
-                        !attempt.success ? 'border-red-500/20 bg-red-500/5' : ''
+                        !attempt.success ? 'border-destructive/20 bg-destructive/5' : ''
                       }`}
                     >
                       <div className="flex items-center gap-4">
                         {attempt.success ? (
-                          <div className="p-2 rounded-full bg-green-500/10">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <div className="p-2 rounded-full bg-success/10">
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                           </div>
                         ) : (
-                          <div className="p-2 rounded-full bg-red-500/10">
-                            <XCircle className="h-4 w-4 text-red-500" />
+                          <div className="p-2 rounded-full bg-destructive/10">
+                            <XCircle className="h-4 w-4 text-destructive" />
                           </div>
                         )}
                         <div>
