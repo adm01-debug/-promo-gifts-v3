@@ -55,7 +55,7 @@ const variants: Record<EmptyStateVariant, {
     icon: Package,
     title: "Nenhum produto encontrado",
     description: "Não encontramos produtos com os filtros selecionados. Tente ajustar sua busca.",
-    color: "text-blue-500"
+    color: "text-primary"
   },
   quotes: {
     icon: FileText,
