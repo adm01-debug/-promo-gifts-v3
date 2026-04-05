@@ -301,21 +301,12 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             aria-modal="true"
             aria-label="Assistente de Voz"
           >
-            {/* Full-screen dark backdrop */}
+            {/* Full-screen glass backdrop — content visible through */}
             <div
-              className="absolute inset-0 backdrop-blur-3xl"
-              style={{ background: "radial-gradient(ellipse at center, rgba(10,10,20,0.75) 0%, rgba(2,2,8,0.85) 100%)" }}
+              className="absolute inset-0 backdrop-blur-md"
+              style={{ background: "rgba(5,5,15,0.55)" }}
               onClick={onClose}
             />
-
-            {/* Close button */}
-            <button
-              onClick={onClose}
-              className="absolute top-6 right-6 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors"
-              aria-label="Fechar assistente de voz"
-            >
-              <X className="h-5 w-5" />
-            </button>
 
             {/* Absolutely centered card */}
             <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
@@ -493,16 +484,16 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 Pressione <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-mono border border-white/10">ESC</kbd> para fechar
               </motion.p>
 
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-1.5 text-[10px] text-white/15"
-              >
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                IA + Voz ElevenLabs
-              </motion.div>
+              {/* Close button — bottom right of card */}
+              <div className="w-full flex justify-end">
+                <button
+                  onClick={onClose}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
+                  aria-label="Fechar assistente de voz"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </motion.div>
             </div>{/* end centering wrapper */}
 
