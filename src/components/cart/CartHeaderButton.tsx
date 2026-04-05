@@ -43,21 +43,27 @@ export function CartHeaderButton() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
-          title="Carrinho de Orçamentos"
-        >
-          <ShoppingCart className="h-4 w-4" />
-          {totalItems > 0 && (
-            <span className="absolute -top-0.5 -right-0.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground shadow-sm">
-              {totalItems > 99 ? "99+" : totalItems}
-            </span>
-          )}
-        </Button>
-      </PopoverTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+            >
+              <ShoppingCart className="h-4 w-4" />
+              {totalItems > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 h-[18px] min-w-[18px] px-1 flex items-center justify-center text-[9px] font-bold rounded-full bg-primary text-primary-foreground shadow-sm">
+                  {totalItems > 99 ? "99+" : totalItems}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+        </TooltipTrigger>
+        <TooltipContent className="bg-card border-border text-xs">
+          Carrinho de Orçamentos
+        </TooltipContent>
+      </Tooltip>
 
       <PopoverContent
         className="w-[420px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden"

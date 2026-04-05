@@ -104,7 +104,7 @@ export function NotificationBell() {
                 )}
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-card border-border">
+            <TooltipContent className="bg-card border-border text-xs">
               Notificações {unreadCount > 0 && `(${unreadCount})`}
             </TooltipContent>
           </Tooltip>
