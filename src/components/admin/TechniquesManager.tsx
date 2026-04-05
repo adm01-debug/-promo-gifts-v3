@@ -301,7 +301,7 @@ export function TechniquesManager() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-2">
-                        <Droplets className="h-4 w-4 text-blue-500" />
+                        <Droplets className="h-4 w-4 text-info" />
                         <span className="text-sm">Por Cor</span>
                       </div>
                       <Switch
