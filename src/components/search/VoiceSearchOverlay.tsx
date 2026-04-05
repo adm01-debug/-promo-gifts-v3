@@ -52,15 +52,31 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Auto-start listening when overlay opens
+  // Auto-start listening when overlay opens and auto-restart after agent responds
+  const prevPhaseRef = useRef<VoiceAgentPhase>("idle");
   const hasAutoStarted = useRef(false);
   useEffect(() => {
-    if (isOpen && phase === "idle" && !hasAutoStarted.current) {
+    if (!isOpen) {
+      hasAutoStarted.current = false;
+      prevPhaseRef.current = "idle";
+      return;
+    }
+
+    // First open: auto-start after brief delay
+    if (phase === "idle" && !hasAutoStarted.current) {
       hasAutoStarted.current = true;
       const timer = setTimeout(() => onStartListening(), 500);
       return () => clearTimeout(timer);
     }
-    if (!isOpen) hasAutoStarted.current = false;
+
+    // After speaking finishes → auto-restart listening for continuous conversation
+    if (phase === "idle" && prevPhaseRef.current === "speaking") {
+      const timer = setTimeout(() => onStartListening(), 800);
+      prevPhaseRef.current = phase;
+      return () => clearTimeout(timer);
+    }
+
+    prevPhaseRef.current = phase;
   }, [isOpen, phase, onStartListening]);
 
   const config = phaseConfig[phase];
