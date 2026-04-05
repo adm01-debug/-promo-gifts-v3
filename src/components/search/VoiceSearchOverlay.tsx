@@ -642,9 +642,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       exit={{ opacity: 0 }}
-                      className="w-full bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 text-center"
+                      className="w-full bg-destructive/10 border border-destructive/20 rounded-2xl px-5 py-4 text-center"
                     >
-                      <p className="text-sm text-red-300">{error}</p>
+                      <p className="text-sm text-destructive">{error}</p>
                     </motion.div>
                   )}
                 </AnimatePresence>
