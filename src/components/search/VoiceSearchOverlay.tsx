@@ -359,6 +359,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     <X className="h-3.5 w-3.5" />
                   </button>
                 </div>
+                </div>
               </motion.div>
             </div>
 
