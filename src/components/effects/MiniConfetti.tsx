@@ -33,10 +33,12 @@ export function MiniConfetti({
   colors = defaultColors,
   onComplete,
 }: MiniConfettiProps) {
+  const reducedMotion = useReducedMotion();
   const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
   const [isActive, setIsActive] = useState(false);
 
   useEffect(() => {
+    if (reducedMotion) { onComplete?.(); return; }
     if (trigger && !isActive) {
       setIsActive(true);
       const newPieces: ConfettiPiece[] = Array.from({ length: count }, (_, i) => ({

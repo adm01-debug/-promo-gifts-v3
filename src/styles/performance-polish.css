@@ -67,6 +67,36 @@
     animation: none;
     background: hsl(var(--muted));
   }
+
+  .card-hover-lift:hover,
+  .card-hover:hover,
+  .spring-bounce:hover {
+    transform: none !important;
+  }
+
+  .animate-fade-in,
+  .animate-fade-in-up,
+  .animate-scale-in,
+  .animate-slide-in-bottom,
+  .animate-slide-in-right,
+  .animate-success-pop,
+  .animate-bounce-subtle,
+  .animate-spin-slow {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+
+  .stagger-children > * {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+
+  .pulse-notification,
+  .pulse-ring::after,
+  .badge-pulse::before {
+    animation: none !important;
+  }
 }
 
 /* ===== Smooth Scrolling ===== */

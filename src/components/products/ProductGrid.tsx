@@ -33,28 +33,25 @@ function ProductCardWrapper({
   isVisible: boolean;
   hideCategoryBadges?: boolean;
 } & Omit<React.ComponentProps<typeof ProductCard>, 'product'>) {
-  const [hasAnimated, setHasAnimated] = useState(false);
+  const reducedMotion = useReducedMotion();
+  const [hasAnimated, setHasAnimated] = useState(reducedMotion);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Animar imediatamente ou quando ficar visível
+    if (reducedMotion) { setHasAnimated(true); return; }
     if (!hasAnimated) {
-      const timer = setTimeout(() => {
-        setHasAnimated(true);
-      }, Math.min(index * 80, 800)); // Stagger delay com limite máximo
+      const timer = setTimeout(() => setHasAnimated(true), Math.min(index * 80, 800));
       return () => clearTimeout(timer);
     }
-  }, [hasAnimated, index]);
+  }, [hasAnimated, index, reducedMotion]);
 
   return (
     <div
       ref={ref}
-      className={`transition-all duration-500 ease-out ${
-        hasAnimated 
-          ? 'opacity-100 translate-y-0 scale-100' 
-          : 'opacity-0 translate-y-8 scale-95'
+      className={reducedMotion ? '' : `transition-all duration-500 ease-out ${
+        hasAnimated ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
       }`}
-      style={{
+      style={reducedMotion ? undefined : {
         transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 80, 800)}ms`,
       }}
     >
