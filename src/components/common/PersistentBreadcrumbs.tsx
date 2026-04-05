@@ -30,6 +30,7 @@ const routeLabels: Record<string, string> = {
   "/admin": "Administração",
   "/seguranca": "Segurança",
   "/estoque": "Dashboard de Estoque",
+  "/admin/temas": "Skins",
 };
 
 interface PersistentBreadcrumbsProps {

@@ -20,7 +20,7 @@ export function ThemeResetDialog({ onConfirm }: ThemeResetDialogProps) {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5 border-destructive/30 text-destructive hover:bg-destructive/10 hover:text-destructive">
           <RotateCcw className="h-3.5 w-3.5" /> Original
         </Button>
       </AlertDialogTrigger>
