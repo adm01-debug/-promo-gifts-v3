@@ -46,11 +46,11 @@ export function MarginThermometer({
   const targetHeight = Math.min(targetMargin / 70 * 100, 100);
 
   const colors = {
-    danger: { bg: 'from-red-500 to-red-600', text: 'text-red-500', icon: AlertTriangle },
-    warning: { bg: 'from-amber-500 to-orange-500', text: 'text-amber-500', icon: TrendingUp },
-    good: { bg: 'from-emerald-500 to-green-500', text: 'text-primary', icon: CheckCircle },
-    excellent: { bg: 'from-emerald-400 to-cyan-500', text: 'text-primary', icon: Sparkles },
-    neutral: { bg: 'from-gray-400 to-gray-500', text: 'text-gray-400', icon: Target },
+    danger: { bg: 'from-destructive to-destructive/80', text: 'text-destructive', icon: AlertTriangle },
+    warning: { bg: 'from-warning to-orange', text: 'text-warning', icon: TrendingUp },
+    good: { bg: 'from-success to-success/80', text: 'text-success', icon: CheckCircle },
+    excellent: { bg: 'from-success/80 to-info', text: 'text-success', icon: Sparkles },
+    neutral: { bg: 'from-muted-foreground/60 to-muted-foreground', text: 'text-muted-foreground', icon: Target },
   };
 
   const currentColor = colors[status];
