@@ -168,10 +168,39 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
+                animate={{
+                  scale: 1,
+                  opacity: 1,
+                  y: 0,
+                  boxShadow:
+                    phase === "listening"
+                      ? [
+                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                          "0 0 50px 8px rgba(139,92,246,0.3), 0 0 90px 20px rgba(139,92,246,0.15), 0 0 0 1px rgba(255,255,255,0.08)",
+                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                        ]
+                      : phase === "speaking"
+                      ? [
+                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                          "0 0 50px 8px rgba(59,130,246,0.3), 0 0 90px 20px rgba(99,102,241,0.15), 0 0 0 1px rgba(255,255,255,0.08)",
+                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                        ]
+                      : phase === "processing"
+                      ? [
+                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                          "0 0 50px 8px rgba(168,85,247,0.3), 0 0 90px 20px rgba(168,85,247,0.15), 0 0 0 1px rgba(255,255,255,0.08)",
+                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                        ]
+                      : "0 8px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
+                }}
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                transition={{ type: "spring", damping: 25, stiffness: 250 }}
-                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/[0.08] bg-[rgba(8,8,18,0.92)] shadow-[0_8px_60px_rgba(0,0,0,0.5),0_0_0_1px_rgba(255,255,255,0.05)] pointer-events-auto max-h-[90vh] overflow-y-auto"
+                transition={{
+                  type: "spring", damping: 25, stiffness: 250,
+                  boxShadow: phase === "listening" || phase === "speaking" || phase === "processing"
+                    ? { duration: phase === "listening" ? 3 : phase === "speaking" ? 2.5 : 4, repeat: Infinity, ease: "easeInOut" }
+                    : { duration: 0.5 },
+                }}
+                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/[0.08] bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-y-auto"
               >
                 {/* Title */}
                 <motion.div
