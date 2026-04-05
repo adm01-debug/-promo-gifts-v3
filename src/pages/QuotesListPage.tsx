@@ -58,7 +58,7 @@ const statusConfig: Record<
   Quote["status"],
   { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
 > = {
-  draft: { label: "Rascunho", variant: "secondary", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
+  draft: { label: "Rascunho", variant: "secondary", className: "bg-warning/15 text-warning border-warning/30" },
   pending: { label: "Pendente", variant: "outline", className: "bg-primary/15 text-primary border-primary/30" },
   sent: { label: "Enviado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
   approved: { label: "Aprovado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
