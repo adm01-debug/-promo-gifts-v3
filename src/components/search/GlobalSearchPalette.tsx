@@ -424,7 +424,7 @@ export function GlobalSearchPalette() {
 
               {/* ── Atalhos Rápidos — compact pills ── */}
               <div className="animate-in fade-in-0 duration-300" style={{ animationDelay: '240ms' }}>
-                <SectionHeader icon={<Zap />} label="Atalhos" gradient="bg-gradient-to-br from-amber-500/12 to-amber-500/4" />
+                <SectionHeader icon={<Zap />} label="Atalhos" gradient="bg-gradient-to-br from-orange/12 to-orange/4" />
                 <div className="flex flex-wrap gap-2 px-4 pb-2" role="group" aria-label="Atalhos rápidos">
                   {s.quickSuggestions.map((qs, i) => (
                     <motion.button
