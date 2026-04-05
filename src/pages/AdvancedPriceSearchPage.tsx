@@ -156,7 +156,7 @@ function ProductCardResult({
       <Card className="overflow-hidden hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
         <div className="aspect-square relative bg-muted/30">
           {product.image ? (
-            <img loading="lazy" src={product.image} 
+            <img src={product.image} 
               alt={product.name}
               className="w-full h-full object-contain p-4"
               loading="lazy"
