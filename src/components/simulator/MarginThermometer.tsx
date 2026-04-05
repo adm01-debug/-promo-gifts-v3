@@ -46,8 +46,8 @@ export function MarginThermometer({
   const targetHeight = Math.min(targetMargin / 70 * 100, 100);
 
   const colors = {
-    danger: { bg: 'from-red-500 to-red-600', text: 'text-red-500', icon: AlertTriangle },
-    warning: { bg: 'from-amber-500 to-orange-500', text: 'text-amber-500', icon: TrendingUp },
+    danger: { bg: 'from-destructive to-destructive', text: 'text-destructive', icon: AlertTriangle },
+    warning: { bg: 'from-warning to-orange', text: 'text-warning', icon: TrendingUp },
     good: { bg: 'from-emerald-500 to-green-500', text: 'text-primary', icon: CheckCircle },
     excellent: { bg: 'from-emerald-400 to-cyan-500', text: 'text-primary', icon: Sparkles },
     neutral: { bg: 'from-gray-400 to-gray-500', text: 'text-gray-400', icon: Target },

@@ -115,8 +115,8 @@ export function PushNotificationSettings() {
         <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
           <div className="flex items-center gap-3">
             {isEnabled ? (
-              <div className="p-2 rounded-full bg-green-500/10">
-                <BellRing className="h-5 w-5 text-green-500" />
+              <div className="p-2 rounded-full bg-success/10">
+                <BellRing className="h-5 w-5 text-success" />
               </div>
             ) : (
               <div className="p-2 rounded-full bg-muted">

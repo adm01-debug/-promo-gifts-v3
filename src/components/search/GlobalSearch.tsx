@@ -45,10 +45,10 @@ interface GlobalSearchProps {
 
 const categoryConfig = {
   product: { icon: Package, label: "Produto", color: "text-primary" },
-  quote: { icon: FileText, label: "Orçamento", color: "text-green-500" },
+  quote: { icon: FileText, label: "Orçamento", color: "text-success" },
   client: { icon: Users, label: "Cliente", color: "text-primary" },
-  order: { icon: ShoppingCart, label: "Pedido", color: "text-orange-500" },
-  page: { icon: ArrowRight, label: "Página", color: "text-gray-500" },
+  order: { icon: ShoppingCart, label: "Pedido", color: "text-orange" },
+  page: { icon: ArrowRight, label: "Página", color: "text-muted-foreground" },
   action: { icon: Sparkles, label: "Ação", color: "text-primary" },
 };
 

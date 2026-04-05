@@ -704,10 +704,10 @@ function PromotionCard({ promotion }: { promotion: PromotionScenario }) {
       <div className="flex items-start gap-3">
         <div className={cn(
           "p-2 rounded-lg",
-          isUrgent ? "bg-red-500/20" : "bg-primary/20"
+          isUrgent ? "bg-destructive/20" : "bg-primary/20"
         )}>
           {isUrgent ? (
-            <Flame className="h-4 w-4 text-red-500" />
+            <Flame className="h-4 w-4 text-destructive" />
           ) : (
             <Tag className="h-4 w-4 text-primary" />
           )}

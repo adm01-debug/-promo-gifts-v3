@@ -197,7 +197,7 @@ export function IPRestrictionManager({ targetUserId, readOnly = false }: IPRestr
                           onClick={() => handleToggleIP(ip.id, ip.is_active)}
                         >
                           {ip.is_active ? (
-                            <ToggleRight className="h-4 w-4 text-green-500" />
+                            <ToggleRight className="h-4 w-4 text-success" />
                           ) : (
                             <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                           )}

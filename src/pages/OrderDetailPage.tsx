@@ -18,7 +18,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
-  pending: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
+  pending: { label: "Pendente", color: "bg-warning/20 text-warning border-warning/30" },
   confirmed: { label: "Confirmado", color: "bg-primary/20 text-primary border-primary/30" },
   in_production: { label: "Em Produção", color: "bg-primary/15 text-primary/80 border-primary/25" },
   shipped: { label: "Enviado", color: "bg-primary/10 text-primary/70 border-primary/20" },

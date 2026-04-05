@@ -227,10 +227,10 @@ export default function MockupGenerator() {
 
         {/* Notices */}
         {mg.showDraftRestoredNotice && (
-          <Alert className="border-green-500/50 bg-green-50 dark:bg-green-950/20">
+          <Alert className="border-success/50 bg-success/5">
             <CheckCircle2 className="h-4 w-4 text-success" />
-            <AlertTitle className="text-green-800 dark:text-primary">Rascunho restaurado</AlertTitle>
-            <AlertDescription className="text-green-700 dark:text-green-300">
+            <AlertTitle className="text-success">Rascunho restaurado</AlertTitle>
+            <AlertDescription className="text-success/80">
               Seu progresso anterior foi restaurado automaticamente.
             </AlertDescription>
           </Alert>
@@ -312,7 +312,7 @@ export default function MockupGenerator() {
                     <TooltipTrigger asChild>
                       <span className="inline-flex">
                         <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
-                          <Cloud className="h-3 w-3 text-green-500" />
+                          <Cloud className="h-3 w-3 text-success" />
                           Salvo
                         </Badge>
                       </span>

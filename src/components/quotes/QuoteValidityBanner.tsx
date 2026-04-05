@@ -28,7 +28,7 @@ export function QuoteValidityBanner({ validUntil, status }: QuoteValidityBannerP
 
   if (daysLeft <= 3) {
     return (
-      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-400">
+      <div className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-warning/10 border border-warning/20 text-warning">
         <Clock className="h-4 w-4 shrink-0 animate-pulse" />
         <span className="text-sm font-medium">
           Expira em {daysLeft} dia{daysLeft !== 1 ? "s" : ""}

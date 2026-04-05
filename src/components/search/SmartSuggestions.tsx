@@ -45,7 +45,7 @@ const typeConfig = {
   recent: { icon: Clock, label: "Recente", color: "text-primary", bg: "bg-primary/10" },
   recommended: { icon: Sparkles, label: "Recomendado", color: "text-primary", bg: "bg-primary/10" },
   related: { icon: Tag, label: "Relacionado", color: "text-primary", bg: "bg-primary/10" },
-  promotion: { icon: Percent, label: "Promoção", color: "text-red-500", bg: "bg-red-500/10" },
+  promotion: { icon: Percent, label: "Promoção", color: "text-destructive", bg: "bg-destructive/10" },
 };
 
 export function SmartSuggestions({

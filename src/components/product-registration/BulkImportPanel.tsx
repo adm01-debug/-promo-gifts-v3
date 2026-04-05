@@ -463,9 +463,9 @@ export function BulkImportPanel() {
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>{importProgress.processed} de {importProgress.total}</span>
               <span>
-                <span className="text-green-500">{importProgress.succeeded} sucesso</span>
+                <span className="text-success">{importProgress.succeeded} sucesso</span>
                 {' / '}
-                <span className="text-red-500">{importProgress.failed} falhas</span>
+                <span className="text-destructive">{importProgress.failed} falhas</span>
               </span>
             </div>
           </CardContent>
