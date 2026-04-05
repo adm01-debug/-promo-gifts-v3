@@ -75,14 +75,15 @@ vi.mock("@/stores/useComparisonStore", () => ({
   }),
 }));
 
-vi.mock("@/hooks/useSpeechRecognition", () => ({
-  useSpeechRecognition: vi.fn().mockReturnValue({
-    isListening: false, transcript: "", startListening: vi.fn(), stopListening: vi.fn(),
-  }),
+vi.mock("@elevenlabs/react", () => ({
+  useElevenLabsConversation: vi.fn().mockReturnValue({ status: "idle", start: vi.fn(), stop: vi.fn() }),
 }));
 
-vi.mock("@/hooks/useVoiceCommands", () => ({
-  useVoiceCommands: vi.fn().mockReturnValue({ processCommand: vi.fn() }),
+vi.mock("@/hooks/useVoiceAgent", () => ({
+  useVoiceAgent: vi.fn().mockReturnValue({
+    phase: "idle", partialTranscript: "", finalTranscript: "", agentResponse: "",
+    error: null, startListening: vi.fn(), stopListening: vi.fn(), stopSpeaking: vi.fn(), reset: vi.fn(),
+  }),
 }));
 
 vi.mock("@/utils/color-image-resolver", () => ({
