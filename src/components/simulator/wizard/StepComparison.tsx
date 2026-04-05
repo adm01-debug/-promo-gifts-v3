@@ -334,7 +334,7 @@ function ComparisonCard({
           'relative w-full p-6 rounded-2xl text-left transition-all duration-300 group',
           'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
           isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
-          !isSelected && isBestValue && 'ring-2 ring-amber-500/50 border-amber-500/30 shadow-lg shadow-amber-500/10',
+          !isSelected && isBestValue && 'ring-2 ring-amber-500/50 border-warning/30 shadow-lg shadow-amber-500/10',
           !isSelected && !isBestValue && isFirst && 'ring-1 ring-primary/20'
         )}
       >
@@ -430,7 +430,7 @@ function ComparisonCard({
                         </Badge>
                       )}
                       {result.minimumApplied && (
-                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700">
+                        <Badge variant="outline" className="text-xs text-warning border-amber-300 dark:text-warning dark:border-amber-700">
                           Faturamento mínimo aplicado
                         </Badge>
                       )}

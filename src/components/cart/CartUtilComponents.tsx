@@ -38,7 +38,7 @@ export function formatCurrency(value: number) {
 
 export const STATUS_CONFIG: Record<CartStatus, { label: string; color: string }> = {
   novo: { label: "Novo", color: "bg-primary/10 text-primary border-primary/20" },
-  em_negociacao: { label: "Em negociação", color: "bg-amber-500/10 text-amber-600 border-amber-500/20" },
+  em_negociacao: { label: "Em negociação", color: "bg-warning/10 text-warning border-warning/20" },
   pronto_orcamento: { label: "Pronto p/ orçamento", color: "bg-primary/10 text-primary border-primary/20" },
 };
 
@@ -111,7 +111,7 @@ export function FollowUpTimer({ createdAt }: { createdAt: string }) {
       isUrgent
         ? "bg-destructive/10 text-destructive border-destructive/20"
         : isWarning
-          ? "bg-amber-500/10 text-amber-600 border-amber-500/20"
+          ? "bg-warning/10 text-warning border-warning/20"
           : "bg-muted/50 text-muted-foreground border-border/30"
     )}>
       <Timer className="h-3.5 w-3.5" />
@@ -359,7 +359,7 @@ export function SmartSuggestions({ cart, allProducts }: { cart: SellerCart; allP
         const Icon = s.icon;
         return (
           <div key={i} className="flex items-start gap-2 text-[10px] text-muted-foreground/80 bg-muted/20 rounded-lg px-2.5 py-2 border border-border/20">
-            <Icon className="h-3 w-3 mt-0.5 text-amber-500 flex-shrink-0" />
+            <Icon className="h-3 w-3 mt-0.5 text-warning flex-shrink-0" />
             <span>{s.text}</span>
           </div>
         );

@@ -8,17 +8,17 @@ export const SECTION_ICON_COLORS: Record<string, string> = {
   cores: "text-orange",
   categorias: "text-orange/80",
   estoque: "text-info",
-  preco: "text-emerald-400",
-  fornecedores: "text-cyan-400",
+  preco: "text-success",
+  fornecedores: "text-info",
   publico: "text-violet-400",
   "datas-comemorativas": "text-pink-400",
-  endomarketing: "text-amber-400",
+  endomarketing: "text-warning",
   materiais: "text-teal-400",
   "ramos-atividade": "text-indigo-400",
   tecnicas: "text-rose-400",
   tags: "text-lime-400",
   "opcoes-rapidas": "text-warning",
-  ordenacao: "text-slate-400",
+  ordenacao: "text-muted-foreground",
 };
 
 export const SECTION_TOOLTIPS: Record<string, string> = {

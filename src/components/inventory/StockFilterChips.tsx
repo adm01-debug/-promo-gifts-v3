@@ -38,7 +38,7 @@ const filterOptions: Array<{
     label: 'Estoque Baixo',
     shortLabel: 'Baixo',
     icon: AlertTriangle,
-    activeClass: 'bg-amber-500 text-primary-foreground border-amber-500',
+    activeClass: 'bg-warning text-primary-foreground border-amber-500',
   },
   {
     id: 'out-of-stock',

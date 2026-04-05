@@ -216,7 +216,7 @@ export function QuoteVersionCompare({ open, onOpenChange, versions, currentQuote
                         return (
                           <div
                             key={item.id}
-                            className={`p-2 rounded-lg border text-xs ${isNew ? "border-emerald-300 bg-emerald-50/50 dark:bg-emerald-950/20" : changed ? "border-amber-300 bg-amber-50/50 dark:bg-amber-950/20" : "border-border"}`}
+                            className={`p-2 rounded-lg border text-xs ${isNew ? "border-emerald-300 bg-success/5/50 dark:bg-emerald-950/20" : changed ? "border-amber-300 bg-warning/5/50 dark:bg-amber-950/20" : "border-border"}`}
                           >
                             <p className="font-medium truncate">{item.product_name}</p>
                             <div className="flex justify-between mt-1 text-muted-foreground">

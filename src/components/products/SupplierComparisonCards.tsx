@@ -90,7 +90,7 @@ export function SupplierComparisonCards({ velocities, supplierNames }: SupplierC
               {v.days_to_stockout != null && v.days_to_stockout < 30 && (
                 <p className={cn(
                   "text-[9px] flex items-center gap-1",
-                  v.days_to_stockout < 7 ? 'text-destructive' : 'text-amber-500'
+                  v.days_to_stockout < 7 ? 'text-destructive' : 'text-warning'
                 )}>
                   <Package className="h-2.5 w-2.5" />
                   {v.days_to_stockout < 7 ? '⚠️' : '⏳'} Esgota em ~{v.days_to_stockout}d

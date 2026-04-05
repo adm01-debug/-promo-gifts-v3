@@ -97,14 +97,14 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
         <div className="shrink-0">
           <div className="relative">
             <div
-              className={cn("w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border", isPackaging ? "bg-amber-500/5 border-amber-500/20" : "bg-muted/60 border-border/50", item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all")}
+              className={cn("w-16 h-16 rounded-lg flex items-center justify-center overflow-hidden border", isPackaging ? "bg-warning/5 border-warning/20" : "bg-muted/60 border-border/50", item.imageUrl && "cursor-zoom-in hover:ring-2 hover:ring-primary/40 transition-all")}
               onClick={(e) => { if (item.imageUrl && onZoomImage) { e.stopPropagation(); onZoomImage(item.imageUrl); } }}
             >
               {item.imageUrl ? (
                 
 <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain p-1" loading="lazy" />
               ) : isPackaging ? (
-                <Box className="h-7 w-7 text-amber-600/40 dark:text-amber-400/40" />
+                <Box className="h-7 w-7 text-warning/40 dark:text-warning/40" />
               ) : (
                 <Utensils className="h-6 w-6 text-muted-foreground/30" />
               )}
@@ -159,7 +159,7 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
           </div>
 
           <div className="flex items-center gap-1.5 flex-wrap">
-            {item.isPackaging && <SmartBadge icon={Package} tooltip="Este componente é a embalagem do kit." className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">Embalagem</SmartBadge>}
+            {item.isPackaging && <SmartBadge icon={Package} tooltip="Este componente é a embalagem do kit." className="bg-warning/10 text-warning dark:text-warning border-warning/30">Embalagem</SmartBadge>}
             {item.isOptional && <SmartBadge tooltip="Item opcional — pode ser removido do kit." className="bg-primary/10 text-primary border-primary/30">Opcional</SmartBadge>}
             {item.isReplaceable && <SmartBadge icon={Settings2} tooltip="Item substituível." className="bg-primary/15 text-primary/80 border-primary/25">Substituível</SmartBadge>}
             {item.allowsPersonalization && <SmartBadge icon={Palette} tooltip="Aceita personalização." className="text-primary border-primary/30 bg-primary/5">Personalizável</SmartBadge>}

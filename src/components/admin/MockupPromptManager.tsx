@@ -363,7 +363,7 @@ export function MockupPromptManager() {
                       <span className="font-medium">{config.label}</span>
                       <Badge variant="outline" className="text-xs">v{config.version}</Badge>
                       {hasChanges(config) && (
-                        <Badge variant="secondary" className="text-xs bg-amber-500/10 text-amber-600">
+                        <Badge variant="secondary" className="text-xs bg-warning/10 text-warning">
                           Alterado
                         </Badge>
                       )}

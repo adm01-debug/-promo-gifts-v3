@@ -68,8 +68,8 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
                 {/* Rank */}
                 <span className={cn(
                   "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
-                  index === 0 && "bg-amber-500/20 text-amber-600",
-                  index === 1 && "bg-slate-300/30 text-slate-500",
+                  index === 0 && "bg-warning/20 text-warning",
+                  index === 1 && "bg-slate-300/30 text-muted-foreground",
                   index === 2 && "bg-orange/20 text-orange",
                   index > 2 && "bg-muted text-muted-foreground",
                 )}>

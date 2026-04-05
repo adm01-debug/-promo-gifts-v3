@@ -297,7 +297,7 @@ export function ProductSparkline({ productId, className }: ProductSparklineProps
             {/* Trend footer */}
             <div className="px-3 py-1.5 border-t border-border/40 flex items-center justify-between">
               <div className="flex items-center gap-1">
-                <Zap className="h-3 w-3 text-amber-500" />
+                <Zap className="h-3 w-3 text-warning" />
                 <span className="text-[10px] text-muted-foreground">
                   {summary.activeDays}/{points.length} dias ativos
                 </span>
@@ -334,7 +334,7 @@ function TooltipMetric({ label, value, highlight }: { label: string; value: stri
       <span className="text-[9px] text-muted-foreground uppercase tracking-wide">{label}</span>
       <span className={cn(
         "text-[11px] font-semibold",
-        highlight ? "text-amber-400" : "text-foreground"
+        highlight ? "text-warning" : "text-foreground"
       )}>
         {value}
       </span>

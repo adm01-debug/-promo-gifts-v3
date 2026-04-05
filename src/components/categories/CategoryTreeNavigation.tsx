@@ -69,9 +69,9 @@ function TreeNode({
         {/* Ícone de pasta */}
         {hasChildren ? (
           isExpanded ? (
-            <FolderOpen className="w-4 h-4 text-amber-500" />
+            <FolderOpen className="w-4 h-4 text-warning" />
           ) : (
-            <Folder className="w-4 h-4 text-amber-500" />
+            <Folder className="w-4 h-4 text-warning" />
           )
         ) : (
           <div className="w-4 h-4 flex items-center justify-center">
@@ -129,7 +129,7 @@ function SearchResult({
       )}
       onClick={onSelect}
     >
-      <Folder className="w-4 h-4 text-amber-500 flex-shrink-0" />
+      <Folder className="w-4 h-4 text-warning flex-shrink-0" />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-medium truncate">{category.name}</p>
         {category.tree_structure && (

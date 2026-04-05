@@ -78,7 +78,7 @@ export interface WorkflowDefinition {
 
 const STEP_TYPES = [
   { value: "agent", label: "Agente IA", icon: Bot, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" },
-  { value: "tool", label: "Ferramenta", icon: Zap, color: "text-amber-500", bg: "bg-amber-500/10", border: "border-amber-500/30" },
+  { value: "tool", label: "Ferramenta", icon: Zap, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
   { value: "condition", label: "Condição", icon: Search, color: "text-primary/80", bg: "bg-primary/10", border: "border-primary/25" },
   { value: "output", label: "Saída", icon: FileText, color: "text-primary", bg: "bg-primary/10", border: "border-primary/30" },
 ];
@@ -274,7 +274,7 @@ export function WorkflowCanvas() {
   const statusColor = {
     draft: "bg-muted text-muted-foreground",
     active: "bg-primary/10 text-primary",
-    paused: "bg-amber-500/10 text-amber-600",
+    paused: "bg-warning/10 text-warning",
   };
 
   return (

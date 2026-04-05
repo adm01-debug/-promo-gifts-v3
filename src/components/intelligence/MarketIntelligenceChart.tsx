@@ -171,7 +171,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
   // Market demand level
   const avgDepletion = kpis?.avgDailyDepletion ?? 0;
   const demandLevel = avgDepletion >= 50 ? 'Muito Alta' : avgDepletion >= 20 ? 'Alta' : avgDepletion >= 5 ? 'Moderada' : 'Baixa';
-  const demandColor = avgDepletion >= 50 ? 'text-destructive' : avgDepletion >= 20 ? 'text-amber-500' : avgDepletion >= 5 ? 'text-primary' : 'text-muted-foreground';
+  const demandColor = avgDepletion >= 50 ? 'text-destructive' : avgDepletion >= 20 ? 'text-warning' : avgDepletion >= 5 ? 'text-primary' : 'text-muted-foreground';
 
   // Trend: compare 7d vs 30d depletion rate
   const trend7d = (kpis?.totalDepleted7d ?? 0) / 7;
@@ -366,7 +366,7 @@ function MacroSupplierComparison({ suppliers, supplierNames }: { suppliers: Macr
               {s.daysToStockout != null && s.daysToStockout < 30 && (
                 <p className={cn(
                   "text-[9px] flex items-center gap-1",
-                  s.daysToStockout < 7 ? 'text-destructive' : 'text-amber-500'
+                  s.daysToStockout < 7 ? 'text-destructive' : 'text-warning'
                 )}>
                   <Package className="h-2.5 w-2.5" />
                   {s.daysToStockout < 7 ? '⚠️' : '⏳'} Esgota em ~{s.daysToStockout}d

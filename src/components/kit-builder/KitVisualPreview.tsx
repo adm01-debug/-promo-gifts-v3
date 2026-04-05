@@ -24,7 +24,7 @@ export function KitVisualPreview({ kitState }: KitVisualPreviewProps) {
   const fillColor = volumeUsagePercent > 100
     ? 'bg-destructive/20 border-destructive'
     : volumeUsagePercent > 80
-    ? 'bg-amber-500/20 border-amber-500'
+    ? 'bg-warning/20 border-amber-500'
     : 'bg-primary/10 border-primary/30';
 
   return (

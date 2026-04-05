@@ -171,7 +171,7 @@ export function PriceResultV51({
 
             {/* Faturamento mínimo (se aplicado) */}
             {priceData.minimum_applied && (
-              <div className="flex items-center justify-between text-sm p-2 rounded bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400">
+              <div className="flex items-center justify-between text-sm p-2 rounded bg-warning/10 dark:bg-amber-900/20 text-warning dark:text-warning">
                 <div className="flex items-center gap-1">
             <Info className="w-4 h-4" />
                   <span>Faturamento mínimo aplicado</span>
@@ -185,7 +185,7 @@ export function PriceResultV51({
           <div className="flex justify-between text-sm pt-2 pl-6 border-t border-dashed font-medium">
             <span>Total gravação</span>
             <span className={cn(
-              priceData.minimum_applied && "text-amber-600 dark:text-amber-400"
+              priceData.minimum_applied && "text-warning dark:text-warning"
             )}>
               {formatCurrency(priceData.total_price)}
             </span>

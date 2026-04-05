@@ -285,9 +285,9 @@ export function TechniqueColorConfigDialog({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-start gap-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800">
-                  <Info className="h-4 w-4 text-amber-600 mt-0.5 shrink-0" />
-                  <div className="text-xs text-amber-700 dark:text-amber-300">
+                <div className="flex items-start gap-2 p-3 rounded-lg bg-warning/5 dark:bg-amber-950/20 border border-warning/20 dark:border-amber-800">
+                  <Info className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+                  <div className="text-xs text-warning dark:text-amber-300">
                     <p className="font-medium mb-1">Cores não detectadas</p>
                     <p>Faça upload do logo primeiro para detectar as cores Pantone automaticamente. Você poderá configurar as cores após o upload.</p>
                   </div>

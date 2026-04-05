@@ -512,18 +512,18 @@ export function ProductFormFullscreen({
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3"
+              className="rounded-lg border border-warning/30 bg-warning/5 p-3"
             >
               <div className="flex items-start gap-2.5">
-                <AlertCircle className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                 <div>
-                  <p className="text-sm font-semibold text-amber-500">
+                  <p className="text-sm font-semibold text-warning">
                     {missingFields[stepIndex].length} campo{missingFields[stepIndex].length > 1 ? 's' : ''} obrigatório{missingFields[stepIndex].length > 1 ? 's' : ''} nesta etapa
                   </p>
                   <ul className="mt-1.5 space-y-0.5">
                     {missingFields[stepIndex].map(label => (
                       <li key={label} className="text-xs text-muted-foreground flex items-center gap-1.5">
-                        <span className="h-1 w-1 rounded-full bg-amber-500" />
+                        <span className="h-1 w-1 rounded-full bg-warning" />
                         {label}
                       </li>
                     ))}
