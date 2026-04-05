@@ -97,7 +97,7 @@ const variants: Record<EmptyStateVariant, {
     icon: ShoppingCart,
     title: "Carrinho vazio",
     description: "Adicione produtos ao carrinho para criar um orçamento.",
-    color: "text-indigo-500"
+    color: "text-primary"
   },
   notifications: {
     icon: Bell,
