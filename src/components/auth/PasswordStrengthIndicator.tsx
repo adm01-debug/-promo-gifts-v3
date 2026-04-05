@@ -148,7 +148,7 @@ export function PasswordStrengthIndicator({
           'flex items-start gap-2 p-2.5 rounded-lg border text-xs',
           isChecking && 'bg-muted/50 border-muted',
           isBreached && 'bg-destructive/10 border-destructive/30',
-          !isChecking && !isBreached && hasCheckedBreach && 'bg-green-500/10 border-green-500/30'
+          !isChecking && !isBreached && hasCheckedBreach && 'bg-success/10 border-success/30'
         )}>
           {isChecking ? (
             <>
