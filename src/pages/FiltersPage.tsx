@@ -182,7 +182,18 @@ export default function FiltersPage() {
           </div>
         </div>
       </div>
-      <VoiceSearchOverlay isOpen={state.voiceOverlayOpen} isListening={isListening} transcript={transcript} error={error} onClose={() => { state.setVoiceOverlayOpen(false); stopListening(); state.setAppliedFilters([]); }} onToggleListening={handleToggleListening} commandAction={state.commandAction} appliedFilters={state.appliedFilters} />
+      <VoiceSearchOverlay
+        isOpen={state.voiceOverlayOpen}
+        phase={voiceAgent.phase}
+        partialTranscript={voiceAgent.partialTranscript}
+        finalTranscript={voiceAgent.finalTranscript}
+        agentResponse={voiceAgent.agentResponse}
+        error={voiceAgent.error}
+        onClose={() => { state.setVoiceOverlayOpen(false); voiceAgent.reset(); }}
+        onStartListening={voiceAgent.startListening}
+        onStopListening={voiceAgent.stopListening}
+        onStopSpeaking={voiceAgent.stopSpeaking}
+      />
     </MainLayout>
   );
 }
