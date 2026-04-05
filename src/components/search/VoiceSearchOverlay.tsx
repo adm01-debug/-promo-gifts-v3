@@ -512,6 +512,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 IA + Voz ElevenLabs
               </motion.div>
             </motion.div>
+            </div>{/* end centering wrapper */}
 
             {/* Screen-reader live region */}
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
