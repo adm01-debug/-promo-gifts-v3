@@ -256,7 +256,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                     )}
                   </div>
                   {/* #6 — Status online dot */}
-                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-background" />
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-success rounded-full ring-2 ring-background" />
                 </div>
                 <div className="hidden lg:flex flex-col items-start">
                   <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
