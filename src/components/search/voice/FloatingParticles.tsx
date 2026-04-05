@@ -27,6 +27,8 @@ const PHASE_CONFIG: Record<string, { count: number; speed: number; hueRange: [nu
   booting: { count: 15, speed: 0.2, hueRange: [220, 260], sizeRange: [1, 2] },
 };
 
+const CONNECTION_DIST = 120;
+
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 
 export const FloatingParticles: React.FC<FloatingParticlesProps> = React.memo(({ phase, isBooting }) => {
@@ -84,29 +86,55 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = React.memo(({
         particlesRef.current.splice(cfg.count);
       }
 
-      for (let i = particlesRef.current.length - 1; i >= 0; i--) {
-        const p = particlesRef.current[i];
+      // First pass: update positions and compute alphas
+      const alphas: number[] = [];
+      const particles = particlesRef.current;
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
         p.life++;
         p.x += p.vx;
         p.y += p.vy;
-
-        // Gentle drift
         p.vx += (Math.random() - 0.5) * 0.02;
         p.vy += (Math.random() - 0.5) * 0.02;
 
-        // Fade in/out based on life
         const lifeRatio = p.life / p.maxLife;
         let alpha = p.opacity;
         if (lifeRatio < 0.1) alpha *= lifeRatio / 0.1;
         else if (lifeRatio > 0.8) alpha *= (1 - lifeRatio) / 0.2;
+        alphas[i] = alpha;
 
-        // Wrap around edges
         if (p.x < -10) p.x = w + 10;
         if (p.x > w + 10) p.x = -10;
         if (p.y < -10) p.y = h + 10;
         if (p.y > h + 10) p.y = -10;
+      }
 
-        // Draw glow
+      // Draw constellation lines
+      ctx.lineWidth = 0.8;
+      for (let i = 0; i < particles.length; i++) {
+        const a = particles[i];
+        for (let j = i + 1; j < particles.length; j++) {
+          const b = particles[j];
+          const dx = a.x - b.x;
+          const dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < CONNECTION_DIST) {
+            const lineAlpha = (1 - dist / CONNECTION_DIST) * Math.min(alphas[i], alphas[j]) * 0.6;
+            const hue = (a.hue + b.hue) / 2;
+            ctx.strokeStyle = `hsla(${hue}, 60%, 60%, ${lineAlpha})`;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+
+      // Draw particles
+      for (let i = 0; i < particles.length; i++) {
+        const p = particles[i];
+        const alpha = alphas[i];
+
         const gradient = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.size * 3);
         gradient.addColorStop(0, `hsla(${p.hue}, 80%, 70%, ${alpha})`);
         gradient.addColorStop(0.5, `hsla(${p.hue}, 60%, 50%, ${alpha * 0.3})`);
@@ -116,15 +144,13 @@ export const FloatingParticles: React.FC<FloatingParticlesProps> = React.memo(({
         ctx.fillStyle = gradient;
         ctx.fill();
 
-        // Core dot
         ctx.beginPath();
         ctx.arc(p.x, p.y, p.size * 0.6, 0, Math.PI * 2);
         ctx.fillStyle = `hsla(${p.hue}, 90%, 80%, ${alpha * 0.8})`;
         ctx.fill();
 
-        // Respawn if life exceeded
         if (p.life >= p.maxLife) {
-          particlesRef.current[i] = createParticle(w, h, cfg);
+          particles[i] = createParticle(w, h, cfg);
         }
       }
 
