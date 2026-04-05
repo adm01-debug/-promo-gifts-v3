@@ -497,9 +497,9 @@ export function SecurityDashboard() {
                       <div key={attempt.id} className="flex items-center justify-between p-2 rounded-lg border">
                         <div className="flex items-center gap-3">
                           {attempt.success ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                           ) : (
-                            <XCircle className="h-4 w-4 text-red-500" />
+                            <XCircle className="h-4 w-4 text-destructive" />
                           )}
                           <div>
                             <p className="text-sm font-medium">{attempt.ip_address}</p>
