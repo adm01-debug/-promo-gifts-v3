@@ -62,7 +62,7 @@ const statusConfig: Record<
   pending: { label: "Pendente", variant: "outline", className: "bg-primary/15 text-primary border-primary/30" },
   sent: { label: "Enviado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
   approved: { label: "Aprovado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
-  rejected: { label: "Rejeitado", variant: "destructive", className: "bg-red-500/15 text-red-400 border-red-500/30" },
+  rejected: { label: "Rejeitado", variant: "destructive", className: "bg-destructive/15 text-destructive border-destructive/30" },
   expired: { label: "Expirado", variant: "secondary", className: "bg-muted text-muted-foreground border-muted" },
 };
 
