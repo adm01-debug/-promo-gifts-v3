@@ -1,32 +1,12 @@
 import { useState, useCallback, useRef } from "react";
 import { useScribe } from "@elevenlabs/react";
 import { supabase } from "@/integrations/supabase/client";
+import { playTtsAudio } from "./voice/playTtsAudio";
+import { processVoiceTranscript } from "./voice/processTranscript";
+import type { VoiceAgentAction, VoiceAgentPhase, UseVoiceAgentOptions } from "./voice/types";
 
-export interface VoiceAgentAction {
-  action: "search" | "filter" | "navigate" | "sort" | "clear" | "answer";
-  response: string;
-  data?: {
-    query?: string;
-    route?: string;
-    sortBy?: string;
-    filters?: {
-      category?: string;
-      color?: string;
-      material?: string;
-      maxPrice?: number;
-      minPrice?: number;
-      inStock?: boolean;
-      isKit?: boolean;
-    };
-  };
-}
-
-export type VoiceAgentPhase = "idle" | "listening" | "processing" | "speaking" | "error";
-
-interface UseVoiceAgentOptions {
-  onAction?: (action: VoiceAgentAction) => void;
-  onError?: (error: string) => void;
-}
+// Re-export types for consumers
+export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
   const [phase, setPhase] = useState<VoiceAgentPhase>("idle");
@@ -35,7 +15,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   const [agentResponse, setAgentResponse] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [currentAction, setCurrentAction] = useState<VoiceAgentAction | null>(null);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const stopSpeakingRef = useRef<(() => void) | null>(null);
   const isProcessingRef = useRef(false);
 
   const processTranscript = useCallback(async (text: string) => {
@@ -46,68 +26,25 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setAgentResponse("");
 
     try {
-      // Step 1: Send to AI for interpretation
-      const { data: aiResult, error: aiError } = await supabase.functions.invoke("voice-agent", {
-        body: { transcript: text },
-      });
-
-      if (aiError) throw new Error(aiError.message || "AI processing failed");
-
-      const action = aiResult as VoiceAgentAction;
+      const action = await processVoiceTranscript(text);
       setCurrentAction(action);
       setAgentResponse(action.response);
 
-      // Step 2: Speak the response via TTS
       if (action.response) {
         setPhase("speaking");
         try {
-          const ttsResponse = await fetch(
-            `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-                apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-              },
-              body: JSON.stringify({ text: action.response }),
-            }
-          );
-
-          if (ttsResponse.ok) {
-            const audioBlob = await ttsResponse.blob();
-            if (audioBlob.size > 0) {
-              const audioUrl = URL.createObjectURL(audioBlob);
-              const audio = new Audio(audioUrl);
-              audioRef.current = audio;
-              
-              audio.onended = () => {
-                URL.revokeObjectURL(audioUrl);
-                setPhase("idle");
-                onAction?.(action);
-              };
-              audio.onerror = () => {
-                URL.revokeObjectURL(audioUrl);
-                setPhase("idle");
-                onAction?.(action);
-              };
-              await audio.play();
-            } else {
-              setPhase("idle");
-              onAction?.(action);
-            }
-          } else {
-            setPhase("idle");
-            onAction?.(action);
-          }
+          const { promise, stop } = playTtsAudio(action.response);
+          stopSpeakingRef.current = stop;
+          await promise;
         } catch {
-          setPhase("idle");
-          onAction?.(action);
+          // TTS failed silently
+        } finally {
+          stopSpeakingRef.current = null;
         }
-      } else {
-        setPhase("idle");
-        onAction?.(action);
       }
+
+      setPhase("idle");
+      onAction?.(action);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Erro ao processar comando";
       setError(message);
@@ -143,7 +80,6 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setPhase("listening");
 
     try {
-      // Get scribe token
       const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
       if (tokenError || !data?.token) {
         throw new Error("Não foi possível obter token de transcrição");
@@ -168,7 +104,6 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   const stopListening = useCallback(() => {
     scribe.disconnect();
     if (phase === "listening") {
-      // If we have a partial transcript, process it
       if (partialTranscript.trim()) {
         processTranscript(partialTranscript.trim());
       } else {
@@ -178,19 +113,15 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   }, [scribe, phase, partialTranscript, processTranscript]);
 
   const stopSpeaking = useCallback(() => {
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    stopSpeakingRef.current?.();
+    stopSpeakingRef.current = null;
     setPhase("idle");
   }, []);
 
   const reset = useCallback(() => {
     scribe.disconnect();
-    if (audioRef.current) {
-      audioRef.current.pause();
-      audioRef.current = null;
-    }
+    stopSpeakingRef.current?.();
+    stopSpeakingRef.current = null;
     setPhase("idle");
     setPartialTranscript("");
     setFinalTranscript("");
