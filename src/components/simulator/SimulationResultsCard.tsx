@@ -247,11 +247,11 @@ export function SimulationResultsCard({
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
               >
-                <div className="flex items-center gap-2 text-amber-500 mb-1">
+                <div className="flex items-center gap-2 text-warning mb-1">
                   <TrendingDown className="h-4 w-4" />
                   <span className="text-xs font-medium">Economia Potencial</span>
                 </div>
-                <p className="text-2xl font-bold text-amber-500">
+                <p className="text-2xl font-bold text-warning">
                   {formatCurrency(savings)}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1">

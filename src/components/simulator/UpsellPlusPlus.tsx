@@ -697,17 +697,17 @@ function PromotionCard({ promotion }: { promotion: PromotionScenario }) {
       className={cn(
         "p-3 rounded-lg border",
         isUrgent 
-          ? "bg-gradient-to-r from-red-500/10 to-orange-500/10 border-red-500/30 animate-pulse" 
+          ? "bg-gradient-to-r from-destructive/10 to-orange/10 border-destructive/30 animate-pulse" 
           : "bg-gradient-to-r from-primary/10 to-primary/5 border-primary/25"
       )}
     >
       <div className="flex items-start gap-3">
         <div className={cn(
           "p-2 rounded-lg",
-          isUrgent ? "bg-red-500/20" : "bg-primary/20"
+          isUrgent ? "bg-destructive/20" : "bg-primary/20"
         )}>
           {isUrgent ? (
-            <Flame className="h-4 w-4 text-red-500" />
+            <Flame className="h-4 w-4 text-destructive" />
           ) : (
             <Tag className="h-4 w-4 text-primary" />
           )}
@@ -717,13 +717,13 @@ function PromotionCard({ promotion }: { promotion: PromotionScenario }) {
           <div className="flex items-center gap-2 flex-wrap">
             <Badge className={cn(
               "text-xs gap-1",
-              isUrgent ? "bg-red-500" : "bg-primary"
+              isUrgent ? "bg-destructive" : "bg-primary"
             )}>
               -{promotion.discount}% {promotion.techniqueName}
             </Badge>
             <Badge variant="outline" className={cn(
               "text-xs gap-1",
-              isUrgent && "border-red-500/30 text-red-600"
+              isUrgent && "border-destructive/30 text-destructive"
             )}>
               <Clock className="h-3 w-3" />
               {promotion.daysRemaining === 0 
