@@ -142,7 +142,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
       <CardHeader>
         <div className="flex items-center gap-2">
           {is2FAEnabled ? (
-            <ShieldCheck className="h-5 w-5 text-green-500" />
+            <ShieldCheck className="h-5 w-5 text-success" />
           ) : (
             <Shield className="h-5 w-5 text-muted-foreground" />
           )}
@@ -157,7 +157,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
       <CardContent className="space-y-4">
         {is2FAEnabled ? (
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-green-600 bg-green-50 p-3 rounded-lg">
+            <div className="flex items-center gap-2 text-success bg-success/10 p-3 rounded-lg">
               <ShieldCheck className="h-5 w-5" />
               <span className="font-medium">2FA está ativo</span>
             </div>
@@ -283,7 +283,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
                         onClick={handleCopySecret}
                       >
                         {copied ? (
-                          <Check className="h-4 w-4 text-green-500" />
+                          <Check className="h-4 w-4 text-success" />
                         ) : (
                           <Copy className="h-4 w-4" />
                         )}

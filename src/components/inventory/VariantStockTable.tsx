@@ -124,10 +124,10 @@ function StockProgressBar({ current, min, max }: { current: number; min: number;
   const percentage = min > 0 ? Math.min((current / min) * 100, 100) : (current > 0 ? 100 : 0);
   
   const progressColor = 
-    current <= 0 ? 'bg-red-500' :
-    current <= min * 0.25 ? 'bg-red-500' :
-    current <= min ? 'bg-amber-500' :
-    'bg-green-500';
+    current <= 0 ? 'bg-destructive' :
+    current <= min * 0.25 ? 'bg-destructive' :
+    current <= min ? 'bg-warning' :
+    'bg-success';
   
   return (
     <div className="w-24">
@@ -163,9 +163,9 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
         <div className="flex items-center gap-2">
           <span className={cn(
             "font-semibold",
-            variant.currentStock <= 0 ? "text-red-600" :
-            variant.currentStock <= variant.minStock * 0.25 ? "text-red-600" :
-            variant.currentStock <= variant.minStock ? "text-amber-600" :
+            variant.currentStock <= 0 ? "text-destructive" :
+            variant.currentStock <= variant.minStock * 0.25 ? "text-destructive" :
+            variant.currentStock <= variant.minStock ? "text-warning" :
             "text-foreground"
           )}>
             {variant.currentStock}
@@ -187,7 +187,7 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <span className="text-sm text-amber-600">
+                <span className="text-sm text-warning">
                   -{variant.reservedStock}
                 </span>
               </TooltipTrigger>
@@ -203,7 +203,7 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
       <TableCell>
         <span className={cn(
           "font-medium",
-          variant.availableStock <= 0 ? "text-red-600" : "text-foreground"
+            variant.availableStock <= 0 ? "text-destructive" : "text-foreground"
         )}>
           {variant.availableStock}
         </span>
@@ -237,8 +237,8 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
               <TooltipTrigger>
                 <div className={cn(
                   "flex items-center gap-1 text-sm",
-                  variant.daysUntilStockout <= 7 ? "text-red-600" :
-                  variant.daysUntilStockout <= 14 ? "text-amber-600" :
+                  variant.daysUntilStockout <= 7 ? "text-destructive" :
+                  variant.daysUntilStockout <= 14 ? "text-warning" :
                   "text-muted-foreground"
                 )}>
                   <Clock className="h-3 w-3" />
@@ -340,7 +340,7 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
         </TableCell>
         <TableCell>
           {product.totalReservedStock > 0 ? (
-            <span className="text-sm text-amber-600">-{product.totalReservedStock}</span>
+            <span className="text-sm text-warning">-{product.totalReservedStock}</span>
           ) : '-'}
         </TableCell>
         <TableCell>
@@ -360,12 +360,12 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
         <TableCell>
           <div className="flex gap-1">
             {product.variantsCritical > 0 && (
-              <Badge variant="outline" className="text-xs bg-red-500/10 text-red-600 border-red-500/20">
+              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
                 {product.variantsCritical} crítico
               </Badge>
             )}
             {product.variantsOutOfStock > 0 && (
-              <Badge variant="outline" className="text-xs bg-red-600/10 text-red-700 border-red-600/20">
+              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
                 {product.variantsOutOfStock} esgotado
               </Badge>
             )}

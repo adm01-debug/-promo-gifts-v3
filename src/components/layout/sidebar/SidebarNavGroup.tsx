@@ -1,4 +1,4 @@
-import React, { forwardRef, useState } from "react";
+import React, { forwardRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
@@ -68,9 +68,9 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
 
   const [openSubMenus, setOpenSubMenus] = useState<Record<string, boolean>>({});
 
-  const toggleSubMenu = (label: string) => {
+  const toggleSubMenu = useCallback((label: string) => {
     setOpenSubMenus(prev => ({ ...prev, [label]: !prev[label] }));
-  };
+  }, []);
 
   // Auto-open sub-menus that contain active items
   React.useEffect(() => {

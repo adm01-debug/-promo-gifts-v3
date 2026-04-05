@@ -153,7 +153,7 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
                   ) : (
                     <span className={cn(
                       'text-[10px] font-medium',
-                      isLowStock ? 'text-amber-600' : 'text-green-600'
+                      isLowStock ? 'text-warning' : 'text-success'
                     )}>
                       <Package className="h-2.5 w-2.5 inline mr-0.5" />
                       {formatStock(stock)} un

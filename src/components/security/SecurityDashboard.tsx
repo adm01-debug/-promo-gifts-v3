@@ -327,15 +327,15 @@ export function SecurityDashboard() {
                 <div className="grid grid-cols-2 gap-2 text-sm">
                   <div className="flex items-center gap-2">
                     {is2FAEnabled ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : (
-                      <XCircle className="h-4 w-4 text-red-500" />
+                      <XCircle className="h-4 w-4 text-destructive" />
                     )}
                     <span>MFA {is2FAEnabled ? 'ativo' : 'inativo'}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     {allowedIPs.length > 0 ? (
-                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <CheckCircle2 className="h-4 w-4 text-success" />
                     ) : (
                       <XCircle className="h-4 w-4 text-muted-foreground" />
                     )}
@@ -367,13 +367,13 @@ export function SecurityDashboard() {
             <div className="flex items-center gap-2">
               {is2FAEnabled ? (
                 <>
-                  <Lock className="h-5 w-5 text-green-500" />
-                  <span className="text-lg font-semibold text-green-500">Ativo</span>
+                  <Lock className="h-5 w-5 text-success" />
+                  <span className="text-lg font-semibold text-success">Ativo</span>
                 </>
               ) : (
                 <>
-                  <Unlock className="h-5 w-5 text-red-500" />
-                  <span className="text-lg font-semibold text-red-500">Inativo</span>
+                  <Unlock className="h-5 w-5 text-destructive" />
+                  <span className="text-lg font-semibold text-destructive">Inativo</span>
                 </>
               )}
             </div>
@@ -394,13 +394,13 @@ export function SecurityDashboard() {
             <div className="flex items-center gap-2">
               {metrics.securityAlerts > 0 ? (
                 <>
-                  <AlertTriangle className="h-5 w-5 text-orange-500" />
-                  <span className="text-lg font-semibold text-orange-500">{metrics.securityAlerts}</span>
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                  <span className="text-lg font-semibold text-warning">{metrics.securityAlerts}</span>
                 </>
               ) : (
                 <>
-                  <CheckCircle2 className="h-5 w-5 text-green-500" />
-                  <span className="text-lg font-semibold text-green-500">0</span>
+                  <CheckCircle2 className="h-5 w-5 text-success" />
+                  <span className="text-lg font-semibold text-success">0</span>
                 </>
               )}
             </div>
@@ -413,10 +413,10 @@ export function SecurityDashboard() {
 
       {/* Recommendations */}
       {recommendations.length > 0 && (
-        <Card className="border-orange-500/20 bg-orange-500/5">
+        <Card className="border-warning/20 bg-warning/5">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-orange-500" />
+              <AlertTriangle className="h-4 w-4 text-warning" />
               Recomendações de Segurança
             </CardTitle>
           </CardHeader>
@@ -656,7 +656,7 @@ export function SecurityDashboard() {
                             </span>
                           </div>
                           {attempt.failure_reason && (
-                            <p className="text-xs text-red-500 mt-1">
+                            <p className="text-xs text-destructive mt-1">
                               Motivo: {attempt.failure_reason}
                             </p>
                           )}

@@ -46,11 +46,11 @@ export function MarginThermometer({
   const targetHeight = Math.min(targetMargin / 70 * 100, 100);
 
   const colors = {
-    danger: { bg: 'from-red-500 to-red-600', text: 'text-red-500', icon: AlertTriangle },
-    warning: { bg: 'from-amber-500 to-orange-500', text: 'text-amber-500', icon: TrendingUp },
-    good: { bg: 'from-emerald-500 to-green-500', text: 'text-primary', icon: CheckCircle },
-    excellent: { bg: 'from-emerald-400 to-cyan-500', text: 'text-primary', icon: Sparkles },
-    neutral: { bg: 'from-gray-400 to-gray-500', text: 'text-gray-400', icon: Target },
+    danger: { bg: 'from-destructive to-destructive/80', text: 'text-destructive', icon: AlertTriangle },
+    warning: { bg: 'from-warning to-orange', text: 'text-warning', icon: TrendingUp },
+    good: { bg: 'from-success to-success/80', text: 'text-success', icon: CheckCircle },
+    excellent: { bg: 'from-success/80 to-info', text: 'text-success', icon: Sparkles },
+    neutral: { bg: 'from-muted-foreground/60 to-muted-foreground', text: 'text-muted-foreground', icon: Target },
   };
 
   const currentColor = colors[status];
@@ -177,10 +177,10 @@ function StatusBadge({
   };
 
   const styles = {
-    danger: "bg-red-500/10 text-red-500 border-red-500/20",
-    warning: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    danger: "bg-destructive/10 text-destructive border-destructive/20",
+    warning: "bg-warning/10 text-warning border-warning/20",
     good: "bg-primary/10 text-primary border-primary/20",
-    excellent: "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 text-primary border-primary/20",
+    excellent: "bg-gradient-to-r from-success/10 to-info/10 text-success border-success/20",
     neutral: "bg-muted text-muted-foreground border-border",
   };
 
@@ -214,8 +214,8 @@ export function MarginIndicator({
   else status = 'excellent';
 
   const colors = {
-    danger: 'bg-red-500',
-    warning: 'bg-amber-500',
+    danger: 'bg-destructive',
+    warning: 'bg-warning',
     good: 'bg-primary',
     excellent: 'bg-primary',
   };
@@ -247,8 +247,8 @@ export function MarginIndicator({
       </div>
       <span className={cn(
         "text-sm font-semibold",
-        status === 'danger' && 'text-red-500',
-        status === 'warning' && 'text-amber-500',
+        status === 'danger' && 'text-destructive',
+        status === 'warning' && 'text-warning',
         status === 'good' && 'text-primary',
         status === 'excellent' && 'text-primary',
       )}>
