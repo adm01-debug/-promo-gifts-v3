@@ -273,7 +273,7 @@ export function StockDashboard() {
         <StatCard
           title="Em Estoque"
           value={summary.productsInStock.toLocaleString('pt-BR')}
-          icon={<CheckCircle2 className="h-6 w-6 text-green-600" />}
+          icon={<CheckCircle2 className="h-6 w-6 text-success" />}
           variant="success"
         />
         <StatCard

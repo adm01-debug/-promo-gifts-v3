@@ -53,8 +53,8 @@ const STATUS_CONFIG: Record<StockStatus, {
 }> = {
   in_stock: { 
     label: 'Em Estoque', 
-    color: 'text-green-600',
-    bgColor: 'bg-green-500/10 border-green-500/20',
+    color: 'text-success',
+    bgColor: 'bg-success/10 border-success/20',
     icon: <CheckCircle2 className="h-4 w-4" />
   },
   low_stock: { 

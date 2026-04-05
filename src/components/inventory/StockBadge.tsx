@@ -159,8 +159,8 @@ interface StockIndicatorProps {
 export function StockIndicator({ status, className }: StockIndicatorProps) {
   const dotColor = {
     'in-stock': 'bg-primary',
-    'low-stock': 'bg-amber-500',
-    'out-of-stock': 'bg-red-500',
+    'low-stock': 'bg-warning',
+    'out-of-stock': 'bg-destructive',
     'pre-order': 'bg-primary',
     'incoming': 'bg-primary/70',
   };
