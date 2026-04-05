@@ -28,7 +28,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setAgentResponse("");
 
     try {
-      const action = await processVoiceTranscript(text);
+      const action = await withRetry(() => processVoiceTranscript(text));
       setCurrentAction(action);
       setAgentResponse(action.response);
 
