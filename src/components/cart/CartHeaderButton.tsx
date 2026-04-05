@@ -11,7 +11,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "./CartCompanyPicker";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 function formatCurrency(value: number) {
@@ -28,6 +28,18 @@ export function CartHeaderButton() {
     const handler = () => setOpen(true);
     window.addEventListener("open-seller-cart", handler);
     return () => window.removeEventListener("open-seller-cart", handler);
+  }, []);
+
+  // Keyboard shortcut: Alt+O to toggle cart
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
   const {
     carts,
@@ -61,7 +73,7 @@ export function CartHeaderButton() {
           </PopoverTrigger>
         </TooltipTrigger>
         <TooltipContent className="bg-card border-border text-xs">
-          Carrinho de Orçamentos
+          Carrinho de Orçamentos <kbd className="ml-1.5 px-1 py-0.5 bg-muted rounded text-[9px] font-mono">Alt+O</kbd>
         </TooltipContent>
       </Tooltip>
 
