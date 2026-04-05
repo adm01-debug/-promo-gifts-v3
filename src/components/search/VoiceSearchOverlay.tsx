@@ -28,50 +28,77 @@ const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string }> =
 };
 
 /* ------------------------------------------------------------------ */
-/*  Color palettes per phase                                           */
+/*  Read theme primary HSL and build harmonious palettes               */
 /* ------------------------------------------------------------------ */
+function getThemeHSL(): [number, number, number] {
+  if (typeof window === "undefined") return [25, 95, 53];
+  const raw = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
+  const parts = raw.split(/\s+/).map((s) => parseFloat(s));
+  if (parts.length >= 3 && !parts.some(isNaN)) return [parts[0], parts[1], parts[2]];
+  return [25, 95, 53];
+}
+
+function hsl(h: number, s: number, l: number) { return `hsl(${h}, ${s}%, ${l}%)`; }
+function hsla(h: number, s: number, l: number, a: number) { return `hsla(${h}, ${s}%, ${l}%, ${a})`; }
+
 function usePhaseColors(phase: VoiceAgentPhase, isBooting: boolean) {
   const effectivePhase = isBooting ? "booting" : phase;
+  const [baseHSL, setBaseHSL] = useState<[number, number, number]>([25, 95, 53]);
+
+  useEffect(() => {
+    setBaseHSL(getThemeHSL());
+    // Re-read on theme change (MutationObserver on <html> style/class)
+    const obs = new MutationObserver(() => setBaseHSL(getThemeHSL()));
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["style", "class"] });
+    return () => obs.disconnect();
+  }, []);
+
   return useMemo(() => {
+    const [h, s, l] = baseHSL;
+    // Complementary hue offsets for visual interest
+    const comp = (h + 180) % 360;
+    const triad = (h + 120) % 360;
+    const analog = (h + 30) % 360;
+
     switch (effectivePhase) {
       case "listening":
         return {
-          primary: "#06b6d4", secondary: "#f97316", accent: "#22d3ee",
-          glow1: "rgba(6,182,212,0.5)", glow2: "rgba(249,115,22,0.35)",
-          particles: ["#06b6d4", "#22d3ee", "#67e8f9", "#f97316", "#fb923c", "#fbbf24"],
+          primary: hsl(h, s, l), secondary: hsl(comp, Math.min(s, 85), l + 5), accent: hsl(h, s, l + 15),
+          glow1: hsla(h, s, l, 0.5), glow2: hsla(comp, Math.min(s, 80), l, 0.35),
+          particles: [hsl(h, s, l), hsl(h, s, l + 15), hsl(h, s - 10, l + 25), hsl(comp, 80, l + 5), hsl(comp, 75, l + 15), hsl(analog, 85, l + 10)],
         };
       case "processing":
         return {
-          primary: "#f59e0b", secondary: "#8b5cf6", accent: "#fbbf24",
-          glow1: "rgba(245,158,11,0.5)", glow2: "rgba(139,92,246,0.35)",
-          particles: ["#f59e0b", "#fbbf24", "#fde68a", "#8b5cf6", "#a78bfa", "#c4b5fd"],
+          primary: hsl(analog, s, l), secondary: hsl(triad, Math.min(s, 80), l), accent: hsl(analog, s, l + 15),
+          glow1: hsla(analog, s, l, 0.5), glow2: hsla(triad, 75, l, 0.35),
+          particles: [hsl(analog, s, l), hsl(analog, s, l + 15), hsl(analog, s - 10, l + 25), hsl(triad, 75, l), hsl(triad, 70, l + 12), hsl(triad, 65, l + 22)],
         };
       case "speaking":
         return {
-          primary: "#10b981", secondary: "#06b6d4", accent: "#34d399",
-          glow1: "rgba(16,185,129,0.5)", glow2: "rgba(6,182,212,0.35)",
-          particles: ["#10b981", "#34d399", "#6ee7b7", "#06b6d4", "#22d3ee", "#a7f3d0"],
+          primary: hsl(triad, Math.min(s, 80), l), secondary: hsl(h, s, l), accent: hsl(triad, 75, l + 12),
+          glow1: hsla(triad, 80, l, 0.5), glow2: hsla(h, s, l, 0.35),
+          particles: [hsl(triad, 80, l), hsl(triad, 75, l + 12), hsl(triad, 70, l + 22), hsl(h, s, l), hsl(h, s, l + 12), hsl(triad, 70, l + 28)],
         };
       case "error":
         return {
-          primary: "#ef4444", secondary: "#f97316", accent: "#f87171",
-          glow1: "rgba(239,68,68,0.45)", glow2: "rgba(249,115,22,0.3)",
-          particles: ["#ef4444", "#f87171", "#fca5a5", "#f97316"],
+          primary: hsl(0, 75, 55), secondary: hsl(25, 90, 55), accent: hsl(0, 70, 65),
+          glow1: hsla(0, 75, 55, 0.45), glow2: hsla(25, 85, 55, 0.3),
+          particles: [hsl(0, 75, 55), hsl(0, 70, 65), hsl(0, 60, 75), hsl(25, 85, 55)],
         };
       case "booting":
         return {
-          primary: "#8b5cf6", secondary: "#ec4899", accent: "#a78bfa",
-          glow1: "rgba(139,92,246,0.45)", glow2: "rgba(236,72,153,0.3)",
-          particles: ["#8b5cf6", "#a78bfa", "#c4b5fd", "#ec4899", "#f472b6"],
+          primary: hsl(h, s, l), secondary: hsl(comp, Math.min(s, 80), l + 8), accent: hsl(h, s - 10, l + 18),
+          glow1: hsla(h, s, l, 0.4), glow2: hsla(comp, 75, l + 5, 0.3),
+          particles: [hsl(h, s, l), hsl(h, s - 10, l + 18), hsl(h, s - 20, l + 28), hsl(comp, 75, l + 5), hsl(comp, 70, l + 15)],
         };
       default:
         return {
-          primary: "#a855f7", secondary: "#06b6d4", accent: "#c084fc",
-          glow1: "rgba(168,85,247,0.35)", glow2: "rgba(6,182,212,0.25)",
-          particles: ["#a855f7", "#c084fc", "#d8b4fe", "#06b6d4", "#22d3ee"],
+          primary: hsl(h, s, l), secondary: hsl(comp, Math.min(s, 80), l), accent: hsl(h, s - 10, l + 15),
+          glow1: hsla(h, s, l, 0.35), glow2: hsla(comp, 75, l, 0.25),
+          particles: [hsl(h, s, l), hsl(h, s - 10, l + 15), hsl(h, s - 20, l + 25), hsl(comp, 75, l), hsl(comp, 70, l + 15)],
         };
     }
-  }, [effectivePhase]);
+  }, [effectivePhase, baseHSL]);
 }
 
 /* ------------------------------------------------------------------ */
@@ -568,10 +595,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                         <p className="text-base font-medium text-white/90">
                           "{partialTranscript || finalTranscript}"
                           {phase === "listening" && partialTranscript && (
-                            <motion.span
+                          <motion.span
                               animate={{ opacity: [1, 0] }}
                               transition={{ duration: 0.5, repeat: Infinity }}
-                              style={{ color: "#22d3ee" }}
+                              className="text-primary"
                             >
                               |
                             </motion.span>
