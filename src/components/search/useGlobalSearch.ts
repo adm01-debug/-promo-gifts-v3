@@ -204,7 +204,12 @@ export function useGlobalSearch() {
 
   // ── Keyboard shortcut ──
   useEffect(() => {
-    const down = (e: KeyboardEvent) => { if (e.key === "k" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setOpen(o => !o); } };
+    const down = (e: KeyboardEvent) => {
+      // Ctrl+K → toggle search palette
+      if (e.key === "k" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); setOpen(o => !o); }
+      // Ctrl+Shift+V → open voice assistant
+      if (e.key === "V" && (e.metaKey || e.ctrlKey) && e.shiftKey) { e.preventDefault(); setVoiceOverlayOpen(true); }
+    };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
   }, []);
