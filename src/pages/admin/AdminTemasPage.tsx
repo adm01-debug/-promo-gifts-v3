@@ -17,7 +17,7 @@ import {
 } from '@/lib/theme-presets';
 import { PresetCard } from '@/components/settings/theme/PresetCard';
 import { BorderRadiusControl } from '@/components/settings/theme/BorderRadiusControl';
-import { ThemeExportImport } from '@/components/settings/theme/ThemeExportImport';
+
 import { ThemeResetDialog } from '@/components/settings/theme/ThemeResetDialog';
 import { useNavigate } from 'react-router-dom';
 
