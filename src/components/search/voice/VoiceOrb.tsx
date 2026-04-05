@@ -76,17 +76,6 @@ export function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooti
         transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
       />
 
-      {/* Accent ring — subtle spinning border */}
-      <motion.div
-        className="absolute rounded-full"
-        style={{
-          width: 52,
-          height: 52,
-          border: `1px solid ${colors.secondary}30`,
-        }}
-        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.7, 0.3], rotate: [0, 180, 360] }}
-        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-      />
 
       {/* Phase icon overlay */}
       {effectivePhase === "listening" && (
