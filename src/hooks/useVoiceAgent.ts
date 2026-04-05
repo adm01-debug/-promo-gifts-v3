@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "./voice/playTtsAudio";
 import { processVoiceTranscript } from "./voice/processTranscript";
 import { withRetry, friendlyErrorMessage } from "./voice/retry";
-import type { VoiceAgentAction, VoiceAgentPhase, UseVoiceAgentOptions } from "./voice/types";
+import { logVoiceCommand } from "./voice/logVoiceCommand";
 import type { VoiceAgentAction, VoiceAgentPhase, UseVoiceAgentOptions } from "./voice/types";
 
 // Re-export types for consumers
