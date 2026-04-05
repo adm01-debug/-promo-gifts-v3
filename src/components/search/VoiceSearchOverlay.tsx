@@ -243,7 +243,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 animate={{ opacity: 1 }}
                 className="flex items-center gap-2"
               >
-                <Volume2 className="h-5 w-5 text-emerald-500" />
+                <Volume2 className="h-5 w-5 text-success" />
                 {[...Array(5)].map((_, i) => (
                   <motion.div
                     key={i}
