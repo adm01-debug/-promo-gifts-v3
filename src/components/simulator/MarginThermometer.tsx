@@ -177,10 +177,10 @@ function StatusBadge({
   };
 
   const styles = {
-    danger: "bg-red-500/10 text-red-500 border-red-500/20",
-    warning: "bg-amber-500/10 text-amber-600 border-amber-500/20",
+    danger: "bg-destructive/10 text-destructive border-destructive/20",
+    warning: "bg-warning/10 text-warning border-warning/20",
     good: "bg-primary/10 text-primary border-primary/20",
-    excellent: "bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 text-primary border-primary/20",
+    excellent: "bg-gradient-to-r from-success/10 to-info/10 text-success border-success/20",
     neutral: "bg-muted text-muted-foreground border-border",
   };
 
@@ -214,8 +214,8 @@ export function MarginIndicator({
   else status = 'excellent';
 
   const colors = {
-    danger: 'bg-red-500',
-    warning: 'bg-amber-500',
+    danger: 'bg-destructive',
+    warning: 'bg-warning',
     good: 'bg-primary',
     excellent: 'bg-primary',
   };
@@ -247,8 +247,8 @@ export function MarginIndicator({
       </div>
       <span className={cn(
         "text-sm font-semibold",
-        status === 'danger' && 'text-red-500',
-        status === 'warning' && 'text-amber-500',
+        status === 'danger' && 'text-destructive',
+        status === 'warning' && 'text-warning',
         status === 'good' && 'text-primary',
         status === 'excellent' && 'text-primary',
       )}>
