@@ -341,7 +341,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     <div className="flex items-start gap-3">
                       <div className={cn(
                         "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
-                        phase === "speaking" ? "bg-emerald-500/20" : "bg-primary/10"
+                        phase === "speaking" ? "bg-success/20" : "bg-primary/10"
                       )}>
                         <MessageCircle className={cn(
                           "h-4 w-4",
