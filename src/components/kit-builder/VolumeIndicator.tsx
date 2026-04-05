@@ -31,13 +31,13 @@ export function VolumeIndicator({
 
   const statusTextColors = {
     success: 'text-primary',
-    warning: 'text-yellow-600',
+    warning: 'text-warning',
     destructive: 'text-destructive',
   };
 
   const progressBgColors = {
     success: 'bg-primary',
-    warning: 'bg-yellow-500',
+    warning: 'bg-warning',
     destructive: 'bg-destructive',
   };
 

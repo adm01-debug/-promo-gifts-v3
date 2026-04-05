@@ -236,7 +236,7 @@ export function StockAlertsIndicator({
         case "critical":
           return <AlertTriangle className="h-3.5 w-3.5 text-orange" />;
         default:
-          return <TrendingDown className="h-3.5 w-3.5 text-yellow-500" />;
+          return <TrendingDown className="h-3.5 w-3.5 text-warning" />;
       }
     };
 

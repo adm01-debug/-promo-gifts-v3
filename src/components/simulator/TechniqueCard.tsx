@@ -71,10 +71,10 @@ const getTechniqueStyle = (code: string) => {
     return { color: 'bg-amber-500', textColor: 'text-amber-600', icon: '🧵' };
   }
   if (c.includes('LASER')) {
-    return { color: 'bg-red-500', textColor: 'text-red-600', icon: '⚡' };
+    return { color: 'bg-destructive', textColor: 'text-destructive', icon: '⚡' };
   }
   if (c.includes('UV')) {
-    return { color: 'bg-purple-500', textColor: 'text-purple-600', icon: '💜' };
+    return { color: 'bg-primary', textColor: 'text-primary', icon: '💜' };
   }
   return { color: 'bg-slate-500', textColor: 'text-slate-600', icon: '✨' };
 };

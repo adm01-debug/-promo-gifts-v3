@@ -30,13 +30,13 @@ export interface ExternalImage {
 
 export const IMAGE_TYPES = [
   { value: 'main', label: 'Principal', icon: Star, color: 'text-amber-500' },
-  { value: 'gallery', label: 'Galeria', icon: ImageIcon, color: 'text-blue-500' },
+  { value: 'gallery', label: 'Galeria', icon: ImageIcon, color: 'text-info' },
   { value: 'detail', label: 'Detalhe', icon: ZoomIn, color: 'text-emerald-500' },
   { value: 'ambient', label: 'Ambientada', icon: Eye, color: 'text-sky-500' },
   { value: 'component', label: 'Componente', icon: Layers, color: 'text-violet-500' },
-  { value: 'box', label: 'Embalagem', icon: Package, color: 'text-orange-500' },
+  { value: 'box', label: 'Embalagem', icon: Package, color: 'text-orange' },
   { value: 'mockup', label: 'Mockup', icon: Eye, color: 'text-pink-500' },
-  { value: 'video', label: 'Vídeo', icon: Film, color: 'text-red-500' },
+  { value: 'video', label: 'Vídeo', icon: Film, color: 'text-destructive' },
   { value: 'set', label: 'Conjunto', icon: Layers, color: 'text-teal-500' },
   { value: 'logo', label: 'Logo', icon: Type, color: 'text-indigo-500' },
 ];

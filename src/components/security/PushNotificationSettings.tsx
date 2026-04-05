@@ -80,7 +80,7 @@ export function PushNotificationSettings() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
-            <AlertTriangle className="h-5 w-5 text-orange-500" />
+            <AlertTriangle className="h-5 w-5 text-orange" />
             <div>
               <p className="text-sm font-medium">Navegador não compatível</p>
               <p className="text-xs text-muted-foreground">
@@ -115,8 +115,8 @@ export function PushNotificationSettings() {
         <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
           <div className="flex items-center gap-3">
             {isEnabled ? (
-              <div className="p-2 rounded-full bg-green-500/10">
-                <BellRing className="h-5 w-5 text-green-500" />
+              <div className="p-2 rounded-full bg-success/10">
+                <BellRing className="h-5 w-5 text-success" />
               </div>
             ) : (
               <div className="p-2 rounded-full bg-muted">
@@ -145,10 +145,10 @@ export function PushNotificationSettings() {
         </div>
 
         {permission === 'denied' && (
-          <div className="flex items-start gap-3 p-4 rounded-lg border border-red-500/20 bg-red-500/5">
-            <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
+          <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/20 bg-destructive/5">
+            <XCircle className="h-5 w-5 text-destructive mt-0.5" />
             <div>
-              <p className="font-medium text-red-500">Permissão bloqueada</p>
+              <p className="font-medium text-destructive">Permissão bloqueada</p>
               <p className="text-sm text-muted-foreground mt-1">
                 Você bloqueou as notificações anteriormente. Para ativar:
               </p>
@@ -171,8 +171,8 @@ export function PushNotificationSettings() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-red-500/10">
-                      <AlertTriangle className="h-4 w-4 text-red-500" />
+                    <div className="p-1.5 rounded bg-destructive/10">
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Tentativas de login falhas</p>
@@ -184,8 +184,8 @@ export function PushNotificationSettings() {
 
                 <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
-                    <div className="p-1.5 rounded bg-orange-500/10">
-                      <Smartphone className="h-4 w-4 text-orange-500" />
+                    <div className="p-1.5 rounded bg-orange/10">
+                      <Smartphone className="h-4 w-4 text-orange" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Novos dispositivos</p>

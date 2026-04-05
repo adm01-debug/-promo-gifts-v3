@@ -395,7 +395,7 @@ export default function Auth() {
             <>
               <CardHeader className="pb-4">
                 <div className="text-center space-y-1">
-                  <h2 className="text-xl font-semibold text-foreground">Bem-vindo de volta</h2>
+                  <h2 className="text-xl font-semibold font-display text-foreground">Bem-vindo de volta</h2>
                   <p className="text-sm text-muted-foreground">Entre com suas credenciais para continuar</p>
                 </div>
               </CardHeader>

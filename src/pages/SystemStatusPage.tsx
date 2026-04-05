@@ -217,9 +217,9 @@ export default function SystemStatusPage() {
       case "error":
         return <XCircle className="h-5 w-5 text-destructive" />;
       case "warning":
-        return <AlertCircle className="h-5 w-5 text-yellow-500" />;
+        return <AlertCircle className="h-5 w-5 text-warning" />;
       case "loading":
-        return <AlertCircle className="h-5 w-5 text-yellow-500 animate-pulse" />;
+        return <AlertCircle className="h-5 w-5 text-warning animate-pulse" />;
     }
   };
 
@@ -230,9 +230,9 @@ export default function SystemStatusPage() {
       case "error":
         return <Badge className="bg-destructive/20 text-destructive border-destructive/30">Erro</Badge>;
       case "warning":
-        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Aviso</Badge>;
+        return <Badge className="bg-warning/20 text-warning border-warning/30">Aviso</Badge>;
       case "loading":
-        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Verificando</Badge>;
+        return <Badge className="bg-warning/20 text-warning border-warning/30">Verificando</Badge>;
     }
   };
 
@@ -245,7 +245,7 @@ export default function SystemStatusPage() {
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
-          <h1 className="text-3xl font-bold">Status do Sistema</h1>
+          <h1 className="text-3xl font-bold font-display">Status do Sistema</h1>
           <p className="text-muted-foreground">Diagnóstico de saúde da aplicação</p>
         </div>
 
@@ -262,7 +262,7 @@ export default function SystemStatusPage() {
                   <XCircle className="h-10 w-10 text-destructive" />
                 )}
                 <div>
-                  <h2 className="text-xl font-semibold">
+                  <h2 className="text-xl font-semibold font-display">
                     {overallStatus === "ok" ? "Sistema Operacional" : "Problemas Detectados"}
                   </h2>
                   <p className="text-muted-foreground text-sm">

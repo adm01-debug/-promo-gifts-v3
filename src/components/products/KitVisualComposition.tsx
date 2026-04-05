@@ -104,8 +104,8 @@ export function KitVisualComposition({
               </div>
             </ScrollArea>
             {savings > 0 && (
-              <div className="p-2 border-t bg-green-50 dark:bg-green-900/20">
-                <p className="text-xs text-green-700 dark:text-green-400 text-center">
+              <div className="p-2 border-t bg-success/5 dark:bg-success/10">
+                <p className="text-xs text-success dark:text-success text-center">
                   Economia de {formatCurrency(savings)} ({savingsPercent}%)
                 </p>
               </div>
@@ -209,8 +209,8 @@ export function KitVisualComposition({
               </div>
               {savings > 0 && (
                 <div className="flex justify-between items-center pt-2 border-t border-primary/20">
-                  <span className="text-green-600 font-medium">Você economiza</span>
-                  <Badge className="bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300">
+                  <span className="text-success font-medium">Você economiza</span>
+                  <Badge className="bg-success/10 text-success dark:bg-success/20 dark:text-success/80">
                     {formatCurrency(savings)} ({savingsPercent}%)
                   </Badge>
                 </div>

@@ -293,7 +293,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Tipo</label>
             <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background">
-              <Boxes className="h-3.5 w-3.5 text-purple-500" />
+              <Boxes className="h-3.5 w-3.5 text-primary" />
               <span className="text-sm flex-1">Apenas Kits</span>
               <Switch
                 checked={!!filters.is_kit}

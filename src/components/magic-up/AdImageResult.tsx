@@ -149,13 +149,13 @@ export function AdImageResult({
                         onClick={(e) => { e.stopPropagation(); onToggleHistoryFavorite(item.id, item.is_favorite); }}
                         className="p-1 rounded bg-white/20 hover:bg-white/30"
                       >
-                        <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-red-400 text-red-400" : "text-primary-foreground")} />
+                        <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-red-400 text-destructive" : "text-primary-foreground")} />
                       </button>
                     )}
                     {onDeleteHistory && (
                       <button
                         onClick={(e) => { e.stopPropagation(); onDeleteHistory(item.id); }}
-                        className="p-1 rounded bg-white/20 hover:bg-red-500/50"
+                        className="p-1 rounded bg-white/20 hover:bg-destructive/50"
                       >
                         <Trash2 className="h-3 w-3 text-primary-foreground" />
                       </button>
@@ -164,7 +164,7 @@ export function AdImageResult({
                 </div>
                 {item.is_favorite && (
                   <div className="absolute top-1 right-1">
-                    <Heart className="h-3.5 w-3.5 fill-red-400 text-red-400 drop-shadow" />
+                    <Heart className="h-3.5 w-3.5 fill-red-400 text-destructive drop-shadow" />
                   </div>
                 )}
               </div>
@@ -214,7 +214,7 @@ export function AdImageResult({
               onClick={onToggleFavorite}
               className="absolute top-3 right-3 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
             >
-              <Heart className={cn("h-5 w-5", isFavorite ? "fill-red-400 text-red-400" : "text-primary-foreground")} />
+              <Heart className={cn("h-5 w-5", isFavorite ? "fill-red-400 text-destructive" : "text-primary-foreground")} />
             </button>
           )}
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all flex items-end justify-center opacity-0 group-hover:opacity-100">

@@ -40,8 +40,8 @@ const statusConfig: Record<StockStatus, {
     label: 'Sem Estoque',
     shortLabel: 'Indisponível',
     icon: XCircle,
-    className: 'text-red-700 dark:text-red-400',
-    bgClass: 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800',
+    className: 'text-destructive dark:text-destructive',
+    bgClass: 'bg-destructive/10 dark:bg-destructive/20 border-destructive/20 dark:border-destructive/40',
   },
   'pre-order': {
     label: 'Pré-venda',
@@ -160,7 +160,7 @@ export function StockIndicator({ status, className }: StockIndicatorProps) {
   const dotColor = {
     'in-stock': 'bg-primary',
     'low-stock': 'bg-amber-500',
-    'out-of-stock': 'bg-red-500',
+    'out-of-stock': 'bg-destructive',
     'pre-order': 'bg-primary',
     'incoming': 'bg-primary/70',
   };

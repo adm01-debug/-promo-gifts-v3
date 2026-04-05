@@ -401,13 +401,13 @@ export default function KitBuilderPage() {
                  <Package className="h-6 w-6 text-primary" />
                </div>
               <div>
-                <h1 className="text-2xl font-bold">Montador de Kits</h1>
+                <h1 className="text-2xl font-bold font-display">Montador de Kits</h1>
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <span>Monte kits personalizados com validação automática</span>
                   {/* Auto-save indicator */}
                   {lastSavedAt && (
                     <Badge variant="outline" className="text-[10px] gap-1">
-                      <Cloud className="h-3 w-3 text-green-500" />
+                      <Cloud className="h-3 w-3 text-success" />
                       Salvo {lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </Badge>
                   )}
@@ -500,7 +500,7 @@ export default function KitBuilderPage() {
                 {wizardState.currentStep === 'box' && (
                   <div className="space-y-6">
                     <div>
-                      <h2 className="text-xl font-semibold">1. Selecione a Embalagem</h2>
+                      <h2 className="text-xl font-semibold font-display">1. Selecione a Embalagem</h2>
                       <p className="text-muted-foreground">
                         Escolha a caixa ou embalagem que será a base do seu kit
                       </p>
@@ -565,7 +565,7 @@ export default function KitBuilderPage() {
                 {/* Step: Items Selection */}
                 {wizardState.currentStep === 'items' && (
                   <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">2. Adicione os Itens</h2>
+                    <h2 className="text-xl font-semibold font-display">2. Adicione os Itens</h2>
                     <p className="text-muted-foreground">
                       Selecione os produtos que farão parte do kit
                     </p>

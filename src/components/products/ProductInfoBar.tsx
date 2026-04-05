@@ -74,9 +74,9 @@ export function ProductInfoBar({
             variant="outline"
             size="sm"
             onClick={onOpenFutureStock}
-            className="rounded-full h-8 px-3 text-xs gap-1.5 hover:border-orange-500/50 hover:bg-orange-500/5"
+            className="rounded-full h-8 px-3 text-xs gap-1.5 hover:border-orange/50 hover:bg-orange/5"
           >
-            <CalendarClock className="h-3.5 w-3.5 text-orange-500" />
+            <CalendarClock className="h-3.5 w-3.5 text-orange" />
             Estoque Futuro
           </Button>
         </TooltipTrigger>

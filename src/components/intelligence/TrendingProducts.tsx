@@ -16,7 +16,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
 
   const trendIcon = {
     up: <TrendingUp className="h-3 w-3 text-primary" />,
-    down: <TrendingDown className="h-3 w-3 text-red-500" />,
+    down: <TrendingDown className="h-3 w-3 text-destructive" />,
     stable: <Minus className="h-3 w-3 text-muted-foreground" />,
   };
 
@@ -70,7 +70,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
                   "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
                   index === 0 && "bg-amber-500/20 text-amber-600",
                   index === 1 && "bg-slate-300/30 text-slate-500",
-                  index === 2 && "bg-orange-400/20 text-orange-600",
+                  index === 2 && "bg-orange/20 text-orange",
                   index > 2 && "bg-muted text-muted-foreground",
                 )}>
                   {index < 3 ? ['🥇','🥈','🥉'][index] : index + 1}

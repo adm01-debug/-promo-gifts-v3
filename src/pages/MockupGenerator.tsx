@@ -312,7 +312,7 @@ export default function MockupGenerator() {
                     <TooltipTrigger asChild>
                       <span className="inline-flex">
                         <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
-                          <Cloud className="h-3 w-3 text-green-500" />
+                          <Cloud className="h-3 w-3 text-success" />
                           Salvo
                         </Badge>
                       </span>

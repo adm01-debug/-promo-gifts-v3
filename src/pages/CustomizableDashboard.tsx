@@ -188,7 +188,7 @@ export function CustomizableDashboard() {
         return (
           <MetricCard
             title="Pedidos Pendentes"
-            icon={<ShoppingCart className="h-4 w-4 text-orange-500" />}
+            icon={<ShoppingCart className="h-4 w-4 text-orange" />}
             value={metrics.orders.toLocaleString('pt-BR')}
             subtitle="aguardando processamento"
           />

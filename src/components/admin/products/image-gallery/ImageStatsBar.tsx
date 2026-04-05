@@ -30,7 +30,7 @@ function getSeoScore(stats: GalleryStats, hasPrimary: boolean, hasOgImage: boole
   if (stats.total >= 3) score += 15;
 
   const pct = max > 0 ? Math.round((score / max) * 100) : 0;
-  return { pct, color: pct >= 80 ? 'text-primary' : pct >= 50 ? 'text-amber-500' : 'text-red-500', bg: pct >= 80 ? 'bg-primary' : pct >= 50 ? 'bg-amber-500' : 'bg-red-500' };
+  return { pct, color: pct >= 80 ? 'text-primary' : pct >= 50 ? 'text-amber-500' : 'text-destructive', bg: pct >= 80 ? 'bg-primary' : pct >= 50 ? 'bg-amber-500' : 'bg-destructive' };
 }
 
 export function ImageStatsBar({ stats, hasPrimary, hasOgImage }: Props) {

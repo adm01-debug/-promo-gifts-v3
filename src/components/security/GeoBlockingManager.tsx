@@ -260,7 +260,7 @@ export function GeoBlockingManager() {
                         onClick={() => handleToggleCountry(country.id, country.is_active)}
                       >
                         {country.is_active ? (
-                          <ToggleRight className="h-4 w-4 text-green-500" />
+                          <ToggleRight className="h-4 w-4 text-success" />
                         ) : (
                           <ToggleLeft className="h-4 w-4 text-muted-foreground" />
                         )}

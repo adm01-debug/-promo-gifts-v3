@@ -204,7 +204,7 @@ export function ProductVariantSelector({
             </span>
           )}
           {selectedVariant.stock !== undefined && selectedVariant.stock > 0 && (
-            <span className="ml-2 text-green-600">({selectedVariant.stock} em estoque)</span>
+            <span className="ml-2 text-success">({selectedVariant.stock} em estoque)</span>
           )}
         </p>
       )}

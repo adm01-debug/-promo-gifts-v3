@@ -122,7 +122,7 @@ export function ImageGrid({
                 <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setPreviewUrl(img)}><ZoomIn className="h-3.5 w-3.5" /></Button>
                 {ext && <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-white hover:bg-white/20" onClick={() => setEditingIndex(globalIndex)} title="Editar metadados"><Type className="h-3.5 w-3.5" /></Button>}
                 {!isFirst && <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-amber-400 hover:bg-white/20" onClick={() => handleSetPrimary(img)} title="Definir como principal"><Star className="h-3.5 w-3.5" /></Button>}
-                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-red-400 hover:bg-white/20" onClick={() => requestRemove(img)}><X className="h-3.5 w-3.5" /></Button>
+                <Button type="button" variant="ghost" size="icon" className="h-7 w-7 text-destructive hover:bg-white/20" onClick={() => requestRemove(img)}><X className="h-3.5 w-3.5" /></Button>
               </div>
             )}
           </div>
