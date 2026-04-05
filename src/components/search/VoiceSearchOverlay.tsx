@@ -44,6 +44,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
   }, ref) {
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [bootingTimedOut, setBootingTimedOut] = useState(false);
     const wasOpenRef = useRef(false);
 
     // Closing transition guard
