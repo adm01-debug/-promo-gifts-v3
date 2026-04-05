@@ -44,9 +44,9 @@ interface GlobalSearchProps {
 }
 
 const categoryConfig = {
-  product: { icon: Package, label: "Produto", color: "text-blue-500" },
+  product: { icon: Package, label: "Produto", color: "text-primary" },
   quote: { icon: FileText, label: "Orçamento", color: "text-green-500" },
-  client: { icon: Users, label: "Cliente", color: "text-purple-500" },
+  client: { icon: Users, label: "Cliente", color: "text-primary" },
   order: { icon: ShoppingCart, label: "Pedido", color: "text-orange-500" },
   page: { icon: ArrowRight, label: "Página", color: "text-gray-500" },
   action: { icon: Sparkles, label: "Ação", color: "text-pink-500" },

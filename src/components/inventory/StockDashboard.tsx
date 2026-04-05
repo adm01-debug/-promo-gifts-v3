@@ -132,13 +132,13 @@ function StatCard({
 
 function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => void }) {
   const severityStyles = {
-    info: 'border-blue-500/30 bg-blue-500/5',
+    info: 'border-primary/30 bg-primary/5',
     warning: 'border-amber-500/30 bg-amber-500/5',
     error: 'border-red-500/30 bg-red-500/5',
   };
 
   const severityIcons = {
-    info: <AlertCircle className="h-5 w-5 text-blue-600" />,
+    info: <AlertCircle className="h-5 w-5 text-primary" />,
     warning: <AlertTriangle className="h-5 w-5 text-amber-600" />,
     error: <XCircle className="h-5 w-5 text-red-600" />,
   };
@@ -291,7 +291,7 @@ export function StockDashboard() {
         <StatCard
           title="Estoque Futuro"
           value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
-          icon={<Truck className="h-6 w-6 text-purple-600" />}
+          icon={<Truck className="h-6 w-6 text-primary" />}
         />
       </div>
 

@@ -77,14 +77,14 @@ const STATUS_CONFIG: Record<StockStatus, {
   },
   overstocked: { 
     label: 'Excesso', 
-    color: 'text-blue-600',
-    bgColor: 'bg-blue-500/10 border-blue-500/20',
+    color: 'text-primary',
+    bgColor: 'bg-primary/10 border-primary/20',
     icon: <TrendingUp className="h-4 w-4" />
   },
   incoming: { 
     label: 'Chegando', 
-    color: 'text-purple-600',
-    bgColor: 'bg-purple-500/10 border-purple-500/20',
+    color: 'text-primary/80',
+    bgColor: 'bg-primary/10 border-primary/15',
     icon: <Truck className="h-4 w-4" />
   },
 };
@@ -213,7 +213,7 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <span className="text-sm text-purple-600 flex items-center gap-1">
+                <span className="text-sm text-primary/80 flex items-center gap-1">
                   <Truck className="h-3 w-3" />
                   +{variant.inTransitStock}
                 </span>
@@ -348,7 +348,7 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
         </TableCell>
         <TableCell>
           {product.totalInTransitStock > 0 ? (
-            <span className="text-sm text-purple-600 flex items-center gap-1">
+            <span className="text-sm text-primary/80 flex items-center gap-1">
               <Truck className="h-3 w-3" />
               +{product.totalInTransitStock}
             </span>

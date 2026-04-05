@@ -252,11 +252,11 @@ export function PromptGenerator({
 
   const MOOD_COLORS: Record<string, string> = {
     warm: "bg-orange-500/10 text-orange-400 border-orange-500/20",
-    elegant: "bg-violet-500/10 text-violet-400 border-violet-500/20",
-    dynamic: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+    elegant: "bg-primary/10 text-primary border-primary/20",
+    dynamic: "bg-primary/15 text-primary/80 border-primary/25",
     serene: "bg-primary/10 text-primary border-primary/20",
     bold: "bg-red-500/10 text-red-400 border-red-500/20",
-    playful: "bg-pink-500/10 text-pink-400 border-pink-500/20",
+    playful: "bg-primary/10 text-primary/70 border-primary/15",
     professional: "bg-slate-500/10 text-slate-400 border-slate-500/20",
     cozy: "bg-amber-500/10 text-amber-400 border-amber-500/20",
   };

@@ -27,7 +27,7 @@ const statusConfig: Record<StockStatus, {
     shortLabel: 'Disponível',
     icon: Package,
     className: 'text-primary dark:text-primary',
-    bgClass: 'bg-emerald-100 dark:bg-emerald-900/30 border-primary/30 dark:border-emerald-800',
+    bgClass: 'bg-primary/10 border-primary/20',
   },
   'low-stock': {
     label: 'Estoque Baixo',
@@ -47,15 +47,15 @@ const statusConfig: Record<StockStatus, {
     label: 'Pré-venda',
     shortLabel: 'Pré-venda',
     icon: TrendingUp,
-    className: 'text-blue-700 dark:text-blue-400',
-    bgClass: 'bg-blue-100 dark:bg-blue-900/30 border-blue-200 dark:border-blue-800',
+    className: 'text-primary',
+    bgClass: 'bg-primary/10 border-primary/20',
   },
   'incoming': {
     label: 'Chegando',
     shortLabel: 'Em trânsito',
     icon: Clock,
-    className: 'text-purple-700 dark:text-purple-400',
-    bgClass: 'bg-purple-100 dark:bg-purple-900/30 border-purple-200 dark:border-purple-800',
+    className: 'text-primary/80',
+    bgClass: 'bg-primary/10 border-primary/15',
   },
 };
 
@@ -161,8 +161,8 @@ export function StockIndicator({ status, className }: StockIndicatorProps) {
     'in-stock': 'bg-primary',
     'low-stock': 'bg-amber-500',
     'out-of-stock': 'bg-red-500',
-    'pre-order': 'bg-blue-500',
-    'incoming': 'bg-purple-500',
+    'pre-order': 'bg-primary',
+    'incoming': 'bg-primary/70',
   };
 
   return (
