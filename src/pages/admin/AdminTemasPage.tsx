@@ -199,5 +199,6 @@ export default function AdminTemasPage() {
         />
       </motion.div>
     </div>
+    </MainLayout>
   );
 }
