@@ -130,41 +130,14 @@ export function useGlobalSearch() {
     }
   }, [navigate, addVoiceCommand]);
 
-  const voiceAgent = useVoiceAgent({
-    onAction: handleVoiceAction,
-  });
-
   const handleOpenVoiceOverlay = useCallback(() => {
     setOpen(false);
-    voiceAgent.reset();
     setVoiceOverlayOpen(true);
-  }, [voiceAgent]);
+  }, []);
 
   const handleCloseVoiceOverlay = useCallback(() => {
     setVoiceOverlayOpen(false);
-    voiceAgent.reset();
-  }, [voiceAgent]);
-
-  // Handle command select (from suggestion chips)
-  const handleVoiceCommandSelect = useCallback(async (command: string) => {
-    voiceAgent.reset();
-    setTimeout(async () => {
-      try {
-        const action = await processVoiceTranscript(command);
-        if (action.response) {
-          try {
-            const { promise } = playTtsAudio(action.response);
-            await promise;
-          } catch {
-            // TTS failed silently
-          }
-        }
-        handleVoiceAction(action);
-      } catch {
-        // Silent fail
-      }
-    }, 100);
-  }, [voiceAgent, handleVoiceAction]);
+  }, []);
 
   // ── Popular products ──
   useEffect(() => {
