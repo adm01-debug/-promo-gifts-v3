@@ -224,7 +224,7 @@ export function QuoteVersionCompare({ open, onOpenChange, versions, currentQuote
                               <span className="font-medium text-foreground">{formatCurrency(item.subtotal || item.quantity * item.unit_price)}</span>
                             </div>
                             {isNew && <Badge className="mt-1 bg-primary text-[10px] h-4">Novo</Badge>}
-                            {changed && <Badge className="mt-1 bg-amber-500 text-[10px] h-4">Alterado</Badge>}
+                            {changed && <Badge className="mt-1 bg-warning text-[10px] h-4">Alterado</Badge>}
                           </div>
                         );
                       })}
