@@ -485,9 +485,9 @@ export function ProductsManager() {
           {
             label: 'Ativos',
             value: stats.active,
-            valueClass: 'text-emerald-600 dark:text-emerald-400',
-            icon: <div className="h-3 w-3 rounded-full bg-emerald-500" />,
-            iconBg: 'bg-emerald-500/10',
+            valueClass: 'text-primary',
+            icon: <div className="h-3 w-3 rounded-full bg-primary" />,
+            iconBg: 'bg-primary/10',
           },
           {
             label: 'Sem Estoque',
@@ -500,8 +500,8 @@ export function ProductsManager() {
             label: 'Preço Médio',
             value: `R$ ${stats.avgPrice.toFixed(0)}`,
             valueClass: '',
-            icon: <span className="text-sm font-bold text-blue-500">$</span>,
-            iconBg: 'bg-blue-500/10',
+            icon: <span className="text-sm font-bold text-primary">$</span>,
+            iconBg: 'bg-primary/10',
           },
         ].map((stat, i) => (
           <motion.div
@@ -574,7 +574,7 @@ export function ProductsManager() {
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-emerald-600 border-emerald-500/30 hover:bg-emerald-500/10 dark:text-emerald-400"
+                className="gap-1.5 text-primary border-primary/30 hover:bg-primary/10"
                 disabled={isBulkUpdating}
                 onClick={() => handleBulkToggleActive(true)}
               >
@@ -639,7 +639,7 @@ export function ProductsManager() {
                       ? 'text-destructive'
                       : stockLevel < 10
                         ? 'text-amber-600 dark:text-amber-400'
-                        : 'text-emerald-600 dark:text-emerald-400';
+                        : 'text-primary';
 
                     return (
                       <TableRow
@@ -693,12 +693,12 @@ export function ProductsManager() {
                                 </Badge>
                               )}
                               {product.is_new && (
-                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-blue-500/30 text-blue-600 dark:text-blue-400">
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-primary/30 text-primary">
                                   Novo
                                 </Badge>
                               )}
                               {product.is_kit && (
-                                <Badge variant="outline" className="text-[10px] h-4 px-1 gap-0.5 border-purple-500/30 bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 gap-0.5 border-primary/30 bg-primary/10 text-primary">
                                   <Boxes className="h-2.5 w-2.5" />
                                   Kit
                                 </Badge>
@@ -718,7 +718,7 @@ export function ProductsManager() {
                         </TableCell>
                         <TableCell className="text-center">
                           {product.is_active ? (
-                            <Badge className="text-[10px] bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/15">
+                            <Badge className="text-[10px] bg-primary/10 text-primary border border-primary/20 hover:bg-primary/15">
                               Ativo
                             </Badge>
                           ) : (

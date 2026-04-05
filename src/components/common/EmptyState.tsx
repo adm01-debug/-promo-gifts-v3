@@ -55,7 +55,7 @@ const variants: Record<EmptyStateVariant, {
     icon: Package,
     title: "Nenhum produto encontrado",
     description: "Não encontramos produtos com os filtros selecionados. Tente ajustar sua busca.",
-    color: "text-blue-500"
+    color: "text-primary"
   },
   quotes: {
     icon: FileText,
@@ -73,7 +73,7 @@ const variants: Record<EmptyStateVariant, {
     icon: Users,
     title: "Nenhum cliente cadastrado",
     description: "Adicione clientes para começar a criar orçamentos personalizados.",
-    color: "text-purple-500"
+    color: "text-primary"
   },
   search: {
     icon: Search,
@@ -97,13 +97,13 @@ const variants: Record<EmptyStateVariant, {
     icon: ShoppingCart,
     title: "Carrinho vazio",
     description: "Adicione produtos ao carrinho para criar um orçamento.",
-    color: "text-indigo-500"
+    color: "text-primary"
   },
   notifications: {
     icon: Bell,
     title: "Nenhuma notificação",
     description: "Você está em dia! Novas notificações aparecerão aqui.",
-    color: "text-cyan-500"
+    color: "text-primary"
   },
   analytics: {
     icon: TrendingUp,

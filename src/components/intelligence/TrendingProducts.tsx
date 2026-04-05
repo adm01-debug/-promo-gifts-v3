@@ -15,7 +15,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL', maximumFractionDigits: 0 }).format(v);
 
   const trendIcon = {
-    up: <TrendingUp className="h-3 w-3 text-emerald-500" />,
+    up: <TrendingUp className="h-3 w-3 text-primary" />,
     down: <TrendingDown className="h-3 w-3 text-red-500" />,
     stable: <Minus className="h-3 w-3 text-muted-foreground" />,
   };

@@ -217,7 +217,7 @@ export function MarginIndicator({
     danger: 'bg-red-500',
     warning: 'bg-amber-500',
     good: 'bg-primary',
-    excellent: 'bg-cyan-500',
+    excellent: 'bg-primary',
   };
 
   const width = Math.min(Math.max(margin, 0), 70) / 70 * 100;
@@ -250,7 +250,7 @@ export function MarginIndicator({
         status === 'danger' && 'text-red-500',
         status === 'warning' && 'text-amber-500',
         status === 'good' && 'text-primary',
-        status === 'excellent' && 'text-cyan-500',
+        status === 'excellent' && 'text-primary',
       )}>
         {margin.toFixed(0)}%
       </span>

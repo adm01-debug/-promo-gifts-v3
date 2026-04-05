@@ -523,7 +523,7 @@ export function KitSummary({
         </Button>
         <Button
           variant="outline"
-          className="border-emerald-500/50 text-primary hover:bg-primary/10 dark:text-primary"
+          className="border-primary/50 text-primary hover:bg-primary/10 dark:text-primary"
           disabled={!kitState.isValid}
           onClick={() => {
             const kitLabel = kitName || 'Kit Personalizado';

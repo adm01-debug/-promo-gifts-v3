@@ -81,7 +81,7 @@ export function QuickAddToQuote({
               "px-2.5 py-1 text-sm font-medium cursor-pointer",
               "border-primary/50 bg-primary/10 hover:bg-primary/20",
               "text-primary hover:text-primary/80",
-              "transition-all duration-200 hover:scale-105 hover:border-emerald-500",
+              "transition-all duration-200 hover:scale-105 hover:border-primary",
               className
             )}
             onClick={(e) => e.stopPropagation()}

@@ -260,7 +260,7 @@ ${persText}
                 <p className="font-bold text-base">
                   {selectedIds.size} técnica{selectedIds.size > 1 ? 's' : ''} selecionada{selectedIds.size > 1 ? 's' : ''}
                 </p>
-                <p className="text-sm text-emerald-100/80">
+                <p className="text-sm text-primary-foreground/80">
                   Total combinado: {formatCurrency(
                     availableResults
                       .filter(r => selectedIds.has(r.techniqueId))
@@ -270,7 +270,7 @@ ${persText}
               </div>
               <Button 
                 size="lg" 
-                className="gap-2 font-bold bg-white text-primary hover:bg-emerald-50 shadow-lg"
+                className="gap-2 font-bold bg-white text-primary hover:bg-primary/5 shadow-lg"
                 onClick={handleConfirmSelected}
               >
                 <Check className="h-5 w-5" />
@@ -382,7 +382,7 @@ function ComparisonCard({
                 </Badge>
               )}
               {savingsPercent > 0 && (
-                <Badge variant="outline" className="gap-1 text-primary border-emerald-400 dark:text-primary dark:border-emerald-700">
+                <Badge variant="outline" className="gap-1 text-primary border-primary dark:text-primary dark:border-primary">
                   ↓ {savingsPercent}% vs mais caro
                 </Badge>
               )}

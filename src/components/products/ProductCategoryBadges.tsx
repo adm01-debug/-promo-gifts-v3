@@ -150,9 +150,9 @@ export function ProductCategoryBadges({
               })}
               className={cn(
                 "px-2.5 py-1 text-sm font-medium cursor-pointer",
-                "border-purple-500/50 bg-purple-500/15 hover:bg-purple-500/25",
-                "text-purple-400 hover:text-purple-300",
-                "transition-all duration-200 hover:scale-105 hover:border-purple-500"
+                "border-primary/50 bg-primary/15 hover:bg-primary/25",
+                "text-primary hover:text-primary/80",
+                "transition-all duration-200 hover:scale-105 hover:border-primary"
               )}
             >
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />

@@ -223,16 +223,16 @@ export function SimulationResultsCard({
             </motion.div>
 
             <motion.div 
-              className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20"
+              className="p-4 rounded-xl bg-primary/10 border border-primary/20"
               initial={{ scale: 0.9 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.15 }}
             >
-              <div className="flex items-center gap-2 text-blue-500 mb-1">
+              <div className="flex items-center gap-2 text-primary mb-1">
                 <Zap className="h-4 w-4" />
                 <span className="text-xs font-medium">Mais Rápido</span>
               </div>
-              <p className="text-2xl font-bold text-blue-500">
+              <p className="text-2xl font-bold text-primary">
                 {fastestOption?.estimatedDays}d
               </p>
               <p className="text-xs text-muted-foreground mt-1">
@@ -350,7 +350,7 @@ export function SimulationResultsCard({
                                     </Badge>
                                   )}
                                   {isFastest && !isBest && (
-                                    <Badge className="bg-blue-500 text-primary-foreground text-[10px] gap-1">
+                                    <Badge className="bg-primary text-primary-foreground text-[10px] gap-1">
                                       <Zap className="h-3 w-3" />
                                       Mais rápido
                                     </Badge>
@@ -395,7 +395,7 @@ export function SimulationResultsCard({
                             <TableCell className="text-center">
                               <div className={cn(
                                 "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
-                                option.estimatedDays <= 3 && "bg-emerald-100 text-primary dark:bg-emerald-900/30 dark:text-primary",
+                                option.estimatedDays <= 3 && "bg-primary/10 text-primary",
                                 option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
                                 option.estimatedDays > 7 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                               )}>

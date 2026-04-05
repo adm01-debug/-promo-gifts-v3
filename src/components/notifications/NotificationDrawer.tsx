@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
 const typeConfig = {
-  info: { icon: Info, color: "text-blue-500", bg: "bg-blue-500/10" },
+  info: { icon: Info, color: "text-primary", bg: "bg-primary/10" },
   warning: { icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-500/10" },
   success: { icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
   error: { icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },

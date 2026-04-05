@@ -109,13 +109,13 @@ export function ScenarioComparison({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/30"
+                className="p-3 rounded-lg bg-primary/10 border border-primary/30"
               >
                 <p className="font-medium text-sm truncate">{scenarioA.productName}</p>
                 <p className="text-xs text-muted-foreground">{scenarioA.quantity} un</p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Melhor:</span>
-                  <span className="font-bold text-blue-500">
+                  <span className="font-bold text-primary">
                     {formatCurrency(scenarioA.bestOption?.grandTotal || 0)}
                   </span>
                 </div>
@@ -152,13 +152,13 @@ export function ScenarioComparison({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/30"
+                className="p-3 rounded-lg bg-primary/15 border border-primary/25"
               >
                 <p className="font-medium text-sm truncate">{scenarioB.productName}</p>
                 <p className="text-xs text-muted-foreground">{scenarioB.quantity} un</p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className="text-xs text-muted-foreground">Melhor:</span>
-                  <span className="font-bold text-violet-500">
+                  <span className="font-bold text-primary/80">
                     {formatCurrency(scenarioB.bestOption?.grandTotal || 0)}
                   </span>
                 </div>

@@ -24,12 +24,12 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   },
   'on-sale': {
     icon: Tag,
-    colors: 'bg-orange-500/15 text-orange-600 border-orange-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
     animation: 'animate-pulse',
   },
   'best-seller': {
     icon: Flame,
-    colors: 'bg-orange-500/15 text-orange-500 border-orange-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
   },
   'popular': {
     icon: Zap,
@@ -41,7 +41,7 @@ const badgeConfig: Record<IntelligenceBadgeType, {
   },
   'emergente': {
     icon: Rocket,
-    colors: 'bg-blue-500/15 text-blue-500 border-blue-500/30',
+    colors: 'bg-primary/15 text-primary border-primary/30',
     animation: 'animate-pulse',
   },
   'last-units': {

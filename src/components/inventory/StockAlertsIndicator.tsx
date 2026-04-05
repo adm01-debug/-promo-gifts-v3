@@ -43,8 +43,8 @@ interface StockAlertsIndicatorProps {
 
 const TABS: { key: NotificationType; label: string; color: string; activeColor: string }[] = [
   { key: "stock", label: "Zerou", color: "text-destructive", activeColor: "bg-destructive/10 text-destructive border-destructive" },
-  { key: "new", label: "Novidade", color: "text-blue-500", activeColor: "bg-blue-500/10 text-blue-500 border-blue-500" },
-  { key: "restocked", label: "Chegou", color: "text-primary", activeColor: "bg-primary/10 text-primary border-emerald-500" },
+  { key: "new", label: "Novidade", color: "text-primary", activeColor: "bg-primary/10 text-primary border-primary" },
+  { key: "restocked", label: "Chegou", color: "text-primary", activeColor: "bg-primary/10 text-primary border-primary" },
 ];
 
 // ─── Trigger ─────────────────────────────────────────────────
@@ -213,7 +213,7 @@ export function StockAlertsIndicator({
       : counts.stock > 0
         ? "bg-orange"
         : counts.new > 0
-          ? "bg-blue-500"
+          ? "bg-primary"
           : "bg-primary";
 
     const dismiss = (id: string) => setDismissedIds(prev => new Set([...prev, id]));
@@ -243,13 +243,13 @@ export function StockAlertsIndicator({
 
     const getTypeBadge = (n: NotificationItem) => {
       if (n.type === "stock") return getStockBadge(n.alertLevel);
-      if (n.type === "new") return <Badge className="bg-blue-500 text-primary-foreground text-[10px] px-1.5 py-0">Novo</Badge>;
+      if (n.type === "new") return <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">Novo</Badge>;
       return <Badge className="bg-primary text-primary-foreground text-[10px] px-1.5 py-0">Reposto</Badge>;
     };
 
     const getTypeIcon = (n: NotificationItem) => {
       if (n.type === "stock") return getStockIcon(n.alertLevel);
-      if (n.type === "new") return <Sparkles className="h-3.5 w-3.5 text-blue-500" />;
+      if (n.type === "new") return <Sparkles className="h-3.5 w-3.5 text-primary" />;
       return <RefreshCw className="h-3.5 w-3.5 text-primary" />;
     };
 
@@ -377,8 +377,8 @@ export function StockAlertsIndicator({
                           )}
                           {item.type === "new" && (
                             <span className="flex items-center gap-1">
-                              <Sparkles className="h-3 w-3 text-blue-500" />
-                              <span className="font-medium text-blue-600">Recém-cadastrado</span>
+                              <Sparkles className="h-3 w-3 text-primary" />
+                              <span className="font-medium text-primary">Recém-cadastrado</span>
                             </span>
                           )}
                           {item.supplier && (

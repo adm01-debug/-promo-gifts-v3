@@ -251,7 +251,7 @@ export default function SystemStatusPage() {
 
         {/* Overall Status */}
         <Card
-          className={`border-2 ${overallStatus === "ok" ? "border-emerald-500/50 bg-primary/5" : "border-destructive/50 bg-destructive/5"}`}
+          className={`border-2 ${overallStatus === "ok" ? "border-primary/50 bg-primary/5" : "border-destructive/50 bg-destructive/5"}`}
         >
           <CardContent className="p-6">
             <div className="flex items-center justify-between">

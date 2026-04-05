@@ -84,7 +84,7 @@ export function ProductDimensions({ dimensions, compact }: ProductDimensionsProp
   }
   if (capacity_ml) {
     const cap = formatCapacity(capacity_ml);
-    specs.push({ icon: <Droplets className="h-5 w-5" />, label: "Capacidade", value: cap.val, unit: cap.unit, iconBgClass: "bg-cyan-500/10", iconColorClass: "text-cyan-500" });
+    specs.push({ icon: <Droplets className="h-5 w-5" />, label: "Capacidade", value: cap.val, unit: cap.unit, iconBgClass: "bg-primary/10", iconColorClass: "text-primary" });
   }
   if (weight_g) {
     const w = formatWeight(weight_g);

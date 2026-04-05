@@ -196,7 +196,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
           </div>
           <div className="flex items-center gap-2">
             {trendRatio > 1.3 && (
-              <Badge variant="outline" className="bg-blue-500/15 text-blue-500 border-blue-500/30 text-xs font-bold">
+              <Badge variant="outline" className="bg-primary/15 text-primary border-primary/30 text-xs font-bold">
                 🚀 Mercado Aquecido
               </Badge>
             )}
@@ -353,7 +353,7 @@ function MacroSupplierComparison({ suppliers, supplierNames }: { suppliers: Macr
                   <p className="text-muted-foreground">Tendência</p>
                   <p className={cn(
                     "font-bold flex items-center gap-0.5",
-                    s.velocityTrend > 1 ? 'text-emerald-500' : s.velocityTrend < 0.8 ? 'text-destructive' : 'text-muted-foreground'
+                    s.velocityTrend > 1 ? 'text-primary' : s.velocityTrend < 0.8 ? 'text-destructive' : 'text-muted-foreground'
                   )}>
                     {s.velocityTrend > 1 ? <TrendingUp className="h-2.5 w-2.5" /> :
                      s.velocityTrend < 0.8 ? <TrendingDown className="h-2.5 w-2.5" /> :
@@ -405,8 +405,8 @@ function MarketMacroTooltip({ active, payload }: any) {
         )}
         {data.restocked > 0 && (
           <div className="flex justify-between text-xs">
-            <span className="text-emerald-500">Reposição:</span>
-            <span className="font-semibold text-emerald-500">{data.restocked.toLocaleString('pt-BR')} un</span>
+            <span className="text-primary">Reposição:</span>
+            <span className="font-semibold text-primary">{data.restocked.toLocaleString('pt-BR')} un</span>
           </div>
         )}
         {data.depleted === 0 && data.restocked === 0 && (

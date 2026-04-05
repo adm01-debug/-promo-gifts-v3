@@ -181,8 +181,8 @@ export function GlobalSearchPalette() {
                       {s.contextualSuggestions.slice(0, 6).map(sug => (
                         <button key={sug.id} onClick={() => s.handleSuggestionClick(sug.text)} className={cn(
                           "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors",
-                          sug.type === "filter" && "bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30",
-                          sug.type === "navigation" && "bg-purple-500/10 hover:bg-purple-500/20 text-purple-400 border border-purple-500/30",
+                          sug.type === "filter" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
+                          sug.type === "navigation" && "bg-primary/15 hover:bg-primary/25 text-primary/80 border border-primary/25",
                           sug.type === "action" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
                           sug.type === "search" && "bg-muted hover:bg-muted/80",
                         )}>

@@ -39,9 +39,9 @@ interface DecisionMatrixChartProps {
 // Quadrantes da matriz
 const QUADRANTS = {
   IDEAL: { label: "Ideal", color: "text-success", bg: "bg-success/10", description: "Baixo custo + Rápido" },
-  ECONOMY: { label: "Econômico", color: "text-blue-500", bg: "bg-blue-500/10", description: "Baixo custo + Mais tempo" },
+  ECONOMY: { label: "Econômico", color: "text-primary", bg: "bg-primary/10", description: "Baixo custo + Mais tempo" },
   EXPRESS: { label: "Express", color: "text-amber-500", bg: "bg-amber-500/10", description: "Alto custo + Rápido" },
-  PREMIUM: { label: "Premium", color: "text-purple-500", bg: "bg-purple-500/10", description: "Alto custo + Mais tempo" },
+  PREMIUM: { label: "Premium", color: "text-primary/80", bg: "bg-primary/10", description: "Alto custo + Mais tempo" },
 };
 
 export function DecisionMatrixChart({
@@ -290,7 +290,7 @@ export function DecisionMatrixChart({
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-            <Zap className="h-4 w-4 text-blue-500" />
+            <Zap className="h-4 w-4 text-primary" />
             <div className="text-xs">
               <span className="text-muted-foreground">Mais rápido: </span>
               <span className="font-medium">{fastestOption?.techniqueName}</span>
@@ -304,7 +304,7 @@ export function DecisionMatrixChart({
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-            <Clock className="h-4 w-4 text-purple-500" />
+            <Clock className="h-4 w-4 text-primary/80" />
             <div className="text-xs">
               <span className="text-muted-foreground">Prazo: </span>
               <span className="font-medium">{minDays}-{maxDays} dias</span>

@@ -31,7 +31,7 @@ const filterOptions: Array<{
     label: 'Em Estoque',
     shortLabel: 'Disponível',
     icon: Package,
-    activeClass: 'bg-primary text-primary-foreground border-emerald-500',
+    activeClass: 'bg-primary text-primary-foreground border-primary',
   },
   {
     id: 'low-stock',
@@ -52,7 +52,7 @@ const filterOptions: Array<{
     label: 'Chegando',
     shortLabel: 'Em trânsito',
     icon: Clock,
-    activeClass: 'bg-purple-500 text-primary-foreground border-purple-500',
+    activeClass: 'bg-primary/80 text-primary-foreground border-primary/80',
   },
 ];
 

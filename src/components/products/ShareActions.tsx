@@ -69,7 +69,7 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
     <>
       <div className="inline-flex rounded-md shadow-sm">
         <Button
-          className="gap-2 rounded-r-none border-r border-emerald-400/20 bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="gap-2 rounded-r-none border-r border-primary/20 bg-primary hover:bg-primary/90 text-primary-foreground"
           onClick={() => setShowPreview(true)}
         >
           <MessageCircle className="h-4 w-4" />

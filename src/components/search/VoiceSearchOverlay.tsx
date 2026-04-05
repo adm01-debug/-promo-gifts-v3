@@ -49,13 +49,13 @@ const filterIcons: Record<AppliedFilter["type"], React.ReactNode> = {
 };
 
 const filterColors: Record<AppliedFilter["type"], string> = {
-  category: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  color: "bg-purple-500/20 text-purple-400 border-purple-500/30",
+  category: "bg-primary/20 text-primary border-primary/30",
+  color: "bg-primary/15 text-primary/80 border-primary/25",
   price: "bg-primary/20 text-primary border-primary/30",
   material: "bg-amber-500/20 text-amber-400 border-amber-500/30",
   stock: "bg-primary/20 text-primary border-primary/30",
-  featured: "bg-pink-500/20 text-pink-400 border-pink-500/30",
-  kit: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30",
+  featured: "bg-primary/10 text-primary/70 border-primary/20",
+  kit: "bg-primary/10 text-primary/60 border-primary/15",
 };
 
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(

@@ -25,7 +25,7 @@ export const roleConfig: Record<AppRole, { label: string; icon: React.ReactNode;
     label: "Gerente",
     icon: <ShieldCheck className="h-3 w-3" />,
     variant: "default",
-    color: "bg-blue-500 text-white",
+    color: "bg-primary text-primary-foreground",
   },
   vendedor: {
     label: "Vendedor",
