@@ -8,10 +8,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
-import { useVoiceFeedback } from "@/hooks/useVoiceFeedback";
+import { useVoiceAgent, type VoiceAgentAction } from "@/hooks/useVoiceAgent";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
