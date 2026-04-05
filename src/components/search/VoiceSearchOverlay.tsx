@@ -23,8 +23,8 @@ interface VoiceSearchOverlayProps {
 const phaseConfig: Record<VoiceAgentPhase, { title: string; subtitle: string; color: string }> = {
   idle: { title: "Assistente de Voz", subtitle: "Clique no microfone para começar", color: "bg-secondary" },
   listening: { title: "Ouvindo...", subtitle: "Diga o que você precisa", color: "bg-primary" },
-  processing: { title: "Processando...", subtitle: "IA interpretando seu comando", color: "bg-amber-500" },
-  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta", color: "bg-emerald-500" },
+  processing: { title: "Processando...", subtitle: "IA interpretando seu comando", color: "bg-warning" },
+  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta", color: "bg-success" },
   error: { title: "Erro", subtitle: "Tente novamente", color: "bg-destructive" },
 };
 
