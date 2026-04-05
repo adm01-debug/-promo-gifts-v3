@@ -147,19 +147,19 @@ export function CatalogQualityDashboard({
   }, [metrics, products.length]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-600";
-    if (score >= 60) return "text-amber-600";
-    return "text-red-600";
+    if (score >= 85) return "text-success";
+    if (score >= 60) return "text-warning";
+    return "text-destructive";
   };
 
   const getStatusColor = (status: "success" | "warning" | "error") => {
     switch (status) {
       case "success":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-success/10 text-success border-success/20";
       case "warning":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+        return "bg-warning/10 text-warning border-warning/20";
       case "error":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-destructive/10 text-destructive border-destructive/20";
     }
   };
 
