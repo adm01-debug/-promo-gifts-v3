@@ -173,7 +173,7 @@ export function VisualSearchButton({ onResultsFound }: VisualSearchProps) {
                   src={previewImage} 
                   alt="Preview" 
                   className="w-full h-48 object-contain bg-muted"
-                />
+                 loading="lazy"/>
                 
                 {isLoading ? (
                   <div className="absolute inset-0 bg-background/80 flex flex-col items-center justify-center gap-3">

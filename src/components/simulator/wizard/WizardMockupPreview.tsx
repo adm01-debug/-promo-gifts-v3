@@ -94,7 +94,7 @@ export function WizardMockupPreview({
               src={product.imageUrl}
               alt={product.name}
               className="w-full h-full object-contain"
-            />
+             loading="lazy"/>
 
             {clientLogoUrl ? (
               <div
@@ -108,7 +108,7 @@ export function WizardMockupPreview({
                   ...techniqueFilter,
                 }}
               >
-                <img src={clientLogoUrl} alt="Logo" className="w-full h-full object-contain" />
+                <img src={clientLogoUrl} alt="Logo" className="w-full h-full object-contain"  loading="lazy"/>
               </div>
             ) : (
               <div

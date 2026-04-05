@@ -351,7 +351,7 @@ export function ExportActions({
                       src={selectedProduct.image_url} 
                       alt={selectedProduct.name}
                       className="w-16 h-16 object-cover rounded-lg"
-                    />
+                     loading="lazy"/>
                   )}
                   <div>
                     <h3 className="font-semibold">{selectedProduct?.name}</h3>

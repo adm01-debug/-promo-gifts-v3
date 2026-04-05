@@ -301,7 +301,7 @@ export function ProductQuantityCard({
                         src={selectedProduct.image_url} 
                         alt={selectedProduct.name}
                         className="w-full h-full object-cover"
-                      />
+                       loading="lazy"/>
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Package className="h-5 w-5 text-muted-foreground" />
