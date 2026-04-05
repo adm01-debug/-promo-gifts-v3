@@ -84,8 +84,8 @@ export function StockAlert({
       <Alert 
         variant={alertLevel === 'critical' ? 'destructive' : 'default'}
         className={cn(
-          alertLevel === 'warning' && "border-amber-500/50 bg-amber-500/10",
-          alertLevel === 'caution' && "border-yellow-500/50 bg-yellow-500/10"
+          alertLevel === 'warning' && "border-warning/50 bg-warning/10",
+          alertLevel === 'caution' && "border-warning/30 bg-warning/5"
         )}
       >
         {alertLevel === 'critical' ? (
