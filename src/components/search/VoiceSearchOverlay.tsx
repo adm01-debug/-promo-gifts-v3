@@ -1,4 +1,5 @@
 import React, { useEffect } from "react";
+import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, MicOff, X, Palette, Tag, DollarSign, Package, Sparkles, CheckCircle2, Clock, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -82,6 +83,21 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
+
+  // Auto-start listening when overlay opens
+  const hasAutoStarted = useRef(false);
+  useEffect(() => {
+    if (isOpen && !isListening && !hasAutoStarted.current) {
+      hasAutoStarted.current = true;
+      const timer = setTimeout(() => {
+        onToggleListening();
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+    if (!isOpen) {
+      hasAutoStarted.current = false;
+    }
+  }, [isOpen, isListening, onToggleListening]);
 
   return (
     <AnimatePresence>
@@ -295,12 +311,13 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     "Ordenar por preço",
                     "Limpar filtros",
                   ].map((cmd) => (
-                    <span
+                    <button
                       key={cmd}
-                      className="px-3 py-1.5 bg-muted/50 rounded-full text-xs text-muted-foreground border border-border/50"
+                      onClick={() => onCommandSelect?.(cmd)}
+                      className="px-3 py-1.5 bg-muted/50 hover:bg-muted rounded-full text-xs text-muted-foreground hover:text-foreground border border-border/50 hover:border-border transition-colors cursor-pointer"
                     >
                       "{cmd}"
-                    </span>
+                    </button>
                   ))}
                 </div>
               </motion.div>
