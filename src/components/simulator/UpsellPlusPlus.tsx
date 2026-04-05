@@ -414,13 +414,13 @@ export function UpsellPlusPlus({
         exit={{ opacity: 0, y: -10 }}
         className="space-y-3"
       >
-        <Card className="overflow-hidden border-amber-500/30 bg-gradient-to-br from-amber-500/5 via-background to-orange-500/5">
+        <Card className="overflow-hidden border-warning/30 bg-gradient-to-br from-warning/5 via-background to-orange/5">
           {/* Header */}
           <div className="p-4 border-b border-border/50">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-amber-500/20 to-orange-500/20">
-                  <Sparkles className="h-5 w-5 text-amber-500" />
+                <div className="p-2 rounded-lg bg-gradient-to-br from-warning/20 to-orange/20">
+                  <Sparkles className="h-5 w-5 text-warning" />
                 </div>
                 <div>
                   <h4 className="font-semibold text-sm flex items-center gap-2">
