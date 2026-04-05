@@ -55,7 +55,7 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
   const isActive = effectivePhase === "listening" || effectivePhase === "speaking";
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 200, height: 200 }}>
+    <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
       {/* Outer glow rings */}
       {[0, 1, 2].map((i) => (
         <motion.div
