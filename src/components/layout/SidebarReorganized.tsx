@@ -9,7 +9,6 @@ import {
   FolderOpen,
   ChevronLeft,
   ChevronRight,
-  ChevronsDownUp,
   ShieldCheck,
   Calculator,
   Wand2,
@@ -26,13 +25,18 @@ import {
   Palette,
   Brain,
   Workflow,
+  Layers,
+  SlidersHorizontal,
+  Boxes,
+  ImagePlus,
+  BarChart3,
+  Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 import { SidebarUserFooter } from "./sidebar/SidebarUserFooter";
-import { SidebarQuickSearch } from "./sidebar/SidebarQuickSearch";
 import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
 
 interface SidebarProps {
@@ -48,10 +52,12 @@ const navGroups: NavGroup[] = [
     defaultOpen: true,
     items: [
       { icon: Package, label: "Produtos", href: "/", tourId: "products" },
-      { icon: Filter, label: "Super Filtro", href: "/filtros" },
+      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Package, label: "Estoque", href: "/estoque" },
+      { icon: Layers, label: "Estoque", href: "/estoque" },
+      { icon: Heart, label: "Favoritos", href: "/favoritos" },
+      { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
   {
@@ -60,14 +66,14 @@ const navGroups: NavGroup[] = [
     icon: Wrench,
     defaultOpen: false,
     items: [
-      { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
+      { icon: ImagePlus, label: "Mockup", href: "/mockup-generator" },
       { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
       { icon: Calculator, label: "Simulador", href: "/simulador" },
-      { icon: Calculator, label: "Preços por Tiragem", href: "/simulador-precos" },
+      { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
-      { icon: Package, label: "Montador de Kits", href: "/montar-kit" },
+      { icon: Boxes, label: "Montador de Kits", href: "/montar-kit" },
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
-      { icon: Zap, label: "Match", href: "/match" },
+      { icon: Crosshair, label: "Match", href: "/match" },
     ],
   },
   {
@@ -88,16 +94,6 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true },
-    ],
-  },
-  {
-    id: "my-items",
-    label: "Meus Itens",
-    icon: Star,
-    defaultOpen: false,
-    items: [
-      { icon: Heart, label: "Favoritos", href: "/favoritos" },
-      { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
   {
