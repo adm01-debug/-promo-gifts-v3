@@ -55,47 +55,48 @@ function usePhaseColors(phase: VoiceAgentPhase, isBooting: boolean) {
 
   return useMemo(() => {
     const [h, s, l] = baseHSL;
-    // Complementary hue offsets for visual interest
-    const comp = (h + 180) % 360;
-    const triad = (h + 120) % 360;
-    const analog = (h + 30) % 360;
+    // Rosa + Violeta accent palette for harmony
+    const rosa = 330;   // pink-rose hue
+    const violeta = 270; // violet hue
+    const magenta = 300; // magenta bridge between rosa and violeta
+    const lavanda = 285; // soft lavender
 
     switch (effectivePhase) {
       case "listening":
         return {
-          primary: hsl(h, s, l), secondary: hsl(comp, Math.min(s, 85), l + 5), accent: hsl(h, s, l + 15),
-          glow1: hsla(h, s, l, 0.5), glow2: hsla(comp, Math.min(s, 80), l, 0.35),
-          particles: [hsl(h, s, l), hsl(h, s, l + 15), hsl(h, s - 10, l + 25), hsl(comp, 80, l + 5), hsl(comp, 75, l + 15), hsl(analog, 85, l + 10)],
+          primary: hsl(h, s, l), secondary: hsl(rosa, 80, 65), accent: hsl(violeta, 70, 60),
+          glow1: hsla(h, s, l, 0.5), glow2: hsla(rosa, 75, 60, 0.4),
+          particles: [hsl(h, s, l), hsl(rosa, 85, 65), hsl(rosa, 75, 75), hsl(violeta, 70, 60), hsl(violeta, 65, 72), hsl(magenta, 80, 68)],
         };
       case "processing":
         return {
-          primary: hsl(analog, s, l), secondary: hsl(triad, Math.min(s, 80), l), accent: hsl(analog, s, l + 15),
-          glow1: hsla(analog, s, l, 0.5), glow2: hsla(triad, 75, l, 0.35),
-          particles: [hsl(analog, s, l), hsl(analog, s, l + 15), hsl(analog, s - 10, l + 25), hsl(triad, 75, l), hsl(triad, 70, l + 12), hsl(triad, 65, l + 22)],
+          primary: hsl(violeta, 75, 58), secondary: hsl(rosa, 80, 62), accent: hsl(magenta, 78, 65),
+          glow1: hsla(violeta, 75, 58, 0.5), glow2: hsla(rosa, 80, 62, 0.4),
+          particles: [hsl(violeta, 75, 58), hsl(violeta, 65, 70), hsl(magenta, 78, 65), hsl(rosa, 80, 62), hsl(rosa, 70, 72), hsl(lavanda, 65, 70)],
         };
       case "speaking":
         return {
-          primary: hsl(triad, Math.min(s, 80), l), secondary: hsl(h, s, l), accent: hsl(triad, 75, l + 12),
-          glow1: hsla(triad, 80, l, 0.5), glow2: hsla(h, s, l, 0.35),
-          particles: [hsl(triad, 80, l), hsl(triad, 75, l + 12), hsl(triad, 70, l + 22), hsl(h, s, l), hsl(h, s, l + 12), hsl(triad, 70, l + 28)],
+          primary: hsl(rosa, 82, 62), secondary: hsl(h, s, l), accent: hsl(magenta, 75, 68),
+          glow1: hsla(rosa, 82, 62, 0.5), glow2: hsla(violeta, 70, 58, 0.35),
+          particles: [hsl(rosa, 82, 62), hsl(rosa, 75, 72), hsl(magenta, 75, 68), hsl(h, s, l), hsl(violeta, 65, 65), hsl(lavanda, 60, 75)],
         };
       case "error":
         return {
-          primary: hsl(0, 75, 55), secondary: hsl(25, 90, 55), accent: hsl(0, 70, 65),
-          glow1: hsla(0, 75, 55, 0.45), glow2: hsla(25, 85, 55, 0.3),
-          particles: [hsl(0, 75, 55), hsl(0, 70, 65), hsl(0, 60, 75), hsl(25, 85, 55)],
+          primary: hsl(0, 75, 55), secondary: hsl(330, 70, 50), accent: hsl(0, 70, 65),
+          glow1: hsla(0, 75, 55, 0.45), glow2: hsla(330, 70, 50, 0.3),
+          particles: [hsl(0, 75, 55), hsl(0, 70, 65), hsl(0, 60, 75), hsl(330, 70, 50)],
         };
       case "booting":
         return {
-          primary: hsl(h, s, l), secondary: hsl(comp, Math.min(s, 80), l + 8), accent: hsl(h, s - 10, l + 18),
-          glow1: hsla(h, s, l, 0.4), glow2: hsla(comp, 75, l + 5, 0.3),
-          particles: [hsl(h, s, l), hsl(h, s - 10, l + 18), hsl(h, s - 20, l + 28), hsl(comp, 75, l + 5), hsl(comp, 70, l + 15)],
+          primary: hsl(h, s, l), secondary: hsl(violeta, 65, 62), accent: hsl(rosa, 70, 68),
+          glow1: hsla(h, s, l, 0.4), glow2: hsla(violeta, 65, 62, 0.35),
+          particles: [hsl(h, s, l), hsl(rosa, 70, 68), hsl(rosa, 60, 78), hsl(violeta, 65, 62), hsl(violeta, 55, 72)],
         };
       default:
         return {
-          primary: hsl(h, s, l), secondary: hsl(comp, Math.min(s, 80), l), accent: hsl(h, s - 10, l + 15),
-          glow1: hsla(h, s, l, 0.35), glow2: hsla(comp, 75, l, 0.25),
-          particles: [hsl(h, s, l), hsl(h, s - 10, l + 15), hsl(h, s - 20, l + 25), hsl(comp, 75, l), hsl(comp, 70, l + 15)],
+          primary: hsl(h, s, l), secondary: hsl(rosa, 75, 65), accent: hsl(violeta, 65, 60),
+          glow1: hsla(h, s, l, 0.35), glow2: hsla(rosa, 70, 62, 0.25),
+          particles: [hsl(h, s, l), hsl(rosa, 75, 65), hsl(rosa, 65, 75), hsl(violeta, 65, 60), hsl(violeta, 55, 72)],
         };
     }
   }, [effectivePhase, baseHSL]);
