@@ -114,7 +114,7 @@ function StatCard({
             {trend && (
               <p className={cn(
                 "text-xs flex items-center gap-1",
-                trend.value >= 0 ? "text-green-600" : "text-red-600"
+                trend.value >= 0 ? "text-success" : "text-destructive"
               )}>
                 {trend.value >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {trend.label}
