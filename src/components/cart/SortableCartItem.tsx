@@ -184,8 +184,8 @@ export function SortableCartItem({
             <div className={cn(
               "absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium",
               isOutOfStock
-                ? "bg-destructive/90 text-white"
-                : "bg-amber-500/90 text-white"
+                ? "bg-destructive/90 text-destructive-foreground"
+                : "bg-warning/90 text-warning-foreground"
             )}>
               <AlertTriangle className="h-3 w-3" />
               {isOutOfStock ? "Sem estoque" : `Estoque: ${stock}`}
