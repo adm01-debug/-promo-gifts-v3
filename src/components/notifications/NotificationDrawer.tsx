@@ -1,3 +1,4 @@
+import React from "react";
 import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
