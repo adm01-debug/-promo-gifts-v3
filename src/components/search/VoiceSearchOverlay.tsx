@@ -484,16 +484,16 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 Pressione <kbd className="px-1.5 py-0.5 bg-white/5 rounded text-[10px] font-mono border border-white/10">ESC</kbd> para fechar
               </motion.p>
 
-              {/* Badge */}
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 0.5 }}
-                className="flex items-center gap-1.5 text-[10px] text-white/15"
-              >
-                <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500/50" />
-                IA + Voz ElevenLabs
-              </motion.div>
+              {/* Close button — bottom right of card */}
+              <div className="w-full flex justify-end">
+                <button
+                  onClick={onClose}
+                  className="flex items-center justify-center w-8 h-8 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
+                  aria-label="Fechar assistente de voz"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </motion.div>
             </div>{/* end centering wrapper */}
 
