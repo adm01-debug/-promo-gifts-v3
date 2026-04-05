@@ -346,54 +346,56 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
 
   return (
     <div ref={containerRef} className={cn("relative w-full", className)}>
-      <div className="relative group">
-        <button
-          type="button"
-          className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-0 bg-transparent border-none cursor-pointer hover:text-primary transition-colors"
-          onClick={() => {
-            if (query.trim()) {
-              addToHistory(query);
-              if (onSearch) {
-                onSearch(query);
-              } else {
-                navigate(`/?search=${encodeURIComponent(query)}`);
-              }
-              setIsFocused(false);
-            }
-          }}
-          tabIndex={-1}
-          aria-label="Buscar"
-        >
-          <Search className={cn(
-            "h-4 w-4 transition-colors duration-200",
-            isFocused ? "text-primary" : "text-muted-foreground group-hover:text-primary"
-          )} />
-        </button>
-        
-        <Input
-          ref={inputRef}
-          type="text"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onFocus={() => setIsFocused(true)}
-          onKeyDown={handleKeyDown}
-          placeholder={placeholder}
-          autoFocus={autoFocus}
-          aria-label="Campo de busca"
-          aria-expanded={showDropdown}
-          aria-haspopup="listbox"
-          role="combobox"
-          autoComplete="off"
-          className={cn(
-            "pl-10 pr-20 h-11 bg-background/80 backdrop-blur-sm",
-            "border-muted-foreground/20",
-            "transition-all duration-300 ease-out",
-            isFocused 
-              ? "border-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] ring-0" 
-              : "hover:border-muted-foreground/40",
-            isListening && "ring-2 ring-primary ring-offset-2 animate-pulse"
-          )}
-        />
+      <Tooltip delayDuration={400} open={!isFocused ? undefined : false}>
+        <TooltipTrigger asChild>
+          <div className="relative group">
+            <button
+              type="button"
+              className="absolute left-3 top-1/2 -translate-y-1/2 z-10 p-0 bg-transparent border-none cursor-pointer hover:text-primary transition-colors"
+              onClick={() => {
+                if (query.trim()) {
+                  addToHistory(query);
+                  if (onSearch) {
+                    onSearch(query);
+                  } else {
+                    navigate(`/?search=${encodeURIComponent(query)}`);
+                  }
+                  setIsFocused(false);
+                }
+              }}
+              tabIndex={-1}
+              aria-label="Buscar"
+            >
+              <Search className={cn(
+                "h-4 w-4 transition-colors duration-200",
+                isFocused ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+              )} />
+            </button>
+            
+            <Input
+              ref={inputRef}
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
+              autoFocus={autoFocus}
+              aria-label="Campo de busca"
+              aria-expanded={showDropdown}
+              aria-haspopup="listbox"
+              role="combobox"
+              autoComplete="off"
+              className={cn(
+                "pl-10 pr-20 h-11 bg-background/80 backdrop-blur-sm",
+                "border-muted-foreground/20",
+                "transition-all duration-300 ease-out",
+                isFocused 
+                  ? "border-primary shadow-[0_0_0_3px_hsl(var(--primary)/0.1)] ring-0" 
+                  : "hover:border-muted-foreground/40",
+                isListening && "ring-2 ring-primary ring-offset-2 animate-pulse"
+              )}
+            />
 
         <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
           {isSearching && (
