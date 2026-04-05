@@ -149,7 +149,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             <motion.div
               className="absolute inset-0 backdrop-blur-xl"
               animate={{ backgroundColor: ["rgba(2,2,10,0.30)", "rgba(2,2,10,0.85)", "rgba(2,2,10,0.30)"] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 4.6, repeat: Infinity, ease: "easeInOut" }}
               onClick={onClose}
             />
 
