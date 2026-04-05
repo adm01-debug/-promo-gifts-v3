@@ -3,7 +3,7 @@ import { Columns3, Grid2x2, Grid3x3 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
-import { useIsMobile } from "@/hooks/use-mobile";
+
 import { motion, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "product-grid-columns";
