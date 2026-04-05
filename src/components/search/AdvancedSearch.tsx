@@ -82,28 +82,13 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
     }
   }, [navigate, onSearch]);
 
-  const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
-
   const handleOpenVoiceOverlay = () => {
-    voiceAgent.reset();
     setIsVoiceOverlayOpen(true);
   };
 
   const handleCloseVoiceOverlay = () => {
     setIsVoiceOverlayOpen(false);
-    voiceAgent.reset();
   };
-
-  const handleVoiceCommandSelect = useCallback(async (command: string) => {
-    voiceAgent.reset();
-    try {
-      const action = await processVoiceTranscript(command);
-      if (action.response) {
-        try { const { promise } = playTtsAudio(action.response); await promise; } catch {}
-      }
-      handleVoiceAction(action);
-    } catch {}
-  }, [voiceAgent, handleVoiceAction]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
