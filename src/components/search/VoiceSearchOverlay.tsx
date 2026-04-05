@@ -167,23 +167,23 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   boxShadow:
                     phase === "listening"
                       ? [
-                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
-                          "0 0 50px 8px rgba(139,92,246,0.3), 0 0 90px 20px rgba(139,92,246,0.15), 0 0 0 1px rgba(255,255,255,0.08)",
-                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08)",
+                          "0 0 50px 8px rgba(139,92,246,0.3), 0 0 90px 20px rgba(139,92,246,0.15)",
+                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08)",
                         ]
                       : phase === "speaking"
                       ? [
-                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
-                          "0 0 50px 8px rgba(59,130,246,0.3), 0 0 90px 20px rgba(99,102,241,0.15), 0 0 0 1px rgba(255,255,255,0.08)",
-                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08)",
+                          "0 0 50px 8px rgba(59,130,246,0.3), 0 0 90px 20px rgba(99,102,241,0.15)",
+                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08)",
                         ]
                       : phase === "processing"
                       ? [
-                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
-                          "0 0 50px 8px rgba(168,85,247,0.3), 0 0 90px 20px rgba(168,85,247,0.15), 0 0 0 1px rgba(255,255,255,0.08)",
-                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08), 0 0 0 1px rgba(255,255,255,0.05)",
+                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08)",
+                          "0 0 50px 8px rgba(168,85,247,0.3), 0 0 90px 20px rgba(168,85,247,0.15)",
+                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08)",
                         ]
-                      : "0 8px 60px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.05)",
+                      : "0 8px 60px rgba(0,0,0,0.5)",
                 }}
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
                 transition={{
@@ -192,7 +192,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     ? { duration: 6.6, repeat: Infinity, ease: "easeInOut" }
                     : { duration: 0.5 },
                 }}
-                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/[0.08] bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-y-auto"
+                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border-0 bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-y-auto"
               >
                 {/* Title */}
                 <motion.div
