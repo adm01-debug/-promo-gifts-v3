@@ -1,5 +1,4 @@
-import React, { useEffect, useCallback } from "react";
-import { useRef } from "react";
+import React, { useEffect, useCallback, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Mic, MicOff, X, Sparkles, MessageCircle, Loader2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -42,6 +41,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     onStopSpeaking,
     onCommandSelect,
   }, ref) {
+  const [isAutoStarting, setIsAutoStarting] = useState(false);
 
   // Close on escape key
   useEffect(() => {
@@ -59,31 +59,44 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     if (!isOpen) {
       hasAutoStarted.current = false;
       prevPhaseRef.current = "idle";
+      setIsAutoStarting(false);
       return;
     }
 
     // First open: auto-start after brief delay
     if (phase === "idle" && !hasAutoStarted.current) {
       hasAutoStarted.current = true;
-      const timer = setTimeout(() => onStartListening(), 500);
+      setIsAutoStarting(true);
+      const timer = setTimeout(() => onStartListening(), 120);
       return () => clearTimeout(timer);
     }
 
     // After speaking finishes → auto-restart listening for continuous conversation
     if (phase === "idle" && prevPhaseRef.current === "speaking") {
+      setIsAutoStarting(true);
       const timer = setTimeout(() => onStartListening(), 800);
       prevPhaseRef.current = phase;
       return () => clearTimeout(timer);
     }
 
+    if (phase !== "idle") {
+      setIsAutoStarting(false);
+    }
+
     prevPhaseRef.current = phase;
   }, [isOpen, phase, onStartListening]);
 
+  const showBootingState = isAutoStarting && phase === "idle";
   const config = phaseConfig[phase];
+  const title = showBootingState ? "Ativando microfone..." : config.title;
+  const subtitle = showBootingState ? "Preparando sua conversa por voz" : config.subtitle;
   const showTranscript = partialTranscript || finalTranscript;
-  const isActive = phase === "listening" || phase === "processing" || phase === "speaking";
 
   const handleMicClick = useCallback(() => {
+    if (showBootingState || phase === "processing") {
+      return;
+    }
+
     if (phase === "listening") {
       onStopListening();
     } else if (phase === "speaking") {
@@ -91,9 +104,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     } else if (phase === "idle" || phase === "error") {
       onStartListening();
     }
-  }, [phase, onStartListening, onStopListening, onStopSpeaking]);
+  }, [phase, showBootingState, onStartListening, onStopListening, onStopSpeaking]);
 
   const getMicIcon = () => {
+    if (showBootingState) return <Loader2 className="h-10 w-10 animate-spin" />;
     if (phase === "listening") return <MicOff className="h-10 w-10" />;
     if (phase === "processing") return <Loader2 className="h-10 w-10 animate-spin" />;
     if (phase === "speaking") return <VolumeX className="h-10 w-10" />;
@@ -101,6 +115,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
   };
 
   const getMicLabel = () => {
+    if (showBootingState) return "Ativando microfone";
     if (phase === "listening") return "Parar de ouvir";
     if (phase === "processing") return "Processando comando de voz";
     if (phase === "speaking") return "Parar resposta de voz";
@@ -155,10 +170,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               className="text-center"
             >
               <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                {config.title}
+                {title}
               </h2>
               <p className="text-muted-foreground text-sm">
-                {config.subtitle}
+                {subtitle}
               </p>
               {/* ElevenLabs + AI badge */}
               <div className="flex items-center justify-center gap-2 mt-2">
@@ -187,7 +202,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               )}
 
               {/* Pulse for processing */}
-              {phase === "processing" && (
+              {(phase === "processing" || showBootingState) && (
                 <motion.div
                   animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.2, 0.5] }}
                   transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
@@ -209,9 +224,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleMicClick}
-                disabled={phase === "processing"}
+                disabled={phase === "processing" || showBootingState}
                 className={cn(
                   "relative z-10 flex items-center justify-center w-28 h-28 rounded-full transition-all duration-300 disabled:opacity-70",
+                  showBootingState && "bg-warning text-warning-foreground",
                   phase === "listening" && "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(var(--primary),0.5)]",
                   phase === "processing" && "bg-warning text-warning-foreground",
                   phase === "speaking" && "bg-success text-success-foreground shadow-glow-success",
@@ -226,12 +242,13 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
 
             {/* Live region for screen reader announcements */}
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+              {showBootingState && "Ativando microfone."}
               {phase === "listening" && "Ouvindo. Fale seu comando."}
               {phase === "processing" && `Processando: ${finalTranscript}`}
               {phase === "speaking" && `Resposta: ${agentResponse}`}
               {phase === "error" && `Erro: ${error}`}
             </div>
-            {phase === "listening" && (
+            {(phase === "listening" || showBootingState) && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -280,7 +297,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             )}
 
             {/* Suggestions - only when idle */}
-            {phase === "idle" && (
+            {phase === "idle" && !showBootingState && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}

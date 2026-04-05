@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 
 // Mock framer-motion
@@ -34,6 +34,11 @@ describe("VoiceSearchOverlay", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("renders when open", () => {
@@ -87,9 +92,20 @@ describe("VoiceSearchOverlay", () => {
     expect(screen.getByText("Erro ao conectar")).toBeDefined();
   });
 
-  it("shows suggestion chips when idle", () => {
+  it("shows booting state instead of flashing the idle suggestions on open", () => {
     render(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
-    expect(screen.getByText(/"Quero canetas azuis baratas"/)).toBeDefined();
+    expect(screen.getByText("Ativando microfone...")).toBeDefined();
+    expect(screen.queryByText(/"Quero canetas azuis baratas"/)).toBeNull();
+  });
+
+  it("auto-starts listening shortly after opening", () => {
+    render(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
+
+    act(() => {
+      vi.advanceTimersByTime(120);
+    });
+
+    expect(defaultProps.onStartListening).toHaveBeenCalled();
   });
 
   it("calls onClose when escape is pressed", () => {
