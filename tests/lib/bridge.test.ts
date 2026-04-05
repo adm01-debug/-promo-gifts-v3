@@ -5,6 +5,9 @@ vi.mock('@/integrations/supabase/client', () => ({
     functions: {
       invoke: vi.fn(),
     },
+    auth: {
+      getSession: vi.fn().mockResolvedValue({ data: { session: { access_token: 'mock-token' } } }),
+    },
   },
 }));
 
@@ -144,6 +147,7 @@ describe('invokeExternalDbDelete', () => {
     await invokeExternalDbDelete('products', 'del-1');
     expect(mockInvoke).toHaveBeenCalledWith('external-db-bridge', {
       body: { table: 'products', operation: 'delete', id: 'del-1' },
+      headers: { Authorization: 'Bearer mock-token' },
     });
   });
 });
