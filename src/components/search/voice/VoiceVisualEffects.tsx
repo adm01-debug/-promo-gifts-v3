@@ -1,6 +1,17 @@
-import { useMemo } from "react";
+import { useMemo, useId } from "react";
 import { motion } from "framer-motion";
 import type { PhaseColors } from "./usePhaseColors";
+
+/* ------------------------------------------------------------------ */
+/*  Deterministic pseudo-random — stable across re-renders             */
+/* ------------------------------------------------------------------ */
+function seededRandom(seed: number): () => number {
+  let s = seed;
+  return () => {
+    s = (s * 16807 + 0) % 2147483647;
+    return (s - 1) / 2147483646;
+  };
+}
 
 /* ------------------------------------------------------------------ */
 /*  Flowing Wave Ring — SVG animated wave loops                        */
@@ -9,6 +20,8 @@ export function FlowingWaveRing({ radius, color, speed, amplitude, waves, opacit
   radius: number; color: string; speed: number; amplitude: number; waves: number;
   opacity: number; strokeWidth?: number; reverse?: boolean;
 }) {
+  const filterId = useId();
+
   const paths = useMemo(() => {
     return Array.from({ length: waves }).map((_, w) => {
       const points: string[] = [];
@@ -39,7 +52,7 @@ export function FlowingWaveRing({ radius, color, speed, amplitude, waves, opacit
     >
       <svg width={radius * 2} height={radius * 2} viewBox={`0 0 ${radius * 2} ${radius * 2}`}>
         <defs>
-          <filter id={`wave-glow-${color.replace('#', '')}-${radius}`}>
+          <filter id={filterId}>
             <feGaussianBlur stdDeviation="2.5" result="blur" />
             <feMerge>
               <feMergeNode in="blur" />
@@ -55,7 +68,7 @@ export function FlowingWaveRing({ radius, color, speed, amplitude, waves, opacit
             stroke={color}
             strokeWidth={strokeWidth}
             strokeLinecap="round"
-            filter={`url(#wave-glow-${color.replace('#', '')}-${radius})`}
+            filter={`url(#${filterId})`}
             animate={{ opacity: [opacity * (1 - w * 0.12), opacity * 0.3, opacity * (1 - w * 0.12)] }}
             transition={{ duration: 2.5 + w * 0.6, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -71,17 +84,17 @@ export function FlowingWaveRing({ radius, color, speed, amplitude, waves, opacit
 export function ParticleField({ colors, count, radius, isActive }: {
   colors: string[]; count: number; radius: number; isActive: boolean;
 }) {
-  const particles = useMemo(() =>
-    Array.from({ length: count }).map((_, i) => ({
-      angle: (i / count) * 360 + Math.random() * 25,
-      dist: radius * 0.4 + Math.random() * radius * 0.65,
-      size: 1 + Math.random() * 3.5,
+  const particles = useMemo(() => {
+    const rand = seededRandom(42 + count);
+    return Array.from({ length: count }).map((_, i) => ({
+      angle: (i / count) * 360 + rand() * 25,
+      dist: radius * 0.4 + rand() * radius * 0.65,
+      size: 1 + rand() * 3.5,
       color: colors[i % colors.length],
-      speed: 1.8 + Math.random() * 3,
-      delay: Math.random() * 2.5,
-    })),
-    [colors, count, radius]
-  );
+      speed: 1.8 + rand() * 3,
+      delay: rand() * 2.5,
+    }));
+  }, [colors, count, radius]);
 
   return (
     <>
@@ -174,6 +187,12 @@ export function LightRays({ color1, color2, count, isActive }: {
 export function SpectrumWaveform({ colors, isActive }: { colors: PhaseColors; isActive: boolean }) {
   const barCount = 15;
 
+  // Pre-compute stable random offsets
+  const barOffsets = useMemo(() => {
+    const rand = seededRandom(777);
+    return Array.from({ length: barCount }).map(() => rand() * 0.25);
+  }, [barCount]);
+
   return (
     <div className="flex items-center justify-center gap-[3px] h-8">
       {Array.from({ length: barCount }).map((_, i) => {
@@ -194,7 +213,7 @@ export function SpectrumWaveform({ colors, isActive }: { colors: PhaseColors; is
             }}
             animate={{ height: [minH, maxH, minH] }}
             transition={{
-              duration: isActive ? 0.35 + Math.random() * 0.25 : 1 + Math.random() * 0.5,
+              duration: isActive ? 0.35 + barOffsets[i] : 1 + barOffsets[i] * 2,
               repeat: Infinity,
               delay: i * 0.05,
               ease: "easeInOut",

@@ -107,12 +107,29 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     const colors = usePhaseColors(phase, showBooting);
     const isWaveformActive = phase === "listening" || phase === "speaking" || showBooting;
 
+    // Haptic feedback for mobile
+    const vibrate = useCallback((pattern: number | number[]) => {
+      try { navigator?.vibrate?.(pattern); } catch { /* unsupported */ }
+    }, []);
+
     const handleOrbClick = useCallback(() => {
       if (showBooting || phase === "processing") return;
+      vibrate(15);
       if (phase === "listening") onStopListening();
       else if (phase === "speaking") onStopSpeaking();
       else if (phase === "idle" || phase === "error") onStartListening();
-    }, [phase, showBooting, onStartListening, onStopListening, onStopSpeaking]);
+    }, [phase, showBooting, vibrate, onStartListening, onStopListening, onStopSpeaking]);
+
+    // Vibrate on phase transitions
+    const prevVibratePhase = useRef(phase);
+    useEffect(() => {
+      if (phase !== prevVibratePhase.current) {
+        if (phase === "listening") vibrate(10);
+        else if (phase === "speaking") vibrate([10, 50, 10]);
+        else if (phase === "error") vibrate([30, 80, 30]);
+        prevVibratePhase.current = phase;
+      }
+    }, [phase, vibrate]);
 
     return createPortal(
       <AnimatePresence>
