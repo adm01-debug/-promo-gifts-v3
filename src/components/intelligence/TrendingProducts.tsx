@@ -40,8 +40,8 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 flex items-center justify-center">
-                <TrendingUp className="h-3.5 w-3.5 text-white" />
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-orange to-warning flex items-center justify-center">
+                <TrendingUp className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               🔥 Produtos em Alta
             </CardTitle>
@@ -69,7 +69,7 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
                 <span className={cn(
                   "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0",
                   index === 0 && "bg-warning/20 text-warning",
-                  index === 1 && "bg-slate-300/30 text-muted-foreground",
+                  index === 1 && "bg-muted/50 text-muted-foreground",
                   index === 2 && "bg-orange/20 text-orange",
                   index > 2 && "bg-muted text-muted-foreground",
                 )}>

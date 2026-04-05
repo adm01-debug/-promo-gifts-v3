@@ -257,7 +257,7 @@ export function PromptGenerator({
     serene: "bg-primary/10 text-primary border-primary/20",
     bold: "bg-destructive/10 text-destructive border-destructive/20",
     playful: "bg-primary/10 text-primary/70 border-primary/15",
-    professional: "bg-slate-500/10 text-muted-foreground border-slate-500/20",
+    professional: "bg-muted/30 text-muted-foreground border-border",
     cozy: "bg-warning/10 text-warning border-warning/20",
   };
 

@@ -397,7 +397,7 @@ export function SimulationResultsCard({
                                 "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
                                 option.estimatedDays <= 3 && "bg-primary/10 text-primary",
                                 option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-warning/10 text-warning dark:bg-warning/15 dark:text-warning",
-                                option.estimatedDays > 7 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
+                                option.estimatedDays > 7 && "bg-destructive/10 text-destructive dark:bg-destructive/20 dark:text-destructive/80"
                               )}>
                                 <Clock className="h-3.5 w-3.5" />
                                 {option.estimatedDays}d

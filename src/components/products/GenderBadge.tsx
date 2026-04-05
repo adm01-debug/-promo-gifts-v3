@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 
 const GENDER_CONFIG: Record<string, { label: string; className: string }> = {
   masculino: { label: "Masc.", className: "bg-info/10 text-info border-info/20" },
-  feminino: { label: "Fem.", className: "bg-primary/10 text-pink-700 border-pink-200" },
+  feminino: { label: "Fem.", className: "bg-primary/10 text-primary border-primary/20" },
   infantil: { label: "Infantil", className: "bg-warning/10 text-warning border-warning/20" },
   unissex: { label: "Unissex", className: "bg-primary/10 text-violet-700 border-violet-200" },
 };

@@ -30,7 +30,7 @@ const TECHNIQUE_INFO: Record<string, {
     colors: "Até 15 cores",
     bestFor: "Camisas, bonés, jaquetas",
     visualStyle: "Textura 3D com linhas visíveis",
-    gradient: "from-amber-500 to-orange-600",
+    gradient: "from-warning to-orange",
   },
   silk: {
     description: "Serigrafia tradicional para grandes quantidades",
@@ -46,7 +46,7 @@ const TECHNIQUE_INFO: Record<string, {
     colors: "Ilimitadas (CMYK)",
     bestFor: "Fotos, gradientes, designs complexos",
     visualStyle: "Acabamento brilhante",
-    gradient: "from-purple-500 to-pink-600",
+    gradient: "from-primary to-primary",
   },
   laser: {
     description: "Gravação permanente por remoção de material",
@@ -62,7 +62,7 @@ const TECHNIQUE_INFO: Record<string, {
     colors: "Ilimitadas (CMYK)",
     bestFor: "Poliéster branco, canecas, mousepads",
     visualStyle: "Integrado ao tecido",
-    gradient: "from-emerald-500 to-teal-600",
+    gradient: "from-success to-teal-600",
   },
   hot_stamping: {
     description: "Aplicação de foil metálico com calor",
@@ -70,7 +70,7 @@ const TECHNIQUE_INFO: Record<string, {
     colors: "Metálicos (ouro, prata)",
     bestFor: "Embalagens, agendas, couro",
     visualStyle: "Brilho metálico premium",
-    gradient: "from-yellow-400 to-amber-500",
+    gradient: "from-warning/80 to-warning",
   },
   tampografia: {
     description: "Impressão em superfícies irregulares",
@@ -86,7 +86,7 @@ const TECHNIQUE_INFO: Record<string, {
     colors: "Ilimitadas + branco",
     bestFor: "Acrílico, vidro, metal",
     visualStyle: "Textura levemente relevo",
-    gradient: "from-rose-500 to-red-600",
+    gradient: "from-destructive to-destructive",
   },
   default: {
     description: "Técnica de personalização profissional",

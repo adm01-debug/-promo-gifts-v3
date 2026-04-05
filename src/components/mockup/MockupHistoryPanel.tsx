@@ -626,7 +626,7 @@ export function MockupHistoryPanel({
           {lightboxMockup && (
             <div className="relative flex flex-col w-full h-full">
               {/* Top bar — solid dark */}
-              <div className="flex items-center justify-between px-4 py-2.5 bg-zinc-900 border-b border-zinc-800 shrink-0">
+              <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-border shrink-0">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className="min-w-0">
                     <p className="font-medium text-sm text-primary-foreground truncate">{lightboxMockup.product_name}</p>
@@ -652,14 +652,14 @@ export function MockupHistoryPanel({
                 </div>
 
                 <div className="flex items-center gap-1.5 shrink-0 ml-4">
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onLoadFromHistory(lightboxMockup)}>
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-border bg-muted text-foreground hover:bg-muted" onClick={() => onLoadFromHistory(lightboxMockup)}>
                     <RotateCcw className="h-3.5 w-3.5" /> Regenerar
                   </Button>
                   <ShareMenu mockupUrl={lightboxMockup.mockup_url} productName={lightboxMockup.product_name} techniqueName={lightboxMockup.technique_name} />
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
+                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-border bg-muted text-foreground hover:bg-muted" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
                     <Download className="h-3.5 w-3.5" /> Baixar PDF
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={closeLightbox} aria-label="Fechar"><X className="h-4 w-4" />
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={closeLightbox} aria-label="Fechar"><X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>
@@ -683,16 +683,16 @@ export function MockupHistoryPanel({
               </div>
 
               {/* Bottom zoom bar — compact */}
-              <div className="flex items-center justify-center py-2 bg-zinc-900 border-t border-zinc-800 shrink-0">
+              <div className="flex items-center justify-center py-2 bg-card border-t border-border shrink-0">
                 <div className="flex items-center gap-1">
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
                     <ZoomOut className="h-3.5 w-3.5" />
                   </Button>
-                  <span className="text-xs font-medium w-12 text-center text-zinc-300">{Math.round(lightboxZoom * 100)}%</span>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
+                  <span className="text-xs font-medium w-12 text-center text-muted-foreground">{Math.round(lightboxZoom * 100)}%</span>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
                     <ZoomIn className="h-3.5 w-3.5" />
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-zinc-800" onClick={() => setLightboxZoom(1)}>
+                  <Button size="icon" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(1)}>
                     <RotateCcw className="h-3 w-3" />
                   </Button>
                 </div>

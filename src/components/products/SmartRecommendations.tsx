@@ -198,7 +198,7 @@ function RecommendationGrid({ products, emptyMessage, emptyIcon: EmptyIcon = Pac
           {/* Score Badge */}
           {product.score >= 80 && (
             <div className="absolute top-2 right-2 z-10">
-              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-amber-400 to-orange-500 flex items-center justify-center shadow-lg">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-warning/80 to-orange flex items-center justify-center shadow-lg">
                 <Star className="h-3 w-3 text-primary-foreground fill-white" />
               </div>
             </div>
@@ -327,7 +327,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
                   idx === 0 ? "bg-warning/20 text-warning" :
-                  idx === 1 ? "bg-slate-400/20 text-slate-600" :
+                  idx === 1 ? "bg-muted/40 text-muted-foreground" :
                   idx === 2 ? "bg-orange/20 text-orange" :
                   "bg-muted text-muted-foreground"
                 )}>
