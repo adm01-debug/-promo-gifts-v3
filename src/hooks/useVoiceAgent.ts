@@ -91,36 +91,16 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setPhase("listening");
 
     try {
-      // Check mic availability with timeout (handles pending permission prompts)
-      if (navigator.mediaDevices?.getUserMedia) {
-        try {
-          const micPromise = navigator.mediaDevices.getUserMedia({ audio: true });
-          const timeoutPromise = new Promise<never>((_, reject) =>
-            setTimeout(() => reject(new Error("mic_timeout")), 8000)
-          );
-          const stream = await Promise.race([micPromise, timeoutPromise]);
-          stream.getTracks().forEach((t) => t.stop());
-        } catch (micErr) {
-          const micError = micErr as Error;
-          if (micError.message === "mic_timeout") {
-            throw new Error("O microfone não respondeu a tempo. Permita o acesso ao microfone e tente novamente.");
-          }
-          if (micError.name === "NotAllowedError" || micError.name === "PermissionDeniedError") {
-            throw new Error("microphone permission denied");
-          }
-          if (micError.name === "NotFoundError" || micError.name === "DevicesNotFoundError") {
-            throw new Error("Nenhum microfone encontrado. Conecte um microfone e tente novamente.");
-          }
-          throw new Error("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
-        }
-      } else {
-        throw new Error("Seu navegador não suporta acesso ao microfone.");
-      }
-
+      // Skip pre-check — let ElevenLabs Scribe handle mic access directly
+      // The previous getUserMedia pre-check was causing issues on some devices
+      
       const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
       if (tokenError || !data?.token) {
+        console.error("[Voice] Token error:", tokenError);
         throw new Error("Não foi possível obter token de transcrição");
       }
+
+      console.log("[Voice] Token obtained, connecting to Scribe...");
 
       await scribe.connect({
         token: data.token,
@@ -129,7 +109,10 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
           noiseSuppression: true,
         },
       });
+
+      console.log("[Voice] Scribe connected successfully");
     } catch (err) {
+      console.error("[Voice] startListening error:", err);
       const message = friendlyErrorMessage(err);
       setError(message);
       setPhase("error");
