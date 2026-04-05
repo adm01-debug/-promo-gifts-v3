@@ -102,6 +102,14 @@ export function GlobalSearchPalette() {
             <CommandEmpty>Nenhum resultado encontrado para "{s.query}"</CommandEmpty>
           )}
 
+          {/* Hint for short queries */}
+          {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
+            <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground/60">
+              <Search className="h-4 w-4" />
+              <span>Digite mais para buscar...</span>
+            </div>
+          )}
+
           {/* Results */}
           {!s.isSearching && Object.entries(s.groupedResults).map(([type, items]) => {
             const config = typeConfig[type];
