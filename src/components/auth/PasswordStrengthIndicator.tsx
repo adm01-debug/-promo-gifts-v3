@@ -60,15 +60,15 @@ export function PasswordStrengthIndicator({
       label = 'Fraca';
     } else if (score === 3) {
       strength = 'fair';
-      color = 'bg-orange-500';
+      color = 'bg-warning';
       label = 'Razoável';
     } else if (score === 4) {
       strength = 'good';
-      color = 'bg-yellow-500';
+      color = 'bg-warning';
       label = 'Boa';
     } else {
       strength = 'strong';
-      color = 'bg-green-500';
+      color = 'bg-success';
       label = 'Forte';
     }
 
