@@ -311,7 +311,7 @@ export function TechniquesManager() {
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-green-500" />
+                        <Ruler className="h-4 w-4 text-success" />
                         <span className="text-sm">Por Área</span>
                       </div>
                       <Switch
