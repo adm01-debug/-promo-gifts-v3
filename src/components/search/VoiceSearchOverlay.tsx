@@ -158,42 +158,49 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
 
             {/* Centered card */}
             <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+              {/* Glowing border wrapper */}
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                animate={{
-                  scale: 1,
-                  opacity: 1,
-                  y: 0,
-                  boxShadow:
-                    phase === "listening"
-                      ? [
-                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08)",
-                          "0 0 50px 8px rgba(139,92,246,0.3), 0 0 90px 20px rgba(139,92,246,0.15)",
-                          "0 0 30px 4px rgba(139,92,246,0.15), 0 0 60px 10px rgba(139,92,246,0.08)",
-                        ]
-                      : phase === "speaking"
-                      ? [
-                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08)",
-                          "0 0 50px 8px rgba(59,130,246,0.3), 0 0 90px 20px rgba(99,102,241,0.15)",
-                          "0 0 30px 4px rgba(59,130,246,0.15), 0 0 60px 10px rgba(59,130,246,0.08)",
-                        ]
-                      : phase === "processing"
-                      ? [
-                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08)",
-                          "0 0 50px 8px rgba(168,85,247,0.3), 0 0 90px 20px rgba(168,85,247,0.15)",
-                          "0 0 30px 4px rgba(168,85,247,0.15), 0 0 60px 10px rgba(168,85,247,0.08)",
-                        ]
-                      : "0 8px 60px rgba(0,0,0,0.5)",
-                }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                transition={{
-                  type: "spring", damping: 25, stiffness: 250,
-                  boxShadow: phase === "listening" || phase === "speaking" || phase === "processing"
-                    ? { duration: 6.6, repeat: Infinity, ease: "easeInOut" }
-                    : { duration: 0.5 },
-                }}
-                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border-0 bg-[rgba(8,8,18,0.92)] pointer-events-auto max-h-[90vh] overflow-hidden"
+                transition={{ type: "spring", damping: 25, stiffness: 250 }}
+                className="relative max-w-xs w-full pointer-events-auto"
               >
+                {/* Animated gradient border */}
+                <motion.div
+                  className="absolute -inset-[1.5px] rounded-3xl overflow-hidden"
+                  animate={{
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{ duration: 6.6, repeat: Infinity, ease: "easeInOut" }}
+                  style={{ padding: "1.5px" }}
+                >
+                  <div
+                    className="absolute inset-0 rounded-3xl"
+                    style={{
+                      background: "conic-gradient(from 0deg, rgba(139,92,246,0.7), rgba(59,130,246,0.7), rgba(168,85,247,0.7), rgba(236,72,153,0.5), rgba(139,92,246,0.7))",
+                      animation: "spin 4s linear infinite",
+                    }}
+                  />
+                </motion.div>
+
+                {/* Outer glow synced with breathing */}
+                <motion.div
+                  className="absolute -inset-1 rounded-3xl"
+                  animate={{
+                    boxShadow: [
+                      "0 0 15px 2px rgba(139,92,246,0.1), 0 0 40px 8px rgba(139,92,246,0.05)",
+                      "0 0 30px 6px rgba(139,92,246,0.25), 0 0 70px 15px rgba(59,130,246,0.12)",
+                      "0 0 15px 2px rgba(139,92,246,0.1), 0 0 40px 8px rgba(139,92,246,0.05)",
+                    ],
+                  }}
+                  transition={{ duration: 6.6, repeat: Infinity, ease: "easeInOut" }}
+                />
+
+                {/* Inner card */}
+                <div
+                  className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl bg-[rgba(8,8,18,0.95)] max-h-[90vh] overflow-hidden"
+                >
                 {/* Title */}
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
