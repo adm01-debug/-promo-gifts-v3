@@ -62,8 +62,8 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
           key={`ring-${i}`}
           className="absolute rounded-full"
           style={{
-            width: 200 + i * 40,
-            height: 200 + i * 40,
+            width: 140 + i * 28,
+            height: 140 + i * 28,
             background: `radial-gradient(circle, ${colors.ring} 0%, transparent 70%)`,
           }}
           animate={
