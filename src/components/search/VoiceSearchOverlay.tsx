@@ -166,35 +166,27 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative max-w-xs w-full pointer-events-auto"
               >
-                {/* Animated gradient border */}
+                {/* Rotating light border — conic gradient behind, card covers center */}
                 <motion.div
-                  className="absolute -inset-[1.5px] rounded-3xl overflow-hidden"
-                  animate={{
-                    opacity: [0.5, 1, 0.5],
+                  className="absolute -inset-[2px] rounded-3xl"
+                  style={{
+                    background: "conic-gradient(from 0deg, transparent 0%, rgba(139,92,246,0.8) 10%, rgba(59,130,246,0.6) 20%, transparent 40%, transparent 60%, rgba(168,85,247,0.7) 75%, rgba(236,72,153,0.5) 85%, transparent 100%)",
+                    animation: "spin 3s linear infinite",
                   }}
-                  transition={{ duration: 6.6, repeat: Infinity, ease: "easeInOut" }}
-                  style={{ padding: "1.5px" }}
-                >
-                  <div
-                    className="absolute inset-0 rounded-3xl"
-                    style={{
-                      background: "conic-gradient(from 0deg, rgba(139,92,246,0.7), rgba(59,130,246,0.7), rgba(168,85,247,0.7), rgba(236,72,153,0.5), rgba(139,92,246,0.7))",
-                      animation: "spin 4s linear infinite",
-                    }}
-                  />
-                </motion.div>
+                  animate={{ opacity: [0.6, 1, 0.6] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                />
 
-                {/* Outer glow synced with breathing */}
+                {/* Soft outer glow that follows the light */}
                 <motion.div
-                  className="absolute -inset-1 rounded-3xl"
-                  animate={{
-                    boxShadow: [
-                      "0 0 15px 2px rgba(139,92,246,0.1), 0 0 40px 8px rgba(139,92,246,0.05)",
-                      "0 0 30px 6px rgba(139,92,246,0.25), 0 0 70px 15px rgba(59,130,246,0.12)",
-                      "0 0 15px 2px rgba(139,92,246,0.1), 0 0 40px 8px rgba(139,92,246,0.05)",
-                    ],
+                  className="absolute -inset-[3px] rounded-3xl pointer-events-none"
+                  style={{
+                    background: "conic-gradient(from 0deg, transparent 0%, rgba(139,92,246,0.3) 10%, rgba(59,130,246,0.2) 20%, transparent 40%, transparent 60%, rgba(168,85,247,0.25) 75%, rgba(236,72,153,0.15) 85%, transparent 100%)",
+                    animation: "spin 3s linear infinite",
+                    filter: "blur(8px)",
                   }}
-                  transition={{ duration: 6.6, repeat: Infinity, ease: "easeInOut" }}
+                  animate={{ opacity: [0.4, 0.8, 0.4] }}
+                  transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
                 />
 
                 {/* Inner card */}
