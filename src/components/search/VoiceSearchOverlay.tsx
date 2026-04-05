@@ -101,10 +101,28 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       prevPhaseRef.current = phase;
     }, [isOpen, phase, onStartListening]);
 
+    // Booting timeout — show friendly message if mic takes too long
+    useEffect(() => {
+      if (!isOpen) {
+        setBootingTimedOut(false);
+        return;
+      }
+      const showsBooting = (isAutoStarting && phase === "idle") || phase === "listening";
+      if (showsBooting) {
+        const timer = setTimeout(() => setBootingTimedOut(true), 10000);
+        return () => clearTimeout(timer);
+      }
+      setBootingTimedOut(false);
+    }, [isOpen, isAutoStarting, phase]);
+
     const showBooting = (isAutoStarting && phase === "idle") || isClosing;
     const meta = PHASE_META[phase] ?? PHASE_META.idle;
-    const title = showBooting ? "Ativando microfone..." : meta.title;
-    const subtitle = showBooting ? "Preparando sua conversa por voz" : meta.subtitle;
+    const title = showBooting
+      ? (bootingTimedOut ? "Microfone indisponível" : "Ativando microfone...")
+      : meta.title;
+    const subtitle = showBooting
+      ? (bootingTimedOut ? "Verifique as permissões do navegador e tente novamente" : "Preparando sua conversa por voz")
+      : meta.subtitle;
     const showTranscript = partialTranscript || finalTranscript;
     const colors = usePhaseColors(phase, showBooting);
     const isWaveformActive = phase === "listening" || phase === "speaking" || showBooting;
