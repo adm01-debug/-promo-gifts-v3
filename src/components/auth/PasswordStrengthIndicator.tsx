@@ -102,9 +102,9 @@ export function PasswordStrengthIndicator({
           <span className={cn(
             'text-xs font-medium',
             analysis.strength === 'weak' && 'text-destructive',
-            analysis.strength === 'fair' && 'text-orange-500',
-            analysis.strength === 'good' && 'text-yellow-600',
-            analysis.strength === 'strong' && 'text-green-600'
+            analysis.strength === 'fair' && 'text-warning',
+            analysis.strength === 'good' && 'text-warning',
+            analysis.strength === 'strong' && 'text-success'
           )}>
             {analysis.label}
           </span>
