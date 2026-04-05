@@ -202,8 +202,20 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
           <SidebarBrandHeader isCollapsed={isCollapsed} />
 
 
-          {/* Collapse toggle (desktop) */}
-          <div className="hidden lg:flex items-center justify-end px-2 mb-1">
+          {/* Collapse controls (desktop) */}
+          <div className="hidden lg:flex items-center justify-between px-2 mb-1">
+            {!isCollapsed && hasAnyGroupOpen && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange hover:border-orange/30 text-sidebar-foreground/40"
+                onClick={collapseAllGroups}
+              >
+                <X className="h-3 w-3" />
+                Fechar
+              </Button>
+            )}
+            {!isCollapsed && !hasAnyGroupOpen && <div />}
             <Button
               variant="ghost"
               size="icon"
