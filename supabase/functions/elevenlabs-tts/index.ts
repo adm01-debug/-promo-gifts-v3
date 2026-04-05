@@ -56,9 +56,9 @@ Deno.serve(async (req) => {
 
     const { text, voiceId } = parsed.data;
 
-    // Use Laura (Brazilian Portuguese friendly voice) by default
+    // Use chosen voice by default
     // If voiceId provided but not in allowlist, still use it (custom voices)
-    const selectedVoiceId = voiceId || 'FGY2WhTYpPnrIDTdsKH5';
+    const selectedVoiceId = voiceId || '5lrBPYY4YvMbKHTo8kvZ';
 
     const response = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}?output_format=mp3_22050_32`,
