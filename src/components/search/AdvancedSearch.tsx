@@ -86,6 +86,7 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
   const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
 
   const handleOpenVoiceOverlay = () => {
+    voiceAgent.reset();
     setIsVoiceOverlayOpen(true);
   };
 

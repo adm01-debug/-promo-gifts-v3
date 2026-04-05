@@ -134,8 +134,10 @@ export function useGlobalSearch() {
   });
 
   const handleOpenVoiceOverlay = useCallback(() => {
+    setOpen(false);
+    voiceAgent.reset();
     setVoiceOverlayOpen(true);
-  }, []);
+  }, [voiceAgent]);
 
   const handleCloseVoiceOverlay = useCallback(() => {
     setVoiceOverlayOpen(false);
