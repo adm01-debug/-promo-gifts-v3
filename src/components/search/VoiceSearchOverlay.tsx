@@ -595,10 +595,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                         <p className="text-base font-medium text-white/90">
                           "{partialTranscript || finalTranscript}"
                           {phase === "listening" && partialTranscript && (
-                            <motion.span
+                          <motion.span
                               animate={{ opacity: [1, 0] }}
                               transition={{ duration: 0.5, repeat: Infinity }}
-                              style={{ color: "#22d3ee" }}
+                              className="text-primary"
                             >
                               |
                             </motion.span>
