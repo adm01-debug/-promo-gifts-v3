@@ -620,10 +620,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
                       className="w-full"
                     >
-                      <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+                        <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
                         <div className="flex items-start gap-3">
-                          <div className="h-7 w-7 rounded-full bg-emerald-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <MessageCircle className="h-3.5 w-3.5 text-emerald-400" />
+                          <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
+                            <MessageCircle className="h-3.5 w-3.5 text-primary" />
                           </div>
                           <div>
                             <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">Assistente</p>
