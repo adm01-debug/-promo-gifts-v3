@@ -89,7 +89,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <div>
+        <div ref={ref}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
