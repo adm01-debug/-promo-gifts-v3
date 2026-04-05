@@ -148,16 +148,6 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
-  const collapseAllGroups = () => {
-    setOpenGroups((prev) => {
-      const collapsed: Record<string, boolean> = {};
-      Object.keys(prev).forEach((key) => {
-        collapsed[key] = false;
-      });
-      return collapsed;
-    });
-  };
-
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 
   const toggleGroup = (groupId: string) => {
