@@ -1,4 +1,9 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const TranscriptSchema = z.object({
+  transcript: z.string().min(1, 'transcript cannot be empty').max(1000, 'transcript too long'),
+});
 
 const SYSTEM_PROMPT = `Você é um assistente de voz inteligente para um sistema de vendas de brindes promocionais (PromoGifts).
 Sua função é interpretar comandos de voz do vendedor e retornar uma ação estruturada.
@@ -57,13 +62,25 @@ Deno.serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    const { transcript } = await req.json();
-    if (!transcript || typeof transcript !== 'string') {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
       return new Response(
-        JSON.stringify({ error: 'transcript is required' }),
+        JSON.stringify({ error: 'Invalid JSON body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    const parsed = TranscriptSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { transcript } = parsed.data;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -161,6 +178,11 @@ Deno.serve(async (req) => {
       } catch {
         result = { action: 'answer', response: content || 'Desculpe, não entendi.', data: {} };
       }
+    }
+
+    // Validate the AI output structure
+    if (!result.action || !result.response) {
+      result = { action: 'answer', response: result.response || 'Desculpe, ocorreu um erro.', data: {} };
     }
 
     return new Response(
