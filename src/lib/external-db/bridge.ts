@@ -91,7 +91,19 @@ export async function invokeBridge<T>(body: Record<string, unknown>): Promise<Br
   }
 
   for (let attempt = 1; attempt <= BOOT_RETRY_ATTEMPTS; attempt++) {
-    const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
+    // Explicitly attach the access token to avoid preview proxy issues
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData?.session?.access_token;
+
+    const headers: Record<string, string> = {};
+    if (accessToken) {
+      headers['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
+      body,
+      headers,
+    });
     if (error) {
       const parsed = await buildBridgeError(error);
       if (parsed.retryable && attempt < BOOT_RETRY_ATTEMPTS) {
