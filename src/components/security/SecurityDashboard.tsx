@@ -562,7 +562,7 @@ export function SecurityDashboard() {
                     ))}
                     {notifications.length === 0 && (
                       <div className="text-center py-8">
-                        <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                        <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-2" />
                         <p className="text-sm font-medium">Tudo seguro!</p>
                         <p className="text-xs text-muted-foreground">
                           Nenhum alerta de segurança pendente
