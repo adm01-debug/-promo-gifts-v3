@@ -16,6 +16,7 @@ import {
   Layers,
   Palette,
 } from "lucide-react";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface KitPublicData {
   kit: {
@@ -71,6 +72,7 @@ export default function PublicKitViewPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
+      <PageSEO title="Visualizar Kit" description="Confira os detalhes do kit de brindes promocionais." noIndex />
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Carregando apresentação...</p>

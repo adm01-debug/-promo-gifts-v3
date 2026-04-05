@@ -37,6 +37,7 @@ import type { KitTemplate } from '@/components/kit-builder/KitTemplates';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
@@ -391,6 +392,7 @@ export default function KitBuilderPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <PageSEO title="Montador de Kits" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
       {/* Header */}
       <div className="border-b bg-card">
          <div className="container py-6">

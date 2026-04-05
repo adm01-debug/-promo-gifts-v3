@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 const resetPasswordSchema = z.object({
   password: z.string()
@@ -115,6 +116,7 @@ export default function ResetPassword() {
   if (isCheckingToken) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
+      <PageSEO title="Redefinir Senha" description="Redefina sua senha de acesso à plataforma Promo Gifts." path="/reset-password" />
         <Loader2 className="h-8 w-8 animate-spin text-orange" />
       </div>
     );

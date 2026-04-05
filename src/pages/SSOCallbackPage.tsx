@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2 } from 'lucide-react';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 export default function SSOCallbackPage() {
   const navigate = useNavigate();
@@ -44,6 +45,7 @@ export default function SSOCallbackPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center">
+      <PageSEO title="Autenticação SSO" description="Processando autenticação via SSO." path="/auth/callback" noIndex />
       <div className="flex flex-col items-center gap-4">
         <Loader2 className="h-8 w-8 animate-spin text-primary" />
         <p className="text-muted-foreground">Processando autenticação...</p>

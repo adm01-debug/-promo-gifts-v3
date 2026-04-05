@@ -12,6 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Plus, Edit, Trash2, Users } from 'lucide-react';
 import { BackButton } from '@/components/common/BackButton';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface Role {
   id: string;
@@ -92,6 +93,7 @@ export default function RolesPage() {
 
   return (
     <SidebarProvider>
+      <PageSEO title="Roles" description="Gerencie perfis de acesso do sistema." path="/admin/roles" noIndex />
       <div className="flex min-h-screen w-full">
         <Sidebar />
         <SidebarInset className="flex-1">

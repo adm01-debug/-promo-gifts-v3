@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface QuoteData {
   quote: any;
@@ -123,6 +124,7 @@ export default function PublicQuoteApprovalPage() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
+      <PageSEO title="Aprovação de Orçamento" description="Revise e aprove seu orçamento de brindes promocionais." noIndex />
         <div className="text-center space-y-4">
           <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
           <p className="text-muted-foreground">Carregando proposta...</p>

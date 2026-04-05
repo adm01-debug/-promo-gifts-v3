@@ -14,6 +14,7 @@ import { Loader2, ArrowLeft, History, Pencil, Copy, FileDown } from 'lucide-reac
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 // Lazy load heavy sub-components
 const ProductFormFullscreen = lazyWithRetry(() => import('@/components/admin/products/ProductFormFullscreen').then(m => ({ default: m.ProductFormFullscreen })));
@@ -326,6 +327,7 @@ export default function AdminProductFormPage() {
   if (isLoading) {
     return (
       <MainLayout>
+      <PageSEO title="Cadastro de Produto" description="Cadastre ou edite produtos do catálogo." path="/admin/cadastros/produto" noIndex />
         <div className="flex items-center justify-center min-h-[60vh]">
           <div className="flex flex-col items-center gap-3">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />

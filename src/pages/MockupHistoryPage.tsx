@@ -11,6 +11,7 @@ import { Image, Search, Download, Trash2, ChevronLeft, ChevronRight } from "luci
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface GeneratedMockup {
   id: string;
@@ -68,6 +69,7 @@ export default function MockupHistoryPage() {
 
   return (
     <div className="space-y-6 p-6">
+      <PageSEO title="Histórico de Mockups" description="Visualize todos os mockups gerados anteriormente." path="/mockup-historico" noIndex />
       <div>
         <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
           <Image className="h-6 w-6" />

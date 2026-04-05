@@ -16,6 +16,7 @@ import {
   Wifi,
   TableProperties,
 } from "lucide-react";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface StatusItem {
   name: string;
@@ -242,6 +243,7 @@ export default function SystemStatusPage() {
 
   return (
     <div className="min-h-screen bg-background p-6">
+      <PageSEO title="Status do Sistema" description="Monitore a saúde e status de todos os serviços." path="/status" noIndex />
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}
         <div className="text-center space-y-2">
