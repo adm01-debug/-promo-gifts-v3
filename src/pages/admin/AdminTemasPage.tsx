@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { ArrowLeft, Save, Palette, Sun, Moon, Monitor, Sparkles, Check } from 'lucide-react';
+import { Save, Palette, Sun, Moon, Monitor, Sparkles, Check } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { motion } from 'framer-motion';
