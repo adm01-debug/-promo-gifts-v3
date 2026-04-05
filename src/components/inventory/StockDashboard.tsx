@@ -99,9 +99,9 @@ function StatCard({
 }) {
   const variantStyles = {
     default: 'bg-card',
-    success: 'bg-green-500/5 border-green-500/20',
-    warning: 'bg-amber-500/5 border-amber-500/20',
-    error: 'bg-red-500/5 border-red-500/20',
+    success: 'bg-success/5 border-success/20',
+    warning: 'bg-warning/5 border-warning/20',
+    error: 'bg-destructive/5 border-destructive/20',
   };
 
   return (
