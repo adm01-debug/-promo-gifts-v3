@@ -139,7 +139,7 @@ export default function PublicQuoteApprovalPage() {
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-8 pb-8 space-y-4">
             <AlertTriangle className="h-16 w-16 text-warning mx-auto" />
-            <h2 className="text-xl font-bold">Link expirado</h2>
+            <h2 className="font-display text-xl font-bold">Link expirado</h2>
             <p className="text-muted-foreground">
               Este link de aprovação expirou. Entre em contato com o vendedor para receber um novo link.
             </p>
@@ -159,7 +159,7 @@ export default function PublicQuoteApprovalPage() {
             ) : (
               <XCircle className="h-16 w-16 text-destructive mx-auto" />
             )}
-            <h2 className="text-xl font-bold">
+            <h2 className="font-display text-xl font-bold">
               Proposta {alreadyResponded.response === "approved" ? "aprovada" : "recusada"}
             </h2>
             <p className="text-muted-foreground">
@@ -183,7 +183,7 @@ export default function PublicQuoteApprovalPage() {
         <Card className="max-w-md w-full text-center">
           <CardContent className="pt-8 pb-8 space-y-4">
             <FileText className="h-16 w-16 text-muted-foreground mx-auto" />
-            <h2 className="text-xl font-bold">Proposta não encontrada</h2>
+            <h2 className="font-display text-xl font-bold">Proposta não encontrada</h2>
             <p className="text-muted-foreground">{error || "Verifique o link e tente novamente."}</p>
           </CardContent>
         </Card>
@@ -202,7 +202,7 @@ export default function PublicQuoteApprovalPage() {
                   <CheckCircle className="h-20 w-20 text-success" />
                   <Sparkles className="h-6 w-6 text-warning absolute -top-1 -right-1" />
                 </div>
-                <h2 className="text-2xl font-bold text-success">Proposta aprovada!</h2>
+                <h2 className="font-display text-2xl font-bold text-success">Proposta aprovada!</h2>
                 <p className="text-muted-foreground">
                   Obrigado! O vendedor foi notificado e entrará em contato em breve.
                 </p>
@@ -210,7 +210,7 @@ export default function PublicQuoteApprovalPage() {
             ) : (
               <>
                 <XCircle className="h-20 w-20 text-destructive mx-auto" />
-                <h2 className="text-2xl font-bold">Proposta recusada</h2>
+                <h2 className="font-display text-2xl font-bold">Proposta recusada</h2>
                 <p className="text-muted-foreground">
                   Sua resposta foi registrada. O vendedor foi notificado.
                 </p>
@@ -263,7 +263,7 @@ export default function PublicQuoteApprovalPage() {
         <div className="max-w-4xl mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Proposta Comercial</h1>
+              <h1 className="font-display text-2xl font-bold text-foreground">Proposta Comercial</h1>
               <p className="text-muted-foreground mt-1">
                 #{quote.quote_number}
               </p>

@@ -77,7 +77,7 @@ export function SidePanel({
               {/* Header */}
               <div className="flex items-start justify-between border-b p-4">
                 <div>
-                  {title && <h2 className="text-lg font-semibold">{title}</h2>}
+                  {title && <h2 className="font-display text-lg font-semibold">{title}</h2>}
                   {description && (
                     <p className="text-sm text-muted-foreground">{description}</p>
                   )}

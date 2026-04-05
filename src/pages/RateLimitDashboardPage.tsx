@@ -71,7 +71,7 @@ export default function RateLimitDashboardPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold tracking-tight">Dashboard de Rate Limiting</h1>
+            <h1 className="font-display text-2xl font-bold tracking-tight">Dashboard de Rate Limiting</h1>
             <p className="text-muted-foreground">Monitoramento de requisições e bloqueios</p>
           </div>
           <Button variant="outline" size="sm" onClick={fetchData}>

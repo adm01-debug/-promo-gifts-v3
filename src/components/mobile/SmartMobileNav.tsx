@@ -118,7 +118,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
             >
               <div className="bg-card rounded-2xl border border-border shadow-2xl p-4 max-w-sm mx-auto">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-foreground">Ações Rápidas</h3>
+                  <h3 className="font-display font-semibold text-foreground">Ações Rápidas</h3>
                   <button
                     onClick={() => setFabOpen(false)}
                     className="p-1.5 rounded-full hover:bg-muted transition-colors"

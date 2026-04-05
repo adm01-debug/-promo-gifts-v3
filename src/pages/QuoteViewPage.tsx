@@ -342,7 +342,7 @@ export default function QuoteViewPage() {
         <div className="container py-6">
           <div className="text-center py-12">
             <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-            <h2 className="text-xl font-semibold">Orçamento não encontrado</h2>
+            <h2 className="font-display text-xl font-semibold">Orçamento não encontrado</h2>
             <p className="text-muted-foreground mt-2">O orçamento solicitado não existe ou foi removido.</p>
             <Button variant="outline" className="mt-4" onClick={() => navigate("/orcamentos")}>
               <ArrowLeft className="h-4 w-4 mr-2" /> Voltar para Orçamentos
@@ -368,7 +368,7 @@ export default function QuoteViewPage() {
             </Button>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold">Orçamento {quote.quote_number}</h1>
+                <h1 className="font-display text-2xl font-bold">Orçamento {quote.quote_number}</h1>
                 <Badge variant={status.variant}>{status.label}</Badge>
               </div>
               <p className="text-muted-foreground">
@@ -485,7 +485,7 @@ export default function QuoteViewPage() {
               <>
                 <Separator />
                 <div>
-                  <h3 className="font-semibold mb-4">Condições Comerciais</h3>
+                  <h3 className="font-display font-semibold mb-4">Condições Comerciais</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {quote.payment_terms && (
                       <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/30 border border-border/50">
@@ -523,7 +523,7 @@ export default function QuoteViewPage() {
               <>
                 <Separator />
                 <div>
-                  <h3 className="font-semibold mb-2">Observações</h3>
+                  <h3 className="font-display font-semibold mb-2">Observações</h3>
                   <p className="text-muted-foreground whitespace-pre-line">{quote.notes}</p>
                 </div>
               </>

@@ -119,7 +119,7 @@ function OrdersPageContent() {
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16 text-center">
               <Package className="h-12 w-12 text-muted-foreground/50 mb-4" />
-              <h3 className="text-lg font-medium text-foreground mb-1">
+              <h3 className="font-display text-lg font-medium text-foreground mb-1">
                 {searchQuery ? "Nenhum pedido encontrado" : "Nenhum pedido ainda"}
               </h3>
               <p className="text-muted-foreground text-sm">

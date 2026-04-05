@@ -101,7 +101,7 @@ export function BoxSelector({
                   Selecionada
                 </Badge>
               </div>
-              <h3 className="font-semibold text-lg truncate">{selectedBox.name}</h3>
+              <h3 className="font-display font-semibold text-lg truncate">{selectedBox.name}</h3>
               <p className="text-sm text-muted-foreground font-mono">{selectedBox.sku}</p>
               <div className="flex flex-wrap gap-3 mt-3">
                 <div className="flex items-center gap-1.5 text-sm">

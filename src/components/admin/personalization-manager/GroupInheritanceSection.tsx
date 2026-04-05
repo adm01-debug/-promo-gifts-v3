@@ -85,7 +85,7 @@ export function GroupInheritanceSection({
         <Card>
           <CardContent className="py-12 text-center">
             <Link className="h-12 w-12 mx-auto mb-4 text-primary opacity-50" />
-            <h3 className="text-lg font-medium mb-2">Usando regras do grupo</h3>
+            <h3 className="font-display text-lg font-medium mb-2">Usando regras do grupo</h3>
             <p className="text-muted-foreground mb-4">
               Este produto está herdando as configurações do grupo <strong>{productMembership.product_group?.group_name}</strong>.
             </p>

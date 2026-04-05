@@ -108,7 +108,7 @@ export function SectionCard({ id, title, icon: Icon, children, subtitle }: {
             <Icon className="h-4 w-4 text-primary" />
           </div>
           <div>
-            <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+            <h3 className="font-display text-sm font-semibold text-foreground">{title}</h3>
             {subtitle && <p className="text-[11px] text-muted-foreground mt-0.5">{subtitle}</p>}
           </div>
         </div>

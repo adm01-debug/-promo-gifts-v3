@@ -115,7 +115,7 @@ export default function PermissionsPage() {
             <SidebarTrigger className="-ml-1" />
             <BackButton fallbackPath="/admin" />
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">Gestão de Permissões</h1>
+              <h1 className="font-display text-lg font-semibold">Gestão de Permissões</h1>
             </div>
           </header>
           <main className="flex-1 p-6">
@@ -194,7 +194,7 @@ export default function PermissionsPage() {
                     <div className="space-y-6">
                       {Object.entries(groupedPermissions).map(([category, perms]) => (
                         <div key={category}>
-                          <h3 className="font-medium mb-2 capitalize">{category}</h3>
+                          <h3 className="font-display font-medium mb-2 capitalize">{category}</h3>
                           <Table>
                             <TableHeader>
                               <TableRow>

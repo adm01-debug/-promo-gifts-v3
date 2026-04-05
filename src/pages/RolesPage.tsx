@@ -101,7 +101,7 @@ export default function RolesPage() {
             <SidebarTrigger className="-ml-1" />
             <BackButton fallbackPath="/admin" />
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">Gestão de Roles</h1>
+              <h1 className="font-display text-lg font-semibold">Gestão de Roles</h1>
             </div>
           </header>
           <main className="flex-1 p-6">

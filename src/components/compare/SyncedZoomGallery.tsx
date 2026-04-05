@@ -180,7 +180,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
             <div key={product.id} className="space-y-3">
               {/* Product name */}
               <h3 
-                className="text-sm font-medium text-center truncate cursor-pointer hover:text-primary transition-colors"
+                className="font-display text-sm font-medium text-center truncate cursor-pointer hover:text-primary transition-colors"
                 onClick={() => onProductClick?.(product.id)}
               >
                 {product.name}

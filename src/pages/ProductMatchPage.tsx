@@ -153,7 +153,7 @@ function SelectedProductCard({ product }: { product: Product }) {
             alt={product.name}
             className="w-20 h-20 rounded-lg object-cover bg-muted shrink-0" loading="lazy" />
           <div className="min-w-0 flex-1 space-y-1">
-            <h3 className="text-sm font-bold text-foreground leading-tight">{product.name}</h3>
+            <h3 className="font-display text-sm font-bold text-foreground leading-tight">{product.name}</h3>
             <p className="text-[11px] text-muted-foreground">SKU: {product.sku}</p>
             <p className="text-sm font-semibold text-foreground">{formatPrice(product.price)}</p>
             <div className="flex flex-wrap gap-1 pt-1">

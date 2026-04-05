@@ -29,7 +29,7 @@ export default function AdminLoginAttemptsPage() {
     <div className="space-y-6 p-6">
       <PageSEO title="Tentativas de Login" description="Monitore tentativas de login e atividades suspeitas." path="/admin/login-attempts" noIndex />
       <div>
-        <h1 className="text-2xl font-bold text-foreground">Tentativas de Login</h1>
+        <h1 className="font-display text-2xl font-bold text-foreground">Tentativas de Login</h1>
         <p className="text-muted-foreground">Monitoramento de acessos e tentativas de autenticação</p>
       </div>
 

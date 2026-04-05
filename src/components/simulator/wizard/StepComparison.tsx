@@ -164,7 +164,7 @@ ${persText}
             <BarChart3 className="h-6 w-6 text-primary" />
           </div>
           <div>
-            <h3 className="text-xl font-bold">Comparativo de Técnicas</h3>
+            <h3 className="font-display text-xl font-bold">Comparativo de Técnicas</h3>
             <p className="text-muted-foreground">
               {availableResults.length} {availableResults.length === 1 ? 'opção disponível' : 'opções disponíveis'}
               {unavailableResults.length > 0 && ` • ${unavailableResults.length} indisponível`}
@@ -528,7 +528,7 @@ function ConfirmedSummary({
             </div>
           </motion.div>
           <div>
-            <h2 className="text-lg font-bold leading-tight">
+            <h2 className="font-display text-lg font-bold leading-tight">
               {wizard.personalizations.length} {wizard.personalizations.length === 1 ? 'gravação pronta' : 'gravações prontas'}
             </h2>
             <p className="text-xs text-muted-foreground">

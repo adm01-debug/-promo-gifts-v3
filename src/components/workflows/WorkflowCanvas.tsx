@@ -354,7 +354,7 @@ export function WorkflowCanvas() {
               <div className="p-4 rounded-full bg-muted/50 mb-4">
                 <Sparkles className="h-10 w-10 text-muted-foreground" />
               </div>
-              <h3 className="text-lg font-semibold text-muted-foreground">Canvas vazio</h3>
+              <h3 className="font-display text-lg font-semibold text-muted-foreground">Canvas vazio</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-sm">
                 Adicione etapas para criar seu fluxo de orquestração multiagente.
                 Arraste para reordenar.

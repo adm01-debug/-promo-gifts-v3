@@ -169,7 +169,7 @@ export default function QuoteBuilderPage() {
 
               {/* Validade */}
               <div className="rounded-2xl border border-border/50 bg-card p-4 space-y-3">
-                <h3 className="font-semibold text-sm flex items-center gap-2"><span className="text-primary">📅</span>Validade | Proposta</h3>
+                <h3 className="font-display font-semibold text-sm flex items-center gap-2"><span className="text-primary">📅</span>Validade | Proposta</h3>
                 <Select value={s.validityDays} onValueChange={(val) => { s.setValidityDays(val); s.setValidUntil(format(addDays(new Date(), parseInt(val)), "yyyy-MM-dd")); }}>
                   <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecione" /></SelectTrigger>
                   <SelectContent>
@@ -184,7 +184,7 @@ export default function QuoteBuilderPage() {
 
               {/* Condições Comerciais */}
               <div className={cn("rounded-2xl border bg-card p-4 space-y-3", (s.validationErrors.includes("prazo_pagamento") || s.validationErrors.includes("prazo_entrega") || s.validationErrors.includes("frete") || s.validationErrors.includes("valor_frete")) ? "border-destructive/50" : "border-border/50")}>
-                <h3 className="font-semibold text-sm flex items-center gap-2"><Package className="h-4 w-4 text-primary" />Condições</h3>
+                <h3 className="font-display font-semibold text-sm flex items-center gap-2"><Package className="h-4 w-4 text-primary" />Condições</h3>
 
                 {/* Pagamento */}
                 <div className="space-y-1">
@@ -274,7 +274,7 @@ export default function QuoteBuilderPage() {
               <div className="rounded-2xl border border-border/50 bg-card overflow-hidden flex flex-col flex-1 min-h-0">
                 <div className="flex items-center justify-between p-4 pb-3 shrink-0">
                   <div>
-                    <h3 className="font-semibold text-sm">Itens do Orçamento</h3>
+                    <h3 className="font-display font-semibold text-sm">Itens do Orçamento</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{s.items.length} item(ns) adicionado(s)</p>
                   </div>
                   <Button size="sm" onClick={() => s.setProductSearchOpen(true)}>

@@ -309,7 +309,7 @@ export function MockupHistoryPanel({
             <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
               <Wand2 className="h-10 w-10 text-primary/60" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
+            <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
             <p className="text-muted-foreground max-w-md mx-auto">
               Comece criando seu primeiro mockup!
             </p>
@@ -319,7 +319,7 @@ export function MockupHistoryPanel({
             <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
               <Search className="h-8 w-8 text-muted-foreground/50" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">Nenhum resultado</h3>
+            <h3 className="font-display text-lg font-semibold mb-2">Nenhum resultado</h3>
             <p className="text-muted-foreground mb-4">Ajuste os filtros de busca.</p>
             <Button variant="outline" size="sm" onClick={clearFilters}>
               <RefreshCw className="h-4 w-4 mr-2" /> Limpar filtros

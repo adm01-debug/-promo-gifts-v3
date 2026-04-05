@@ -46,7 +46,7 @@ export function MockupCompareDialog({
           {/* Header */}
           <div className="flex items-center justify-between p-4 border-b">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-semibold">Comparação de Mockups</h2>
+              <h2 className="font-display text-lg font-semibold">Comparação de Mockups</h2>
               <Badge variant="secondary">{mockups.length} selecionados</Badge>
             </div>
             <Button variant="ghost" size="icon" aria-label="Fechar" onClick={() => onOpenChange(false)}>

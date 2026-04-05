@@ -111,7 +111,7 @@ export function PersonalizationSummary({
         <div className="p-2 rounded-lg bg-primary/10">
           <ShoppingCart className="h-4 w-4 text-primary" />
         </div>
-        <h3 className="font-semibold text-base">Resumo</h3>
+        <h3 className="font-display font-semibold text-base">Resumo</h3>
       </div>
 
       {/* Scrollable Content */}

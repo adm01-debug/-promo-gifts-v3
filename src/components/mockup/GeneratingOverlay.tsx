@@ -81,7 +81,7 @@ export function GeneratingOverlay({
               <CurrentIcon className="h-10 w-10 text-primary animate-bounce" />
               <div className="absolute inset-0 rounded-full border-2 border-primary/30 animate-pulse-ring" />
             </div>
-            <h2 className="text-xl font-semibold text-foreground mb-1">
+            <h2 className="font-display text-xl font-semibold text-foreground mb-1">
               Gerando Mockup
             </h2>
             <p className="text-sm text-muted-foreground">

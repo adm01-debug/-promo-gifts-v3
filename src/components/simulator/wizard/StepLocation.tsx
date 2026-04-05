@@ -38,7 +38,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
           <MapPin className="h-6 w-6 text-primary" />
         </div>
         <div>
-          <h3 className="text-xl font-bold">Onde personalizar?</h3>
+          <h3 className="font-display text-xl font-bold">Onde personalizar?</h3>
           <p className="text-muted-foreground">Escolha a área de aplicação</p>
         </div>
       </div>

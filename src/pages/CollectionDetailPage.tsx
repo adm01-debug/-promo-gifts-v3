@@ -37,7 +37,7 @@ export default function CollectionDetailPage() {
     return (
       <MainLayout>
         <div className="text-center py-16">
-          <h2 className="text-xl font-semibold mb-4">Coleção não encontrada</h2>
+          <h2 className="font-display text-xl font-semibold mb-4">Coleção não encontrada</h2>
           <Button onClick={() => navigate("/colecoes")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             Voltar para coleções
@@ -145,7 +145,7 @@ export default function CollectionDetailPage() {
         ) : (
           <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed border-border">
             <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">
+            <h3 className="font-display text-lg font-semibold text-foreground mb-2">
               Coleção vazia
             </h3>
             <p className="text-muted-foreground mb-6 max-w-md mx-auto">

@@ -357,7 +357,7 @@ export function EnhancedProductCard({
         </div>
 
         {/* Name */}
-        <h3 className="font-medium text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
+        <h3 className="font-display font-medium text-sm line-clamp-2 min-h-[2.5rem] group-hover:text-primary transition-colors">
           {product.name}
         </h3>
 

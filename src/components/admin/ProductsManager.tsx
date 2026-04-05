@@ -446,7 +446,7 @@ export function ProductsManager() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2.5">
+          <h2 className="font-display text-2xl font-bold tracking-tight flex items-center gap-2.5">
             <div className="p-2 rounded-lg bg-primary/10">
               <Package className="h-5 w-5 text-primary" />
             </div>

@@ -101,7 +101,7 @@ export default function QuotesKanbanPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">
+              <h1 className="font-display text-2xl font-bold text-foreground">
                 Funil de Orçamentos
               </h1>
               <p className="text-muted-foreground">

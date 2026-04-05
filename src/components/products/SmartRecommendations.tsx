@@ -118,7 +118,7 @@ export function SmartRecommendations({ clientId, clientName, showTabs = true }: 
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <History className="h-4 w-4 text-primary" />
-                <h3 className="font-semibold">Baseado no seu Histórico</h3>
+                <h3 className="font-display font-semibold">Baseado no seu Histórico</h3>
               </div>
               <RecommendationGrid products={personalizedRecommendations.data} />
             </section>
@@ -129,7 +129,7 @@ export function SmartRecommendations({ clientId, clientName, showTabs = true }: 
             <section>
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp className="h-4 w-4 text-success" />
-                <h3 className="font-semibold">Produtos em Alta</h3>
+                <h3 className="font-display font-semibold">Produtos em Alta</h3>
                 <Badge variant="secondary" className="text-xs">Últimos 30 dias</Badge>
               </div>
               <RecommendationGrid products={trendingProducts.data} />
@@ -282,7 +282,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
           <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
             <Users className="h-8 w-8 text-muted-foreground" />
           </div>
-          <h3 className="font-semibold text-lg mb-2">
+          <h3 className="font-display font-semibold text-lg mb-2">
             {clientName ? `Histórico de ${clientName}` : 'Selecione um Cliente'}
           </h3>
           <p className="text-muted-foreground text-sm max-w-sm">

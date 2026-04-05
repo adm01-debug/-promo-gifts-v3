@@ -124,7 +124,7 @@ export default function OrderDetailPage() {
       <MainLayout>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Package className="h-16 w-16 text-muted-foreground/40 mb-4" />
-          <h2 className="text-xl font-semibold mb-2">Pedido não encontrado</h2>
+          <h2 className="font-display text-xl font-semibold mb-2">Pedido não encontrado</h2>
           <p className="text-muted-foreground mb-4">O pedido solicitado não existe ou você não tem permissão.</p>
           <Button onClick={() => navigate("/pedidos")} variant="outline">
             <ArrowLeft className="h-4 w-4 mr-2" /> Voltar aos Pedidos
@@ -148,7 +148,7 @@ export default function OrderDetailPage() {
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div>
-              <h1 className="text-2xl font-bold">Pedido #{order.order_number}</h1>
+              <h1 className="font-display text-2xl font-bold">Pedido #{order.order_number}</h1>
               <p className="text-sm text-muted-foreground">
                 Criado em {format(new Date(order.created_at), "dd 'de' MMMM 'de' yyyy, HH:mm", { locale: ptBR })}
               </p>

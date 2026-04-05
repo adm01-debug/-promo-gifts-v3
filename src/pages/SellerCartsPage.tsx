@@ -370,7 +370,7 @@ function SellerCartsContent() {
           >
             <Card className="p-4 border-primary/20 bg-primary/5">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold text-sm">Vincular a uma empresa</h3>
+                <h3 className="font-display font-semibold text-sm">Vincular a uma empresa</h3>
                 <Button variant="ghost" size="sm" onClick={() => setShowNewCart(false)}>
                   Cancelar
                 </Button>
@@ -458,7 +458,7 @@ function SellerCartsContent() {
                 )}
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="font-semibold text-lg">{activeCart.company_name}</h2>
+                    <h2 className="font-display font-semibold text-lg">{activeCart.company_name}</h2>
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <button className={cn(
@@ -535,7 +535,7 @@ function SellerCartsContent() {
             {activeCart.items.length === 0 ? (
               <div className="text-center py-16 bg-muted/20 rounded-xl border border-dashed border-border/40">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-1">Carrinho vazio</h3>
+                <h3 className="font-display text-lg font-medium text-muted-foreground mb-1">Carrinho vazio</h3>
                 <p className="text-sm text-muted-foreground/70 mb-4">
                   Navegue pelo catálogo e adicione produtos a este carrinho
                 </p>
@@ -583,7 +583,7 @@ function SellerCartsContent() {
           {activeCart.items.length > 0 && (
             <div className="hidden md:block xl:sticky xl:top-20 xl:self-start space-y-4">
               <Card className="p-5 space-y-4 border-primary/10">
-                <h3 className="font-semibold flex items-center gap-2">
+                <h3 className="font-display font-semibold flex items-center gap-2">
                   <FileText className="h-4 w-4 text-primary" />
                   Resumo do Carrinho
                 </h3>

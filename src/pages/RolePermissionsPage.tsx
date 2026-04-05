@@ -205,7 +205,7 @@ export default function RolePermissionsPage() {
             <BackButton fallbackPath="/admin" />
             <div className="flex-1 flex items-center justify-between">
               <div>
-                <h1 className="text-lg font-semibold">Gerenciamento de Permissões por Role</h1>
+                <h1 className="font-display text-lg font-semibold">Gerenciamento de Permissões por Role</h1>
                 <p className="text-sm text-muted-foreground">Configure quais permissões cada role possui</p>
               </div>
               {pendingChanges.size > 0 && (

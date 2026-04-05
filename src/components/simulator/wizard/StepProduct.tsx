@@ -125,7 +125,7 @@ export function StepProduct({ wizard }: StepProductProps) {
             <Package className="h-5 w-5 text-primary" />
           </div>
           <div>
-            <h3 className="text-lg font-bold">Escolha o Produto</h3>
+            <h3 className="font-display text-lg font-bold">Escolha o Produto</h3>
             <p className="text-muted-foreground text-sm">Busque pelo nome, SKU ou categoria</p>
           </div>
         </div>

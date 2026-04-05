@@ -141,7 +141,7 @@ export function FutureStockModal({
                 <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
                   <AlertTriangle className="h-8 w-8 text-destructive" />
                 </div>
-                <h3 className="font-medium text-foreground mb-1">
+                <h3 className="font-display font-medium text-foreground mb-1">
                   Erro ao carregar dados
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-xs">
@@ -284,7 +284,7 @@ export function FutureStockModal({
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                   <Package className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-medium text-foreground mb-1">
+                <h3 className="font-display font-medium text-foreground mb-1">
                   Produto sem variantes
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-xs">
@@ -299,7 +299,7 @@ export function FutureStockModal({
                 <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
                   <AlertTriangle className="h-8 w-8 text-muted-foreground" />
                 </div>
-                <h3 className="font-medium text-foreground mb-1">
+                <h3 className="font-display font-medium text-foreground mb-1">
                   Sem previsão de reposição
                 </h3>
                 <p className="text-sm text-muted-foreground max-w-xs">

@@ -663,7 +663,7 @@ export default function KitBuilderPage() {
             {kitState.box && kitState.box.maxWeight && (
               <Card className={cn(weightExceeded && "border-destructive")}>
                 <CardContent className="p-4 space-y-2">
-                  <h3 className="font-semibold text-sm flex items-center justify-between">
+                  <h3 className="font-display font-semibold text-sm flex items-center justify-between">
                     <span>⚖️ Peso</span>
                     <span className={cn(
                       "text-xs",
@@ -693,7 +693,7 @@ export default function KitBuilderPage() {
             {/* Price Preview */}
             <Card>
               <CardContent className="p-4 space-y-3">
-                <h3 className="font-semibold">Prévia de Preços</h3>
+                <h3 className="font-display font-semibold">Prévia de Preços</h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Caixa</span>

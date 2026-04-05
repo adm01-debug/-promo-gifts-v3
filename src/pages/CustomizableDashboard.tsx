@@ -238,7 +238,7 @@ export function CustomizableDashboard() {
         {isCustomizing && (
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-sm font-medium mb-3">Widgets Visíveis</h3>
+              <h3 className="font-display text-sm font-medium mb-3">Widgets Visíveis</h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                 {widgetOrder.map(w => (
                   <label key={w.id} className="flex items-center gap-2 text-sm cursor-pointer">

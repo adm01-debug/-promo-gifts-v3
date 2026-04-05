@@ -184,7 +184,7 @@ export function AIMockupAssistant({
           <Bot className="h-4 w-4 text-[hsl(145,80%,30%)]" />
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-semibold text-sm">Matheus — Expert em Layouts</h3>
+          <h3 className="font-display font-semibold text-sm">Matheus — Expert em Layouts</h3>
           {!isMinimized && (
             <p className="text-xs text-muted-foreground truncate">
               Powered by AI

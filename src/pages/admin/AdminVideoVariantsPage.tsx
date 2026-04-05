@@ -53,7 +53,7 @@ export default function AdminVideoVariantsPage() {
       <PageSEO title="Vídeos por Variante" description="Gerencie vídeos associados a variantes de produtos." path="/admin/video-variantes" noIndex />
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
+          <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
             <Video className="h-6 w-6" />
             Vídeos por Variante
           </h1>

@@ -186,7 +186,7 @@ export function DraggableWidget({
             {isEditing && !widget.isLocked && (
               <GripVertical className="h-4 w-4 text-muted-foreground cursor-grab active:cursor-grabbing" />
             )}
-            <h3 className="font-semibold text-sm">{widget.title}</h3>
+            <h3 className="font-display font-semibold text-sm">{widget.title}</h3>
           </div>
 
           <div className="flex items-center gap-1">
@@ -450,7 +450,7 @@ export function DraggableDashboard({
       {widgets.length === 0 && (
         <div className="flex flex-col items-center justify-center py-12 text-center">
           <LayoutGrid className="h-12 w-12 text-muted-foreground/50 mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Dashboard vazio</h3>
+          <h3 className="font-display text-lg font-semibold mb-2">Dashboard vazio</h3>
           <p className="text-muted-foreground text-sm mb-4">
             Adicione widgets para personalizar seu dashboard
           </p>

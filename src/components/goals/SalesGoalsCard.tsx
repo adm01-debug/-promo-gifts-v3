@@ -84,7 +84,7 @@ export function SalesGoalsCard() {
           <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <Target className="h-7 w-7 text-primary" />
           </div>
-          <h3 className="font-semibold text-foreground mb-1">Defina sua Meta</h3>
+          <h3 className="font-display font-semibold text-foreground mb-1">Defina sua Meta</h3>
           <p className="text-sm text-muted-foreground mb-4 max-w-xs">
             Crie uma meta de vendas para acompanhar seu progresso!
           </p>
