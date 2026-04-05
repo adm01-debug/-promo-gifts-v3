@@ -1,6 +1,6 @@
 /**
- * GlobalSearchPalette — Rich & Premium Redesign
- * Glassmorphism, generous spacing, vibrant hierarchy, CSS animations (cmdk-compatible)
+ * GlobalSearchPalette — High-contrast black redesign
+ * Zero gray haze, sharp hierarchy, CSS animations (cmdk-compatible)
  */
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
@@ -34,6 +34,9 @@ const quickActions = [
   { id: "trends", title: "Tendências", description: "Análise de tendências", icon: <TrendingUp className="h-4 w-4" />, href: "/tendencias" },
 ];
 
+const paletteItemStateClass =
+  "border border-transparent [background-color:transparent] transition-[background-color,border-color,color] data-[selected=true]:[background-color:hsl(var(--command-accent-strong))] data-[selected=true]:[border-color:hsl(var(--command-border-strong))] data-[selected=true]:text-foreground";
+
 /* ── Rank badge with gradient ── */
 function RankBadge({ index }: { index: number }) {
   if (index === 0) return (
@@ -42,18 +45,18 @@ function RankBadge({ index }: { index: number }) {
     </div>
   );
   if (index === 1) return (
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-muted to-muted/60 flex items-center justify-center border border-border/50 shadow-sm">
-      <Medal className="h-4 w-4 text-muted-foreground/80" />
+    <div className="h-10 w-10 rounded-xl [background-color:hsl(var(--command-surface-soft))] flex items-center justify-center border [border-color:hsl(var(--command-border-strong))] shadow-[inset_0_1px_0_hsl(var(--command-border)/0.4)]">
+      <Medal className="h-4 w-4 [color:hsl(var(--command-text-muted))]" />
     </div>
   );
   if (index === 2) return (
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-muted/60 to-muted/40 flex items-center justify-center border border-border/30">
-      <span className="text-xs font-bold text-muted-foreground/70">3º</span>
+    <div className="h-10 w-10 rounded-xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
+      <span className="text-xs font-bold [color:hsl(var(--command-text-muted))]">3º</span>
     </div>
   );
   return (
-    <div className="h-10 w-10 rounded-xl bg-muted/30 flex items-center justify-center border border-border/20">
-      <span className="text-xs font-bold text-muted-foreground/50">{index + 1}º</span>
+    <div className="h-10 w-10 rounded-xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
+      <span className="text-xs font-bold [color:hsl(var(--command-text-subtle))]">{index + 1}º</span>
     </div>
   );
 }
@@ -73,13 +76,13 @@ function SectionHeader({ icon, label, count, gradient }: {
       )}>
         <span className="text-primary [&>svg]:h-3.5 [&>svg]:w-3.5">{icon}</span>
       </div>
-      <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-muted-foreground/50 font-display">{label}</span>
+      <span className="text-[11px] font-bold uppercase tracking-[0.1em] [color:hsl(var(--command-text-subtle))] font-display">{label}</span>
       {count !== undefined && count > 0 && (
-        <Badge variant="secondary" className="text-[9px] h-4 px-1.5 rounded-full font-bold bg-muted/40 text-muted-foreground/40 border-0">
+        <Badge variant="secondary" className="text-[9px] h-4 px-1.5 rounded-full font-bold [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-subtle))] border-0">
           {count}
         </Badge>
       )}
-      <div className="flex-1 h-px bg-gradient-to-r from-border/30 via-border/15 to-transparent ml-1" />
+      <div className="flex-1 h-px ml-1 [background:linear-gradient(90deg,hsl(var(--command-border-strong)),hsl(var(--command-border)),transparent)]" />
     </div>
   );
 }
@@ -104,9 +107,10 @@ function NavCard({ action, index, onSelect }: {
       onSelect={() => onSelect(action.href)}
       className={cn(
         "flex items-center gap-3 py-3 px-3 rounded-xl animate-in fade-in-0 slide-in-from-bottom-1 duration-200 cursor-pointer",
+        paletteItemStateClass,
         isHighlight
-          ? "bg-gradient-to-r from-primary/10 via-primary/5 to-transparent border border-primary/15"
-          : "bg-muted/20 hover:bg-muted/40 border border-transparent hover:border-border/30"
+          ? "bg-gradient-to-r from-primary/12 via-primary/6 to-transparent border border-primary/20"
+          : "[background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))]"
       )}
       style={staggerStyle(index, 200)}
     >
@@ -114,20 +118,20 @@ function NavCard({ action, index, onSelect }: {
         "h-9 w-9 rounded-xl flex items-center justify-center shrink-0 transition-colors",
         isHighlight
           ? "bg-gradient-to-br from-primary/20 to-primary/5 text-primary shadow-sm shadow-primary/10"
-          : "bg-muted/60 text-muted-foreground/60"
+          : "[background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]"
       )}>
         {action.icon}
       </div>
       <div className="flex-1 min-w-0">
         <p className={cn("text-[13px] truncate", isHighlight ? "font-semibold text-primary" : "font-medium")}>{action.title}</p>
-        <p className="text-[10px] text-muted-foreground/40 truncate leading-tight mt-0.5">{action.description}</p>
+        <p className="text-[10px] [color:hsl(var(--command-text-subtle))] truncate leading-tight mt-0.5">{action.description}</p>
       </div>
       {action.shortcut && (
         <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-md bg-primary/10 border border-primary/20 px-1.5 font-mono text-[10px] font-semibold text-primary/60">
           {action.shortcut}
         </kbd>
       )}
-      <ArrowUpRight className={cn("h-3.5 w-3.5 shrink-0", isHighlight ? "text-primary/40" : "text-muted-foreground/20")} />
+      <ArrowUpRight className={cn("h-3.5 w-3.5 shrink-0", isHighlight ? "text-primary/40" : "[color:hsl(var(--command-text-subtle))]")} />
     </CommandItem>
   );
 }
@@ -141,15 +145,15 @@ export function GlobalSearchPalette() {
       <div className="flex items-center gap-2 w-full md:w-auto">
         <button
           onClick={() => s.setOpen(true)}
-          className="group relative flex items-center gap-2.5 px-3.5 py-2 text-sm rounded-xl border border-border/30 hover:border-primary/30 bg-muted/20 hover:bg-muted/40 transition-all duration-300 flex-1 md:w-64 overflow-hidden"
+          className="group relative flex items-center gap-2.5 px-3.5 py-2 text-sm rounded-xl border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] transition-all duration-300 flex-1 md:w-64 overflow-hidden"
         >
           <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/[0.03] to-primary/0 group-hover:via-primary/[0.06] transition-all duration-500 pointer-events-none" />
           <div className="relative h-6 w-6 rounded-lg bg-primary/8 group-hover:bg-primary/12 flex items-center justify-center transition-colors duration-300">
             <Brain className="h-3.5 w-3.5 text-primary/60 group-hover:text-primary transition-colors duration-300" />
             <div className="absolute inset-0 rounded-lg bg-primary/10 animate-[brain-glow_3s_ease-in-out_infinite] pointer-events-none" />
           </div>
-          <span className="relative flex-1 text-left text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors duration-300 text-[13px]">Busca inteligente...</span>
-          <kbd className="relative hidden md:inline-flex h-5 items-center gap-0.5 rounded-md border border-border/30 bg-muted/30 group-hover:border-primary/20 group-hover:bg-primary/5 px-1.5 font-mono text-[10px] text-muted-foreground/40 group-hover:text-primary/50 transition-all duration-300">
+          <span className="relative flex-1 text-left [color:hsl(var(--command-text-muted))] group-hover:text-foreground transition-colors duration-300 text-[13px]">Busca inteligente...</span>
+          <kbd className="relative hidden md:inline-flex h-5 items-center gap-0.5 rounded-md border [border-color:hsl(var(--command-border))] [background-color:hsl(var(--command-accent))] group-hover:[border-color:hsl(var(--command-border-strong))] group-hover:[background-color:hsl(var(--command-surface-soft))] px-1.5 font-mono text-[10px] [color:hsl(var(--command-text-subtle))] group-hover:text-primary/50 transition-all duration-300">
             ⌘K
           </kbd>
         </button>
@@ -187,7 +191,7 @@ export function GlobalSearchPalette() {
           <div className="absolute bottom-0 left-6 right-6 h-[2px] rounded-full bg-gradient-to-r from-transparent via-primary/30 to-transparent" />
         </div>
 
-        <CommandList className="max-h-[520px] scrollbar-thin px-1">
+        <CommandList className="max-h-[520px] scrollbar-thin px-1 [background-color:hsl(var(--command-surface))]">
           {/* ── AI Processing Banner ── */}
           {s.isAIProcessing && (
             <div className="flex items-center gap-3 px-4 py-3.5 mx-2 mt-3 rounded-2xl bg-gradient-to-r from-primary/12 via-primary/6 to-primary/3 border border-primary/15 shadow-sm shadow-primary/5 animate-in fade-in-0 slide-in-from-top-2 duration-300">
@@ -204,21 +208,21 @@ export function GlobalSearchPalette() {
 
           {/* ── Intent chips ── */}
           {s.searchIntent && !s.isSearching && s.results.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 px-4 py-3 mx-2 mt-3 rounded-xl bg-gradient-to-r from-muted/40 to-muted/20 border border-border/20 animate-in fade-in-0 slide-in-from-top-1 duration-200">
+            <div className="flex flex-wrap items-center gap-2 px-4 py-3 mx-2 mt-3 rounded-xl border [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)))] animate-in fade-in-0 slide-in-from-top-1 duration-200">
               <div className="h-6 w-6 rounded-lg bg-primary/12 flex items-center justify-center">
                 <Brain className="h-3.5 w-3.5 text-primary" />
               </div>
-              <span className="text-[11px] font-semibold text-muted-foreground/60">Entendi:</span>
+              <span className="text-[11px] font-semibold [color:hsl(var(--command-text-muted))]">Entendi:</span>
               {s.searchIntent.type !== "mixed" && (
-                <Badge variant="outline" className="text-[11px] h-5.5 rounded-lg font-semibold">
+                <Badge variant="outline" className="text-[11px] h-5.5 rounded-lg font-semibold [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))]">
                   {{ product: "Produtos", client: "Clientes", quote: "Orçamentos", order: "Pedidos" }[s.searchIntent.type]}
                 </Badge>
               )}
-              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg">{s.searchIntent.filters.category}</Badge>}
-              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg">Cor: {s.searchIntent.filters.color}</Badge>}
-              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
-              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg">Status: {s.searchIntent.filters.status}</Badge>}
-              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg">Cliente: {s.searchIntent.filters.clientName}</Badge>}
+              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{s.searchIntent.filters.category}</Badge>}
+              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Cor: {s.searchIntent.filters.color}</Badge>}
+              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
+              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Status: {s.searchIntent.filters.status}</Badge>}
+              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">Cliente: {s.searchIntent.filters.clientName}</Badge>}
             </div>
           )}
 
@@ -241,12 +245,12 @@ export function GlobalSearchPalette() {
           {/* ── Empty state ── */}
           {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
             <div className="flex flex-col items-center justify-center py-16 gap-4 animate-in fade-in-0 zoom-in-95 duration-300">
-              <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-muted/60 to-muted/30 flex items-center justify-center border border-border/30 shadow-inner">
-                <Search className="h-7 w-7 text-muted-foreground/25" />
+              <div className="h-16 w-16 rounded-2xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))] shadow-[inset_0_1px_0_hsl(var(--command-border)/0.35)]">
+                <Search className="h-7 w-7 [color:hsl(var(--command-text-subtle))]" />
               </div>
               <div className="text-center">
-                <p className="text-sm text-muted-foreground/70">Nenhum resultado para "<span className="font-semibold text-foreground/80">{s.query}</span>"</p>
-                <p className="text-[11px] text-muted-foreground/40 mt-1.5">Tente termos diferentes ou mais curtos</p>
+                <p className="text-sm [color:hsl(var(--command-text-muted))]">Nenhum resultado para "<span className="font-semibold text-foreground">{s.query}</span>"</p>
+                <p className="text-[11px] [color:hsl(var(--command-text-subtle))] mt-1.5">Tente termos diferentes ou mais curtos</p>
               </div>
             </div>
           )}
@@ -254,10 +258,10 @@ export function GlobalSearchPalette() {
           {/* ── Short query hint ── */}
           {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
             <div className="flex items-center justify-center gap-2.5 px-4 py-8 animate-in fade-in-0 duration-200">
-              <div className="h-7 w-7 rounded-lg bg-muted/40 flex items-center justify-center">
-                <Search className="h-3.5 w-3.5 text-muted-foreground/30" />
+              <div className="h-7 w-7 rounded-lg [background-color:hsl(var(--command-accent))] flex items-center justify-center">
+                <Search className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
               </div>
-              <span className="text-xs text-muted-foreground/40">Continue digitando para buscar...</span>
+              <span className="text-xs [color:hsl(var(--command-text-subtle))]">Continue digitando para buscar...</span>
             </div>
           )}
 
@@ -273,7 +277,7 @@ export function GlobalSearchPalette() {
                     key={result.id}
                     value={result.title}
                     onSelect={() => s.handleSelect(result.href)}
-                    className="flex items-center gap-3.5 py-3 rounded-xl mx-2 px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200"
+                    className={cn("flex items-center gap-3.5 py-3 rounded-xl mx-2 px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200", paletteItemStateClass)}
                     style={staggerStyle(i, 50)}
                   >
                     <div className={cn("h-10 w-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm", `${config.color}/10`)}>
@@ -281,10 +285,10 @@ export function GlobalSearchPalette() {
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate text-[13px]">{result.title}</p>
-                      {result.subtitle && <p className="text-[11px] text-muted-foreground/50 truncate mt-0.5">{result.subtitle}</p>}
+                      {result.subtitle && <p className="text-[11px] [color:hsl(var(--command-text-muted))] truncate mt-0.5">{result.subtitle}</p>}
                     </div>
-                    <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-lg border-border/30 font-medium">{config.label}</Badge>
-                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
+                    <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-lg [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))] font-medium">{config.label}</Badge>
+                    <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -299,14 +303,14 @@ export function GlobalSearchPalette() {
                   key={`sug-${i}`}
                   value={`suggestion-${suggestion}`}
                   onSelect={() => s.handleSuggestionClick(suggestion)}
-                  className="flex items-center gap-3.5 py-3 rounded-xl mx-2 px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200"
+                  className={cn("flex items-center gap-3.5 py-3 rounded-xl mx-2 px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200", paletteItemStateClass)}
                   style={staggerStyle(i)}
                 >
                   <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/12 to-primary/4 flex items-center justify-center">
                     <Sparkles className="h-4 w-4 text-primary/70" />
                   </div>
                   <span className="flex-1 text-[13px] font-medium">{suggestion}</span>
-                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
+                  <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -320,18 +324,18 @@ export function GlobalSearchPalette() {
               {/* ── Buscas Recentes ── */}
               {s.history.length > 0 && (
                 <div className="animate-in fade-in-0 duration-200">
-                  <SectionHeader icon={<Clock />} label="Recentes" count={s.history.length} gradient="bg-muted/60" />
+                  <SectionHeader icon={<Clock />} label="Recentes" count={s.history.length} gradient="[background-color:hsl(var(--command-accent))]" />
                   <div className="space-y-0.5 px-2">
                     {s.history.slice(0, 4).map((term, i) => (
                       <CommandItem
                         key={`h-${i}`}
                         value={`history-${term}`}
                         onSelect={() => s.handleSuggestionClick(term)}
-                        className="flex items-center gap-3.5 py-2.5 rounded-xl px-3 group animate-in fade-in-0 slide-in-from-left-2 duration-200"
+                        className={cn("flex items-center gap-3.5 py-2.5 rounded-xl px-3 group animate-in fade-in-0 slide-in-from-left-2 duration-200", paletteItemStateClass)}
                         style={staggerStyle(i)}
                       >
-                        <div className="h-9 w-9 rounded-xl bg-muted/40 flex items-center justify-center shrink-0 group-data-[selected=true]:bg-accent">
-                          <Clock className="h-4 w-4 text-muted-foreground/40" />
+                        <div className="h-9 w-9 rounded-xl [background-color:hsl(var(--command-accent))] flex items-center justify-center shrink-0 group-data-[selected=true]:[background-color:hsl(var(--command-accent-strong))]">
+                          <Clock className="h-4 w-4 [color:hsl(var(--command-text-subtle))]" />
                         </div>
                         <span className="flex-1 text-[13px] truncate">{term}</span>
                         <button
@@ -339,7 +343,7 @@ export function GlobalSearchPalette() {
                           aria-label={`Remover "${term}" do histórico`}
                           className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
                         >
-                          <X className="h-3 w-3 text-muted-foreground/50 hover:text-destructive" aria-hidden="true" />
+                          <X className="h-3 w-3 [color:hsl(var(--command-text-subtle))] hover:text-destructive" aria-hidden="true" />
                         </button>
                       </CommandItem>
                     ))}
@@ -359,6 +363,7 @@ export function GlobalSearchPalette() {
                         onSelect={() => s.handleSelect(`/produto/${product.id}`, false)}
                         className={cn(
                           "flex items-center gap-3.5 py-3 rounded-xl px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
+                          paletteItemStateClass,
                           idx === 0 && "bg-gradient-to-r from-orange/[0.06] to-transparent border border-orange/10"
                         )}
                         style={staggerStyle(idx, 100)}
@@ -367,8 +372,8 @@ export function GlobalSearchPalette() {
                         <div className="flex-1 min-w-0">
                           <p className={cn("text-[13px] truncate", idx === 0 ? "font-bold" : "font-medium")}>{product.name}</p>
                           <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] text-muted-foreground/40 font-mono bg-muted/30 px-1.5 py-0.5 rounded">{product.sku}</span>
-                            <div className="flex items-center gap-1 text-[10px] text-muted-foreground/35">
+                            <span className="text-[10px] [color:hsl(var(--command-text-subtle))] font-mono [background-color:hsl(var(--command-accent))] px-1.5 py-0.5 rounded">{product.sku}</span>
+                            <div className="flex items-center gap-1 text-[10px] [color:hsl(var(--command-text-subtle))]">
                               <Eye className="h-3 w-3" />
                               <span>{product.view_count}</span>
                             </div>
@@ -379,7 +384,7 @@ export function GlobalSearchPalette() {
                             🔥 Top 1
                           </Badge>
                         ) : (
-                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
+                          <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
                         )}
                       </CommandItem>
                     ))}
@@ -409,9 +414,9 @@ export function GlobalSearchPalette() {
                         className={cn(
                           "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 shadow-sm",
                           sug.type === "filter" && "bg-gradient-to-r from-primary/8 to-primary/4 hover:from-primary/15 hover:to-primary/8 text-primary/80 hover:text-primary border border-primary/15 hover:border-primary/30",
-                          sug.type === "navigation" && "bg-gradient-to-r from-accent/50 to-accent/30 hover:from-accent/70 hover:to-accent/50 text-accent-foreground/80 border border-accent-foreground/8",
+                          sug.type === "navigation" && "[background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] text-foreground border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))]",
                           sug.type === "action" && "bg-gradient-to-r from-orange/8 to-orange/4 hover:from-orange/15 hover:to-orange/8 text-orange/80 hover:text-orange border border-orange/15 hover:border-orange/30",
-                          sug.type === "search" && "bg-gradient-to-r from-muted/50 to-muted/30 hover:from-muted/70 hover:to-muted/50 text-muted-foreground/70 hover:text-muted-foreground border border-border/30 hover:border-border/50",
+                          sug.type === "search" && "[background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] [color:hsl(var(--command-text-muted))] hover:text-foreground border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))]",
                         )}
                       >
                         <span className="text-sm leading-none">{sug.icon}</span>
@@ -436,7 +441,7 @@ export function GlobalSearchPalette() {
                       aria-label={`Buscar ${qs.label}`}
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 bg-muted/25 hover:bg-muted/50 rounded-xl text-xs font-medium text-muted-foreground/55 hover:text-muted-foreground transition-all duration-150 border border-border/20 hover:border-border/40 hover:shadow-sm"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] rounded-xl text-xs font-medium [color:hsl(var(--command-text-muted))] hover:text-foreground transition-all duration-150 border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))] hover:shadow-sm"
                     >
                       <span className="text-sm leading-none opacity-70">{qs.icon}</span>
                       <span>{qs.label}</span>
@@ -464,18 +469,18 @@ export function GlobalSearchPalette() {
         </CommandList>
 
         {/* ── Premium Footer ── */}
-        <div className="flex items-center justify-between px-5 py-2.5 border-t border-border/20 bg-gradient-to-r from-muted/10 via-muted/5 to-muted/10 select-none">
-          <div className="flex items-center gap-5 text-[11px] text-muted-foreground/35">
+        <div className="flex items-center justify-between px-5 py-2.5 border-t [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)),hsl(var(--command-surface-raised)))] select-none">
+          <div className="flex items-center gap-5 text-[11px] [color:hsl(var(--command-text-subtle))]">
             <span className="inline-flex items-center gap-1.5">
-              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md bg-muted/50 border border-border/25 font-mono text-[10px] leading-none px-1">↵</kbd>
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">↵</kbd>
               <span>Selecionar</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md bg-muted/50 border border-border/25 font-mono text-[10px] leading-none px-1">↑↓</kbd>
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">↑↓</kbd>
               <span>Navegar</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md bg-muted/50 border border-border/25 font-mono text-[10px] leading-none px-1">ESC</kbd>
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">ESC</kbd>
               <span>Fechar</span>
             </span>
           </div>

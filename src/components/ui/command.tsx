@@ -12,10 +12,10 @@ const Command = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive
     ref={ref}
-    className={cn(
-      "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
-      className,
-    )}
+      className={cn(
+        "flex h-full w-full flex-col overflow-hidden rounded-md [background-color:hsl(var(--command-surface))] text-popover-foreground",
+        className,
+      )}
     {...props}
   />
 ));
@@ -27,7 +27,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   return (
     <Dialog {...props}>
       <DialogContent
-        className="overflow-hidden p-0 !rounded-2xl border-border/40 shadow-2xl shadow-black/40 bg-[hsl(0,0%,8%)] max-w-[560px] [&>div]:overflow-hidden"
+        className="overflow-hidden p-0 !rounded-2xl [border-color:hsl(var(--command-border))] bg-[hsl(var(--command-surface))] shadow-[0_24px_80px_hsl(var(--command-shadow))] max-w-[560px] [&>div]:overflow-hidden"
         showCloseButton={false}
       >
         <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
@@ -42,7 +42,7 @@ const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input>
 >(({ className, ...props }, ref) => (
-  <div className="flex items-center border-b px-3 [&:has(input:focus)]:ring-0" cmdk-input-wrapper="">
+  <div className="flex items-center border-b px-3 [border-color:hsl(var(--command-border))] [&:has(input:focus)]:ring-0" cmdk-input-wrapper="">
     <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
     <CommandPrimitive.Input
       ref={ref}
@@ -63,7 +63,7 @@ const CommandList = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <CommandPrimitive.List
     ref={ref}
-    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+    className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden [background-color:hsl(var(--command-surface))]", className)}
     {...props}
   />
 ));
@@ -84,7 +84,7 @@ const CommandGroup = React.forwardRef<
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
-      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground",
+      "overflow-hidden p-1 text-foreground [&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:py-1.5 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:[color:hsl(var(--command-text-subtle))]",
       className,
     )}
     {...props}
@@ -97,7 +97,7 @@ const CommandSeparator = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Separator>,
   React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
 >(({ className, ...props }, ref) => (
-  <CommandPrimitive.Separator ref={ref} className={cn("-mx-1 h-px bg-border", className)} {...props} />
+  <CommandPrimitive.Separator ref={ref} className={cn("-mx-1 h-px [background-color:hsl(var(--command-border))]", className)} {...props} />
 ));
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 
@@ -108,7 +108,7 @@ const CommandItem = React.forwardRef<
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[disabled=true]:pointer-events-none data-[selected='true']:bg-accent data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50",
+      "relative flex cursor-default select-none items-center rounded-sm border border-transparent px-2 py-1.5 text-sm outline-none transition-[background-color,border-color,color] [background-color:transparent] data-[disabled=true]:pointer-events-none data-[selected='true']:[background-color:hsl(var(--command-accent))] data-[selected=true]:[border-color:hsl(var(--command-border-strong))] data-[selected=true]:text-accent-foreground data-[disabled=true]:opacity-50",
       className,
     )}
     {...props}
