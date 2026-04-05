@@ -7,7 +7,7 @@ import type { VoiceAgentAction } from "./types";
 
 export function logVoiceCommand(
   action: VoiceAgentAction,
-  options?: { durationMs?: number; success?: boolean }
+  meta: { transcript: string; durationMs?: number; success?: boolean }
 ) {
   // Fire and forget — don't await, don't block
   (async () => {
@@ -17,12 +17,12 @@ export function logVoiceCommand(
 
       await supabase.from("voice_command_logs").insert({
         user_id: user.id,
-        transcript: action.data?.query || action.response,
+        transcript: meta.transcript,
         action: action.action,
         response: action.response,
         data: action.data || {},
-        duration_ms: options?.durationMs ?? null,
-        success: options?.success ?? true,
+        duration_ms: meta.durationMs ?? null,
+        success: meta.success ?? true,
       });
     } catch {
       // Silent — analytics should never break UX
