@@ -246,8 +246,7 @@ export function FutureStockModal({
                               <img
                                 src={color.thumbnail}
                                 alt={color.name}
-                                className="w-full h-full object-cover"
-                              />
+                                className="w-full h-full object-cover" loading="lazy" />
                             ) : (
                               <div
                                 className="w-full h-full"
@@ -346,8 +345,7 @@ export function FutureStockModal({
                             <img
                               src={entry.thumbnail}
                               alt={entry.colorName}
-                              className="w-full h-full object-cover"
-                            />
+                              className="w-full h-full object-cover" loading="lazy" />
                           ) : (
                             <div
                               className="w-full h-full"

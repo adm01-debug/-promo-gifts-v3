@@ -87,8 +87,7 @@ export function KitVisualComposition({
                       <img
                         src={comp.imageUrl}
                         alt={comp.name}
-                        className="w-8 h-8 rounded object-cover"
-                      />
+                        className="w-8 h-8 rounded object-cover" loading="lazy" />
                     ) : (
                       <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
                         <Package className="h-4 w-4 text-muted-foreground" />
@@ -155,8 +154,7 @@ export function KitVisualComposition({
                     <img
                       src={component.imageUrl}
                       alt={component.name}
-                      className="w-12 h-12 rounded-lg object-cover border"
-                    />
+                      className="w-12 h-12 rounded-lg object-cover border" loading="lazy" />
                   ) : (
                     <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center border">
                       <Package className="h-6 w-6 text-muted-foreground" />

@@ -182,8 +182,7 @@ export default function OrderDetailPage() {
                           <img
                             src={item.product_image_url}
                             alt={item.product_name || ""}
-                            className="w-14 h-14 rounded-md object-cover border"
-                          />
+                            className="w-14 h-14 rounded-md object-cover border" loading="lazy" />
                         ) : (
                           <div className="w-14 h-14 rounded-md bg-muted flex items-center justify-center">
                             <Package className="h-6 w-6 text-muted-foreground" />

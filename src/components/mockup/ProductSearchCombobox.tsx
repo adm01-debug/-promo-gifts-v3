@@ -110,8 +110,7 @@ export function ProductSearchCombobox({
                   <img
                     src={getProductImage(selectedProduct)!}
                     alt={selectedProduct.name}
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" loading="lazy" />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="h-4 w-4 text-muted-foreground" />
@@ -211,8 +210,7 @@ export function ProductSearchCombobox({
                       <img
                         src={getProductImage(product)!}
                         alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
+                        className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Package className="h-5 w-5 text-muted-foreground" />

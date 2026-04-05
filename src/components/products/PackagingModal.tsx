@@ -92,7 +92,7 @@ export function PackagingModal({
                       "w-full h-full object-contain transition-all duration-700 ease-out",
                       imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105"
                     )}
-                    onLoad={() => setImageLoaded(true)}
+                    onLoad={() = loading="lazy" > setImageLoaded(true)}
                     onError={() => setImageError(true)}
                     loading="lazy"
                   />

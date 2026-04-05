@@ -137,8 +137,7 @@ export function AdImageResult({
                 <img
                   src={item.generated_image_url}
                   alt={item.product_name}
-                  className="w-full aspect-square object-cover"
-                />
+                  className="w-full aspect-square object-cover" loading="lazy" />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-2">
                   <p className="text-[10px] text-primary-foreground font-medium truncate">{item.product_name}</p>
                   {item.scene_title && (
@@ -208,8 +207,7 @@ export function AdImageResult({
           <img
             src={imageUrl!}
             alt={`Imagem publicitária - ${productName}`}
-            className="w-full aspect-square object-cover"
-          />
+            className="w-full aspect-square object-cover" loading="lazy" />
           {/* Favorite button */}
           {onToggleFavorite && (
             <button

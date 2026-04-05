@@ -51,8 +51,7 @@ export function PhotoSelector({
               <img
                 src={img}
                 alt={`Foto ${idx + 1}`}
-                className="w-full h-full object-cover"
-              />
+                className="w-full h-full object-cover" loading="lazy" />
               {selected && (
                 <div className="absolute top-0.5 right-0.5 w-4 h-4 rounded-full bg-primary flex items-center justify-center">
                   <Check className="h-2.5 w-2.5 text-primary-foreground" />

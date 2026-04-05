@@ -206,8 +206,7 @@ export default function ProfilePage() {
                     <img
                       src={profile.signature_url}
                       alt="Sua assinatura"
-                      className="max-h-[60px] max-w-[280px] object-contain"
-                    />
+                      className="max-h-[60px] max-w-[280px] object-contain" loading="lazy" />
                   </div>
                   <div className="flex gap-2 mt-3 justify-center">
                     <Button

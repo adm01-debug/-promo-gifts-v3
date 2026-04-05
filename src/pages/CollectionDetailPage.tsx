@@ -125,8 +125,7 @@ export default function CollectionDetailPage() {
                   <img
                     src={product.images[0]}
                     alt={product.name}
-                    className="w-12 h-12 rounded-lg object-cover"
-                  />
+                    className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium truncate">{product.name}</p>
                     <p className="text-xs text-muted-foreground">{product.sku}</p>

@@ -275,8 +275,7 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                     <img
                       src={slide.imageUrl}
                       alt={slide.title}
-                      className="max-w-full max-h-[65vh] object-contain rounded-2xl shadow-2xl"
-                    />
+                      className="max-w-full max-h-[65vh] object-contain rounded-2xl shadow-2xl" loading="lazy" />
                   ) : (
                     <div className="w-80 h-80 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center">
                       <span className="text-white/20 text-lg">Sem imagem</span>

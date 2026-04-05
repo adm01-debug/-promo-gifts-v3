@@ -26,8 +26,7 @@ function ProductImageTransparent({ src, alt }: { src: string; alt: string }) {
           height: "100%",
           objectFit: "contain",
           display: "block",
-        }}
-      />
+        }} loading="lazy" />
     </div>
   );
 }

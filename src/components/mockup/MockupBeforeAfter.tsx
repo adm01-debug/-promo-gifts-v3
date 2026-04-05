@@ -62,8 +62,7 @@ export function MockupBeforeAfter({
         src={afterImage}
         alt="Mockup gerado pela IA"
         className="absolute inset-0 w-full h-full object-contain"
-        draggable={false}
-      />
+        draggable={false} loading="lazy" />
 
       {/* Before image (clipped) */}
       <div
@@ -75,8 +74,7 @@ export function MockupBeforeAfter({
           alt="Preview de posicionamento"
           className="absolute top-0 left-0 h-full object-contain"
           style={{ width: `${(1 / (sliderPosition / 100)) * 100}%`, maxWidth: 'none' }}
-          draggable={false}
-        />
+          draggable={false} loading="lazy" />
       </div>
 
       {/* Slider line */}

@@ -178,8 +178,7 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
                             <img
                               src={thumb}
                               alt={color.name}
-                              className="w-full h-full object-cover"
-                            />
+                              className="w-full h-full object-cover" loading="lazy" />
                             {isSelected && (
                               <div className="absolute inset-0 bg-primary/20 flex items-center justify-center">
                                 <Check className="h-4 w-4 text-primary" />

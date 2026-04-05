@@ -119,8 +119,7 @@ export function ProductVariations({
                   <img
                     src={variationImage}
                     alt={colorName}
-                    className="w-full h-full object-cover"
-                  />
+                    className="w-full h-full object-cover" loading="lazy" />
                 </div>
               )}
 

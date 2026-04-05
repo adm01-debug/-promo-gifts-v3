@@ -106,8 +106,7 @@ export function MockupPreview({
             <img
               src={product.image_url}
               alt={product.name}
-              className="w-full h-full object-contain"
-            />
+              className="w-full h-full object-contain" loading="lazy" />
             
             {/* Logo Overlay */}
             {clientLogoUrl ? (
@@ -125,8 +124,7 @@ export function MockupPreview({
                 <img
                   src={clientLogoUrl}
                   alt="Logo"
-                  className="w-full h-full object-contain"
-                />
+                  className="w-full h-full object-contain" loading="lazy" />
               </div>
             ) : (
               <div

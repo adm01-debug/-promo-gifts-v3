@@ -51,7 +51,7 @@ export function ProductHoverPreview({
               "w-full h-full object-cover transition-all duration-700 ease-out",
               imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105"
             )}
-            onLoad={() => setImageLoaded(true)}
+            onLoad={() = loading="lazy" > setImageLoaded(true)}
           />
           
           {/* Badges overlay */}

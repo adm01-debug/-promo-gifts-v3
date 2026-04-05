@@ -125,8 +125,7 @@ function ProductSearchPanel({
               <img
                 src={getCdnUrl(p.images?.[0] || p.image_url || '/placeholder.svg', 'thumbnail')}
                 alt={p.name}
-                className="w-10 h-10 rounded-md object-cover bg-muted shrink-0"
-              />
+                className="w-10 h-10 rounded-md object-cover bg-muted shrink-0" loading="lazy" />
               <div className="min-w-0 flex-1">
                 <p className="text-xs font-semibold text-foreground truncate">{p.name}</p>
                 <p className="text-[10px] text-muted-foreground">{p.sku} • {formatPrice(p.price)}</p>
@@ -152,8 +151,7 @@ function SelectedProductCard({ product }: { product: Product }) {
           <img
             src={getCdnUrl(product.images?.[0] || product.image_url || '/placeholder.svg', 'small')}
             alt={product.name}
-            className="w-20 h-20 rounded-lg object-cover bg-muted shrink-0"
-          />
+            className="w-20 h-20 rounded-lg object-cover bg-muted shrink-0" loading="lazy" />
           <div className="min-w-0 flex-1 space-y-1">
             <h3 className="text-sm font-bold text-foreground leading-tight">{product.name}</h3>
             <p className="text-[11px] text-muted-foreground">SKU: {product.sku}</p>
@@ -229,8 +227,7 @@ function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id:
         <img
           src={getCdnUrl(match.product.images?.[0] || match.product.image_url || '/placeholder.svg', 'small')}
           alt={match.product.name}
-          className="w-16 h-16 rounded-lg object-cover bg-muted shrink-0"
-        />
+          className="w-16 h-16 rounded-lg object-cover bg-muted shrink-0" loading="lazy" />
         <div className="min-w-0 flex-1 space-y-1">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0 flex-1">

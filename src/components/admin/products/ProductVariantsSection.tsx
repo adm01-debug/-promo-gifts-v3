@@ -697,8 +697,7 @@ export function ProductVariantsSection({ productId, productName, productSku }: P
                 <img
                   src={variant.selected_thumbnail}
                   alt={variant.color_name || variant.name}
-                  className="w-10 h-10 rounded-md object-cover border shrink-0"
-                />
+                  className="w-10 h-10 rounded-md object-cover border shrink-0" loading="lazy" />
               ) : variant.color_hex ? (
                 <div
                   className="w-10 h-10 rounded-md border shrink-0"

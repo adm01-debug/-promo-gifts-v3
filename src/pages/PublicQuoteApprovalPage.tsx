@@ -339,8 +339,7 @@ export default function PublicQuoteApprovalPage() {
                   <img
                     src={item.product_image_url}
                     alt={item.product_name}
-                    className="w-16 h-16 object-cover rounded-lg border border-border/50"
-                  />
+                    className="w-16 h-16 object-cover rounded-lg border border-border/50" loading="lazy" />
                 )}
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm">{item.product_name}</p>

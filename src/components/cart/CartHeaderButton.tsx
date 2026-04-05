@@ -192,8 +192,7 @@ export function CartHeaderButton() {
                                 <img
                                   src={cart.company_logo_url}
                                   alt=""
-                                  className="w-9 h-9 rounded-lg object-contain bg-background border border-border/50 flex-shrink-0 p-0.5"
-                                />
+                                  className="w-9 h-9 rounded-lg object-contain bg-background border border-border/50 flex-shrink-0 p-0.5" loading="lazy" />
                               ) : (
                                 <div className={cn(
                                   "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
@@ -276,8 +275,7 @@ export function CartHeaderButton() {
                                       <img
                                         src={item.product_image_url}
                                         alt=""
-                                        className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5 mt-0.5"
-                                      />
+                                        className="w-9 h-9 rounded-lg object-contain bg-background border border-border/30 flex-shrink-0 p-0.5 mt-0.5" loading="lazy" />
                                     ) : (
                                       <div className="w-9 h-9 rounded-lg bg-muted/40 flex-shrink-0 flex items-center justify-center mt-0.5">
                                         <Package className="h-3.5 w-3.5 text-muted-foreground/50" />

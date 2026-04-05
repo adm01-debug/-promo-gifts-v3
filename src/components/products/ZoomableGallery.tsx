@@ -40,7 +40,7 @@ function BlurThumb({ src, alt }: { src: string; alt: string }) {
         "w-full h-full object-cover transition-all duration-500 ease-out",
         loaded ? "opacity-100 blur-0" : "opacity-40 blur-sm"
       )}
-      onLoad={() => setLoaded(true)}
+      onLoad={() = loading="lazy" > setLoaded(true)}
     />
   );
 }

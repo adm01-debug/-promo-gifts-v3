@@ -175,8 +175,7 @@ export function MockupResultCard({
                   src={generatedMockup}
                   alt="Generated mockup"
                   className="max-w-full max-h-full object-contain transition-transform duration-200"
-                  style={{ transform: `scale(${zoom})` }}
-                />
+                  style={{ transform: `scale(${zoom})` }} loading="lazy" />
               </div>
               {/* Zoom Controls */}
               <div className="absolute bottom-3 right-3 flex items-center gap-1 p-1 bg-background/80 backdrop-blur-sm rounded-lg border shadow-sm">

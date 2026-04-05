@@ -52,7 +52,7 @@ function ColorThumb({ src, alt, title }: { src: string; alt: string; title: stri
         "w-full h-full object-cover transition-all duration-700 ease-out group-hover/color:scale-110",
         loaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-sm scale-105"
       )}
-      onLoad={() => setLoaded(true)}
+      onLoad={() = loading="lazy" > setLoaded(true)}
     />
   );
 }
@@ -229,7 +229,7 @@ export function ProductGallery({
           title={productName}
           className={cn(
             "w-full h-full object-contain transition-all duration-700 ease-out",
-            zoom > 1 && "cursor-grab",
+            zoom loading="lazy" > 1 && "cursor-grab",
             isPanning && "cursor-grabbing",
             isAnimating && "scale-95 opacity-80",
             isImageLoading ? "opacity-40 blur-md scale-105" : "opacity-100 blur-0 scale-100"
@@ -651,8 +651,7 @@ export function ProductGallery({
                     <img
                       src={getCdnUrl(media, 'thumbnail')}
                       alt={`${productName} - Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                   )}
                 </button>
               ))}

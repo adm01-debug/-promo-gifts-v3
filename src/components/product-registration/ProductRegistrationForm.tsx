@@ -354,7 +354,7 @@ export function ProductRegistrationForm({ onSuccess, onCancel }: ProductRegistra
                         src={img.url}
                         alt={img.alt_text || `Imagem ${index + 1}`}
                         className="w-full h-24 object-cover rounded"
-                        onError={(e) => {
+                        onError={(e) = loading="lazy" > {
                           (e.target as HTMLImageElement).src = '/placeholder.svg';
                         }}
                       />

@@ -210,8 +210,7 @@ function RecommendationGrid({ products, emptyMessage, emptyIcon: EmptyIcon = Pac
               <img
                 src={typeof product.images === 'object' && Array.isArray(product.images) ? product.images[0] : product.images}
                 alt={product.name}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              />
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-10 w-10 text-muted-foreground" />
@@ -341,8 +340,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
                     <img
                       src={product.image}
                       alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
+                      className="w-full h-full object-cover" loading="lazy" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
                       <Package className="h-6 w-6 text-muted-foreground" />

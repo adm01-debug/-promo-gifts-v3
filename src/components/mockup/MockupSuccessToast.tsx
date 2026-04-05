@@ -23,8 +23,7 @@ export function showMockupSuccessToast({
           <img
             src={mockupUrl}
             alt="Mockup gerado"
-            className="absolute inset-0 w-full h-full object-contain p-2"
-          />
+            className="absolute inset-0 w-full h-full object-contain p-2" loading="lazy" />
           <div className="absolute top-2 right-2">
             <div className="flex items-center gap-1.5 px-2 py-1 rounded-full bg-success/90 text-success-foreground text-xs font-medium">
               <CheckCircle2 className="h-3 w-3" />

@@ -202,8 +202,7 @@ function HeaderSection({ data }: { data: ProposalTemplateData }) {
             imageRendering: "high-quality" as React.CSSProperties["imageRendering"],
             mixBlendMode: "multiply",
           }}
-          crossOrigin="anonymous"
-        />
+          crossOrigin="anonymous" loading="lazy" />
       </div>
 
       {/* Title block — right side, centered vertically */}
@@ -354,8 +353,7 @@ function ProductRow({ item }: { item: ProposalItem }) {
               border: "1px solid #eee",
               backgroundColor: "#fff",
               padding: "4px",
-            }}
-          />
+            }} loading="lazy" />
         ) : (
           <div style={{
             width: "80px",

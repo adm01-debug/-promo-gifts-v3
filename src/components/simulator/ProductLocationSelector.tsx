@@ -364,8 +364,7 @@ export function ProductLocationSelector({
                                 <img
                                   src={location.area_image_url}
                                   alt={location.location_name}
-                                  className="w-full h-full object-cover rounded-lg"
-                                />
+                                  className="w-full h-full object-cover rounded-lg" loading="lazy" />
                               ) : (
                                 <MapPin className="h-6 w-6" />
                               )}

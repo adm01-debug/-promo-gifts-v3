@@ -62,8 +62,7 @@ export function MockupCompareDialog({
                   <img
                     src={mockup.layout_url || mockup.mockup_url}
                     alt={mockup.product_name}
-                    className="w-full h-full object-contain"
-                  />
+                    className="w-full h-full object-contain" loading="lazy" />
                 </div>
                 <div className="p-3 space-y-1">
                   <p className="font-medium text-sm truncate">{mockup.product_name}</p>

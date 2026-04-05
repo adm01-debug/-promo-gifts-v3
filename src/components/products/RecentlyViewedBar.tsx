@@ -72,8 +72,7 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                       <img
                         src={product.images[0]}
                         alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
+                        className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom" className="max-w-[200px]">

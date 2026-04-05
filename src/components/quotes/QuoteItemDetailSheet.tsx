@@ -126,8 +126,7 @@ export function QuoteItemDetailSheet({ item }: { item: QuoteItem }) {
               <img
                 src={item.product_image_url}
                 alt={item.product_name}
-                className="w-16 h-16 object-cover rounded-lg border border-border"
-              />
+                className="w-16 h-16 object-cover rounded-lg border border-border" loading="lazy" />
             )}
             <div className="flex-1 min-w-0">
               {item.product_sku && (

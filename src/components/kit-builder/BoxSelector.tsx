@@ -272,8 +272,7 @@ export function BoxSelector({
                         <img
                           src={box.imageUrl}
                           alt={box.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                        />
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
                           <Package className="h-8 w-8 text-muted-foreground" />

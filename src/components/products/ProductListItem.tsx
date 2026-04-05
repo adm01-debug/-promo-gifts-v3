@@ -99,7 +99,7 @@ export function ProductListItem({
                 imageLoaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-md scale-105",
                 isHovered && "scale-110"
               )}
-              onLoad={() => setImageLoaded(true)}
+              onLoad={() = loading="lazy" > setImageLoaded(true)}
             />
           );
         })()}

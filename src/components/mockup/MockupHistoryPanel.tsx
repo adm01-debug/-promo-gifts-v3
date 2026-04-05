@@ -677,7 +677,7 @@ export function MockupHistoryPanel({
                   style={{
                     transform: `scale(${lightboxZoom})`,
                     transition: "transform 0.15s ease-out",
-                    imageRendering: lightboxZoom > 1.5 ? "auto" : undefined,
+                    imageRendering: lightboxZoom loading="lazy" > 1.5 ? "auto" : undefined,
                   }}
                   draggable={false}
                 />

@@ -236,7 +236,7 @@ export function MockupLayoutButtons({
       const areaX = (activeArea.positionX / 100) * CANVAS_SIZE - areaW / 2;
       const areaY = (activeArea.positionY / 100) * CANVAS_SIZE - areaH / 2;
 
-      // Replicate editor's inner <img className="object-contain" transform scale/rotate>
+      // Replicate editor's inner <img className="object-contain" transform scale/rotate loading="lazy" >
       const logoAR = logoImg.naturalWidth / logoImg.naturalHeight;
       const areaAR = areaW / areaH;
       let containW: number;
