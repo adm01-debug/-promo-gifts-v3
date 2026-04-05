@@ -97,41 +97,34 @@ export default function AdminTemasPage() {
 
   return (
     <MainLayout>
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
-      {/* Header */}
+    <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
+      {/* Sticky compact header */}
       <motion.div
         variants={fadeUp}
         initial="hidden"
         animate="visible"
         custom={0}
-        className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        className="sticky top-0 z-10 -mx-4 sm:-mx-6 px-4 sm:px-6 py-3 bg-background/80 backdrop-blur-lg border-b border-border/40"
       >
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate(-1)}
-            className="h-9 w-9 rounded-lg flex items-center justify-center hover:bg-muted transition-colors text-muted-foreground"
-            aria-label="Voltar"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <div className="flex items-center gap-2">
-              <Palette className="h-5 w-5 text-primary" />
-              <h1 className="text-2xl font-display font-bold text-foreground">Skins</h1>
-            </div>
-            <p className="text-sm text-muted-foreground ml-7">
-              Escolha sua skin favorita
-            </p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3 min-w-0">
+            <Palette className="h-5 w-5 text-primary shrink-0" />
+            <h1 className="text-xl font-display font-bold text-foreground truncate">Skins</h1>
+            {/* Badge da skin ativa */}
+            <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-medium border border-primary/20">
+              <Check className="h-3 w-3" />
+              {THEME_PRESETS.find(p => p.id === config.presetId)?.name || 'Padrão'}
+            </span>
           </div>
-        </div>
-        <div className="flex items-center gap-2 ml-12 sm:ml-0">
-          <Button size="sm" onClick={handleSave} className="gap-1.5 relative">
-            <Save className="h-3.5 w-3.5" /> Salvar
-            {hasUnsavedChanges && (
-              <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
-            )}
-          </Button>
-          <ThemeResetDialog onConfirm={handleReset} />
+          <div className="flex items-center gap-2 shrink-0">
+            <Button size="sm" onClick={handleSave} className="gap-1.5 relative">
+              <Save className="h-3.5 w-3.5" /> Salvar
+              {hasUnsavedChanges && (
+                <span className="absolute -top-1 -right-1 h-2.5 w-2.5 rounded-full bg-destructive animate-pulse" />
+              )}
+            </Button>
+            <ThemeResetDialog onConfirm={handleReset} />
+          </div>
         </div>
       </motion.div>
 
