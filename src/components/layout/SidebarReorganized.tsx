@@ -192,20 +192,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
           <SidebarBrandHeader isCollapsed={isCollapsed} />
 
 
-          {/* Collapse controls (desktop) */}
-          <div className="hidden lg:flex items-center justify-between px-2 mb-1">
-            {!isCollapsed && hasAnyGroupOpen && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange hover:border-orange/30 text-sidebar-foreground/40"
-                onClick={collapseAllGroups}
-              >
-                <ChevronsDownUp className="h-3 w-3" />
-                Fechar
-              </Button>
-            )}
-            {!isCollapsed && !hasAnyGroupOpen && <div />}
+          {/* Collapse toggle (desktop) */}
+          <div className="hidden lg:flex items-center justify-end px-2 mb-1">
             <Button
               variant="ghost"
               size="icon"
@@ -234,10 +222,10 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
               <div key={group.id}>
                 {/* Separator between groups */}
                 {index > 0 && !isCollapsed && (
-                  <div className="my-2 mx-3 h-px bg-gradient-to-r from-transparent via-sidebar-border/50 to-transparent" />
+                  <div className="my-2.5 mx-2 h-px bg-sidebar-border/40" />
                 )}
                 {index > 0 && isCollapsed && (
-                  <div className="my-1 mx-auto w-1 h-1 rounded-full bg-sidebar-border/40" />
+                  <div className="my-1.5 mx-auto w-4 h-px bg-sidebar-border/30" />
                 )}
                 <SidebarNavGroup
                   group={group}
