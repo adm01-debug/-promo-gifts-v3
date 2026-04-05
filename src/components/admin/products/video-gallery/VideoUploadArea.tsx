@@ -45,7 +45,7 @@ export function VideoUploadArea({
       {/* Type & variant selector */}
       <div className="flex flex-wrap items-center gap-2 px-3 py-2.5 bg-muted/30 border-b border-border/30">
         <Select value={uploadVideoType} onValueChange={setUploadVideoType}>
-          <SelectTrigger className="h-8 w-auto min-w-[140px] gap-1.5 text-xs rounded-md bg-gradient-to-r from-emerald-500/15 via-emerald-500/10 to-emerald-500/5 border border-emerald-500/30 hover:border-emerald-500/50 hover:from-emerald-500/20 hover:via-emerald-500/15 hover:to-emerald-500/10 shadow-[0_0_8px_hsl(142_71%_45%/0.15)] hover:shadow-[0_0_12px_hsl(142_71%_45%/0.25)] transition-all duration-300 text-foreground/90">
+          <SelectTrigger className="h-8 w-auto min-w-[140px] gap-1.5 text-xs rounded-md bg-gradient-to-r from-primary/15 via-primary/10 to-primary/5 border border-primary/30 hover:border-primary/50 hover:from-primary/20 hover:via-primary/15 hover:to-primary/10 shadow-[0_0_8px_hsl(var(--primary)/0.15)] hover:shadow-[0_0_12px_hsl(var(--primary)/0.25)] transition-all duration-300 text-foreground/90">
             
             <span className="text-muted-foreground/70 font-normal">Tipo:</span>
             <SelectValue />

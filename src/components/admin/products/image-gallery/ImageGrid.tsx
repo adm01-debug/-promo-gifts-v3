@@ -93,7 +93,7 @@ export function ImageGrid({
               {ext?.alt_text && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div className="w-3.5 h-3.5 rounded-full bg-emerald-500/80 flex items-center justify-center"><CheckCircle2 className="h-2 w-2 text-white" /></div>
+                    <div className="w-3.5 h-3.5 rounded-full bg-primary/80 flex items-center justify-center"><CheckCircle2 className="h-2 w-2 text-white" /></div>
                   </TooltipTrigger>
                   <TooltipContent className="text-[10px] max-w-[180px]">Alt: {ext.alt_text}</TooltipContent>
                 </Tooltip>

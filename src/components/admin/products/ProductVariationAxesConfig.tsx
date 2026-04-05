@@ -328,14 +328,14 @@ function GenderAxis({
         className={cn(
           'rounded-lg border transition-colors',
           hasValue
-            ? 'border-blue-500/30 bg-blue-500/5'
+            ? 'border-primary/30 bg-primary/5'
             : 'border-border/40 bg-muted/10 opacity-60',
         )}
       >
         <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
           <div className={cn(
             'flex items-center justify-center w-8 h-8 rounded-md',
-            hasValue ? 'bg-blue-500/15 text-blue-500' : 'bg-muted text-muted-foreground',
+            hasValue ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
           )}>
             <Users className="h-4 w-4" />
           </div>
@@ -344,7 +344,7 @@ function GenderAxis({
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Gênero</span>
               {hasValue ? (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-blue-500/10 text-blue-500 border-blue-500/20">
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
                   {genderLabel}
                 </Badge>
               ) : (

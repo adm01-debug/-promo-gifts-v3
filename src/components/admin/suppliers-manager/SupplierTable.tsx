@@ -40,7 +40,7 @@ export function SupplierTable({ suppliers, loading, search, deleting, onEdit, on
             ) : (
               suppliers.map(supplier => (
                 <TableRow key={supplier.id} className="group cursor-pointer hover:bg-accent/50" onClick={() => onEdit(supplier)}>
-                  <TableCell>{supplier.active ? <CheckCircle2 className="h-4 w-4 text-emerald-500" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}</TableCell>
+                  <TableCell>{supplier.active ? <CheckCircle2 className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-muted-foreground" />}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2.5">
                       {supplier.logo_url ? (
