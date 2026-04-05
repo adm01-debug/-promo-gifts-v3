@@ -340,7 +340,7 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
         </TableCell>
         <TableCell>
           {product.totalReservedStock > 0 ? (
-            <span className="text-sm text-amber-600">-{product.totalReservedStock}</span>
+            <span className="text-sm text-warning">-{product.totalReservedStock}</span>
           ) : '-'}
         </TableCell>
         <TableCell>
