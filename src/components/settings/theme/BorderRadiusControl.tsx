@@ -1,25 +1,55 @@
-import { Search, Star, Bell, Send, Heart, Settings, Trash2 } from 'lucide-react';
+import { Search, Star, Bell, Send, Heart, Settings, Trash2, SlidersHorizontal } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Slider } from '@/components/ui/slider';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 interface BorderRadiusControlProps {
   value: number;
   onChange: (value: number) => void;
 }
 
+const QUICK_PRESETS = [
+  { label: 'Reto', value: 0 },
+  { label: 'Sutil', value: 4 },
+  { label: 'Médio', value: 8 },
+  { label: 'Suave', value: 12 },
+  { label: 'Redondo', value: 20 },
+];
+
 export function BorderRadiusControl({ value, onChange }: BorderRadiusControlProps) {
   const r = `${value}px`;
 
   return (
     <Card>
-      <CardContent className="p-6">
+      <CardContent className="p-5 sm:p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-sm font-display font-semibold text-foreground">Raio da Borda</h2>
+          <div className="flex items-center gap-2">
+            <SlidersHorizontal className="h-4 w-4 text-primary" />
+            <h2 className="text-sm font-display font-semibold text-foreground">Raio da Borda</h2>
+          </div>
           <span className="text-sm font-mono font-semibold text-foreground bg-muted px-3 py-1 rounded-md">
             {value}px
           </span>
+        </div>
+
+        {/* Quick presets */}
+        <div className="flex gap-1.5 mb-4 flex-wrap">
+          {QUICK_PRESETS.map((preset) => (
+            <button
+              key={preset.value}
+              onClick={() => onChange(preset.value)}
+              className={cn(
+                'text-[11px] font-medium px-3 py-1.5 rounded-md transition-all',
+                value === preset.value
+                  ? 'bg-primary text-primary-foreground shadow-sm'
+                  : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'
+              )}
+            >
+              {preset.label}
+            </button>
+          ))}
         </div>
 
         {/* Slider */}
@@ -31,6 +61,7 @@ export function BorderRadiusControl({ value, onChange }: BorderRadiusControlProp
             step={1}
             onValueChange={([v]) => onChange(v)}
             className="my-2"
+            aria-label="Raio da borda em pixels"
           />
           <div className="flex justify-between mt-1">
             <span className="text-[10px] text-muted-foreground">0</span>
