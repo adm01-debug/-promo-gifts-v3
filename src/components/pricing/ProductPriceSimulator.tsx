@@ -1,9 +1,10 @@
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Calculator, Package, Paintbrush, Palette, Check, Plus, X, ChevronRight } from 'lucide-react';
+import { Calculator, Package, Paintbrush, Palette, Check, Plus, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import {
@@ -28,47 +29,67 @@ interface ProductPriceSimulatorProps {
 
 type SimulatorMode = 'list' | 'adding';
 
-// Step indicator melhorado
-function SimulatorStep({
-  number,
-  label,
-  isActive,
-  isComplete,
-  icon: Icon,
+// ── Progress bar conectada (#4) ──
+function StepProgressBar({
+  steps,
+  currentStep,
 }: {
-  number: number;
-  label: string;
-  isActive: boolean;
-  isComplete: boolean;
-  icon: React.ElementType;
+  steps: { number: number; label: string; icon: React.ElementType }[];
+  currentStep: number;
 }) {
   return (
-    <div className="flex items-center gap-2">
-      <div
-        className={cn(
-          'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all',
-          isComplete
-            ? 'bg-green-500 text-primary-foreground'
-            : isActive
-            ? 'bg-primary text-primary-foreground shadow-md'
-            : 'bg-muted text-muted-foreground'
-        )}
-      >
-        {isComplete ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
-      </div>
-      <span
-        className={cn(
-          'text-sm font-medium hidden md:inline transition-colors',
-          isActive ? 'text-foreground' : isComplete ? 'text-green-600' : 'text-muted-foreground'
-        )}
-      >
-        {label}
-      </span>
+    <div className="flex items-center w-full pb-4 border-b border-border overflow-x-auto gap-0">
+      {steps.map((step, idx) => {
+        const isComplete = step.number < currentStep;
+        const isActive = step.number === currentStep;
+        const Icon = step.icon;
+
+        return (
+          <div key={step.number} className="flex items-center flex-1 min-w-0 last:flex-none">
+            {/* Step circle */}
+            <div className="flex flex-col items-center gap-1 shrink-0">
+              <div
+                className={cn(
+                  'w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-300',
+                  isComplete
+                    ? 'bg-success text-success-foreground'
+                    : isActive
+                    ? 'bg-primary text-primary-foreground shadow-md ring-2 ring-primary/30'
+                    : 'bg-muted text-muted-foreground'
+                )}
+              >
+                {isComplete ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+              </div>
+              <span
+                className={cn(
+                  'text-[10px] font-medium hidden md:block transition-colors whitespace-nowrap',
+                  isActive ? 'text-foreground' : isComplete ? 'text-success' : 'text-muted-foreground'
+                )}
+              >
+                {step.label}
+              </span>
+            </div>
+
+            {/* Connector line */}
+            {idx < steps.length - 1 && (
+              <div className="flex-1 h-0.5 mx-2 rounded-full transition-colors duration-300"
+                style={{
+                  background: isComplete
+                    ? 'hsl(var(--success))'
+                    : 'hsl(var(--border))',
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
     </div>
   );
 }
 
 export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps) {
+  const navigate = useNavigate();
+
   // Estado do produto
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
@@ -88,7 +109,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
   const MAX_ENGRAVINGS = 5;
 
-  // Fetch real variants from external DB (with size_code support)
+  // Fetch real variants from external DB
   const { data: dbVariants } = useQuery({
     queryKey: ['simulator-variants', selectedProduct?.id],
     queryFn: async () => {
@@ -116,7 +137,6 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
     staleTime: 5 * 60 * 1000,
   });
 
-  // Build ProductVariant[] from DB variants (preferred) or fallback to product colors
   const productVariants: ProductVariant[] = useMemo(() => {
     if (dbVariants && dbVariants.length > 0) {
       return dbVariants.map(v => ({
@@ -128,7 +148,6 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
         sale_price: v.sale_price,
       }));
     }
-    // Fallback to product colors
     if (!selectedProduct?.colors) return [];
     return (selectedProduct.colors as ProductColor[]).map((c) => ({
       code: c.code,
@@ -199,7 +218,6 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
   const hasEngravings = engravings.length > 0;
   const showResults = selectedProduct && hasEngravings && (!hasVariants || selectedVariant);
 
-  // Determinar o passo atual (5 passos: Produto, Cor, Gravação, Opções, Resultado)
   const getCurrentStep = () => {
     if (!selectedProduct) return 1;
     if (needsVariantSelection) return 2;
@@ -221,12 +239,24 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
     { number: 5, label: 'Resultado', icon: Calculator },
   ];
 
+  // #9 — CTA para criar orçamento
+  const handleCreateQuote = useCallback(() => {
+    navigate('/orcamentos', {
+      state: {
+        fromSimulator: true,
+        product: selectedProduct,
+        engravings,
+        quantity,
+      },
+    });
+  }, [navigate, selectedProduct, engravings, quantity]);
+
   return (
     <Card className={className}>
       <CardHeader className="pb-4">
         <div className="flex items-center gap-2">
           <Calculator className="w-5 h-5 text-primary" />
-          <CardTitle>Simulador de Preços</CardTitle>
+          <CardTitle className="font-display">Simulador por Produto</CardTitle>
         </div>
         <CardDescription>
           Configure produto, cores e personalizações para simular o orçamento
@@ -234,32 +264,11 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
       </CardHeader>
 
       <CardContent className="space-y-6">
-        {/* Step indicator */}
-        <div className="flex items-center justify-between pb-4 border-b overflow-x-auto">
-          {steps.map((step, idx) => (
-            <div key={step.number} className="flex items-center">
-              <SimulatorStep
-                number={step.number}
-                label={step.label}
-                icon={step.icon}
-                isActive={step.number === currentStep}
-                isComplete={
-                  step.number === 1 ? !!selectedProduct :
-                  step.number === 2 ? (!hasVariants || !!selectedVariant) && !!selectedProduct :
-                  step.number === 3 ? hasEngravings :
-                  step.number === 4 ? mode !== 'adding' && hasEngravings :
-                  false
-                }
-              />
-              {idx < steps.length - 1 && (
-                <ChevronRight className="w-4 h-4 text-muted-foreground mx-1 shrink-0" />
-              )}
-            </div>
-          ))}
-        </div>
+        {/* #4 — Progress bar conectada */}
+        <StepProgressBar steps={steps} currentStep={currentStep} />
 
         {/* Step 1: Produto */}
-        <div className="space-y-3">
+        <div className="space-y-3 animate-fade-in">
           <div className="flex items-center justify-between">
             <h3 className="font-medium flex items-center gap-2">
               <Package className="w-4 h-4 text-primary" />
@@ -276,7 +285,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
           )}
           {selectedProduct && (
             <div className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
-              <Check className="w-5 h-5 text-green-500 shrink-0" />
+              <Check className="w-5 h-5 text-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="font-medium truncate block">{selectedProduct.name}</span>
                 <span className="text-xs text-muted-foreground">SKU: {selectedProduct.sku}</span>
@@ -286,9 +295,9 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
           )}
         </div>
 
-        {/* Step 2: Variação/Cor do Produto (condicional) */}
+        {/* Step 2: Variação/Cor */}
         {selectedProduct && hasVariants && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
               <h3 className="font-medium flex items-center gap-2">
                 <Palette className="w-4 h-4 text-primary" />
@@ -306,7 +315,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
         {/* Step 3: Gravações */}
         {selectedProduct && (!hasVariants || selectedVariant) && (
-          <div className="space-y-3">
+          <div className="space-y-3 animate-fade-in">
             <div className="flex items-center justify-between">
               <h3 className="font-medium flex items-center gap-2">
                 <Paintbrush className="w-4 h-4 text-primary" />
@@ -325,7 +334,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
             )}
 
             {mode === 'adding' && (
-              <div className="space-y-4 p-4 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5">
+              <div className="space-y-4 p-4 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Nova Gravação</h4>
                   <Button variant="ghost" size="sm" onClick={handleCancelAddEngraving}>
@@ -334,7 +343,6 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                   </Button>
                 </div>
 
-                {/* Seletor de Técnica (Local → Técnica) */}
                 {!currentTechnique && (
                   <TechniqueSelector
                     productId={selectedProduct.id}
@@ -343,12 +351,10 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                   />
                 )}
 
-                {/* Opções de Personalização */}
                 {currentTechnique && (
-                  <div className="space-y-4">
-                    {/* Resumo da técnica selecionada */}
+                  <div className="space-y-4 animate-fade-in">
                     <div className="p-3 rounded-lg bg-background border flex items-center gap-3">
-                      <Check className="w-5 h-5 text-green-500 shrink-0" />
+                      <Check className="w-5 h-5 text-success shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm">{currentTechnique.techniqueName}</p>
                         <p className="text-xs text-muted-foreground">
@@ -360,7 +366,6 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                       </Button>
                     </div>
 
-                    {/* Opções (Cores da gravação, Tamanho) */}
                     <div className="space-y-3">
                       <h4 className="text-sm font-medium flex items-center gap-2">
                         <Palette className="w-4 h-4 text-primary" />
@@ -376,7 +381,6 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
                       />
                     </div>
 
-                    {/* Botão Confirmar */}
                     <Button className="w-full" onClick={handleConfirmEngraving}>
                       <Plus className="w-4 h-4 mr-2" />
                       Adicionar Gravação
@@ -390,7 +394,7 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
         {/* Step 4: Resultados */}
         {showResults && mode === 'list' && (
-          <div className="space-y-3">
+          <div className="space-y-4 animate-fade-in">
             <h3 className="font-medium flex items-center gap-2">
               <Calculator className="w-4 h-4 text-primary" />
               {hasVariants ? '4' : '3'}. Quantidade e Resultado
@@ -401,6 +405,16 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               quantity={quantity}
               onQuantityChange={setQuantity}
             />
+
+            {/* #9 — CTA Criar Orçamento */}
+            <Button
+              size="lg"
+              className="w-full gap-2 font-display font-semibold"
+              onClick={handleCreateQuote}
+            >
+              <FileText className="w-5 h-5" />
+              Criar Orçamento a partir desta Simulação
+            </Button>
           </div>
         )}
       </CardContent>

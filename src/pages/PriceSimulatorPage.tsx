@@ -3,58 +3,54 @@ import { PageSEO } from '@/components/seo/PageSEO';
 import { ProductPriceSimulator } from '@/components/pricing/ProductPriceSimulator';
 import { QuantityPriceCalculator } from '@/components/pricing/QuantityPriceCalculator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
 import { 
   Calculator, 
   Package,
-  Zap,
+  BarChart3,
 } from 'lucide-react';
 
 export default function PriceSimulatorPage() {
   return (
     <MainLayout>
-      <PageSEO title="Simulador de Preços" description="Simule preços de brindes com personalização, quantidades e custos." path="/simulador" />
+      <PageSEO title="Simulador de Preços" description="Simule preços de brindes com personalização, quantidades e custos." path="/simulador-precos" />
       <div className="container mx-auto py-6 space-y-6">
-        {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-3">
-              <Calculator className="w-8 h-8 text-primary" />
-              Simulador de Preços
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              Calcule preços de personalização com base no produto e quantidade
-            </p>
-          </div>
-          <Badge variant="outline" className="w-fit">
-            <Zap className="w-3 h-3 mr-1" />
-            Preços em tempo real
-          </Badge>
+        {/* Hero Header — #1 */}
+        <div className="flex flex-col gap-1">
+          <h1 className="font-display text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            Simulador de Preços
+          </h1>
+          <p className="text-sm text-muted-foreground max-w-lg">
+            Calcule o preço exato de qualquer produto com personalização, compare técnicas e gere orçamentos em segundos.
+          </p>
         </div>
 
-        {/* Tabs for different modes */}
+        {/* Tabs com contexto — #2 */}
         <Tabs defaultValue="by-product" className="w-full">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
-            <TabsTrigger value="by-product" className="gap-2">
+          <TabsList className="grid w-full max-w-lg grid-cols-2 h-auto p-1">
+            <TabsTrigger value="by-product" className="gap-2 py-2.5 data-[state=active]:shadow-md">
               <Package className="w-4 h-4" />
-              Por Produto
+              <div className="flex flex-col items-start text-left">
+                <span className="text-xs sm:text-sm font-medium">Por Produto</span>
+                <span className="text-[10px] text-muted-foreground hidden sm:block font-normal">Configure e veja o preço final</span>
+              </div>
             </TabsTrigger>
-            <TabsTrigger value="by-quantity" className="gap-2">
-              <Calculator className="w-4 h-4" />
-              Por Tiragem
+            <TabsTrigger value="by-quantity" className="gap-2 py-2.5 data-[state=active]:shadow-md">
+              <BarChart3 className="w-4 h-4" />
+              <div className="flex flex-col items-start text-left">
+                <span className="text-xs sm:text-sm font-medium">Por Tiragem</span>
+                <span className="text-[10px] text-muted-foreground hidden sm:block font-normal">Compare preços em diferentes quantidades</span>
+              </div>
             </TabsTrigger>
           </TabsList>
 
-          <TabsContent value="by-product" className="mt-6">
+          <TabsContent value="by-product" className="mt-6 animate-fade-in">
             <ProductPriceSimulator />
           </TabsContent>
 
-          <TabsContent value="by-quantity" className="mt-6">
+          <TabsContent value="by-quantity" className="mt-6 animate-fade-in">
             <QuantityPriceCalculator 
               productBasePrice={0}
-              onSelectTechnique={() => {
-                // Handler para técnica selecionada
-              }}
+              onSelectTechnique={() => {}}
             />
           </TabsContent>
         </Tabs>
