@@ -335,7 +335,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   <div className={cn(
                     "rounded-xl p-4 border",
                     phase === "speaking"
-                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      ? "bg-success/10 border-success/20"
                       : "bg-primary/5 border-primary/20"
                   )}>
                     <div className="flex items-start gap-3">
