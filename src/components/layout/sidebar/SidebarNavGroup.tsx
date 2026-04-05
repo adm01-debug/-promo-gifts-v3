@@ -227,9 +227,6 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           <span className="flex-1 text-left text-xs font-semibold uppercase tracking-wider">
             {group.label}
           </span>
-          <span className="text-[10px] text-sidebar-foreground/25 tabular-nums mr-1">
-            {group.items.filter(item => !item.isCta).length}
-          </span>
           <ChevronDown
             className={cn(
               "h-3.5 w-3.5 transition-transform duration-300 text-sidebar-foreground/30",
