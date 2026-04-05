@@ -6,6 +6,7 @@ import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import { SpectrumWaveform } from "./voice/VoiceVisualEffects";
 import { VoiceOrb } from "./voice/VoiceOrb";
+import { FloatingParticles } from "./voice/FloatingParticles";
 
 interface VoiceSearchOverlayProps {
   isOpen: boolean;
@@ -159,6 +160,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               }
               onClick={onClose}
             />
+
+            {/* Floating particles */}
+            <FloatingParticles phase={phase} isBooting={showBooting} />
 
             {/* Centered card */}
             <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
