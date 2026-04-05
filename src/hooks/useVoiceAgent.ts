@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useScribe } from "@elevenlabs/react";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "./voice/playTtsAudio";
 import { processVoiceTranscript } from "./voice/processTranscript";
@@ -9,17 +10,6 @@ import type { VoiceAgentAction, VoiceAgentPhase, UseVoiceAgentOptions } from "./
 // Re-export types for consumers
 export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 
-/**
- * Scribe connection managed imperatively via ref.
- * @elevenlabs/react is dynamically imported only when startListening() is called,
- * saving ~205KB from the initial bundle.
- */
-interface ScribeRef {
-  connect: (opts: { token: string; microphone: MediaTrackConstraints }) => Promise<void>;
-  disconnect: () => void;
-  isConnected: boolean;
-}
-
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
   const [phase, setPhase] = useState<VoiceAgentPhase>("idle");
   const [partialTranscript, setPartialTranscript] = useState("");
@@ -27,10 +17,8 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   const [agentResponse, setAgentResponse] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [currentAction, setCurrentAction] = useState<VoiceAgentAction | null>(null);
-  const [isConnected, setIsConnected] = useState(false);
   const stopSpeakingRef = useRef<(() => void) | null>(null);
   const isProcessingRef = useRef(false);
-  const scribeRef = useRef<ScribeRef | null>(null);
 
   const processTranscript = useCallback(async (text: string) => {
     if (isProcessingRef.current || !text.trim()) return;
@@ -79,50 +67,20 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     }
   }, [onAction, onError]);
 
-  /**
-   * Lazily load @elevenlabs/react and create a scribe instance.
-   * Only called on first startListening(), subsequent calls reuse the instance.
-   */
-  const getOrCreateScribe = useCallback(async (): Promise<ScribeRef> => {
-    if (scribeRef.current) return scribeRef.current;
-
-    // Dynamic import — only loads the 205KB bundle when voice is first activated
-    const { ScribeClient } = await import("@elevenlabs/react");
-
-    const client = new ScribeClient();
-
-    // Wire up transcript callbacks
-    client.on("partialTranscript", (data: { text: string }) => {
+  // ElevenLabs Scribe for STT
+  const scribe = useScribe({
+    modelId: "scribe_v2_realtime",
+    commitStrategy: "vad",
+    onPartialTranscript: (data) => {
       setPartialTranscript(data.text);
-    });
-
-    client.on("committedTranscript", (data: { text: string }) => {
+    },
+    onCommittedTranscript: (data) => {
       if (data.text.trim()) {
         setPartialTranscript("");
         processTranscript(data.text.trim());
       }
-    });
-
-    client.on("connected", () => setIsConnected(true));
-    client.on("disconnected", () => setIsConnected(false));
-
-    const instance: ScribeRef = {
-      connect: async (opts) => {
-        await client.connect({
-          ...opts,
-          modelId: "scribe_v2_realtime",
-          commitStrategy: "vad",
-        });
-      },
-      disconnect: () => {
-        try { client.disconnect(); } catch {}
-      },
-      get isConnected() { return client.isConnected ?? false; },
-    };
-
-    scribeRef.current = instance;
-    return instance;
-  }, [processTranscript]);
+    },
+  });
 
   const startListening = useCallback(async () => {
     setError(null);
@@ -138,7 +96,6 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         throw new Error("Não foi possível obter token de transcrição");
       }
 
-      const scribe = await getOrCreateScribe();
       await scribe.connect({
         token: data.token,
         microphone: {
@@ -153,10 +110,10 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       onError?.(message);
       setTimeout(() => setPhase("idle"), 3000);
     }
-  }, [getOrCreateScribe, onError]);
+  }, [scribe, onError]);
 
   const stopListening = useCallback(() => {
-    scribeRef.current?.disconnect();
+    scribe.disconnect();
     if (phase === "listening") {
       if (partialTranscript.trim()) {
         processTranscript(partialTranscript.trim());
@@ -164,7 +121,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         setPhase("idle");
       }
     }
-  }, [phase, partialTranscript, processTranscript]);
+  }, [scribe, phase, partialTranscript, processTranscript]);
 
   const stopSpeaking = useCallback(() => {
     stopSpeakingRef.current?.();
@@ -173,7 +130,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   }, []);
 
   const reset = useCallback(() => {
-    scribeRef.current?.disconnect();
+    scribe.disconnect();
     stopSpeakingRef.current?.();
     stopSpeakingRef.current = null;
     setPhase("idle");
@@ -183,7 +140,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setError(null);
     setCurrentAction(null);
     isProcessingRef.current = false;
-  }, []);
+  }, [scribe]);
 
   return {
     phase,
@@ -192,7 +149,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     agentResponse,
     error,
     currentAction,
-    isConnected,
+    isConnected: scribe.isConnected,
     startListening,
     stopListening,
     stopSpeaking,
