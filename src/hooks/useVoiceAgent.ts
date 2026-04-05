@@ -91,6 +91,25 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setPhase("listening");
 
     try {
+      // Check mic availability before requesting token
+      if (navigator.mediaDevices?.getUserMedia) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          stream.getTracks().forEach((t) => t.stop());
+        } catch (micErr) {
+          const micError = micErr as Error;
+          if (micError.name === "NotAllowedError" || micError.name === "PermissionDeniedError") {
+            throw new Error("microphone permission denied");
+          }
+          if (micError.name === "NotFoundError" || micError.name === "DevicesNotFoundError") {
+            throw new Error("Nenhum microfone encontrado. Conecte um microfone e tente novamente.");
+          }
+          throw new Error("Não foi possível acessar o microfone. Verifique as permissões do navegador.");
+        }
+      } else {
+        throw new Error("Seu navegador não suporta acesso ao microfone.");
+      }
+
       const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
       if (tokenError || !data?.token) {
         throw new Error("Não foi possível obter token de transcrição");
@@ -108,7 +127,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       setError(message);
       setPhase("error");
       onError?.(message);
-      setTimeout(() => setPhase("idle"), 3000);
+      setTimeout(() => setPhase("idle"), 5000);
     }
   }, [scribe, onError]);
 
