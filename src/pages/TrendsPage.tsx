@@ -420,7 +420,7 @@ export default function TrendsPage() {
                               </Badge>
                             )}
                             {product.favorites > 0 && (
-                              <Badge variant="outline" className="text-xs text-pink-500">
+                              <Badge variant="outline" className="text-xs text-primary">
                                 ♥ {product.favorites}
                               </Badge>
                             )}

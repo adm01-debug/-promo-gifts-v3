@@ -59,7 +59,7 @@ const statusConfig: Record<
   { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
 > = {
   draft: { label: "Rascunho", variant: "secondary", className: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30" },
-  pending: { label: "Pendente", variant: "outline", className: "bg-blue-500/15 text-blue-400 border-blue-500/30" },
+  pending: { label: "Pendente", variant: "outline", className: "bg-primary/15 text-primary border-primary/30" },
   sent: { label: "Enviado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
   approved: { label: "Aprovado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
   rejected: { label: "Rejeitado", variant: "destructive", className: "bg-red-500/15 text-red-400 border-red-500/30" },
@@ -272,8 +272,8 @@ export default function QuotesListPage() {
             </Card>
             <Card className="border-border/50">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-blue-500/15 flex items-center justify-center shrink-0">
-                  <Clock className="h-4 w-4 text-blue-400" />
+                <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4 text-primary" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Pendentes</p>

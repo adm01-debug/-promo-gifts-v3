@@ -159,8 +159,8 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
 
           <div className="flex items-center gap-1.5 flex-wrap">
             {item.isPackaging && <SmartBadge icon={Package} tooltip="Este componente é a embalagem do kit." className="bg-amber-500/10 text-amber-700 dark:text-amber-400 border-amber-500/30">Embalagem</SmartBadge>}
-            {item.isOptional && <SmartBadge tooltip="Item opcional — pode ser removido do kit." className="bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/30">Opcional</SmartBadge>}
-            {item.isReplaceable && <SmartBadge icon={Settings2} tooltip="Item substituível." className="bg-violet-500/10 text-violet-700 dark:text-violet-400 border-violet-500/30">Substituível</SmartBadge>}
+            {item.isOptional && <SmartBadge tooltip="Item opcional — pode ser removido do kit." className="bg-primary/10 text-primary border-primary/30">Opcional</SmartBadge>}
+            {item.isReplaceable && <SmartBadge icon={Settings2} tooltip="Item substituível." className="bg-primary/15 text-primary/80 border-primary/25">Substituível</SmartBadge>}
             {item.allowsPersonalization && <SmartBadge icon={Palette} tooltip="Aceita personalização." className="text-primary border-primary/30 bg-primary/5">Personalizável</SmartBadge>}
             {item.color && <Badge variant="secondary" className="text-[10px] px-2 py-0.5 gap-1">Cor: {item.color}</Badge>}
             <SmartBadge icon={Layers} tooltip="Material principal do item." className="bg-muted/40 text-foreground border-border">{item.material || "—"}</SmartBadge>

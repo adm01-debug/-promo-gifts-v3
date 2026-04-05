@@ -39,7 +39,7 @@ const ROLES: { value: AppRole; label: string; description: string; icon: React.R
     value: 'vendedor', 
     label: 'Vendedor', 
     description: 'Acesso às funcionalidades de vendas',
-    icon: <Users className="h-5 w-5 text-blue-500" />
+    icon: <Users className="h-5 w-5 text-primary" />
   },
 ];
 

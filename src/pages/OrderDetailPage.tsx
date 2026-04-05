@@ -19,9 +19,9 @@ import { useAuth } from "@/contexts/AuthContext";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   pending: { label: "Pendente", color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30" },
-  confirmed: { label: "Confirmado", color: "bg-blue-500/20 text-blue-400 border-blue-500/30" },
-  in_production: { label: "Em Produção", color: "bg-purple-500/20 text-purple-400 border-purple-500/30" },
-  shipped: { label: "Enviado", color: "bg-cyan-500/20 text-cyan-400 border-cyan-500/30" },
+  confirmed: { label: "Confirmado", color: "bg-primary/20 text-primary border-primary/30" },
+  in_production: { label: "Em Produção", color: "bg-primary/15 text-primary/80 border-primary/25" },
+  shipped: { label: "Enviado", color: "bg-primary/10 text-primary/70 border-primary/20" },
   delivered: { label: "Entregue", color: "bg-primary/20 text-primary border-primary/30" },
   cancelled: { label: "Cancelado", color: "bg-red-500/20 text-red-400 border-red-500/30" },
 };
