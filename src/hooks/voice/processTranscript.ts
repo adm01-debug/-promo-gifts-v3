@@ -10,14 +10,31 @@ export async function processVoiceTranscript(transcript: string): Promise<VoiceA
   const timeout = setTimeout(() => controller.abort(), 15000);
 
   try {
-    const { data, error } = await supabase.functions.invoke("voice-agent", {
-      body: { transcript },
-    });
+    const response = await fetch(
+      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-agent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+          Authorization: `Bearer ${(await (await import("@/integrations/supabase/client")).supabase.auth.getSession()).data.session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ transcript }),
+        signal: controller.signal,
+      }
+    );
 
-    if (error) {
-      throw new Error(error.message || "AI processing failed");
+    if (!response.ok) {
+      throw new Error(`AI processing failed: ${response.status}`);
     }
+
+    const data = await response.json();
     return validateAction(data as VoiceAgentAction);
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "AbortError") {
+      throw new Error("timeout");
+    }
+    throw err;
   } finally {
     clearTimeout(timeout);
   }
