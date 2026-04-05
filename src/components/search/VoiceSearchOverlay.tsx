@@ -96,6 +96,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
 
     if (phase !== "idle") {
       setIsAutoStarting(false);
+      hasAutoStarted.current = true;
     }
 
     prevPhaseRef.current = phase;

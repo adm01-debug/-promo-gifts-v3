@@ -122,7 +122,6 @@ describe("VoiceSearchOverlay", () => {
     rerender(<VoiceSearchOverlay {...defaultProps} isOpen={true} phase="listening" />);
     // Return to idle after listening — suggestions should appear
     rerender(<VoiceSearchOverlay {...defaultProps} isOpen={true} phase="idle" />);
-    act(() => { vi.advanceTimersByTime(300); });
     const chip = screen.getByText(/"Quero canetas azuis baratas"/);
     fireEvent.click(chip);
     expect(defaultProps.onCommandSelect).toHaveBeenCalledWith("Quero canetas azuis baratas");
