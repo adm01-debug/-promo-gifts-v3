@@ -173,7 +173,7 @@ export default function FiltersPage() {
               ) : (
                 <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
                   <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-foreground">Nenhum produto encontrado</h3>
+                  <h3 className="text-lg font-medium font-display text-foreground">Nenhum produto encontrado</h3>
                   <p className="text-muted-foreground mt-1 mb-4">Tente ajustar os filtros para ver mais resultados</p>
                   <Button variant="outline" onClick={state.handleReset}>Limpar filtros</Button>
                 </div>
