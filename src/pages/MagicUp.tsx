@@ -262,7 +262,7 @@ export default function MagicUp() {
                     {m.currentImage && (
                       <div className="w-24 h-24 rounded-lg overflow-hidden bg-background border shrink-0">
                         
-<img src={m.currentImage} alt={m.selectedProduct.name} className="w-full h-full object-contain" loading="lazy" loading="lazy" />
+<img src={m.currentImage} alt={m.selectedProduct.name} className="w-full h-full object-contain" loading="lazy" />
                       </div>
                     )}
                     <div className="flex-1 min-w-0 space-y-2">
