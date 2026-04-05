@@ -345,7 +345,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       )}>
                         <MessageCircle className={cn(
                           "h-4 w-4",
-                          phase === "speaking" ? "text-emerald-500" : "text-primary"
+                          phase === "speaking" ? "text-success" : "text-primary"
                         )} />
                       </div>
                       <div>
