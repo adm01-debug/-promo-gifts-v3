@@ -27,6 +27,8 @@ const PHASE_CONFIG: Record<string, { count: number; speed: number; hueRange: [nu
   booting: { count: 15, speed: 0.2, hueRange: [220, 260], sizeRange: [1, 2] },
 };
 
+const CONNECTION_DIST = 120;
+
 function lerp(a: number, b: number, t: number) { return a + (b - a) * t; }
 
 export const FloatingParticles: React.FC<FloatingParticlesProps> = React.memo(({ phase, isBooting }) => {
