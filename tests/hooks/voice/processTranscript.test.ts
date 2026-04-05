@@ -1,15 +1,18 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock supabase before importing the module
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: {
-    auth: {
-      getSession: vi.fn().mockResolvedValue({
-        data: { session: { access_token: "test-token-123" } },
-      }),
+vi.mock("@/integrations/supabase/client", () => {
+  return {
+    supabase: {
+      auth: {
+        getSession: () =>
+          Promise.resolve({
+            data: { session: { access_token: "test-token-123" } },
+          }),
+      },
     },
-  },
-}));
+  };
+});
 
 // Must import after mocks are set up
 import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
