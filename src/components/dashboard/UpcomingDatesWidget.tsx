@@ -173,7 +173,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
       className={cn(
         "flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all",
         "hover:border-primary hover:bg-primary/5",
-        isToday && "border-green-500 bg-green-50 dark:bg-green-950/30",
+        isToday && "border-success bg-success/10",
         isThisWeek && !isToday && "border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20"
       )}
     >
@@ -195,7 +195,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
         className={cn(
           "text-[10px] font-bold px-2 py-0.5 rounded-full",
           isToday
-            ? "bg-green-500 text-primary-foreground"
+            ? "bg-success text-success-foreground"
             : isThisWeek
             ? "bg-amber-500 text-primary-foreground"
             : "bg-muted text-muted-foreground"
@@ -219,7 +219,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
         "w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left",
         "hover:border-primary hover:bg-primary/5",
         isFirst && "border-primary/50 bg-primary/5",
-        isToday && "border-green-500 bg-green-50 dark:bg-green-950/30",
+        isToday && "border-success bg-success/10",
         isThisWeek && !isToday && !isFirst && "border-amber-500/30"
       )}
     >
@@ -263,7 +263,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
           className={cn(
             "text-xs font-bold px-2 py-1 rounded",
             isToday
-              ? "bg-green-500 text-primary-foreground"
+              ? "bg-success text-success-foreground"
               : isThisWeek
               ? "bg-amber-500 text-primary-foreground"
               : "bg-muted text-foreground"

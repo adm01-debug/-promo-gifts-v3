@@ -32,7 +32,7 @@ export function GlassCard({
         blurLevels[blur],
         border && "border border-white/20 dark:border-white/10",
         gradient && "bg-gradient-to-br from-white/10 to-white/5 dark:from-white/5 dark:to-white/[0.02]",
-        !gradient && `bg-white/${opacity} dark:bg-gray-900/${opacity}`,
+        !gradient && `bg-background/${opacity}`,
         "shadow-lg shadow-black/5",
         className
       )}
@@ -107,10 +107,10 @@ export function GlassButton({
       disabled={disabled}
       className={cn(
         "px-4 py-2 rounded-lg",
-        "backdrop-blur-md bg-white/10 dark:bg-white/5",
+        "backdrop-blur-md bg-background/10",
         "border border-white/20 dark:border-white/10",
         "text-foreground font-medium",
-        "hover:bg-white/20 dark:hover:bg-white/10",
+        "hover:bg-background/20",
         "active:scale-[0.98]",
         "transition-all duration-200",
         "disabled:opacity-50 disabled:cursor-not-allowed",
@@ -177,7 +177,7 @@ export function GlassInput({
     <input
       className={cn(
         "w-full px-4 py-2 rounded-lg",
-        "backdrop-blur-sm bg-white/10 dark:bg-white/5",
+        "backdrop-blur-sm bg-background/10",
         "border border-white/20 dark:border-white/10",
         "text-foreground placeholder:text-muted-foreground",
         "focus:outline-none focus:ring-2 focus:ring-primary/50",

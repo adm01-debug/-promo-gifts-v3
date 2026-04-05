@@ -30,9 +30,9 @@ const variantStyles: Record<TooltipVariant, {
     iconColor: "text-muted-foreground"
   },
   info: {
-    bg: "bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800",
+    bg: "bg-info/10 border-info/30",
     icon: Info,
-    iconColor: "text-blue-500"
+    iconColor: "text-info"
   },
   tip: {
     bg: "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800",
@@ -40,9 +40,9 @@ const variantStyles: Record<TooltipVariant, {
     iconColor: "text-amber-500"
   },
   warning: {
-    bg: "bg-red-50 dark:bg-red-950 border-red-200 dark:border-red-800",
+    bg: "bg-destructive/10 border-destructive/30",
     icon: AlertTriangle,
-    iconColor: "text-red-500"
+    iconColor: "text-destructive"
   }
 };
 
@@ -178,7 +178,7 @@ export function FieldHelper({ label, help, required, children }: FieldHelperProp
       <div className="flex items-center gap-2">
         <label className="text-sm font-medium text-foreground">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="text-destructive ml-1">*</span>}
         </label>
         <InfoTooltip text={help} />
       </div>
@@ -232,10 +232,10 @@ interface StatusTooltipProps {
 }
 
 const statusColors = {
-  success: "bg-green-500",
+  success: "bg-success",
   warning: "bg-amber-500",
-  error: "bg-red-500",
-  pending: "bg-blue-500",
+  error: "bg-destructive",
+  pending: "bg-info",
   neutral: "bg-muted-foreground"
 };
 
