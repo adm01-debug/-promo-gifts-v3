@@ -135,7 +135,7 @@ export function LogoPreviewCanvas({
         {logoPreview && (
           <div className="absolute top-2 left-2 flex flex-col gap-1">
             <Badge variant="secondary" className="bg-background/90 backdrop-blur-sm text-[10px] gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+              <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
               Preview em tempo real
             </Badge>
             {techniqueColorConfig && (

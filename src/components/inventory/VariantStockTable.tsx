@@ -59,20 +59,20 @@ const STATUS_CONFIG: Record<StockStatus, {
   },
   low_stock: { 
     label: 'Baixo', 
-    color: 'text-amber-600',
-    bgColor: 'bg-amber-500/10 border-amber-500/20',
+    color: 'text-warning',
+    bgColor: 'bg-warning/10 border-warning/20',
     icon: <TrendingDown className="h-4 w-4" />
   },
   critical: { 
     label: 'Crítico', 
-    color: 'text-red-600',
-    bgColor: 'bg-red-500/10 border-red-500/20',
+    color: 'text-destructive',
+    bgColor: 'bg-destructive/10 border-destructive/20',
     icon: <AlertTriangle className="h-4 w-4" />
   },
   out_of_stock: { 
     label: 'Esgotado', 
-    color: 'text-red-700',
-    bgColor: 'bg-red-600/10 border-red-600/20',
+    color: 'text-destructive',
+    bgColor: 'bg-destructive/10 border-destructive/20',
     icon: <XCircle className="h-4 w-4" />
   },
   overstocked: { 

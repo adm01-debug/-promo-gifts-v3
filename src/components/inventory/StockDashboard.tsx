@@ -285,7 +285,7 @@ export function StockDashboard() {
         <StatCard
           title="Sem Estoque"
           value={summary.productsOutOfStock.toLocaleString('pt-BR')}
-          icon={<XCircle className="h-6 w-6 text-red-600" />}
+          icon={<XCircle className="h-6 w-6 text-destructive" />}
           variant="error"
         />
         <StatCard
