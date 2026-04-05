@@ -154,8 +154,7 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
         <p className="text-xs text-muted-foreground">{alert.message}</p>
         <p className="text-xs text-muted-foreground mt-1">SKU: {alert.productSku}</p>
       </div>
-      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss}>
-        <X className="h-3 w-3" />
+      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss} aria-label="Fechar"><X className="h-3 w-3" />
       </Button>
     </div>
   );
@@ -346,8 +345,7 @@ export function StockDashboard() {
               </SelectContent>
             </Select>
             {(filters.search || filters.status !== 'all') && (
-              <Button variant="ghost" onClick={resetFilters} size="icon">
-                <X className="h-4 w-4" />
+              <Button variant="ghost" onClick={resetFilters} size="icon" aria-label="Fechar"><X className="h-4 w-4" />
               </Button>
             )}
           </div>

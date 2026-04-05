@@ -197,8 +197,7 @@ export function DraggableWidget({
                 size="icon"
                 className="h-7 w-7"
                 onClick={onRefresh}
-              >
-                <RefreshCw className="h-3.5 w-3.5" />
+               aria-label="Atualizar"><RefreshCw className="h-3.5 w-3.5" />
               </Button>
             )}
 
@@ -234,8 +233,7 @@ export function DraggableWidget({
 
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
-                      <Settings2 className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Settings2"><Settings2 className="h-3.5 w-3.5" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-48">
@@ -264,8 +262,7 @@ export function DraggableWidget({
                     size="icon"
                     className="h-7 w-7 text-destructive hover:text-destructive"
                     onClick={onRemove}
-                  >
-                    <X className="h-3.5 w-3.5" />
+                   aria-label="Fechar"><X className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </>

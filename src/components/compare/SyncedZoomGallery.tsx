@@ -103,8 +103,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
           onClick={handleZoomOut}
           disabled={zoom <= 1}
           className="h-8 w-8"
-        >
-          <ZoomOut className="h-4 w-4" />
+         aria-label="Reduzir"><ZoomOut className="h-4 w-4" />
         </Button>
         
         <div className="flex items-center gap-3 w-48">
@@ -139,8 +138,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
           onClick={resetView}
           disabled={zoom === 1 && pan.x === 0 && pan.y === 0}
           className="h-8 w-8"
-        >
-          <RotateCcw className="h-4 w-4" />
+         aria-label="Rotacionar"><RotateCcw className="h-4 w-4" />
         </Button>
 
         {!inDialog && (

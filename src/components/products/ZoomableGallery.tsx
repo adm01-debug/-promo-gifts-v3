@@ -262,8 +262,7 @@ export function ZoomableGallery({
                   "transition-all duration-200 border-0"
                 )}
                 onClick={goToPrevious}
-              >
-                <ChevronLeft className="h-6 w-6" />
+               aria-label="Voltar"><ChevronLeft className="h-6 w-6" />
               </Button>
               <Button
                 variant="ghost"
@@ -275,8 +274,7 @@ export function ZoomableGallery({
                   "transition-all duration-200 border-0"
                 )}
                 onClick={goToNext}
-              >
-                <ChevronRight className="h-6 w-6" />
+               aria-label="Avançar"><ChevronRight className="h-6 w-6" />
               </Button>
             </>
           )}
@@ -345,8 +343,7 @@ export function ZoomableGallery({
                   className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                   onClick={handleZoomOut}
                   disabled={zoom <= 1}
-                >
-                  <ZoomOut className="h-4 w-4" />
+                 aria-label="Reduzir"><ZoomOut className="h-4 w-4" />
                 </Button>
                 <div className="px-3 py-1.5 rounded-full bg-card/90 text-sm font-medium min-w-[60px] text-center">
                   {Math.round(zoom * 100)}%
@@ -365,16 +362,14 @@ export function ZoomableGallery({
                   size="icon"
                   className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                   onClick={handleRotate}
-                >
-                  <RotateCcw className="h-4 w-4" />
+                 aria-label="Rotacionar"><RotateCcw className="h-4 w-4" />
                 </Button>
                 <Button
                   variant="secondary"
                   size="icon"
                   className="h-10 w-10 rounded-full bg-card/90 shadow-lg"
                   onClick={resetView}
-                >
-                  <Grid3X3 className="h-4 w-4" />
+                 aria-label="Grid3X3"><Grid3X3 className="h-4 w-4" />
                 </Button>
               </div>
 
@@ -423,16 +418,14 @@ export function ZoomableGallery({
                   size="icon"
                   className="absolute left-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-card/90 shadow-lg"
                   onClick={goToPrevious}
-                >
-                  <ChevronLeft className="h-6 w-6" />
+                 aria-label="Voltar"><ChevronLeft className="h-6 w-6" />
                 </Button>
                 <Button
                   variant="secondary"
                   size="icon"
                   className="absolute right-4 top-1/2 -translate-y-1/2 h-12 w-12 rounded-full bg-card/90 shadow-lg"
                   onClick={goToNext}
-                >
-                  <ChevronRight className="h-6 w-6" />
+                 aria-label="Avançar"><ChevronRight className="h-6 w-6" />
                 </Button>
               </>
             )}

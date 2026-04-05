@@ -134,8 +134,7 @@ export function ProductSearchCombobox({
                 variant="ghost"
                 className="h-6 w-6 flex-shrink-0 hover:bg-destructive/10 hover:text-destructive"
                 onClick={handleClear}
-              >
-                <X className="h-3.5 w-3.5" />
+               aria-label="Fechar"><X className="h-3.5 w-3.5" />
               </Button>
             </div>
           ) : (

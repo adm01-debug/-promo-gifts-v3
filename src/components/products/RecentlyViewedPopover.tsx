@@ -69,8 +69,7 @@ export function RecentlyViewedPopover({ maxVisible = 10 }: RecentlyViewedPopover
                     size="icon"
                     className="h-7 w-7 text-muted-foreground hover:text-destructive"
                     onClick={clearRecentlyViewed}
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
+                   aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Limpar histórico</TooltipContent>

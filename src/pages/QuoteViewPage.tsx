@@ -399,7 +399,7 @@ export default function QuoteViewPage() {
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon"><MoreHorizontal className="h-4 w-4" /></Button>
+                <Button variant="outline" size="icon" aria-label="Mais opções"><MoreHorizontal className="h-4 w-4" /></Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 {(quote.status === "sent" || isSyncing) && (

@@ -294,8 +294,7 @@ function TechniqueConfigCard({
               {technique.componentName} • {technique.locationName}
             </CardDescription>
           </div>
-          <Button variant="ghost" size="icon" onClick={onRemove}>
-            <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
+          <Button variant="ghost" size="icon" onClick={onRemove} aria-label="Excluir"><Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
           </Button>
         </div>
       </CardHeader>

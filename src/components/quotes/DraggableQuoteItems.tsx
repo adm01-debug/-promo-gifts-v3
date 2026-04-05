@@ -191,8 +191,7 @@ function SortableItem({
                   size="icon"
                   className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                   onClick={onRemove}
-                >
-                  <Trash2 className="h-4 w-4" />
+                 aria-label="Excluir"><Trash2 className="h-4 w-4" />
                 </Button>
               </div>
 

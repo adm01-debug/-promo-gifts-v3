@@ -50,8 +50,7 @@ function SortableWidget({ id, children, title }: { id: string; children: React.R
     <div ref={setNodeRef} style={style}>
       <Card className={`relative group ${isDragging ? 'ring-2 ring-primary shadow-lg' : ''}`}>
         <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <Button variant="ghost" size="icon" className="h-6 w-6 cursor-grab active:cursor-grabbing" {...attributes} {...listeners}>
-            <GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
+          <Button variant="ghost" size="icon" className="h-6 w-6 cursor-grab active:cursor-grabbing" {...attributes} {...listeners} aria-label="Mover"><GripVertical className="h-3.5 w-3.5 text-muted-foreground" />
           </Button>
         </div>
         {children}

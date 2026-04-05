@@ -456,8 +456,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                         isFavorited && "bg-destructive/10 border-destructive/30 text-destructive"
                       )}
                       onClick={handleFavorite}
-                    >
-                      <Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
+                     aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -475,8 +474,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                         isInCompare && "bg-primary/10 border-primary/30 text-primary"
                       )}
                       onClick={handleCompare}
-                    >
-                      <GitCompare className="h-5 w-5" />
+                     aria-label="GitCompare"><GitCompare className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>

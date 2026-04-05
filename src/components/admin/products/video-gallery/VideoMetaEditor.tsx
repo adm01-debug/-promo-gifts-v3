@@ -42,8 +42,7 @@ export function VideoMetaEditor({ video, onSave, onCancel }: Props) {
           onClick={() => onSave({ title: title.trim() || null as any, description: description.trim() || null as any, video_type: videoType })}>
           <Save className="h-3 w-3" />
         </Button>
-        <Button type="button" size="icon" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20" onClick={onCancel}>
-          <X className="h-3 w-3" />
+        <Button type="button" size="icon" variant="ghost" className="h-6 w-6 text-white hover:bg-white/20" onClick={onCancel} aria-label="Fechar"><X className="h-3 w-3" />
         </Button>
       </div>
     </div>

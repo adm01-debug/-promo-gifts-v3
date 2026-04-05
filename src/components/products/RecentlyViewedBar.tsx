@@ -126,8 +126,7 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                   size="icon"
                   className="h-8 w-8 text-muted-foreground hover:text-destructive"
                   onClick={clearRecentlyViewed}
-                >
-                  <Trash2 className="h-4 w-4" />
+                 aria-label="Excluir"><Trash2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>Limpar histórico</TooltipContent>

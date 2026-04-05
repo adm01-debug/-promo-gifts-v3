@@ -192,8 +192,7 @@ export default function TrendsPage() {
                 <SelectItem value="90d">Últimos 90 dias</SelectItem>
               </SelectContent>
             </Select>
-            <Button variant="outline" size="icon" onClick={handleRefresh}>
-              <RefreshCw className="h-4 w-4" />
+            <Button variant="outline" size="icon" onClick={handleRefresh} aria-label="Atualizar"><RefreshCw className="h-4 w-4" />
             </Button>
           </div>
         </div>

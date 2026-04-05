@@ -59,8 +59,7 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
             "h-10 w-10 shrink-0 rounded-full transition-colors",
             isFavorite && "bg-destructive/10 border-destructive/50 text-destructive"
           )}
-        >
-          <Heart
+         aria-label="Favoritar"><Heart
             className={cn(
               "h-4 w-4",
               isFavorite && "fill-current"
@@ -74,8 +73,7 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
           size="icon"
           onClick={handleShare}
           className="h-10 w-10 shrink-0 rounded-full"
-        >
-          <Share2 className="h-4 w-4" />
+         aria-label="Compartilhar"><Share2 className="h-4 w-4" />
         </Button>
 
         {/* Carrinho Button */}

@@ -659,8 +659,7 @@ export function MockupHistoryPanel({
                   <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-zinc-700 bg-zinc-800 text-zinc-200 hover:bg-zinc-700" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
                     <Download className="h-3.5 w-3.5" /> Baixar PDF
                   </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-primary-foreground hover:bg-zinc-800" onClick={closeLightbox}>
-                    <X className="h-4 w-4" />
+                  <Button size="icon" variant="ghost" className="h-8 w-8 text-zinc-400 hover:text-primary-foreground hover:bg-zinc-800" onClick={closeLightbox} aria-label="Fechar"><X className="h-4 w-4" />
                   </Button>
                 </div>
               </div>

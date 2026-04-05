@@ -141,8 +141,7 @@ export function VisualSearchButton({ onResultsFound }: VisualSearchProps) {
           variant="outline" 
           size="icon"
           className="relative group border-orange/30 hover:border-orange hover:bg-orange/10"
-        >
-          <Camera className="h-4 w-4 text-orange" />
+         aria-label="Câmera"><Camera className="h-4 w-4 text-orange" />
           <span className="absolute -top-1 -right-1 w-2 h-2 bg-orange rounded-full animate-pulse" />
         </Button>
       </DialogTrigger>
@@ -185,8 +184,7 @@ export function VisualSearchButton({ onResultsFound }: VisualSearchProps) {
                     size="icon"
                     className="absolute top-2 right-2 bg-background/80 hover:bg-background"
                     onClick={clearPreview}
-                  >
-                    <X className="h-4 w-4" />
+                   aria-label="Fechar"><X className="h-4 w-4" />
                   </Button>
                 )}
               </motion.div>
