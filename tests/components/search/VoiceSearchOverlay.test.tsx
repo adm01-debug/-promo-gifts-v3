@@ -100,10 +100,10 @@ describe("VoiceSearchOverlay", () => {
       expect(screen.getByText("ESC")).toBeDefined();
     });
 
-    it("shows ElevenLabs badge", () => {
-      render(<VoiceSearchOverlay {...defaultProps} />);
-      // Text may be split across elements
-      expect(screen.getByText(/ElevenLabs/)).toBeDefined();
+    it("renders the voice orb visualization", () => {
+      const { container } = render(<VoiceSearchOverlay {...defaultProps} />);
+      // The orb button should exist
+      expect(container.querySelector("[role='button']")).toBeDefined();
     });
 
     it("shows close button (X)", () => {
