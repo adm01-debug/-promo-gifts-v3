@@ -144,10 +144,19 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             aria-modal="true"
             aria-label="Assistente de Voz"
           >
-            {/* Glass backdrop */}
-            <div
+            {/* Glass backdrop with breathing effect */}
+            <motion.div
               className="absolute inset-0 backdrop-blur-xl"
-              style={{ background: "rgba(2,2,10,0.65)" }}
+              animate={
+                phase === "listening" || phase === "processing" || phase === "speaking"
+                  ? { backgroundColor: ["rgba(2,2,10,0.55)", "rgba(2,2,10,0.78)", "rgba(2,2,10,0.55)"] }
+                  : { backgroundColor: "rgba(2,2,10,0.65)" }
+              }
+              transition={
+                phase === "listening" || phase === "processing" || phase === "speaking"
+                  ? { duration: phase === "listening" ? 3 : phase === "speaking" ? 2.5 : 4, repeat: Infinity, ease: "easeInOut" }
+                  : { duration: 0.5 }
+              }
               onClick={onClose}
             />
 
