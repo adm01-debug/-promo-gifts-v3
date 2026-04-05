@@ -127,7 +127,7 @@ export function MarginCalculatorCard({ bestOption, quantity }: MarginCalculatorC
                     <div className={cn(
                       "p-4 rounded-xl border-2 transition-colors",
                       isGoodMargin && "bg-success/10 border-success/30",
-                      isHealthyMargin && !isGoodMargin && "bg-amber-500/10 border-amber-500/30",
+                      isHealthyMargin && !isGoodMargin && "bg-warning/10 border-warning/30",
                       !isHealthyMargin && "bg-destructive/10 border-destructive/30"
                     )}>
                       <div className="flex items-center justify-between mb-2">
