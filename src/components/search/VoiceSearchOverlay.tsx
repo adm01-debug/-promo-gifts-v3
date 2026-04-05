@@ -323,13 +323,14 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               <X className="h-5 w-5" />
             </motion.button>
 
-            {/* Centered card panel */}
+            {/* Centered card panel — absolute center */}
             <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.9, opacity: 0 }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="relative z-10 flex flex-col items-center gap-6 max-w-md w-full mx-4 px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto"
+              className="absolute top-1/2 left-1/2 z-10 flex flex-col items-center gap-6 max-w-md w-[calc(100%-2rem)] px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto"
+              style={{ transform: "translate(-50%, -50%)" }}
             >
               {/* Title */}
               <motion.div
