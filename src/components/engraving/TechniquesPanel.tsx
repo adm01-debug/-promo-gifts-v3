@@ -229,7 +229,7 @@ export function TechniquesPanel() {
                         {tecnica.precoPorArea && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span><Ruler className="h-4 w-4 text-amber-500" /></span>
+                              <span><Ruler className="h-4 w-4 text-warning" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Área</TooltipContent>
                           </Tooltip>

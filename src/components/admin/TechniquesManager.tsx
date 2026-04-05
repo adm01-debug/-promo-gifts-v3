@@ -321,7 +321,7 @@ export function TechniquesManager() {
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-2">
-                        <Hash className="h-4 w-4 text-purple-500" />
+                        <Hash className="h-4 w-4 text-primary" />
                         <span className="text-sm">Por Pontos</span>
                       </div>
                       <Switch
