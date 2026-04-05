@@ -1,84 +1,52 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useCallback } from "react";
 import { useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Mic, MicOff, X, Palette, Tag, DollarSign, Package, Sparkles, CheckCircle2, Clock, Zap } from "lucide-react";
+import { Mic, MicOff, X, Sparkles, MessageCircle, Loader2, Volume2, VolumeX } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-
-interface AppliedFilter {
-  type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit";
-  label: string;
-}
-
-interface CommandPattern {
-  command: string;
-  count: number;
-  lastUsed: Date;
-  type: 'filter' | 'search' | 'navigation' | 'sort' | 'clear' | 'unknown';
-}
-
-interface VoiceCommandRecord {
-  id: string;
-  command: string;
-  timestamp: Date;
-  type: 'filter' | 'search' | 'navigation' | 'sort' | 'clear' | 'unknown';
-}
+import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 
 interface VoiceSearchOverlayProps {
   isOpen: boolean;
-  isListening: boolean;
-  transcript: string;
+  phase: VoiceAgentPhase;
+  partialTranscript: string;
+  finalTranscript: string;
+  agentResponse: string;
   error?: string | null;
   onClose: () => void;
-  onToggleListening: () => void;
-  commandAction?: string | null;
-  appliedFilters?: AppliedFilter[];
-  frequentCommands?: CommandPattern[];
-  recentCommands?: VoiceCommandRecord[];
+  onStartListening: () => void;
+  onStopListening: () => void;
+  onStopSpeaking: () => void;
   onCommandSelect?: (command: string) => void;
 }
 
-const filterIcons: Record<AppliedFilter["type"], React.ReactNode> = {
-  category: <Tag className="h-3 w-3" />,
-  color: <Palette className="h-3 w-3" />,
-  price: <DollarSign className="h-3 w-3" />,
-  material: <Package className="h-3 w-3" />,
-  stock: <CheckCircle2 className="h-3 w-3" />,
-  featured: <Sparkles className="h-3 w-3" />,
-  kit: <Package className="h-3 w-3" />,
-};
-
-const filterColors: Record<AppliedFilter["type"], string> = {
-  category: "bg-primary/20 text-primary border-primary/30",
-  color: "bg-primary/15 text-primary/80 border-primary/25",
-  price: "bg-primary/20 text-primary border-primary/30",
-  material: "bg-amber-500/20 text-amber-400 border-amber-500/30",
-  stock: "bg-primary/20 text-primary border-primary/30",
-  featured: "bg-primary/10 text-primary/70 border-primary/20",
-  kit: "bg-primary/10 text-primary/60 border-primary/15",
+const phaseConfig: Record<VoiceAgentPhase, { title: string; subtitle: string; color: string }> = {
+  idle: { title: "Assistente de Voz", subtitle: "Clique no microfone para começar", color: "bg-secondary" },
+  listening: { title: "Ouvindo...", subtitle: "Diga o que você precisa", color: "bg-primary" },
+  processing: { title: "Processando...", subtitle: "IA interpretando seu comando", color: "bg-amber-500" },
+  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta", color: "bg-emerald-500" },
+  error: { title: "Erro", subtitle: "Tente novamente", color: "bg-destructive" },
 };
 
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen,
-    isListening,
-    transcript,
+    phase,
+    partialTranscript,
+    finalTranscript,
+    agentResponse,
     error,
     onClose,
-    onToggleListening,
-    commandAction,
-    appliedFilters = [],
-    frequentCommands = [],
-    recentCommands = [],
+    onStartListening,
+    onStopListening,
+    onStopSpeaking,
     onCommandSelect,
   }, ref) {
+
   // Close on escape key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isOpen) {
-        onClose();
-      }
+      if (e.key === "Escape" && isOpen) onClose();
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -87,17 +55,34 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
   // Auto-start listening when overlay opens
   const hasAutoStarted = useRef(false);
   useEffect(() => {
-    if (isOpen && !isListening && !hasAutoStarted.current) {
+    if (isOpen && phase === "idle" && !hasAutoStarted.current) {
       hasAutoStarted.current = true;
-      const timer = setTimeout(() => {
-        onToggleListening();
-      }, 400);
+      const timer = setTimeout(() => onStartListening(), 500);
       return () => clearTimeout(timer);
     }
-    if (!isOpen) {
-      hasAutoStarted.current = false;
+    if (!isOpen) hasAutoStarted.current = false;
+  }, [isOpen, phase, onStartListening]);
+
+  const config = phaseConfig[phase];
+  const showTranscript = partialTranscript || finalTranscript;
+  const isActive = phase === "listening" || phase === "processing" || phase === "speaking";
+
+  const handleMicClick = useCallback(() => {
+    if (phase === "listening") {
+      onStopListening();
+    } else if (phase === "speaking") {
+      onStopSpeaking();
+    } else if (phase === "idle" || phase === "error") {
+      onStartListening();
     }
-  }, [isOpen, isListening, onToggleListening]);
+  }, [phase, onStartListening, onStopListening, onStopSpeaking]);
+
+  const getMicIcon = () => {
+    if (phase === "listening") return <MicOff className="h-10 w-10" />;
+    if (phase === "processing") return <Loader2 className="h-10 w-10 animate-spin" />;
+    if (phase === "speaking") return <VolumeX className="h-10 w-10" />;
+    return <Mic className="h-10 w-10" />;
+  };
 
   return (
     <AnimatePresence>
@@ -143,63 +128,76 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               className="text-center"
             >
               <h2 className="text-2xl font-display font-bold text-foreground mb-2">
-                {isListening ? "Ouvindo..." : "Busca por Voz"}
+                {config.title}
               </h2>
-              <p className="text-muted-foreground">
-                {isListening
-                  ? "Diga um comando ou pesquise por produtos"
-                  : "Clique no microfone para começar"}
+              <p className="text-muted-foreground text-sm">
+                {config.subtitle}
               </p>
+              {/* ElevenLabs + AI badge */}
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-medium">
+                  <Sparkles className="h-3 w-3" />
+                  IA + Voz ElevenLabs
+                </span>
+              </div>
             </motion.div>
 
-            {/* Microphone button with ripple effect */}
+            {/* Microphone button with phase-aware effects */}
             <div className="relative">
-              {/* Ripple circles */}
-              {isListening && (
+              {/* Ripple circles for listening */}
+              {phase === "listening" && (
                 <>
-                  <motion.div
-                    initial={{ scale: 1, opacity: 0.5 }}
-                    animate={{ scale: 2.5, opacity: 0 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut" }}
-                    className="absolute inset-0 rounded-full bg-primary"
-                  />
-                  <motion.div
-                    initial={{ scale: 1, opacity: 0.5 }}
-                    animate={{ scale: 2.5, opacity: 0 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 0.5 }}
-                    className="absolute inset-0 rounded-full bg-primary"
-                  />
-                  <motion.div
-                    initial={{ scale: 1, opacity: 0.5 }}
-                    animate={{ scale: 2.5, opacity: 0 }}
-                    transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay: 1 }}
-                    className="absolute inset-0 rounded-full bg-primary"
-                  />
+                  {[0, 0.5, 1].map((delay, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ scale: 1, opacity: 0.5 }}
+                      animate={{ scale: 2.5, opacity: 0 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: "easeOut", delay }}
+                      className="absolute inset-0 rounded-full bg-primary"
+                    />
+                  ))}
                 </>
+              )}
+
+              {/* Pulse for processing */}
+              {phase === "processing" && (
+                <motion.div
+                  animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.2, 0.5] }}
+                  transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full bg-amber-500"
+                />
+              )}
+
+              {/* Glow for speaking */}
+              {phase === "speaking" && (
+                <motion.div
+                  animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
+                  transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
+                  className="absolute inset-0 rounded-full bg-emerald-500"
+                />
               )}
 
               {/* Main button */}
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                onClick={onToggleListening}
+                onClick={handleMicClick}
+                disabled={phase === "processing"}
                 className={cn(
-                  "relative z-10 flex items-center justify-center w-28 h-28 rounded-full transition-all duration-300",
-                  isListening
-                    ? "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(var(--primary),0.5)]"
-                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                  "relative z-10 flex items-center justify-center w-28 h-28 rounded-full transition-all duration-300 disabled:opacity-70",
+                  phase === "listening" && "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(var(--primary),0.5)]",
+                  phase === "processing" && "bg-amber-500 text-white",
+                  phase === "speaking" && "bg-emerald-500 text-white shadow-[0_0_40px_rgba(16,185,129,0.4)]",
+                  phase === "error" && "bg-destructive text-destructive-foreground",
+                  phase === "idle" && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 )}
               >
-                {isListening ? (
-                  <MicOff className="h-10 w-10" />
-                ) : (
-                  <Mic className="h-10 w-10" />
-                )}
+                {getMicIcon()}
               </motion.button>
             </div>
 
-            {/* Sound wave visualization */}
-            {isListening && (
+            {/* Sound wave visualization - listening */}
+            {phase === "listening" && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
@@ -208,9 +206,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 {[...Array(9)].map((_, i) => (
                   <motion.div
                     key={i}
-                    animate={{
-                      height: [12, 32, 12],
-                    }}
+                    animate={{ height: [12, 32, 12] }}
                     transition={{
                       duration: 0.5 + Math.random() * 0.3,
                       repeat: Infinity,
@@ -224,73 +220,33 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               </motion.div>
             )}
 
-            {/* Frequent commands - from usage history */}
-            {frequentCommands.length > 0 && !isListening && (
+            {/* Speaker wave - speaking */}
+            {phase === "speaking" && (
               <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.15 }}
-                className="space-y-3 text-center w-full"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex items-center gap-2"
               >
-                <div className="flex items-center justify-center gap-2">
-                  <Zap className="h-4 w-4 text-amber-500" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Seus comandos frequentes
-                  </p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {frequentCommands.map((cmd, index) => (
-                    <motion.button
-                      key={`freq-${index}`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 * index }}
-                      onClick={() => onCommandSelect?.(cmd.command)}
-                      className="px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/20 rounded-full text-xs text-amber-400 border border-amber-500/30 transition-colors flex items-center gap-1.5"
-                    >
-                      <span>"{cmd.command}"</span>
-                      <Badge variant="secondary" className="text-[10px] px-1 py-0 bg-amber-500/20">
-                        {cmd.count}x
-                      </Badge>
-                    </motion.button>
-                  ))}
-                </div>
+                <Volume2 className="h-5 w-5 text-emerald-500" />
+                {[...Array(5)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    animate={{ height: [8, 20, 8] }}
+                    transition={{
+                      duration: 0.4 + i * 0.1,
+                      repeat: Infinity,
+                      delay: i * 0.08,
+                      ease: "easeInOut",
+                    }}
+                    className="w-1.5 bg-emerald-500 rounded-full"
+                    style={{ height: 8 }}
+                  />
+                ))}
               </motion.div>
             )}
 
-            {/* Recent commands - from usage history */}
-            {recentCommands.length > 0 && frequentCommands.length === 0 && !isListening && (
-              <motion.div
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.15 }}
-                className="space-y-3 text-center w-full"
-              >
-                <div className="flex items-center justify-center gap-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                    Comandos recentes
-                  </p>
-                </div>
-                <div className="flex flex-wrap justify-center gap-2">
-                  {recentCommands.slice(0, 4).map((cmd, index) => (
-                    <motion.button
-                      key={`recent-${cmd.id}`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: 0.1 * index }}
-                      onClick={() => onCommandSelect?.(cmd.command)}
-                      className="px-3 py-1.5 bg-muted/50 hover:bg-muted rounded-full text-xs text-muted-foreground border border-border/50 transition-colors"
-                    >
-                      "{cmd.command}"
-                    </motion.button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-
-            {/* Command suggestions - when no history */}
-            {frequentCommands.length === 0 && recentCommands.length === 0 && (
+            {/* Suggestions - only when idle */}
+            {phase === "idle" && (
               <motion.div
                 initial={{ y: 20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
@@ -298,18 +254,15 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 className="space-y-3 text-center w-full"
               >
                 <p className="text-xs text-muted-foreground uppercase tracking-wide font-medium">
-                  Comandos suportados
+                  Experimente dizer
                 </p>
                 <div className="flex flex-wrap justify-center gap-2">
                   {[
-                    "Canetas azuis até 30 reais",
-                    "Mochilas ecológicas",
-                    "Garrafas vermelhas em estoque",
-                    "Kits de bambu",
-                    "Mostrar canetas",
-                    "Filtrar por cor azul",
-                    "Ordenar por preço",
-                    "Limpar filtros",
+                    "Quero canetas azuis baratas",
+                    "Mostra mochilas ecológicas",
+                    "Abre os orçamentos",
+                    "Qual o produto mais vendido?",
+                    "Tem garrafa térmica em estoque?",
                   ].map((cmd) => (
                     <button
                       key={cmd}
@@ -323,9 +276,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               </motion.div>
             )}
 
-            {/* Transcript display */}
+            {/* Live transcript */}
             <AnimatePresence mode="wait">
-              {transcript && (
+              {showTranscript && (
                 <motion.div
                   initial={{ opacity: 0, y: 10, height: 0 }}
                   animate={{ opacity: 1, y: 0, height: "auto" }}
@@ -334,70 +287,57 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 >
                   <div className="bg-card border border-border rounded-xl p-4 shadow-lg">
                     <p className="text-xs text-muted-foreground mb-1 uppercase tracking-wider">
-                      Você disse:
+                      {phase === "listening" ? "Você está dizendo:" : "Você disse:"}
                     </p>
                     <p className="text-lg font-medium text-foreground">
-                      "{transcript}"
+                      "{partialTranscript || finalTranscript}"
+                      {phase === "listening" && partialTranscript && (
+                        <motion.span
+                          animate={{ opacity: [1, 0] }}
+                          transition={{ duration: 0.5, repeat: Infinity }}
+                          className="text-primary"
+                        >
+                          |
+                        </motion.span>
+                      )}
                     </p>
                   </div>
                 </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Applied filters feedback - Enhanced visual */}
+            {/* Agent response */}
             <AnimatePresence mode="wait">
-              {appliedFilters.length > 0 && (
+              {agentResponse && (phase === "speaking" || phase === "idle") && (
                 <motion.div
-                  key="filters"
+                  key="agent-response"
                   initial={{ opacity: 0, scale: 0.9, y: 10 }}
                   animate={{ opacity: 1, scale: 1, y: 0 }}
                   exit={{ opacity: 0, scale: 0.9, y: -10 }}
-                  className="w-full space-y-3"
+                  className="w-full"
                 >
-                  <div className="bg-primary/5 rounded-xl p-4 border border-primary/20">
-                    <div className="flex items-center gap-2 mb-3">
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
-                      <p className="text-sm font-medium text-foreground">
-                        {appliedFilters.length} {appliedFilters.length === 1 ? "filtro aplicado" : "filtros aplicados"}
-                      </p>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {appliedFilters.map((filter, index) => (
-                        <motion.div
-                          key={`${filter.type}-${index}`}
-                          initial={{ opacity: 0, scale: 0.8, x: -10 }}
-                          animate={{ opacity: 1, scale: 1, x: 0 }}
-                          transition={{ delay: index * 0.1 }}
-                        >
-                          <Badge
-                            variant="outline"
-                            className={cn(
-                              "px-3 py-1.5 text-sm font-medium flex items-center gap-1.5 border",
-                              filterColors[filter.type]
-                            )}
-                          >
-                            {filterIcons[filter.type]}
-                            {filter.label}
-                          </Badge>
-                        </motion.div>
-                      ))}
+                  <div className={cn(
+                    "rounded-xl p-4 border",
+                    phase === "speaking"
+                      ? "bg-emerald-500/10 border-emerald-500/20"
+                      : "bg-primary/5 border-primary/20"
+                  )}>
+                    <div className="flex items-start gap-3">
+                      <div className={cn(
+                        "h-8 w-8 rounded-full flex items-center justify-center shrink-0",
+                        phase === "speaking" ? "bg-emerald-500/20" : "bg-primary/10"
+                      )}>
+                        <MessageCircle className={cn(
+                          "h-4 w-4",
+                          phase === "speaking" ? "text-emerald-500" : "text-primary"
+                        )} />
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground mb-1">Assistente</p>
+                        <p className="text-sm font-medium text-foreground">{agentResponse}</p>
+                      </div>
                     </div>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            {/* Command action feedback (fallback for non-compound) */}
-            <AnimatePresence mode="wait">
-              {commandAction && appliedFilters.length === 0 && (
-                <motion.div
-                  key="action"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="w-full bg-primary/10 text-primary rounded-xl p-4 border border-primary/20 text-center"
-                >
-                  <p className="font-medium">{commandAction}</p>
                 </motion.div>
               )}
             </AnimatePresence>
