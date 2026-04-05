@@ -143,6 +143,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               size="icon"
               className="absolute top-0 right-0 h-10 w-10 rounded-full"
               onClick={onClose}
+              aria-label="Fechar assistente de voz"
             >
               <X className="h-5 w-5" />
             </Button>
