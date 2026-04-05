@@ -20,13 +20,7 @@ interface SidebarUserFooterProps {
 export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterProps>(function SidebarUserFooter({ isCollapsed }, ref) {
   const { profile, role, signOut, user } = useAuth();
   const navigate = useNavigate();
-
-  let onboardingCtx: { restartTour: () => void; hasCompletedTour: boolean; isLoading: boolean } | null = null;
-  try {
-    onboardingCtx = useOnboardingContext();
-  } catch {
-    // OnboardingProvider may not be mounted
-  }
+  const { restartTour, hasCompletedTour, isLoading: onboardingLoading } = useOnboardingContext();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Vendedor";
   const firstName = displayName.split(" ")[0];
