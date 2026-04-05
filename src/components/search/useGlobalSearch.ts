@@ -141,22 +141,52 @@ export function useGlobalSearch() {
   }, [voiceAgent]);
 
   // Handle command select (from suggestion chips)
-  const handleVoiceCommandSelect = useCallback((command: string) => {
-    // Directly process the command through the AI agent
+  const handleVoiceCommandSelect = useCallback(async (command: string) => {
+    // Process the command through the AI agent with TTS
     voiceAgent.reset();
-    // Small delay to ensure reset completes
-    setTimeout(() => {
-      // Simulate as if user said this — send to AI
-      (async () => {
+    // Small delay to ensure reset completes, then send to AI
+    setTimeout(async () => {
+      try {
         const { data } = await supabase.functions.invoke("voice-agent", {
           body: { transcript: command },
         });
         if (data) {
           const action = data as VoiceAgentAction;
-          // Speak response via TTS then execute
+          // Play TTS response before executing action
+          if (action.response) {
+            try {
+              const ttsResponse = await fetch(
+                `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+                {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+                  },
+                  body: JSON.stringify({ text: action.response }),
+                }
+              );
+              if (ttsResponse.ok) {
+                const ttsData = await ttsResponse.json();
+                if (ttsData.audioContent) {
+                  const audioUrl = `data:audio/mpeg;base64,${ttsData.audioContent}`;
+                  const audio = new Audio(audioUrl);
+                  audio.onended = () => handleVoiceAction(action);
+                  audio.onerror = () => handleVoiceAction(action);
+                  await audio.play();
+                  return;
+                }
+              }
+            } catch {
+              // TTS failed, still execute action
+            }
+          }
           handleVoiceAction(action);
         }
-      })();
+      } catch {
+        // Silent fail
+      }
     }, 100);
   }, [voiceAgent, handleVoiceAction]);
 
