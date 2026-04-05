@@ -399,7 +399,7 @@ function SellerCartsContent() {
                 )}
               >
                 {cart.company_logo_url ? (
-                  <img src={cart.company_logo_url} alt="" className="w-7 h-7 rounded-lg object-contain bg-background border border-border/50 p-0.5" />
+                  <img src={cart.company_logo_url} alt="" className="w-7 h-7 rounded-lg object-contain bg-background border border-border/50 p-0.5"  loading="lazy" />
                 ) : (
                   <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", isActive ? "bg-primary/15" : "bg-muted")}>
                     <Building2 className="h-3.5 w-3.5" />
@@ -446,7 +446,7 @@ function SellerCartsContent() {
             >
               <div className="flex items-center gap-3">
                 {activeCart.company_logo_url ? (
-                  <img src={activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/50 p-1" />
+                  <img src={activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/50 p-1"  loading="lazy" />
                 ) : (
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Building2 className="h-5 w-5 text-primary" />
@@ -770,7 +770,7 @@ function SellerCartsContent() {
                       className="w-full flex items-center gap-2.5 p-2.5 rounded-lg border border-border/30 hover:border-border/60 hover:bg-muted/20 transition-all text-left"
                     >
                       {cart.company_logo_url ? (
-                        <img src={cart.company_logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5" />
+                        <img src={cart.company_logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5"  loading="lazy" />
                       ) : (
                         <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                           <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
