@@ -48,7 +48,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       setPhase("idle");
       onAction?.(action);
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro ao processar comando";
+      const message = friendlyErrorMessage(err);
       setError(message);
       setPhase("error");
       onError?.(message);
