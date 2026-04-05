@@ -68,7 +68,8 @@ export function ImageGrid({
             {isVideo ? (
               <div className="w-full h-full bg-muted/30 flex items-center justify-center"><Film className="h-8 w-8 text-muted-foreground/40" /></div>
             ) : (
-              <img src={img} alt={ext?.alt_text || `Imagem ${index + 1}`} className="w-full h-full object-contain bg-muted/30" loading="lazy" />
+              
+<img src={img} alt={ext?.alt_text || `Imagem ${index + 1}`} className="w-full h-full object-contain bg-muted/30" loading="lazy" />
             )}
 
             {/* Badges top-left */}

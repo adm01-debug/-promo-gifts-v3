@@ -132,9 +132,9 @@ interface PulseDotProps {
 
 const dotColors = {
   primary: "bg-primary",
-  success: "bg-green-500",
+  success: "bg-success",
   warning: "bg-amber-500",
-  error: "bg-red-500"
+  error: "bg-destructive"
 };
 
 const dotSizes = {
@@ -184,7 +184,7 @@ export function SuccessCheck({ size = 48 }: { size?: number }) {
       width={size}
       height={size}
       viewBox="0 0 50 50"
-      className="text-green-500"
+      className="text-success"
     >
       <motion.circle
         cx="25"

@@ -80,7 +80,8 @@ export function ProductIntelligence({ productId, productSku, productName }: Prod
                 >
                   <div className="w-16 h-16 rounded-lg overflow-hidden bg-muted border border-border/50 group-hover:border-primary/30 transition-colors">
                     {product.productImage ? (
-                      <img src={product.productImage} alt={product.productName} className="w-full h-full object-cover"  loading="lazy" />
+                      
+<img src={product.productImage} alt={product.productName} className="w-full h-full object-cover"  loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Package className="h-4 w-4 text-muted-foreground" />

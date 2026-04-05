@@ -254,8 +254,7 @@ export function StepProduct({ wizard }: StepProductProps) {
                           'group-hover:scale-105'
                         )}>
                           {product.imageUrl ? (
-                            <img 
-                              src={product.imageUrl} 
+                            <img loading="lazy" src={product.imageUrl} 
                               alt={product.name}
                               className="w-full h-full object-cover"
                               loading="lazy"
@@ -319,7 +318,8 @@ export function StepProduct({ wizard }: StepProductProps) {
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 rounded-xl bg-muted overflow-hidden">
                 {wizard.selectedProduct.imageUrl ? (
-                  <img src={wizard.selectedProduct.imageUrl} alt="" className="w-full h-full object-cover"  loading="lazy"/>
+                  
+<img loading="lazy" src={wizard.selectedProduct.imageUrl} alt="" className="w-full h-full object-cover"  loading="lazy"/>
                 ) : (
                   <div className="w-full h-full flex items-center justify-center">
                     <Package className="h-5 w-5 text-muted-foreground/40" />

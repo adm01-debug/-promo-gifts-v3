@@ -202,7 +202,8 @@ export function PresentationMode({ slides, title, subtitle, brandName, onClose }
                 )}
               >
                 {s.imageUrl ? (
-                  <img src={s.imageUrl} alt={s.title} className="w-full h-full object-cover"  loading="lazy" />
+                  
+<img src={s.imageUrl} alt={s.title} className="w-full h-full object-cover"  loading="lazy" />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-700 flex items-center justify-center">
                     <span className="text-white/40 text-xs">Sem imagem</span>

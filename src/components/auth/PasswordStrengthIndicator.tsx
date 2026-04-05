@@ -60,15 +60,15 @@ export function PasswordStrengthIndicator({
       label = 'Fraca';
     } else if (score === 3) {
       strength = 'fair';
-      color = 'bg-orange-500';
+      color = 'bg-warning';
       label = 'Razoável';
     } else if (score === 4) {
       strength = 'good';
-      color = 'bg-yellow-500';
+      color = 'bg-warning';
       label = 'Boa';
     } else {
       strength = 'strong';
-      color = 'bg-green-500';
+      color = 'bg-success';
       label = 'Forte';
     }
 
@@ -102,9 +102,9 @@ export function PasswordStrengthIndicator({
           <span className={cn(
             'text-xs font-medium',
             analysis.strength === 'weak' && 'text-destructive',
-            analysis.strength === 'fair' && 'text-orange-500',
-            analysis.strength === 'good' && 'text-yellow-600',
-            analysis.strength === 'strong' && 'text-green-600'
+            analysis.strength === 'fair' && 'text-warning',
+            analysis.strength === 'good' && 'text-warning',
+            analysis.strength === 'strong' && 'text-success'
           )}>
             {analysis.label}
           </span>
@@ -129,7 +129,7 @@ export function PasswordStrengthIndicator({
             key={criterion.label}
             className={cn(
               'flex items-center gap-1.5 text-xs transition-colors',
-              criterion.met ? 'text-green-600' : 'text-muted-foreground'
+              criterion.met ? 'text-success' : 'text-muted-foreground'
             )}
           >
             {criterion.met ? (
@@ -148,7 +148,7 @@ export function PasswordStrengthIndicator({
           'flex items-start gap-2 p-2.5 rounded-lg border text-xs',
           isChecking && 'bg-muted/50 border-muted',
           isBreached && 'bg-destructive/10 border-destructive/30',
-          !isChecking && !isBreached && hasCheckedBreach && 'bg-green-500/10 border-green-500/30'
+          !isChecking && !isBreached && hasCheckedBreach && 'bg-success/10 border-success/30'
         )}>
           {isChecking ? (
             <>
@@ -168,8 +168,8 @@ export function PasswordStrengthIndicator({
             </>
           ) : hasCheckedBreach ? (
             <>
-              <Shield className="h-4 w-4 text-green-600 flex-shrink-0" />
-              <span className="text-green-600">Senha não encontrada em vazamentos conhecidos</span>
+              <Shield className="h-4 w-4 text-success flex-shrink-0" />
+              <span className="text-success">Senha não encontrada em vazamentos conhecidos</span>
             </>
           ) : null}
         </div>

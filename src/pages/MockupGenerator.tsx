@@ -498,7 +498,8 @@ export default function MockupGenerator() {
                     <div className="grid grid-cols-2 gap-2">
                       {mg.generatedBatchMockups.map((batch, idx) => (
                         <div key={idx} className="border border-border/30 rounded-lg overflow-hidden bg-card">
-                          <img src={batch.url} alt={batch.areaName} className="w-full aspect-square object-contain"  loading="lazy"/>
+                          
+<img src={batch.url} alt={batch.areaName} className="w-full aspect-square object-contain"  loading="lazy"/>
                           <div className="p-2 text-center">
                             <Badge variant="secondary" className="text-[10px]">{batch.areaName}</Badge>
                           </div>

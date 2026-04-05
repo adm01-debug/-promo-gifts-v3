@@ -101,7 +101,8 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
               onClick={(e) => { if (item.imageUrl && onZoomImage) { e.stopPropagation(); onZoomImage(item.imageUrl); } }}
             >
               {item.imageUrl ? (
-                <img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain p-1" loading="lazy" />
+                
+<img src={item.imageUrl} alt={item.productName} className="w-full h-full object-contain p-1" loading="lazy" />
               ) : isPackaging ? (
                 <Box className="h-7 w-7 text-amber-600/40 dark:text-amber-400/40" />
               ) : (

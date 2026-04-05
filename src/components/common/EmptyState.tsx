@@ -109,7 +109,7 @@ const variants: Record<EmptyStateVariant, {
     icon: TrendingUp,
     title: "Sem dados disponíveis",
     description: "Os dados analíticos aparecerão quando houver atividade.",
-    color: "text-green-500"
+    color: "text-success"
   },
   generic: {
     icon: Inbox,

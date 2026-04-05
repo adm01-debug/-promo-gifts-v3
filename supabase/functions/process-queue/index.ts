@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // 1. Cleanup: remove old read notifications (90+ days)
+    // 1. Cleanup old read notifications
     const { error: cleanupError } = await supabase.rpc('cleanup_old_notifications');
     
     if (cleanupError) {
@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    // 3. Group by user for potential digest processing
+    // 3. Group by user
     const byUser = new Map<string, typeof unreadNotifs>();
     for (const notif of unreadNotifs) {
       const existing = byUser.get(notif.user_id) || [];
@@ -52,17 +52,13 @@ Deno.serve(async (req) => {
       byUser.set(notif.user_id, existing);
     }
 
-    const results = {
-      users_with_unread: byUser.size,
-      total_unread: unreadNotifs.length,
-      cleanup_ran: !cleanupError,
-    };
-
     return new Response(
       JSON.stringify({ 
         success: true, 
         processed: byUser.size,
-        ...results
+        users_with_unread: byUser.size,
+        total_unread: unreadNotifs.length,
+        cleanup_ran: !cleanupError,
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

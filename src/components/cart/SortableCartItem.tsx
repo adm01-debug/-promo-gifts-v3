@@ -104,7 +104,8 @@ export function SortableCartItem({
             onClick={() => onNavigate(`/produto/${item.product_id}`)}
           >
             {item.product_image_url ? (
-              <img src={item.product_image_url} alt={item.product_name} className="w-full h-full object-contain p-4" loading="lazy" />
+              
+<img src={item.product_image_url} alt={item.product_name} className="w-full h-full object-contain p-4" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-12 w-12 text-muted-foreground/30" />
@@ -183,8 +184,8 @@ export function SortableCartItem({
             <div className={cn(
               "absolute bottom-2 right-2 flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-medium",
               isOutOfStock
-                ? "bg-destructive/90 text-white"
-                : "bg-amber-500/90 text-white"
+                ? "bg-destructive/90 text-destructive-foreground"
+                : "bg-warning/90 text-warning-foreground"
             )}>
               <AlertTriangle className="h-3 w-3" />
               {isOutOfStock ? "Sem estoque" : `Estoque: ${stock}`}

@@ -97,7 +97,8 @@ export function QuoteBuilderProductSearch({
                         )}>
                           <div className="relative shrink-0">
                             {product.images && product.images.length > 0 ? (
-                              <img src={`${product.images[0]}/thumbnail`} alt={product.name} className="h-11 w-11 object-cover rounded-lg bg-muted"
+                              
+<img loading="lazy" src={`${product.images[0]}/thumbnail`} alt={product.name} className="h-11 w-11 object-cover rounded-lg bg-muted"
                                 onError={(e) => { const t = e.currentTarget; if (t.src.includes('/thumbnail')) t.src = product.images![0]; else t.style.display = 'none'; }} />
                             ) : (
                               <div className="h-11 w-11 bg-muted rounded-lg flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground" /></div>

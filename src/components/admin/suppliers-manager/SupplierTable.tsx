@@ -44,7 +44,8 @@ export function SupplierTable({ suppliers, loading, search, deleting, onEdit, on
                   <TableCell>
                     <div className="flex items-center gap-2.5">
                       {supplier.logo_url ? (
-                        <img src={supplier.logo_url} alt="" className="w-8 h-8 rounded object-contain border border-border bg-muted shrink-0"  loading="lazy" />
+                        
+<img src={supplier.logo_url} alt="Logo do fornecedor" className="w-8 h-8 rounded object-contain border border-border bg-muted shrink-0"  loading="lazy" />
                       ) : (
                         <div className="w-8 h-8 rounded border border-border bg-muted flex items-center justify-center shrink-0"><Building2 className="h-4 w-4 text-muted-foreground" /></div>
                       )}

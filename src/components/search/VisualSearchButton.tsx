@@ -169,8 +169,7 @@ export function VisualSearchButton({ onResultsFound }: VisualSearchProps) {
                 exit={{ opacity: 0, scale: 0.95 }}
                 className="relative rounded-xl overflow-hidden border border-border"
               >
-                <img 
-                  src={previewImage} 
+                <img loading="lazy" src={previewImage} 
                   alt="Preview" 
                   className="w-full h-48 object-contain bg-muted"
                  loading="lazy"/>

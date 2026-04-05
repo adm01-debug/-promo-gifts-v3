@@ -116,7 +116,8 @@ export function KitComparisonDialog({ open, onOpenChange, kits }: KitComparisonD
                 <p className="font-semibold text-sm mb-2">{kit.name}</p>
                 {(kit.items_data || []).map((item: any, idx: number) => (
                   <div key={idx} className="flex items-center gap-2 text-xs bg-muted/50 rounded p-1.5">
-                    {item.imageUrl && <img src={item.imageUrl} alt="" className="w-6 h-6 rounded object-contain"  loading="lazy" />}
+                    {item.imageUrl && 
+<img src={item.imageUrl} alt="" className="w-6 h-6 rounded object-contain"  loading="lazy" />}
                     <span className="flex-1 truncate">{item.quantity || 1}x {item.name}</span>
                   </div>
                 ))}

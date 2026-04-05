@@ -277,7 +277,7 @@ export function IntelligenceFilterBar({ filters, onFiltersChange }: Intelligence
                         {prod.image_url && prod.image_url !== '/placeholder.svg' ? (
                           <img
                             src={prod.image_url}
-                            alt=""
+                            alt="Imagem do produto"
                             className="w-full h-full object-contain"
                             loading="lazy"
                           />
