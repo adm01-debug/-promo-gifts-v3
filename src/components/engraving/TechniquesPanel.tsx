@@ -291,7 +291,7 @@ export function TechniquesPanel() {
             <span>Por Cor</span>
           </div>
           <div className="flex items-center gap-1">
-            <Ruler className="h-3 w-3 text-amber-500" />
+            <Ruler className="h-3 w-3 text-warning" />
             <span>Por Área</span>
           </div>
           <div className="flex items-center gap-1">
