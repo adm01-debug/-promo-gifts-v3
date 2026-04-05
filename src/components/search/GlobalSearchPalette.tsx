@@ -146,8 +146,8 @@ export function GlobalSearchPalette() {
                     <CommandItem key={`h-${i}`} value={`history-${term}`} onSelect={() => s.handleSuggestionClick(term)} className="flex items-center gap-3 py-2 group">
                       <div className="p-2 rounded-lg bg-muted"><Clock className="h-4 w-4 text-muted-foreground" /></div>
                       <span className="flex-1">{term}</span>
-                      <button onClick={e => s.handleRemoveFromHistory(e, term)} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity">
-                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                      <button onClick={e => s.handleRemoveFromHistory(e, term)} aria-label={`Remover "${term}" do histórico`} className="opacity-0 group-hover:opacity-100 p-1 hover:bg-destructive/10 rounded transition-opacity">
+                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" aria-hidden="true" />
                       </button>
                     </CommandItem>
                   ))}
