@@ -48,7 +48,14 @@ html[data-scroll-locked] body {
     --popover: 0 0% 100%;
     --popover-foreground: 222 25% 10%;
     --command-surface: 0 0% 100%;
+    --command-surface-raised: 220 14% 98%;
+    --command-surface-soft: 220 14% 95%;
+    --command-accent: 220 14% 96%;
+    --command-accent-strong: 220 14% 92%;
     --command-border: 220 14% 86%;
+    --command-border-strong: 220 14% 80%;
+    --command-text-muted: 220 12% 46%;
+    --command-text-subtle: 220 10% 62%;
     --command-shadow: 222 25% 10% / 0.18;
     
     /* ===== CORES PRIMÁRIAS (LARANJA — IGUAL DARK) ===== */
@@ -231,8 +238,15 @@ html[data-scroll-locked] body {
     --popover: 225 18% 8%;
     --popover-foreground: 210 40% 98%;
     --command-surface: 0 0% 0%;
-    --command-border: 0 0% 10%;
-    --command-shadow: 0 0% 0% / 0.82;
+    --command-surface-raised: 0 0% 3%;
+    --command-surface-soft: 0 0% 6%;
+    --command-accent: 0 0% 5%;
+    --command-accent-strong: 0 0% 8%;
+    --command-border: 0 0% 11%;
+    --command-border-strong: 0 0% 16%;
+    --command-text-muted: 0 0% 78%;
+    --command-text-subtle: 0 0% 54%;
+    --command-shadow: 0 0% 0% / 0.92;
     
     /* ===== CORES PRIMÁRIAS (LARANJA — mais vibrante) ===== */
     --primary: 24 100% 50%;
