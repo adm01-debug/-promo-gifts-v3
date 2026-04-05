@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Settings, LogOut, ChevronUp, Palette, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useOnboarding } from "@/contexts/OnboardingContext";
+import { useOnboardingContext } from "@/contexts/OnboardingContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -20,13 +20,7 @@ interface SidebarUserFooterProps {
 export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterProps>(function SidebarUserFooter({ isCollapsed }, ref) {
   const { profile, role, signOut, user } = useAuth();
   const navigate = useNavigate();
-
-  let onboardingCtx: { restartTour: () => void; hasCompletedTour: boolean; isLoading: boolean } | null = null;
-  try {
-    onboardingCtx = useOnboardingContext();
-  } catch {
-    // OnboardingProvider may not be mounted
-  }
+  const { restartTour, hasCompletedTour, isLoading: onboardingLoading } = useOnboardingContext();
 
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Vendedor";
   const firstName = displayName.split(" ")[0];
@@ -106,8 +100,8 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
             <Palette className="mr-2 h-4 w-4" />
             Skins
           </DropdownMenuItem>
-          {onboardingCtx && !onboardingCtx.isLoading && onboardingCtx.hasCompletedTour && (
-            <DropdownMenuItem onClick={() => onboardingCtx!.restartTour()}>
+          {!onboardingLoading && hasCompletedTour && (
+            <DropdownMenuItem onClick={() => restartTour()}>
               <RotateCcw className="mr-2 h-4 w-4" />
               Reiniciar Tour
             </DropdownMenuItem>
