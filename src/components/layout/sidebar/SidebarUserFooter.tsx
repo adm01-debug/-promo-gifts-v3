@@ -3,7 +3,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
 import { Settings, LogOut, ChevronUp, Palette, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useOnboarding } from "@/contexts/OnboardingContext";
+import { useOnboardingContext } from "@/contexts/OnboardingContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
