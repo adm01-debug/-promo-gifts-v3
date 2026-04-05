@@ -9,7 +9,6 @@ import {
   FolderOpen,
   ChevronLeft,
   ChevronRight,
-  ChevronsDownUp,
   ShieldCheck,
   Calculator,
   Wand2,
@@ -26,13 +25,18 @@ import {
   Palette,
   Brain,
   Workflow,
+  Layers,
+  SlidersHorizontal,
+  Boxes,
+  ImagePlus,
+  BarChart3,
+  Crosshair,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 import { SidebarUserFooter } from "./sidebar/SidebarUserFooter";
-import { SidebarQuickSearch } from "./sidebar/SidebarQuickSearch";
 import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
 
 interface SidebarProps {
@@ -48,10 +52,12 @@ const navGroups: NavGroup[] = [
     defaultOpen: true,
     items: [
       { icon: Package, label: "Produtos", href: "/", tourId: "products" },
-      { icon: Filter, label: "Super Filtro", href: "/filtros" },
+      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Package, label: "Estoque", href: "/estoque" },
+      { icon: Layers, label: "Estoque", href: "/estoque" },
+      { icon: Heart, label: "Favoritos", href: "/favoritos" },
+      { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
   {
@@ -60,14 +66,14 @@ const navGroups: NavGroup[] = [
     icon: Wrench,
     defaultOpen: false,
     items: [
-      { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
+      { icon: ImagePlus, label: "Mockup", href: "/mockup-generator" },
       { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
       { icon: Calculator, label: "Simulador", href: "/simulador" },
-      { icon: Calculator, label: "Preços por Tiragem", href: "/simulador-precos" },
+      { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
-      { icon: Package, label: "Montador de Kits", href: "/montar-kit" },
+      { icon: Boxes, label: "Montador de Kits", href: "/montar-kit" },
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
-      { icon: Zap, label: "Match", href: "/match" },
+      { icon: Crosshair, label: "Match", href: "/match" },
     ],
   },
   {
@@ -88,16 +94,6 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true },
-    ],
-  },
-  {
-    id: "my-items",
-    label: "Meus Itens",
-    icon: Star,
-    defaultOpen: false,
-    items: [
-      { icon: Heart, label: "Favoritos", href: "/favoritos" },
-      { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
   {
@@ -152,16 +148,6 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
 
   const toggleCollapse = () => setIsCollapsed(!isCollapsed);
 
-  const collapseAllGroups = () => {
-    setOpenGroups((prev) => {
-      const collapsed: Record<string, boolean> = {};
-      Object.keys(prev).forEach((key) => {
-        collapsed[key] = false;
-      });
-      return collapsed;
-    });
-  };
-
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 
   const toggleGroup = (groupId: string) => {
@@ -206,20 +192,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
           <SidebarBrandHeader isCollapsed={isCollapsed} />
 
 
-          {/* Collapse controls (desktop) */}
-          <div className="hidden lg:flex items-center justify-between px-2 mb-1">
-            {!isCollapsed && hasAnyGroupOpen && (
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange hover:border-orange/30 text-sidebar-foreground/40"
-                onClick={collapseAllGroups}
-              >
-                <ChevronsDownUp className="h-3 w-3" />
-                Fechar
-              </Button>
-            )}
-            {!isCollapsed && !hasAnyGroupOpen && <div />}
+          {/* Collapse toggle (desktop) */}
+          <div className="hidden lg:flex items-center justify-end px-2 mb-1">
             <Button
               variant="ghost"
               size="icon"
@@ -248,10 +222,10 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
               <div key={group.id}>
                 {/* Separator between groups */}
                 {index > 0 && !isCollapsed && (
-                  <div className="my-2 mx-3 h-px bg-gradient-to-r from-transparent via-sidebar-border/50 to-transparent" />
+                  <div className="my-2.5 mx-2 h-px bg-sidebar-border/40" />
                 )}
                 {index > 0 && isCollapsed && (
-                  <div className="my-1 mx-auto w-1 h-1 rounded-full bg-sidebar-border/40" />
+                  <div className="my-1.5 mx-auto w-4 h-px bg-sidebar-border/30" />
                 )}
                 <SidebarNavGroup
                   group={group}

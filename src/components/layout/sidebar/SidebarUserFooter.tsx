@@ -1,9 +1,9 @@
 import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
-import { Settings, LogOut, ChevronUp, Palette } from "lucide-react";
-import { RestartTourButton } from "@/components/onboarding/RestartTourButton";
+import { Settings, LogOut, ChevronUp, Palette, RotateCcw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useOnboarding } from "@/contexts/OnboardingContext";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   DropdownMenu,
@@ -21,6 +21,13 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
   const { profile, role, signOut, user } = useAuth();
   const navigate = useNavigate();
 
+  let onboardingCtx: { restartTour: () => void; hasCompletedTour: boolean; isLoading: boolean } | null = null;
+  try {
+    onboardingCtx = useOnboardingContext();
+  } catch {
+    // OnboardingProvider may not be mounted
+  }
+
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Vendedor";
   const firstName = displayName.split(" ")[0];
   const initials = displayName
@@ -32,16 +39,19 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
   const roleName = role === "admin" ? "Admin" : role === "manager" ? "Gerente" : "Vendedor";
 
   const avatarElement = (
-    <div className="h-9 w-9 rounded-lg bg-sidebar-accent flex items-center justify-center shrink-0 text-xs font-bold text-sidebar-foreground/80 border border-sidebar-border/50">
-      {profile?.avatar_url ? (
-        <img
-          src={profile.avatar_url}
-          alt={displayName}
-          className="h-full w-full rounded-lg object-cover"
-        />
-      ) : (
-        initials
-      )}
+    <div className="relative">
+      <div className="h-9 w-9 rounded-lg bg-sidebar-accent flex items-center justify-center shrink-0 text-xs font-bold text-sidebar-foreground/80 border border-sidebar-border/50">
+        {profile?.avatar_url ? (
+          <img
+            src={profile.avatar_url}
+            alt={displayName}
+            className="h-full w-full rounded-lg object-cover"
+          />
+        ) : (
+          initials
+        )}
+      </div>
+      <span className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success border-2 border-sidebar" />
     </div>
   );
 
@@ -68,9 +78,6 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
 
   return (
     <div className="px-3 py-2 border-t border-sidebar-border/50 shrink-0">
-      <div className="opacity-60 mb-2">
-        <RestartTourButton />
-      </div>
       <DropdownMenu>
         <DropdownMenuTrigger className="flex items-center gap-3 w-full px-2 py-2 rounded-lg hover:bg-sidebar-accent/50 transition-colors group outline-none">
           {avatarElement}
@@ -99,6 +106,12 @@ export const SidebarUserFooter = forwardRef<HTMLDivElement, SidebarUserFooterPro
             <Palette className="mr-2 h-4 w-4" />
             Skins
           </DropdownMenuItem>
+          {onboardingCtx && !onboardingCtx.isLoading && onboardingCtx.hasCompletedTour && (
+            <DropdownMenuItem onClick={() => onboardingCtx!.restartTour()}>
+              <RotateCcw className="mr-2 h-4 w-4" />
+              Reiniciar Tour
+            </DropdownMenuItem>
+          )}
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => signOut()} className="text-destructive focus:text-destructive">
             <LogOut className="mr-2 h-4 w-4" />
