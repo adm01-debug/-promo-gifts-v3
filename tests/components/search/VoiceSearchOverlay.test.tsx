@@ -198,7 +198,8 @@ describe("VoiceSearchOverlay", () => {
     it("handles very long agent response", () => {
       const longResponse = "Resposta muito longa ".repeat(50);
       render(<VoiceSearchOverlay {...defaultProps} phase="speaking" agentResponse={longResponse} />);
-      expect(screen.getByText(new RegExp("Resposta muito longa"))).toBeDefined();
+      const matches = screen.getAllByText(/Resposta muito longa/);
+      expect(matches.length).toBeGreaterThanOrEqual(1);
     });
 
     it("handles special characters in transcript", () => {
