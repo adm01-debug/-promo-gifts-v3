@@ -17,18 +17,28 @@ export function playTtsAudio(
     const { data: { session } } = await supabase.auth.getSession();
     const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-    const ttsResponse = await fetch(
-      `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ text }),
-      }
-    );
+    // Timeout after 10s to avoid hanging on slow TTS
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10000);
+
+    let ttsResponse: Response;
+    try {
+      ttsResponse = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/elevenlabs-tts`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify({ text }),
+          signal: controller.signal,
+        }
+      );
+    } finally {
+      clearTimeout(timeout);
+    }
 
     if (!ttsResponse.ok) {
       throw new Error(`TTS failed: ${ttsResponse.status}`);
