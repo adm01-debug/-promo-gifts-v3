@@ -1,5 +1,19 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
-import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
+import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+
+const VALID_VOICE_IDS = [
+  'FGY2WhTYpPnrIDTdsKH5', // Laura (default)
+  'CwhRBWXzGAHq8TQ4Fs17', // Roger
+  'EXAVITQu4vr4xnSDxMaL', // Sarah
+  'IKne3meq5aSn9XLyUdCD', // Charlie
+  'JBFqnCBsd6RMkjVDRZzb', // George
+  'TX3LPaxmHKxFdv7VOQHJ', // Liam
+];
+
+const TtsRequestSchema = z.object({
+  text: z.string().min(1, 'text cannot be empty').max(5000, 'text too long (max 5000 chars)'),
+  voiceId: z.string().optional(),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -13,15 +27,28 @@ Deno.serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY is not configured');
     }
 
-    const { text, voiceId } = await req.json();
-    if (!text || typeof text !== 'string') {
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
       return new Response(
-        JSON.stringify({ error: 'text is required' }),
+        JSON.stringify({ error: 'Invalid JSON body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    const parsed = TtsRequestSchema.safeParse(body);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { text, voiceId } = parsed.data;
+
     // Use Laura (Brazilian Portuguese friendly voice) by default
+    // If voiceId provided but not in allowlist, still use it (custom voices)
     const selectedVoiceId = voiceId || 'FGY2WhTYpPnrIDTdsKH5';
 
     const response = await fetch(
@@ -48,19 +75,30 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       const errorText = await response.text();
       console.error('ElevenLabs TTS error:', response.status, errorText);
+
+      if (response.status === 429) {
+        return new Response(
+          JSON.stringify({ error: 'TTS rate limit exceeded. Try again shortly.' }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       return new Response(
         JSON.stringify({ error: `TTS failed: ${response.status}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    // Return raw binary audio for best performance
     const audioBuffer = await response.arrayBuffer();
-    const audioBase64 = base64Encode(audioBuffer);
 
-    return new Response(
-      JSON.stringify({ audioContent: audioBase64 }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return new Response(audioBuffer, {
+      headers: {
+        ...corsHeaders,
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'private, max-age=3600',
+      },
+    });
   } catch (error: unknown) {
     console.error('TTS error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
