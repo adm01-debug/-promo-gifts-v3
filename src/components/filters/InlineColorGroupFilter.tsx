@@ -70,7 +70,7 @@ function InlineColorSwatch({
               <Check
                 className={cn(
                   'w-4 h-4',
-                  isLight ? 'text-gray-800' : 'text-white'
+                  isLight ? 'text-foreground' : 'text-white'
                 )}
               />
             )}

@@ -463,9 +463,9 @@ export function BulkImportPanel() {
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>{importProgress.processed} de {importProgress.total}</span>
               <span>
-                <span className="text-green-500">{importProgress.succeeded} sucesso</span>
+                <span className="text-success">{importProgress.succeeded} sucesso</span>
                 {' / '}
-                <span className="text-red-500">{importProgress.failed} falhas</span>
+                <span className="text-destructive">{importProgress.failed} falhas</span>
               </span>
             </div>
           </CardContent>
@@ -478,20 +478,20 @@ export function BulkImportPanel() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               {importResults.failed === 0 ? (
-                <CheckCircle2 className="h-5 w-5 text-green-500" />
+                <CheckCircle2 className="h-5 w-5 text-success" />
               ) : (
-                <AlertCircle className="h-5 w-5 text-yellow-500" />
+                <AlertCircle className="h-5 w-5 text-warning" />
               )}
               Importação Concluída
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex gap-4 mb-4">
-              <Badge variant="outline" className="text-green-500 border-green-500">
+              <Badge variant="outline" className="text-success border-success">
                 {importResults.succeeded} sucesso
               </Badge>
               {importResults.failed > 0 && (
-                <Badge variant="outline" className="text-red-500 border-red-500">
+                <Badge variant="outline" className="text-destructive border-destructive">
                   {importResults.failed} falhas
                 </Badge>
               )}

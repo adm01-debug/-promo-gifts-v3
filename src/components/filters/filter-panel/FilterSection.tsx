@@ -7,7 +7,7 @@ import { cn } from '@/lib/utils';
 export const SECTION_ICON_COLORS: Record<string, string> = {
   cores: "text-orange",
   categorias: "text-orange/80",
-  estoque: "text-blue-400",
+  estoque: "text-info",
   preco: "text-emerald-400",
   fornecedores: "text-cyan-400",
   publico: "text-violet-400",
@@ -17,7 +17,7 @@ export const SECTION_ICON_COLORS: Record<string, string> = {
   "ramos-atividade": "text-indigo-400",
   tecnicas: "text-rose-400",
   tags: "text-lime-400",
-  "opcoes-rapidas": "text-yellow-400",
+  "opcoes-rapidas": "text-warning",
   ordenacao: "text-slate-400",
 };
 

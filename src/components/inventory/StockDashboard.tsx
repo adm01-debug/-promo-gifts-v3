@@ -99,9 +99,9 @@ function StatCard({
 }) {
   const variantStyles = {
     default: 'bg-card',
-    success: 'bg-green-500/5 border-green-500/20',
+    success: 'bg-success/5 border-success/20',
     warning: 'bg-amber-500/5 border-amber-500/20',
-    error: 'bg-red-500/5 border-red-500/20',
+    error: 'bg-destructive/5 border-destructive/20',
   };
 
   return (
@@ -114,7 +114,7 @@ function StatCard({
             {trend && (
               <p className={cn(
                 "text-xs flex items-center gap-1",
-                trend.value >= 0 ? "text-green-600" : "text-red-600"
+                trend.value >= 0 ? "text-success" : "text-destructive"
               )}>
                 {trend.value >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                 {trend.label}
@@ -134,13 +134,13 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
   const severityStyles = {
     info: 'border-primary/30 bg-primary/5',
     warning: 'border-amber-500/30 bg-amber-500/5',
-    error: 'border-red-500/30 bg-red-500/5',
+    error: 'border-destructive/30 bg-destructive/5',
   };
 
   const severityIcons = {
     info: <AlertCircle className="h-5 w-5 text-primary" />,
     warning: <AlertTriangle className="h-5 w-5 text-amber-600" />,
-    error: <XCircle className="h-5 w-5 text-red-600" />,
+    error: <XCircle className="h-5 w-5 text-destructive" />,
   };
 
   return (
@@ -228,10 +228,10 @@ export function StockDashboard() {
 
       {/* Alertas Críticos */}
       {criticalAlerts.length > 0 && (
-        <Card className="border-red-500/30 bg-red-500/5">
+        <Card className="border-destructive/30 bg-destructive/5">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2 text-red-600">
+              <CardTitle className="text-lg flex items-center gap-2 text-destructive">
                 <AlertTriangle className="h-5 w-5" />
                 Alertas Críticos ({criticalAlerts.length})
               </CardTitle>
@@ -272,7 +272,7 @@ export function StockDashboard() {
         <StatCard
           title="Em Estoque"
           value={summary.productsInStock.toLocaleString('pt-BR')}
-          icon={<CheckCircle2 className="h-6 w-6 text-green-600" />}
+          icon={<CheckCircle2 className="h-6 w-6 text-success" />}
           variant="success"
         />
         <StatCard
@@ -284,7 +284,7 @@ export function StockDashboard() {
         <StatCard
           title="Sem Estoque"
           value={summary.productsOutOfStock.toLocaleString('pt-BR')}
-          icon={<XCircle className="h-6 w-6 text-red-600" />}
+          icon={<XCircle className="h-6 w-6 text-destructive" />}
           variant="error"
         />
         <StatCard

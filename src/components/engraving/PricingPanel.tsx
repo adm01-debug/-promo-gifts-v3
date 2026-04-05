@@ -244,7 +244,7 @@ export function PricingPanel() {
                       {tabelasGrupo[0]?.precoPorPontos && (
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span><Hash className="h-4 w-4 text-purple-500" /></span>
+                            <span><Hash className="h-4 w-4 text-primary" /></span>
                           </TooltipTrigger>
                           <TooltipContent>Cobra por pontos</TooltipContent>
                         </Tooltip>

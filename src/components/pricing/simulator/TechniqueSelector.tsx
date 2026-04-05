@@ -209,8 +209,8 @@ export function TechniqueSelector({
                   className="p-4 rounded-lg border bg-card hover:bg-accent hover:border-primary/50 transition-all text-left group"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center group-hover:bg-orange-500/20 transition-colors">
-                      <Ruler className="w-5 h-5 text-orange-500" />
+                    <div className="w-10 h-10 rounded-lg bg-orange/10 flex items-center justify-center group-hover:bg-orange/20 transition-colors">
+                      <Ruler className="w-5 h-5 text-orange" />
                     </div>
                     <div>
                       <p className="font-medium">{loc.name}</p>
@@ -247,8 +247,8 @@ export function TechniqueSelector({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
-                      <Paintbrush className="w-5 h-5 text-green-600" />
+                    <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
+                      <Paintbrush className="w-5 h-5 text-success" />
                     </div>
                     <div>
                       <p className="font-medium">{tech.areaName || tech.techniqueCode}</p>
@@ -260,7 +260,7 @@ export function TechniqueSelector({
                     </div>
                   </div>
                   {tech.isPrimary && (
-                    <Badge className="bg-green-500/20 text-green-700 border-green-500/30">
+                    <Badge className="bg-success/20 text-success border-success/30">
                       <Sparkles className="w-3 h-3 mr-1" />
                       Recomendado
                     </Badge>
@@ -277,7 +277,7 @@ export function TechniqueSelector({
         <div className="p-4 rounded-lg bg-primary/5 border border-primary/20 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Check className="w-5 h-5 text-green-500" />
+              <Check className="w-5 h-5 text-success" />
               <span className="font-medium">Técnica selecionada</span>
             </div>
             <Button

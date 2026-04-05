@@ -128,7 +128,7 @@ export function SmartRecommendations({ clientId, clientName, showTabs = true }: 
           {trendingProducts.data && trendingProducts.data.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-success" />
                 <h3 className="font-semibold">Produtos em Alta</h3>
                 <Badge variant="secondary" className="text-xs">Últimos 30 dias</Badge>
               </div>
@@ -328,7 +328,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
                   idx === 0 ? "bg-amber-500/20 text-amber-600" :
                   idx === 1 ? "bg-slate-400/20 text-slate-600" :
-                  idx === 2 ? "bg-orange-600/20 text-orange-700" :
+                  idx === 2 ? "bg-orange/20 text-orange" :
                   "bg-muted text-muted-foreground"
                 )}>
                   {idx + 1}

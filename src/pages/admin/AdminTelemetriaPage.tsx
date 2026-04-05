@@ -287,8 +287,8 @@ export default function AdminTelemetriaPage() {
           </Card>
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-yellow-500/10">
-                <Clock className="h-5 w-5 text-yellow-600" />
+              <div className="p-2 rounded-lg bg-warning/10">
+                <Clock className="h-5 w-5 text-warning" />
               </div>
               <div>
                 <p className="text-2xl font-bold">{slow}</p>
@@ -470,7 +470,7 @@ export default function AdminTelemetriaPage() {
                           {row.rpc_name || row.table_name || "-"}
                         </td>
                         <td className="p-3 text-right font-mono font-bold tabular-nums">
-                          <span className={row.duration_ms >= 8000 ? "text-destructive" : row.duration_ms >= 3000 ? "text-yellow-600" : ""}>
+                          <span className={row.duration_ms >= 8000 ? "text-destructive" : row.duration_ms >= 3000 ? "text-warning" : ""}>
                             {formatDuration(row.duration_ms)}
                           </span>
                         </td>

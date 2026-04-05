@@ -159,7 +159,7 @@ export function ProductColorSelector({
                         <Check
                           className={cn(
                             checkSizes[size],
-                            isLight ? "text-gray-800" : "text-primary-foreground"
+                            isLight ? "text-foreground" : "text-primary-foreground"
                           )}
                           strokeWidth={3}
                         />

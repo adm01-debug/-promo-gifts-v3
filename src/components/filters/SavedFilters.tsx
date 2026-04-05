@@ -336,7 +336,7 @@ export function SavedFilters<T = Record<string, unknown>>({
                           onClick={() => handleSetDefault(filter.id, !!filter.isDefault)}
                         >
                           {filter.isDefault ? (
-                            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
+                            <Star className="h-4 w-4 text-warning fill-yellow-500" />
                           ) : (
                             <StarOff className="h-4 w-4 text-muted-foreground" />
                           )}

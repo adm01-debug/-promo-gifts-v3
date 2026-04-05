@@ -203,7 +203,7 @@ export function SupplierFiscalInfo({ productId, supplierId }: Props) {
           </Badge>
         )}
         {isEditing && (
-          <Badge variant="outline" className="text-[10px] h-5 ml-1 gap-1 text-blue-500 border-blue-500/30 bg-blue-500/5">
+          <Badge variant="outline" className="text-[10px] h-5 ml-1 gap-1 text-info border-info/30 bg-info/5">
             <Pencil className="h-2.5 w-2.5" />
             Editando
           </Badge>

@@ -125,7 +125,7 @@ export default function ProductClassificationSection({
           title="Eixos de Variação"
           subtitle="Gênero, cor, tamanho e capacidade"
           icon={Settings2}
-          iconColor="bg-purple-500/10 text-purple-500"
+          iconColor="bg-primary/10 text-primary"
           defaultOpen={true}
         >
           <ProductVariationAxesConfig
@@ -172,7 +172,7 @@ export default function ProductClassificationSection({
           title="Tags"
           subtitle="Etiquetas de busca e filtro"
           icon={Tag}
-          iconColor="bg-orange-500/10 text-orange-500"
+          iconColor="bg-orange/10 text-orange"
           disabled={!showFullContent}
         >
           {showFullContent ? (
