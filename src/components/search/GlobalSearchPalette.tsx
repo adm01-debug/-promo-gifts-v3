@@ -1,6 +1,6 @@
 /**
- * GlobalSearchPalette — Premium redesign with visual hierarchy
- * All search logic extracted to useGlobalSearch hook.
+ * GlobalSearchPalette — Premium 10/10 redesign
+ * Focus: visual hierarchy, spacing rhythm, accessibility, polish
  */
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
@@ -13,7 +13,7 @@ import {
   Package, FileText, ArrowRight, Loader2,
   BarChart3, Calculator, Wand2, Heart, TrendingUp, Sparkles,
   Brain, Clock, Flame, X, Mic, FolderOpen, Search, Eye,
-  Compass, Zap,
+  Compass, Zap, Trophy, Medal, Hash, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
@@ -33,15 +33,43 @@ const quickActions = [
   { id: "trends", title: "Tendências", description: "Análise de tendências", icon: <TrendingUp className="h-4 w-4" />, href: "/tendencias" },
 ];
 
-/* ── Section Header ── */
-function SectionLabel({ icon, label, count }: { icon: React.ReactNode; label: string; count?: number }) {
+/* ── Rank icon per position ── */
+function RankIcon({ index }: { index: number }) {
+  if (index === 0) return (
+    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange to-orange/70 flex items-center justify-center shadow-sm shadow-orange/20">
+      <Trophy className="h-4 w-4 text-white" />
+    </div>
+  );
+  if (index === 1) return (
+    <div className="h-8 w-8 rounded-lg bg-muted/80 flex items-center justify-center border border-border/50">
+      <Medal className="h-4 w-4 text-muted-foreground" />
+    </div>
+  );
   return (
-    <div className="flex items-center gap-2 px-2 pt-3 pb-1.5">
-      <span className="text-muted-foreground/70">{icon}</span>
-      <span className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">{label}</span>
+    <div className="h-8 w-8 rounded-lg bg-muted/50 flex items-center justify-center border border-border/30">
+      <span className="text-xs font-bold text-muted-foreground/60">{index + 1}º</span>
+    </div>
+  );
+}
+
+/* ── Section Divider with label ── */
+function SectionDivider({ icon, label, count, action }: {
+  icon: React.ReactNode;
+  label: string;
+  count?: number;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center gap-2.5 px-3 pt-4 pb-2">
+      <div className="h-5 w-5 rounded-md bg-primary/8 flex items-center justify-center shrink-0">
+        <span className="text-primary/70 [&>svg]:h-3 [&>svg]:w-3">{icon}</span>
+      </div>
+      <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-muted-foreground/60 font-display">{label}</span>
       {count !== undefined && count > 0 && (
-        <span className="text-[10px] font-medium text-muted-foreground/40 bg-muted rounded-full px-1.5 py-0.5 leading-none">{count}</span>
+        <span className="text-[10px] font-medium text-muted-foreground/40 bg-muted/60 rounded-full px-1.5 py-0.5 leading-none min-w-[18px] text-center">{count}</span>
       )}
+      {action && <div className="ml-auto">{action}</div>}
+      <div className="flex-1 h-px bg-gradient-to-r from-border/40 to-transparent ml-1" />
     </div>
   );
 }
@@ -53,14 +81,20 @@ export function GlobalSearchPalette() {
     <>
       {/* ── Trigger ── */}
       <div className="flex items-center gap-2 w-full md:w-auto">
-        <button onClick={() => s.setOpen(true)} className="flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground bg-muted/50 hover:bg-muted rounded-lg border border-border transition-colors flex-1 md:w-56">
-          <Brain className="h-4 w-4 text-primary" />
-          <span className="flex-1 text-left">Busca inteligente...</span>
+        <button
+          onClick={() => s.setOpen(true)}
+          className="group flex items-center gap-2.5 px-3.5 py-2 text-sm text-muted-foreground bg-muted/40 hover:bg-muted/70 rounded-xl border border-border/50 hover:border-border transition-all duration-200 flex-1 md:w-60"
+        >
+          <Brain className="h-4 w-4 text-primary/70 group-hover:text-primary transition-colors" />
+          <span className="flex-1 text-left text-muted-foreground/70 group-hover:text-muted-foreground transition-colors">Busca inteligente...</span>
+          <kbd className="hidden md:inline-flex h-5 items-center gap-0.5 rounded-md border border-border/50 bg-muted/50 px-1.5 font-mono text-[10px] text-muted-foreground/50">
+            ⌘K
+          </kbd>
         </button>
         {s.isVoiceSupported && (
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-lg border-border hover:bg-primary/10 hover:text-primary hover:border-primary/50 transition-all">
+              <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all">
                 <Mic className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
@@ -81,66 +115,81 @@ export function GlobalSearchPalette() {
 
       {/* ── Command Dialog ── */}
       <CommandDialog open={s.open} onOpenChange={s.setOpen}>
-        <CommandInput placeholder="Ex: canecas azuis baratas, orçamentos pendentes do João..." value={s.query} onValueChange={s.setQuery} />
+        <div className="relative">
+          <CommandInput
+            placeholder="Buscar produtos, orçamentos, clientes..."
+            value={s.query}
+            onValueChange={s.setQuery}
+          />
+          {/* Subtle gradient line under input */}
+          <div className="absolute bottom-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-primary/20 to-transparent" />
+        </div>
 
-        <CommandList className="max-h-[520px]">
-          {/* ── AI Processing indicator ── */}
+        <CommandList className="max-h-[480px] scrollbar-thin">
+          {/* ── AI Processing ── */}
           {s.isAIProcessing && (
-            <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-primary/5 to-transparent border-b border-primary/10">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex items-center gap-3 px-4 py-3 mx-2 mt-2 rounded-xl bg-gradient-to-r from-primary/8 via-primary/5 to-transparent border border-primary/10">
+              <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
                 <Sparkles className="h-4 w-4 text-primary animate-pulse" />
               </div>
-              <div>
-                <p className="text-sm font-medium text-primary">Analisando sua busca com IA...</p>
-                <p className="text-[11px] text-muted-foreground">Entendendo o que você procura</p>
+              <div className="flex-1">
+                <p className="text-sm font-medium text-primary font-display">Analisando sua busca...</p>
+                <p className="text-[11px] text-muted-foreground/60 mt-0.5">IA identificando intenção e filtros</p>
               </div>
+              <Loader2 className="h-4 w-4 text-primary/40 animate-spin" />
             </div>
           )}
 
           {/* ── Intent display ── */}
           {s.searchIntent && !s.isSearching && s.results.length > 0 && (
-            <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 bg-muted/30 border-b border-border/50">
-              <div className="h-5 w-5 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="flex flex-wrap items-center gap-2 px-4 py-2.5 mx-2 mt-2 rounded-lg bg-muted/30 border border-border/30">
+              <div className="h-5 w-5 rounded-md bg-primary/10 flex items-center justify-center">
                 <Brain className="h-3 w-3 text-primary" />
               </div>
-              <span className="text-xs font-medium text-muted-foreground">Entendi:</span>
+              <span className="text-[11px] font-medium text-muted-foreground/70">Entendi:</span>
               {s.searchIntent.type !== "mixed" && (
-                <Badge variant="outline" className="text-[11px] h-5">
+                <Badge variant="outline" className="text-[11px] h-5 rounded-md">
                   {{ product: "Produtos", client: "Clientes", quote: "Orçamentos", order: "Pedidos" }[s.searchIntent.type]}
                 </Badge>
               )}
-              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5">{s.searchIntent.filters.category}</Badge>}
-              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5">Cor: {s.searchIntent.filters.color}</Badge>}
-              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
-              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5">Status: {s.searchIntent.filters.status}</Badge>}
-              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5">Cliente: {s.searchIntent.filters.clientName}</Badge>}
+              {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">{s.searchIntent.filters.category}</Badge>}
+              {s.searchIntent.filters.color && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Cor: {s.searchIntent.filters.color}</Badge>}
+              {s.searchIntent.filters.priceRange && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">{{ low: "Preço baixo", medium: "Preço médio", high: "Premium" }[s.searchIntent.filters.priceRange]}</Badge>}
+              {s.searchIntent.filters.status && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Status: {s.searchIntent.filters.status}</Badge>}
+              {s.searchIntent.filters.clientName && <Badge variant="secondary" className="text-[11px] h-5 rounded-md">Cliente: {s.searchIntent.filters.clientName}</Badge>}
             </div>
           )}
 
           {/* ── Loading ── */}
           {s.isSearching && !s.isAIProcessing && (
-            <div className="flex flex-col items-center justify-center py-10 gap-3">
-              <Loader2 className="h-6 w-6 animate-spin text-primary/60" />
-              <p className="text-xs text-muted-foreground">Buscando...</p>
-            </div>
-          )}
-
-          {/* ── Empty ── */}
-          {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-10 gap-2">
-              <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-                <Search className="h-5 w-5 text-muted-foreground/50" />
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-primary/60" />
               </div>
-              <p className="text-sm text-muted-foreground">Nenhum resultado para "<span className="font-medium text-foreground">{s.query}</span>"</p>
-              <p className="text-xs text-muted-foreground/60">Tente termos diferentes ou mais curtos</p>
+              <p className="text-xs text-muted-foreground/60">Buscando resultados...</p>
             </div>
           )}
 
-          {/* ── Hint for short queries ── */}
+          {/* ── Empty state ── */}
+          {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
+            <div className="flex flex-col items-center justify-center py-12 gap-3">
+              <div className="h-14 w-14 rounded-2xl bg-muted/50 flex items-center justify-center border border-border/30">
+                <Search className="h-6 w-6 text-muted-foreground/30" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground/70">Nenhum resultado para "<span className="font-semibold text-foreground/80">{s.query}</span>"</p>
+                <p className="text-xs text-muted-foreground/40 mt-1">Tente termos diferentes ou mais curtos</p>
+              </div>
+            </div>
+          )}
+
+          {/* ── Short query hint ── */}
           {!s.isSearching && s.query.length >= 1 && s.query.length < 3 && (
-            <div className="flex items-center gap-2 px-4 py-4 justify-center">
-              <Search className="h-3.5 w-3.5 text-muted-foreground/40" />
-              <span className="text-xs text-muted-foreground/50">Continue digitando para buscar...</span>
+            <div className="flex items-center justify-center gap-2 px-4 py-5">
+              <div className="h-6 w-6 rounded-md bg-muted/50 flex items-center justify-center">
+                <Search className="h-3 w-3 text-muted-foreground/30" />
+              </div>
+              <span className="text-xs text-muted-foreground/40">Continue digitando para buscar...</span>
             </div>
           )}
 
@@ -152,14 +201,16 @@ export function GlobalSearchPalette() {
             return (
               <CommandGroup key={type} heading={config.label + "s"}>
                 {items.map(result => (
-                  <CommandItem key={result.id} value={result.title} onSelect={() => s.handleSelect(result.href)} className="flex items-center gap-3 py-3 rounded-lg mx-1">
-                    <div className={`p-2 rounded-lg ${config.color}/10`}><Icon className={`h-4 w-4 ${config.color.replace("bg-", "text-")}`} /></div>
+                  <CommandItem key={result.id} value={result.title} onSelect={() => s.handleSelect(result.href)} className="flex items-center gap-3 py-2.5 rounded-xl mx-1.5 px-2.5">
+                    <div className={cn("h-9 w-9 rounded-xl flex items-center justify-center shrink-0", `${config.color}/10`)}>
+                      <Icon className={cn("h-4 w-4", config.color.replace("bg-", "text-"))} />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium truncate text-sm">{result.title}</p>
-                      {result.subtitle && <p className="text-xs text-muted-foreground truncate mt-0.5">{result.subtitle}</p>}
+                      {result.subtitle && <p className="text-[11px] text-muted-foreground/60 truncate mt-0.5">{result.subtitle}</p>}
                     </div>
-                    <Badge variant="outline" className="shrink-0 text-[10px] h-5">{config.label}</Badge>
-                    <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                    <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-md border-border/40">{config.label}</Badge>
+                    <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
                   </CommandItem>
                 ))}
               </CommandGroup>
@@ -170,10 +221,12 @@ export function GlobalSearchPalette() {
           {s.typingSuggestions.length > 0 && s.query.length >= 2 && s.query.length < 5 && !s.isSearching && (
             <CommandGroup heading="Sugestões">
               {s.typingSuggestions.map((suggestion, i) => (
-                <CommandItem key={`sug-${i}`} value={`suggestion-${suggestion}`} onSelect={() => s.handleSuggestionClick(suggestion)} className="flex items-center gap-3 py-2 rounded-lg mx-1">
-                  <div className="p-1.5 rounded-md bg-primary/10"><Sparkles className="h-3.5 w-3.5 text-primary" /></div>
+                <CommandItem key={`sug-${i}`} value={`suggestion-${suggestion}`} onSelect={() => s.handleSuggestionClick(suggestion)} className="flex items-center gap-3 py-2.5 rounded-xl mx-1.5 px-2.5">
+                  <div className="h-8 w-8 rounded-lg bg-primary/8 flex items-center justify-center">
+                    <Sparkles className="h-3.5 w-3.5 text-primary/70" />
+                  </div>
                   <span className="flex-1 text-sm">{suggestion}</span>
-                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                  <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/25" />
                 </CommandItem>
               ))}
             </CommandGroup>
@@ -186,113 +239,153 @@ export function GlobalSearchPalette() {
             <>
               {/* ── Buscas Recentes ── */}
               {s.history.length > 0 && (
-                <div className="px-1 pb-1">
-                  <SectionLabel icon={<Clock className="h-3.5 w-3.5" />} label="Recentes" />
-                  {s.history.slice(0, 4).map((term, i) => (
-                    <CommandItem key={`h-${i}`} value={`history-${term}`} onSelect={() => s.handleSuggestionClick(term)} className="flex items-center gap-3 py-2 rounded-lg mx-1 group">
-                      <div className="h-7 w-7 rounded-md bg-muted/80 flex items-center justify-center shrink-0">
-                        <Clock className="h-3.5 w-3.5 text-muted-foreground/60" />
-                      </div>
-                      <span className="flex-1 text-sm truncate">{term}</span>
-                      <button onClick={e => s.handleRemoveFromHistory(e, term)} aria-label={`Remover "${term}" do histórico`} className="opacity-0 group-hover:opacity-100 h-6 w-6 flex items-center justify-center hover:bg-destructive/10 rounded-md transition-all">
-                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" aria-hidden="true" />
-                      </button>
-                    </CommandItem>
-                  ))}
+                <div className="px-1">
+                  <SectionDivider icon={<Clock />} label="Recentes" count={s.history.length} />
+                  <div className="space-y-0.5 px-1">
+                    {s.history.slice(0, 4).map((term, i) => (
+                      <CommandItem key={`h-${i}`} value={`history-${term}`} onSelect={() => s.handleSuggestionClick(term)} className="flex items-center gap-3 py-2 rounded-xl px-2.5 group">
+                        <div className="h-8 w-8 rounded-lg bg-muted/60 flex items-center justify-center shrink-0 group-data-[selected=true]:bg-accent">
+                          <Clock className="h-3.5 w-3.5 text-muted-foreground/50" />
+                        </div>
+                        <span className="flex-1 text-sm truncate">{term}</span>
+                        <button
+                          onClick={e => s.handleRemoveFromHistory(e, term)}
+                          aria-label={`Remover "${term}" do histórico`}
+                          className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
+                        >
+                          <X className="h-3 w-3 text-muted-foreground/50 hover:text-destructive" aria-hidden="true" />
+                        </button>
+                      </CommandItem>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {/* ── Produtos Populares ── */}
               {s.popularProducts.length > 0 && (
-                <div className="px-1 pb-1">
-                  <CommandSeparator className="mb-0" />
-                  <SectionLabel icon={<Flame className="h-3.5 w-3.5" />} label="Populares" count={s.popularProducts.length} />
-                  {s.popularProducts.map((product, idx) => (
-                    <CommandItem key={`pop-${product.id}`} value={`popular-${product.name}`} onSelect={() => s.handleSelect(`/produto/${product.id}`, false)} className="flex items-center gap-3 py-2 rounded-lg mx-1">
-                      <div className={cn(
-                        "h-7 w-7 rounded-md flex items-center justify-center shrink-0 text-[11px] font-bold",
-                        idx === 0 && "bg-orange/15 text-orange",
-                        idx === 1 && "bg-muted text-muted-foreground",
-                        idx >= 2 && "bg-muted/60 text-muted-foreground/60",
-                      )}>
-                        {idx === 0 ? <Flame className="h-3.5 w-3.5" /> : `${idx + 1}`}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{product.name}</p>
-                        <p className="text-[11px] text-muted-foreground/70 flex items-center gap-1 mt-0.5">
-                          <span className="font-mono">{product.sku}</span>
-                          <span className="text-muted-foreground/30">·</span>
-                          <Eye className="h-3 w-3" />
-                          <span>{product.view_count}</span>
-                        </p>
-                      </div>
-                      <Badge variant="outline" className="shrink-0 text-[10px] h-5 border-orange/30 text-orange/80">Popular</Badge>
-                    </CommandItem>
-                  ))}
+                <div className="px-1">
+                  <SectionDivider icon={<Flame />} label="Mais Populares" count={s.popularProducts.length} />
+                  <div className="space-y-0.5 px-1">
+                    {s.popularProducts.map((product, idx) => (
+                      <CommandItem
+                        key={`pop-${product.id}`}
+                        value={`popular-${product.name}`}
+                        onSelect={() => s.handleSelect(`/produto/${product.id}`, false)}
+                        className={cn(
+                          "flex items-center gap-3 py-2.5 rounded-xl px-2.5",
+                          idx === 0 && "bg-orange/[0.04]"
+                        )}
+                      >
+                        <RankIcon index={idx} />
+                        <div className="flex-1 min-w-0">
+                          <p className={cn(
+                            "text-sm truncate",
+                            idx === 0 ? "font-semibold" : "font-medium"
+                          )}>{product.name}</p>
+                          <div className="flex items-center gap-1.5 mt-0.5">
+                            <span className="text-[11px] text-muted-foreground/50 font-mono">{product.sku}</span>
+                            <span className="text-muted-foreground/20">·</span>
+                            <div className="flex items-center gap-0.5 text-[11px] text-muted-foreground/40">
+                              <Eye className="h-3 w-3" />
+                              <span>{product.view_count} views</span>
+                            </div>
+                          </div>
+                        </div>
+                        {idx === 0 ? (
+                          <Badge className="shrink-0 text-[10px] h-5 rounded-md bg-orange/15 text-orange border-orange/20 hover:bg-orange/20">
+                            🔥 Top
+                          </Badge>
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
+                        )}
+                      </CommandItem>
+                    ))}
+                  </div>
                 </div>
               )}
 
               {/* ── Sugestões Contextuais ── */}
               {s.contextualSuggestions.length > 0 && (
-                <div className="px-1 pb-1">
-                  <CommandSeparator className="mb-0" />
-                  <SectionLabel
-                    icon={<Sparkles className="h-3.5 w-3.5" />}
-                    label={s.routeContext.section === "products" ? "Sugestões para Catálogo" : s.routeContext.section === "quotes" ? "Sugestões para Orçamentos" : "Sugestões"}
+                <div className="px-1">
+                  <SectionDivider
+                    icon={<Sparkles />}
+                    label={s.routeContext.section === "products" ? "Para o Catálogo" : s.routeContext.section === "quotes" ? "Para Orçamentos" : "Sugestões"}
                   />
-                  <div className="flex flex-wrap gap-1.5 px-3 pb-2" role="group" aria-label="Sugestões contextuais">
+                  <div className="flex flex-wrap gap-2 px-3 pb-3" role="group" aria-label="Sugestões contextuais">
                     {s.contextualSuggestions.slice(0, 6).map(sug => (
-                      <button key={sug.id} onClick={() => s.handleSuggestionClick(sug.text)} aria-label={`Buscar ${sug.text}`} className={cn(
-                        "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all",
-                        sug.type === "filter" && "bg-primary/8 hover:bg-primary/15 text-primary border border-primary/25 hover:border-primary/50",
-                        sug.type === "navigation" && "bg-accent/50 hover:bg-accent text-accent-foreground border border-accent-foreground/10",
-                        sug.type === "action" && "bg-orange/8 hover:bg-orange/15 text-orange border border-orange/25 hover:border-orange/50",
-                        sug.type === "search" && "bg-muted/60 hover:bg-muted text-muted-foreground border border-border/50",
-                      )}>
-                        <span>{sug.icon}</span><span>{sug.text}</span>
+                      <button
+                        key={sug.id}
+                        onClick={() => s.handleSuggestionClick(sug.text)}
+                        aria-label={`Buscar ${sug.text}`}
+                        className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150",
+                          sug.type === "filter" && "bg-primary/6 hover:bg-primary/12 text-primary/80 hover:text-primary border border-primary/15 hover:border-primary/30",
+                          sug.type === "navigation" && "bg-accent/40 hover:bg-accent/70 text-accent-foreground/80 border border-accent-foreground/8",
+                          sug.type === "action" && "bg-orange/6 hover:bg-orange/12 text-orange/80 hover:text-orange border border-orange/15 hover:border-orange/30",
+                          sug.type === "search" && "bg-muted/50 hover:bg-muted/80 text-muted-foreground/70 hover:text-muted-foreground border border-border/30 hover:border-border/60",
+                        )}
+                      >
+                        <span className="text-sm leading-none">{sug.icon}</span>
+                        <span>{sug.text}</span>
                       </button>
                     ))}
                   </div>
                 </div>
               )}
 
-              {/* ── Sugestões Rápidas (compact tags) ── */}
-              <div className="px-1 pb-1">
-                <CommandSeparator className="mb-0" />
-                <SectionLabel icon={<Zap className="h-3.5 w-3.5" />} label="Atalhos" />
-                <div className="flex flex-wrap gap-1.5 px-3 pb-2" role="group" aria-label="Sugestões rápidas">
+              {/* ── Atalhos Rápidos ── */}
+              <div className="px-1">
+                <SectionDivider icon={<Zap />} label="Atalhos" />
+                <div className="flex flex-wrap gap-1.5 px-3 pb-3" role="group" aria-label="Atalhos rápidos">
                   {s.quickSuggestions.map((qs, i) => (
-                    <button key={`q-${i}`} onClick={() => s.handleSuggestionClick(qs.label)} aria-label={`Buscar ${qs.label}`} className="inline-flex items-center gap-1 px-2.5 py-1 bg-muted/50 hover:bg-muted rounded-md text-xs text-muted-foreground hover:text-foreground transition-colors border border-transparent hover:border-border/50">
-                      <span className="text-sm leading-none">{qs.icon}</span><span>{qs.label}</span>
+                    <button
+                      key={`q-${i}`}
+                      onClick={() => s.handleSuggestionClick(qs.label)}
+                      aria-label={`Buscar ${qs.label}`}
+                      className="inline-flex items-center gap-1.5 px-2.5 py-1.5 bg-muted/30 hover:bg-muted/60 rounded-lg text-xs text-muted-foreground/60 hover:text-muted-foreground transition-all duration-150 border border-transparent hover:border-border/30"
+                    >
+                      <span className="text-sm leading-none opacity-60">{qs.icon}</span>
+                      <span>{qs.label}</span>
                     </button>
                   ))}
                 </div>
               </div>
 
-              {/* ── Ir Para (unified navigation) ── */}
+              {/* ── Ir Para ── */}
               <div className="px-1 pb-1">
-                <CommandSeparator className="mb-0" />
-                <SectionLabel icon={<Compass className="h-3.5 w-3.5" />} label="Ir Para" />
-                <div className="grid grid-cols-1 gap-0.5">
+                <SectionDivider icon={<Compass />} label="Ir Para" count={quickActions.length} />
+                <div className="grid grid-cols-1 gap-0.5 px-1">
                   {quickActions.map(action => (
-                    <CommandItem key={action.id} value={action.title} onSelect={() => s.handleSelect(action.href, false)} className={cn(
-                      "flex items-center gap-3 py-2 rounded-lg mx-1",
-                      (action as any).highlight && "bg-primary/5"
-                    )}>
+                    <CommandItem
+                      key={action.id}
+                      value={action.title}
+                      onSelect={() => s.handleSelect(action.href, false)}
+                      className={cn(
+                        "flex items-center gap-3 py-2 rounded-xl px-2.5",
+                        (action as any).highlight && "bg-gradient-to-r from-primary/6 to-transparent"
+                      )}
+                    >
                       <div className={cn(
-                        "h-7 w-7 rounded-md flex items-center justify-center shrink-0",
-                        (action as any).highlight ? "bg-primary/10 text-primary" : "bg-muted/80 text-muted-foreground/70"
+                        "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 transition-colors",
+                        (action as any).highlight
+                          ? "bg-gradient-to-br from-primary/15 to-primary/5 text-primary shadow-sm shadow-primary/10"
+                          : "bg-muted/50 text-muted-foreground/60"
                       )}>
                         {action.icon}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={cn("text-sm truncate", (action as any).highlight ? "font-semibold" : "font-medium")}>{action.title}</p>
-                        <p className="text-[11px] text-muted-foreground/50 truncate">{action.description}</p>
+                        <p className={cn(
+                          "text-sm truncate",
+                          (action as any).highlight ? "font-semibold text-primary" : "font-medium"
+                        )}>{action.title}</p>
+                        <p className="text-[11px] text-muted-foreground/40 truncate">{action.description}</p>
                       </div>
                       {action.shortcut && (
-                        <kbd className="hidden md:inline-flex h-5 min-w-5 items-center justify-center rounded bg-muted border border-border/50 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/60">{action.shortcut}</kbd>
+                        <kbd className="hidden md:inline-flex h-5 min-w-[22px] items-center justify-center rounded-md bg-muted/50 border border-border/30 px-1.5 font-mono text-[10px] font-medium text-muted-foreground/40">
+                          {action.shortcut}
+                        </kbd>
                       )}
-                      <ArrowRight className="h-3.5 w-3.5 text-muted-foreground/30" />
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/20" />
                     </CommandItem>
                   ))}
                 </div>
@@ -302,19 +395,25 @@ export function GlobalSearchPalette() {
         </CommandList>
 
         {/* ── Keyboard shortcuts footer ── */}
-        <div className="flex items-center justify-center gap-5 px-4 py-2 border-t border-border/50 bg-muted/20 text-[11px] text-muted-foreground/50 select-none">
-          <span className="inline-flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 rounded bg-muted/80 border border-border/50 font-mono text-[10px] leading-none">↵</kbd>
-            <span>Selecionar</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 rounded bg-muted/80 border border-border/50 font-mono text-[10px] leading-none">↑↓</kbd>
-            <span>Navegar</span>
-          </span>
-          <span className="inline-flex items-center gap-1.5">
-            <kbd className="px-1 py-0.5 rounded bg-muted/80 border border-border/50 font-mono text-[10px] leading-none">ESC</kbd>
-            <span>Fechar</span>
-          </span>
+        <div className="flex items-center justify-between px-4 py-2 border-t border-border/30 bg-muted/10 select-none">
+          <div className="flex items-center gap-4 text-[11px] text-muted-foreground/40">
+            <span className="inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded bg-muted/60 border border-border/30 font-mono text-[10px] leading-none px-1">↵</kbd>
+              <span>Selecionar</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded bg-muted/60 border border-border/30 font-mono text-[10px] leading-none px-1">↑↓</kbd>
+              <span>Navegar</span>
+            </span>
+            <span className="inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded bg-muted/60 border border-border/30 font-mono text-[10px] leading-none px-1">ESC</kbd>
+              <span>Fechar</span>
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground/30">
+            <Brain className="h-3 w-3" />
+            <span>Busca com IA</span>
+          </div>
         </div>
       </CommandDialog>
     </>
