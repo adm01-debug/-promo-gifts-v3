@@ -51,6 +51,7 @@ import { toast } from "sonner";
 import { showUndoToast } from "@/utils/undoToast";
 import { formatDistanceToNow, differenceInDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 // ============================================
 // MAIN PAGE
@@ -59,6 +60,7 @@ import { ptBR } from "date-fns/locale";
 export default function SellerCartsPage() {
   return (
     <MainLayout>
+      <PageSEO title="Carrinhos" description="Gerencie carrinhos de seleção de produtos para seus clientes." path="/carrinhos" noIndex />
       <SellerCartsContent />
     </MainLayout>
   );

@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Shield, ShieldAlert, ShieldCheck, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 export default function AdminLoginAttemptsPage() {
   const [page, setPage] = useState(1);
@@ -26,6 +27,7 @@ export default function AdminLoginAttemptsPage() {
 
   return (
     <div className="space-y-6 p-6">
+      <PageSEO title="Tentativas de Login" description="Monitore tentativas de login e atividades suspeitas." path="/admin/login-attempts" noIndex />
       <div>
         <h1 className="text-2xl font-bold text-foreground">Tentativas de Login</h1>
         <p className="text-muted-foreground">Monitoramento de acessos e tentativas de autenticação</p>

@@ -44,6 +44,7 @@ import { fetchPromobrindPriceTables, PromobrindPriceTable } from '@/lib/external
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 // Formatador de moeda BRL
 const formatCurrency = (value: number): string => {
@@ -572,6 +573,7 @@ export default function AdvancedPriceSearchPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Busca Avançada de Preços" description="Pesquise preços de brindes com filtros avançados." path="/busca-precos" noIndex />
       <div className="container py-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col gap-2">

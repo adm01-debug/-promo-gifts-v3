@@ -7,12 +7,14 @@ import { ProductGroupsManager } from "@/components/admin/ProductGroupsManager";
 import { GroupPersonalizationManager } from "@/components/admin/GroupPersonalizationManager";
 import { ProductPersonalizationManager } from "@/components/admin/personalization-manager";
 import { TechniquesManager } from "@/components/admin/TechniquesManager";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 export function EngravingRegistrationContent() {
   const [activeTab, setActiveTab] = useState("techniques");
 
   return (
     <div className="space-y-6">
+      <PageSEO title="Cadastro de Gravações" description="Cadastre técnicas de gravação e personalização." path="/gravacoes" noIndex />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full max-w-4xl grid-cols-6">
           <TabsTrigger value="techniques" className="flex items-center gap-2">

@@ -13,6 +13,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks/use-toast';
 import { Key, Plus, Edit, Trash2 } from 'lucide-react';
 import { BackButton } from '@/components/common/BackButton';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface Permission {
   id: string;
@@ -106,6 +107,7 @@ export default function PermissionsPage() {
 
   return (
     <SidebarProvider>
+      <PageSEO title="Permissões" description="Gerencie permissões de acesso do sistema." path="/admin/permissoes" noIndex />
       <div className="flex min-h-screen w-full">
         <Sidebar />
         <SidebarInset className="flex-1">

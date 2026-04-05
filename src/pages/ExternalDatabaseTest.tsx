@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2, CheckCircle2, XCircle, Database, Building2, Package, RefreshCw } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 export default function ExternalDatabaseTest() {
   const [activeTab, setActiveTab] = useState("companies");
@@ -85,6 +86,7 @@ export default function ExternalDatabaseTest() {
 
   return (
     <MainLayout>
+      <PageSEO title="Teste de Banco Externo" description="Teste de conexão com banco de dados externo." path="/external-db-test" noIndex />
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

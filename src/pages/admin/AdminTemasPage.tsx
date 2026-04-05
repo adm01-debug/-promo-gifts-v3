@@ -20,6 +20,7 @@ import { PresetCard } from '@/components/settings/theme/PresetCard';
 import { BorderRadiusControl } from '@/components/settings/theme/BorderRadiusControl';
 
 import { ThemeResetDialog } from '@/components/settings/theme/ThemeResetDialog';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 
 const fadeUp = {
@@ -97,6 +98,7 @@ export default function AdminTemasPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Temas" description="Personalize a aparência visual da plataforma." path="/admin/temas" noIndex />
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-4 sm:py-6 space-y-6 sm:space-y-8">
       {/* Sticky compact header */}
       <motion.div

@@ -11,6 +11,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Key, Save, Users, CheckCircle2, XCircle } from 'lucide-react';
 import type { Database } from '@/integrations/supabase/types';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 type AppRole = Database['public']['Enums']['app_role'];
 
@@ -195,6 +196,7 @@ export default function RolePermissionsPage() {
 
   return (
     <SidebarProvider>
+      <PageSEO title="Permissões por Role" description="Configure permissões associadas a cada perfil de acesso." path="/admin/role-permissoes" noIndex />
       <div className="flex min-h-screen w-full">
         <Sidebar />
         <SidebarInset className="flex-1">

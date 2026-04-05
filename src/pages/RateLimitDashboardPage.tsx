@@ -9,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { Shield, AlertTriangle, Ban, RefreshCw, Clock, Activity } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface RateLimitLog {
   id: string;
@@ -66,6 +67,7 @@ export default function RateLimitDashboardPage() {
 
   return (
     <MainLayout>
+      <PageSEO title="Rate Limit" description="Monitore limites de requisições e controle de acesso." path="/admin/rate-limit" noIndex />
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>

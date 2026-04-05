@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Video, Plus, Trash2, Search, Play } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { PageSEO } from "@/components/seo/PageSEO";
 
 export default function AdminVideoVariantsPage() {
   const [productFilter, setProductFilter] = useState("");
@@ -49,6 +50,7 @@ export default function AdminVideoVariantsPage() {
 
   return (
     <div className="space-y-6 p-6">
+      <PageSEO title="Vídeos por Variante" description="Gerencie vídeos associados a variantes de produtos." path="/admin/video-variantes" noIndex />
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">

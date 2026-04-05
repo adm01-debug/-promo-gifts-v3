@@ -2,6 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
 
 vi.mock("@/hooks/useLoginAttempts", () => ({
   useLoginAttempts: () => ({
@@ -41,9 +42,11 @@ vi.mock("@/hooks/useLoginAttempts", () => ({
 function renderWithProviders(ui: React.ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
-    <QueryClientProvider client={qc}>
-      <BrowserRouter>{ui}</BrowserRouter>
-    </QueryClientProvider>
+    <HelmetProvider>
+      <QueryClientProvider client={qc}>
+        <BrowserRouter>{ui}</BrowserRouter>
+      </QueryClientProvider>
+    </HelmetProvider>
   );
 }
 

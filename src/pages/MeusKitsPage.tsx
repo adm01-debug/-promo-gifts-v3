@@ -32,6 +32,7 @@ import { KitComparisonDialog } from '@/components/kit-builder/KitComparisonDialo
 import { Checkbox } from '@/components/ui/checkbox';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { PageSEO } from "@/components/seo/PageSEO";
 
 interface CustomKit {
   id: string;
@@ -192,6 +193,7 @@ export default function MeusKitsPage() {
 
   return (
     <div className="container mx-auto py-6 px-4 max-w-5xl space-y-6">
+      <PageSEO title="Meus Kits" description="Visualize e gerencie seus kits de brindes salvos." path="/meus-kits" noIndex />
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
