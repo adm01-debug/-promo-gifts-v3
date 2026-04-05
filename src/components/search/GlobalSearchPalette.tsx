@@ -37,8 +37,8 @@ const quickActions = [
 /* ── Rank badge with gradient ── */
 function RankBadge({ index }: { index: number }) {
   if (index === 0) return (
-    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange via-orange/80 to-amber-500/60 flex items-center justify-center shadow-lg shadow-orange/25 animate-[brain-glow_3s_ease-in-out_infinite] ring-2 ring-orange/20">
-      <Trophy className="h-4.5 w-4.5 text-white drop-shadow-sm" />
+    <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-orange via-orange/80 to-orange/60 flex items-center justify-center shadow-lg shadow-orange/25 animate-[brain-glow_3s_ease-in-out_infinite] ring-2 ring-orange/20">
+      <Trophy className="h-4.5 w-4.5 text-primary-foreground drop-shadow-sm" />
     </div>
   );
   if (index === 1) return (
