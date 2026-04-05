@@ -8,10 +8,9 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
 import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
-import { useVoiceFeedback } from "@/hooks/useVoiceFeedback";
+import { useVoiceAgent, type VoiceAgentAction } from "@/hooks/useVoiceAgent";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
@@ -62,108 +61,104 @@ export function useGlobalSearch() {
   const [popularProducts, setPopularProducts] = useState<PopularProduct[]>([]);
   const [typingSuggestions, setTypingSuggestions] = useState<string[]>([]);
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
-  const [voiceCommandAction, setVoiceCommandAction] = useState<string | null>(null);
-  const [voiceAppliedFilters, setVoiceAppliedFilters] = useState<AppliedFilter[]>([]);
   const navigate = useNavigate();
   const debouncedQuery = useDebounce(query, 500);
   const { history, addToHistory, removeFromHistory, quickSuggestions } = useSearch();
 
   const {
-    frequentCommands, recentCommands,
     addCommand: addVoiceCommand,
   } = useVoiceCommandHistory();
 
   const { suggestions: contextualSuggestions, routeContext } = useContextualSuggestions({ searchQuery: query });
 
-  const {
-    playStartListening, playStopListening, playCommandRecognized,
-    playCommandSuccess, playError, playNavigation, playFilterApplied,
-  } = useVoiceFeedback();
+  // ── Voice Agent (ElevenLabs + AI) ──
+  const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
+    addVoiceCommand(action.data?.query || action.response, action.action as any, true);
 
-  // ── Voice command detection ──
-  const detectCommandType = useCallback((text: string): "filter" | "search" | "navigation" | "sort" | "clear" => {
-    const lower = text.toLowerCase();
-    if (/^(limpar|resetar|remover filtros)/.test(lower)) return "clear";
-    if (/^(ir para|abrir|navegar|mostrar pagina)/.test(lower)) return "navigation";
-    if (/(ordenar|ordem|mais barato|mais caro)/.test(lower)) return "sort";
-    if (/(filtrar|buscar|mostrar|encontrar|quero)/.test(lower)) return "filter";
-    return "search";
+    switch (action.action) {
+      case "navigate":
+        if (action.data?.route) {
+          setTimeout(() => {
+            setVoiceOverlayOpen(false);
+            navigate(action.data!.route!);
+          }, 500);
+        }
+        break;
+      case "search":
+      case "filter":
+        if (action.data?.query || action.data?.filters) {
+          const searchTerm = action.data?.query || "";
+          // Build search query from filters if no explicit query
+          const filterParts: string[] = [];
+          if (action.data?.filters?.category) filterParts.push(action.data.filters.category);
+          if (action.data?.filters?.color) filterParts.push(action.data.filters.color);
+          if (action.data?.filters?.material) filterParts.push(action.data.filters.material);
+          
+          const finalQuery = searchTerm || filterParts.join(" ");
+          if (finalQuery) {
+            setTimeout(() => {
+              setVoiceOverlayOpen(false);
+              setQuery(finalQuery);
+              setOpen(true);
+            }, 500);
+          }
+        }
+        break;
+      case "clear":
+        setTimeout(() => {
+          setVoiceOverlayOpen(false);
+          setQuery("");
+          setResults([]);
+        }, 500);
+        break;
+      case "sort":
+        // Sort is handled via the search palette
+        setTimeout(() => {
+          setVoiceOverlayOpen(false);
+          if (action.data?.query) {
+            setQuery(action.data.query);
+            setOpen(true);
+          }
+        }, 500);
+        break;
+      case "answer":
+        // Just spoke the answer, no navigation needed
+        break;
+    }
+  }, [navigate, addVoiceCommand]);
+
+  const voiceAgent = useVoiceAgent({
+    onAction: handleVoiceAction,
+  });
+
+  const handleOpenVoiceOverlay = useCallback(() => {
+    setVoiceOverlayOpen(true);
   }, []);
 
-  const handleVoiceResult = useCallback((transcript: string) => {
-    const lowerTranscript = transcript.toLowerCase();
-    const commandType = detectCommandType(transcript);
-    playCommandRecognized();
-
-    const appliedFilters: AppliedFilter[] = [];
-
-    const categoryMatches = lowerTranscript.match(/(?:canetas?|mochilas?|garrafas?|canecas?|camisetas?|bolsas?|cadernos?|agendas?|kits?|ecobags?)/gi);
-    if (categoryMatches) appliedFilters.push({ type: "category", label: categoryMatches[0] });
-
-    const colorMatches = lowerTranscript.match(/(?:azul|azuis|vermelho|vermelhas?|verde|verdes?|amarelo|amarelas?|preto|pretas?|branco|brancas?|rosa|roxo|laranja)/gi);
-    if (colorMatches) appliedFilters.push({ type: "color", label: colorMatches[0] });
-
-    const priceMatch = lowerTranscript.match(/(?:até|menos de|abaixo de|barato|baratas?)\s*(?:r?\$?\s*)?(\d+)/i);
-    if (priceMatch) {
-      appliedFilters.push({ type: "price", label: `Até R$ ${priceMatch[1]}` });
-    } else if (/barato|baratas?|econômico/i.test(lowerTranscript)) {
-      appliedFilters.push({ type: "price", label: "Preço baixo" });
-    } else if (/premium|caro|luxo/i.test(lowerTranscript)) {
-      appliedFilters.push({ type: "price", label: "Premium" });
-    }
-
-    const materialMatches = lowerTranscript.match(/(?:ecológico|ecológicas?|bambu|reciclado|sustentável|metal|plástico|algodão)/gi);
-    if (materialMatches) appliedFilters.push({ type: "material", label: materialMatches[0] });
-
-    if (/em estoque|disponível|pronta entrega/i.test(lowerTranscript)) appliedFilters.push({ type: "stock", label: "Em estoque" });
-    if (/kits?(?:\s|$)/i.test(lowerTranscript)) appliedFilters.push({ type: "kit", label: "Kit" });
-
-    setVoiceAppliedFilters(appliedFilters);
-    if (appliedFilters.length > 0) playFilterApplied();
-
-    // Navigation commands
-    const navRoutes: [RegExp, string, string][] = [
-      [/(?:ir para|abrir|mostrar|ver)\s*(?:orçamentos?|cotações?)/i, "/orcamentos", "Abrindo orçamentos..."],
-      [/(?:ir para|abrir|mostrar|ver)\s*(?:pedidos?|orders?)/i, "/pedidos", "Abrindo pedidos..."],
-      [/(?:ir para|abrir|mostrar|ver)\s*(?:favoritos?)/i, "/favoritos", "Abrindo favoritos..."],
-      [/(?:novo|criar|fazer)\s*(?:orçamento|cotação)/i, "/orcamentos/novo", "Criando novo orçamento..."],
-    ];
-
-    for (const [pattern, route, message] of navRoutes) {
-      if (pattern.test(lowerTranscript)) {
-        addVoiceCommand(transcript, "navigation", true);
-        setVoiceCommandAction(message);
-        playNavigation();
-        setTimeout(() => { setVoiceOverlayOpen(false); navigate(route); }, 1000);
-        return;
-      }
-    }
-
-    if (appliedFilters.length > 0 || transcript.length > 3) {
-      addVoiceCommand(transcript, commandType, true);
-      setVoiceCommandAction(`Buscando: "${transcript}"`);
-      playCommandSuccess();
-      setTimeout(() => { setVoiceOverlayOpen(false); setQuery(transcript); setOpen(true); }, 1500);
-    }
-  }, [navigate, addVoiceCommand, detectCommandType, playCommandRecognized, playNavigation, playFilterApplied, playCommandSuccess]);
-
-  const handleVoiceError = useCallback(() => { playError(); }, [playError]);
-
-  const {
-    isListening, isSupported: isVoiceSupported, transcript: voiceTranscript,
-    startListening, stopListening, error: voiceError,
-  } = useSpeechRecognition({ onResult: handleVoiceResult, onError: handleVoiceError, language: "pt-BR" });
-
-  const toggleVoiceSearch = useCallback(() => {
-    if (isListening) { playStopListening(); stopListening(); }
-    else { setVoiceCommandAction(null); setVoiceAppliedFilters([]); playStartListening(); startListening(); }
-  }, [isListening, startListening, stopListening, playStartListening, playStopListening]);
-
-  const handleOpenVoiceOverlay = useCallback(() => { setVoiceOverlayOpen(true); setVoiceCommandAction(null); setVoiceAppliedFilters([]); }, []);
   const handleCloseVoiceOverlay = useCallback(() => {
     setVoiceOverlayOpen(false);
-    if (isListening) { playStopListening(); stopListening(); }
-  }, [isListening, stopListening, playStopListening]);
+    voiceAgent.reset();
+  }, [voiceAgent]);
+
+  // Handle command select (from suggestion chips)
+  const handleVoiceCommandSelect = useCallback((command: string) => {
+    // Directly process the command through the AI agent
+    voiceAgent.reset();
+    // Small delay to ensure reset completes
+    setTimeout(() => {
+      // Simulate as if user said this — send to AI
+      (async () => {
+        const { data } = await supabase.functions.invoke("voice-agent", {
+          body: { transcript: command },
+        });
+        if (data) {
+          const action = data as VoiceAgentAction;
+          // Speak response via TTS then execute
+          handleVoiceAction(action);
+        }
+      })();
+    }, 100);
+  }, [voiceAgent, handleVoiceAction]);
 
   // ── Popular products ──
   useEffect(() => {
@@ -349,10 +344,10 @@ export function useGlobalSearch() {
     open, setOpen, query, setQuery,
     results, groupedResults, isSearching, isAIProcessing, searchIntent,
     popularProducts, typingSuggestions,
-    voiceOverlayOpen, voiceCommandAction, voiceAppliedFilters,
-    isListening, isVoiceSupported, voiceTranscript, voiceError,
-    toggleVoiceSearch, handleOpenVoiceOverlay, handleCloseVoiceOverlay,
-    frequentCommands, recentCommands, handleVoiceResult,
+    voiceOverlayOpen,
+    voiceAgent,
+    handleOpenVoiceOverlay, handleCloseVoiceOverlay,
+    handleVoiceCommandSelect,
     handleSelect, handleSuggestionClick, handleRemoveFromHistory,
     history, quickSuggestions, contextualSuggestions, routeContext,
   };

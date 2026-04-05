@@ -154,26 +154,29 @@ export function GlobalSearchPalette() {
           </div>
           <span className="relative flex-1 text-left [color:hsl(var(--command-text-muted))] group-hover:text-foreground transition-colors duration-300 text-[13px]">Busca inteligente...</span>
         </button>
-        {s.isVoiceSupported && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all">
-                <Mic className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-card border-border text-xs">Busca por voz</TooltipContent>
-          </Tooltip>
-        )}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all">
+              <Mic className="h-4 w-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent className="bg-card border-border text-xs">Assistente de voz IA</TooltipContent>
+        </Tooltip>
       </div>
 
       {/* ── Voice overlay ── */}
       <VoiceSearchOverlay
-        isOpen={s.voiceOverlayOpen} isListening={s.isListening}
-        transcript={s.voiceTranscript} error={s.voiceError}
-        onClose={s.handleCloseVoiceOverlay} onToggleListening={s.toggleVoiceSearch}
-        commandAction={s.voiceCommandAction} appliedFilters={s.voiceAppliedFilters}
-        frequentCommands={s.frequentCommands} recentCommands={s.recentCommands}
-        onCommandSelect={s.handleVoiceResult}
+        isOpen={s.voiceOverlayOpen}
+        phase={s.voiceAgent.phase}
+        partialTranscript={s.voiceAgent.partialTranscript}
+        finalTranscript={s.voiceAgent.finalTranscript}
+        agentResponse={s.voiceAgent.agentResponse}
+        error={s.voiceAgent.error}
+        onClose={s.handleCloseVoiceOverlay}
+        onStartListening={s.voiceAgent.startListening}
+        onStopListening={s.voiceAgent.stopListening}
+        onStopSpeaking={s.voiceAgent.stopSpeaking}
+        onCommandSelect={s.handleVoiceCommandSelect}
       />
 
       {/* ── Command Dialog ── */}
