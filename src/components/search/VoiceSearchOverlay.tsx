@@ -1,4 +1,5 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Loader2, Volume2, MessageCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -287,7 +288,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       else if (phase === "idle" || phase === "error") onStartListening();
     }, [phase, showBooting, onStartListening, onStopListening, onStopSpeaking]);
 
-    return (
+    return createPortal(
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -295,42 +296,36 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex items-center justify-center"
+            className="fixed inset-0 z-50"
             role="dialog"
             aria-modal="true"
             aria-label="Assistente de Voz"
           >
             {/* Full-screen dark backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               className="absolute inset-0 backdrop-blur-3xl"
               style={{ background: "radial-gradient(ellipse at center, rgba(10,10,20,0.75) 0%, rgba(2,2,8,0.85) 100%)" }}
               onClick={onClose}
             />
 
             {/* Close button */}
-            <motion.button
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.8 }}
-              transition={{ delay: 0.1 }}
+            <button
               onClick={onClose}
               className="absolute top-6 right-6 z-20 flex items-center justify-center w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/60 hover:text-white transition-colors"
               aria-label="Fechar assistente de voz"
             >
               <X className="h-5 w-5" />
-            </motion.button>
+            </button>
 
-            {/* Centered card panel */}
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0, y: 30 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.9, opacity: 0, y: 30 }}
-              transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="relative z-10 flex flex-col items-center gap-6 max-w-md w-full mx-4 px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto"
-            >
+            {/* Absolutely centered card */}
+            <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                transition={{ type: "spring", damping: 25, stiffness: 250 }}
+                className="flex flex-col items-center gap-6 max-w-md w-full px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+              >
               {/* Title */}
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
@@ -509,6 +504,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 IA + Voz ElevenLabs
               </motion.div>
             </motion.div>
+            </div>{/* end centering wrapper */}
 
             {/* Screen-reader live region */}
             <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
@@ -520,7 +516,8 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             </div>
           </motion.div>
         )}
-      </AnimatePresence>
+      </AnimatePresence>,
+      document.body
     );
   }
 );
