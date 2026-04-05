@@ -324,7 +324,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             </motion.button>
 
             {/* Centering wrapper */}
-            <div className="min-h-full flex items-center justify-center p-4">
+            <div className="min-h-screen flex items-center justify-center p-4 relative z-10">
               {/* Card panel */}
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 30 }}
