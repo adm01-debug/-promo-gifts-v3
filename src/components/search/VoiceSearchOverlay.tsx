@@ -166,12 +166,26 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative max-w-xs w-full pointer-events-auto"
               >
-
-
-
-                {/* Inner card */}
-                <div
-                  className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl bg-[rgba(8,8,18,0.95)] max-h-[90vh] overflow-hidden"
+                {/* Inner card with glowing pulsing border */}
+                <motion.div
+                  className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl max-h-[90vh] overflow-hidden"
+                  style={{
+                    background: "rgba(8,8,18,0.95)",
+                    border: "1px solid rgba(56,130,246,0.25)",
+                  }}
+                  animate={{
+                    boxShadow: [
+                      "0 0 8px 0px rgba(56,130,246,0.08), 0 0 20px 0px rgba(56,130,246,0.04), inset 0 0 8px 0px rgba(56,130,246,0.03)",
+                      "0 0 15px 2px rgba(56,130,246,0.18), 0 0 40px 4px rgba(56,130,246,0.08), inset 0 0 12px 0px rgba(56,130,246,0.06)",
+                      "0 0 8px 0px rgba(56,130,246,0.08), 0 0 20px 0px rgba(56,130,246,0.04), inset 0 0 8px 0px rgba(56,130,246,0.03)",
+                    ],
+                    borderColor: [
+                      "rgba(56,130,246,0.2)",
+                      "rgba(56,130,246,0.45)",
+                      "rgba(56,130,246,0.2)",
+                    ],
+                  }}
+                  transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                 >
                 {/* Title */}
                 <motion.div
