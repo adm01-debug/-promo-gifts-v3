@@ -356,7 +356,7 @@ function ProductListResult({
                 {/* Imagem */}
                 <div className="flex-shrink-0 w-16 h-16 rounded-lg bg-muted/50 overflow-hidden">
                   {product.image ? (
-                    <img loading="lazy" src={product.image} 
+                    <img src={product.image} 
                       alt={product.name} 
                       className="w-full h-full object-contain p-1"
                       loading="lazy"

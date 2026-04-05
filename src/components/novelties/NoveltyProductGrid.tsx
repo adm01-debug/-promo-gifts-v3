@@ -86,7 +86,7 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
         {/* Imagem */}
         <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30">
           {product.product_image ? (
-            <img loading="lazy" src={product.product_image} 
+            <img src={product.product_image} 
               alt={product.product_name}
               className="w-full h-full object-cover"
               loading="lazy"

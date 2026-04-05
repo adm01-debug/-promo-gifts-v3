@@ -609,7 +609,7 @@ export default function MagicUp() {
                     )}
                   >
                     
-<img src={v.imageUrl} alt={`Variação ${i + 1}`} className="w-full h-full object-cover" loading="lazy" loading="lazy" />
+<img src={v.imageUrl} alt={`Variação ${i + 1}`} className="w-full h-full object-cover" loading="lazy" />
                   </button>
                 ))}
               </div>
