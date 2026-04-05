@@ -1,4 +1,4 @@
-import { User, Menu, Sparkles, Sun, Moon, Heart, GitCompare, Search, LogOut, Settings, HelpCircle, Shield } from "lucide-react";
+import { User, Menu, Sun, Moon, Heart, GitCompare, Search, LogOut, Settings, HelpCircle, Shield, MoreHorizontal } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useAuth } from "@/contexts/AuthContext";
-import { AdvancedSearch } from "@/components/search/AdvancedSearch";
 import { useToast } from "@/hooks/use-toast";
 
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
@@ -24,8 +23,8 @@ import { NotificationBell } from "@/components/notifications/NotificationDrawer"
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
 import { useIsScrolled } from "@/hooks/useScroll";
+import { useCurrentSection } from "@/hooks/useCurrentSection";
 import { cn } from "@/lib/utils";
-
 
 interface HeaderProps {
   onMenuToggle: () => void;
@@ -40,17 +39,15 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const favoriteCount = useFavoritesStore((s) => s.favoriteCount);
   const compareCount = useComparisonStore((s) => s.compareCount);
   const { user, profile, role, isAdmin, signOut } = useAuth();
-  
-  // Hook para detectar scroll (AN-10)
+  const currentSection = useCurrentSection();
+
   const isScrolled = useIsScrolled(20);
 
   const handleToggleTheme = () => {
-    // Se estiver em "auto", ao clicar a gente fixa o tema oposto ao atual
     if (theme === "auto") {
       setTheme(actualTheme === "dark" ? "light" : "dark");
       return;
     }
-
     toggleTheme();
   };
 
@@ -66,45 +63,56 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const displayName = profile?.full_name || user?.email?.split("@")[0] || "Usuário";
   const roleLabel = role === "admin" ? "Administrador" : "Vendedor";
 
+  // #10 — Truncate inteligente: "Joaquim Ataides" → "Joaquim A."
+  const truncatedName = (() => {
+    const parts = displayName.trim().split(/\s+/);
+    if (parts.length <= 1) return displayName;
+    return `${parts[0]} ${parts[parts.length - 1][0]}.`;
+  })();
 
   return (
-    <header 
+    <header
       className={cn(
         "sticky top-0 z-40 border-b safe-area-top transition-all duration-300",
-        // Estado normal
         "bg-card/95 backdrop-blur-md border-border",
-        // Estado scrolled - mais elevação e blur (AN-10)
-        isScrolled && "bg-card/98 backdrop-blur-lg shadow-md border-border/80"
+        // #7 — Micro-animação: comprime ao scrollar
+        isScrolled
+          ? "bg-card/98 backdrop-blur-lg shadow-md border-border/80 h-11 sm:h-12"
+          : "h-12 sm:h-14"
       )}
     >
-      <div className="flex items-center justify-between h-12 sm:h-14 px-2 sm:px-4 lg:px-6">
-        {/* Left section - Logo & Menu */}
-        <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex items-center justify-between h-full px-2 sm:px-4 lg:px-6">
+        {/* ══════ Left section — Menu + Âncora contextual (#1) ══════ */}
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0 shrink-0">
           <Button
             variant="ghost"
             size="icon"
-            className="lg:hidden hover:bg-orange/10 hover:text-orange h-9 w-9 sm:h-10 sm:w-10"
+            className="lg:hidden hover:bg-primary/10 hover:text-primary h-8 w-8 sm:h-9 sm:w-9"
             onClick={onMenuToggle}
           >
             <Menu className="h-5 w-5" />
           </Button>
 
-
+          {/* #1 — Seção atual como âncora */}
+          <div className="hidden lg:flex items-center gap-2">
+            <span className="font-display text-sm font-semibold text-foreground tracking-tight truncate max-w-[160px]">
+              {currentSection}
+            </span>
+          </div>
         </div>
 
-        {/* Center section - Global Search */}
-        <div className="flex-1 max-w-md mx-4 hidden md:block" data-tour="search">
+        {/* ══════ Center section — Global Search (#4 expandida) ══════ */}
+        <div className="flex-1 max-w-lg mx-4 hidden md:block" data-tour="search">
           <GlobalSearchPalette />
         </div>
 
-        {/* Right section */}
-        <div className="flex items-center gap-0.5 sm:gap-1">
-
+        {/* ══════ Right section — Agrupamento em clusters (#2) ══════ */}
+        <div className="flex items-center gap-0.5 sm:gap-0.5">
           {/* Mobile search trigger */}
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="md:hidden h-9 w-9 hover:bg-orange/10 hover:text-orange"
+          <Button
+            variant="ghost"
+            size="icon"
+            className="md:hidden h-8 w-8 hover:bg-primary/10 hover:text-primary"
             onClick={() => {
               const event = new KeyboardEvent('keydown', { key: 'k', ctrlKey: true });
               document.dispatchEvent(event);
@@ -113,110 +121,146 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             <Search className="h-4 w-4" />
           </Button>
 
-          {/* Seller Cart - visible on all screens */}
-          <CartHeaderButton />
-
-          {/* Notifications Bell - visible on all screens */}
-          <NotificationBell />
-
-          {/* Stock Alerts - hidden on mobile */}
-          <div className="hidden md:block">
-            <StockAlertsIndicator />
+          {/* ── Cluster 1: Transacional (carrinho, notificações, alertas) ── */}
+          <div className="flex items-center gap-0.5">
+            <CartHeaderButton />
+            <NotificationBell />
+            <div className="hidden md:block">
+              <StockAlertsIndicator />
+            </div>
           </div>
 
-          {/* Favorites - hidden on mobile */}
-          <div className="hidden md:block">
+          {/* Divider entre clusters (#2) */}
+          <div className="h-5 w-px bg-border/60 mx-1.5 hidden md:block" />
+
+          {/* ── Cluster 2: Utilitário (favoritos, comparar, tema) — desktop only ── */}
+          <div className="hidden md:flex items-center gap-0.5">
+            {/* #5 — Tooltip com atalho */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                  className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                   onClick={() => navigate("/favoritos")}
                 >
-                  <Heart className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                  <Heart className="h-[17px] w-[17px]" strokeWidth={1.75} />
                   {favoriteCount > 0 && (
-                    <Badge 
-                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground"
-                    >
+                    <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground border-0">
                       {favoriteCount > 99 ? "99+" : favoriteCount}
                     </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-card border-border">Meus Favoritos</TooltipContent>
+              <TooltipContent className="bg-card border-border text-xs">
+                Favoritos <kbd className="ml-1.5 px-1 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">Alt+F</kbd>
+              </TooltipContent>
             </Tooltip>
-          </div>
 
-          {/* Compare - hidden on mobile */}
-          <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                  className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                   onClick={() => navigate("/comparar")}
                 >
-                  <GitCompare className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                  <GitCompare className="h-[17px] w-[17px]" strokeWidth={1.75} />
                   {compareCount > 0 && (
-                    <Badge 
-                      className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground"
-                    >
+                    <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-orange text-orange-foreground border-0">
                       {compareCount > 4 ? "4" : compareCount}
                     </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-card border-border">Comparar Produtos</TooltipContent>
+              <TooltipContent className="bg-card border-border text-xs">
+                Comparar <kbd className="ml-1.5 px-1 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">Alt+C</kbd>
+              </TooltipContent>
             </Tooltip>
-          </div>
 
-          {/* Theme toggle - LAST action icon, after Compare */}
-          <div className="hidden md:block">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   onClick={handleToggleTheme}
-                  className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
+                  className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                 >
-                  <Sun className="h-[18px] w-[18px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
-                  <Moon className="absolute h-[18px] w-[18px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" strokeWidth={1.75} />
+                  <Sun className="h-[17px] w-[17px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
+                  <Moon className="absolute h-[17px] w-[17px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" strokeWidth={1.75} />
                   <span className="sr-only">Alternar tema</span>
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-card border-border">
-                {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"}
+              <TooltipContent className="bg-card border-border text-xs">
+                {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"} <kbd className="ml-1.5 px-1 py-0.5 rounded bg-muted text-muted-foreground text-[10px] font-mono">Alt+T</kbd>
               </TooltipContent>
             </Tooltip>
           </div>
 
-          {/* Divider */}
-          <div className="h-6 w-px bg-border mx-1 hidden sm:block" />
+          {/* ── Mobile overflow menu (#8) ── */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 bg-card border-border">
+                <DropdownMenuItem onClick={() => navigate("/favoritos")} className="cursor-pointer">
+                  <Heart className="h-4 w-4 mr-2" />
+                  Favoritos
+                  {favoriteCount > 0 && (
+                    <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[10px] bg-orange text-orange-foreground border-0">
+                      {favoriteCount}
+                    </Badge>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/comparar")} className="cursor-pointer">
+                  <GitCompare className="h-4 w-4 mr-2" />
+                  Comparar
+                  {compareCount > 0 && (
+                    <Badge className="ml-auto h-5 min-w-5 px-1.5 text-[10px] bg-orange text-orange-foreground border-0">
+                      {compareCount}
+                    </Badge>
+                  )}
+                </DropdownMenuItem>
+                <DropdownMenuSeparator className="bg-border" />
+                <DropdownMenuItem onClick={handleToggleTheme} className="cursor-pointer">
+                  {actualTheme === "dark" ? <Sun className="h-4 w-4 mr-2" /> : <Moon className="h-4 w-4 mr-2" />}
+                  {actualTheme === "dark" ? "Modo Claro" : "Modo Escuro"}
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
 
-          {/* User menu */}
+          {/* Divider before avatar */}
+          <div className="h-5 w-px bg-border/60 mx-1.5 hidden sm:block" />
+
+          {/* ── User menu — com status online (#6) e truncate (#10) ── */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                className="flex items-center gap-2 h-9 px-2 hover:bg-orange/10 rounded-lg"
+              <Button
+                variant="ghost"
+                className="flex items-center gap-2 h-9 px-1.5 sm:px-2 hover:bg-primary/10 rounded-lg"
               >
-                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-orange to-orange-active flex items-center justify-center ring-2 ring-background shadow-md">
-                  {profile?.avatar_url ? (
-                    <img 
-                      src={profile.avatar_url} 
-                      alt={displayName}
-                      className="w-8 h-8 rounded-full object-cover"
-                    />
-                  ) : (
-                    <User className="h-4 w-4 text-orange-foreground" />
-                  )}
+                <div className="relative">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center ring-2 ring-background shadow-md">
+                    {profile?.avatar_url ? (
+                      <img
+                        src={profile.avatar_url}
+                        alt={displayName}
+                        className="w-8 h-8 rounded-full object-cover"
+                      />
+                    ) : (
+                      <User className="h-4 w-4 text-primary-foreground" />
+                    )}
+                  </div>
+                  {/* #6 — Status online dot */}
+                  <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-emerald-500 rounded-full ring-2 ring-background" />
                 </div>
                 <div className="hidden lg:flex flex-col items-start">
-                  <span className="text-sm font-medium text-foreground leading-tight">
-                    {displayName}
+                  <span className="text-sm font-medium text-foreground leading-tight truncate max-w-[120px]">
+                    {truncatedName}
                   </span>
                   <span className="text-[10px] text-muted-foreground leading-tight">
                     {roleLabel}
@@ -229,32 +273,32 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                 <div className="flex flex-col">
                   <span className="font-medium">{displayName}</span>
                   <div className="flex items-center gap-1.5">
-                    {isAdmin && <Shield className="h-3 w-3 text-orange" />}
+                    {isAdmin && <Shield className="h-3 w-3 text-primary" />}
                     <span className="text-xs text-muted-foreground">{roleLabel}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => navigate("/perfil")}
-                className="hover:bg-orange/10 focus:bg-orange/10 cursor-pointer"
+                className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
               >
                 <User className="h-4 w-4 mr-2" />
                 Meu Perfil
               </DropdownMenuItem>
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 onClick={() => navigate("/configuracoes")}
-                className="hover:bg-orange/10 focus:bg-orange/10 cursor-pointer"
+                className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
               >
                 <Settings className="h-4 w-4 mr-2" />
                 Configurações
               </DropdownMenuItem>
-              <DropdownMenuItem className="hover:bg-orange/10 focus:bg-orange/10 cursor-pointer">
+              <DropdownMenuItem className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer">
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Ajuda
               </DropdownMenuItem>
               <DropdownMenuSeparator className="bg-border" />
-              <DropdownMenuItem 
+              <DropdownMenuItem
                 className="text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
                 onClick={handleSignOut}
               >
@@ -265,6 +309,9 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           </DropdownMenu>
         </div>
       </div>
+
+      {/* #9 — Barra colorida de seção no bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-primary/80 via-primary to-primary/40 opacity-60" />
     </header>
   );
 }
