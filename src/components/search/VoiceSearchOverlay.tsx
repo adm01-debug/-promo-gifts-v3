@@ -189,7 +189,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 <motion.div
                   animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.6, 0.4] }}
                   transition={{ duration: 0.8, repeat: Infinity, ease: "easeInOut" }}
-                  className="absolute inset-0 rounded-full bg-emerald-500"
+                  className="absolute inset-0 rounded-full bg-success"
                 />
               )}
 
