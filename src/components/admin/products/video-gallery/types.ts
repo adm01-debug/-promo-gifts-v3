@@ -42,10 +42,10 @@ export interface VideoVariant {
 }
 
 export const VIDEO_TYPES = [
-  { value: 'product_video', label: 'Produto', icon: Video, color: 'text-blue-500' },
+  { value: 'product_video', label: 'Produto', icon: Video, color: 'text-info' },
   { value: 'tutorial', label: 'Tutorial', icon: Play, color: 'text-emerald-500' },
   { value: 'unboxing', label: 'Unboxing', icon: Film, color: 'text-amber-500' },
-  { value: 'review', label: 'Review', icon: Star, color: 'text-yellow-500' },
+  { value: 'review', label: 'Review', icon: Star, color: 'text-warning' },
   { value: 'demo', label: 'Demonstração', icon: Clapperboard, color: 'text-violet-500' },
   { value: 'recording', label: 'Gravação', icon: Mic, color: 'text-sky-500' },
   { value: 'lifestyle', label: 'Lifestyle', icon: Sparkles, color: 'text-pink-500' },
