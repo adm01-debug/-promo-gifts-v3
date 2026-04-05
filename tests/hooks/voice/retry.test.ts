@@ -156,6 +156,6 @@ describe("friendlyErrorMessage", () => {
 
   it("falls back to generic message for empty error", () => {
     const msg = friendlyErrorMessage(new Error(""));
-    expect(msg).toBe("Erro inesperado. Tente novamente.");
+    expect(msg).toBe("Não foi possível conectar ao serviço de voz. Tente novamente.");
   });
 });
