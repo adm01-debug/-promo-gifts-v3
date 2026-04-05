@@ -133,7 +133,7 @@ interface PulseDotProps {
 const dotColors = {
   primary: "bg-primary",
   success: "bg-success",
-  warning: "bg-amber-500",
+  warning: "bg-warning",
   error: "bg-destructive"
 };
 

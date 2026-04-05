@@ -189,7 +189,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
 
   const demandLabel: Record<string, { text: string; color: string }> = {
     'very-high': { text: 'Muito Alta', color: 'text-destructive' },
-    'high': { text: 'Alta', color: 'text-amber-500' },
+    'high': { text: 'Alta', color: 'text-warning' },
     'moderate': { text: 'Moderada', color: 'text-primary' },
     'low': { text: 'Baixa', color: 'text-muted-foreground' },
     'unknown': { text: '—', color: 'text-muted-foreground' },

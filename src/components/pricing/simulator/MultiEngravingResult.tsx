@@ -283,7 +283,7 @@ export function MultiEngravingResult({
                         </Badge>
                         <span className={cn(
                           "text-sm font-medium",
-                          calc.priceData.minimum_applied && "text-amber-600 dark:text-amber-400"
+                          calc.priceData.minimum_applied && "text-warning dark:text-warning"
                         )}>
                           {formatCurrency(calc.priceData.total_price)}
                         </span>
@@ -302,7 +302,7 @@ export function MultiEngravingResult({
                       </div>
                       
                       {calc.priceData.minimum_applied && (
-                        <div className="flex items-center gap-1 text-amber-600 dark:text-amber-400">
+                        <div className="flex items-center gap-1 text-warning dark:text-warning">
                           <Info className="w-3 h-3" />
                           <span>Fat. mínimo aplicado: {formatCurrency(calc.priceData.faturamento_minimo_gravacao)}</span>
                         </div>
@@ -334,7 +334,7 @@ export function MultiEngravingResult({
 
           {/* Info sobre faturamento mínimo */}
           {hasMinimumApplied && (
-            <div className="p-3 rounded-lg bg-amber-100 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 text-sm">
+            <div className="p-3 rounded-lg bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning text-sm">
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4" />
                 <span className="font-medium">Faturamento mínimo aplicado</span>

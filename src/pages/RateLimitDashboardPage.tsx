@@ -157,7 +157,7 @@ export default function RateLimitDashboardPage() {
                               Falhou
                             </Badge>
                           ) : (
-                            <Badge variant="outline" className="text-success border-green-600">
+                            <Badge variant="outline" className="text-success border-success">
                               Sucesso
                             </Badge>
                           )}

@@ -307,7 +307,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
     <div className="space-y-4">
       {clientName && (
         <div className="flex items-center gap-2 px-1">
-          <Zap className="h-4 w-4 text-amber-500" />
+          <Zap className="h-4 w-4 text-warning" />
           <span className="text-sm text-muted-foreground">
             Produtos mais comprados por <strong className="text-foreground">{clientName}</strong>
           </span>
@@ -326,7 +326,7 @@ function ClientProductsGrid({ products, clientName, isLoading }: ClientProductsG
                 {/* Ranking */}
                 <div className={cn(
                   "w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0",
-                  idx === 0 ? "bg-amber-500/20 text-amber-600" :
+                  idx === 0 ? "bg-warning/20 text-warning" :
                   idx === 1 ? "bg-slate-400/20 text-slate-600" :
                   idx === 2 ? "bg-orange/20 text-orange" :
                   "bg-muted text-muted-foreground"

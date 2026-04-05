@@ -87,7 +87,7 @@ export function QuoteStatusTimeline({
                   "w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all",
                   isCompleted && "bg-primary border-primary text-primary-foreground",
                   isCurrent && !isFinalNegative && !isSync && "border-primary bg-primary/10 text-primary ring-2 ring-primary/20",
-                  isCurrent && isSync && "border-emerald-500 bg-primary/10 text-primary ring-2 ring-primary/20",
+                  isCurrent && isSync && "border-success bg-primary/10 text-primary ring-2 ring-primary/20",
                   isCurrent && isRejected && "border-destructive bg-destructive/10 text-destructive ring-2 ring-destructive/20",
                   isCurrent && isExpired && "border-muted-foreground bg-muted text-muted-foreground ring-2 ring-muted-foreground/20",
                   !isCompleted && !isCurrent && "border-muted-foreground/30 text-muted-foreground/40"

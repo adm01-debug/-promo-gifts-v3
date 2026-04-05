@@ -86,7 +86,7 @@ export function HorizontalStepper({
                     isDone && !isActive && "bg-primary/20 border-primary text-primary shadow-md shadow-primary/15",
                     isActive && "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg shadow-primary/25 scale-110",
                     !isActive && !isDone && "bg-muted border-muted-foreground/30 text-muted-foreground",
-                    hasMissing && !isActive && "border-amber-500 ring-2 ring-amber-500/20",
+                    hasMissing && !isActive && "border-warning ring-2 ring-warning/20",
                     hasError && !isActive && "border-destructive ring-2 ring-destructive/20",
                     "group-hover/step:scale-110 group-hover/step:shadow-lg transition-transform"
                   )}
@@ -103,7 +103,7 @@ export function HorizontalStepper({
                     </span>
                   )}
                   {hasMissing && !hasError && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-amber-500 text-[9px] font-bold text-white">
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[9px] font-bold text-primary-foreground">
                       {missingFields[i].length}
                     </span>
                   )}
@@ -128,11 +128,11 @@ export function HorizontalStepper({
 
                 {hoveredStep === i && hasMissing && (
                   <div className="absolute left-1/2 -translate-x-1/2 top-full mt-2 z-50 w-max max-w-[220px] rounded-lg border border-border bg-popover p-2.5 shadow-lg animate-fade-in">
-                    <p className="text-[10px] font-semibold text-amber-500 mb-1.5">Campos obrigatórios:</p>
+                    <p className="text-[10px] font-semibold text-warning mb-1.5">Campos obrigatórios:</p>
                     <ul className="space-y-0.5">
                       {missingFields[i].map((label) => (
                         <li key={label} className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                          <AlertCircle className="h-3 w-3 text-amber-500 shrink-0" />
+                          <AlertCircle className="h-3 w-3 text-warning shrink-0" />
                           {label}
                         </li>
                       ))}

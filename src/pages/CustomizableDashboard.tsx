@@ -179,7 +179,7 @@ export function CustomizableDashboard() {
         return (
           <MetricCard
             title="Rascunhos"
-            icon={<Target className="h-4 w-4 text-amber-500" />}
+            icon={<Target className="h-4 w-4 text-warning" />}
             value={metrics.quotesDraft.toLocaleString('pt-BR')}
             subtitle="aguardando envio"
           />

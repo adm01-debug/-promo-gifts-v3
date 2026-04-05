@@ -131,9 +131,9 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
 
               {packagingItems.length > 0 && (
                 <Collapsible open={expandedSections.packaging} onOpenChange={(open) => setExpandedSections((s) => ({ ...s, packaging: open }))}>
-                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-amber-500/5 border border-amber-500/20 rounded-lg hover:bg-amber-500/10 transition-colors">
-                    <span className="text-[11px] font-semibold uppercase tracking-wider text-amber-700 dark:text-amber-400 flex items-center gap-1.5"><Box className="h-3.5 w-3.5" />Embalagem ({packagingItems.length})</span>
-                    {expandedSections.packaging ? <ChevronUp className="h-4 w-4 text-amber-600 dark:text-amber-400" /> : <ChevronDown className="h-4 w-4 text-amber-600 dark:text-amber-400" />}
+                  <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-warning/5 border border-warning/20 rounded-lg hover:bg-warning/10 transition-colors">
+                    <span className="text-[11px] font-semibold uppercase tracking-wider text-warning dark:text-warning flex items-center gap-1.5"><Box className="h-3.5 w-3.5" />Embalagem ({packagingItems.length})</span>
+                    {expandedSections.packaging ? <ChevronUp className="h-4 w-4 text-warning dark:text-warning" /> : <ChevronDown className="h-4 w-4 text-warning dark:text-warning" />}
                   </CollapsibleTrigger>
                   <CollapsibleContent>
                     <div className="mt-3 space-y-3">

@@ -45,7 +45,7 @@ interface TechniqueSLACardProps {
 function getSLAColor(days: number | null): { color: string; label: string; icon: React.ReactNode } {
   if (!days) return { color: "bg-muted", label: "Não informado", icon: <Info className="h-3 w-3" /> };
   if (days <= 3) return { color: "bg-primary", label: "Entrega Rápida", icon: <Zap className="h-3 w-3" /> };
-  if (days <= 7) return { color: "bg-amber-500", label: "Prazo Normal", icon: <Clock className="h-3 w-3" /> };
+  if (days <= 7) return { color: "bg-warning", label: "Prazo Normal", icon: <Clock className="h-3 w-3" /> };
   return { color: "bg-destructive", label: "Prazo Estendido", icon: <AlertTriangle className="h-3 w-3" /> };
 }
 

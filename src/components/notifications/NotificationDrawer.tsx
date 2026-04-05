@@ -19,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 const typeConfig = {
   info: { icon: Info, color: "text-primary", bg: "bg-primary/10" },
-  warning: { icon: AlertTriangle, color: "text-amber-500", bg: "bg-amber-500/10" },
+  warning: { icon: AlertTriangle, color: "text-warning", bg: "bg-warning/10" },
   success: { icon: CheckCircle2, color: "text-primary", bg: "bg-primary/10" },
   error: { icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },
 };

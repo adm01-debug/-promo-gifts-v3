@@ -62,13 +62,13 @@ const getTechniqueStyle = (code: string) => {
     return { color: 'bg-violet-500', textColor: 'text-violet-600', icon: '🎨' };
   }
   if (c.includes('DTF')) {
-    return { color: 'bg-cyan-500', textColor: 'text-cyan-600', icon: '🖨️' };
+    return { color: 'bg-info', textColor: 'text-cyan-600', icon: '🖨️' };
   }
   if (c.includes('SUB') || c.includes('TRANSFER')) {
     return { color: 'bg-pink-500', textColor: 'text-pink-600', icon: '🌈' };
   }
   if (c.includes('BORD') || c.includes('EMBROID')) {
-    return { color: 'bg-amber-500', textColor: 'text-amber-600', icon: '🧵' };
+    return { color: 'bg-warning', textColor: 'text-warning', icon: '🧵' };
   }
   if (c.includes('LASER')) {
     return { color: 'bg-destructive', textColor: 'text-destructive', icon: '⚡' };
@@ -123,8 +123,8 @@ export function TechniqueCard({
   
   const getSlaInfo = (days: number) => {
     if (days <= 3) return { label: 'Express', color: 'bg-primary', textColor: 'text-primary' };
-    if (days <= 7) return { label: 'Padrão', color: 'bg-amber-500', textColor: 'text-amber-600' };
-    return { label: 'Estendido', color: 'bg-rose-500', textColor: 'text-rose-600' };
+    if (days <= 7) return { label: 'Padrão', color: 'bg-warning', textColor: 'text-warning' };
+    return { label: 'Estendido', color: 'bg-destructive', textColor: 'text-destructive' };
   };
   
   const sla = getSlaInfo(technique.estimated_days);
@@ -211,7 +211,7 @@ export function TechniqueCard({
             </div>
             
             {recommendation.isRecommended && (
-              <p className="text-[10px] text-amber-600 truncate">
+              <p className="text-[10px] text-warning truncate">
                 {recommendation.recommendationReason}
               </p>
             )}
@@ -413,7 +413,7 @@ export function TechniqueCard({
                 {recommendation.popularityScore >= 70 && (
                   <TooltipProvider>
                     <Tooltip>
-                      <TooltipTrigger className="flex items-center gap-1 text-amber-600">
+                      <TooltipTrigger className="flex items-center gap-1 text-warning">
                         <TrendingUp className="h-3.5 w-3.5" />
                         <span className="text-xs">Popular</span>
                       </TooltipTrigger>
@@ -432,7 +432,7 @@ export function TechniqueCard({
               <p className="font-bold text-lg">{formatCurrency(estimatedCost)}</p>
               
               {recommendation.isRecommended && (
-                <div className="flex items-center gap-1 text-amber-600">
+                <div className="flex items-center gap-1 text-warning">
                   <Star className="h-3 w-3 fill-current" />
                   <span className="text-[10px] font-medium">
                     {recommendation.recommendationScore}% match
@@ -525,9 +525,9 @@ function TechniquePreview({
           </div>
           
           {technique.recommendation.isRecommended && (
-            <div className="flex items-center gap-2 p-2 bg-amber-50 rounded-lg">
-              <Sparkles className="h-4 w-4 text-amber-600" />
-              <p className="text-xs text-amber-700">
+            <div className="flex items-center gap-2 p-2 bg-warning/5 rounded-lg">
+              <Sparkles className="h-4 w-4 text-warning" />
+              <p className="text-xs text-warning">
                 {technique.recommendation.recommendationReason}
               </p>
             </div>

@@ -40,7 +40,7 @@ interface DecisionMatrixChartProps {
 const QUADRANTS = {
   IDEAL: { label: "Ideal", color: "text-success", bg: "bg-success/10", description: "Baixo custo + Rápido" },
   ECONOMY: { label: "Econômico", color: "text-primary", bg: "bg-primary/10", description: "Baixo custo + Mais tempo" },
-  EXPRESS: { label: "Express", color: "text-amber-500", bg: "bg-amber-500/10", description: "Alto custo + Rápido" },
+  EXPRESS: { label: "Express", color: "text-warning", bg: "bg-warning/10", description: "Alto custo + Rápido" },
   PREMIUM: { label: "Premium", color: "text-primary/80", bg: "bg-primary/10", description: "Alto custo + Mais tempo" },
 };
 
@@ -297,7 +297,7 @@ export function DecisionMatrixChart({
             </div>
           </div>
           <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/50">
-            <DollarSign className="h-4 w-4 text-amber-500" />
+            <DollarSign className="h-4 w-4 text-warning" />
             <div className="text-xs">
               <span className="text-muted-foreground">Variação: </span>
               <span className="font-medium">{formatCurrency(maxCost - minCost)}</span>

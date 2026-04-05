@@ -140,7 +140,7 @@ export default function ProductClassificationSection({
           title="Variações de Cor"
           subtitle="Paleta de cores disponíveis"
           icon={Palette}
-          iconColor="bg-pink-500/10 text-pink-500"
+          iconColor="bg-primary/10 text-primary"
           defaultOpen={showFullContent}
           disabled={!showFullContent}
         >
@@ -157,7 +157,7 @@ export default function ProductClassificationSection({
           title="Materiais"
           subtitle="Composição e acabamento"
           icon={Sparkles}
-          iconColor="bg-emerald-500/10 text-emerald-500"
+          iconColor="bg-success/10 text-success"
           disabled={!showFullContent}
         >
           {showFullContent ? (
@@ -187,7 +187,7 @@ export default function ProductClassificationSection({
           title="Ramos de Atividade"
           subtitle="Segmentos de mercado"
           icon={Building2}
-          iconColor="bg-cyan-500/10 text-cyan-500"
+          iconColor="bg-info/10 text-info"
           disabled={!showFullContent}
         >
           {showFullContent ? (
@@ -202,7 +202,7 @@ export default function ProductClassificationSection({
           title="Marketing"
           subtitle="Público-alvo e endomarketing"
           icon={Megaphone}
-          iconColor="bg-rose-500/10 text-rose-500"
+          iconColor="bg-destructive/10 text-destructive"
           disabled={!showFullContent}
         >
           {showFullContent ? (

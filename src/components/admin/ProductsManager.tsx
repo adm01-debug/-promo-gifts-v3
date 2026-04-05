@@ -492,9 +492,9 @@ export function ProductsManager() {
           {
             label: 'Sem Estoque',
             value: stats.noStock,
-            valueClass: 'text-amber-600 dark:text-amber-400',
-            icon: <div className="h-3 w-3 rounded-full bg-amber-500" />,
-            iconBg: 'bg-amber-500/10',
+            valueClass: 'text-warning dark:text-warning',
+            icon: <div className="h-3 w-3 rounded-full bg-warning" />,
+            iconBg: 'bg-warning/10',
           },
           {
             label: 'Preço Médio',
@@ -638,7 +638,7 @@ export function ProductsManager() {
                     const stockColor = stockLevel <= 0
                       ? 'text-destructive'
                       : stockLevel < 10
-                        ? 'text-amber-600 dark:text-amber-400'
+                        ? 'text-warning dark:text-warning'
                         : 'text-primary';
 
                     return (
@@ -687,7 +687,7 @@ export function ProductsManager() {
                             </p>
                             <div className="flex items-center gap-1 mt-0.5">
                               {product.is_featured && (
-                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-amber-500/30 text-amber-600 dark:text-amber-400">
+                                <Badge variant="outline" className="text-[10px] h-4 px-1 border-warning/30 text-warning dark:text-warning">
                                   ⭐ Destaque
                                 </Badge>
                               )}

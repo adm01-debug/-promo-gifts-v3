@@ -198,7 +198,7 @@ export function GeoBlockingManager() {
           </div>
           <div className="flex items-center gap-2">
             {isEnabled && (
-              <Badge variant="secondary" className="bg-amber-100 text-amber-800">
+              <Badge variant="secondary" className="bg-warning/10 text-warning">
                 Ativo
               </Badge>
             )}

@@ -33,8 +33,8 @@ const statusConfig: Record<StockStatus, {
     label: 'Estoque Baixo',
     shortLabel: 'Baixo',
     icon: AlertTriangle,
-    className: 'text-amber-700 dark:text-amber-400',
-    bgClass: 'bg-amber-100 dark:bg-amber-900/30 border-amber-200 dark:border-amber-800',
+    className: 'text-warning dark:text-warning',
+    bgClass: 'bg-warning/10 dark:bg-warning/15 border-warning/20 dark:border-warning/40',
   },
   'out-of-stock': {
     label: 'Sem Estoque',
@@ -159,7 +159,7 @@ interface StockIndicatorProps {
 export function StockIndicator({ status, className }: StockIndicatorProps) {
   const dotColor = {
     'in-stock': 'bg-primary',
-    'low-stock': 'bg-amber-500',
+    'low-stock': 'bg-warning',
     'out-of-stock': 'bg-destructive',
     'pre-order': 'bg-primary',
     'incoming': 'bg-primary/70',

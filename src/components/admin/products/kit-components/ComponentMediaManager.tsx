@@ -92,7 +92,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                 </Badge>
               )}
               {videoCount > 0 && (
-                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 bg-amber-500/15 text-amber-600 border-amber-500/30">
+                <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 bg-warning/15 text-warning border-warning/30">
                   {videoCount} <Video className="h-2 w-2 ml-0.5" />
                 </Badge>
               )}
@@ -131,14 +131,14 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center bg-muted">
-                      <Video className="h-5 w-5 text-amber-500" />
+                      <Video className="h-5 w-5 text-warning" />
                     </div>
                   )}
 
                   {/* Badge type */}
                   <div className="absolute top-1 left-1">
                     {item.media_type === 'video' && (
-                      <Badge className="text-[8px] px-1 py-0 h-3.5 bg-amber-500/80 text-white border-0">
+                      <Badge className="text-[8px] px-1 py-0 h-3.5 bg-warning/80 text-white border-0">
                         Vídeo
                       </Badge>
                     )}

@@ -395,7 +395,7 @@ export function CategorySidebarPanel({
                   )}
                   onClick={() => handleSelect(cat)}
                 >
-                  <Folder className="w-4 h-4 text-amber-500 flex-shrink-0" />
+                  <Folder className="w-4 h-4 text-warning flex-shrink-0" />
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-medium truncate">{cat.name}</p>
                     {cat.tree_structure && (

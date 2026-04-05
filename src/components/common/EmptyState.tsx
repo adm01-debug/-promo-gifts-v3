@@ -85,13 +85,13 @@ const variants: Record<EmptyStateVariant, {
     icon: FolderOpen,
     title: "Nenhuma coleção criada",
     description: "Organize seus produtos favoritos em coleções personalizadas.",
-    color: "text-amber-500"
+    color: "text-warning"
   },
   favorites: {
     icon: Heart,
     title: "Nenhum favorito ainda",
     description: "Marque produtos como favoritos para acessá-los rapidamente.",
-    color: "text-rose-500"
+    color: "text-destructive"
   },
   cart: {
     icon: ShoppingCart,

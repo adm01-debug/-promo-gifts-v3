@@ -194,7 +194,7 @@ export function ProductSupplierSection({
                               </Badge>
                             )}
                             {!isPersisted && (
-                              <Badge variant="outline" className="text-[10px] text-amber-500 border-amber-500/30">Pendente</Badge>
+                              <Badge variant="outline" className="text-[10px] text-warning border-warning/30">Pendente</Badge>
                             )}
                             {!src.is_active && (
                               <Badge variant="outline" className="text-[10px] text-muted-foreground">Inativo</Badge>

@@ -35,9 +35,9 @@ const variantStyles: Record<TooltipVariant, {
     iconColor: "text-info"
   },
   tip: {
-    bg: "bg-amber-50 dark:bg-amber-950 border-amber-200 dark:border-amber-800",
+    bg: "bg-warning/5 dark:bg-warning/15 border-warning/20 dark:border-warning/40",
     icon: Lightbulb,
-    iconColor: "text-amber-500"
+    iconColor: "text-warning"
   },
   warning: {
     bg: "bg-destructive/10 border-destructive/30",
@@ -233,7 +233,7 @@ interface StatusTooltipProps {
 
 const statusColors = {
   success: "bg-success",
-  warning: "bg-amber-500",
+  warning: "bg-warning",
   error: "bg-destructive",
   pending: "bg-info",
   neutral: "bg-muted-foreground"

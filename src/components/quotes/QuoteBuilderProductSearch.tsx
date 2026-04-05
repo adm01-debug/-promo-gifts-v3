@@ -93,7 +93,7 @@ export function QuoteBuilderProductSearch({
                       return (
                         <button key={product.id} onClick={() => onProductClick(product)} className={cn(
                           "group w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border transition-all text-left",
-                          isOutOfStock ? "border-destructive/20 bg-destructive/5 opacity-75" : isLowStock ? "border-amber-500/20 hover:bg-accent/60" : "border-transparent hover:bg-accent/60"
+                          isOutOfStock ? "border-destructive/20 bg-destructive/5 opacity-75" : isLowStock ? "border-warning/20 hover:bg-accent/60" : "border-transparent hover:bg-accent/60"
                         )}>
                           <div className="relative shrink-0">
                             {product.images && product.images.length > 0 ? (
@@ -104,7 +104,7 @@ export function QuoteBuilderProductSearch({
                               <div className="h-11 w-11 bg-muted rounded-lg flex items-center justify-center"><Package className="h-5 w-5 text-muted-foreground" /></div>
                             )}
                             {isOutOfStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-destructive flex items-center justify-center"><X className="h-2.5 w-2.5 text-destructive-foreground" /></div>}
-                            {isLowStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center"><AlertTriangle className="h-2.5 w-2.5 text-primary-foreground" /></div>}
+                            {isLowStock && <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-warning flex items-center justify-center"><AlertTriangle className="h-2.5 w-2.5 text-primary-foreground" /></div>}
                           </div>
                           <div className="flex-1 min-w-0 space-y-0.5">
                             <p className="font-medium truncate text-sm">{product.name}</p>

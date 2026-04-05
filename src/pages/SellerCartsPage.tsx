@@ -725,7 +725,7 @@ function SellerCartsContent() {
               {/* Insights card */}
               <Card className="p-4 space-y-3 border-border/30">
                 <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" />
+                  <Sparkles className="h-3.5 w-3.5 text-warning" />
                   Insights
                 </h4>
                 <div className="space-y-2">
@@ -737,7 +737,7 @@ function SellerCartsContent() {
                     <span className={cn(
                       "font-bold tabular-nums",
                       activeCart.items.length >= 5 ? "text-primary" :
-                        activeCart.items.length >= 3 ? "text-amber-500" : "text-muted-foreground"
+                        activeCart.items.length >= 3 ? "text-warning" : "text-muted-foreground"
                     )}>
                       {Math.min(100, Math.round(
                         (activeCart.items.length * 15) +
@@ -752,7 +752,7 @@ function SellerCartsContent() {
                   <ActionHistoryPanel cartId={activeCart.id} />
 
                   {cartAge >= 3 && (
-                    <p className="text-[10px] text-amber-600 bg-amber-500/5 rounded-lg px-2.5 py-1.5 border border-amber-500/10">
+                    <p className="text-[10px] text-warning bg-warning/5 rounded-lg px-2.5 py-1.5 border border-warning/10">
                       ⏰ Carrinho há {cartAge} dias — considere fazer follow-up!
                     </p>
                   )}

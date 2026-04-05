@@ -304,7 +304,7 @@ function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
     <div className="flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-muted/50 transition-colors">
       <span className={cn(
         "w-4 text-center font-bold",
-        rank === 1 ? "text-amber-500" : "text-muted-foreground"
+        rank === 1 ? "text-warning" : "text-muted-foreground"
       )}>
         {rank}
       </span>

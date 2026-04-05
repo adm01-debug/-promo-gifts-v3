@@ -198,7 +198,7 @@ export function PdfGenerationDialog({
 
               {/* Actions footer */}
               <div className="px-6 py-4 border-t border-border bg-card flex items-center justify-between gap-3">
-                <div className="flex items-center gap-2 bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 rounded-lg px-3 py-2">
+                <div className="flex items-center gap-2 bg-warning/10 border border-warning/30 text-warning dark:text-warning rounded-lg px-3 py-2">
                   <span className="text-lg">⚠️</span>
                   <p className="text-sm font-semibold">
                     Confira as informações antes de enviar

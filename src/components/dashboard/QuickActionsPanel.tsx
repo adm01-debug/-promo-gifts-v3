@@ -100,7 +100,7 @@ export function QuickActionsPanel() {
       label: "Taxa de Conversão",
       value: `${stats.conversionRate}%`,
       icon: Target,
-      color: "text-amber-500",
+      color: "text-warning",
     },
     {
       label: "Aprovados / Rejeitados",

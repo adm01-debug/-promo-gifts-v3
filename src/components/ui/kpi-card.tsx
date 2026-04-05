@@ -33,7 +33,7 @@ export function KpiCard({
       className={cn(
         "rounded-lg p-2 text-center",
         alert ? "bg-destructive/10 border border-destructive/20" :
-        warning ? "bg-amber-500/10 border border-amber-500/20" :
+        warning ? "bg-warning/10 border border-warning/20" :
         highlight ? "bg-primary/10 border border-primary/20" :
         "bg-muted/50"
       )}
@@ -45,7 +45,7 @@ export function KpiCard({
           className={cn(
             "h-3 w-3",
             alert ? "text-destructive" :
-            warning ? "text-amber-500" :
+            warning ? "text-warning" :
             highlight ? "text-primary" :
             "text-muted-foreground"
           )}
@@ -57,7 +57,7 @@ export function KpiCard({
         "text-sm font-bold",
         customValueColor ? customValueColor :
         alert ? "text-destructive" :
-        warning ? "text-amber-600" :
+        warning ? "text-warning" :
         highlight ? "text-primary" :
         "text-foreground"
       )}>{value}</p>

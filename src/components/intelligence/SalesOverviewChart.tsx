@@ -97,7 +97,7 @@ export function SalesOverviewChart({ days = 30, productId }: Props) {
               className={cn(
                 "font-bold text-xs",
                 kpis.conversionRate >= 40 ? 'bg-primary/15 text-primary border-primary/30' :
-                kpis.conversionRate >= 20 ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
+                kpis.conversionRate >= 20 ? 'bg-warning/15 text-warning border-warning/30' :
                 'bg-destructive/15 text-destructive border-destructive/30'
               )}
             >

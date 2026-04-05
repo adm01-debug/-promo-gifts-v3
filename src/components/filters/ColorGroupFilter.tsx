@@ -92,7 +92,7 @@ function ColorSwatch({
         />
       )}
       {isTransparent && !isSelected && (
-        <div className="w-full h-full rounded-full border border-dashed border-gray-300" />
+        <div className="w-full h-full rounded-full border border-dashed border-border" />
       )}
     </button>
   );

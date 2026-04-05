@@ -77,7 +77,7 @@ export function VideoGrid({
             {/* Play overlay */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
               <div className="w-10 h-10 rounded-full bg-black/60 flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                <Play className="h-5 w-5 text-white ml-0.5" />
+                <Play className="h-5 w-5 text-primary-foreground ml-0.5" />
               </div>
             </div>
 
@@ -106,20 +106,20 @@ export function VideoGrid({
             {/* Bottom info bar */}
             <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-2 py-1.5">
               <div className="flex items-center justify-between">
-                <span className="text-[10px] text-white/80 truncate max-w-[70%]">{video.title || 'Vídeo'}</span>
+                <span className="text-[10px] text-primary-foreground/80 truncate max-w-[70%]">{video.title || 'Vídeo'}</span>
                 {video.file_size_bytes && video.file_size_bytes > 0 && (
-                  <span className="text-[9px] text-white/60">{formatBytes(video.file_size_bytes)}</span>
+                  <span className="text-[9px] text-primary-foreground/60">{formatBytes(video.file_size_bytes)}</span>
                 )}
               </div>
             </div>
 
             {/* Action buttons */}
             <div className="absolute top-1.5 right-1.5 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-              <GripVertical className="h-4 w-4 text-white/70 cursor-grab" />
+              <GripVertical className="h-4 w-4 text-primary-foreground/70 cursor-grab" />
               {/* Edit meta */}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-black/50 hover:bg-primary text-white"
+                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-primary text-primary-foreground"
                     onClick={(e) => { e.stopPropagation(); setEditingVideoId(editingVideoId === video.id ? null : video.id); }}>
                     <Type className="h-3 w-3" />
                   </Button>
@@ -129,7 +129,7 @@ export function VideoGrid({
               {variants.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-black/50 hover:bg-primary text-white"
+                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-primary text-primary-foreground"
                       onClick={(e) => { e.stopPropagation(); setLinkingVideoId(linkingVideoId === video.id ? null : video.id); }}>
                       <Link2 className="h-3 w-3" />
                     </Button>
@@ -140,7 +140,7 @@ export function VideoGrid({
               {!video.url_thumbnail && !video.source_youtube_id && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-black/50 hover:bg-amber-600 text-white"
+                    <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-warning text-primary-foreground"
                       disabled={regeneratingId === video.id}
                       onClick={(e) => { e.stopPropagation(); regenerateThumbnail(video); }}>
                       {regeneratingId === video.id ? <Loader2 className="h-3 w-3 animate-spin" /> : <ImagePlus className="h-3 w-3" />}
@@ -151,7 +151,7 @@ export function VideoGrid({
               )}
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-black/50 hover:bg-destructive text-white"
+                  <Button type="button" size="icon" variant="ghost" className="h-6 w-6 bg-foreground/50 hover:bg-destructive text-primary-foreground"
                     onClick={(e) => { e.stopPropagation(); requestRemove(video.id); }}>
                     <Trash2 className="h-3 w-3" />
                   </Button>
@@ -172,23 +172,23 @@ export function VideoGrid({
             {/* Linking panel */}
             {linkingVideoId === video.id && (
               <div className="absolute inset-0 bg-black/85 backdrop-blur-sm p-2 flex flex-col gap-1 z-10" onClick={(e) => e.stopPropagation()}>
-                <span className="text-[10px] text-white/80 font-medium">Vincular a variação:</span>
+                <span className="text-[10px] text-primary-foreground/80 font-medium">Vincular a variação:</span>
                 <div className="flex-1 overflow-y-auto space-y-0.5">
                   {variants.map(v => {
                     const isLinked = links.some(l => l.variant_id === v.id);
                     const existingLink = links.find(l => l.variant_id === v.id);
                     return (
                       <button key={v.id} type="button"
-                        className={cn("w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-[10px] transition-colors", isLinked ? "bg-primary/30 text-white" : "hover:bg-white/10 text-white/70")}
+                        className={cn("w-full flex items-center gap-1.5 px-1.5 py-1 rounded text-[10px] transition-colors", isLinked ? "bg-primary/30 text-primary-foreground" : "hover:bg-white/10 text-primary-foreground/70")}
                         onClick={() => isLinked && existingLink ? unlinkVideoFromVariant(existingLink.id) : linkVideoToVariant(video.id, v.id)}>
                         <span className="w-3 h-3 rounded-full border border-white/40 shrink-0" style={{ backgroundColor: v.color_hex || '#999' }} />
                         <span className="truncate">{v.color_name || v.name}</span>
-                        {isLinked && <Unlink className="h-2.5 w-2.5 ml-auto shrink-0 text-white/60" />}
+                        {isLinked && <Unlink className="h-2.5 w-2.5 ml-auto shrink-0 text-primary-foreground/60" />}
                       </button>
                     );
                   })}
                 </div>
-                <Button type="button" size="sm" variant="ghost" className="h-5 text-[9px] text-white/60 hover:text-white" onClick={() => setLinkingVideoId(null)}>Fechar</Button>
+                <Button type="button" size="sm" variant="ghost" className="h-5 text-[9px] text-primary-foreground/60 hover:text-primary-foreground" onClick={() => setLinkingVideoId(null)}>Fechar</Button>
               </div>
             )}
           </div>

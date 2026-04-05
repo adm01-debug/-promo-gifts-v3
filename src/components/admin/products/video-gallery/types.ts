@@ -43,12 +43,12 @@ export interface VideoVariant {
 
 export const VIDEO_TYPES = [
   { value: 'product_video', label: 'Produto', icon: Video, color: 'text-info' },
-  { value: 'tutorial', label: 'Tutorial', icon: Play, color: 'text-emerald-500' },
-  { value: 'unboxing', label: 'Unboxing', icon: Film, color: 'text-amber-500' },
+  { value: 'tutorial', label: 'Tutorial', icon: Play, color: 'text-success' },
+  { value: 'unboxing', label: 'Unboxing', icon: Film, color: 'text-warning' },
   { value: 'review', label: 'Review', icon: Star, color: 'text-warning' },
-  { value: 'demo', label: 'Demonstração', icon: Clapperboard, color: 'text-violet-500' },
+  { value: 'demo', label: 'Demonstração', icon: Clapperboard, color: 'text-primary' },
   { value: 'recording', label: 'Gravação', icon: Mic, color: 'text-sky-500' },
-  { value: 'lifestyle', label: 'Lifestyle', icon: Sparkles, color: 'text-pink-500' },
+  { value: 'lifestyle', label: 'Lifestyle', icon: Sparkles, color: 'text-primary' },
 ];
 
 export const ACCEPTED_VIDEO_TYPES = ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/mpeg', 'video/ogg'];

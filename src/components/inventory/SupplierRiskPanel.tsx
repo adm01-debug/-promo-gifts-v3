@@ -145,7 +145,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
+            <ShieldAlert className="h-5 w-5 text-warning" aria-hidden="true" />
             Risco de Ruptura no Fornecedor
           </CardTitle>
         </CardHeader>
@@ -165,7 +165,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
+              <ShieldAlert className="h-5 w-5 text-warning" aria-hidden="true" />
               Risco de Ruptura no Fornecedor
             </CardTitle>
             <CardDescription>
@@ -210,7 +210,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                     "text-[9px] px-2 py-0.5 rounded-full transition-colors",
                     severityFilter === opt.value
                       ? opt.value === 'critical' ? 'bg-destructive/15 text-destructive'
-                        : opt.value === 'warning' ? 'bg-amber-500/15 text-amber-600'
+                        : opt.value === 'warning' ? 'bg-warning/15 text-warning'
                         : opt.value === 'ok' ? 'bg-primary/15 text-primary'
                         : 'bg-primary/15 text-primary'
                       : 'text-muted-foreground hover:bg-muted/50'
@@ -273,7 +273,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                                 className={cn(
                                   "text-[9px] px-1.5 py-0",
                                   product.severity === 'critical' ? 'bg-destructive/15 text-destructive border-destructive/30' :
-                                  product.severity === 'warning' ? 'bg-amber-500/15 text-amber-600 border-amber-500/30' :
+                                  product.severity === 'warning' ? 'bg-warning/15 text-warning border-warning/30' :
                                   'bg-primary/10 text-primary border-primary/20'
                                 )}
                               >
@@ -297,9 +297,9 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                 <p className="text-lg font-bold text-destructive">{filteredCounts.critical}</p>
                 <p className="text-[9px] text-destructive">Críticos</p>
               </div>
-              <div className="text-center p-1.5 rounded bg-amber-500/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
-                <p className="text-lg font-bold text-amber-600">{filteredCounts.warning}</p>
-                <p className="text-[9px] text-amber-600">Atenção</p>
+              <div className="text-center p-1.5 rounded bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
+                <p className="text-lg font-bold text-warning">{filteredCounts.warning}</p>
+                <p className="text-[9px] text-warning">Atenção</p>
               </div>
               <div className="text-center p-1.5 rounded bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
                 <p className="text-lg font-bold text-primary">{filteredCounts.ok}</p>

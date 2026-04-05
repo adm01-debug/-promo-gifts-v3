@@ -326,7 +326,7 @@ function ComparisonCard({
     <div className="relative">
       {/* #1: Premium highlight for best value */}
       {isBestValue && !isSelected && (
-        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-amber-500/40 via-primary/30 to-amber-500/40 blur-sm pointer-events-none" />
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-warning/40 via-primary/30 to-amber-500/40 blur-sm pointer-events-none" />
       )}
       <button
         onClick={() => onSelect(result)}
@@ -334,7 +334,7 @@ function ComparisonCard({
           'relative w-full p-6 rounded-2xl text-left transition-all duration-300 group',
           'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
           isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
-          !isSelected && isBestValue && 'ring-2 ring-amber-500/50 border-amber-500/30 shadow-lg shadow-amber-500/10',
+          !isSelected && isBestValue && 'ring-2 ring-amber-500/50 border-warning/30 shadow-lg shadow-amber-500/10',
           !isSelected && !isBestValue && isFirst && 'ring-1 ring-primary/20'
         )}
       >
@@ -370,7 +370,7 @@ function ComparisonCard({
               </Badge>
               {/* #1: Larger trophy for best value */}
               {isBestValue && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
+                <Badge className="bg-gradient-to-r from-warning to-orange text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
                   <Trophy className="h-4 w-4" />
                   Melhor Custo-Benefício
                 </Badge>
@@ -430,7 +430,7 @@ function ComparisonCard({
                         </Badge>
                       )}
                       {result.minimumApplied && (
-                        <Badge variant="outline" className="text-xs text-amber-600 border-amber-300 dark:text-amber-400 dark:border-amber-700">
+                        <Badge variant="outline" className="text-xs text-warning border-warning/30 dark:text-warning dark:border-warning/40">
                           Faturamento mínimo aplicado
                         </Badge>
                       )}

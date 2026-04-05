@@ -83,10 +83,10 @@ export function TechniquesPanel() {
 
   const getCategoriaColor = (categoria: string) => {
     const colors: Record<string, string> = {
-      impression: "bg-info/10 text-info border-blue-500/20",
-      engraving: "bg-amber-500/10 text-amber-500 border-amber-500/20",
-      textile: "bg-primary/10 text-primary border-purple-500/20",
-      embroidery: "bg-pink-500/10 text-pink-500 border-pink-500/20",
+      impression: "bg-info/10 text-info border-info/20",
+      engraving: "bg-warning/10 text-warning border-warning/20",
+      textile: "bg-primary/10 text-primary border-primary/20",
+      embroidery: "bg-primary/10 text-primary border-pink-500/20",
       transfer: "bg-success/10 text-success border-success/20",
     };
     return colors[categoria] || "bg-muted text-muted-foreground";
@@ -229,7 +229,7 @@ export function TechniquesPanel() {
                         {tecnica.precoPorArea && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span><Ruler className="h-4 w-4 text-amber-500" /></span>
+                              <span><Ruler className="h-4 w-4 text-warning" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Área</TooltipContent>
                           </Tooltip>
@@ -291,7 +291,7 @@ export function TechniquesPanel() {
             <span>Por Cor</span>
           </div>
           <div className="flex items-center gap-1">
-            <Ruler className="h-3 w-3 text-amber-500" />
+            <Ruler className="h-3 w-3 text-warning" />
             <span>Por Área</span>
           </div>
           <div className="flex items-center gap-1">

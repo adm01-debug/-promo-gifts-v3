@@ -49,7 +49,7 @@ const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: R
   },
   low_stock: { 
     label: 'Estoque Baixo', 
-    color: 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+    color: 'bg-warning/10 text-warning border-warning/20',
     icon: <TrendingDown className="h-4 w-4" />
   },
   critical: { 
@@ -100,7 +100,7 @@ function StatCard({
   const variantStyles = {
     default: 'bg-card',
     success: 'bg-success/5 border-success/20',
-    warning: 'bg-amber-500/5 border-amber-500/20',
+    warning: 'bg-warning/5 border-warning/20',
     error: 'bg-destructive/5 border-destructive/20',
   };
 
@@ -133,13 +133,13 @@ function StatCard({
 function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => void }) {
   const severityStyles = {
     info: 'border-primary/30 bg-primary/5',
-    warning: 'border-amber-500/30 bg-amber-500/5',
+    warning: 'border-warning/30 bg-warning/5',
     error: 'border-destructive/30 bg-destructive/5',
   };
 
   const severityIcons = {
     info: <AlertCircle className="h-5 w-5 text-primary" />,
-    warning: <AlertTriangle className="h-5 w-5 text-amber-600" />,
+    warning: <AlertTriangle className="h-5 w-5 text-warning" />,
     error: <XCircle className="h-5 w-5 text-destructive" />,
   };
 
@@ -278,7 +278,7 @@ export function StockDashboard() {
         <StatCard
           title="Estoque Baixo"
           value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
-          icon={<TrendingDown className="h-6 w-6 text-amber-600" />}
+          icon={<TrendingDown className="h-6 w-6 text-warning" />}
           variant="warning"
         />
         <StatCard

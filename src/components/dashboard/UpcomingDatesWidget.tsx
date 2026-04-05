@@ -174,7 +174,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
         "flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all",
         "hover:border-primary hover:bg-primary/5",
         isToday && "border-success bg-success/10",
-        isThisWeek && !isToday && "border-amber-500/50 bg-amber-50/50 dark:bg-amber-950/20"
+        isThisWeek && !isToday && "border-warning/50 bg-warning/5/50 dark:bg-warning/10"
       )}
     >
       {/* Cor indicadora */}
@@ -197,7 +197,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
           isToday
             ? "bg-success text-success-foreground"
             : isThisWeek
-            ? "bg-amber-500 text-primary-foreground"
+            ? "bg-warning text-primary-foreground"
             : "bg-muted text-muted-foreground"
         )}
       >
@@ -220,7 +220,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
         "hover:border-primary hover:bg-primary/5",
         isFirst && "border-primary/50 bg-primary/5",
         isToday && "border-success bg-success/10",
-        isThisWeek && !isToday && !isFirst && "border-amber-500/30"
+        isThisWeek && !isToday && !isFirst && "border-warning/30"
       )}
     >
       {/* Cor indicadora */}
@@ -265,7 +265,7 @@ function FullDateCard({ date, onClick, isFirst }: DateCardProps) {
             isToday
               ? "bg-success text-success-foreground"
               : isThisWeek
-              ? "bg-amber-500 text-primary-foreground"
+              ? "bg-warning text-primary-foreground"
               : "bg-muted text-foreground"
           )}
         >

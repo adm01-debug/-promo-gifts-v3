@@ -225,7 +225,7 @@ export function DraggableWidget({
                   onClick={onToggleLock}
                 >
                   {widget.isLocked ? (
-                    <Lock className="h-3.5 w-3.5 text-amber-500" />
+                    <Lock className="h-3.5 w-3.5 text-warning" />
                   ) : (
                     <Unlock className="h-3.5 w-3.5" />
                   )}

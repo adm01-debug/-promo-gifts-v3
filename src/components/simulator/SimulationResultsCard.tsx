@@ -396,7 +396,7 @@ export function SimulationResultsCard({
                               <div className={cn(
                                 "inline-flex items-center gap-1 px-2 py-1 rounded-full text-sm",
                                 option.estimatedDays <= 3 && "bg-primary/10 text-primary",
-                                option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
+                                option.estimatedDays > 3 && option.estimatedDays <= 7 && "bg-warning/10 text-warning dark:bg-warning/15 dark:text-warning",
                                 option.estimatedDays > 7 && "bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400"
                               )}>
                                 <Clock className="h-3.5 w-3.5" />
