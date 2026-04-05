@@ -166,23 +166,23 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative max-w-xs w-full pointer-events-auto"
               >
-                {/* Inner card with glowing pulsing border */}
+                {/* Inner card with glowing pulsing border — color synced to phase */}
                 <motion.div
                   className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl max-h-[90vh] overflow-hidden"
                   style={{
                     background: "rgba(8,8,18,0.95)",
-                    border: "1.5px solid rgba(56,130,246,0.35)",
+                    border: `1.5px solid ${colors.primary}50`,
                   }}
                   animate={{
                     boxShadow: [
-                      "0 0 12px 1px rgba(56,130,246,0.15), 0 0 30px 4px rgba(56,130,246,0.08), inset 0 0 10px 0px rgba(56,130,246,0.05)",
-                      "0 0 25px 5px rgba(56,130,246,0.35), 0 0 60px 10px rgba(56,130,246,0.15), inset 0 0 18px 0px rgba(56,130,246,0.1)",
-                      "0 0 12px 1px rgba(56,130,246,0.15), 0 0 30px 4px rgba(56,130,246,0.08), inset 0 0 10px 0px rgba(56,130,246,0.05)",
+                      `0 0 12px 1px ${colors.primary}25, 0 0 30px 4px ${colors.primary}15, inset 0 0 10px 0px ${colors.primary}0D`,
+                      `0 0 25px 5px ${colors.primary}55, 0 0 60px 10px ${colors.primary}25, inset 0 0 18px 0px ${colors.primary}1A`,
+                      `0 0 12px 1px ${colors.primary}25, 0 0 30px 4px ${colors.primary}15, inset 0 0 10px 0px ${colors.primary}0D`,
                     ],
                     borderColor: [
-                      "rgba(56,130,246,0.3)",
-                      "rgba(56,130,246,0.7)",
-                      "rgba(56,130,246,0.3)",
+                      `${colors.primary}4D`,
+                      `${colors.primary}B3`,
+                      `${colors.primary}4D`,
                     ],
                   }}
                   transition={{ duration: 3.5, repeat: Infinity, ease: "easeInOut" }}
