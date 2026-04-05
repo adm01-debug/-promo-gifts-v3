@@ -190,15 +190,15 @@ export function GlobalSearchPalette() {
               {s.contextualSuggestions.length > 0 && (
                 <>
                   <CommandSeparator />
-                  <CommandGroup heading={`Sugestões para ${s.routeContext.section === "products" ? "Catálogo" : s.routeContext.section === "quotes" ? "Orçamentos" : s.routeContext.section === "orders" ? "Pedidos" : s.routeContext.section === "clients" ? "Clientes" : "Esta Página"}`}>
-                    <div className="flex flex-wrap gap-2 p-2">
+                   <CommandGroup heading={`Sugestões para ${s.routeContext.section === "products" ? "Catálogo" : s.routeContext.section === "quotes" ? "Orçamentos" : s.routeContext.section === "orders" ? "Pedidos" : s.routeContext.section === "clients" ? "Clientes" : "Esta Página"}`}>
+                    <div className="flex flex-wrap gap-2 p-2" role="group" aria-label="Sugestões contextuais">
                       {s.contextualSuggestions.slice(0, 6).map(sug => (
-                        <button key={sug.id} onClick={() => s.handleSuggestionClick(sug.text)} className={cn(
-                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors",
-                          sug.type === "filter" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
-                          sug.type === "navigation" && "bg-primary/15 hover:bg-primary/25 text-primary/80 border border-primary/25",
-                          sug.type === "action" && "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/30",
-                          sug.type === "search" && "bg-muted hover:bg-muted/80",
+                        <button key={sug.id} onClick={() => s.handleSuggestionClick(sug.text)} aria-label={`Buscar ${sug.text}`} className={cn(
+                          "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all shadow-sm",
+                          sug.type === "filter" && "bg-primary/10 hover:bg-primary/20 text-primary border-2 border-primary/40 hover:border-primary/60",
+                          sug.type === "navigation" && "bg-accent hover:bg-accent/80 text-accent-foreground border-2 border-accent-foreground/20",
+                          sug.type === "action" && "bg-orange/10 hover:bg-orange/20 text-orange border-2 border-orange/40",
+                          sug.type === "search" && "bg-muted hover:bg-muted/80 border border-border",
                         )}>
                           <span>{sug.icon}</span><span>{sug.text}</span>
                         </button>
@@ -210,10 +210,10 @@ export function GlobalSearchPalette() {
 
               <CommandSeparator />
               <CommandGroup heading="Sugestões Rápidas">
-                <div className="flex flex-wrap gap-2 p-2">
+                <div className="flex flex-wrap gap-2 p-2" role="group" aria-label="Sugestões rápidas">
                   {s.quickSuggestions.map((qs, i) => (
-                    <button key={`q-${i}`} onClick={() => s.handleSuggestionClick(qs.label)} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted hover:bg-muted/80 rounded-full text-sm transition-colors">
-                      <span>{qs.icon}</span><span>{qs.label}</span>
+                    <button key={`q-${i}`} onClick={() => s.handleSuggestionClick(qs.label)} aria-label={`Buscar ${qs.label}`} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-muted/60 hover:bg-muted rounded-full text-xs text-muted-foreground hover:text-foreground transition-colors border border-transparent hover:border-border">
+                      <span className="text-sm">{qs.icon}</span><span>{qs.label}</span>
                     </button>
                   ))}
                 </div>
