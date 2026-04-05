@@ -1,3 +1,4 @@
+import React from "react";
 import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,7 +73,7 @@ function NotificationItem({
   );
 }
 
-export function NotificationBell() {
+export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, clearAll } =
     useWorkspaceNotifications();
   const navigate = useNavigate();
@@ -88,7 +89,7 @@ export function NotificationBell() {
   return (
     <Sheet>
       <SheetTrigger asChild>
-        <div>
+        <div ref={ref}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -187,4 +188,6 @@ export function NotificationBell() {
       </SheetContent>
     </Sheet>
   );
-}
+});
+
+NotificationBell.displayName = "NotificationBell";
