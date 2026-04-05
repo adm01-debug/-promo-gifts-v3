@@ -2,6 +2,7 @@
  * GlobalSearchPalette — High-contrast black redesign
  * Zero gray haze, sharp hierarchy, CSS animations (cmdk-compatible)
  */
+import React, { lazy, Suspense } from "react";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
   CommandItem, CommandList, CommandSeparator,
@@ -17,9 +18,10 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 import { useGlobalSearch } from "./useGlobalSearch";
 import { typeConfig } from "./search-types";
+
+const LazyVoiceOverlay = lazy(() => import("./VoiceSearchOverlayConnected"));
 
 /* ── Quick Actions ── */
 const quickActions = [
