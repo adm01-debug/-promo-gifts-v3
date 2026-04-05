@@ -83,7 +83,7 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
       {/* Particle ring — rotating dots */}
       <motion.div
         className="absolute"
-        style={{ width: 180, height: 180 }}
+        style={{ width: 126, height: 126 }}
         animate={{ rotate: 360 }}
         transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
       >
