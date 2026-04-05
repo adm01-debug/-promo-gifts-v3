@@ -1,4 +1,4 @@
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { SkipToContent } from "@/components/common/SkipToContent";
@@ -37,6 +37,20 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMockupGenerator = location.pathname === "/mockup-generator";
   
   useScrollLockFix();
+
+  // Focus management: move focus to main content on route changes for screen readers
+  const mainRef = useRef<HTMLElement>(null);
+  const prevPathRef = useRef(location.pathname);
+  useEffect(() => {
+    if (prevPathRef.current !== location.pathname) {
+      prevPathRef.current = location.pathname;
+      // Delay to allow page transition animation to start
+      const timer = setTimeout(() => {
+        mainRef.current?.focus({ preventScroll: true });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [location.pathname]);
 
   const layoutContent = (
     <div className="min-h-screen bg-background ambient-glow print:min-h-0" role="document">
@@ -84,8 +98,10 @@ export function MainLayout({ children }: MainLayoutProps) {
           </div>
           
           <main 
+            ref={mainRef}
+            tabIndex={-1}
             id="main-content" 
-            className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6 print:p-0 print:pb-0" 
+            className="flex-1 p-3 sm:p-4 lg:p-6 pb-24 sm:pb-20 lg:pb-6 print:p-0 print:pb-0 outline-none" 
             role="main"
             aria-label="Conteúdo principal"
           >
