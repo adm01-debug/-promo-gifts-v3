@@ -1,5 +1,5 @@
 /**
- * Render tests for GlobalSearchPalette (1059 lines)
+ * Render tests for GlobalSearchPalette
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
@@ -26,6 +26,21 @@ vi.mock("@/hooks/useContextualSuggestions", () => ({
 
 vi.mock("@/hooks/useVoiceFeedback", () => ({
   useVoiceFeedback: vi.fn().mockReturnValue({ speak: vi.fn(), stop: vi.fn(), isSpeaking: false }),
+}));
+
+vi.mock("@/hooks/useVoiceAgent", () => ({
+  useVoiceAgent: vi.fn().mockReturnValue({
+    phase: "idle", partialTranscript: "", finalTranscript: "", agentResponse: "",
+    error: null, currentAction: null, isConnected: false,
+    startListening: vi.fn(), stopListening: vi.fn(), stopSpeaking: vi.fn(), reset: vi.fn(),
+  }),
+}));
+
+vi.mock("@elevenlabs/react", () => ({
+  useScribe: vi.fn().mockReturnValue({
+    connect: vi.fn(), disconnect: vi.fn(), isConnected: false,
+    partialTranscript: "", committedTranscripts: [],
+  }),
 }));
 
 vi.mock("@/components/search/VoiceSearchOverlay", () => ({
