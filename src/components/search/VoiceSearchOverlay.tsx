@@ -217,12 +217,19 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   phase === "error" && "bg-destructive text-destructive-foreground",
                   phase === "idle" && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 )}
+                aria-label={getMicLabel()}
               >
                 {getMicIcon()}
               </motion.button>
             </div>
 
-            {/* Sound wave visualization - listening */}
+            {/* Live region for screen reader announcements */}
+            <div className="sr-only" role="status" aria-live="polite" aria-atomic="true">
+              {phase === "listening" && "Ouvindo. Fale seu comando."}
+              {phase === "processing" && `Processando: ${finalTranscript}`}
+              {phase === "speaking" && `Resposta: ${agentResponse}`}
+              {phase === "error" && `Erro: ${error}`}
+            </div>
             {phase === "listening" && (
               <motion.div
                 initial={{ opacity: 0 }}
