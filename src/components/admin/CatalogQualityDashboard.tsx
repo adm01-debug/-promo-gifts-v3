@@ -147,19 +147,19 @@ export function CatalogQualityDashboard({
   }, [metrics, products.length]);
 
   const getScoreColor = (score: number) => {
-    if (score >= 85) return "text-green-600";
-    if (score >= 60) return "text-amber-600";
-    return "text-red-600";
+    if (score >= 85) return "text-success";
+    if (score >= 60) return "text-warning";
+    return "text-destructive";
   };
 
   const getStatusColor = (status: "success" | "warning" | "error") => {
     switch (status) {
       case "success":
-        return "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400";
+        return "bg-success/10 text-success";
       case "warning":
-        return "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400";
+        return "bg-warning/10 text-warning";
       case "error":
-        return "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400";
+        return "bg-destructive/10 text-destructive";
     }
   };
 
@@ -198,9 +198,9 @@ export function CatalogQualityDashboard({
               value={overallScore}
               className={cn(
                 "h-2",
-                overallScore >= 85 && "[&>div]:bg-green-500",
-                overallScore >= 60 && overallScore < 85 && "[&>div]:bg-amber-500",
-                overallScore < 60 && "[&>div]:bg-red-500"
+                overallScore >= 85 && "[&>div]:bg-success",
+                overallScore >= 60 && overallScore < 85 && "[&>div]:bg-warning",
+                overallScore < 60 && "[&>div]:bg-destructive"
               )}
             />
           </div>
@@ -286,14 +286,14 @@ export function CatalogQualityDashboard({
 
         {/* Improvement suggestion */}
         {overallScore < 85 && (
-          <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-700">
+          <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
             <div className="flex items-start gap-2">
-              <TrendingUp className="h-4 w-4 text-amber-600 mt-0.5" />
+              <TrendingUp className="h-4 w-4 text-warning mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-amber-800 dark:text-amber-300">
+                <p className="font-medium text-warning">
                   Dica para melhorar
                 </p>
-                <p className="text-amber-700 dark:text-amber-400">
+                <p className="text-warning">
                   {metrics[0]?.value > 0
                     ? `Adicione imagens em ${metrics[0].value} produtos para aumentar conversões.`
                     : metrics[1]?.value > 0

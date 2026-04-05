@@ -74,7 +74,7 @@ export function InlineEditField({
         <Button
           size="icon"
           variant="ghost"
-          className="h-6 w-6 text-green-600 hover:text-green-700"
+          className="h-6 w-6 text-success hover:text-success/80"
           onClick={handleSave}
         >
           <Check className="h-3 w-3" />

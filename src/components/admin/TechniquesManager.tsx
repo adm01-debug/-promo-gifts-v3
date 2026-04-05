@@ -125,9 +125,9 @@ export function TechniquesManager() {
 
   const getPricingBadges = (tecnica: typeof tecnicas[0]) => {
     const badges = [];
-    if (tecnica.precoPorCor) badges.push({ label: 'Cor', icon: Droplets, color: 'bg-blue-500/10 text-blue-700' });
-    if (tecnica.precoPorArea) badges.push({ label: 'Área', icon: Ruler, color: 'bg-green-500/10 text-green-700' });
-    if (tecnica.precoPorPontos) badges.push({ label: 'Pontos', icon: Hash, color: 'bg-purple-500/10 text-purple-700' });
+    if (tecnica.precoPorCor) badges.push({ label: 'Cor', icon: Droplets, color: 'bg-info/10 text-info' });
+    if (tecnica.precoPorArea) badges.push({ label: 'Área', icon: Ruler, color: 'bg-success/10 text-success' });
+    if (tecnica.precoPorPontos) badges.push({ label: 'Pontos', icon: Hash, color: 'bg-primary/10 text-primary' });
     return badges;
   };
 
@@ -301,7 +301,7 @@ export function TechniquesManager() {
                   <div className="grid grid-cols-3 gap-4">
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-2">
-                        <Droplets className="h-4 w-4 text-blue-500" />
+                        <Droplets className="h-4 w-4 text-info" />
                         <span className="text-sm">Por Cor</span>
                       </div>
                       <Switch
@@ -311,7 +311,7 @@ export function TechniquesManager() {
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-2">
-                        <Ruler className="h-4 w-4 text-green-500" />
+                        <Ruler className="h-4 w-4 text-success" />
                         <span className="text-sm">Por Área</span>
                       </div>
                       <Switch
@@ -321,7 +321,7 @@ export function TechniquesManager() {
                     </div>
                     <div className="flex items-center justify-between p-3 rounded-lg border">
                       <div className="flex items-center gap-2">
-                        <Hash className="h-4 w-4 text-purple-500" />
+                        <Hash className="h-4 w-4 text-primary" />
                         <span className="text-sm">Por Pontos</span>
                       </div>
                       <Switch
