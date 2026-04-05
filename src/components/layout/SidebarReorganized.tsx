@@ -31,6 +31,8 @@ import {
   ImagePlus,
   BarChart3,
   Crosshair,
+  ChevronsDownUp,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
