@@ -202,8 +202,8 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 className={cn(
                   "relative z-10 flex items-center justify-center w-28 h-28 rounded-full transition-all duration-300 disabled:opacity-70",
                   phase === "listening" && "bg-primary text-primary-foreground shadow-[0_0_60px_rgba(var(--primary),0.5)]",
-                  phase === "processing" && "bg-amber-500 text-white",
-                  phase === "speaking" && "bg-emerald-500 text-white shadow-[0_0_40px_rgba(16,185,129,0.4)]",
+                  phase === "processing" && "bg-warning text-warning-foreground",
+                  phase === "speaking" && "bg-success text-success-foreground shadow-glow-success",
                   phase === "error" && "bg-destructive text-destructive-foreground",
                   phase === "idle" && "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 )}
