@@ -72,6 +72,12 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     // Auto-start & continuous listening
     const prevPhaseRef = useRef<VoiceAgentPhase>("idle");
     const hasAutoStarted = useRef(false);
+    const startListeningRef = useRef(onStartListening);
+
+    useEffect(() => {
+      startListeningRef.current = onStartListening;
+    }, [onStartListening]);
+
     useEffect(() => {
       if (!isOpen) {
         hasAutoStarted.current = false;
@@ -83,13 +89,13 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       if (phase === "idle" && !hasAutoStarted.current) {
         hasAutoStarted.current = true;
         setIsAutoStarting(true);
-        const timer = setTimeout(() => onStartListening(), 120);
+        const timer = window.setTimeout(() => startListeningRef.current(), 120);
         return () => clearTimeout(timer);
       }
 
       if (phase === "idle" && prevPhaseRef.current === "speaking") {
         setIsAutoStarting(true);
-        const timer = setTimeout(() => onStartListening(), 800);
+        const timer = window.setTimeout(() => startListeningRef.current(), 800);
         prevPhaseRef.current = phase;
         return () => clearTimeout(timer);
       }
@@ -99,7 +105,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
         hasAutoStarted.current = true;
       }
       prevPhaseRef.current = phase;
-    }, [isOpen, phase, onStartListening]);
+    }, [isOpen, phase]);
 
     // Booting timeout — show friendly message if mic takes too long
     useEffect(() => {
