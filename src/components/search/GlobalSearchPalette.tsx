@@ -229,6 +229,26 @@ export function GlobalSearchPalette() {
             </>
           )}
         </CommandList>
+
+        {/* Keyboard shortcuts footer */}
+        <div className="flex items-center justify-center gap-4 px-4 py-2 border-t border-border bg-muted/30 text-[11px] text-muted-foreground/60">
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">↵</kbd>
+            Selecionar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">↑↓</kbd>
+            Navegar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">ESC</kbd>
+            Fechar
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <kbd className="px-1.5 py-0.5 rounded bg-muted border border-border font-mono text-[10px]">⌘K</kbd>
+            Busca
+          </span>
+        </div>
       </CommandDialog>
     </>
   );
