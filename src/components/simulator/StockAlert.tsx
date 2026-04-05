@@ -152,8 +152,8 @@ export function StockBadge({
             className={cn(
               "gap-1 text-[10px] cursor-help",
               alertLevel === 'ok' && "bg-success/10 text-success border-success/30",
-              alertLevel === 'caution' && "bg-yellow-500/10 text-yellow-600 border-yellow-500/30",
-              alertLevel === 'warning' && "bg-amber-500/10 text-amber-600 border-amber-500/30",
+              alertLevel === 'caution' && "bg-warning/10 text-warning border-warning/30",
+              alertLevel === 'warning' && "bg-warning/15 text-warning border-warning/40",
               alertLevel === 'critical' && "bg-destructive/10 text-destructive border-destructive/30",
               className
             )}

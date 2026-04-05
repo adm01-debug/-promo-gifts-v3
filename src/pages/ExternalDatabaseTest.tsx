@@ -70,7 +70,7 @@ export default function ExternalDatabaseTest() {
     }
     if (data && data.length > 0) {
       return (
-        <Badge variant="default" className="gap-1 bg-green-600">
+        <Badge variant="default" className="gap-1 bg-success">
           <CheckCircle2 className="h-3 w-3" />
           Conectado ({data.length} registros)
         </Badge>

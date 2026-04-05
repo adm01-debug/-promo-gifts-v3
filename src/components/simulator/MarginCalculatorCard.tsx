@@ -135,7 +135,7 @@ export function MarginCalculatorCard({ bestOption, quantity }: MarginCalculatorC
                         <Badge className={cn(
                           "text-sm",
                           isGoodMargin && "bg-success text-success-foreground",
-                          isHealthyMargin && !isGoodMargin && "bg-amber-500 text-primary-foreground",
+                          isHealthyMargin && !isGoodMargin && "bg-warning text-warning-foreground",
                           !isHealthyMargin && "bg-destructive text-destructive-foreground"
                         )}>
                           {calculations.marginPercent.toFixed(1)}%

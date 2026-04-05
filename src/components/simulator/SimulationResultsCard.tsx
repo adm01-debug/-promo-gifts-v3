@@ -242,7 +242,7 @@ export function SimulationResultsCard({
 
             {savings > 0 && (
               <motion.div 
-                className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/20"
+                className="p-4 rounded-xl bg-warning/10 border border-warning/20"
                 initial={{ scale: 0.9 }}
                 animate={{ scale: 1 }}
                 transition={{ delay: 0.2 }}
