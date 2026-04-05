@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X, Clock, TrendingUp, ArrowRight, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,9 @@ import { VisualSearchButton } from "./VisualSearchButton";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 import { cn } from "@/lib/utils";
 import { useSearch, SearchResult } from "@/hooks/useSearch";
-import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useVoiceAgent, type VoiceAgentAction } from "@/hooks/useVoiceAgent";
+import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
+import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
 
