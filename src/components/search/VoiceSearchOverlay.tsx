@@ -55,15 +55,15 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
   const isActive = effectivePhase === "listening" || effectivePhase === "speaking";
 
   return (
-    <div className="relative flex items-center justify-center" style={{ width: 200, height: 200 }}>
+    <div className="relative flex items-center justify-center" style={{ width: 140, height: 140 }}>
       {/* Outer glow rings */}
       {[0, 1, 2].map((i) => (
         <motion.div
           key={`ring-${i}`}
           className="absolute rounded-full"
           style={{
-            width: 200 + i * 40,
-            height: 200 + i * 40,
+            width: 140 + i * 28,
+            height: 140 + i * 28,
             background: `radial-gradient(circle, ${colors.ring} 0%, transparent 70%)`,
           }}
           animate={
@@ -83,24 +83,24 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
       {/* Particle ring — rotating dots */}
       <motion.div
         className="absolute"
-        style={{ width: 180, height: 180 }}
+        style={{ width: 126, height: 126 }}
         animate={{ rotate: 360 }}
         transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
       >
         {Array.from({ length: 12 }).map((_, i) => {
           const angle = (i / 12) * 360;
           const rad = (angle * Math.PI) / 180;
-          const r = 85;
+          const r = 58;
           return (
             <motion.div
               key={i}
               className="absolute rounded-full"
               style={{
-                width: 4,
-                height: 4,
+                width: 3,
+                height: 3,
                 background: i % 2 === 0 ? colors.inner : colors.outer,
-                left: 90 + r * Math.cos(rad) - 2,
-                top: 90 + r * Math.sin(rad) - 2,
+                left: 63 + r * Math.cos(rad) - 1.5,
+                top: 63 + r * Math.sin(rad) - 1.5,
               }}
               animate={{ opacity: [0.3, 1, 0.3], scale: [0.8, 1.4, 0.8] }}
               transition={{
@@ -118,10 +118,10 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 120,
-          height: 120,
+          width: 84,
+          height: 84,
           background: `radial-gradient(circle at 35% 35%, ${colors.inner}, ${colors.outer})`,
-          boxShadow: `0 0 60px ${colors.glow}, 0 0 120px ${colors.glow}, inset 0 0 30px rgba(255,255,255,0.1)`,
+          boxShadow: `0 0 40px ${colors.glow}, 0 0 80px ${colors.glow}, inset 0 0 20px rgba(255,255,255,0.1)`,
         }}
         animate={
           isActive
@@ -141,10 +141,10 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 50,
-          height: 50,
-          top: 55,
-          left: 60,
+          width: 35,
+          height: 35,
+          top: 38,
+          left: 42,
           background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25), transparent 70%)",
         }}
         animate={{ opacity: [0.5, 0.8, 0.5] }}
@@ -315,7 +315,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 0.9, opacity: 0, y: 30 }}
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
-                className="flex flex-col items-center gap-6 max-w-md w-full px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
+                className="flex flex-col items-center gap-4 max-w-xs w-full px-6 py-7 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl pointer-events-auto max-h-[90vh] overflow-y-auto"
               >
               {/* Title */}
               <motion.div
