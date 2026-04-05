@@ -230,9 +230,9 @@ export default function SystemStatusPage() {
       case "error":
         return <Badge className="bg-destructive/20 text-destructive border-destructive/30">Erro</Badge>;
       case "warning":
-        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Aviso</Badge>;
+        return <Badge className="bg-warning/20 text-warning border-warning/30">Aviso</Badge>;
       case "loading":
-        return <Badge className="bg-yellow-500/20 text-yellow-600 border-yellow-500/30">Verificando</Badge>;
+        return <Badge className="bg-warning/20 text-warning border-warning/30">Verificando</Badge>;
     }
   };
 

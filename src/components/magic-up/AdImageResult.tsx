@@ -149,7 +149,7 @@ export function AdImageResult({
                         onClick={(e) => { e.stopPropagation(); onToggleHistoryFavorite(item.id, item.is_favorite); }}
                         className="p-1 rounded bg-white/20 hover:bg-white/30"
                       >
-                        <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-red-400 text-red-400" : "text-primary-foreground")} />
+                        <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-destructive text-destructive" : "text-primary-foreground")} />
                       </button>
                     )}
                     {onDeleteHistory && (

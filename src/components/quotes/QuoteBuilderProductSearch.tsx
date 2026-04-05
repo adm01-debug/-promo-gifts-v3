@@ -125,7 +125,7 @@ export function QuoteBuilderProductSearch({
                             ) : isLowStock ? (
                               <span className="inline-flex items-center gap-0.5 text-[10px] font-medium text-amber-600"><AlertTriangle className="h-2.5 w-2.5" />{formatStock(stock)} un</span>
                             ) : (
-                              <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground"><PackageCheck className="h-2.5 w-2.5 text-green-600" />{formatStock(stock)} un</span>
+                              <span className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground"><PackageCheck className="h-2.5 w-2.5 text-success" />{formatStock(stock)} un</span>
                             )}
                           </div>
                         </button>

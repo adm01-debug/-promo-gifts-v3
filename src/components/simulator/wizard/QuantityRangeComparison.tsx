@@ -264,8 +264,8 @@ export function QuantityRangeComparison({
                       </td>
                       <td className="text-right py-2.5 px-3">
                         <span className="flex items-center justify-end gap-1">
-                          {isBest && <TrendingDown className="h-3.5 w-3.5 text-green-500" />}
-                          <span className={isBest ? 'text-green-600 dark:text-green-400 font-bold' : ''}>
+                          {isBest && <TrendingDown className="h-3.5 w-3.5 text-success" />}
+                          <span className={isBest ? 'text-success font-bold' : ''}>
                             {formatCurrency(r.grandPerUnit)}
                           </span>
                         </span>

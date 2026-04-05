@@ -288,7 +288,7 @@ export function ExportActions({
               Copiar texto
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleWhatsApp} className="gap-2 cursor-pointer">
-              <MessageCircle className="h-4 w-4 text-green-500" />
+              <MessageCircle className="h-4 w-4 text-success" />
               WhatsApp
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleEmail} className="gap-2 cursor-pointer">
