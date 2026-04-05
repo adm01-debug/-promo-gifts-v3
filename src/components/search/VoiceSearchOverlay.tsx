@@ -304,7 +304,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             {/* Full-screen glass backdrop — content visible through */}
             <div
               className="absolute inset-0 backdrop-blur-md"
-              style={{ background: "rgba(5,5,15,0.55)" }}
+              style={{ background: "rgba(5,5,15,0.35)" }}
               onClick={onClose}
             />
 
