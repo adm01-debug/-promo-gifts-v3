@@ -272,7 +272,7 @@ export function CurrentStatus({ status, label, since, className }: CurrentStatus
       <div className="relative">
         <Icon className={cn("w-5 h-5", config.color)} />
         {status !== "delivered" && status !== "cancelled" && (
-          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+          <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-success rounded-full animate-pulse" />
         )}
       </div>
       <div>
