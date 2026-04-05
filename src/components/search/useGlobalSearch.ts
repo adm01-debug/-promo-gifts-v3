@@ -112,12 +112,12 @@ export function useGlobalSearch() {
         }, 500);
         break;
       case "sort":
-        // Sort is handled via the search palette
+        // Apply sort — navigate to catalog with sort param
         setTimeout(() => {
           setVoiceOverlayOpen(false);
-          if (action.data?.query) {
-            setQuery(action.data.query);
-            setOpen(true);
+          if (action.data?.sortBy) {
+            // Navigate to catalog root with sort parameter
+            navigate(`/?sort=${action.data.sortBy}`);
           }
         }, 500);
         break;
