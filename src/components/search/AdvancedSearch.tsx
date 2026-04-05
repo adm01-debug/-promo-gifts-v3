@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, lazy, Suspense } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, X, Clock, TrendingUp, ArrowRight, Mic } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -6,14 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VisualSearchButton } from "./VisualSearchButton";
-import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 import { cn } from "@/lib/utils";
 import { useSearch, SearchResult } from "@/hooks/useSearch";
-import { useVoiceAgent, type VoiceAgentAction } from "@/hooks/useVoiceAgent";
-import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
-import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
+import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { useToast } from "@/hooks/use-toast";
 import { useProductAnalytics } from "@/hooks/useProductAnalytics";
+
+const LazyVoiceOverlay = lazy(() => import("./VoiceSearchOverlayConnected"));
 
 interface ProductAnalysis {
   productType: string;
@@ -83,28 +82,13 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
     }
   }, [navigate, onSearch]);
 
-  const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
-
   const handleOpenVoiceOverlay = () => {
-    voiceAgent.reset();
     setIsVoiceOverlayOpen(true);
   };
 
   const handleCloseVoiceOverlay = () => {
     setIsVoiceOverlayOpen(false);
-    voiceAgent.reset();
   };
-
-  const handleVoiceCommandSelect = useCallback(async (command: string) => {
-    voiceAgent.reset();
-    try {
-      const action = await processVoiceTranscript(command);
-      if (action.response) {
-        try { const { promise } = playTtsAudio(action.response); await promise; } catch {}
-      }
-      handleVoiceAction(action);
-    } catch {}
-  }, [voiceAgent, handleVoiceAction]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -359,20 +343,16 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
         </div>
       )}
 
-      {/* Voice Search Overlay */}
-      <VoiceSearchOverlay
-        isOpen={isVoiceOverlayOpen}
-        phase={voiceAgent.phase}
-        partialTranscript={voiceAgent.partialTranscript}
-        finalTranscript={voiceAgent.finalTranscript}
-        agentResponse={voiceAgent.agentResponse}
-        error={voiceAgent.error}
-        onClose={handleCloseVoiceOverlay}
-        onStartListening={voiceAgent.startListening}
-        onStopListening={voiceAgent.stopListening}
-        onStopSpeaking={voiceAgent.stopSpeaking}
-        onCommandSelect={handleVoiceCommandSelect}
-      />
+      {/* Voice Search Overlay (lazy-loaded) */}
+      {isVoiceOverlayOpen && (
+        <Suspense fallback={null}>
+          <LazyVoiceOverlay
+            isOpen={isVoiceOverlayOpen}
+            onClose={handleCloseVoiceOverlay}
+            onAction={handleVoiceAction}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }

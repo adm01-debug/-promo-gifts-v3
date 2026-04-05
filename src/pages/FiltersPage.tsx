@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback } from "react";
+import { useCallback, lazy, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
@@ -7,7 +7,6 @@ import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
 import { ColumnSelector } from "@/components/products/ColumnSelector";
-import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -17,10 +16,11 @@ import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
-import { useVoiceAgent } from "@/hooks/useVoiceAgent";
-import type { VoiceAgentAction } from "@/hooks/useVoiceAgent";
+import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
+
+const LazyVoiceOverlay = lazy(() => import("@/components/search/VoiceSearchOverlayConnected"));
 
 export default function FiltersPage() {
   const navigate = useNavigate();
@@ -63,7 +63,7 @@ export default function FiltersPage() {
     }
   }, [state, navigate]);
 
-  const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
+  
 
   return (
     <MainLayout>
@@ -182,18 +182,15 @@ export default function FiltersPage() {
           </div>
         </div>
       </div>
-      <VoiceSearchOverlay
-        isOpen={state.voiceOverlayOpen}
-        phase={voiceAgent.phase}
-        partialTranscript={voiceAgent.partialTranscript}
-        finalTranscript={voiceAgent.finalTranscript}
-        agentResponse={voiceAgent.agentResponse}
-        error={voiceAgent.error}
-        onClose={() => { state.setVoiceOverlayOpen(false); voiceAgent.reset(); }}
-        onStartListening={voiceAgent.startListening}
-        onStopListening={voiceAgent.stopListening}
-        onStopSpeaking={voiceAgent.stopSpeaking}
-      />
+      {state.voiceOverlayOpen && (
+        <Suspense fallback={null}>
+          <LazyVoiceOverlay
+            isOpen={state.voiceOverlayOpen}
+            onClose={() => state.setVoiceOverlayOpen(false)}
+            onAction={handleVoiceAction}
+          />
+        </Suspense>
+      )}
     </MainLayout>
   );
 }

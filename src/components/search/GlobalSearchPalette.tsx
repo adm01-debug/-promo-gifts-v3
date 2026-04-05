@@ -2,6 +2,7 @@
  * GlobalSearchPalette — High-contrast black redesign
  * Zero gray haze, sharp hierarchy, CSS animations (cmdk-compatible)
  */
+import React, { lazy, Suspense } from "react";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
   CommandItem, CommandList, CommandSeparator,
@@ -17,9 +18,10 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 import { useGlobalSearch } from "./useGlobalSearch";
 import { typeConfig } from "./search-types";
+
+const LazyVoiceOverlay = lazy(() => import("./VoiceSearchOverlayConnected"));
 
 /* ── Quick Actions ── */
 const quickActions = [
@@ -164,20 +166,16 @@ export function GlobalSearchPalette() {
         </Tooltip>
       </div>
 
-      {/* ── Voice overlay ── */}
-      <VoiceSearchOverlay
-        isOpen={s.voiceOverlayOpen}
-        phase={s.voiceAgent.phase}
-        partialTranscript={s.voiceAgent.partialTranscript}
-        finalTranscript={s.voiceAgent.finalTranscript}
-        agentResponse={s.voiceAgent.agentResponse}
-        error={s.voiceAgent.error}
-        onClose={s.handleCloseVoiceOverlay}
-        onStartListening={s.voiceAgent.startListening}
-        onStopListening={s.voiceAgent.stopListening}
-        onStopSpeaking={s.voiceAgent.stopSpeaking}
-        onCommandSelect={s.handleVoiceCommandSelect}
-      />
+      {/* ── Voice overlay (lazy-loaded — @elevenlabs/react only loads when activated) ── */}
+      {s.voiceOverlayOpen && (
+        <Suspense fallback={null}>
+          <LazyVoiceOverlay
+            isOpen={s.voiceOverlayOpen}
+            onClose={s.handleCloseVoiceOverlay}
+            onAction={s.handleVoiceAction}
+          />
+        </Suspense>
+      )}
 
       {/* ── Command Dialog ── */}
       <CommandDialog open={s.open} onOpenChange={s.setOpen}>

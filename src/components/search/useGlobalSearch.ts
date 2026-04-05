@@ -12,7 +12,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
 import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
-import { useVoiceAgent, type VoiceAgentAction } from "@/hooks/useVoiceAgent";
+import type { VoiceAgentAction } from "@/hooks/voice/types";
+import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
@@ -129,41 +130,14 @@ export function useGlobalSearch() {
     }
   }, [navigate, addVoiceCommand]);
 
-  const voiceAgent = useVoiceAgent({
-    onAction: handleVoiceAction,
-  });
-
   const handleOpenVoiceOverlay = useCallback(() => {
     setOpen(false);
-    voiceAgent.reset();
     setVoiceOverlayOpen(true);
-  }, [voiceAgent]);
+  }, []);
 
   const handleCloseVoiceOverlay = useCallback(() => {
     setVoiceOverlayOpen(false);
-    voiceAgent.reset();
-  }, [voiceAgent]);
-
-  // Handle command select (from suggestion chips)
-  const handleVoiceCommandSelect = useCallback(async (command: string) => {
-    voiceAgent.reset();
-    setTimeout(async () => {
-      try {
-        const action = await processVoiceTranscript(command);
-        if (action.response) {
-          try {
-            const { promise } = playTtsAudio(action.response);
-            await promise;
-          } catch {
-            // TTS failed silently
-          }
-        }
-        handleVoiceAction(action);
-      } catch {
-        // Silent fail
-      }
-    }, 100);
-  }, [voiceAgent, handleVoiceAction]);
+  }, []);
 
   // ── Popular products ──
   useEffect(() => {
@@ -354,10 +328,9 @@ export function useGlobalSearch() {
     open, setOpen, query, setQuery,
     results, groupedResults, isSearching, isAIProcessing, searchIntent,
     popularProducts, typingSuggestions,
-    voiceOverlayOpen,
-    voiceAgent,
+    voiceOverlayOpen, setVoiceOverlayOpen,
+    handleVoiceAction,
     handleOpenVoiceOverlay, handleCloseVoiceOverlay,
-    handleVoiceCommandSelect,
     handleSelect, handleSuggestionClick, handleRemoveFromHistory,
     history, quickSuggestions, contextualSuggestions, routeContext,
   };

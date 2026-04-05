@@ -46,7 +46,6 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         }
       }
 
-      // Log successful command
       logVoiceCommand(action, { transcript: text, durationMs: Date.now() - startTime, success: true });
 
       setPhase("idle");
@@ -57,7 +56,6 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       setPhase("error");
       onError?.(message);
 
-      // Log failed command
       logVoiceCommand(
         { action: "answer", response: message, data: {} },
         { transcript: text, durationMs: Date.now() - startTime, success: false }
