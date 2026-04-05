@@ -75,7 +75,7 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
   const hasExpandableInfo = item.description || item.personalizationNotes;
   const hasSpecs = hasDimensions || (item.weightG != null && item.weightG > 0);
   const isPackaging = variant === "packaging";
-  const borderColor = isPackaging ? "border-amber-500/25" : "border-border";
+  const borderColor = isPackaging ? "border-warning/25" : "border-border";
 
   const formatWeight = (g: number) => g >= 1000 ? `${(g / 1000).toFixed(1)} kg` : `${g} g`;
 

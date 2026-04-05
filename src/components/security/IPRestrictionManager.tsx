@@ -143,7 +143,7 @@ export function IPRestrictionManager({ targetUserId, readOnly = false }: IPRestr
             <CardTitle>Restrição por IP</CardTitle>
           </div>
           {hasIPRestriction && (
-            <Badge variant="secondary" className="bg-warning/10 text-amber-800">
+            <Badge variant="secondary" className="bg-warning/10 text-warning">
               Ativo
             </Badge>
           )}

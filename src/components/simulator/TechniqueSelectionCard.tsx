@@ -259,10 +259,10 @@ export const TechniqueSelectionCard = forwardRef<HTMLDivElement, TechniqueSelect
                       'border',
                       activeCategory === cat.id
                         ? isRecommended
-                          ? 'bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground border-amber-500 shadow-md'
+                          ? 'bg-gradient-to-r from-warning to-orange text-primary-foreground border-warning shadow-md'
                           : 'bg-primary text-primary-foreground border-primary shadow-md'
                         : isRecommended
-                        ? 'bg-warning/5 text-warning border-warning/20 hover:border-amber-400'
+                        ? 'bg-warning/5 text-warning border-warning/20 hover:border-warning/80'
                         : 'bg-muted/50 text-muted-foreground border-border hover:border-primary/50 hover:bg-muted'
                     )}
                     whileHover={{ scale: 1.05 }}

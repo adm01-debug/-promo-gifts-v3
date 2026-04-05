@@ -174,7 +174,7 @@ function CompactDateCard({ date, onClick }: DateCardProps) {
         "flex-shrink-0 flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all",
         "hover:border-primary hover:bg-primary/5",
         isToday && "border-success bg-success/10",
-        isThisWeek && !isToday && "border-amber-500/50 bg-warning/5/50 dark:bg-amber-950/20"
+        isThisWeek && !isToday && "border-warning/50 bg-warning/5/50 dark:bg-warning/10"
       )}
     >
       {/* Cor indicadora */}

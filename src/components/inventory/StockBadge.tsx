@@ -34,7 +34,7 @@ const statusConfig: Record<StockStatus, {
     shortLabel: 'Baixo',
     icon: AlertTriangle,
     className: 'text-warning dark:text-warning',
-    bgClass: 'bg-warning/10 dark:bg-amber-900/30 border-warning/20 dark:border-amber-800',
+    bgClass: 'bg-warning/10 dark:bg-warning/15 border-warning/20 dark:border-warning/40',
   },
   'out-of-stock': {
     label: 'Sem Estoque',

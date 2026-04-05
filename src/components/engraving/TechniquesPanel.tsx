@@ -83,9 +83,9 @@ export function TechniquesPanel() {
 
   const getCategoriaColor = (categoria: string) => {
     const colors: Record<string, string> = {
-      impression: "bg-info/10 text-info border-blue-500/20",
+      impression: "bg-info/10 text-info border-info/20",
       engraving: "bg-warning/10 text-warning border-warning/20",
-      textile: "bg-primary/10 text-primary border-purple-500/20",
+      textile: "bg-primary/10 text-primary border-primary/20",
       embroidery: "bg-primary/10 text-primary border-pink-500/20",
       transfer: "bg-success/10 text-success border-success/20",
     };

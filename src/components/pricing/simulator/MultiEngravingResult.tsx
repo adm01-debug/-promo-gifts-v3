@@ -334,7 +334,7 @@ export function MultiEngravingResult({
 
           {/* Info sobre faturamento mínimo */}
           {hasMinimumApplied && (
-            <div className="p-3 rounded-lg bg-warning/10 dark:bg-amber-900/20 text-warning dark:text-warning text-sm">
+            <div className="p-3 rounded-lg bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning text-sm">
               <div className="flex items-center gap-2">
                 <Info className="w-4 h-4" />
                 <span className="font-medium">Faturamento mínimo aplicado</span>

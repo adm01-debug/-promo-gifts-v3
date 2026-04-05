@@ -326,7 +326,7 @@ function ComparisonCard({
     <div className="relative">
       {/* #1: Premium highlight for best value */}
       {isBestValue && !isSelected && (
-        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-amber-500/40 via-primary/30 to-amber-500/40 blur-sm pointer-events-none" />
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-warning/40 via-primary/30 to-amber-500/40 blur-sm pointer-events-none" />
       )}
       <button
         onClick={() => onSelect(result)}
@@ -370,7 +370,7 @@ function ComparisonCard({
               </Badge>
               {/* #1: Larger trophy for best value */}
               {isBestValue && (
-                <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
+                <Badge className="bg-gradient-to-r from-warning to-orange text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
                   <Trophy className="h-4 w-4" />
                   Melhor Custo-Benefício
                 </Badge>
@@ -430,7 +430,7 @@ function ComparisonCard({
                         </Badge>
                       )}
                       {result.minimumApplied && (
-                        <Badge variant="outline" className="text-xs text-warning border-amber-300 dark:text-warning dark:border-amber-700">
+                        <Badge variant="outline" className="text-xs text-warning border-warning/30 dark:text-warning dark:border-warning/40">
                           Faturamento mínimo aplicado
                         </Badge>
                       )}

@@ -752,7 +752,7 @@ function SellerCartsContent() {
                   <ActionHistoryPanel cartId={activeCart.id} />
 
                   {cartAge >= 3 && (
-                    <p className="text-[10px] text-warning bg-warning/5 rounded-lg px-2.5 py-1.5 border border-amber-500/10">
+                    <p className="text-[10px] text-warning bg-warning/5 rounded-lg px-2.5 py-1.5 border border-warning/10">
                       ⏰ Carrinho há {cartAge} dias — considere fazer follow-up!
                     </p>
                   )}

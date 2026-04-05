@@ -217,7 +217,7 @@ export function QuantityAndResult({
 
                     {/* Faturamento mínimo aplicado */}
                     {priceData.minimum_applied && (
-                      <div className="flex items-center justify-between text-sm p-2 rounded bg-warning/10 dark:bg-amber-900/20 text-warning dark:text-warning">
+                      <div className="flex items-center justify-between text-sm p-2 rounded bg-warning/10 dark:bg-warning/10 text-warning dark:text-warning">
                         <div className="flex items-center gap-1">
                           <Info className="w-4 h-4" />
                           <span>Faturamento mínimo aplicado</span>

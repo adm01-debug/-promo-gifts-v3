@@ -86,7 +86,7 @@ export function HorizontalStepper({
                     isDone && !isActive && "bg-primary/20 border-primary text-primary shadow-md shadow-primary/15",
                     isActive && "bg-primary border-primary text-primary-foreground ring-4 ring-primary/20 shadow-lg shadow-primary/25 scale-110",
                     !isActive && !isDone && "bg-muted border-muted-foreground/30 text-muted-foreground",
-                    hasMissing && !isActive && "border-amber-500 ring-2 ring-amber-500/20",
+                    hasMissing && !isActive && "border-warning ring-2 ring-warning/20",
                     hasError && !isActive && "border-destructive ring-2 ring-destructive/20",
                     "group-hover/step:scale-110 group-hover/step:shadow-lg transition-transform"
                   )}
@@ -103,7 +103,7 @@ export function HorizontalStepper({
                     </span>
                   )}
                   {hasMissing && !hasError && (
-                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[9px] font-bold text-white">
+                    <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-warning text-[9px] font-bold text-primary-foreground">
                       {missingFields[i].length}
                     </span>
                   )}

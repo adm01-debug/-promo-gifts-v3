@@ -35,7 +35,7 @@ const variantStyles: Record<TooltipVariant, {
     iconColor: "text-info"
   },
   tip: {
-    bg: "bg-warning/5 dark:bg-amber-950 border-warning/20 dark:border-amber-800",
+    bg: "bg-warning/5 dark:bg-warning/15 border-warning/20 dark:border-warning/40",
     icon: Lightbulb,
     iconColor: "text-warning"
   },
