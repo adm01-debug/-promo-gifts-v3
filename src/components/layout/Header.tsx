@@ -90,15 +90,12 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           </Button>
 
           <div className="flex items-center gap-2 sm:gap-2.5">
-            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-orange flex items-center justify-center shadow-md">
-              <Sparkles className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-orange-foreground" />
-            </div>
             <div className="hidden sm:block">
               <h1 className="font-display text-sm sm:text-base font-bold text-foreground leading-tight">
-                Promo
+                Promo Gifts
               </h1>
-              <p className="text-[9px] sm:text-[10px] text-orange font-medium uppercase tracking-wider -mt-0.5">
-                Brindes
+              <p className="text-[9px] sm:text-[10px] text-muted-foreground font-medium uppercase tracking-wider -mt-0.5">
+                Plataforma de Vendas
               </p>
             </div>
           </div>
