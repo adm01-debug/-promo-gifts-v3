@@ -91,13 +91,20 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setPhase("listening");
 
     try {
-      // Check mic availability before requesting token
+      // Check mic availability with timeout (handles pending permission prompts)
       if (navigator.mediaDevices?.getUserMedia) {
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          const micPromise = navigator.mediaDevices.getUserMedia({ audio: true });
+          const timeoutPromise = new Promise<never>((_, reject) =>
+            setTimeout(() => reject(new Error("mic_timeout")), 8000)
+          );
+          const stream = await Promise.race([micPromise, timeoutPromise]);
           stream.getTracks().forEach((t) => t.stop());
         } catch (micErr) {
           const micError = micErr as Error;
+          if (micError.message === "mic_timeout") {
+            throw new Error("O microfone não respondeu a tempo. Permita o acesso ao microfone e tente novamente.");
+          }
           if (micError.name === "NotAllowedError" || micError.name === "PermissionDeniedError") {
             throw new Error("microphone permission denied");
           }
