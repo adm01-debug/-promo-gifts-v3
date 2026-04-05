@@ -288,7 +288,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       else if (phase === "idle" || phase === "error") onStartListening();
     }, [phase, showBooting, onStartListening, onStopListening, onStopSpeaking]);
 
-    return (
+    return createPortal(
       <AnimatePresence>
         {isOpen && (
           <motion.div
