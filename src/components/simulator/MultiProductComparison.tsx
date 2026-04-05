@@ -219,8 +219,7 @@ export function MultiProductComparison({
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             {comparison.product.image_url && (
-                              <img 
-                                src={comparison.product.image_url} 
+                              <img loading="lazy" src={comparison.product.image_url} 
                                 alt={comparison.product.name}
                                 className="h-10 w-10 rounded-lg object-cover"
                                loading="lazy"/>

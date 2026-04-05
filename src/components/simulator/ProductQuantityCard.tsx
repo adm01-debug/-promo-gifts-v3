@@ -297,8 +297,7 @@ export function ProductQuantityCard({
                   {/* Product Image Thumbnail */}
                   <div className="w-12 h-12 rounded-lg bg-muted overflow-hidden shrink-0">
                     {selectedProduct.image_url ? (
-                      <img 
-                        src={selectedProduct.image_url} 
+                      <img loading="lazy" src={selectedProduct.image_url} 
                         alt={selectedProduct.name}
                         className="w-full h-full object-cover"
                        loading="lazy"/>

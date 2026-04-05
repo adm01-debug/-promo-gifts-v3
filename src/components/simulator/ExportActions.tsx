@@ -347,8 +347,7 @@ export function ExportActions({
               <div className="p-4 bg-muted/30 rounded-lg">
                 <div className="flex items-center gap-4">
                   {selectedProduct?.image_url && (
-                    <img 
-                      src={selectedProduct.image_url} 
+                    <img loading="lazy" src={selectedProduct.image_url} 
                       alt={selectedProduct.name}
                       className="w-16 h-16 object-cover rounded-lg"
                      loading="lazy"/>

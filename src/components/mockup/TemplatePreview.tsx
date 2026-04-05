@@ -131,8 +131,7 @@ export function TemplatePreviewExpanded({
       )}
     >
       {productImage && (
-        <img 
-          src={productImage} 
+        <img loading="lazy" src={productImage} 
           alt="Produto" 
           className="absolute inset-0 w-full h-full object-contain opacity-30"
          loading="lazy"/>
