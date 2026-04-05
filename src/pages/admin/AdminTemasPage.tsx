@@ -96,6 +96,7 @@ export default function AdminTemasPage() {
   const currentMode = config.mode === 'auto' ? 'system' : config.mode;
 
   return (
+    <MainLayout>
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <motion.div
