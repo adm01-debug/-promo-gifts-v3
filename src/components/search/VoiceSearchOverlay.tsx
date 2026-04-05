@@ -118,10 +118,10 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 120,
-          height: 120,
+          width: 84,
+          height: 84,
           background: `radial-gradient(circle at 35% 35%, ${colors.inner}, ${colors.outer})`,
-          boxShadow: `0 0 60px ${colors.glow}, 0 0 120px ${colors.glow}, inset 0 0 30px rgba(255,255,255,0.1)`,
+          boxShadow: `0 0 40px ${colors.glow}, 0 0 80px ${colors.glow}, inset 0 0 20px rgba(255,255,255,0.1)`,
         }}
         animate={
           isActive
