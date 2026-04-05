@@ -34,7 +34,7 @@ export default function AdminTemasPage() {
   const { actualTheme, setTheme: setAppTheme } = useTheme();
   const [config, setConfig] = useState<ThemeConfig>(loadThemeConfig);
   const [savedConfig, setSavedConfig] = useState<ThemeConfig>(loadThemeConfig);
-  const navigate = useNavigate();
+  
 
   const hasUnsavedChanges = JSON.stringify(config) !== JSON.stringify(savedConfig);
 
