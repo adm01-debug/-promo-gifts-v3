@@ -24,7 +24,7 @@ const actionConfig = {
     label: "Criação",
     icon: Plus,
     variant: "default" as const,
-    className: "bg-green-500/10 text-green-600 border-green-500/20"
+    className: "bg-success/10 text-success border-success/20"
   },
   UPDATE: {
     label: "Edição",
