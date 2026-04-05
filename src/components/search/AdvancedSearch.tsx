@@ -51,49 +51,59 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
   const inputRef = useRef<HTMLInputElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Voice search
-  const {
-    isListening,
-    isSupported: isVoiceSupported,
-    transcript,
-    startListening,
-    stopListening,
-  } = useSpeechRecognition({
-    onResult: (text) => {
-      setQuery(text);
-      setIsVoiceOverlayOpen(false);
-      onSearch?.(text);
-      toast({
-        title: "Busca por voz",
-        description: `Buscando: "${text}"`,
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Erro na busca por voz",
-        description: error,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleVoiceSearch = () => {
-    if (isListening) {
-      stopListening();
-    } else {
-      startListening();
+  // Voice agent (ElevenLabs + AI)
+  const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
+    switch (action.action) {
+      case "search":
+      case "filter": {
+        const searchTerm = action.data?.query || "";
+        const filterParts: string[] = [];
+        if (action.data?.filters?.category) filterParts.push(action.data.filters.category);
+        if (action.data?.filters?.color) filterParts.push(action.data.filters.color);
+        const finalQuery = searchTerm || filterParts.join(" ");
+        if (finalQuery) {
+          setIsVoiceOverlayOpen(false);
+          setQuery(finalQuery);
+          onSearch?.(finalQuery);
+        }
+        break;
+      }
+      case "navigate":
+        if (action.data?.route) {
+          setIsVoiceOverlayOpen(false);
+          navigate(action.data.route);
+        }
+        break;
+      case "clear":
+        setIsVoiceOverlayOpen(false);
+        setQuery("");
+        break;
+      default:
+        break;
     }
-  };
+  }, [navigate, onSearch]);
+
+  const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
 
   const handleOpenVoiceOverlay = () => {
     setIsVoiceOverlayOpen(true);
-    startListening();
   };
 
   const handleCloseVoiceOverlay = () => {
-    stopListening();
     setIsVoiceOverlayOpen(false);
+    voiceAgent.reset();
   };
+
+  const handleVoiceCommandSelect = useCallback(async (command: string) => {
+    voiceAgent.reset();
+    try {
+      const action = await processVoiceTranscript(command);
+      if (action.response) {
+        try { const { promise } = playTtsAudio(action.response); await promise; } catch {}
+      }
+      handleVoiceAction(action);
+    } catch {}
+  }, [voiceAgent, handleVoiceAction]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
