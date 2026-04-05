@@ -52,7 +52,8 @@ function ColorThumb({ src, alt, title }: { src: string; alt: string; title: stri
         "w-full h-full object-cover transition-all duration-700 ease-out group-hover/color:scale-110",
         loaded ? "opacity-100 blur-0 scale-100" : "opacity-40 blur-sm scale-105"
       )}
-      onLoad={() = loading="lazy" > setLoaded(true)}
+      onLoad={() => setLoaded(true)}
+      loading="lazy"
     />
   );
 }
