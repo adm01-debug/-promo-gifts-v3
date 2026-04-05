@@ -282,7 +282,7 @@ function ProductTableResult({
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     {product.image && (
-                      <img loading="lazy" src={product.image} 
+                      <img src={product.image} 
                         alt={product.name} 
                         className="w-10 h-10 object-contain rounded"
                         loading="lazy"
