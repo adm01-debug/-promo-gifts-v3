@@ -670,9 +670,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                         <button
                           key={cmd}
                           onClick={() => onCommandSelect?.(cmd)}
-                          className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-full text-xs text-white/40 hover:text-white/70 border border-white/8 hover:border-white/15 transition-all cursor-pointer"
+                          className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
                         >
-                          "{cmd}"
+                          <span className="group-hover:tracking-wide transition-all duration-200">"{cmd}"</span>
                         </button>
                       ))}
                     </div>
