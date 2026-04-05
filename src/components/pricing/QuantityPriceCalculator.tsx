@@ -1,14 +1,13 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import { useExternalProductSearch } from '@/hooks/useExternalSimulator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
@@ -19,34 +18,24 @@ import {
 } from '@/components/ui/select';
 import { 
   Calculator, 
-  TrendingDown, 
-  Clock, 
   Palette,
   Ruler,
   Check,
-  ChevronDown,
-  ChevronUp,
   Sparkles,
   Package,
   Paintbrush,
-  Search,
   X,
   AlertCircle,
   Plus,
   Trash2,
-  ChevronRight,
+  FileText,
+  Trophy,
 } from 'lucide-react';
 import { 
   useCustomizationPricing, 
   PriceCalculation,
-  PriceTier 
 } from '@/hooks/useTecnicasUnificadas';
 import { cn } from '@/lib/utils';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import {
   Table,
   TableBody,
@@ -56,6 +45,9 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { logger } from "@/lib/logger";
+
+// #3 — Reusar ProductSearch unificado
+import { ProductSearch as UnifiedProductSearch } from './simulator/ProductSearch';
 
 // ============================================
 // TYPES
@@ -113,140 +105,6 @@ function formatCurrency(value: number): string {
 
 function formatNumber(value: number): string {
   return new Intl.NumberFormat('pt-BR').format(value);
-}
-
-// ============================================
-// PRODUCT SEARCH
-// ============================================
-
-function ProductSearch({ 
-  onSelect, 
-  selectedProduct 
-}: { 
-  onSelect: (product: Product | null) => void;
-  selectedProduct: Product | null;
-}) {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-
-  const { data: externalProducts, isLoading } = useExternalProductSearch(searchQuery);
-
-  // Mapear produtos externos para o formato esperado
-  const products = useMemo(() => {
-    if (!externalProducts) return [];
-    return externalProducts.map((p) => ({
-      id: p.id,
-      name: p.name,
-      sku: p.sku,
-      price: p.sale_price || p.base_price || 0,
-      images: p.images || (p.primary_image_url ? [p.primary_image_url] : []),
-      category_name: null,
-    }));
-  }, [externalProducts]);
-
-  if (selectedProduct && !isSearching) {
-    return (
-      <div className="p-4 rounded-lg border bg-card">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center overflow-hidden">
-              {selectedProduct.images?.[0] ? (
-                <img 
-                  src={selectedProduct.images[0]} 
-                  alt={selectedProduct.name}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <Package className="w-6 h-6 text-muted-foreground" />
-              )}
-            </div>
-            <div>
-              <p className="font-medium">{selectedProduct.name}</p>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>SKU: {selectedProduct.sku}</span>
-                <span>•</span>
-                <span className="text-primary font-medium">{formatCurrency(selectedProduct.price)}</span>
-              </div>
-            </div>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => {
-              onSelect(null);
-              setIsSearching(true);
-            }}
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar produto por nome ou SKU..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-9"
-          autoFocus
-        />
-      </div>
-
-      {isLoading && (
-        <div className="space-y-2">
-          {[1, 2, 3].map(i => <Skeleton key={i} className="h-16" />)}
-        </div>
-      )}
-
-      {products && products.length > 0 && (
-        <ScrollArea className="h-64">
-          <div className="space-y-1">
-            {products.map(product => (
-              <button
-                key={product.id}
-                onClick={() => {
-                  onSelect(product);
-                  setIsSearching(false);
-                  setSearchQuery('');
-                }}
-                className="w-full p-3 rounded-lg border bg-card hover:bg-accent transition-colors text-left flex items-center gap-3"
-              >
-                <div className="w-10 h-10 rounded bg-muted flex items-center justify-center overflow-hidden shrink-0">
-                  {product.images?.[0] ? (
-                    <img 
-                      src={product.images[0]} 
-                      alt={product.name}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <Package className="w-5 h-5 text-muted-foreground" />
-                  )}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {product.sku} • {formatCurrency(product.price)}
-                  </p>
-                </div>
-              </button>
-            ))}
-          </div>
-        </ScrollArea>
-      )}
-
-      {searchQuery.length >= 2 && products?.length === 0 && !isLoading && (
-        <div className="text-center py-8 text-muted-foreground">
-          <Package className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          <p>Nenhum produto encontrado</p>
-        </div>
-      )}
-    </div>
-  );
 }
 
 // ============================================
@@ -442,7 +300,6 @@ function TechniqueConfigCard({
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        {/* Colors */}
         <div className="space-y-2">
           <label className="text-xs font-medium flex items-center gap-1">
             <Palette className="w-3 h-3" />
@@ -463,7 +320,6 @@ function TechniqueConfigCard({
           </div>
         </div>
 
-        {/* Size */}
         <div className="space-y-2">
           <label className="text-xs font-medium flex items-center gap-1">
             <Ruler className="w-3 h-3" />
@@ -494,7 +350,7 @@ function TechniqueConfigCard({
 }
 
 // ============================================
-// QUANTITY COMPARISON TABLE
+// QUANTITY COMPARISON TABLE — #6 Highlight
 // ============================================
 
 function QuantityComparisonTable({
@@ -511,7 +367,6 @@ function QuantityComparisonTable({
   const calculateForConfig = useCallback((config: SelectedTechniqueConfig, quantity: number) => {
     const { technique, colors, sizeModifier } = config;
     
-    // Find matching price table
     const matchingTable = priceTables.find(t => 
       t.table_code.toLowerCase().includes(technique.techniqueCode.toLowerCase()) ||
       technique.techniqueCode.toLowerCase().includes(t.table_code.toLowerCase()) ||
@@ -524,7 +379,6 @@ function QuantityComparisonTable({
     const calc = calculatePrice(matchingTable.table_code, quantity);
     if (!calc) return null;
 
-    // Apply modifiers
     let modifiedUnitPrice = calc.unitPrice;
     
     if (colors > 1 && matchingTable.price_by_color) {
@@ -547,6 +401,24 @@ function QuantityComparisonTable({
       slaDays: calc.slaDays,
     };
   }, [priceTables, calculatePrice, product.price]);
+
+  // #6 — Find best unit price per config
+  const bestPricePerConfig = useMemo(() => {
+    const map = new Map<string, number>();
+    selectedConfigs.forEach(config => {
+      let bestQty = -1;
+      let bestUnit = Infinity;
+      quantities.forEach(qty => {
+        const result = calculateForConfig(config, qty);
+        if (result && result.unitTotal < bestUnit) {
+          bestUnit = result.unitTotal;
+          bestQty = qty;
+        }
+      });
+      if (bestQty > 0) map.set(config.technique.id, bestQty);
+    });
+    return map;
+  }, [selectedConfigs, quantities, calculateForConfig]);
 
   if (selectedConfigs.length === 0) {
     return (
@@ -586,6 +458,7 @@ function QuantityComparisonTable({
                 </TableCell>
                 {quantities.map(qty => {
                   const result = calculateForConfig(config, qty);
+                  const isBest = bestPricePerConfig.get(config.technique.id) === qty;
                   if (!result) {
                     return (
                       <TableCell key={qty} className="text-center text-xs text-muted-foreground">
@@ -594,9 +467,18 @@ function QuantityComparisonTable({
                     );
                   }
                   return (
-                    <TableCell key={qty} className="text-center">
+                    <TableCell
+                      key={qty}
+                      className={cn(
+                        "text-center relative",
+                        isBest && "bg-success/10 border border-success/30 rounded-lg"
+                      )}
+                    >
+                      {isBest && (
+                        <Trophy className="w-3 h-3 text-success absolute top-1 right-1" />
+                      )}
                       <div className="space-y-1">
-                        <p className="font-bold text-primary text-sm">
+                        <p className={cn("font-bold text-sm", isBest ? "text-success" : "text-primary")}>
                           {formatCurrency(result.unitTotal)}
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -633,7 +515,6 @@ function QuantityComparisonTable({
         </Table>
       </div>
 
-      {/* Legend */}
       <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
         <p className="font-medium mb-1">Valores incluem:</p>
         <ul className="list-disc list-inside space-y-0.5">
@@ -656,6 +537,7 @@ export function QuantityPriceCalculator({
   onSelectTechnique,
   className,
 }: QuantityPriceCalculatorProps) {
+  const navigate = useNavigate();
   const { priceTables, isLoading: pricingLoading } = useCustomizationPricing();
   
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -663,8 +545,20 @@ export function QuantityPriceCalculator({
   const [customQuantities, setCustomQuantities] = useState<number[]>([250, 500, 1000, 2500, 5000]);
   const [newQuantity, setNewQuantity] = useState('');
 
-  const handleProductSelect = useCallback((product: Product | null) => {
-    setSelectedProduct(product);
+  const handleProductSelect = useCallback((product: any | null) => {
+    if (!product) {
+      setSelectedProduct(null);
+      setSelectedConfigs([]);
+      return;
+    }
+    setSelectedProduct({
+      id: product.id,
+      name: product.name,
+      sku: product.sku,
+      price: product.price,
+      images: product.images,
+      category_name: null,
+    });
     setSelectedConfigs([]);
   }, []);
 
@@ -707,6 +601,17 @@ export function QuantityPriceCalculator({
     }
   }, [customQuantities.length]);
 
+  const handleCreateQuote = useCallback(() => {
+    navigate('/orcamentos', {
+      state: {
+        fromSimulator: true,
+        product: selectedProduct,
+        techniques: selectedConfigs,
+        quantities: customQuantities,
+      },
+    });
+  }, [navigate, selectedProduct, selectedConfigs, customQuantities]);
+
   if (pricingLoading) {
     return (
       <Card className={className}>
@@ -724,32 +629,32 @@ export function QuantityPriceCalculator({
 
   return (
     <div className={cn("space-y-6", className)}>
-      {/* Step 1: Product Selection */}
-      <Card>
+      {/* Step 1: Product Selection — #3 usando search unificado */}
+      <Card className="animate-fade-in">
         <CardHeader>
           <div className="flex items-center gap-2">
             <Package className="w-5 h-5 text-primary" />
-            <CardTitle className="text-lg">1. Selecione o Produto</CardTitle>
+            <CardTitle className="text-lg font-display">1. Selecione o Produto</CardTitle>
           </div>
           <CardDescription>
             Escolha o produto base para simular preços de gravação em diferentes tiragens
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ProductSearch 
+          <UnifiedProductSearch 
             onSelect={handleProductSelect}
-            selectedProduct={selectedProduct}
+            selectedProduct={selectedProduct as any}
           />
         </CardContent>
       </Card>
 
       {/* Step 2: Technique Selection */}
       {selectedProduct && (
-        <Card>
+        <Card className="animate-fade-in">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Paintbrush className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">2. Selecione as Técnicas de Gravação</CardTitle>
+              <CardTitle className="text-lg font-display">2. Selecione as Técnicas de Gravação</CardTitle>
             </div>
             <CardDescription>
               Escolha uma ou mais técnicas para comparar preços
@@ -767,11 +672,11 @@ export function QuantityPriceCalculator({
 
       {/* Step 3: Configure Techniques */}
       {selectedConfigs.length > 0 && (
-        <Card>
+        <Card className="animate-fade-in">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Palette className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">3. Configure as Opções de Cada Técnica</CardTitle>
+              <CardTitle className="text-lg font-display">3. Configure as Opções</CardTitle>
             </div>
             <CardDescription>
               Defina cores e tamanho para cada técnica selecionada
@@ -792,16 +697,16 @@ export function QuantityPriceCalculator({
         </Card>
       )}
 
-      {/* Step 4: Quantities and Comparison */}
+      {/* Step 4: Quantities and Comparison — #8 highlight */}
       {selectedProduct && selectedConfigs.length > 0 && (
-        <Card>
+        <Card className="animate-fade-in">
           <CardHeader>
             <div className="flex items-center gap-2">
               <Calculator className="w-5 h-5 text-primary" />
-              <CardTitle className="text-lg">4. Compare Preços por Tiragem</CardTitle>
+              <CardTitle className="text-lg font-display">4. Compare Preços por Tiragem</CardTitle>
             </div>
             <CardDescription>
-              Veja como o preço por unidade muda conforme a quantidade
+              Veja como o preço por unidade muda conforme a quantidade. <Trophy className="inline w-3 h-3 text-success" /> = melhor preço.
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
@@ -848,12 +753,22 @@ export function QuantityPriceCalculator({
               </div>
             </div>
 
-            {/* Comparison Table */}
+            {/* Comparison Table with highlight */}
             <QuantityComparisonTable
               product={selectedProduct}
               selectedConfigs={selectedConfigs}
               quantities={customQuantities}
             />
+
+            {/* #9 — CTA Criar Orçamento */}
+            <Button
+              size="lg"
+              className="w-full gap-2 font-display font-semibold"
+              onClick={handleCreateQuote}
+            >
+              <FileText className="w-5 h-5" />
+              Criar Orçamento a partir desta Simulação
+            </Button>
           </CardContent>
         </Card>
       )}
