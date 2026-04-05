@@ -87,8 +87,7 @@ export function SidePanel({
                   size="icon"
                   onClick={onClose}
                   className="shrink-0"
-                >
-                  <X className="h-4 w-4" />
+                 aria-label="Fechar"><X className="h-4 w-4" />
                 </Button>
               </div>
 

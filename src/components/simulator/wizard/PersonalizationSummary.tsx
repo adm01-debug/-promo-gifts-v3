@@ -150,8 +150,7 @@ export function PersonalizationSummary({
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6 text-muted-foreground hover:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5" />
+                             aria-label="Excluir"><Trash2 className="h-3.5 w-3.5" />
                             </Button>
                           </AlertDialogTrigger>
                         </TooltipTrigger>
@@ -393,8 +392,7 @@ function PersonalizationRow({
               size="icon"
               className="h-6 w-6 text-muted-foreground hover:text-foreground"
               onClick={onEdit}
-            >
-              <Pencil className="h-3 w-3" />
+             aria-label="Editar"><Pencil className="h-3 w-3" />
             </Button>
           </TooltipTrigger>
           <TooltipContent side="bottom" className="text-xs">Editar</TooltipContent>
@@ -409,8 +407,7 @@ function PersonalizationRow({
                     variant="ghost"
                     size="icon"
                     className="h-6 w-6 text-muted-foreground hover:text-foreground"
-                  >
-                    <Copy className="h-3 w-3" />
+                   aria-label="Copiar"><Copy className="h-3 w-3" />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>

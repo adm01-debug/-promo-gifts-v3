@@ -158,8 +158,7 @@ export function GlobalSearchPalette() {
         </button>
         <Tooltip>
           <TooltipTrigger asChild>
-            <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all">
-              <Mic className="h-4 w-4" />
+            <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all" aria-label="Microfone"><Mic className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent className="bg-card border-border text-xs">Assistente de voz IA</TooltipContent>

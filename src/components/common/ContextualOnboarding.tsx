@@ -143,8 +143,7 @@ export function ContextualOnboarding({
                   size="icon"
                   className="shrink-0 h-8 w-8 text-muted-foreground hover:text-foreground"
                   onClick={handleDismiss}
-                >
-                  <X className="h-4 w-4" />
+                 aria-label="Fechar"><X className="h-4 w-4" />
                 </Button>
               </div>
             </CardContent>

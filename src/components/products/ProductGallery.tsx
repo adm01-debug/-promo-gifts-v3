@@ -299,8 +299,7 @@ export function ProductGallery({
                   "transition-all duration-300"
                 )}
                 onClick={goToPrevious}
-              >
-                <ChevronLeft className="h-6 w-6" />
+               aria-label="Voltar"><ChevronLeft className="h-6 w-6" />
               </Button>
               <Button
                 variant="secondary"
@@ -313,8 +312,7 @@ export function ProductGallery({
                   "transition-all duration-300"
                 )}
                 onClick={goToNext}
-              >
-                <ChevronRight className="h-6 w-6" />
+               aria-label="Avançar"><ChevronRight className="h-6 w-6" />
               </Button>
             </>
           )}
@@ -561,8 +559,7 @@ export function ProductGallery({
                       className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-105 transition-all duration-200"
                       onClick={handleZoomOut}
                       disabled={zoom <= 1}
-                    >
-                      <ZoomOut className="h-5 w-5" />
+                     aria-label="Reduzir"><ZoomOut className="h-5 w-5" />
                     </Button>
                     <Button
                       variant="secondary"
@@ -579,8 +576,7 @@ export function ProductGallery({
                         size="icon"
                         className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-105 transition-all duration-200 animate-fade-in"
                         onClick={resetZoom}
-                      >
-                        <RotateCcw className="h-5 w-5" />
+                       aria-label="Rotacionar"><RotateCcw className="h-5 w-5" />
                       </Button>
                     )}
                   </>
@@ -612,16 +608,14 @@ export function ProductGallery({
                   size="icon"
                   className="absolute left-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
                   onClick={goToPrevious}
-                >
-                  <ChevronLeft className="h-7 w-7" />
+                 aria-label="Voltar"><ChevronLeft className="h-7 w-7" />
                 </Button>
                 <Button
                   variant="secondary"
                   size="icon"
                   className="absolute right-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
                   onClick={goToNext}
-                >
-                  <ChevronRight className="h-7 w-7" />
+                 aria-label="Avançar"><ChevronRight className="h-7 w-7" />
                 </Button>
               </>
             )}

@@ -191,8 +191,7 @@ export default function MagicUp() {
                         <p className="text-[10px] text-muted-foreground">{m.selectedClient.ramo_atividade}</p>
                       )}
                     </div>
-                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={m.handleClearClient}>
-                      <X className="h-3.5 w-3.5" />
+                    <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={m.handleClearClient} aria-label="Fechar"><X className="h-3.5 w-3.5" />
                     </Button>
                   </div>
                 ) : (

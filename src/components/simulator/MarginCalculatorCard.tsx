@@ -127,7 +127,7 @@ export function MarginCalculatorCard({ bestOption, quantity }: MarginCalculatorC
                     <div className={cn(
                       "p-4 rounded-xl border-2 transition-colors",
                       isGoodMargin && "bg-success/10 border-success/30",
-                      isHealthyMargin && !isGoodMargin && "bg-amber-500/10 border-amber-500/30",
+                      isHealthyMargin && !isGoodMargin && "bg-warning/10 border-warning/30",
                       !isHealthyMargin && "bg-destructive/10 border-destructive/30"
                     )}>
                       <div className="flex items-center justify-between mb-2">
@@ -135,7 +135,7 @@ export function MarginCalculatorCard({ bestOption, quantity }: MarginCalculatorC
                         <Badge className={cn(
                           "text-sm",
                           isGoodMargin && "bg-success text-success-foreground",
-                          isHealthyMargin && !isGoodMargin && "bg-amber-500 text-primary-foreground",
+                          isHealthyMargin && !isGoodMargin && "bg-warning text-warning-foreground",
                           !isHealthyMargin && "bg-destructive text-destructive-foreground"
                         )}>
                           {calculations.marginPercent.toFixed(1)}%

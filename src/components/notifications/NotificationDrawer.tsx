@@ -96,8 +96,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 variant="ghost"
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-              >
-                <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
+               aria-label="Notificações"><Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
                 {unreadCount > 0 && (
                   <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground animate-in zoom-in-50">
                     {unreadCount > 9 ? "9+" : unreadCount}
@@ -128,8 +127,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
               {unreadCount > 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={markAllAsRead}>
-                      <CheckCheck className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={markAllAsRead} aria-label="CheckCheck"><CheckCheck className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Marcar todas como lidas</TooltipContent>
@@ -138,8 +136,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
               {notifications.length > 0 && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll}>
-                      <Trash2 className="h-4 w-4" />
+                    <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll} aria-label="Excluir"><Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>Limpar todas</TooltipContent>

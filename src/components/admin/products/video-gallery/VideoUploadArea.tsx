@@ -126,7 +126,7 @@ export function VideoUploadArea({
       {/* YouTube URL input */}
       {productId && (
         <div className="flex items-center gap-2 px-3 py-2.5 border-t border-border/30 bg-muted/20" onClick={(e) => e.stopPropagation()}>
-          <Youtube className="h-4 w-4 text-destructive shrink-0" />
+          <Youtube className="h-4 w-4 text-red-500 shrink-0" />
           <Input
             value={youtubeUrl}
             onChange={(e) => setYoutubeUrl(e.target.value)}

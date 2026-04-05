@@ -89,8 +89,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
             size="icon"
             className="lg:hidden hover:bg-primary/10 hover:text-primary h-8 w-8 sm:h-9 sm:w-9"
             onClick={onMenuToggle}
-          >
-            <Menu className="h-5 w-5" />
+           aria-label="Menu"><Menu className="h-5 w-5" />
           </Button>
 
           {/* #1 — Seção atual como âncora */}
@@ -185,8 +184,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                   size="icon"
                   onClick={handleToggleTheme}
                   className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-                >
-                  <Sun className="h-[17px] w-[17px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
+                 aria-label="Tema claro"><Sun className="h-[17px] w-[17px] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" strokeWidth={1.75} />
                   <Moon className="absolute h-[17px] w-[17px] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" strokeWidth={1.75} />
                   <span className="sr-only">Alternar tema</span>
                 </Button>
@@ -201,8 +199,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           <div className="md:hidden">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10">
-                  <MoreHorizontal className="h-4 w-4" />
+                <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-primary/10" aria-label="Mais opções"><MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 bg-card border-border">

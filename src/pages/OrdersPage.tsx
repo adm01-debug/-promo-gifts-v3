@@ -13,7 +13,7 @@ import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 
 const statusColors: Record<string, string> = {
-  pending: "bg-warning/20 text-warning border-warning/30",
+  pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
   confirmed: "bg-primary/20 text-primary border-primary/30",
   in_production: "bg-primary/15 text-primary/80 border-primary/25",
   shipped: "bg-primary/10 text-primary/70 border-primary/20",

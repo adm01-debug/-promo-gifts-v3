@@ -83,11 +83,11 @@ export function TechniquesPanel() {
 
   const getCategoriaColor = (categoria: string) => {
     const colors: Record<string, string> = {
-      impression: "bg-info/10 text-info border-info/20",
-      engraving: "bg-warning/10 text-warning border-warning/20",
-      textile: "bg-primary/10 text-primary border-primary/20",
-      embroidery: "bg-accent text-accent-foreground border-accent",
-      transfer: "bg-success/10 text-success border-success/20",
+      impression: "bg-blue-500/10 text-blue-500 border-blue-500/20",
+      engraving: "bg-amber-500/10 text-amber-500 border-amber-500/20",
+      textile: "bg-purple-500/10 text-purple-500 border-purple-500/20",
+      embroidery: "bg-pink-500/10 text-pink-500 border-pink-500/20",
+      transfer: "bg-green-500/10 text-green-500 border-green-500/20",
     };
     return colors[categoria] || "bg-muted text-muted-foreground";
   };
@@ -229,7 +229,7 @@ export function TechniquesPanel() {
                         {tecnica.precoPorArea && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span><Ruler className="h-4 w-4 text-warning" /></span>
+                              <span><Ruler className="h-4 w-4 text-amber-500" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Área</TooltipContent>
                           </Tooltip>
@@ -237,7 +237,7 @@ export function TechniquesPanel() {
                         {tecnica.precoPorPontos && (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span><Hash className="h-4 w-4 text-primary" /></span>
+                              <span><Hash className="h-4 w-4 text-purple-500" /></span>
                             </TooltipTrigger>
                             <TooltipContent>Por Pontos</TooltipContent>
                           </Tooltip>
@@ -264,7 +264,7 @@ export function TechniquesPanel() {
                     </TableCell>
                     <TableCell className="text-center">
                       {tecnica.aplicaSuperficieCurva ? (
-                        <CheckCircle className="h-4 w-4 text-success mx-auto" />
+                        <CheckCircle className="h-4 w-4 text-green-500 mx-auto" />
                       ) : (
                         <XCircle className="h-4 w-4 text-muted-foreground mx-auto" />
                       )}
@@ -291,11 +291,11 @@ export function TechniquesPanel() {
             <span>Por Cor</span>
           </div>
           <div className="flex items-center gap-1">
-            <Ruler className="h-3 w-3 text-warning" />
+            <Ruler className="h-3 w-3 text-amber-500" />
             <span>Por Área</span>
           </div>
           <div className="flex items-center gap-1">
-            <Hash className="h-3 w-3 text-primary" />
+            <Hash className="h-3 w-3 text-purple-500" />
             <span>Por Pontos</span>
           </div>
           <div className="flex items-center gap-1">

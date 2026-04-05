@@ -142,7 +142,7 @@ export function TwoFactorSetup({ targetUserId, targetUserEmail }: TwoFactorSetup
       <CardHeader>
         <div className="flex items-center gap-2">
           {is2FAEnabled ? (
-            <ShieldCheck className="h-5 w-5 text-success" />
+            <ShieldCheck className="h-5 w-5 text-green-500" />
           ) : (
             <Shield className="h-5 w-5 text-muted-foreground" />
           )}

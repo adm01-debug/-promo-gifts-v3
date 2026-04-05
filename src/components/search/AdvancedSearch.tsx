@@ -229,8 +229,7 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
                     size="icon"
                     className="h-8 w-8 transition-all"
                     onClick={handleOpenVoiceOverlay}
-                  >
-                    <Mic className="h-4 w-4" />
+                   aria-label="Microfone"><Mic className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>Buscar por voz</TooltipContent>

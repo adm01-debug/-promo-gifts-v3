@@ -43,8 +43,7 @@ export function HeaderActionsMenu({
           variant="ghost"
           size="icon"
           className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary md:hidden"
-        >
-          <MoreHorizontal className="h-4 w-4" />
+         aria-label="Mais opções"><MoreHorizontal className="h-4 w-4" />
           {totalCount > 0 && (
             <Badge 
               className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground"

@@ -407,7 +407,7 @@ export default function KitBuilderPage() {
                   {/* Auto-save indicator */}
                   {lastSavedAt && (
                     <Badge variant="outline" className="text-[10px] gap-1">
-                      <Cloud className="h-3 w-3 text-success" />
+                      <Cloud className="h-3 w-3 text-green-500" />
                       Salvo {lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                     </Badge>
                   )}

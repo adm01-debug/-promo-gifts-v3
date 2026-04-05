@@ -197,8 +197,7 @@ export function OnboardingTour() {
                 size="icon"
                 className="h-6 w-6"
                 onClick={skipTour}
-              >
-                <X className="h-4 w-4" />
+               aria-label="Fechar"><X className="h-4 w-4" />
               </Button>
             </div>
 

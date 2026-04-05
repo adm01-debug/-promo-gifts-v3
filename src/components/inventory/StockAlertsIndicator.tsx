@@ -62,8 +62,7 @@ const NotificationTrigger = forwardRef<HTMLButtonElement, TriggerProps>(
       size="icon"
       className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
       {...props}
-    >
-      <Bell className="h-4 w-4" />
+     aria-label="Notificações"><Bell className="h-4 w-4" />
       {totalCount > 0 && (
         <motion.span
           initial={{ scale: 0 }}
@@ -237,7 +236,7 @@ export function StockAlertsIndicator({
         case "critical":
           return <AlertTriangle className="h-3.5 w-3.5 text-orange" />;
         default:
-          return <TrendingDown className="h-3.5 w-3.5 text-warning" />;
+          return <TrendingDown className="h-3.5 w-3.5 text-yellow-500" />;
       }
     };
 

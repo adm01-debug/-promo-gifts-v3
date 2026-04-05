@@ -179,15 +179,13 @@ export function MockupResultCard({
               </div>
               {/* Zoom Controls */}
               <div className="absolute bottom-3 right-3 flex items-center gap-1 p-1 bg-background/80 backdrop-blur-sm rounded-lg border shadow-sm">
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomOut} disabled={zoom <= 0.5}>
-                  <ZoomOut className="h-4 w-4" />
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomOut} disabled={zoom <= 0.5} aria-label="Reduzir"><ZoomOut className="h-4 w-4" />
                 </Button>
                 <span className="text-xs font-medium w-12 text-center">{Math.round(zoom * 100)}%</span>
                 <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomIn} disabled={zoom >= 3}>
                   <ZoomIn className="h-4 w-4" />
                 </Button>
-                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomReset}>
-                  <RotateCcw className="h-3.5 w-3.5" />
+                <Button size="icon" variant="ghost" className="h-7 w-7" onClick={handleZoomReset} aria-label="Rotacionar"><RotateCcw className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>

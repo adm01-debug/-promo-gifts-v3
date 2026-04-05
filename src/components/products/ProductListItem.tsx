@@ -194,8 +194,7 @@ export function ProductListItem({
               : "text-muted-foreground hover:text-destructive hover:bg-destructive/10"
           )}
           onClick={handleFavoriteClick}
-        >
-          <Heart className={cn("h-4 w-4", isFavorited && "fill-current")} />
+         aria-label="Favoritar"><Heart className={cn("h-4 w-4", isFavorited && "fill-current")} />
         </Button>
 
         <Button
@@ -209,8 +208,7 @@ export function ProductListItem({
           )}
           onClick={handleCompareClick}
           disabled={!canAddToCompare && !isInCompare}
-        >
-          <Scale className="h-4 w-4" />
+         aria-label="Scale"><Scale className="h-4 w-4" />
         </Button>
 
         <Button
@@ -218,8 +216,7 @@ export function ProductListItem({
           size="icon"
           className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-muted"
           onClick={handleShareClick}
-        >
-          <Share2 className="h-4 w-4" />
+         aria-label="Compartilhar"><Share2 className="h-4 w-4" />
         </Button>
       </div>
 

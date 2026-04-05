@@ -110,14 +110,14 @@ interface MetricCardProps {
 function MetricCard({ icon: Icon, label, value, color }: MetricCardProps) {
   const iconColor = {
     blue: 'text-primary',
-    amber: 'text-warning',
-    green: 'text-success',
+    amber: 'text-amber-500',
+    green: 'text-green-500',
     purple: 'text-primary/70',
   };
   const bgColor = {
     blue: 'bg-primary/10',
-    amber: 'bg-warning/10',
-    green: 'bg-success/10',
+    amber: 'bg-amber-500/10',
+    green: 'bg-green-500/10',
     purple: 'bg-primary/10',
   };
 

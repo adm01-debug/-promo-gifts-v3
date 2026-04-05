@@ -319,8 +319,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
-                            <MoreVertical className="h-4 w-4" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Mais opções"><MoreVertical className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -394,8 +393,7 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
                               variant="ghost" 
                               size="icon" 
                               className="h-8 w-8 opacity-0 group-hover:opacity-100"
-                            >
-                              <MoreVertical className="h-4 w-4" />
+                             aria-label="Mais opções"><MoreVertical className="h-4 w-4" />
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">

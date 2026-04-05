@@ -104,8 +104,8 @@ export function KitVisualComposition({
               </div>
             </ScrollArea>
             {savings > 0 && (
-              <div className="p-2 border-t bg-success/5">
-                <p className="text-xs text-success text-center">
+              <div className="p-2 border-t bg-green-50 dark:bg-green-900/20">
+                <p className="text-xs text-green-700 dark:text-green-400 text-center">
                   Economia de {formatCurrency(savings)} ({savingsPercent}%)
                 </p>
               </div>

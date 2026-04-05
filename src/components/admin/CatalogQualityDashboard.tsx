@@ -155,11 +155,11 @@ export function CatalogQualityDashboard({
   const getStatusColor = (status: "success" | "warning" | "error") => {
     switch (status) {
       case "success":
-        return "bg-success/10 text-success";
+        return "bg-success/10 text-success border-success/20";
       case "warning":
-        return "bg-warning/10 text-warning";
+        return "bg-warning/10 text-warning border-warning/20";
       case "error":
-        return "bg-destructive/10 text-destructive";
+        return "bg-destructive/10 text-destructive border-destructive/20";
     }
   };
 
@@ -198,7 +198,7 @@ export function CatalogQualityDashboard({
               value={overallScore}
               className={cn(
                 "h-2",
-                overallScore >= 85 && "[&>div]:bg-success",
+              overallScore >= 85 && "[&>div]:bg-success",
                 overallScore >= 60 && overallScore < 85 && "[&>div]:bg-warning",
                 overallScore < 60 && "[&>div]:bg-destructive"
               )}
@@ -293,7 +293,7 @@ export function CatalogQualityDashboard({
                 <p className="font-medium text-warning">
                   Dica para melhorar
                 </p>
-                <p className="text-warning">
+                <p className="text-warning/80">
                   {metrics[0]?.value > 0
                     ? `Adicione imagens em ${metrics[0].value} produtos para aumentar conversões.`
                     : metrics[1]?.value > 0

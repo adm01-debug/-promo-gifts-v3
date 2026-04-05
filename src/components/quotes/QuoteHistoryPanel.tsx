@@ -46,7 +46,7 @@ const actionColors: Record<string, string> = {
   updated: "bg-primary/10 text-primary border-primary/20",
   status_changed: "bg-amber-500/10 text-amber-600 border-amber-500/20",
   item_added: "bg-primary/10 text-primary border-primary/20",
-  item_removed: "bg-destructive/10 text-destructive border-destructive/20",
+  item_removed: "bg-red-500/10 text-red-600 border-red-500/20",
   item_updated: "bg-primary/15 text-primary/80 border-primary/25",
   // Sync events
   sync_started: "bg-primary/10 text-primary/70 border-primary/20",

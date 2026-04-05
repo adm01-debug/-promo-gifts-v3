@@ -6,10 +6,10 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
 const GENDER_CONFIG: Record<string, { label: string; className: string }> = {
-  masculino: { label: "Masc.", className: "bg-info/10 text-info border-info/20" },
-  feminino: { label: "Fem.", className: "bg-primary/10 text-primary border-primary/20" },
-  infantil: { label: "Infantil", className: "bg-warning/10 text-warning border-warning/20" },
-  unissex: { label: "Unissex", className: "bg-accent text-accent-foreground border-border" },
+  masculino: { label: "Masc.", className: "bg-blue-500/10 text-blue-700 border-blue-200" },
+  feminino: { label: "Fem.", className: "bg-pink-500/10 text-pink-700 border-pink-200" },
+  infantil: { label: "Infantil", className: "bg-amber-500/10 text-amber-700 border-amber-200" },
+  unissex: { label: "Unissex", className: "bg-violet-500/10 text-violet-700 border-violet-200" },
 };
 
 interface GenderBadgeProps {

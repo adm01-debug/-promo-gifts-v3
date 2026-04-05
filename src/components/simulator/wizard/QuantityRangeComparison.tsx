@@ -195,8 +195,7 @@ export function QuantityRangeComparison({
             className="w-20 h-8 text-sm"
             onKeyDown={(e) => e.key === 'Enter' && addQuantity()}
           />
-          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={addQuantity}>
-            <Plus className="h-4 w-4" />
+          <Button size="icon" variant="ghost" className="h-8 w-8" onClick={addQuantity} aria-label="Adicionar"><Plus className="h-4 w-4" />
           </Button>
         </div>
       </div>
@@ -264,8 +263,8 @@ export function QuantityRangeComparison({
                       </td>
                       <td className="text-right py-2.5 px-3">
                         <span className="flex items-center justify-end gap-1">
-                          {isBest && <TrendingDown className="h-3.5 w-3.5 text-success" />}
-                          <span className={isBest ? 'text-success font-bold' : ''}>
+                          {isBest && <TrendingDown className="h-3.5 w-3.5 text-green-500" />}
+                          <span className={isBest ? 'text-green-600 dark:text-green-400 font-bold' : ''}>
                             {formatCurrency(r.grandPerUnit)}
                           </span>
                         </span>

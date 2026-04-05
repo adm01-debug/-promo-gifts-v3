@@ -43,8 +43,7 @@ export default function QuoteTemplatesPage() {
       <div className="space-y-6">
         <div className="flex items-center gap-4">
           {viewMode !== "list" && (
-            <Button variant="ghost" size="icon" onClick={handleCancel}>
-              <ArrowLeft className="h-5 w-5" />
+            <Button variant="ghost" size="icon" onClick={handleCancel} aria-label="Voltar"><ArrowLeft className="h-5 w-5" />
             </Button>
           )}
           <div>

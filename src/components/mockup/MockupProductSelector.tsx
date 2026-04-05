@@ -169,8 +169,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
           className="h-7 w-7 shrink-0 hover:bg-destructive/10 hover:text-destructive"
           onClick={handleClear}
           disabled={disabled}
-        >
-          <X className="h-3.5 w-3.5" />
+         aria-label="Fechar"><X className="h-3.5 w-3.5" />
         </Button>
       </div>
     );

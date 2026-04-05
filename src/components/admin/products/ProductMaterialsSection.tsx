@@ -76,8 +76,7 @@ function MaterialDetailEditor({
       >
         <Save className="h-3 w-3 text-primary" />
       </Button>
-      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={onCancel}>
-        <X className="h-3 w-3" />
+      <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={onCancel} aria-label="Fechar"><X className="h-3 w-3" />
       </Button>
     </div>
   );

@@ -45,7 +45,7 @@ const filterOptions: Array<{
     label: 'Sem Estoque',
     shortLabel: 'Indisponível',
     icon: XCircle,
-    activeClass: 'bg-destructive text-primary-foreground border-destructive',
+    activeClass: 'bg-red-500 text-primary-foreground border-red-500',
   },
   {
     id: 'incoming',

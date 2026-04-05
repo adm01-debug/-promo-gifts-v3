@@ -80,9 +80,9 @@ function formatFileSize(bytes: number): string {
 
 function getFileIcon(fileType: string) {
   if (fileType === "application/pdf" || fileType.endsWith(".pdf")) {
-    return <FileText className="h-8 w-8 text-destructive" />;
+    return <FileText className="h-8 w-8 text-red-500" />;
   }
-  return <CorelDrawIcon className="h-8 w-8 text-success" />;
+  return <CorelDrawIcon className="h-8 w-8 text-green-600" />;
 }
 
 function isAcceptedFile(file: File): boolean {

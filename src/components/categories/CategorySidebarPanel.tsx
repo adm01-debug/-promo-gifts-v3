@@ -237,8 +237,7 @@ export function CategorySidebarPanel({
           size="icon"
           onClick={onToggleCollapse}
           className="h-8 w-8"
-        >
-          <ChevronRight className="h-4 w-4" />
+         aria-label="Avançar"><ChevronRight className="h-4 w-4" />
         </Button>
         <Separator className="w-8" />
         <div className="flex flex-col gap-1 items-center">
@@ -307,8 +306,7 @@ export function CategorySidebarPanel({
                 size="icon"
                 onClick={onToggleCollapse}
                 className="h-7 w-7"
-              >
-                <ChevronLeft className="h-4 w-4" />
+               aria-label="Voltar"><ChevronLeft className="h-4 w-4" />
               </Button>
             )}
           </div>

@@ -425,7 +425,7 @@ export function SecurityDashboard() {
               {recommendations.map((rec, idx) => (
                 <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-background">
                   <div className={`p-2 rounded-full ${
-                    rec.priority === 'high' ? 'bg-red-500/10 text-red-500' : 'bg-orange-500/10 text-orange-500'
+                    rec.priority === 'high' ? 'bg-destructive/10 text-destructive' : 'bg-orange/10 text-orange'
                   }`}>
                     {rec.icon}
                   </div>
@@ -497,9 +497,9 @@ export function SecurityDashboard() {
                       <div key={attempt.id} className="flex items-center justify-between p-2 rounded-lg border">
                         <div className="flex items-center gap-3">
                           {attempt.success ? (
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                           ) : (
-                            <XCircle className="h-4 w-4 text-red-500" />
+                            <XCircle className="h-4 w-4 text-destructive" />
                           )}
                           <div>
                             <p className="text-sm font-medium">{attempt.ip_address}</p>
@@ -543,7 +543,7 @@ export function SecurityDashboard() {
                         className={`p-3 rounded-lg border ${!notif.is_read ? 'bg-primary/5 border-primary/20' : ''}`}
                       >
                         <div className="flex items-start gap-3">
-                          <AlertTriangle className="h-4 w-4 text-orange-500 mt-0.5" />
+                          <AlertTriangle className="h-4 w-4 text-orange mt-0.5" />
                           <div className="flex-1">
                             <p className="text-sm font-medium">{notif.title}</p>
                             <p className="text-xs text-muted-foreground mt-1">{notif.message}</p>
@@ -562,7 +562,7 @@ export function SecurityDashboard() {
                     ))}
                     {notifications.length === 0 && (
                       <div className="text-center py-8">
-                        <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                        <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-2" />
                         <p className="text-sm font-medium">Tudo seguro!</p>
                         <p className="text-xs text-muted-foreground">
                           Nenhum alerta de segurança pendente
@@ -623,17 +623,17 @@ export function SecurityDashboard() {
                     <div 
                       key={attempt.id} 
                       className={`flex items-center justify-between p-3 rounded-lg border ${
-                        !attempt.success ? 'border-red-500/20 bg-red-500/5' : ''
+                        !attempt.success ? 'border-destructive/20 bg-destructive/5' : ''
                       }`}
                     >
                       <div className="flex items-center gap-4">
                         {attempt.success ? (
-                          <div className="p-2 rounded-full bg-green-500/10">
-                            <CheckCircle2 className="h-4 w-4 text-green-500" />
+                          <div className="p-2 rounded-full bg-success/10">
+                            <CheckCircle2 className="h-4 w-4 text-success" />
                           </div>
                         ) : (
-                          <div className="p-2 rounded-full bg-red-500/10">
-                            <XCircle className="h-4 w-4 text-red-500" />
+                          <div className="p-2 rounded-full bg-destructive/10">
+                            <XCircle className="h-4 w-4 text-destructive" />
                           </div>
                         )}
                         <div>

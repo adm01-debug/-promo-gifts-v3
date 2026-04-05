@@ -247,8 +247,8 @@ export function TechniqueSelector({
               >
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center group-hover:bg-success/20 transition-colors">
-                      <Paintbrush className="w-5 h-5 text-success" />
+                    <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
+                      <Paintbrush className="w-5 h-5 text-green-600" />
                     </div>
                     <div>
                       <p className="font-medium">{tech.areaName || tech.techniqueCode}</p>

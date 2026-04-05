@@ -89,9 +89,9 @@ function FieldChange({ field, oldValue, newValue }: { field: string; oldValue: a
   return (
     <div className="flex flex-wrap items-center gap-1 text-sm py-1">
       <span className="font-medium text-muted-foreground">{label}:</span>
-      <span className="text-destructive line-through">{formatFieldValue(oldValue)}</span>
+      <span className="text-red-500 line-through">{formatFieldValue(oldValue)}</span>
       <span className="text-muted-foreground">→</span>
-      <span className="text-success font-medium">{formatFieldValue(newValue)}</span>
+      <span className="text-green-600 font-medium">{formatFieldValue(newValue)}</span>
     </div>
   );
 }
@@ -237,7 +237,7 @@ export function AuditHistory({
 
                         {/* Details for DELETE */}
                         {log.action === 'DELETE' && (
-                          <div className="mt-2 text-xs text-destructive">
+                          <div className="mt-2 text-xs text-red-500">
                             Registro excluído permanentemente
                           </div>
                         )}

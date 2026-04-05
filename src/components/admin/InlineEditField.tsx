@@ -74,18 +74,16 @@ export function InlineEditField({
         <Button
           size="icon"
           variant="ghost"
-          className="h-6 w-6 text-success hover:text-success/80"
+          className="h-6 w-6 text-green-600 hover:text-green-700"
           onClick={handleSave}
-        >
-          <Check className="h-3 w-3" />
+         aria-label="Confirmar"><Check className="h-3 w-3" />
         </Button>
         <Button
           size="icon"
           variant="ghost"
           className="h-6 w-6 text-destructive"
           onClick={handleCancel}
-        >
-          <X className="h-3 w-3" />
+         aria-label="Fechar"><X className="h-3 w-3" />
         </Button>
       </div>
     );

@@ -118,8 +118,7 @@ export const IconButton = forwardRef<HTMLButtonElement, LoadingButtonProps>(
         className={cn("relative", isLoading && "cursor-wait", className)}
         disabled={props.disabled || isLoading}
         {...props}
-      >
-        <AnimatePresence mode="wait">
+       aria-label="AnimatePresence"><AnimatePresence mode="wait">
           {isLoading ? (
             <motion.span
               key="loading"
