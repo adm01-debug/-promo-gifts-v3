@@ -125,9 +125,9 @@ export function TechniquesManager() {
 
   const getPricingBadges = (tecnica: typeof tecnicas[0]) => {
     const badges = [];
-    if (tecnica.precoPorCor) badges.push({ label: 'Cor', icon: Droplets, color: 'bg-blue-500/10 text-blue-700' });
-    if (tecnica.precoPorArea) badges.push({ label: 'Área', icon: Ruler, color: 'bg-green-500/10 text-green-700' });
-    if (tecnica.precoPorPontos) badges.push({ label: 'Pontos', icon: Hash, color: 'bg-purple-500/10 text-purple-700' });
+    if (tecnica.precoPorCor) badges.push({ label: 'Cor', icon: Droplets, color: 'bg-info/10 text-info' });
+    if (tecnica.precoPorArea) badges.push({ label: 'Área', icon: Ruler, color: 'bg-success/10 text-success' });
+    if (tecnica.precoPorPontos) badges.push({ label: 'Pontos', icon: Hash, color: 'bg-primary/10 text-primary' });
     return badges;
   };
 
