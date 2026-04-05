@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { ArrowLeft, Save, Palette, Sun, Moon, Monitor, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
