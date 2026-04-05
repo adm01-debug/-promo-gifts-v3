@@ -6,6 +6,7 @@ import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import { SpectrumWaveform } from "./voice/VoiceVisualEffects";
 import { VoiceOrb } from "./voice/VoiceOrb";
+import { FloatingParticles } from "./voice/FloatingParticles";
 
 interface VoiceSearchOverlayProps {
   isOpen: boolean;
