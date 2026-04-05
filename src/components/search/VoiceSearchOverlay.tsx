@@ -254,7 +254,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       delay: i * 0.08,
                       ease: "easeInOut",
                     }}
-                    className="w-1.5 bg-emerald-500 rounded-full"
+                    className="w-1.5 bg-success rounded-full"
                     style={{ height: 8 }}
                   />
                 ))}
