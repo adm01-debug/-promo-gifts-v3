@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { MainLayout } from '@/components/layout/MainLayout';
 import { ArrowLeft, Save, Palette, Sun, Moon, Monitor, Sparkles } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -95,6 +96,7 @@ export default function AdminTemasPage() {
   const currentMode = config.mode === 'auto' ? 'system' : config.mode;
 
   return (
+    <MainLayout>
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-6 sm:space-y-8">
       {/* Header */}
       <motion.div
@@ -197,5 +199,6 @@ export default function AdminTemasPage() {
         />
       </motion.div>
     </div>
+    </MainLayout>
   );
 }
