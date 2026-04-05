@@ -121,7 +121,7 @@ export function QuoteProductColorSelector({ product, onSelect, onBack }: QuotePr
                   src={`${variant.selected_thumbnail}/thumbnail`}
                   alt={variant.color_name ?? ''}
                   className="w-10 h-10 rounded-md object-cover border border-border shrink-0"
-                  onError={(e) = loading="lazy" > {
+                  onError={(e) => {
                     const t = e.currentTarget;
                     if (t.src.includes('/thumbnail')) {
                       t.src = variant.selected_thumbnail!;

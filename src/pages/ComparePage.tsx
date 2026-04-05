@@ -260,7 +260,7 @@ export default function ComparePage() {
                                 src={product.images[0]}
                                 alt={product.name}
                                 className="w-24 h-24 rounded-lg object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                                onClick={() = loading="lazy" > navigate(`/produto/${product.id}`)}
+                                onClick={() => navigate(`/produto/${product.id}`)}
                               />
                               <span className="font-medium text-foreground text-sm line-clamp-2">
                                 {product.name}

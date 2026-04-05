@@ -84,7 +84,7 @@ function ProductImage({
         src={src}
         alt={alt}
         className="w-full h-full object-cover"
-        onError={() = loading="lazy" > setError(true)}
+        onError={() => setError(true)}
         loading="lazy"
       />
     </div>

@@ -278,7 +278,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   alt={currentAlt}
                   title={currentImage?.title_text || product.name}
                   className="w-full h-full object-contain p-8 animate-fade-in"
-                  onError={(e) = loading="lazy" > {
+                  onError={(e) => {
                     // Fallback: tentar URL original se CDN falhar
                     const img = e.currentTarget;
                     if (!img.dataset.fallback && currentImage?.url_original) {

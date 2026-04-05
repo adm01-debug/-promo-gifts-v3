@@ -230,7 +230,7 @@ export function ProductGallery({
           title={productName}
           className={cn(
             "w-full h-full object-contain transition-all duration-700 ease-out",
-            zoom loading="lazy" > 1 && "cursor-grab",
+            zoom > 1 && "cursor-grab",
             isPanning && "cursor-grabbing",
             isAnimating && "scale-95 opacity-80",
             isImageLoading ? "opacity-40 blur-md scale-105" : "opacity-100 blur-0 scale-100"
