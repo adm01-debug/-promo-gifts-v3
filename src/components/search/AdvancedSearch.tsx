@@ -343,20 +343,16 @@ export function AdvancedSearch({ onSearch, onVisualSearchResults, className }: A
         </div>
       )}
 
-      {/* Voice Search Overlay */}
-      <VoiceSearchOverlay
-        isOpen={isVoiceOverlayOpen}
-        phase={voiceAgent.phase}
-        partialTranscript={voiceAgent.partialTranscript}
-        finalTranscript={voiceAgent.finalTranscript}
-        agentResponse={voiceAgent.agentResponse}
-        error={voiceAgent.error}
-        onClose={handleCloseVoiceOverlay}
-        onStartListening={voiceAgent.startListening}
-        onStopListening={voiceAgent.stopListening}
-        onStopSpeaking={voiceAgent.stopSpeaking}
-        onCommandSelect={handleVoiceCommandSelect}
-      />
+      {/* Voice Search Overlay (lazy-loaded) */}
+      {isVoiceOverlayOpen && (
+        <Suspense fallback={null}>
+          <LazyVoiceOverlay
+            isOpen={isVoiceOverlayOpen}
+            onClose={handleCloseVoiceOverlay}
+            onAction={handleVoiceAction}
+          />
+        </Suspense>
+      )}
     </div>
   );
 }
