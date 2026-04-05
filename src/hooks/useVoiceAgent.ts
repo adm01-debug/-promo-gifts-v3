@@ -26,6 +26,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setPhase("processing");
     setFinalTranscript(text);
     setAgentResponse("");
+    const startTime = Date.now();
 
     try {
       const action = await withRetry(() => processVoiceTranscript(text));
@@ -45,6 +46,9 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         }
       }
 
+      // Log successful command
+      logVoiceCommand(action, { durationMs: Date.now() - startTime, success: true });
+
       setPhase("idle");
       onAction?.(action);
     } catch (err) {
@@ -52,6 +56,13 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       setError(message);
       setPhase("error");
       onError?.(message);
+
+      // Log failed command
+      logVoiceCommand(
+        { action: "answer", response: message, data: {} },
+        { durationMs: Date.now() - startTime, success: false }
+      );
+
       setTimeout(() => setPhase("idle"), 3000);
     } finally {
       isProcessingRef.current = false;
