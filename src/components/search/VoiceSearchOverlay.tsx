@@ -179,7 +179,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     className="absolute inset-0 rounded-3xl"
                     style={{
                       background: "conic-gradient(from 0deg, rgba(139,92,246,0.7), rgba(59,130,246,0.7), rgba(168,85,247,0.7), rgba(236,72,153,0.5), rgba(139,92,246,0.7))",
-                      animation: "spin 4s linear infinite",
+                      animation: "spin 8s linear infinite",
                     }}
                   />
                 </motion.div>
