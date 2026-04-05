@@ -29,6 +29,18 @@ export function CartHeaderButton() {
     window.addEventListener("open-seller-cart", handler);
     return () => window.removeEventListener("open-seller-cart", handler);
   }, []);
+
+  // Keyboard shortcut: Alt+O to toggle cart
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.altKey && e.key.toLowerCase() === "o") {
+        e.preventDefault();
+        setOpen((prev) => !prev);
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
   const {
     carts,
     activeCart,
