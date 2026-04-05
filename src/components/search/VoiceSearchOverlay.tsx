@@ -141,10 +141,10 @@ function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooting: boo
       <motion.div
         className="absolute rounded-full"
         style={{
-          width: 50,
-          height: 50,
-          top: 55,
-          left: 60,
+          width: 35,
+          height: 35,
+          top: 38,
+          left: 42,
           background: "radial-gradient(circle at 50% 50%, rgba(255,255,255,0.25), transparent 70%)",
         }}
         animate={{ opacity: [0.5, 0.8, 0.5] }}
