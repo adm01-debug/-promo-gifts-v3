@@ -223,7 +223,7 @@ export default function MagicUp() {
                             >
                               {c.logo_url && (
                                 
-<img src={c.logo_url} alt="" className="w-6 h-6 rounded object-contain border bg-background" loading="lazy" loading="lazy" />
+<img src={c.logo_url} alt="" className="w-6 h-6 rounded object-contain border bg-background" loading="lazy" />
                               )}
                               <div className="min-w-0">
                                 <p className="font-medium truncate">{getCompanyDisplayName(c)}</p>
