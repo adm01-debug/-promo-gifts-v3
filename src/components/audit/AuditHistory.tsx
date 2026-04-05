@@ -36,7 +36,7 @@ const actionConfig = {
     label: "Exclusão",
     icon: Trash2,
     variant: "destructive" as const,
-    className: "bg-red-500/10 text-red-600 border-red-500/20"
+    className: "bg-destructive/10 text-destructive border-destructive/20"
   }
 };
 
