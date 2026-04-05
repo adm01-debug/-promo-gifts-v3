@@ -237,7 +237,7 @@ export function AuditHistory({
 
                         {/* Details for DELETE */}
                         {log.action === 'DELETE' && (
-                          <div className="mt-2 text-xs text-red-500">
+                          <div className="mt-2 text-xs text-destructive">
                             Registro excluído permanentemente
                           </div>
                         )}

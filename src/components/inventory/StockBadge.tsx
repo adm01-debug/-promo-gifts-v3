@@ -40,8 +40,8 @@ const statusConfig: Record<StockStatus, {
     label: 'Sem Estoque',
     shortLabel: 'Indisponível',
     icon: XCircle,
-    className: 'text-red-700 dark:text-red-400',
-    bgClass: 'bg-red-100 dark:bg-red-900/30 border-red-200 dark:border-red-800',
+    className: 'text-destructive',
+    bgClass: 'bg-destructive/10 border-destructive/20',
   },
   'pre-order': {
     label: 'Pré-venda',

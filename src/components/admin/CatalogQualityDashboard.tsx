@@ -198,9 +198,9 @@ export function CatalogQualityDashboard({
               value={overallScore}
               className={cn(
                 "h-2",
-                overallScore >= 85 && "[&>div]:bg-green-500",
-                overallScore >= 60 && overallScore < 85 && "[&>div]:bg-amber-500",
-                overallScore < 60 && "[&>div]:bg-red-500"
+                overallScore >= 85 && "[&>div]:bg-success",
+                overallScore >= 60 && overallScore < 85 && "[&>div]:bg-warning",
+                overallScore < 60 && "[&>div]:bg-destructive"
               )}
             />
           </div>
