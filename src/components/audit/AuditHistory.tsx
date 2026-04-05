@@ -24,19 +24,19 @@ const actionConfig = {
     label: "Criação",
     icon: Plus,
     variant: "default" as const,
-    className: "bg-green-500/10 text-green-600 border-green-500/20"
+    className: "bg-success/10 text-success border-success/20"
   },
   UPDATE: {
     label: "Edição",
     icon: FileEdit,
     variant: "secondary" as const,
-    className: "bg-blue-500/10 text-blue-600 border-blue-500/20"
+    className: "bg-info/10 text-info border-info/20"
   },
   DELETE: {
     label: "Exclusão",
     icon: Trash2,
     variant: "destructive" as const,
-    className: "bg-red-500/10 text-red-600 border-red-500/20"
+    className: "bg-destructive/10 text-destructive border-destructive/20"
   }
 };
 

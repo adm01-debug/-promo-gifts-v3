@@ -286,14 +286,14 @@ export function CatalogQualityDashboard({
 
         {/* Improvement suggestion */}
         {overallScore < 85 && (
-          <div className="p-3 rounded-lg bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-700">
+          <div className="p-3 rounded-lg bg-warning/10 border border-warning/20">
             <div className="flex items-start gap-2">
-              <TrendingUp className="h-4 w-4 text-amber-600 mt-0.5" />
+              <TrendingUp className="h-4 w-4 text-warning mt-0.5" />
               <div className="text-sm">
-                <p className="font-medium text-amber-800 dark:text-amber-300">
+                <p className="font-medium text-warning">
                   Dica para melhorar
                 </p>
-                <p className="text-amber-700 dark:text-amber-400">
+                <p className="text-warning/80">
                   {metrics[0]?.value > 0
                     ? `Adicione imagens em ${metrics[0].value} produtos para aumentar conversões.`
                     : metrics[1]?.value > 0

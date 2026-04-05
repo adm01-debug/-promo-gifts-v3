@@ -83,9 +83,9 @@ function getValidityInfo(validUntil: string | undefined | null) {
   const days = differenceInDays(date, new Date());
   const expired = isPast(date);
 
-  if (expired) return { label: "Vencido", color: "text-red-400", bgColor: "bg-red-500/10", urgent: true };
-  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-red-400", bgColor: "bg-red-500/10", urgent: true };
-  if (days <= 7) return { label: `${days}d restantes`, color: "text-yellow-400", bgColor: "bg-yellow-500/10", urgent: true };
+  if (expired) return { label: "Vencido", color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
+  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
+  if (days <= 7) return { label: `${days}d restantes`, color: "text-warning", bgColor: "bg-warning/10", urgent: true };
   return { label: format(date, "dd/MM/yyyy", { locale: ptBR }), color: "text-muted-foreground", bgColor: "", urgent: false };
 }
 
