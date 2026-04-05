@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { Loader2, Volume2, Mic } from "lucide-react";
+import { Volume2, Mic } from "lucide-react";
 import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./usePhaseColors";
 import { FlowingWaveRing, ParticleField, LightRays } from "./VoiceVisualEffects";
@@ -76,7 +76,6 @@ export function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooti
         transition={{ duration: 1.8, repeat: Infinity, ease: "easeInOut" }}
       />
 
-
       {/* Phase icon overlay */}
       {effectivePhase === "listening" && (
         <motion.div
@@ -86,12 +85,6 @@ export function VoiceOrb({ phase, isBooting }: { phase: VoiceAgentPhase; isBooti
           transition={{ scale: { duration: 1.5, repeat: Infinity, ease: "easeInOut" }, opacity: { duration: 0.3 } }}
         >
           <Mic className="h-6 w-6 text-white/90" />
-        </motion.div>
-      )}
-
-      {(effectivePhase === "processing" || effectivePhase === "booting") && (
-        <motion.div className="absolute flex items-center justify-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-          <Loader2 className="h-6 w-6 text-white/80 animate-spin" />
         </motion.div>
       )}
 
