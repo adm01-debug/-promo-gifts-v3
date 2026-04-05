@@ -107,7 +107,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
         setBootingTimedOut(false);
         return;
       }
-      const showsBooting = (isAutoStarting && phase === "idle") || phase === "listening";
+      const showsBooting = isAutoStarting && phase === "idle";
       if (showsBooting) {
         const timer = setTimeout(() => setBootingTimedOut(true), 10000);
         return () => clearTimeout(timer);
