@@ -132,11 +132,15 @@ export function GlobalSearchPalette() {
       <div className="flex items-center gap-2 w-full md:w-auto">
         <button
           onClick={() => s.setOpen(true)}
-          className="group flex items-center gap-2.5 px-3.5 py-2 text-sm text-muted-foreground bg-muted/40 hover:bg-muted/70 rounded-xl border border-border/50 hover:border-border transition-all duration-200 flex-1 md:w-60"
+          className="group relative flex items-center gap-2.5 px-3.5 py-2 text-sm rounded-xl border border-border/30 hover:border-primary/30 bg-muted/20 hover:bg-muted/40 transition-all duration-300 flex-1 md:w-64 overflow-hidden"
         >
-          <Brain className="h-4 w-4 text-primary/70 group-hover:text-primary transition-colors" />
-          <span className="flex-1 text-left text-muted-foreground/70 group-hover:text-muted-foreground transition-colors">Busca inteligente...</span>
-          <kbd className="hidden md:inline-flex h-5 items-center gap-0.5 rounded-md border border-border/50 bg-muted/50 px-1.5 font-mono text-[10px] text-muted-foreground/50">
+          {/* Gradient shimmer on hover */}
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary/[0.03] to-primary/0 group-hover:via-primary/[0.06] transition-all duration-500 pointer-events-none" />
+          <div className="relative h-6 w-6 rounded-lg bg-primary/8 group-hover:bg-primary/12 flex items-center justify-center transition-colors duration-300">
+            <Brain className="h-3.5 w-3.5 text-primary/60 group-hover:text-primary transition-colors duration-300" />
+          </div>
+          <span className="relative flex-1 text-left text-muted-foreground/50 group-hover:text-muted-foreground/70 transition-colors duration-300 text-[13px]">Busca inteligente...</span>
+          <kbd className="relative hidden md:inline-flex h-5 items-center gap-0.5 rounded-md border border-border/30 bg-muted/30 group-hover:border-primary/20 group-hover:bg-primary/5 px-1.5 font-mono text-[10px] text-muted-foreground/40 group-hover:text-primary/50 transition-all duration-300">
             ⌘K
           </kbd>
         </button>
