@@ -129,7 +129,7 @@ export function PasswordStrengthIndicator({
             key={criterion.label}
             className={cn(
               'flex items-center gap-1.5 text-xs transition-colors',
-              criterion.met ? 'text-green-600' : 'text-muted-foreground'
+              criterion.met ? 'text-success' : 'text-muted-foreground'
             )}
           >
             {criterion.met ? (
