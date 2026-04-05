@@ -81,6 +81,8 @@ function VirtualGrid({
   const totalRows = rowCount + 1;
 
   const estimateRowHeight = useCallback(() => {
+    if (columns <= 1) return 520;
+    if (columns <= 2) return 500;
     if (columns >= 8) return 380;
     if (columns >= 6) return 420;
     if (columns >= 5) return 460;

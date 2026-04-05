@@ -40,6 +40,21 @@ export function useCatalogState() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortBy, setSortBy] = useState<SortOption>("name");
+
+  // Responsive clamp: force appropriate columns on small screens
+  useEffect(() => {
+    const handleResize = () => {
+      const w = window.innerWidth;
+      if (w < 640 && gridColumns > 1) {
+        setGridColumns(1);
+      } else if (w >= 640 && w < 768 && gridColumns > 2) {
+        setGridColumns(2);
+      }
+    };
+    handleResize(); // run on mount
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [gridColumns]);
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState(searchQueryFromUrl);
   const [isSearching, setIsSearching] = useState(false);
