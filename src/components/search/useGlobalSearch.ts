@@ -328,10 +328,9 @@ export function useGlobalSearch() {
     open, setOpen, query, setQuery,
     results, groupedResults, isSearching, isAIProcessing, searchIntent,
     popularProducts, typingSuggestions,
-    voiceOverlayOpen,
-    voiceAgent,
+    voiceOverlayOpen, setVoiceOverlayOpen,
+    handleVoiceAction,
     handleOpenVoiceOverlay, handleCloseVoiceOverlay,
-    handleVoiceCommandSelect,
     handleSelect, handleSuggestionClick, handleRemoveFromHistory,
     history, quickSuggestions, contextualSuggestions, routeContext,
   };
