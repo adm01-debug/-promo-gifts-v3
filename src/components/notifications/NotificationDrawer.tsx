@@ -188,4 +188,6 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
       </SheetContent>
     </Sheet>
   );
-}
+});
+
+NotificationBell.displayName = "NotificationBell";
