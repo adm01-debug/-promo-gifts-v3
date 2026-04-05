@@ -63,7 +63,7 @@ export default function FiltersPage() {
     }
   }, [state, navigate]);
 
-  const voiceAgent = useVoiceAgent({ onAction: handleVoiceAction });
+  
 
   return (
     <MainLayout>
