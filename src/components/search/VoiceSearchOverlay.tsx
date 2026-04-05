@@ -295,7 +295,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.3 }}
-            className="fixed inset-0 z-50 flex flex-col items-center justify-center"
+            className="fixed inset-0 z-50 flex items-center justify-center"
             role="dialog"
             aria-modal="true"
             aria-label="Assistente de Voz"
@@ -329,7 +329,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 30 }}
               transition={{ type: "spring", damping: 25, stiffness: 250 }}
-              className="relative z-10 flex flex-col items-center gap-6 max-w-md w-full mx-4 px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl"
+              className="relative z-10 flex flex-col items-center gap-6 max-w-md w-full mx-4 px-8 py-10 rounded-3xl border border-white/10 bg-[rgba(15,15,25,0.85)] backdrop-blur-md shadow-2xl max-h-[85vh] overflow-y-auto"
             >
               {/* Title */}
               <motion.div
