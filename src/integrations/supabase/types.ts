@@ -1807,6 +1807,42 @@ export type Database = {
         }
         Relationships: []
       }
+      voice_command_logs: {
+        Row: {
+          action: string
+          created_at: string
+          data: Json | null
+          duration_ms: number | null
+          id: string
+          response: string | null
+          success: boolean | null
+          transcript: string
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          data?: Json | null
+          duration_ms?: number | null
+          id?: string
+          response?: string | null
+          success?: boolean | null
+          transcript: string
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          data?: Json | null
+          duration_ms?: number | null
+          id?: string
+          response?: string | null
+          success?: boolean | null
+          transcript?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       web_vitals: {
         Row: {
           created_at: string
