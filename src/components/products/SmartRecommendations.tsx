@@ -128,7 +128,7 @@ export function SmartRecommendations({ clientId, clientName, showTabs = true }: 
           {trendingProducts.data && trendingProducts.data.length > 0 && (
             <section>
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp className="h-4 w-4 text-green-500" />
+                <TrendingUp className="h-4 w-4 text-success" />
                 <h3 className="font-semibold">Produtos em Alta</h3>
                 <Badge variant="secondary" className="text-xs">Últimos 30 dias</Badge>
               </div>

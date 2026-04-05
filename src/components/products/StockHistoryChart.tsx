@@ -267,8 +267,8 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
                 variant="outline"
                 className={cn(
                   "font-bold text-xs",
-                  effectiveIntelligence.abc_classification === 'A' ? 'bg-orange-500/15 text-orange-500 border-orange-500/30' :
-                  effectiveIntelligence.abc_classification === 'B' ? 'bg-green-500/15 text-green-500 border-green-500/30' :
+                  effectiveIntelligence.abc_classification === 'A' ? 'bg-orange/15 text-orange border-orange/30' :
+                  effectiveIntelligence.abc_classification === 'B' ? 'bg-success/15 text-success border-success/30' :
                   'bg-muted text-muted-foreground border-border'
                 )}
               >

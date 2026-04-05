@@ -97,7 +97,7 @@ export function PriceHistoryChart({ productId, currentPrice, productName }: Pric
           {formatCurrency(data.price)}
         </p>
         {data.changePercent !== null && (
-          <p className={`text-xs mt-1 ${data.changePercent > 0 ? "text-destructive" : data.changePercent < 0 ? "text-green-500" : "text-muted-foreground"}`}>
+          <p className={`text-xs mt-1 ${data.changePercent > 0 ? "text-destructive" : data.changePercent < 0 ? "text-success" : "text-muted-foreground"}`}>
             {data.changePercent > 0 ? "+" : ""}
             {data.changePercent}%
           </p>
