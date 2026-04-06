@@ -116,13 +116,6 @@ export function MainLayout({ children }: MainLayoutProps) {
             </Suspense>
           </main>
           
-          {!isMockupGenerator && (
-            <div className="print:hidden hidden lg:block">
-              <Suspense fallback={null}>
-                <ExpertChatButton />
-              </Suspense>
-            </div>
-          )}
           
           <div className="print:hidden">
             <Suspense fallback={null}>
