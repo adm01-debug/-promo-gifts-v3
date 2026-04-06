@@ -19,6 +19,7 @@ import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
+import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
 
 export type ViewMode = "grid" | "list";
