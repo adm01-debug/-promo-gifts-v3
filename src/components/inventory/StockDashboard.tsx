@@ -273,14 +273,17 @@ export function StockDashboard() {
               <AlertTriangle className="h-5 w-5" />
               Alertas Críticos ({criticalAlerts.length})
             </DialogTitle>
+            <DialogDescription>
+              Produtos sem estoque ou em nível crítico que precisam de atenção imediata.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={dismissAllAlerts}
-              aria-label="Dispensar todos os alertas"
+              onClick={() => dismissAlertsBySeverity('error')}
+              aria-label="Dispensar todos os alertas críticos"
             >
               <X className="h-3.5 w-3.5" />
               Limpar Todos
@@ -314,25 +317,28 @@ export function StockDashboard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-warning">
               <TrendingDown className="h-5 w-5" />
-              Alertas de Estoque Baixo ({alerts.filter(a => a.severity === 'warning').length})
+              Alertas de Estoque Baixo ({warningAlerts.length})
             </DialogTitle>
+            <DialogDescription>
+              Produtos com estoque abaixo do mínimo ou com previsão de esgotamento.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={dismissAllAlerts}
-              aria-label="Dispensar todos os alertas"
+              onClick={() => dismissAlertsBySeverity('warning')}
+              aria-label="Dispensar todos os alertas de estoque baixo"
             >
               <X className="h-3.5 w-3.5" />
               Limpar Todos
             </Button>
           </div>
           <ScrollArea className="max-h-[60vh]">
-            {alerts.filter(a => a.severity === 'warning').length > 0 ? (
+            {warningAlerts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {alerts.filter(a => a.severity === 'warning').map(alert => (
+                {warningAlerts.map(alert => (
                   <AlertCard 
                     key={alert.id} 
                     alert={alert} 
