@@ -344,8 +344,8 @@ export function useVariantStock() {
       variantsCritical: allVariants.filter(v => v.status === 'critical').length,
       variantsOutOfStock: allVariants.filter(v => v.status === 'out_of_stock').length,
       
-      totalStockValue: allVariants.reduce((sum, v) => sum + ((v.stockQuantity || 0) * (v.price || 0)), 0),
-      totalAvailableValue: allVariants.filter(v => v.status === 'in_stock').reduce((sum, v) => sum + ((v.stockQuantity || 0) * (v.price || 0)), 0),
+      totalStockValue: 0, // VariantStock doesn't carry price — calculated elsewhere if needed
+      totalAvailableValue: 0,
       averageDaysOfStock: allVariants.reduce((sum, v) => sum + (v.daysUntilStockout || 0), 0) / Math.max(1, allVariants.length),
       stockTurnoverRate: 0,
       
@@ -467,6 +467,14 @@ export function useVariantStock() {
   const dismissAllAlerts = useCallback(() => {
     setDismissedAlerts(new Set(rawAlerts.map(a => a.id)));
   }, [rawAlerts]);
+
+  const dismissAlertsBySeverity = useCallback((severity: 'error' | 'warning' | 'info') => {
+    setDismissedAlerts(prev => {
+      const next = new Set(prev);
+      rawAlerts.filter(a => a.severity === severity).forEach(a => next.add(a.id));
+      return next;
+    });
+  }, [rawAlerts]);
   
   // Buscar estoque de um produto específico
   const getProductStock = useCallback((productId: string): ProductStockSummary | undefined => {
@@ -500,6 +508,7 @@ export function useVariantStock() {
     resetFilters,
     dismissAlert,
     dismissAllAlerts,
+    dismissAlertsBySeverity,
     setFilters,
     
     // Getters

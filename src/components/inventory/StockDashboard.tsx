@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { 
   Package, 
   AlertTriangle, 
@@ -23,6 +23,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -204,7 +205,12 @@ export function StockDashboard() {
     resetFilters,
     dismissAlert,
     dismissAllAlerts,
+    dismissAlertsBySeverity,
   } = useVariantStock();
+
+  // Memoize warning alerts to avoid 3x filter in render
+  const warningAlerts = useMemo(() => alerts.filter(a => a.severity === 'warning'), [alerts]);
+  const infoAlerts = useMemo(() => alerts.filter(a => a.severity === 'info'), [alerts]);
 
   if (isLoading) {
     return (
@@ -267,14 +273,17 @@ export function StockDashboard() {
               <AlertTriangle className="h-5 w-5" />
               Alertas Críticos ({criticalAlerts.length})
             </DialogTitle>
+            <DialogDescription>
+              Produtos sem estoque ou em nível crítico que precisam de atenção imediata.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={dismissAllAlerts}
-              aria-label="Dispensar todos os alertas"
+              onClick={() => dismissAlertsBySeverity('error')}
+              aria-label="Dispensar todos os alertas críticos"
             >
               <X className="h-3.5 w-3.5" />
               Limpar Todos
@@ -308,25 +317,28 @@ export function StockDashboard() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-warning">
               <TrendingDown className="h-5 w-5" />
-              Alertas de Estoque Baixo ({alerts.filter(a => a.severity === 'warning').length})
+              Alertas de Estoque Baixo ({warningAlerts.length})
             </DialogTitle>
+            <DialogDescription>
+              Produtos com estoque abaixo do mínimo ou com previsão de esgotamento.
+            </DialogDescription>
           </DialogHeader>
           <div className="flex justify-end">
             <Button
               variant="ghost"
               size="sm"
               className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={dismissAllAlerts}
-              aria-label="Dispensar todos os alertas"
+              onClick={() => dismissAlertsBySeverity('warning')}
+              aria-label="Dispensar todos os alertas de estoque baixo"
             >
               <X className="h-3.5 w-3.5" />
               Limpar Todos
             </Button>
           </div>
           <ScrollArea className="max-h-[60vh]">
-            {alerts.filter(a => a.severity === 'warning').length > 0 ? (
+            {warningAlerts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {alerts.filter(a => a.severity === 'warning').map(alert => (
+                {warningAlerts.map(alert => (
                   <AlertCard 
                     key={alert.id} 
                     alert={alert} 
@@ -460,20 +472,20 @@ export function StockDashboard() {
       </Card>
 
       {/* Alertas Gerais (apenas info — warning e error já estão nos dialogs) */}
-      {alerts.filter(a => a.severity === 'info').length > 0 && (
+      {infoAlerts.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" aria-hidden="true" />
-                Outros Alertas ({alerts.filter(a => a.severity === 'info').length})
+                Outros Alertas ({infoAlerts.length})
               </CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-                onClick={dismissAllAlerts}
-                aria-label="Dispensar todos os alertas"
+                onClick={() => dismissAlertsBySeverity('info')}
+                aria-label="Dispensar todos os alertas informativos"
               >
                 <X className="h-3.5 w-3.5" />
                 Limpar Todos
@@ -483,8 +495,7 @@ export function StockDashboard() {
           <CardContent>
             <ScrollArea className="max-h-60">
               <div className="space-y-2">
-                {alerts
-                  .filter(a => a.severity === 'info')
+                {infoAlerts
                   .slice(0, 10)
                   .map(alert => (
                     <AlertCard 
