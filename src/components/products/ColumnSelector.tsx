@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "product-grid-columns";
 
-export type ColumnCount = 1 | 2 | 3 | 4 | 5 | 6 | 8;
+export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
 // Custom grid icon with configurable columns
 function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
@@ -47,9 +47,7 @@ interface ColumnOption {
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 1, label: "1 coluna", icon: <GridCustomIcon cols={1} rows={2} />, minWidth: 0 },
-  { value: 2, label: "2 colunas", icon: <GridCustomIcon cols={2} rows={2} />, minWidth: 0 },
-  { value: 3, label: "3 colunas", icon: <Columns3 className="h-7 w-7" />, minWidth: 640 },
+  { value: 3, label: "3 colunas", icon: <Columns3 className="h-7 w-7" />, minWidth: 0 },
   { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-7 w-7" />, minWidth: 768 },
   { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-7 w-7" />, minWidth: 1024 },
   { value: 6, label: "6 colunas", icon: <GridCustomIcon cols={3} rows={2} />, minWidth: 1280 },
@@ -60,15 +58,13 @@ function getDefaultColumns(): ColumnCount {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const parsed = parseInt(saved, 10) as ColumnCount;
-      if ([1, 2, 3, 4, 5, 6, 8].includes(parsed)) return parsed;
+      if ([3, 4, 5, 6, 8].includes(parsed)) return parsed;
     }
   } catch {}
   // Responsive default based on screen width
   if (typeof window !== "undefined") {
     const w = window.innerWidth;
-    if (w < 640) return 1;
-    if (w < 768) return 2;
+    if (w < 768) return 3;
     if (w < 1024) return 3;
   }
   return 5;
