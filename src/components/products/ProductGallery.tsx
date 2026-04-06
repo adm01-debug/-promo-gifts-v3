@@ -521,107 +521,88 @@ export function ProductGallery({
 
       {/* Thumbnails removidas - navegação via cards de variação ou setas */}
 
-      {/* Fullscreen Dialog */}
-      <Dialog open={isFullscreen} onOpenChange={setIsFullscreen}>
-        <DialogContent 
-          className="max-w-[98vw] max-h-[98vh] w-full h-full p-0 bg-background/98 backdrop-blur-2xl border-none"
+      {/* Fullscreen Dialog — modal style */}
+      <Dialog open={isFullscreen} onOpenChange={(o) => { if (!o) { setIsFullscreen(false); resetZoom(); } }}>
+        <DialogContent
+          className="max-w-2xl max-h-[85vh] p-0 overflow-hidden"
           onKeyDown={handleKeyDown}
         >
-          <div className="relative w-full h-full flex flex-col">
-            {/* Fullscreen header */}
-            <div className="absolute top-6 left-6 right-6 z-50 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50">
-                  <span className="text-sm font-semibold">
-                    {selectedIndex + 1} / {allMedia.length}
-                  </span>
-                  <div className="w-20 h-2 bg-muted rounded-full overflow-hidden">
-                    <div 
-                      className="h-full bg-primary rounded-full transition-all duration-300"
-                      style={{ width: `${((selectedIndex + 1) / allMedia.length) * 100}%` }}
-                    />
-                  </div>
-                </div>
-                {zoom > 1 && (
-                  <div className="flex items-center gap-2 px-4 py-2.5 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 animate-fade-in">
-                    <Move className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-sm font-semibold">{Math.round(zoom * 100)}%</span>
-                  </div>
-                )}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                {!isVideo(selectedIndex) && (
-                  <>
-                    <Button
-                      variant="secondary"
-                      size="icon"
-                      className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-105 transition-all duration-200"
-                      onClick={handleZoomOut}
-                      disabled={zoom <= 1}
-                     aria-label="Reduzir"><ZoomOut className="h-5 w-5" />
-                    </Button>
-                    <Button
-                      variant="secondary"
-                      size="icon" aria-label="Ampliar"
-                      className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-105 transition-all duration-200"
-                      onClick={handleZoomIn}
-                      disabled={zoom >= 4}
-                    >
-                      <ZoomIn className="h-5 w-5" />
-                    </Button>
-                    {zoom > 1 && (
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-105 transition-all duration-200 animate-fade-in"
-                        onClick={resetZoom}
-                       aria-label="Rotacionar"><RotateCcw className="h-5 w-5" />
-                      </Button>
-                    )}
-                  </>
-                )}
-                <Button
-                  variant="secondary"
-                  size="icon" aria-label="Fechar"
-                  className="h-11 w-11 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-destructive/10 hover:border-destructive/30 hover:scale-105 transition-all duration-200"
-                  onClick={() => {
-                    setIsFullscreen(false);
-                    resetZoom();
-                  }}
-                >
-                  <X className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
+          {/* Image area */}
+          <div className="relative bg-white">
+            <ImageView inDialog />
 
-            {/* Fullscreen image */}
-            <div className="flex-1 flex items-center justify-center p-20">
-              <ImageView inDialog />
-            </div>
-
-            {/* Fullscreen navigation */}
+            {/* Navigation arrows */}
             {allMedia.length > 1 && (
               <>
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="absolute left-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
                   onClick={goToPrevious}
-                 aria-label="Voltar"><ChevronLeft className="h-7 w-7" />
+                  aria-label="Voltar"
+                >
+                  <ChevronLeft className="h-5 w-5" />
                 </Button>
                 <Button
                   variant="secondary"
                   size="icon"
-                  className="absolute right-6 top-1/2 -translate-y-1/2 h-14 w-14 rounded-full bg-card/95 backdrop-blur-md shadow-xl border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 transition-all duration-200"
                   onClick={goToNext}
-                 aria-label="Avançar"><ChevronRight className="h-7 w-7" />
+                  aria-label="Avançar"
+                >
+                  <ChevronRight className="h-5 w-5" />
                 </Button>
               </>
             )}
 
-            {/* Fullscreen thumbnails */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 p-3 rounded-2xl bg-card/95 backdrop-blur-md shadow-2xl border border-border/50 max-w-[85vw] overflow-x-auto scrollbar-thin">
+            {/* Counter badge */}
+            <div className="absolute bottom-3 left-3 flex items-center gap-2 px-3 py-1.5 rounded-full bg-card/90 backdrop-blur-md shadow-lg border border-border/50">
+              <span className="text-xs font-semibold">
+                {selectedIndex + 1} / {allMedia.length}
+              </span>
+              <div className="w-12 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${((selectedIndex + 1) / allMedia.length) * 100}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Zoom controls */}
+            {!isVideo(selectedIndex) && (
+              <div className="absolute bottom-3 right-3 flex items-center gap-1.5">
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-card/90 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card transition-all duration-200"
+                  onClick={handleZoomOut}
+                  disabled={zoom <= 1}
+                  aria-label="Reduzir"
+                >
+                  <ZoomOut className="h-3.5 w-3.5" />
+                </Button>
+                {zoom > 1 && (
+                  <span className="text-[10px] font-semibold text-foreground px-1.5 py-0.5 rounded bg-card/90 backdrop-blur-md border border-border/50">
+                    {Math.round(zoom * 100)}%
+                  </span>
+                )}
+                <Button
+                  variant="secondary"
+                  size="icon"
+                  className="h-8 w-8 rounded-full bg-card/90 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card transition-all duration-200"
+                  onClick={handleZoomIn}
+                  disabled={zoom >= 4}
+                  aria-label="Ampliar"
+                >
+                  <ZoomIn className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            )}
+          </div>
+
+          {/* Thumbnails strip */}
+          {allMedia.length > 1 && (
+            <div className="flex gap-2 px-4 py-3 overflow-x-auto scrollbar-thin border-t border-border/40">
               {allMedia.map((media, index) => (
                 <button
                   key={index}
@@ -632,26 +613,28 @@ export function ProductGallery({
                     setTimeout(() => setIsAnimating(false), 400);
                   }}
                   className={cn(
-                    "relative shrink-0 w-16 h-16 rounded-xl overflow-hidden transition-all duration-300",
+                    "relative shrink-0 w-14 h-14 rounded-lg overflow-hidden transition-all duration-200",
                     selectedIndex === index
-                      ? "ring-2 ring-primary ring-offset-2 ring-offset-card scale-105"
-                      : "opacity-50 hover:opacity-100 hover:scale-105"
+                      ? "ring-2 ring-primary ring-offset-1 ring-offset-card"
+                      : "opacity-50 hover:opacity-100"
                   )}
                 >
                   {isVideo(index) ? (
                     <div className="w-full h-full bg-gradient-to-br from-secondary to-muted flex items-center justify-center">
-                      <Play className="h-5 w-5 text-foreground" />
+                      <Play className="h-4 w-4 text-foreground" />
                     </div>
                   ) : (
                     <img
                       src={getCdnUrl(media, 'thumbnail')}
-                      alt={`${productName} - Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover" loading="lazy" />
+                      alt={`${productName} - ${index + 1}`}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                    />
                   )}
                 </button>
               ))}
             </div>
-          </div>
+          )}
         </DialogContent>
       </Dialog>
 
