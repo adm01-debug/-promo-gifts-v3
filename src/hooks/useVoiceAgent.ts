@@ -6,6 +6,7 @@ import { processVoiceTranscript } from "./voice/processTranscript";
 import { withRetry, friendlyErrorMessage } from "./voice/retry";
 import { logVoiceCommand } from "./voice/logVoiceCommand";
 import type { VoiceAgentAction, VoiceAgentPhase, UseVoiceAgentOptions } from "./voice/types";
+import { logger } from '@/lib/logger';
 
 export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 
@@ -70,7 +71,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     try {
       disconnectScribeRef.current();
     } catch (disconnectError) {
-      console.warn("[Voice] Failed to disconnect Scribe:", disconnectError);
+      logger.warn("[Voice] Failed to disconnect Scribe:", disconnectError);
     }
   }, [clearSessionStartTimer]);
 
@@ -82,10 +83,10 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     modelId: "scribe_v2_realtime",
     commitStrategy: "vad",
     onConnect: () => {
-      console.log("[Voice] Scribe socket connected");
+      logger.log("[Voice] Scribe socket connected");
     },
     onSessionStarted: () => {
-      console.log("[Voice] Scribe session started");
+      logger.log("[Voice] Scribe session started");
       isStartingRef.current = false;
       clearResetPhaseTimer();
       clearSessionStartTimer();
@@ -93,7 +94,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       setPhase("listening");
     },
     onDisconnect: () => {
-      console.log("[Voice] Scribe disconnected");
+      logger.log("[Voice] Scribe disconnected");
       isStartingRef.current = false;
       clearSessionStartTimer();
       setPartialTranscript("");
@@ -223,7 +224,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         throw new Error("Não foi possível obter token de transcrição");
       }
 
-      console.log("[Voice] Token obtained, connecting to Scribe...");
+      logger.log("[Voice] Token obtained, connecting to Scribe...");
 
       sessionStartTimerRef.current = setTimeout(() => {
         if (!isStartingRef.current) return;
@@ -235,7 +236,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         ...SCRIBE_CONNECT_OPTIONS,
       });
 
-      console.log("[Voice] Scribe connection initiated");
+      logger.log("[Voice] Scribe connection initiated");
     } catch (err) {
       isStartingRef.current = false;
       clearSessionStartTimer();

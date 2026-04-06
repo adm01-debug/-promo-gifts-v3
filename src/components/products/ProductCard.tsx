@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { GenderBadge } from "./GenderBadge";
 import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
@@ -40,7 +40,7 @@ export interface ProductCardProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export function ProductCard({ 
+export const ProductCard = memo(function ProductCard({ 
   product, 
   onClick, 
   onView, 
@@ -594,4 +594,6 @@ export function ProductCard({
       />
     </article>
   );
-}
+});
+
+ProductCard.displayName = 'ProductCard';

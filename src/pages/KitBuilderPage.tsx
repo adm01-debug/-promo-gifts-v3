@@ -38,6 +38,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
 import { PageSEO } from "@/components/seo/PageSEO";
+import { logger } from '@/lib/logger';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
@@ -166,7 +167,7 @@ export default function KitBuilderPage() {
           toast.error('Produto não encontrado no catálogo');
         }
       } catch (err) {
-        console.warn('[kit-builder] Failed to load product:', err);
+        logger.warn('[kit-builder] Failed to load product:', err);
         toast.error('Erro ao carregar produto');
       }
     };
@@ -346,7 +347,7 @@ export default function KitBuilderPage() {
             const { error: persError } = await supabase
               .from('quote_item_personalizations')
               .insert(personalizations);
-            if (persError) console.warn('Erro ao salvar personalizações:', persError);
+            if (persError) logger.warn('Erro ao salvar personalizações:', persError);
           }
         }
       }

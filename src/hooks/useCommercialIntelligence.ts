@@ -6,6 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useCurrentOrgId } from '@/hooks/useCurrentOrgId';
+import { logger } from '@/lib/logger';
 
 function getSinceDate(days: number): string {
   const d = new Date();
@@ -605,7 +606,7 @@ export function useCategoryRanking(days = 30, categoryId?: string | null, suppli
           categoryMap.set(cat.catId, existing);
         });
       } catch (e) {
-        console.warn('Market data unavailable for category ranking:', e);
+        logger.warn('Market data unavailable for category ranking:', e);
       }
 
       // 5) Score = internal revenue weight + market depletion weight

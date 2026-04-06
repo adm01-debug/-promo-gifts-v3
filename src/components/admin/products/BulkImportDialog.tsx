@@ -17,6 +17,7 @@ import { StepUpload } from './bulk-import/StepUpload';
 import { StepMapping } from './bulk-import/StepMapping';
 import { StepPreview } from './bulk-import/StepPreview';
 import { StepImporting, StepComplete } from './bulk-import/StepComplete';
+import { logger } from '@/lib/logger';
 
 interface BulkImportDialogProps {
   open: boolean;
@@ -164,7 +165,7 @@ export function BulkImportDialog({ open, onOpenChange, onComplete }: BulkImportD
         for (const r of results) { if (r.data?.sku && existing.has(r.data.sku)) r.existsInDb = true; }
       }
     } catch (err) {
-      console.warn('SKU dedup check failed:', err);
+      logger.warn('SKU dedup check failed:', err);
       toast.warning('Não foi possível verificar SKUs existentes');
     }
 

@@ -5,6 +5,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
+import { logger } from '@/lib/logger';
 
 // ---------- Types ----------
 
@@ -122,7 +123,7 @@ export function useStockVelocity(productId: string | undefined) {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : '';
         if (msg.includes('not been populated') || msg.includes('não mapeada')) {
-          console.warn('[StockVelocity] MV not populated yet, returning empty');
+          logger.warn('[StockVelocity] MV not populated yet, returning empty');
           return [];
         }
         throw err;

@@ -8,6 +8,7 @@ import { invokeExternalDb } from '@/lib/external-db/bridge';
 import { invokeBatchBridge } from '@/lib/external-db';
 import type { SupplierTrustData } from '@/components/common/SocialProof';
 import { getMockSupplierTrust } from '@/components/common/SocialProof';
+import { logger } from '@/lib/logger';
 
 interface VSSRecord {
   id: string;
@@ -102,7 +103,7 @@ export function useSupplierTrust(productId?: string) {
           avgRating,
         };
       } catch (err) {
-        console.warn('[useSupplierTrust] Failed to fetch real data, using mock:', err);
+        logger.warn('[useSupplierTrust] Failed to fetch real data, using mock:', err);
         return getMockSupplierTrust(productId);
       }
     },
