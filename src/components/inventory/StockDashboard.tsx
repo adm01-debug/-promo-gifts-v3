@@ -6,12 +6,9 @@ import {
   TrendingUp,
   RefreshCw,
   Search,
-  Filter,
   ArrowUpDown,
   X,
-  Clock,
   Truck,
-  BarChart3,
   AlertCircle,
   CheckCircle2,
   XCircle,
@@ -27,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
