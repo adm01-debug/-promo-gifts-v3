@@ -63,6 +63,18 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                 <List className="h-3.5 w-3.5" />
                 Lista
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "flex-1 h-8 gap-1.5 text-xs",
+                  viewMode === "table" && "bg-card shadow-sm"
+                )}
+                onClick={() => setViewMode("table")}
+              >
+                <Table2 className="h-3.5 w-3.5" />
+                Tabela
+              </Button>
             </div>
           </div>
 
