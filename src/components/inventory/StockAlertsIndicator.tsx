@@ -278,7 +278,7 @@ export function StockAlertsIndicator({
             <div className="px-4 pt-4 pb-3 border-b border-border/40">
               <div className="flex items-center gap-2 pr-8">
                 <div className="h-7 w-7 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Bell className="h-3.5 w-3.5 text-primary" />
+                  <Package className="h-3.5 w-3.5 text-primary" />
                 </div>
                 <h3 className="font-display font-semibold text-sm">Notificações</h3>
                 <span className="text-[10px] text-muted-foreground font-medium tabular-nums ml-auto">
