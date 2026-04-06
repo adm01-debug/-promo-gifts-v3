@@ -299,15 +299,14 @@ export function QuotesConfigurableList({
       }
       case "date":
         return (
-          <span className="text-xs text-muted-foreground block">
-            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
-          </span>
-        );
-      case "time":
-        return (
-          <span className="text-xs text-muted-foreground block">
-            {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : "—"}
-          </span>
+          <div className="space-y-0.5">
+            <span className="text-sm text-foreground block">
+              {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+            </span>
+            <span className="text-[11px] text-muted-foreground block">
+              {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : ""}
+            </span>
+          </div>
         );
       case "delivery": {
         const full = quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—";
