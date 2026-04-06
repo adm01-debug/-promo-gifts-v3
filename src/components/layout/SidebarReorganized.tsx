@@ -106,6 +106,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Users, label: "Usuários", href: "/admin/usuarios", adminOnly: true },
+      { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
         { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
