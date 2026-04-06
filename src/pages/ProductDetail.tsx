@@ -246,35 +246,36 @@ export default function ProductDetail() {
         <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
           
           {/* LEFT — Gallery (sticky on desktop) */}
-          <div className="min-w-0 lg:sticky lg:top-20 lg:self-start space-y-3 pb-4">
-            <ProductGallery
-              images={displayImages}
-              video={product.video}
-              productVideos={product.productVideos}
-              productName={product.name}
-              colors={product.variations?.map((variation) => ({
-                name: variation.color.name,
-                hex: variation.color.hex,
-                sku: variation.sku,
-                stock: variation.stock,
-                image: variation.image,
-                images: variation.images,
-                videos: variation.videos,
-              }))}
-              onColorSelect={(index) => {
-                if (index === -1) {
-                  setSelectedVariation(null);
-                } else if (product.variations?.[index]) {
-                  setSelectedVariation(product.variations[index]);
-                }
-              }}
-              selectedColorIndex={product.variations?.findIndex(v => v.id === selectedVariation?.id) ?? -1}
-            />
-
+          <div className="min-w-0">
+            <div className="lg:sticky lg:top-20 space-y-3 pb-4">
+              <ProductGallery
+                images={displayImages}
+                video={product.video}
+                productVideos={product.productVideos}
+                productName={product.name}
+                colors={product.variations?.map((variation) => ({
+                  name: variation.color.name,
+                  hex: variation.color.hex,
+                  sku: variation.sku,
+                  stock: variation.stock,
+                  image: variation.image,
+                  images: variation.images,
+                  videos: variation.videos,
+                }))}
+                onColorSelect={(index) => {
+                  if (index === -1) {
+                    setSelectedVariation(null);
+                  } else if (product.variations?.[index]) {
+                    setSelectedVariation(product.variations[index]);
+                  }
+                }}
+                selectedColorIndex={product.variations?.findIndex(v => v.id === selectedVariation?.id) ?? -1}
+              />
+            </div>
           </div>
 
            {/* RIGHT — All product info in a compact flow */}
-          <div className="flex flex-col gap-3 md:gap-4 xl:gap-5 min-w-0 lg:min-h-[calc(100vh-6rem)]">
+          <div className="flex flex-col gap-3 md:gap-4 xl:gap-5 min-w-0">
             
             {/* Header: badges + title + info bar — compact */}
             <div className="space-y-2">
