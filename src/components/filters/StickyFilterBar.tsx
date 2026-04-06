@@ -19,8 +19,8 @@ interface StickyFilterBarProps {
   onOpenFilters: () => void;
   onClearFilters: () => void;
   onScrollToTop: () => void;
-  viewMode: "grid" | "list";
-  onViewModeChange: (mode: "grid" | "list") => void;
+  viewMode: "grid" | "list" | "table";
+  onViewModeChange: (mode: "grid" | "list" | "table") => void;
 }
 
 export function StickyFilterBar({
