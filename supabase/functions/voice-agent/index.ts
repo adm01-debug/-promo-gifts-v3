@@ -60,8 +60,10 @@ Deno.serve(async (req) => {
 
   try {
     // Authenticate user
+    let authUserId: string;
     try {
-      await authenticateRequest(req);
+      const authResult = await authenticateRequest(req);
+      authUserId = authResult.userId;
     } catch (authErr) {
       return authErrorResponse(authErr, corsHeaders);
     }
