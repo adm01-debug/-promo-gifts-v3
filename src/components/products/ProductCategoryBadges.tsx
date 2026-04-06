@@ -153,9 +153,9 @@ export function ProductCategoryBadges({
               })}
               className={cn(
                 "px-2.5 py-1 text-sm font-medium cursor-pointer",
-                "border-primary/50 bg-primary/15 hover:bg-primary/25",
-                "text-primary hover:text-primary/80",
-                "transition-all duration-200 hover:scale-105 hover:border-primary"
+                "border-accent-foreground/30 bg-accent/15 hover:bg-accent/25",
+                "text-accent-foreground hover:text-accent-foreground/80",
+                "transition-all duration-200 hover:scale-105 hover:border-accent-foreground/50"
               )}
             >
               <Sparkles className="h-3.5 w-3.5 mr-1.5" />
