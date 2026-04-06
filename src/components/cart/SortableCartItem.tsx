@@ -273,4 +273,6 @@ export const SortableCartItem = memo(function SortableCartItem({
       </Card>
     </motion.div>
   );
-}
+});
+
+SortableCartItem.displayName = 'SortableCartItem';
