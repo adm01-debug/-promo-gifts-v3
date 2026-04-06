@@ -38,7 +38,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
           {/* View Mode */}
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">Visualização</p>
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary overflow-hidden">
               <Button
                 variant="ghost"
                 size="sm"
