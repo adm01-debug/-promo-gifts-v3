@@ -100,7 +100,7 @@ export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(functi
   };
 
   return (
-    <div className={cn("w-full", className)}>
+    <div ref={ref} className={cn("w-full", className)}>
       {/* Desktop Stepper */}
       <div className="hidden md:block">
         <div className="relative flex items-start justify-between">
