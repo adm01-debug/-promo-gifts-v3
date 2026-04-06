@@ -147,8 +147,8 @@ interface InlineFilterBarProps {
   onSortChange: (value: string) => void;
   onOpenFilters: () => void;
   onClearFilters: () => void;
-  viewMode: "grid" | "list";
-  onViewModeChange: (mode: "grid" | "list") => void;
+  viewMode: "grid" | "list" | "table";
+  onViewModeChange: (mode: "grid" | "list" | "table") => void;
   columnSelector?: React.ReactNode;
 }
 
