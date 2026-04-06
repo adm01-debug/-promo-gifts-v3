@@ -323,6 +323,7 @@ export function StockDashboard() {
           value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />}
           variant="error"
+          onClick={() => setOutOfStockDialogOpen(true)}
         />
         <StatCard
           title="Estoque Futuro"
