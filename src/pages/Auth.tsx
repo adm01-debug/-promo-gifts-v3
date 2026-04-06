@@ -225,7 +225,7 @@ export default function Auth() {
         }}
       />
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
+      <div className="hidden lg:flex lg:absolute lg:inset-0 bg-gradient-to-br from-card via-card to-background overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-3xl" />
