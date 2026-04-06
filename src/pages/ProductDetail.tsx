@@ -359,7 +359,7 @@ export default function ProductDetail() {
                   {product.variations && product.variations.length > 0 ? (
                     <div className="space-y-1.5">
                       <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold">Estoque por cor</p>
-                      <div className="flex flex-wrap items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
                         {sortVariationsByColor(product.variations).map((variation) => {
                           const isSelected = selectedVariation?.id === variation.id;
                           const stock = Math.max(0, variation.stock);
@@ -370,7 +370,7 @@ export default function ProductDetail() {
                               title={`${variation.color.name}: ${stock.toLocaleString("pt-BR")} un.`}
                               aria-label={`Cor ${variation.color.name}, ${stock} unidades`}
                               className={cn(
-                                "flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200",
+                                "flex items-center gap-1.5 px-2.5 py-1.5 rounded-md text-[11.5px] font-medium transition-all duration-200",
                                 !isSelected && "bg-secondary/30 border border-border/30 hover:bg-secondary/50",
                                 stock === 0 && "opacity-40"
                               )}
@@ -381,7 +381,7 @@ export default function ProductDetail() {
                               } : undefined}
                             >
                               <div
-                                className="w-2.5 h-2.5 rounded-full border border-border/40 shrink-0"
+                                className="w-3 h-3 rounded-full border border-border/40 shrink-0"
                                 style={{ backgroundColor: variation.color.hex }}
                               />
                               <span className={cn(
