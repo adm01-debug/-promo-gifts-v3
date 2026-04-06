@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { Home } from "lucide-react";
