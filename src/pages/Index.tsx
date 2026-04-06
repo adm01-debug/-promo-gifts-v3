@@ -68,6 +68,7 @@ export default function Index() {
               gridColumns={catalog.gridColumns}
               setGridColumns={catalog.setGridColumns}
             />
+            </div>
 
             {/* Active filter badges */}
             <CatalogActiveFilters
