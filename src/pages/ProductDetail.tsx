@@ -38,8 +38,6 @@ import { ProductInfoBar } from "@/components/products/ProductInfoBar";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
 import { PackagingBadge } from "@/components/products/PackagingBadge";
 import { PackagingModal } from "@/components/products/PackagingModal";
-import { PackagingBadge } from "@/components/products/PackagingBadge";
-import { PackagingModal } from "@/components/products/PackagingModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
