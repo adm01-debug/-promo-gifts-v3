@@ -1,5 +1,5 @@
 import React from "react";
-import { Settings2, LayoutGrid, List } from "lucide-react";
+import { Settings2, LayoutGrid, List, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -7,8 +7,8 @@ import { ColumnSelector, ColumnCount } from "@/components/products/ColumnSelecto
 import { cn } from "@/lib/utils";
 
 interface LayoutPopoverProps {
-  viewMode: "grid" | "list";
-  setViewMode: (mode: "grid" | "list") => void;
+  viewMode: "grid" | "list" | "table";
+  setViewMode: (mode: "grid" | "list" | "table") => void;
   gridColumns: ColumnCount;
   setGridColumns: (cols: ColumnCount) => void;
 }
