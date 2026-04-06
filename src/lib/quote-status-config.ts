@@ -22,7 +22,7 @@ export const QUOTE_STATUS_CONFIG: Record<string, QuoteStatusConfig> = {
     label: "Rascunho",
     color: "hsl(var(--muted-foreground))",
     badgeVariant: "secondary",
-    badgeClassName: "bg-yellow-500/15 text-yellow-400 border-yellow-500/30",
+    badgeClassName: "bg-warning/15 text-warning border-warning/30",
   },
   pending: {
     label: "Pendente",
