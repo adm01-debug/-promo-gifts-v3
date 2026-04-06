@@ -248,21 +248,21 @@ export default function QuotesListPage() {
 
           {/* KPI Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <Card className="border-border/50">
-              <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                  <DollarSign className="h-4 w-4 text-primary" />
+            <Card className="col-span-2 md:col-span-1 border-primary/30 bg-gradient-to-br from-primary/10 via-primary/5 to-transparent shadow-glow-primary/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="h-11 w-11 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 ring-1 ring-primary/30">
+                  <DollarSign className="h-5 w-5 text-primary" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Total em Aberto</p>
-                  <p className="text-sm font-bold text-foreground truncate">{formatCurrency(kpis.totalValue)}</p>
+                  <p className="text-lg font-display font-extrabold text-foreground truncate">{formatCurrency(kpis.totalValue)}</p>
                 </div>
               </CardContent>
             </Card>
             <Card className="border-border/50">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                  <CheckCircle2 className="h-4 w-4 text-primary" />
+                <div className="h-9 w-9 rounded-lg bg-success/15 flex items-center justify-center shrink-0">
+                  <CheckCircle2 className="h-4 w-4 text-success" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Aprovados</p>
@@ -272,8 +272,8 @@ export default function QuotesListPage() {
             </Card>
             <Card className="border-border/50">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                  <Clock className="h-4 w-4 text-primary" />
+                <div className="h-9 w-9 rounded-lg bg-warning/15 flex items-center justify-center shrink-0">
+                  <Clock className="h-4 w-4 text-warning" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Pendentes</p>
@@ -283,8 +283,8 @@ export default function QuotesListPage() {
             </Card>
             <Card className="border-border/50">
               <CardContent className="p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-primary/15 flex items-center justify-center shrink-0">
-                  <TrendingUp className="h-4 w-4 text-primary" />
+                <div className="h-9 w-9 rounded-lg bg-info/15 flex items-center justify-center shrink-0">
+                  <TrendingUp className="h-4 w-4 text-info" />
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Conversão</p>
