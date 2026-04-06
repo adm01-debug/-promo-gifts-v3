@@ -419,17 +419,6 @@ export const SmartSearchInput = forwardRef<HTMLDivElement, SmartSearchInputProps
             </Button>
           )}
 
-          {voiceSupported && (
-            <Button
-              variant={isListening ? "default" : "ghost"}
-              size="sm"
-              className={cn("h-7 w-7 p-0", isListening && "bg-primary text-primary-foreground")}
-              onClick={toggleVoice}
-              aria-label={isListening ? "Parar gravação de voz" : "Busca por voz"}
-            >
-              <Mic className={cn("h-4 w-4", isListening && "animate-pulse")} />
-            </Button>
-          )}
         </div>
           </div>
         </TooltipTrigger>
