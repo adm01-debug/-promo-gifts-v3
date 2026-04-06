@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowUp } from "lucide-react";
 import { ProductCard } from "./ProductCard";
+import { ProductListItem } from "./ProductListItem";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
 import { InlineFilterBar } from "@/components/filters/StickyFilterBar";
 import type { Product } from "@/hooks/useProducts";
