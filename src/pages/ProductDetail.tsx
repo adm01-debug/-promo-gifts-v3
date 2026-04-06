@@ -34,11 +34,10 @@ import { StockHistoryChart } from "@/components/products/StockHistoryChart";
 import { SalesHistoryChart } from "@/components/products/SalesHistoryChart";
 import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
-import { InlinePriceCalculator } from "@/components/products/InlinePriceCalculator";
 import { ProductInfoBar } from "@/components/products/ProductInfoBar";
-import { ProductSizeSelector } from "@/components/products/ProductSizeSelector";
-import { VariantGridMatrix } from "@/components/products/VariantGridMatrix";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
+import { PackagingBadge } from "@/components/products/PackagingBadge";
+import { PackagingModal } from "@/components/products/PackagingModal";
 import { PackagingBadge } from "@/components/products/PackagingBadge";
 import { PackagingModal } from "@/components/products/PackagingModal";
 import { Button } from "@/components/ui/button";
@@ -121,7 +120,7 @@ export default function ProductDetail() {
 
   const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
-  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  
   const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
@@ -383,7 +382,7 @@ export default function ProductDetail() {
             {/* ===== PRICE + SPECS — two columns ===== */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 flex-1">
               {/* LEFT — Price & CTA */}
-              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col">
+              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/5">
                 {product.featured && (
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
                 )}
@@ -510,7 +509,7 @@ export default function ProductDetail() {
                         isFavorite && "text-destructive"
                       )}
                     >
-                      <Heart className={cn("h-3.5 w-3.5 transition-all", isFavorite && "fill-destructive text-destructive")} />
+                      <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
                       {isFavorite ? "Favoritado" : "Favoritar"}
                     </Button>
                   </div>
@@ -569,6 +568,14 @@ export default function ProductDetail() {
             {product.isKit && product.kitItems && (
               <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
             )}
+
+            {/* Personalização — collapsible */}
+            <PersonalizationCollapsible id={product.id} productSku={product.sku} productName={product.name} />
+
+            {/* Share Actions */}
+            <div className="flex items-center gap-2">
+              <ShareActions product={product} selectedPhotosCount={displayImages.length} />
+            </div>
 
 
             {/* Quick Action Buttons — bottom bar */}
