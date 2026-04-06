@@ -41,6 +41,7 @@ import {
   CheckCircle2,
   Clock,
   TrendingUp,
+  TrendingDown,
   DollarSign,
 } from "lucide-react";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
@@ -288,7 +289,18 @@ export default function QuotesListPage() {
                 </div>
                 <div className="min-w-0">
                   <p className="text-xs text-muted-foreground">Conversão</p>
-                  <p className="text-sm font-bold text-foreground">{kpis.conversionRate}%</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-foreground">{kpis.conversionRate}%</p>
+                    {Number(kpis.conversionRate) >= 20 ? (
+                      <span className="text-[10px] font-semibold text-success flex items-center gap-0.5">
+                        <TrendingUp className="h-3 w-3" /> Bom
+                      </span>
+                    ) : (
+                      <span className="text-[10px] font-semibold text-warning flex items-center gap-0.5">
+                        <TrendingDown className="h-3 w-3" /> Baixa
+                      </span>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>

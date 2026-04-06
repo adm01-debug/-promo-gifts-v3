@@ -82,8 +82,7 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "status", label: "Status", width: "110px" },
   { id: "client", label: "Empresa", width: "minmax(120px, 0.7fr)", required: true },
   { id: "contact", label: "Contato", width: "120px" },
-  { id: "date", label: "Data", width: "100px" },
-  { id: "time", label: "Hora", width: "70px" },
+  { id: "date", label: "Data", width: "110px" },
   { id: "value", label: "Valor", width: "140px", align: "right" },
   { id: "delivery", label: "Entrega", width: "150px" },
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
@@ -300,15 +299,14 @@ export function QuotesConfigurableList({
       }
       case "date":
         return (
-          <span className="text-xs text-muted-foreground block">
-            {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
-          </span>
-        );
-      case "time":
-        return (
-          <span className="text-xs text-muted-foreground block">
-            {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : "—"}
-          </span>
+          <div className="space-y-0.5">
+            <span className="text-sm text-foreground block">
+              {quote.created_at ? format(new Date(quote.created_at), "dd/MM/yyyy", { locale: ptBR }) : "—"}
+            </span>
+            <span className="text-[11px] text-muted-foreground block">
+              {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : ""}
+            </span>
+          </div>
         );
       case "delivery": {
         const full = quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—";
@@ -415,7 +413,7 @@ export function QuotesConfigurableList({
       </div>
 
       {/* Table */}
-      <div className="rounded-lg border border-border overflow-x-hidden overflow-y-auto max-h-[calc(100vh-420px)]">
+      <div className="rounded-lg border border-border overflow-x-hidden overflow-y-auto max-h-[calc(100vh-420px)] pb-16">
         {/* Header */}
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <div
@@ -442,8 +440,8 @@ export function QuotesConfigurableList({
         {paginatedQuotes.map((quote) => (
           <div
             key={quote.id}
-            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors ${
-              isSelected(quote.id!) || allPagesSelected ? "bg-primary/5" : ""
+            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
+              isSelected(quote.id!) || allPagesSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
             }`}
             style={{ gridTemplateColumns: gridTemplate }}
             onClick={() => navigate(`/orcamentos/${quote.id}`)}
