@@ -489,6 +489,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           <ProductCategoryBadges 
             category={product.category} 
             groups={product.groups}
+            categoryUuid={product.category_id}
             className="flex-wrap"
           />
         )}

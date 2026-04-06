@@ -11,6 +11,8 @@ interface ProductCategoryBadgesProps {
   groups?: Category[];
   className?: string;
   showLabels?: boolean;
+  // UUID real da categoria (para deep-link correto ao Super Filtro)
+  categoryUuid?: string | null;
   // Props para o link de personalização
   productId?: string;
   productName?: string;
@@ -32,6 +34,7 @@ export function ProductCategoryBadges({
   groups, 
   className,
   showLabels = false,
+  categoryUuid,
   productId,
   productName,
   productSku,
@@ -95,7 +98,7 @@ export function ProductCategoryBadges({
           <TooltipTrigger asChild>
             <Badge
               variant="secondary"
-              onClick={() => navigate(`/filtros?categories=${cat.id}`)}
+              onClick={() => navigate(`/filtros?categories=${categoryUuid || cat.id}`)}
               className={cn(
                 "px-2.5 py-1 text-sm font-medium cursor-pointer",
                 "bg-secondary/80 hover:bg-secondary border border-border/50",

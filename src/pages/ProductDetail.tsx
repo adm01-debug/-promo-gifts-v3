@@ -326,6 +326,7 @@ export default function ProductDetail() {
                 <ProductCategoryBadges 
                   category={product.category} 
                   groups={product.groups}
+                  categoryUuid={product.category_id}
                   productId={product.id}
                   productName={product.name}
                   productSku={product.sku}
