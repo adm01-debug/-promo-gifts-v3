@@ -361,7 +361,7 @@ export function ProductGallery({
         const sortedColors = sortByColorGroup(colors, (c) => c.name, (c) => c.hex);
         
         return (
-        <div className="space-y-3 animate-fade-in">
+        <div className="space-y-3 animate-fade-in mt-4">
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium text-muted-foreground">Variações ({colors.length})</span>
             <button
