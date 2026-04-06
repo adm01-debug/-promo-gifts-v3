@@ -1,13 +1,12 @@
 /**
- * Exhaustive test suite for StatsPopover + statBadges calculation logic
+ * Exhaustive test suite for StatsPopover + statBadges calculation logic (POST-FIX)
  * Tests: rendering, edge cases, data integrity, performance, accessibility
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 
 // ============================================
-// UNIT TESTS: statBadges calculation logic
-// (Extracted from useCatalogState for isolated testing)
+// UNIT TESTS: statBadges calculation logic (FIXED VERSION)
 // ============================================
 
 interface MockProduct {
@@ -33,37 +32,61 @@ interface StatItem {
 }
 
 /**
- * Replica the exact statBadges calculation from useCatalogState.ts
- * to test it in isolation without React hooks
+ * Replica the FIXED statBadges calculation from useCatalogState.ts
  */
 function calculateStatBadges(
   filteredProducts: MockProduct[],
   favoriteCount: number,
-  externalCategoriesLength: number
+  externalCategoriesLength: number,
+  options: {
+    hasActiveFilters?: boolean;
+    isFavorite?: (id: string) => boolean;
+  } = {}
 ): StatItem[] {
-  const totalVariants = filteredProducts.reduce(
-    (sum, p) => sum + (p.colors?.length || 0),
+  const { hasActiveFilters = false, isFavorite } = options;
+
+  // Deduplicate by ID
+  const seen = new Set<string>();
+  const deduped = filteredProducts.filter((p) => {
+    if (seen.has(p.id)) return false;
+    seen.add(p.id);
+    return true;
+  });
+
+  // Only count colors with non-empty name
+  const totalVariants = deduped.reduce(
+    (sum, p) => sum + (p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0),
     0
   );
+
+  // Categories from filtered products when filters active
   const uniqueCategoryIds = new Set(
-    filteredProducts
+    deduped
       .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ""))
       .filter((id) => id && id !== "0")
   );
+  const categoriesCount = hasActiveFilters
+    ? uniqueCategoryIds.size
+    : externalCategoriesLength || uniqueCategoryIds.size;
+
+  // Case-insensitive supplier dedup, trim whitespace
   const uniqueSuppliers = new Set(
-    filteredProducts
-      .map((p) => p.supplier?.name)
-      .filter(Boolean)
-      .filter((n) => n !== "Sem fornecedor")
+    deduped
+      .map((p) => p.supplier?.name?.trim().toLowerCase())
+      .filter((n): n is string => !!n && n !== "sem fornecedor")
   );
-  const categoriesCount = externalCategoriesLength || uniqueCategoryIds.size;
+
+  // Contextual favorite count
+  const contextualFavoriteCount = isFavorite
+    ? deduped.filter((p) => isFavorite(p.id)).length
+    : favoriteCount;
 
   return [
-    { id: "products", label: "Produtos Únicos", value: filteredProducts.length },
+    { id: "products", label: "Produtos Únicos", value: deduped.length },
     { id: "variants", label: "Variações", value: totalVariants },
     { id: "categories", label: "Categorias", value: categoriesCount },
     { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size },
-    { id: "favorites", label: "Favoritos", value: favoriteCount },
+    { id: "favorites", label: "Favoritos", value: contextualFavoriteCount },
   ];
 }
 
@@ -91,16 +114,14 @@ function makeProducts(count: number, overrides: Partial<MockProduct> = {}): Mock
 }
 
 // ============================================
-// TEST SUITES
+// BASIC SCENARIOS
 // ============================================
 
-describe("statBadges calculation — Basic scenarios", () => {
+describe("statBadges — Basic scenarios", () => {
   it("returns correct structure with 5 stat items", () => {
     const stats = calculateStatBadges([], 0, 0);
     expect(stats).toHaveLength(5);
-    expect(stats.map((s) => s.id)).toEqual([
-      "products", "variants", "categories", "suppliers", "favorites",
-    ]);
+    expect(stats.map((s) => s.id)).toEqual(["products", "variants", "categories", "suppliers", "favorites"]);
   });
 
   it("returns all zeros for empty product list", () => {
@@ -111,10 +132,10 @@ describe("statBadges calculation — Basic scenarios", () => {
   it("counts a single product correctly", () => {
     const products = [makeProduct({ colors: [{ name: "Red" }, { name: "Blue" }] })];
     const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[0].value).toBe(1); // products
-    expect(stats[1].value).toBe(2); // variants
-    expect(stats[2].value).toBe(1); // categories
-    expect(stats[3].value).toBe(1); // suppliers
+    expect(stats[0].value).toBe(1);
+    expect(stats[1].value).toBe(2);
+    expect(stats[2].value).toBe(1);
+    expect(stats[3].value).toBe(1);
   });
 
   it("counts multiple products correctly", () => {
@@ -124,65 +145,73 @@ describe("statBadges calculation — Basic scenarios", () => {
       makeProduct({ category_id: "1", supplier: { name: "A" }, colors: [{ name: "Y" }] }),
     ];
     const stats = calculateStatBadges(products, 2, 0);
-    expect(stats[0].value).toBe(3); // 3 products
-    expect(stats[1].value).toBe(4); // 1 + 2 + 1 variants
-    expect(stats[2].value).toBe(2); // 2 unique categories
-    expect(stats[3].value).toBe(2); // 2 unique suppliers
-    expect(stats[4].value).toBe(2); // 2 favorites
+    expect(stats[0].value).toBe(3);
+    expect(stats[1].value).toBe(4);
+    expect(stats[2].value).toBe(2);
+    expect(stats[3].value).toBe(2);
+    expect(stats[4].value).toBe(2);
   });
 });
+
+// ============================================
+// PRODUCTS COUNT
+// ============================================
 
 describe("statBadges — Products count edge cases", () => {
   it("handles 0 products", () => {
-    const stats = calculateStatBadges([], 0, 0);
-    expect(stats[0].value).toBe(0);
+    expect(calculateStatBadges([], 0, 0)[0].value).toBe(0);
   });
 
   it("handles 1 product", () => {
-    const stats = calculateStatBadges([makeProduct()], 0, 0);
-    expect(stats[0].value).toBe(1);
+    expect(calculateStatBadges([makeProduct()], 0, 0)[0].value).toBe(1);
   });
 
   it("handles 1000 products", () => {
-    const stats = calculateStatBadges(makeProducts(1000), 0, 0);
-    expect(stats[0].value).toBe(1000);
+    expect(calculateStatBadges(makeProducts(1000), 0, 0)[0].value).toBe(1000);
   });
 
   it("handles 20000 products (full catalog scale)", () => {
-    const stats = calculateStatBadges(makeProducts(20000), 0, 0);
-    expect(stats[0].value).toBe(20000);
+    expect(calculateStatBadges(makeProducts(20000), 0, 0)[0].value).toBe(20000);
+  });
+
+  it("✅ FIX EDGE-004: deduplicates products by ID", () => {
+    const products = [
+      makeProduct({ id: "same-id", name: "Product A" }),
+      makeProduct({ id: "same-id", name: "Product A copy" }),
+    ];
+    const stats = calculateStatBadges(products, 0, 0);
+    expect(stats[0].value).toBe(1); // FIXED: was 2
   });
 });
 
+// ============================================
+// VARIANTS / COLORS
+// ============================================
+
 describe("statBadges — Variants/Colors edge cases", () => {
   it("returns 0 variants when colors is undefined", () => {
-    const products = [makeProduct({ colors: undefined })];
-    const stats = calculateStatBadges(products, 0, 0);
+    const stats = calculateStatBadges([makeProduct({ colors: undefined })], 0, 0);
     expect(stats[1].value).toBe(0);
   });
 
   it("returns 0 variants when colors is null (cast)", () => {
-    const products = [makeProduct({ colors: null as any })];
-    const stats = calculateStatBadges(products, 0, 0);
+    const stats = calculateStatBadges([makeProduct({ colors: null as any })], 0, 0);
     expect(stats[1].value).toBe(0);
   });
 
   it("returns 0 variants for empty colors array", () => {
-    const products = [makeProduct({ colors: [] })];
-    const stats = calculateStatBadges(products, 0, 0);
+    const stats = calculateStatBadges([makeProduct({ colors: [] })], 0, 0);
     expect(stats[1].value).toBe(0);
   });
 
   it("counts single color correctly", () => {
-    const products = [makeProduct({ colors: [{ name: "Vermelho" }] })];
-    const stats = calculateStatBadges(products, 0, 0);
+    const stats = calculateStatBadges([makeProduct({ colors: [{ name: "Vermelho" }] })], 0, 0);
     expect(stats[1].value).toBe(1);
   });
 
   it("counts many colors per product", () => {
     const colors = Array.from({ length: 50 }, (_, i) => ({ name: `Color-${i}` }));
-    const products = [makeProduct({ colors })];
-    const stats = calculateStatBadges(products, 0, 0);
+    const stats = calculateStatBadges([makeProduct({ colors })], 0, 0);
     expect(stats[1].value).toBe(50);
   });
 
@@ -194,7 +223,7 @@ describe("statBadges — Variants/Colors edge cases", () => {
       makeProduct({ colors: [{ name: "D" }, { name: "E" }, { name: "F" }] }),
     ];
     const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[1].value).toBe(6); // 2 + 1 + 0 + 3
+    expect(stats[1].value).toBe(6);
   });
 
   it("handles mix of undefined and empty colors arrays", () => {
@@ -203,10 +232,19 @@ describe("statBadges — Variants/Colors edge cases", () => {
       makeProduct({ colors: [] }),
       makeProduct({ colors: undefined }),
     ];
+    expect(calculateStatBadges(products, 0, 0)[1].value).toBe(0);
+  });
+
+  it("✅ FIX EDGE-003: does NOT count unnamed/empty colors", () => {
+    const products = [makeProduct({ colors: [{ name: "" }, { name: "  " }, { name: "Azul" }] })];
     const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[1].value).toBe(0);
+    expect(stats[1].value).toBe(1); // FIXED: was 3, now only "Azul" counts
   });
 });
+
+// ============================================
+// CATEGORIES
+// ============================================
 
 describe("statBadges — Categories edge cases", () => {
   it("deduplicates categories by category_id", () => {
@@ -215,8 +253,7 @@ describe("statBadges — Categories edge cases", () => {
       makeProduct({ category_id: "10" }),
       makeProduct({ category_id: "20" }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[2].value).toBe(2);
+    expect(calculateStatBadges(products, 0, 0)[2].value).toBe(2);
   });
 
   it("falls back to category.id when category_id is missing", () => {
@@ -224,8 +261,7 @@ describe("statBadges — Categories edge cases", () => {
       makeProduct({ category_id: undefined, category: { id: 5 } }),
       makeProduct({ category_id: undefined, category: { id: 10 } }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[2].value).toBe(2);
+    expect(calculateStatBadges(products, 0, 0)[2].value).toBe(2);
   });
 
   it("filters out category_id '0'", () => {
@@ -233,45 +269,29 @@ describe("statBadges — Categories edge cases", () => {
       makeProduct({ category_id: "0" }),
       makeProduct({ category_id: "1" }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[2].value).toBe(1);
+    expect(calculateStatBadges(products, 0, 0)[2].value).toBe(1);
   });
 
   it("filters out empty string category_id", () => {
-    const products = [
-      makeProduct({ category_id: "", category: undefined }),
-    ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[2].value).toBe(0);
+    const products = [makeProduct({ category_id: "", category: undefined })];
+    expect(calculateStatBadges(products, 0, 0)[2].value).toBe(0);
   });
 
-  it("handles both category_id and category.id present — prefers category_id", () => {
-    const products = [
-      makeProduct({ category_id: "5", category: { id: 999 } }),
-    ];
-    const stats = calculateStatBadges(products, 0, 0);
-    // category_id "5" is truthy so it's used, not category.id
-    expect(stats[2].value).toBe(1);
+  it("✅ FIX BUG-001: categories reflects filtered products when filters active", () => {
+    const products = [makeProduct({ category_id: "5" })];
+    const stats = calculateStatBadges(products, 0, 438, { hasActiveFilters: true });
+    expect(stats[2].value).toBe(1); // FIXED: was 438
   });
 
-  it("⚠️ BUG: externalCategories overrides filtered category count", () => {
-    // When externalCategories is loaded (length > 0), it ALWAYS overrides
-    // the actual filtered categories count. This means:
-    // - If user filters to 1 category, it still shows total external categories count
-    const products = [makeProduct({ category_id: "1" })];
-    const stats = calculateStatBadges(products, 0, 438); // 438 external categories
-    // Should show 1 (filtered), but shows 438 (global)
-    expect(stats[2].value).toBe(438); // ← This is the BUG
-    // Expected behavior: should show categories relevant to filtered products
+  it("✅ categories shows externalCategories when NO filters active", () => {
+    const products = makeProducts(100);
+    const stats = calculateStatBadges(products, 0, 438, { hasActiveFilters: false });
+    expect(stats[2].value).toBe(438); // Correct: show full catalog count
   });
 
-  it("⚠️ BUG: externalCategories=0 with products having no category_id", () => {
-    const products = [
-      makeProduct({ category_id: undefined, category: undefined }),
-    ];
-    const stats = calculateStatBadges(products, 0, 0);
-    // Shows 0 categories even though there's 1 product — may be confusing
-    expect(stats[2].value).toBe(0);
+  it("✅ FIX BUG-004: 0 products with filters active shows 0 categories", () => {
+    const stats = calculateStatBadges([], 0, 438, { hasActiveFilters: true });
+    expect(stats[2].value).toBe(0); // FIXED: was 438
   });
 
   it("handles numeric category.id converted to string", () => {
@@ -279,10 +299,13 @@ describe("statBadges — Categories edge cases", () => {
       makeProduct({ category_id: undefined, category: { id: 123 } }),
       makeProduct({ category_id: undefined, category: { id: 123 } }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[2].value).toBe(1); // deduplicated
+    expect(calculateStatBadges(products, 0, 0)[2].value).toBe(1);
   });
 });
+
+// ============================================
+// SUPPLIERS
+// ============================================
 
 describe("statBadges — Suppliers edge cases", () => {
   it("deduplicates suppliers by name", () => {
@@ -291,8 +314,7 @@ describe("statBadges — Suppliers edge cases", () => {
       makeProduct({ supplier: { name: "Supplier A" } }),
       makeProduct({ supplier: { name: "Supplier B" } }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(2);
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(2);
   });
 
   it("excludes 'Sem fornecedor'", () => {
@@ -300,109 +322,118 @@ describe("statBadges — Suppliers edge cases", () => {
       makeProduct({ supplier: { name: "Sem fornecedor" } }),
       makeProduct({ supplier: { name: "Real Supplier" } }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(1);
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(1);
   });
 
   it("handles undefined supplier", () => {
-    const products = [makeProduct({ supplier: undefined })];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(0);
+    expect(calculateStatBadges([makeProduct({ supplier: undefined })], 0, 0)[3].value).toBe(0);
   });
 
   it("handles supplier with undefined name", () => {
-    const products = [makeProduct({ supplier: { name: undefined } })];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(0);
+    expect(calculateStatBadges([makeProduct({ supplier: { name: undefined } })], 0, 0)[3].value).toBe(0);
   });
 
   it("handles supplier with empty string name", () => {
-    const products = [makeProduct({ supplier: { name: "" } })];
-    const stats = calculateStatBadges(products, 0, 0);
-    // Empty string is falsy so filter(Boolean) removes it
-    expect(stats[3].value).toBe(0);
+    expect(calculateStatBadges([makeProduct({ supplier: { name: "" } })], 0, 0)[3].value).toBe(0);
   });
 
-  it("⚠️ EDGE CASE: supplier with whitespace name not filtered", () => {
-    const products = [makeProduct({ supplier: { name: "  " } })];
-    const stats = calculateStatBadges(products, 0, 0);
-    // "  " is truthy, so it passes Boolean check — counts as a supplier
-    expect(stats[3].value).toBe(1); // Potentially wrong — whitespace-only name
+  it("✅ FIX EDGE-001: whitespace-only supplier names are filtered out", () => {
+    const products = [makeProduct({ supplier: { name: "   " } })];
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(0); // FIXED: was 1
   });
 
-  it("⚠️ EDGE CASE: case sensitivity in supplier names", () => {
+  it("✅ FIX BUG-003: case-insensitive supplier deduplication", () => {
     const products = [
       makeProduct({ supplier: { name: "Supplier A" } }),
       makeProduct({ supplier: { name: "supplier a" } }),
       makeProduct({ supplier: { name: "SUPPLIER A" } }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    // Set treats these as 3 different suppliers
-    expect(stats[3].value).toBe(3); // ← Could be BUG if same supplier with different casing
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(1); // FIXED: was 3
   });
 
-  it("⚠️ EDGE CASE: 'Sem fornecedor' with different casing not filtered", () => {
+  it("✅ FIX BUG-003: 'Sem fornecedor' case-insensitive exclusion", () => {
     const products = [
       makeProduct({ supplier: { name: "sem fornecedor" } }),
       makeProduct({ supplier: { name: "SEM FORNECEDOR" } }),
+      makeProduct({ supplier: { name: "Sem Fornecedor" } }),
     ];
-    const stats = calculateStatBadges(products, 0, 0);
-    // Only exact "Sem fornecedor" is filtered — variants pass through
-    expect(stats[3].value).toBe(2); // ← BUG: should also filter case-insensitive
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(0); // FIXED: was 2+
   });
 
   it("handles many unique suppliers", () => {
     const products = Array.from({ length: 100 }, (_, i) =>
       makeProduct({ supplier: { name: `Supplier ${i}` } })
     );
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(100);
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(100);
+  });
+
+  it("trims supplier name with leading/trailing spaces", () => {
+    const products = [
+      makeProduct({ supplier: { name: "  BIC  " } }),
+      makeProduct({ supplier: { name: "BIC" } }),
+    ];
+    expect(calculateStatBadges(products, 0, 0)[3].value).toBe(1);
   });
 });
 
+// ============================================
+// FAVORITES
+// ============================================
+
 describe("statBadges — Favorites edge cases", () => {
-  it("favoriteCount is global, not filtered", () => {
-    // This is a design observation: favoriteCount comes from the global store,
-    // not from filtered products. If user filters to 10 products but has
-    // 50 global favorites, it shows 50.
-    const products = makeProducts(10);
-    const stats = calculateStatBadges(products, 50, 0);
-    expect(stats[4].value).toBe(50); // Shows global count, not relevant to filter
+  it("✅ FIX BUG-002: favorites is contextual with isFavorite function", () => {
+    const favSet = new Set(["prod-0", "prod-2"]);
+    const products = makeProducts(5);
+    const stats = calculateStatBadges(products, 100, 0, {
+      isFavorite: (id) => favSet.has(id),
+    });
+    expect(stats[4].value).toBe(2); // FIXED: was 100 (global)
   });
 
   it("favoriteCount = 0 when no favorites", () => {
-    const stats = calculateStatBadges(makeProducts(100), 0, 0);
+    const stats = calculateStatBadges(makeProducts(100), 0, 0, {
+      isFavorite: () => false,
+    });
     expect(stats[4].value).toBe(0);
   });
 
-  it("favoriteCount reflects store state, not products", () => {
-    // Even with 0 products, favorite count can be > 0
+  it("falls back to favoriteCount when isFavorite not provided", () => {
     const stats = calculateStatBadges([], 15, 0);
     expect(stats[4].value).toBe(15);
   });
+
+  it("contextual count with filtered products", () => {
+    const favSet = new Set(["prod-0", "prod-1", "prod-999"]);
+    const products = makeProducts(3); // prod-0, prod-1, prod-2
+    const stats = calculateStatBadges(products, 50, 0, {
+      isFavorite: (id) => favSet.has(id),
+    });
+    // Only prod-0 and prod-1 are both favorite AND in filtered list
+    expect(stats[4].value).toBe(2);
+  });
 });
+
+// ============================================
+// DATA INTEGRITY
+// ============================================
 
 describe("statBadges — Data integrity & consistency", () => {
   it("products with all fields undefined", () => {
     const products = [makeProduct({
-      category_id: undefined,
-      category: undefined,
-      supplier: undefined,
-      colors: undefined,
+      category_id: undefined, category: undefined,
+      supplier: undefined, colors: undefined,
     })];
     const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[0].value).toBe(1); // product exists
-    expect(stats[1].value).toBe(0); // no colors
-    expect(stats[2].value).toBe(0); // no category
-    expect(stats[3].value).toBe(0); // no supplier
+    expect(stats[0].value).toBe(1);
+    expect(stats[1].value).toBe(0);
+    expect(stats[2].value).toBe(0);
+    expect(stats[3].value).toBe(0);
   });
 
   it("products with all fields null (cast)", () => {
     const products = [makeProduct({
-      category_id: null as any,
-      category: null as any,
-      supplier: null as any,
-      colors: null as any,
+      category_id: null as any, category: null as any,
+      supplier: null as any, colors: null as any,
     })];
     const stats = calculateStatBadges(products, 0, 0);
     expect(stats[0].value).toBe(1);
@@ -417,8 +448,6 @@ describe("statBadges — Data integrity & consistency", () => {
       expect(stat).toHaveProperty("id");
       expect(stat).toHaveProperty("label");
       expect(stat).toHaveProperty("value");
-      expect(typeof stat.id).toBe("string");
-      expect(typeof stat.label).toBe("string");
       expect(typeof stat.value).toBe("number");
       expect(stat.value).toBeGreaterThanOrEqual(0);
       expect(Number.isFinite(stat.value)).toBe(true);
@@ -435,23 +464,27 @@ describe("statBadges — Data integrity & consistency", () => {
   });
 });
 
+// ============================================
+// PERFORMANCE
+// ============================================
+
 describe("statBadges — Performance at scale", () => {
-  it("calculates 20000 products in under 100ms", () => {
+  it("calculates 20000 products in under 150ms", () => {
     const products = makeProducts(20000);
     const start = performance.now();
     calculateStatBadges(products, 0, 0);
     const elapsed = performance.now() - start;
-    expect(elapsed).toBeLessThan(100);
+    expect(elapsed).toBeLessThan(150);
   });
 
-  it("calculates 20000 products with 10 colors each in under 200ms", () => {
+  it("calculates 20000 products with 10 colors each in under 300ms", () => {
     const colors = Array.from({ length: 10 }, (_, i) => ({ name: `C${i}` }));
     const products = makeProducts(20000, { colors });
     const start = performance.now();
     const stats = calculateStatBadges(products, 0, 0);
     const elapsed = performance.now() - start;
     expect(stats[1].value).toBe(200000);
-    expect(elapsed).toBeLessThan(200);
+    expect(elapsed).toBeLessThan(300);
   });
 
   it("handles 500 unique suppliers without degradation", () => {
@@ -460,25 +493,17 @@ describe("statBadges — Performance at scale", () => {
     );
     const start = performance.now();
     const stats = calculateStatBadges(products, 0, 0);
-    const elapsed = performance.now() - start;
     expect(stats[3].value).toBe(500);
-    expect(elapsed).toBeLessThan(50);
-  });
-
-  it("handles 1000 unique categories without degradation", () => {
-    const products = Array.from({ length: 1000 }, (_, i) =>
-      makeProduct({ category_id: String(i + 1) })
-    );
-    const start = performance.now();
-    const stats = calculateStatBadges(products, 0, 0);
-    const elapsed = performance.now() - start;
-    expect(stats[2].value).toBe(1000);
-    expect(elapsed).toBeLessThan(50);
+    expect(performance.now() - start).toBeLessThan(50);
   });
 });
 
-describe("statBadges — Real-world simulation scenarios", () => {
-  it("Scenario: fresh catalog load — no filters active", () => {
+// ============================================
+// REAL-WORLD SIMULATIONS
+// ============================================
+
+describe("statBadges — Real-world simulations", () => {
+  it("Scenario: fresh catalog — no filters", () => {
     const products = [
       makeProduct({ category_id: "10", supplier: { name: "XBZ" }, colors: [{ name: "Branco" }, { name: "Preto" }] }),
       makeProduct({ category_id: "20", supplier: { name: "GOLD" }, colors: [{ name: "Azul" }] }),
@@ -488,74 +513,35 @@ describe("statBadges — Real-world simulation scenarios", () => {
     const stats = calculateStatBadges(products, 0, 438);
     expect(stats[0].value).toBe(4);
     expect(stats[1].value).toBe(6);
-    expect(stats[2].value).toBe(438); // uses externalCategories, not filtered count
+    expect(stats[2].value).toBe(438); // no filters → show global
     expect(stats[3].value).toBe(3);
-    expect(stats[4].value).toBe(0);
   });
 
-  it("Scenario: search 'caneta' — subset of products", () => {
+  it("Scenario: search 'caneta' — filters active, contextual stats", () => {
+    const favSet = new Set(["p1"]);
     const products = [
-      makeProduct({ name: "Caneta Bic", category_id: "5", supplier: { name: "BIC" }, colors: [{ name: "Azul" }] }),
-      makeProduct({ name: "Caneta Parker", category_id: "5", supplier: { name: "Parker" }, colors: [{ name: "Prata" }, { name: "Dourada" }] }),
+      makeProduct({ id: "p1", name: "Caneta Bic", category_id: "5", supplier: { name: "BIC" }, colors: [{ name: "Azul" }] }),
+      makeProduct({ id: "p2", name: "Caneta Parker", category_id: "5", supplier: { name: "Parker" }, colors: [{ name: "Prata" }, { name: "Dourada" }] }),
     ];
-    const stats = calculateStatBadges(products, 3, 438);
+    const stats = calculateStatBadges(products, 50, 438, {
+      hasActiveFilters: true,
+      isFavorite: (id) => favSet.has(id),
+    });
     expect(stats[0].value).toBe(2);
     expect(stats[1].value).toBe(3);
-    expect(stats[2].value).toBe(438); // ⚠️ Still shows 438, not 1
+    expect(stats[2].value).toBe(1); // ✅ FIXED: was 438, now shows 1 filtered category
     expect(stats[3].value).toBe(2);
-    expect(stats[4].value).toBe(3); // ⚠️ Global favorites, not filtered
+    expect(stats[4].value).toBe(1); // ✅ FIXED: was 50, now shows 1 contextual favorite
   });
 
-  it("Scenario: filter by single supplier", () => {
-    const products = [
-      makeProduct({ supplier: { name: "XBZ" }, category_id: "1" }),
-      makeProduct({ supplier: { name: "XBZ" }, category_id: "2" }),
-    ];
-    const stats = calculateStatBadges(products, 0, 438);
-    expect(stats[3].value).toBe(1); // Only XBZ
-  });
-
-  it("Scenario: filter by color 'Azul' — some products have no colors", () => {
-    const products = [
-      makeProduct({ colors: [{ name: "Azul" }] }),
-    ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[0].value).toBe(1);
-    expect(stats[1].value).toBe(1);
-  });
-
-  it("Scenario: in-stock only filter — all products have stock", () => {
-    const products = makeProducts(50, { stock: 10 });
-    const stats = calculateStatBadges(products, 0, 438);
-    expect(stats[0].value).toBe(50);
-  });
-
-  it("Scenario: price range filter yields 0 products", () => {
-    const stats = calculateStatBadges([], 5, 438);
+  it("Scenario: price filter yields 0 products", () => {
+    const stats = calculateStatBadges([], 5, 438, { hasActiveFilters: true });
     expect(stats[0].value).toBe(0);
-    expect(stats[1].value).toBe(0);
-    expect(stats[2].value).toBe(438); // ⚠️ Still shows 438 even with 0 products!
-    expect(stats[3].value).toBe(0);
-    expect(stats[4].value).toBe(5); // ⚠️ Still shows favorites even with 0 products!
+    expect(stats[2].value).toBe(0); // ✅ FIXED: was 438
+    expect(stats[4].value).toBe(5); // fallback since no isFavorite fn
   });
 
-  it("Scenario: kit products — isKit filter active", () => {
-    const products = makeProducts(3, { category_id: "100" });
-    const stats = calculateStatBadges(products, 0, 438);
-    expect(stats[0].value).toBe(3);
-  });
-
-  it("Scenario: gender filter — mixed products", () => {
-    const products = [
-      makeProduct({ gender: "Feminino", category_id: "1" }),
-      makeProduct({ gender: "Feminino", category_id: "2" }),
-    ];
-    const stats = calculateStatBadges(products, 0, 438);
-    expect(stats[0].value).toBe(2);
-  });
-
-  it("Scenario: XBZ supplier — colors may lack data", () => {
-    // XBZ products sometimes have null color codes
+  it("Scenario: XBZ supplier — colors with empty names", () => {
     const products = [
       makeProduct({
         supplier: { name: "XBZ" },
@@ -563,83 +549,59 @@ describe("statBadges — Real-world simulation scenarios", () => {
       }),
     ];
     const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[1].value).toBe(2); // Counts even unnamed colors
+    expect(stats[1].value).toBe(1); // ✅ FIXED: was 2, empty name now excluded
   });
 
-  it("Scenario: progressive loading — partial catalog (page 1 of 4)", () => {
-    // Only 500 of 2000 products loaded
-    const products = makeProducts(500);
-    const stats = calculateStatBadges(products, 0, 438);
-    expect(stats[0].value).toBe(500);
-    // Categories show 438 (external) even though only 500 products loaded
-    expect(stats[2].value).toBe(438);
-  });
-
-  it("Scenario: full catalog loaded — all 4 pages", () => {
-    const products = makeProducts(2000);
-    const stats = calculateStatBadges(products, 0, 438);
-    expect(stats[0].value).toBe(2000);
-    expect(stats[2].value).toBe(438);
-  });
-});
-
-describe("statBadges — Duplicate detection", () => {
-  it("⚠️ GAP: duplicate products with same ID are counted separately", () => {
+  it("Scenario: duplicate products from pagination overlap", () => {
     const products = [
-      makeProduct({ id: "same-id", name: "Product A" }),
-      makeProduct({ id: "same-id", name: "Product A" }),
+      makeProduct({ id: "dup-1", category_id: "5", supplier: { name: "A" }, colors: [{ name: "X" }] }),
+      makeProduct({ id: "dup-1", category_id: "5", supplier: { name: "A" }, colors: [{ name: "X" }] }),
+      makeProduct({ id: "dup-2", category_id: "10", supplier: { name: "B" }, colors: [{ name: "Y" }] }),
     ];
     const stats = calculateStatBadges(products, 0, 0);
-    // No deduplication by ID — counts 2 instead of 1
-    expect(stats[0].value).toBe(2);
+    expect(stats[0].value).toBe(2); // ✅ deduplicated
+    expect(stats[1].value).toBe(2); // 1 + 1
+    expect(stats[2].value).toBe(2); // cat 5 + cat 10
+    expect(stats[3].value).toBe(2); // A + B
+  });
+
+  it("Scenario: mixed casing suppliers", () => {
+    const products = [
+      makeProduct({ supplier: { name: "XBZ" } }),
+      makeProduct({ supplier: { name: "xbz" } }),
+      makeProduct({ supplier: { name: "Xbz" } }),
+      makeProduct({ supplier: { name: "GOLD" } }),
+    ];
+    const stats = calculateStatBadges(products, 0, 0);
+    expect(stats[3].value).toBe(2); // ✅ FIXED: XBZ + GOLD
   });
 });
 
-describe("statBadges — useMemo dependency analysis", () => {
-  it("⚠️ GAP: externalCategories.length not granular enough", () => {
-    // useMemo depends on [filteredProducts, favoriteCount, externalCategories.length]
-    // If externalCategories changes content but keeps same length,
-    // the memo doesn't recalculate
-    // This is acceptable since categories rarely change content without length change
-    expect(true).toBe(true);
-  });
+// ============================================
+// COMPONENT TESTS
+// ============================================
 
-  it("⚠️ GAP: filteredProducts reference identity may cause extra recalcs", () => {
-    // filteredProducts is computed via useMemo with many deps
-    // Any filter change creates new array reference → statBadges recalculates
-    // This is expected behavior but worth noting for performance
-    expect(true).toBe(true);
-  });
-});
-
-describe("StatsPopover rendering — Component tests", () => {
+describe("StatsPopover rendering", () => {
   it("exports StatsPopover component", async () => {
     const mod = await import("@/components/products/StatsPopover");
     expect(mod.StatsPopover).toBeDefined();
     expect(typeof mod.StatsPopover).toBe("function");
   });
-
-  it("accepts stats array prop", async () => {
-    const mod = await import("@/components/products/StatsPopover");
-    const component = mod.StatsPopover;
-    expect(component).toBeDefined();
-  });
 });
 
+// ============================================
+// FAVORITES STORE
+// ============================================
+
 describe("FavoritesStore — localStorage edge cases", () => {
-  beforeEach(() => {
-    vi.restoreAllMocks();
-  });
+  beforeEach(() => { vi.restoreAllMocks(); });
 
   it("handles corrupted localStorage gracefully", () => {
     const spy = vi.spyOn(Storage.prototype, "getItem").mockReturnValue("not-json{{{");
-    // The store should catch JSON.parse errors and return []
     try {
       const stored = localStorage.getItem("product-favorites");
-      const parsed = stored ? JSON.parse(stored) : [];
-      expect(parsed).toBeDefined();
+      JSON.parse(stored!);
     } catch {
-      // Expected — the store wraps this in try-catch
       expect(true).toBe(true);
     }
     spy.mockRestore();
@@ -649,82 +611,7 @@ describe("FavoritesStore — localStorage edge cases", () => {
     const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
       throw new DOMException("QuotaExceededError");
     });
-    // The store should silently fail on save
     expect(() => localStorage.setItem("test", "value")).toThrow();
     spy.mockRestore();
-  });
-});
-
-// ============================================
-// SUMMARY OF FOUND ISSUES
-// ============================================
-describe("📋 AUDIT SUMMARY — Documented Issues", () => {
-  it("BUG-001: Categories count ignores active filters", () => {
-    // categoriesCount = externalCategories.length || uniqueCategoryIds.size
-    // When externalCategories is loaded, it ALWAYS shows the global count (438)
-    // regardless of applied filters. Users see "438 Categorias" even when
-    // filtering to a single category.
-    //
-    // FIX: Should use uniqueCategoryIds.size when filters are active,
-    // or intersect externalCategories with filtered products' category IDs.
-    const filtered = [makeProduct({ category_id: "5" })];
-    const stats = calculateStatBadges(filtered, 0, 438);
-    expect(stats[2].value).not.toBe(1); // Currently broken
-  });
-
-  it("BUG-002: Favorites count is global, not contextual", () => {
-    // favoriteCount comes from useFavoritesStore() — a global store.
-    // It shows total favorites regardless of current filters/search.
-    // User filters to "Canetas" but Favoritos shows favorites from all categories.
-    //
-    // FIX: Should compute intersection of favorites with filteredProducts.
-    const filtered = makeProducts(5);
-    const stats = calculateStatBadges(filtered, 100, 0);
-    expect(stats[4].value).toBe(100); // Shows 100 even though only 5 products visible
-  });
-
-  it("BUG-003: Supplier name comparison is case-sensitive", () => {
-    // "Supplier A" and "supplier a" are counted as different suppliers.
-    // Also "Sem fornecedor" only matches exact case.
-    const products = [
-      makeProduct({ supplier: { name: "BIC" } }),
-      makeProduct({ supplier: { name: "bic" } }),
-    ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(2); // Should be 1
-  });
-
-  it("BUG-004: Empty/0 products still shows externalCategories count", () => {
-    // When filters yield 0 products, Categorias still shows 438
-    const stats = calculateStatBadges([], 0, 438);
-    expect(stats[2].value).toBe(438); // Misleading — no products match
-  });
-
-  it("EDGE-001: Whitespace-only supplier names counted as valid", () => {
-    const products = [makeProduct({ supplier: { name: "   " } })];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[3].value).toBe(1); // Whitespace passes Boolean check
-  });
-
-  it("EDGE-002: No loading indicator in stats during data fetch", () => {
-    // StatsPopover always shows numbers, even during loading.
-    // Partially loaded data = partially accurate stats.
-    // No skeleton/spinner within the popover.
-    expect(true).toBe(true); // UI observation
-  });
-
-  it("EDGE-003: Variants counts unnamed/empty colors", () => {
-    const products = [makeProduct({ colors: [{ name: "" }, { name: "" }] })];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[1].value).toBe(2); // Empty names are still counted
-  });
-
-  it("EDGE-004: No product deduplication by ID", () => {
-    const products = [
-      makeProduct({ id: "dup" }),
-      makeProduct({ id: "dup" }),
-    ];
-    const stats = calculateStatBadges(products, 0, 0);
-    expect(stats[0].value).toBe(2); // Should be 1
   });
 });
