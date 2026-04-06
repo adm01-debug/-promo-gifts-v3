@@ -1,13 +1,12 @@
 /**
- * useCatalogRealStats — Fetches real aggregate counts from the external DB
- * for products, variants, categories, and suppliers.
- * Single batch call, cached for 30 minutes.
+ * useCatalogRealStats — Fetches real aggregate counts from the external DB.
+ * Uses individual queries (not batch) because batch doesn't support countMode.
  */
 import { useQuery } from '@tanstack/react-query';
+import { invokeExternalDb } from '@/lib/external-db/bridge';
 import { invokeBatchBridge } from '@/lib/external-db/bridge';
 
 export interface CatalogRealStats {
-  totalProducts: number;
   totalVariants: number;
   totalCategories: number;
   totalSuppliers: number;
@@ -25,68 +24,50 @@ function isHiddenCategory(name: string): boolean {
 
 export function useCatalogRealStats() {
   return useQuery<CatalogRealStats>({
-    queryKey: ['catalog-real-stats', 'v3'],
+    queryKey: ['catalog-real-stats', 'v4'],
     queryFn: async () => {
-      // Batch doesn't support countMode, so we fetch records to count them.
-      // Products: use the catalog's totalEstimate instead (already available).
-      // Variants/Categories/Suppliers: fetch IDs to count.
-      const queries = [
-        {
+      // Run 3 parallel queries with countMode: exact
+      const [variantsResult, categoriesResult, suppliersResult] = await Promise.all([
+        invokeExternalDb<{ id: string }>({
           table: 'product_variants',
-          operation: 'select' as const,
+          operation: 'select',
           select: 'id',
           filters: {},
-          limit: 50000,
+          limit: 1,
           offset: 0,
-        },
-        {
+          countMode: 'exact',
+        }),
+        invokeExternalDb<{ id: string; name: string }>({
           table: 'categories',
-          operation: 'select' as const,
+          operation: 'select',
           select: 'id,name',
           filters: { active: true },
           limit: 1000,
           offset: 0,
-        },
-        {
+          countMode: 'exact',
+        }),
+        invokeExternalDb<{ id: string }>({
           table: 'suppliers',
-          operation: 'select' as const,
+          operation: 'select',
           select: 'id',
           filters: { active: true },
-          limit: 500,
+          limit: 1,
           offset: 0,
-        },
-      ];
+          countMode: 'exact',
+        }),
+      ]);
 
-      try {
-        const results = await invokeBatchBridge(queries);
+      // Variants: use count from countMode
+      const totalVariants = variantsResult.count ?? 0;
 
-        // Variants: count records directly
-        const variantsCount = results[0]?.success && results[0]?.data?.records
-          ? results[0].data.records.length
-          : 0;
+      // Categories: filter hidden ones from records
+      const visible = categoriesResult.records.filter(c => !isHiddenCategory(c.name || ''));
+      const totalCategories = visible.length;
 
-        // Categories: filter hidden ones, count visible
-        let categoriesCount = 0;
-        if (results[1]?.success && results[1]?.data?.records) {
-          const allCategories = results[1].data.records as Array<{ id: string; name: string }>;
-          const visible = allCategories.filter(c => !isHiddenCategory(c.name || ''));
-          categoriesCount = visible.length;
-        }
+      // Suppliers: use count from countMode
+      const totalSuppliers = suppliersResult.count ?? 0;
 
-        // Suppliers: count records directly
-        const suppliersCount = results[2]?.success && results[2]?.data?.records
-          ? results[2].data.records.length
-          : 0;
-
-        return {
-          totalProducts: 0, // Will use totalEstimate from catalog hook
-          totalVariants: variantsCount,
-          totalCategories: categoriesCount,
-          totalSuppliers: suppliersCount,
-        };
-      } catch {
-        return { totalProducts: 0, totalVariants: 0, totalCategories: 0, totalSuppliers: 0 };
-      }
+      return { totalVariants, totalCategories, totalSuppliers };
     },
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,
