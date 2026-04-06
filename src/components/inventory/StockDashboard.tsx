@@ -342,14 +342,16 @@ export function StockDashboard() {
           value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />}
           variant="warning"
-          onClick={() => setLowStockDialogOpen(true)}
+          onClick={warningAlerts.length > 0 ? () => setLowStockDialogOpen(true) : undefined}
+          clickHint={warningAlerts.length > 0 ? "Clique para ver alertas" : undefined}
         />
         <StatCard
           title="Sem Estoque"
           value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />}
           variant="error"
-          onClick={() => setOutOfStockDialogOpen(true)}
+          onClick={criticalAlerts.length > 0 ? () => setOutOfStockDialogOpen(true) : undefined}
+          clickHint={criticalAlerts.length > 0 ? "Clique para ver alertas" : undefined}
         />
         <StatCard
           title="Estoque Futuro"
