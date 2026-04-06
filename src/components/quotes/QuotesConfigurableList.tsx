@@ -21,6 +21,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -280,7 +281,13 @@ export function QuotesConfigurableList({
         );
       case "status":
         return (
-          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 ${statusConfig[quote.status]?.className || ""}`}>
+          <Badge variant="outline" className={`text-[10px] px-1.5 py-0 h-5 gap-1 ${statusConfig[quote.status]?.className || ""}`}>
+            {quote.status === "pending" && (
+              <span className="relative flex h-2 w-2">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-info opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-info" />
+              </span>
+            )}
             {statusConfig[quote.status]?.label}
           </Badge>
         );
@@ -303,12 +310,25 @@ export function QuotesConfigurableList({
             {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : "—"}
           </span>
         );
-      case "delivery":
+      case "delivery": {
+        const full = quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—";
+        // Compact: "28 dias após aprovação" → "28d"
+        const compact = quote.delivery_time
+          ? quote.delivery_time.startsWith("date:")
+            ? full
+            : full.replace(/\s*dias?\s*após\s*aprovação/i, "d").replace(/\s*dias?\s*úteis/i, "d")
+          : "—";
         return (
-          <span className="text-xs text-muted-foreground truncate block">
-            {quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—"}
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-xs text-muted-foreground truncate block cursor-default">
+                {compact}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">{full}</TooltipContent>
+          </Tooltip>
         );
+      }
       default:
         return null;
     }

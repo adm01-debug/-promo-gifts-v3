@@ -194,12 +194,32 @@ export function StepProduct({ wizard }: StepProductProps) {
             ))}
           </div>
         ) : searchTerm.trim().length < 2 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-            <div className="p-4 rounded-full bg-muted/50 mb-4">
-              <Search className="h-10 w-10 opacity-30" />
+          <div className="flex flex-col items-center justify-center py-16 text-muted-foreground">
+            <div className="p-5 rounded-2xl bg-primary/5 border border-primary/10 mb-5">
+              <Search className="h-12 w-12 text-primary/40" />
             </div>
-            <p className="font-semibold text-lg">Digite para buscar</p>
-            <p className="text-sm mt-1">Busque por nome, SKU ou categoria (mínimo 2 caracteres)</p>
+            <p className="font-display font-semibold text-xl text-foreground mb-1">Escolha o produto</p>
+            <p className="text-sm mb-6 max-w-xs text-center">Busque pelo nome, SKU ou categoria para iniciar a simulação de preços</p>
+            <div className="flex flex-wrap justify-center gap-2">
+              {["Caneta", "Caderno", "Camiseta", "Garrafa", "Mochila"].map(tip => (
+                <button
+                  key={tip}
+                  type="button"
+                  onClick={() => {
+                    const input = document.querySelector<HTMLInputElement>('[data-simulator-search]');
+                    if (input) {
+                      const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value')?.set;
+                      nativeInputValueSetter?.call(input, tip);
+                      input.dispatchEvent(new Event('input', { bubbles: true }));
+                      input.focus();
+                    }
+                  }}
+                  className="px-3 py-1.5 rounded-full text-xs font-medium bg-muted hover:bg-primary/10 hover:text-primary border border-border hover:border-primary/30 transition-all"
+                >
+                  {tip}
+                </button>
+              ))}
+            </div>
           </div>
         ) : filteredProducts.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">

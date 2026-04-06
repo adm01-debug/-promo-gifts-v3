@@ -22,13 +22,14 @@ export const QUOTE_STATUS_CONFIG: Record<string, QuoteStatusConfig> = {
     label: "Rascunho",
     color: "hsl(var(--muted-foreground))",
     badgeVariant: "secondary",
-    badgeClassName: "bg-warning/15 text-warning border-warning/30",
+    badgeClassName: "bg-warning/10 text-warning border-warning/40 border-dashed",
   },
   pending: {
     label: "Pendente",
     color: "hsl(var(--warning))",
     badgeVariant: "outline",
     badgeClassName: "bg-info/15 text-info border-info/30",
+    icon: "pulse",
   },
   sent: {
     label: "Enviado",
@@ -40,13 +41,13 @@ export const QUOTE_STATUS_CONFIG: Record<string, QuoteStatusConfig> = {
     label: "Aprovado",
     color: "hsl(var(--success))",
     badgeVariant: "default",
-    badgeClassName: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    badgeClassName: "bg-success/15 text-success border-success/30",
   },
   converted: {
     label: "Convertido em Pedido",
     color: "hsl(var(--success))",
     badgeVariant: "default",
-    badgeClassName: "bg-emerald-500/15 text-emerald-400 border-emerald-500/30",
+    badgeClassName: "bg-success/15 text-success border-success/30",
   },
   rejected: {
     label: "Rejeitado",

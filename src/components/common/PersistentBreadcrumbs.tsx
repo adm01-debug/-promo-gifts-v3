@@ -1,6 +1,6 @@
-import { forwardRef } from "react";
-import { useLocation, Link } from "react-router-dom";
-import { ChevronRight, Home } from "lucide-react";
+import { forwardRef, useCallback } from "react";
+import { useLocation, useNavigate, Link } from "react-router-dom";
+import { ChevronRight, Home, ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BreadcrumbItem {
@@ -16,7 +16,6 @@ const routeLabels: Record<string, string> = {
   "/filtros": "Super Filtro",
   "/novidades": "Novidades",
   "/colecoes": "Coleções",
-  
   "/orcamentos": "Orçamentos",
   "/pedidos": "Pedidos",
   "/simulador": "Simulador",
@@ -36,15 +35,26 @@ const routeLabels: Record<string, string> = {
 interface PersistentBreadcrumbsProps {
   className?: string;
   showHome?: boolean;
+  showBackButton?: boolean;
   customItems?: BreadcrumbItem[];
 }
 
 export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrumbsProps>(function PersistentBreadcrumbs({ 
   className, 
   showHome = true,
+  showBackButton = false,
   customItems 
 }, ref) {
   const location = useLocation();
+  const navigate = useNavigate();
+  
+  const handleBack = useCallback(() => {
+    if (window.history.length > 2) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  }, [navigate]);
   
   const buildBreadcrumbs = (): BreadcrumbItem[] => {
     if (customItems) return customItems;
@@ -90,6 +100,8 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
   
   const breadcrumbs = buildBreadcrumbs();
   if (breadcrumbs.length === 0) return null;
+
+  const isNotHome = location.pathname !== "/";
   
   return (
     <nav 
@@ -97,10 +109,19 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
       aria-label="Breadcrumb" 
       className={cn(
         "flex items-center text-sm overflow-x-auto scrollbar-hide",
-        "max-w-full",
+        "max-w-full gap-2",
         className
       )}
     >
+      {showBackButton && isNotHome && (
+        <button
+          onClick={handleBack}
+          aria-label="Voltar"
+          className="flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+        >
+          <ArrowLeft className="h-4 w-4" />
+        </button>
+      )}
       <ol className="flex items-center gap-1.5 flex-wrap">
         {breadcrumbs.map((item, index) => {
           const Icon = item.icon;

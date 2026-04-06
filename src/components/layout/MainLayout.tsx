@@ -106,10 +106,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             aria-label="Conteúdo principal"
           >
             <div className="print:hidden">
-              <BackButton className="mb-1" />
-            </div>
-            <div className="print:hidden">
-              <PersistentBreadcrumbs className="mb-4" />
+              <PersistentBreadcrumbs className="mb-4" showBackButton />
             </div>
             
             <Suspense fallback={<div>{children}</div>}>
@@ -119,13 +116,6 @@ export function MainLayout({ children }: MainLayoutProps) {
             </Suspense>
           </main>
           
-          {!isMockupGenerator && (
-            <div className="print:hidden hidden lg:block">
-              <Suspense fallback={null}>
-                <ExpertChatButton />
-              </Suspense>
-            </div>
-          )}
           
           <div className="print:hidden">
             <Suspense fallback={null}>
