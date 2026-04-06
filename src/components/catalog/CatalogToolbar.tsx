@@ -95,7 +95,7 @@ export function CatalogToolbar({
           </SelectContent>
         </Select>
         <div className="hidden sm:block">
-          <StatsPopover stats={statBadges} />
+          <StatsPopover stats={statBadges} isFiltered={activeFiltersCount > 0} />
         </div>
       </div>
 

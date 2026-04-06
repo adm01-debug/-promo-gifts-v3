@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Package, TrendingUp, Users, Layers } from "lucide-react";
+import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react";
 import React from "react";
 
 import { defaultFilters, type FilterState } from "@/components/filters/FilterPanel";
@@ -351,17 +351,16 @@ export function useCatalogState() {
     );
 
     // BUG-002: contextual favorite count — intersection with filtered products
-    const filteredIds = new Set(deduped.map((p) => p.id));
     const contextualFavoriteCount = isFavorite
       ? deduped.filter((p) => isFavorite(p.id)).length
       : favoriteCount;
 
     return [
       { id: "products", label: "Produtos Únicos", value: deduped.length, icon: React.createElement(Package, { className: "h-4 w-4" }) },
-      { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Layers, { className: "h-4 w-4" }) },
-      { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(Layers, { className: "h-4 w-4" }) },
+      { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Palette, { className: "h-4 w-4" }) },
+      { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(FolderTree, { className: "h-4 w-4" }) },
       { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: React.createElement(Users, { className: "h-4 w-4" }) },
-      { id: "favorites", label: "Favoritos", value: contextualFavoriteCount, icon: React.createElement(TrendingUp, { className: "h-4 w-4" }) },
+      { id: "favorites", label: "Favoritos", value: contextualFavoriteCount, icon: React.createElement(Heart, { className: "h-4 w-4" }) },
     ];
   }, [filteredProducts, favoriteCount, isFavorite, externalCategories.length, activeFiltersCount, searchQuery]);
 
