@@ -41,9 +41,12 @@ function calculateStatBadges(
   options: {
     hasActiveFilters?: boolean;
     isFavorite?: (id: string) => boolean;
+    totalEstimate?: number | null;
+    hasNextPage?: boolean;
   } = {}
 ): StatItem[] {
-  const { hasActiveFilters = false, isFavorite } = options;
+  const { hasActiveFilters = false, isFavorite, totalEstimate = null, hasNextPage = false } = options;
+  const isFullCatalogLoaded = !hasNextPage;
 
   // Deduplicate by ID
   const seen = new Set<string>();
@@ -53,11 +56,17 @@ function calculateStatBadges(
     return true;
   });
 
-  // Only count colors with non-empty name
-  const totalVariants = deduped.reduce(
-    (sum, p) => sum + (p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0),
-    0
-  );
+  // FIX: use totalEstimate when unfiltered and still loading
+  const productCount = hasActiveFilters
+    ? deduped.length
+    : (isFullCatalogLoaded ? deduped.length : (totalEstimate ?? deduped.length));
+
+  // Count colors with non-empty name, fallback to variations
+  const totalVariants = deduped.reduce((sum, p) => {
+    const colorCount = p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
+    const variationCount = !colorCount && (p as any).variations?.length ? (p as any).variations.length : 0;
+    return sum + colorCount + variationCount;
+  }, 0);
 
   // Categories from filtered products when filters active
   const uniqueCategoryIds = new Set(
@@ -82,7 +91,7 @@ function calculateStatBadges(
     : favoriteCount;
 
   return [
-    { id: "products", label: "Produtos Únicos", value: deduped.length },
+    { id: "products", label: "Produtos Únicos", value: productCount },
     { id: "variants", label: "Variações", value: totalVariants },
     { id: "categories", label: "Categorias", value: categoriesCount },
     { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size },
