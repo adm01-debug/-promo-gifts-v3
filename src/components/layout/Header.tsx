@@ -270,9 +270,10 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               <DropdownMenuLabel>
                 <div className="flex flex-col">
                   <span className="font-medium">{displayName}</span>
-                  <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-muted-foreground">{user?.email}</span>
+                  <div className="flex items-center gap-1.5 mt-0.5">
                     {isAdmin && <Shield className="h-3 w-3 text-primary" />}
-                    <span className="text-xs text-muted-foreground">{roleLabel}</span>
+                    <span className="text-[11px] text-muted-foreground">{roleLabel}</span>
                   </div>
                 </div>
               </DropdownMenuLabel>
@@ -291,10 +292,26 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
                 <Settings className="h-4 w-4 mr-2" />
                 Configurações
               </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => navigate("/admin/temas")}
+                className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
+              >
+                <Palette className="h-4 w-4 mr-2" />
+                Skins
+              </DropdownMenuItem>
               <DropdownMenuItem className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer">
                 <HelpCircle className="h-4 w-4 mr-2" />
                 Ajuda
               </DropdownMenuItem>
+              {!onboardingLoading && hasCompletedTour && (
+                <DropdownMenuItem
+                  onClick={() => restartTour()}
+                  className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
+                >
+                  <RotateCcw className="h-4 w-4 mr-2" />
+                  Reiniciar Tour
+                </DropdownMenuItem>
+              )}
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive hover:bg-destructive/10 focus:bg-destructive/10 cursor-pointer"
