@@ -139,6 +139,9 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("Error in ai-recommendations:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Erro ao gerar recomendações" }),
