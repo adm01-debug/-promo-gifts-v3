@@ -227,5 +227,5 @@ export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(functi
       </div>
     </div>
   );
-}
+});
 
