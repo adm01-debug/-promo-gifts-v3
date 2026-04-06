@@ -38,7 +38,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
-import { SidebarUserFooter } from "./sidebar/SidebarUserFooter";
+
 import { SidebarNavGroup, type NavGroup } from "./sidebar/SidebarNavGroup";
 
 interface SidebarProps {
@@ -287,8 +287,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
             ))}
           </nav>
 
-          {/* User Profile Footer */}
-          <SidebarUserFooter isCollapsed={isCollapsed} />
+
         </div>
       </aside>
     </>
