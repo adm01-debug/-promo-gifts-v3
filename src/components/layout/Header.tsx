@@ -279,13 +279,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
               </DropdownMenuLabel>
               <DropdownMenuSeparator className="bg-border" />
               <DropdownMenuItem
-                onClick={() => navigate("/perfil")}
-                className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
-              >
-                <User className="h-4 w-4 mr-2" />
-                Meu Perfil
-              </DropdownMenuItem>
-              <DropdownMenuItem
                 onClick={() => navigate("/configuracoes")}
                 className="hover:bg-primary/10 focus:bg-primary/10 cursor-pointer"
               >
