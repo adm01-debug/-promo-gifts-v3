@@ -508,6 +508,7 @@ export function useVariantStock() {
     resetFilters,
     dismissAlert,
     dismissAllAlerts,
+    dismissAlertsBySeverity,
     setFilters,
     
     // Getters
