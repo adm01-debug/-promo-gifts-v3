@@ -167,13 +167,11 @@ export function StockDashboard() {
     alerts,
     criticalAlerts,
     filters,
-    allColors,
     futureStock,
     fetchStockData,
     updateFilter,
     resetFilters,
     dismissAlert,
-    dismissAllAlerts,
     dismissAlertsBySeverity,
   } = useVariantStock();
 
