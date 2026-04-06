@@ -60,14 +60,14 @@ const NotificationTrigger = forwardRef<HTMLButtonElement, TriggerProps>(
       ref={ref}
       variant="ghost"
       size="icon"
-      className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
+      className="relative h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
       {...props}
       aria-label="Alertas de estoque"
     >
       <Tooltip delayDuration={300}>
         <TooltipTrigger asChild>
           <span className="flex items-center justify-center">
-            <Package className="h-4.5 w-4.5" />
+            <Package className="h-[17px] w-[17px]" strokeWidth={1.75} />
           </span>
         </TooltipTrigger>
         <TooltipContent side="bottom" className="text-xs">
