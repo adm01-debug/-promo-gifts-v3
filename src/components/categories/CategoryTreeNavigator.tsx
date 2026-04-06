@@ -220,7 +220,7 @@ export function CategoryTreeNavigator({
             />
             {searchQuery && (
               <button
-                onClick={() = aria-label="Fechar"> setSearchQuery("")}
+                onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded"
               >
                 <X className="h-3.5 w-3.5 text-muted-foreground" />

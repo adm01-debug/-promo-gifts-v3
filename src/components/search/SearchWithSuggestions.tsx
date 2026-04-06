@@ -180,7 +180,7 @@ export function SearchWithSuggestions({
                 "w-full px-3 py-2 text-left text-sm hover:bg-muted transition-colors",
                 selectedIndex === index && "bg-muted"
               )}
-              onClick={() = aria-label="Buscar"> {
+              onClick={() => {
                 setQuery(suggestion);
                 onSearch(suggestion);
                 setIsFocused(false);

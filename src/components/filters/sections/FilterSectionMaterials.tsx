@@ -108,7 +108,7 @@ export function FilterSectionMaterials({
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input placeholder="Buscar material ou grupo..." value={materialSearch} onChange={(e) => setMaterialSearch(e.target.value)} className="h-8 text-sm pl-8 pr-8" />
           {materialSearch && (
-            <button type="button" onClick={() = aria-label="Fechar"> setMaterialSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+            <button type="button" onClick={() => setMaterialSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
               <X className="h-3.5 w-3.5" />
             </button>
           )}
@@ -149,7 +149,7 @@ export function FilterSectionMaterials({
                   return (
                     <div key={group.group_id} className={cn("rounded-lg overflow-hidden transition-all duration-200", hasAnySelection ? "bg-gradient-to-r from-primary/10 to-primary/5 ring-1 ring-primary/30" : "bg-muted/30 hover:bg-muted/50")}>
                       <div className="flex items-center gap-2 p-2.5">
-                        <button type="button" onClick={() = aria-label="Recolher"> onToggleSection(`mat-${group.group_slug}`)} className={cn("p-1 rounded-md transition-all duration-200", matSectionOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80")}>
+                        <button type="button" onClick={() => onToggleSection(`mat-${group.group_slug}`)} className={cn("p-1 rounded-md transition-all duration-200", matSectionOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80")}>
                           <ChevronDown className={cn("h-3.5 w-3.5 transition-transform duration-200", matSectionOpen ? "rotate-180 text-primary" : "text-muted-foreground")} />
                         </button>
                         <div className="flex items-center gap-2.5 flex-1 min-w-0">

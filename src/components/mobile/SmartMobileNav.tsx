@@ -120,7 +120,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                 <div className="flex items-center justify-between mb-3">
                   <h3 className="font-display font-semibold text-foreground">Ações Rápidas</h3>
                   <button
-                    onClick={() = aria-label="Fechar"> setFabOpen(false)}
+                    onClick={() => setFabOpen(false)}
                     className="p-1.5 rounded-full hover:bg-muted transition-colors"
                     aria-label="Fechar menu"
                   >

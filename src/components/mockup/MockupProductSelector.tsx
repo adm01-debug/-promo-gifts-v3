@@ -202,7 +202,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
           />
           {searchQuery && (
             <button
-              onClick={() = aria-label="Fechar"> setSearchQuery("")}
+              onClick={() => setSearchQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >
               <X className="h-4 w-4" />

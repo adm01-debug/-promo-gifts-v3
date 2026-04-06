@@ -139,7 +139,7 @@ export function AdvancedFilterPanel({
           <div className="relative">
             <Input placeholder="Nome, SKU, descrição..." value={filters.search} onChange={(e) => updateFilter('search', e.target.value)} className="pr-8" />
             {filters.search && (
-              <button onClick={() = aria-label="Fechar"> updateFilter('search', '')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <button onClick={() => updateFilter('search', '')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                 <X className="h-4 w-4" />
               </button>
             )}

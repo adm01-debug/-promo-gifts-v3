@@ -194,7 +194,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
         {search && (
           <button
             type="button"
-            onClick={() = aria-label="Fechar"> setSearch('')}
+            onClick={() => setSearch('')}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />
@@ -237,7 +237,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
                 <div className="flex items-center gap-2 p-2.5">
                   <button
                     type="button"
-                    onClick={() = aria-label="Recolher"> toggleGroup(ramo.id)}
+                    onClick={() => toggleGroup(ramo.id)}
                     className={cn(
                       "p-1 rounded-md transition-all duration-200",
                       isOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80"
