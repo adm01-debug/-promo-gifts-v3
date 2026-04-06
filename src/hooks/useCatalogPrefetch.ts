@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/contexts/AuthContext';
 import { invokeBatchBridge } from '@/lib/external-db';
-import { mapLightweightToProduct } from '@/hooks/useProductsLightweight';
+import { mapLightweightToProduct, PRODUCT_SELECT_LIGHTWEIGHT, CATALOG_PAGE_SIZE, CATALOG_BATCH_PAGES } from '@/hooks/useProductsLightweight';
 
 /**
  * Prefetch do catálogo SOMENTE após autenticação (#6).
@@ -20,15 +20,15 @@ export function useCatalogPrefetch() {
     queryClient.prefetchInfiniteQuery({
       queryKey: ['promobrind-products-catalog', ''],
       queryFn: async () => {
-        const batchQueries = Array.from({ length: 4 }, (_, i) => ({
+        const batchQueries = Array.from({ length: CATALOG_BATCH_PAGES }, (_, i) => ({
           table: 'products',
           operation: 'select' as const,
-          select: 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity',
+          select: PRODUCT_SELECT_LIGHTWEIGHT,
           filters: { active: true },
           orderBy: { column: 'name', ascending: true },
-          limit: 500,
-          offset: i * 500,
-          ...(i === 0 ? { countMode: 'planned' } : {}),
+          limit: CATALOG_PAGE_SIZE,
+          offset: i * CATALOG_PAGE_SIZE,
+          ...(i === 0 ? { countMode: 'exact' } : {}),
         }));
         const batchResults = await invokeBatchBridge(batchQueries);
         const products: ReturnType<typeof mapLightweightToProduct>[] = [];
@@ -45,7 +45,7 @@ export function useCatalogPrefetch() {
         }
         return {
           products,
-          nextOffset: lastPageSize === 500 ? 2000 : null,
+          nextOffset: lastPageSize === CATALOG_PAGE_SIZE ? CATALOG_BATCH_PAGES * CATALOG_PAGE_SIZE : null,
           totalEstimate,
         };
       },
