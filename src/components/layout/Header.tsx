@@ -41,6 +41,7 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
   const compareCount = useComparisonStore((s) => s.compareCount);
   const { user, profile, role, isAdmin, signOut } = useAuth();
   const currentSection = useCurrentSection();
+  const { restartTour, hasCompletedTour, isLoading: onboardingLoading } = useOnboardingContext();
 
   const isScrolled = useIsScrolled(20);
 
