@@ -510,7 +510,7 @@ export default function ProductDetail() {
                         isFavorite && "text-destructive"
                       )}
                     >
-                      <Heart className={cn("h-3.5 w-3.5 transition-all", isFavorite && "fill-destructive text-destructive")} />
+                      <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
                       {isFavorite ? "Favoritado" : "Favoritar"}
                     </Button>
                   </div>
