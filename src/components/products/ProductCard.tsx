@@ -40,7 +40,7 @@ export interface ProductCardProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export const ProductCard = memo(function ProductCard({ 
+export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(function ProductCard({ 
   product, 
   onClick, 
   onView, 
@@ -56,7 +56,7 @@ export const ProductCard = memo(function ProductCard({
   isNovelty = false,
   noveltyDaysRemaining,
   activeColorFilter,
-}: ProductCardProps) {
+}, ref) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
