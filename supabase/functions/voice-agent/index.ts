@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 const TranscriptSchema = z.object({
   transcript: z.string().min(1, 'transcript cannot be empty').max(1000, 'transcript too long'),
