@@ -117,7 +117,9 @@ function StatCard({
       className={cn(
         "relative overflow-hidden transition-all duration-200", 
         variantStyles[variant],
-        onClick && "cursor-pointer hover:shadow-md hover:border-destructive/40"
+        onClick && "cursor-pointer hover:shadow-md",
+        onClick && variant === 'error' && "hover:border-destructive/40",
+        onClick && variant === 'warning' && "hover:border-warning/40",
       )} 
       role="status" 
       aria-label={`${title}: ${value}`}
