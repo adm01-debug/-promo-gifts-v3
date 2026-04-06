@@ -1,11 +1,13 @@
 /**
  * useCatalogRealStats — Fetches real aggregate counts from the external DB
- * for variants, categories, and suppliers (data not available in lightweight loader).
+ * for products, variants, categories, and suppliers.
+ * Single batch call, cached for 30 minutes.
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeBatchBridge } from '@/lib/external-db/bridge';
 
-interface CatalogRealStats {
+export interface CatalogRealStats {
+  totalProducts: number;
   totalVariants: number;
   totalCategories: number;
   totalSuppliers: number;
@@ -23,9 +25,18 @@ function isHiddenCategory(name: string): boolean {
 
 export function useCatalogRealStats() {
   return useQuery<CatalogRealStats>({
-    queryKey: ['catalog-real-stats', 'v1'],
+    queryKey: ['catalog-real-stats', 'v2'],
     queryFn: async () => {
       const queries = [
+        {
+          table: 'products',
+          operation: 'select' as const,
+          select: 'id',
+          filters: { active: true },
+          limit: 1,
+          offset: 0,
+          countMode: 'exact',
+        },
         {
           table: 'product_variants',
           operation: 'select' as const,
@@ -58,33 +69,39 @@ export function useCatalogRealStats() {
       try {
         const results = await invokeBatchBridge(queries);
 
-        // Variants count
-        const variantsCount = results[0]?.success && results[0]?.data?.count != null
+        // Products count
+        const productsCount = results[0]?.success && results[0]?.data?.count != null
           ? (results[0].data.count as number)
+          : 0;
+
+        // Variants count
+        const variantsCount = results[1]?.success && results[1]?.data?.count != null
+          ? (results[1].data.count as number)
           : 0;
 
         // Categories — filter hidden ones
         let categoriesCount = 0;
-        if (results[1]?.success && results[1]?.data?.records) {
-          const allCategories = results[1].data.records as Array<{ id: string; name: string }>;
+        if (results[2]?.success && results[2]?.data?.records) {
+          const allCategories = results[2].data.records as Array<{ id: string; name: string }>;
           const visible = allCategories.filter(c => !isHiddenCategory(c.name || ''));
           categoriesCount = visible.length;
-        } else if (results[1]?.success && results[1]?.data?.count != null) {
-          categoriesCount = results[1].data.count as number;
+        } else if (results[2]?.success && results[2]?.data?.count != null) {
+          categoriesCount = results[2].data.count as number;
         }
 
         // Suppliers count
-        const suppliersCount = results[2]?.success && results[2]?.data?.count != null
-          ? (results[2].data.count as number)
+        const suppliersCount = results[3]?.success && results[3]?.data?.count != null
+          ? (results[3].data.count as number)
           : 0;
 
         return {
+          totalProducts: productsCount,
           totalVariants: variantsCount,
           totalCategories: categoriesCount,
           totalSuppliers: suppliersCount,
         };
       } catch {
-        return { totalVariants: 0, totalCategories: 0, totalSuppliers: 0 };
+        return { totalProducts: 0, totalVariants: 0, totalCategories: 0, totalSuppliers: 0 };
       }
     },
     staleTime: 30 * 60 * 1000,
