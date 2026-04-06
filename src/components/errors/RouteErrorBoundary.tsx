@@ -1,7 +1,7 @@
 import { useRouteError, isRouteErrorResponse, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Home, RefreshCw, ArrowLeft, WifiOff, Lock, FileQuestion } from "lucide-react";
+import { AlertTriangle, Home, RefreshCw, ArrowLeft, WifiOff, Lock, FileQuestion, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ErrorDetails {
