@@ -309,12 +309,25 @@ export function QuotesConfigurableList({
             {quote.created_at ? format(new Date(quote.created_at), "HH:mm", { locale: ptBR }) : "—"}
           </span>
         );
-      case "delivery":
+      case "delivery": {
+        const full = quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—";
+        // Compact: "28 dias após aprovação" → "28d"
+        const compact = quote.delivery_time
+          ? quote.delivery_time.startsWith("date:")
+            ? full
+            : full.replace(/\s*dias?\s*após\s*aprovação/i, "d").replace(/\s*dias?\s*úteis/i, "d")
+          : "—";
         return (
-          <span className="text-xs text-muted-foreground truncate block">
-            {quote.delivery_time ? formatDeliveryTime(quote.delivery_time) : "—"}
-          </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="text-xs text-muted-foreground truncate block cursor-default">
+                {compact}
+              </span>
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs">{full}</TooltipContent>
+          </Tooltip>
         );
+      }
       default:
         return null;
     }
