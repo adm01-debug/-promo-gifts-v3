@@ -32,6 +32,7 @@ import {
   BarChart3,
   Crosshair,
   ChevronsDownUp,
+  Settings,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
