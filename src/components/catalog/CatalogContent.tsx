@@ -352,6 +352,28 @@ export function CatalogContent({
     );
   }
 
+  if (viewMode === "table") {
+    return (
+      <div className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
+        <ProductTableView
+          products={paginatedProducts}
+          onProductClick={(productId) => navigate(`/produto/${productId}`)}
+          isFavorite={isFavorite}
+          onToggleFavorite={toggleFavorite}
+          isInCompare={isInCompare}
+          onToggleCompare={onToggleCompare}
+        />
+        {hasMoreProducts && (
+          <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
+            <p className="text-sm text-muted-foreground">
+              Mostrando {paginatedProducts.length} de {totalEstimate ? totalEstimate.toLocaleString("pt-BR") : filteredProducts.length.toLocaleString("pt-BR")} produtos
+            </p>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   // Grid mode → virtualized
   return (
     <SparklineSalesProvider productIds={sparklineProductIds}>
