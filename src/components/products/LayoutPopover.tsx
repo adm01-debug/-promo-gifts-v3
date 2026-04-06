@@ -38,12 +38,12 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
           {/* View Mode */}
           <div>
             <p className="text-xs font-medium text-muted-foreground mb-2">Visualização</p>
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary">
+            <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary overflow-hidden">
               <Button
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs",
+                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
                   viewMode === "grid" && "bg-card shadow-sm"
                 )}
                 onClick={() => setViewMode("grid")}
@@ -55,7 +55,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs",
+                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
                   viewMode === "list" && "bg-card shadow-sm"
                 )}
                 onClick={() => setViewMode("list")}
@@ -67,7 +67,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs",
+                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
                   viewMode === "table" && "bg-card shadow-sm"
                 )}
                 onClick={() => setViewMode("table")}
