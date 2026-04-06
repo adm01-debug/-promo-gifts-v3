@@ -246,7 +246,7 @@ export default function ProductDetail() {
         <div className="grid min-w-0 overflow-x-hidden lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] gap-4 lg:gap-6 xl:gap-8">
           
           {/* LEFT — Gallery (sticky on desktop) */}
-          <div className="min-w-0 lg:sticky lg:top-20 lg:self-start space-y-3">
+          <div className="min-w-0 lg:sticky lg:top-20 lg:self-start space-y-3 pb-4">
             <ProductGallery
               images={displayImages}
               video={product.video}
