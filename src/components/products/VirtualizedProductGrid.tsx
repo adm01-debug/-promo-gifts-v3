@@ -197,8 +197,8 @@ export function VirtualizedProductGrid({
             }
 
             // Get products for this row
-            const startIndex = virtualRow.index * columns;
-            const rowProducts = products.slice(startIndex, startIndex + columns);
+            const startIndex = virtualRow.index * effectiveColumns;
+            const rowProducts = products.slice(startIndex, startIndex + effectiveColumns);
 
             return (
               <div
@@ -211,25 +211,29 @@ export function VirtualizedProductGrid({
                   left: 0,
                   width: "100%",
                   transform: `translateY(${virtualRow.start}px)`,
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                  columnGap: `${colGapPx}px`,
-                  paddingLeft: "0.5rem",
-                  paddingRight: "1.5rem",
-                  paddingBottom: `${rowGapPx}px`,
-                  isolation: "isolate",
+                  ...(viewMode === "list"
+                    ? {
+                        display: "flex",
+                        flexDirection: "column" as const,
+                        paddingLeft: "0.5rem",
+                        paddingRight: "1.5rem",
+                        paddingBottom: `${rowGapPx}px`,
+                      }
+                    : {
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${effectiveColumns}, minmax(0, 1fr))`,
+                        columnGap: `${colGapPx}px`,
+                        paddingLeft: "0.5rem",
+                        paddingRight: "1.5rem",
+                        paddingBottom: `${rowGapPx}px`,
+                        isolation: "isolate",
+                      }),
                 }}
               >
-                {rowProducts.map((product, colIndex) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: colIndex * 0.05 }}
-                    className="relative"
-                    style={{ zIndex: 1 }} // Base z-index para cada card
-                  >
-                    <ProductCard
+                {rowProducts.map((product, colIndex) =>
+                  viewMode === "list" ? (
+                    <ProductListItem
+                      key={product.id}
                       product={product}
                       onClick={() => onProductClick?.(product)}
                       isFavorited={isFavorited?.(product.id)}
@@ -237,11 +241,31 @@ export function VirtualizedProductGrid({
                       isInCompare={isInCompare?.(product.id)}
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
-                      hideCategoryBadges
                       activeColorFilter={activeColorFilter}
                     />
-                  </motion.div>
-                ))}
+                  ) : (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: colIndex * 0.05 }}
+                      className="relative"
+                      style={{ zIndex: 1 }}
+                    >
+                      <ProductCard
+                        product={product}
+                        onClick={() => onProductClick?.(product)}
+                        isFavorited={isFavorited?.(product.id)}
+                        onToggleFavorite={onToggleFavorite}
+                        isInCompare={isInCompare?.(product.id)}
+                        onToggleCompare={onToggleCompare}
+                        canAddToCompare={canAddToCompare}
+                        hideCategoryBadges
+                        activeColorFilter={activeColorFilter}
+                      />
+                    </motion.div>
+                  )
+                )}
               </div>
             );
           })}
