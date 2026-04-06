@@ -92,7 +92,7 @@ class EnhancedErrorBoundary extends Component<Props, State> {
                 <Home className="h-4 w-4" />
                 Início
               </button>
-              <button
+              <button aria-label="Atualizar"
                 onClick={this.handleReload}
                 className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground shadow-sm transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                aria-label="Atualizar">

@@ -267,7 +267,7 @@ export function StockAlertsIndicator({
             sideOffset={8}
           >
             {/* Close */}
-            <button
+            <button aria-label="Fechar"
               className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
               onClick={() => setIsOpen(false)}
             >

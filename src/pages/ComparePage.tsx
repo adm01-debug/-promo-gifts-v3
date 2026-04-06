@@ -195,7 +195,7 @@ export default function ComparePage() {
                       <span className="text-lg font-bold text-primary">
                         {formatCurrency(product.price)}
                       </span>
-                      <button
+                      <button aria-label="Fechar"
                         onClick={() => removeFromCompare(product.id)}
                         className="p-1 rounded-full hover:bg-destructive/20 transition-colors"
                       >
@@ -260,7 +260,7 @@ export default function ComparePage() {
                           className="min-w-[200px] text-center"
                         >
                           <div className="relative group">
-                            <button
+                            <button aria-label="Fechar"
                               onClick={() => removeFromCompare(product.id)}
                               className="absolute -top-1 -right-1 p-1 rounded-full bg-background border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 z-10"
                             >

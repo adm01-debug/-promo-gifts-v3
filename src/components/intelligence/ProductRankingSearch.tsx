@@ -169,7 +169,7 @@ export function ProductRankingSearch() {
               className="pl-9 h-9 text-sm"
             />
             {searchTerm && (
-              <button
+              <button aria-label="Fechar"
                 onClick={() => { setSearchTerm(""); setDebouncedSearch(""); }}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >

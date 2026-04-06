@@ -186,7 +186,7 @@ export function GroupLocationCard({
                   {lt.is_default && <Check className="h-2 w-2" />}
                   {lt.technique?.name}
                   {lt.max_colors && <span className="opacity-70">({lt.max_colors} cores)</span>}
-                  <button
+                  <button aria-label="Fechar"
                     className="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
                     onClick={(e) => { e.stopPropagation(); onDeleteTechnique(lt.id); }}
                   >

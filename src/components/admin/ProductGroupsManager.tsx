@@ -413,7 +413,7 @@ export function ProductGroupsManager() {
                             >
                               {product?.name || "Produto"}
                               <span className="text-xs opacity-70">({product?.sku})</span>
-                              <button
+                              <button aria-label="Excluir"
                                 className="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
                                 onClick={() => removeMemberMutation.mutate(member.id)}
                               >

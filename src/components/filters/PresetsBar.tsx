@@ -225,7 +225,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                     )}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <button
+                        <button aria-label="Mais opções"
                           className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded shrink-0"
                           onClick={(e) => e.stopPropagation()}
                         >

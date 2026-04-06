@@ -153,7 +153,7 @@ export function AdImageResult({
                       </button>
                     )}
                     {onDeleteHistory && (
-                      <button
+                      <button aria-label="Excluir"
                         onClick={(e) => { e.stopPropagation(); onDeleteHistory(item.id); }}
                         className="p-1 rounded bg-white/20 hover:bg-destructive/50"
                       >
