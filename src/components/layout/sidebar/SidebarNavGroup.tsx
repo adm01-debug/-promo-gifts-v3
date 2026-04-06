@@ -20,6 +20,8 @@ export interface NavItem {
   isCta?: boolean;
   exact?: boolean;
   children?: NavItem[];
+  /** Keyboard shortcut hint (e.g. "Alt+P") */
+  shortcut?: string;
 }
 
 export interface NavGroup {
