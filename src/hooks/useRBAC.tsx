@@ -2,6 +2,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
+import { logger } from '@/lib/logger';
 
 export type RoleName = 'admin' | 'manager' | 'seller';
 
@@ -57,7 +58,7 @@ export function useRBAC() {
         .eq('role', dbRole);
 
       if (error) {
-        console.warn('Failed to fetch role permissions, using fallback:', error.message);
+        logger.warn('Failed to fetch role permissions, using fallback:', error.message);
         return null;
       }
       return data.map((row: { permission_code: string }) => row.permission_code);

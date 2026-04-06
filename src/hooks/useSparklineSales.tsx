@@ -6,6 +6,7 @@
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalDb } from "@/lib/external-db";
+import { logger } from '@/lib/logger';
 
 // Per-product sparkline data
 export interface SparklineSalesData {
@@ -92,7 +93,7 @@ async function fetchSupplierSparklineBatch(productIds: string[]): Promise<Sparkl
       });
       allRecords.push(...(result.records || []));
     } catch (err) {
-      console.warn('[sparkline] Failed to fetch stock_daily_summary batch:', err);
+      logger.warn('[sparkline] Failed to fetch stock_daily_summary batch:', err);
     }
   }
 

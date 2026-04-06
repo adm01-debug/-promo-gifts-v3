@@ -11,6 +11,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
 import type { Product } from '@/types/product-catalog';
+import { logger } from '@/lib/logger';
 
 export interface SimilarProductItem {
   id: string;
@@ -103,7 +104,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
           if (items.length > 0) return items;
         }
       } catch (err) {
-        console.warn('[useSimilarProducts] product_relationships query failed, trying groups:', err);
+        logger.warn('[useSimilarProducts] product_relationships query failed, trying groups:', err);
       }
 
       // 2. Try product_group_members (group-based siblings)
@@ -146,7 +147,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
           }
         }
       } catch (err) {
-        console.warn('[useSimilarProducts] product_group_members query failed, using fallback:', err);
+        logger.warn('[useSimilarProducts] product_group_members query failed, using fallback:', err);
       }
 
       // 3. Fallback: fetch related products from same supplier or category (lightweight)
@@ -171,7 +172,7 @@ export function useSimilarProducts(product: Product | null | undefined) {
           .filter(p => p.id !== productId && p.sale_price > 0)
           .map(mapLightweightToSimilarItem);
       } catch (err) {
-        console.warn('[useSimilarProducts] Fallback query failed:', err);
+        logger.warn('[useSimilarProducts] Fallback query failed:', err);
         return [];
       }
     },

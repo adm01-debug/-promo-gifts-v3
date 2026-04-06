@@ -18,6 +18,7 @@ import { MOCK_BOXES, MOCK_ITEMS } from '@/lib/kit-builder/mock-data';
 
 // Import transformers from the main hook file
 import { transformToKitBox, transformToKitItem } from './useKitBuilderTransformers';
+import { logger } from '@/lib/logger';
 
 function filterBoxes(boxes: KitBox[], search: string | null, dimFilters?: Omit<BoxFilters, 'search'>): KitBox[] {
   let filtered = boxes;
@@ -108,7 +109,7 @@ export function useKitBuilderQueries() {
 
         return filterBoxes(boxes, null, boxDimFilters);
       } catch (err) {
-        console.warn('[KitBuilder] External DB unavailable for boxes, using mock data', err);
+        logger.warn('[KitBuilder] External DB unavailable for boxes, using mock data', err);
         return filterBoxes(MOCK_BOXES, debouncedBoxSearch, boxDimFilters);
       }
     },
@@ -145,7 +146,7 @@ export function useKitBuilderQueries() {
 
         return items;
       } catch (err) {
-        console.warn('[KitBuilder] External DB unavailable for items, using mock data', err);
+        logger.warn('[KitBuilder] External DB unavailable for items, using mock data', err);
         return filterItems(MOCK_ITEMS, debouncedItemSearch);
       }
     },

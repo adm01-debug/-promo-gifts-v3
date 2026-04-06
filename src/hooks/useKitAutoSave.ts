@@ -9,6 +9,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import type { KitState } from '@/lib/kit-builder';
 import { toast } from 'sonner';
+import { logger } from '@/lib/logger';
 
 const AUTO_SAVE_DELAY_MS = 5000;
 
@@ -77,7 +78,7 @@ export function useKitAutoSave(
       }
       setLastSavedAt(new Date());
     } catch (err) {
-      console.warn('[auto-save] Failed:', err);
+      logger.warn('[auto-save] Failed:', err);
     } finally {
       setIsSaving(false);
     }

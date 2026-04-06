@@ -8,6 +8,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db';
 import { useCallback } from 'react';
+import { logger } from '@/lib/logger';
 
 export interface SupplierFiscalData {
   // From variant_supplier_sources
@@ -173,7 +174,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
               branchData = branchResult.records[0];
             }
           } catch (err) {
-            console.warn('[useSupplierFiscalData] Failed to fetch branch data:', err);
+            logger.warn('[useSupplierFiscalData] Failed to fetch branch data:', err);
           }
         }
 
@@ -216,7 +217,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
           return result;
         }
       } catch (err) {
-        console.warn('[useSupplierFiscalData] Failed to fetch branch defaults for inheritance:', err);
+        logger.warn('[useSupplierFiscalData] Failed to fetch branch defaults for inheritance:', err);
       }
 
       return null;
@@ -238,7 +239,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
 
       // If no variant exists, create a default one for this product
       if (!variantId) {
-        console.log('[saveFiscalOverride] No variant found, creating default variant for product:', productId);
+        logger.log('[saveFiscalOverride] No variant found, creating default variant for product:', productId);
         try {
           const createResult = await invokeExternalDb<{ id: string }>({
             table: 'product_variants',
@@ -308,7 +309,7 @@ export function useSupplierFiscalData(productId: string | undefined, supplierId:
             organizationId = orgResult.records[0].organization_id;
           }
         } catch (e) {
-          console.warn('[saveFiscalOverride] Could not fetch org_id from existing VSS:', e);
+          logger.warn('[saveFiscalOverride] Could not fetch org_id from existing VSS:', e);
         }
 
         // Create new VSS with supplier_branch_id from inherited data
