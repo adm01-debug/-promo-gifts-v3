@@ -99,6 +99,7 @@ export default function Index() {
               onToggleCompare={catalog.toggleCompare}
               canAddToCompare={catalog.canAddMore}
               onLoadMore={catalog.loadMore}
+              onResetFilters={catalog.resetFilters}
             />
           </div>
         </div>
