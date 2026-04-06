@@ -20,6 +20,8 @@ export interface NavItem {
   isCta?: boolean;
   exact?: boolean;
   children?: NavItem[];
+  /** Keyboard shortcut hint (e.g. "Alt+P") */
+  shortcut?: string;
 }
 
 export interface NavGroup {
@@ -169,9 +171,14 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           )}
         />
         {!isCollapsed && (
-          <span className={cn("truncate text-sm", isCta && !isActive && "text-orange/80 font-medium")}>
+          <span className={cn("truncate text-sm flex-1", isCta && !isActive && "text-orange/80 font-medium")}>
             {item.label}
           </span>
+        )}
+        {!isCollapsed && item.shortcut && (
+          <kbd className="ml-auto text-[9px] text-muted-foreground/40 font-mono bg-muted/30 px-1 py-0.5 rounded hidden lg:inline-block">
+            {item.shortcut}
+          </kbd>
         )}
         {!isCollapsed && item.badge != null && (
           <span className="ml-auto bg-orange/15 text-orange text-[10px] font-semibold px-1.5 py-0.5 rounded-full min-w-[20px] text-center">
@@ -188,12 +195,19 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
             <div>{linkContent}</div>
           </TooltipTrigger>
           <TooltipContent side="right" className="bg-card border-border z-[100]">
-            <span>{item.label}</span>
-            {item.badge != null && (
-              <span className="ml-2 bg-orange/15 text-orange text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
-                {item.badge}
-              </span>
-            )}
+            <div className="flex items-center gap-2">
+              <span>{item.label}</span>
+              {item.shortcut && (
+                <kbd className="text-[9px] text-muted-foreground/60 font-mono bg-muted/50 px-1 py-0.5 rounded">
+                  {item.shortcut}
+                </kbd>
+              )}
+              {item.badge != null && (
+                <span className="bg-orange/15 text-orange text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </div>
           </TooltipContent>
         </Tooltip>
       );

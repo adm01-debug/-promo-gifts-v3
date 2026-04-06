@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Package,
   Users,
@@ -53,8 +53,8 @@ const navGroups: NavGroup[] = [
     icon: Package,
     defaultOpen: true,
     items: [
-      { icon: Package, label: "Produtos", href: "/", tourId: "products" },
-      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros" },
+      { icon: Package, label: "Produtos", href: "/", tourId: "products", shortcut: "Alt+P" },
+      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros", shortcut: "Alt+F" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: Layers, label: "Estoque", href: "/estoque" },
@@ -68,9 +68,9 @@ const navGroups: NavGroup[] = [
     icon: Wrench,
     defaultOpen: false,
     items: [
-      { icon: ImagePlus, label: "Mockup", href: "/mockup-generator" },
+      { icon: ImagePlus, label: "Mockup", href: "/mockup-generator", shortcut: "Alt+M" },
       { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
-      { icon: Calculator, label: "Simulador", href: "/simulador" },
+      { icon: Calculator, label: "Simulador", href: "/simulador", shortcut: "Alt+S" },
       { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
       { icon: Boxes, label: "Montador de Kits", href: "/montar-kit" },
@@ -94,8 +94,8 @@ const navGroups: NavGroup[] = [
     icon: FileText,
     defaultOpen: true,
     items: [
-      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true },
-      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true },
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
+      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
     ],
   },
   {
@@ -122,6 +122,7 @@ const navGroups: NavGroup[] = [
 export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   function SidebarReorganized({ isOpen, onToggle }, ref) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isItemActive = (href: string, exact?: boolean) => {
     if (href === "/" || exact) return location.pathname === href;
@@ -156,6 +157,31 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       return collapsed;
     });
   };
+
+  // Global keyboard shortcuts for navigation
+  useEffect(() => {
+    const shortcutMap: Record<string, string> = {};
+    navGroups.forEach(g => g.items.forEach(item => {
+      if (item.shortcut) {
+        const key = item.shortcut.replace("Alt+", "").toLowerCase();
+        shortcutMap[key] = item.href;
+      }
+    }));
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+        const href = shortcutMap[e.key.toLowerCase()];
+        if (href) {
+          e.preventDefault();
+          navigate(href);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [navigate]);
 
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 
