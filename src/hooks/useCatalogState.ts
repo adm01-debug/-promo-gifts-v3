@@ -316,23 +316,54 @@ export function useCatalogState() {
     return () => { observerRef.current?.disconnect(); };
   }, [isLoading, hasMoreProducts, isLoadingMore, loadMore]);
 
-  // Stats
+  // Stats — contextual to filtered products
   const statBadges = useMemo(() => {
-    const totalVariants = filteredProducts.reduce((sum, p) => sum + (p.colors?.length || 0), 0);
-    const uniqueCategoryIds = new Set(
-      filteredProducts.map((p) => p.category_id || (p.category?.id ? String(p.category.id) : "")).filter((id) => id && id !== "0")
+    // BUG-004/EDGE-004: deduplicate products by ID
+    const seen = new Set<string>();
+    const deduped = filteredProducts.filter((p) => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
+
+    // EDGE-003: only count colors with a non-empty name
+    const totalVariants = deduped.reduce(
+      (sum, p) => sum + (p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0),
+      0
     );
-    const uniqueSuppliers = new Set(filteredProducts.map(p => p.supplier?.name).filter(Boolean).filter(n => n !== "Sem fornecedor"));
-    const categoriesCount = externalCategories.length || uniqueCategoryIds.size;
+
+    // BUG-001/BUG-004: categories from filtered products, not global externalCategories
+    const uniqueCategoryIds = new Set(
+      deduped
+        .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ""))
+        .filter((id) => id && id !== "0")
+    );
+    const hasActiveFilters = activeFiltersCount > 0 || searchQuery.trim().length > 0;
+    const categoriesCount = hasActiveFilters
+      ? uniqueCategoryIds.size
+      : externalCategories.length || uniqueCategoryIds.size;
+
+    // BUG-003/EDGE-001: case-insensitive supplier dedup, trim whitespace
+    const uniqueSuppliers = new Set(
+      deduped
+        .map((p) => p.supplier?.name?.trim().toLowerCase())
+        .filter((n): n is string => !!n && n !== "sem fornecedor")
+    );
+
+    // BUG-002: contextual favorite count — intersection with filtered products
+    const filteredIds = new Set(deduped.map((p) => p.id));
+    const contextualFavoriteCount = isFavorite
+      ? deduped.filter((p) => isFavorite(p.id)).length
+      : favoriteCount;
 
     return [
-      { id: "products", label: "Produtos Únicos", value: filteredProducts.length, icon: React.createElement(Package, { className: "h-4 w-4" }) },
+      { id: "products", label: "Produtos Únicos", value: deduped.length, icon: React.createElement(Package, { className: "h-4 w-4" }) },
       { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Layers, { className: "h-4 w-4" }) },
       { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(Layers, { className: "h-4 w-4" }) },
       { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: React.createElement(Users, { className: "h-4 w-4" }) },
-      { id: "favorites", label: "Favoritos", value: favoriteCount, icon: React.createElement(TrendingUp, { className: "h-4 w-4" }) },
+      { id: "favorites", label: "Favoritos", value: contextualFavoriteCount, icon: React.createElement(TrendingUp, { className: "h-4 w-4" }) },
     ];
-  }, [filteredProducts, favoriteCount, externalCategories.length]);
+  }, [filteredProducts, favoriteCount, isFavorite, externalCategories.length, activeFiltersCount, searchQuery]);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
