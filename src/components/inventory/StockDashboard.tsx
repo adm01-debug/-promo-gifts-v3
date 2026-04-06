@@ -18,6 +18,12 @@ import {
   Palette,
   Loader2,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -89,13 +95,15 @@ function StatCard({
   value, 
   icon, 
   trend, 
-  variant = 'default' 
+  variant = 'default',
+  onClick,
 }: { 
   title: string; 
   value: number | string; 
   icon: React.ReactNode;
   trend?: { value: number; label: string };
   variant?: 'default' | 'success' | 'warning' | 'error';
+  onClick?: () => void;
 }) {
   const variantStyles = {
     default: 'bg-card',
@@ -105,7 +113,16 @@ function StatCard({
   };
 
   return (
-    <Card className={cn("relative overflow-hidden", variantStyles[variant])} role="status" aria-label={`${title}: ${value}`}>
+    <Card 
+      className={cn(
+        "relative overflow-hidden transition-all duration-200", 
+        variantStyles[variant],
+        onClick && "cursor-pointer hover:shadow-md hover:border-destructive/40"
+      )} 
+      role="status" 
+      aria-label={`${title}: ${value}`}
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -166,6 +183,7 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
 // ============================================
 
 export function StockDashboard() {
+  const [outOfStockDialogOpen, setOutOfStockDialogOpen] = useState(false);
   const {
     isLoading,
     isFetching,
@@ -238,29 +256,29 @@ export function StockDashboard() {
         </Button>
       </div>
 
-      {/* Alertas Críticos */}
-      {criticalAlerts.length > 0 && (
-        <Card className="border-destructive/30 bg-destructive/5">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-                Alertas Críticos ({criticalAlerts.length})
-              </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-                onClick={dismissAllAlerts}
-                aria-label="Dispensar todos os alertas"
-              >
-                <X className="h-3.5 w-3.5" />
-                Limpar Todos
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <ScrollArea className="max-h-[280px]">
+      {/* Dialog de Alertas Sem Estoque */}
+      <Dialog open={outOfStockDialogOpen} onOpenChange={setOutOfStockDialogOpen}>
+        <DialogContent className="max-w-5xl max-h-[85vh]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <AlertTriangle className="h-5 w-5" />
+              Alertas Críticos ({criticalAlerts.length})
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-end">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+              onClick={dismissAllAlerts}
+              aria-label="Dispensar todos os alertas"
+            >
+              <X className="h-3.5 w-3.5" />
+              Limpar Todos
+            </Button>
+          </div>
+          <ScrollArea className="max-h-[60vh]">
+            {criticalAlerts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
                 {criticalAlerts.map(alert => (
                   <AlertCard 
@@ -270,10 +288,16 @@ export function StockDashboard() {
                   />
                 ))}
               </div>
-            </ScrollArea>
-          </CardContent>
-        </Card>
-      )}
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <CheckCircle2 className="h-12 w-12 mb-3 text-success" />
+                <p className="font-medium">Nenhum alerta crítico</p>
+                <p className="text-sm">Todos os produtos estão com estoque disponível.</p>
+              </div>
+            )}
+          </ScrollArea>
+        </DialogContent>
+      </Dialog>
 
       {/* Cards de Resumo */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
@@ -299,6 +323,7 @@ export function StockDashboard() {
           value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />}
           variant="error"
+          onClick={() => setOutOfStockDialogOpen(true)}
         />
         <StatCard
           title="Estoque Futuro"
