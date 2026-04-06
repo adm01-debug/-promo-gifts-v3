@@ -16,6 +16,7 @@ import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { useOnboardingContext } from "@/contexts/OnboardingContext";
 
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationDrawer";
