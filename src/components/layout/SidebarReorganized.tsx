@@ -32,6 +32,7 @@ import {
   BarChart3,
   Crosshair,
   ChevronsDownUp,
+  Settings,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -106,6 +107,7 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: Users, label: "Usuários", href: "/admin/usuarios", adminOnly: true },
+      { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
         { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
