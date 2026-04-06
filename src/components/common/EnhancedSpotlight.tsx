@@ -188,12 +188,12 @@ export function EnhancedSpotlight() {
       },
       // System
       {
-        id: "profile",
-        title: "Meu Perfil",
-        description: "Configurações do perfil",
+        id: "users-admin",
+        title: "Gestão de Usuários",
+        description: "Gerenciar usuários e perfis",
         icon: <Settings className="h-4 w-4" />,
-        action: () => navigate("/perfil"),
-        category: "Sistema",
+        action: () => navigate("/admin/usuarios"),
+        category: "Admin",
       },
     ],
     [navigate]
