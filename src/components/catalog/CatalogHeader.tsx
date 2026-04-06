@@ -19,8 +19,8 @@ export function CatalogHeader({
   onSelect,
 }: CatalogHeaderProps) {
   return (
-    <div className="flex items-center gap-3 flex-wrap">
-      <div className="flex-shrink-0">
+    <div className="flex items-center justify-between gap-3 flex-wrap">
+      <div className="flex items-center gap-3">
         <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
           Catálogo de Produtos
           <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
@@ -34,15 +34,17 @@ export function CatalogHeader({
         </h1>
       </div>
 
-      <div className="flex items-center gap-2 flex-1 min-w-0 sm:max-w-xl">
+      {/* Search only visible on mobile where header search is hidden */}
+      <div className="flex items-center gap-2 w-full sm:w-auto sm:hidden">
         <SmartSearchInput
           placeholder="Buscar produtos..."
           onSelect={onSelect}
           className="flex-1"
         />
-        <div className="hidden sm:block">
-          <RecentlyViewedPopover maxVisible={10} />
-        </div>
+      </div>
+      
+      <div className="hidden sm:flex items-center gap-2">
+        <RecentlyViewedPopover maxVisible={10} />
       </div>
     </div>
   );
