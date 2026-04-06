@@ -1,8 +1,6 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 interface ClientProfile {
   name: string;
@@ -99,19 +97,19 @@ ${products.map(p => `- ID: ${p.id} | ${p.name} | Categoria: ${p.category}${p.tag
 
 Com base no perfil do cliente, recomende os produtos mais adequados.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const model = "google/gemini-2.5-flash";
+
+    const response = await callAiWithTracking({
+      userId: user.id,
+      functionName: "ai-recommendations",
+      model,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-      }),
+      },
     });
 
     if (!response.ok) {
@@ -153,6 +151,12 @@ Com base no perfil do cliente, recomende os produtos mais adequados.`;
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Error in ai-recommendations:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Erro ao gerar recomendações" }),

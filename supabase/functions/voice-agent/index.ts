@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 const TranscriptSchema = z.object({
   transcript: z.string().min(1, 'transcript cannot be empty').max(1000, 'transcript too long'),
@@ -59,8 +60,10 @@ Deno.serve(async (req) => {
 
   try {
     // Authenticate user
+    let authUserId: string;
     try {
-      await authenticateRequest(req);
+      const authResult = await authenticateRequest(req);
+      authUserId = authResult.userId;
     } catch (authErr) {
       return authErrorResponse(authErr, corsHeaders);
     }
@@ -90,14 +93,12 @@ Deno.serve(async (req) => {
 
     const { transcript } = parsed.data;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+    const response = await callAiWithTracking({
+      userId: authUserId,
+      functionName: "voice-agent",
+      model: 'google/gemini-3-flash-preview',
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: transcript },
@@ -144,7 +145,7 @@ Deno.serve(async (req) => {
           },
         ],
         tool_choice: { type: 'function', function: { name: 'execute_voice_command' } },
-      }),
+      },
     });
 
     if (!response.ok) {
@@ -198,6 +199,12 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: 'Limite mensal de IA atingido.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     console.error('Voice agent error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(

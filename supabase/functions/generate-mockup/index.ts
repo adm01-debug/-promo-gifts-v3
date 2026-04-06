@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-import { createClient } from "npm:@supabase/supabase-js@2.49.1";
+import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 const MockupBodySchema = z.object({
   productImageUrl: z.string().url().max(2000),
@@ -198,14 +199,12 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
     console.log("Sending request to Lovable AI Gateway...");
     console.log(`Model: ${aiModel}`);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: aiModel,
+    const response = await callAiWithTracking({
+      userId: user.id,
+      functionName: "generate-mockup",
+      model: aiModel,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           {
             role: "user",
@@ -217,7 +216,7 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
           }
         ],
         modalities: ["image", "text"]
-      }),
+      },
     });
 
     if (!response.ok) {
@@ -262,6 +261,12 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
     );
 
   } catch (error: unknown) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Error generating mockup:", error);
     const message = error instanceof Error ? error.message : "Failed to generate mockup";
     return new Response(

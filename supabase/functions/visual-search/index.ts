@@ -1,8 +1,6 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -38,15 +36,15 @@ Deno.serve(async (req) => {
 
     console.log("Analyzing image with AI...");
 
+    const model = "google/gemini-2.5-flash";
+
     // Step 1: Analyze image to extract product characteristics
-    const analysisResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const analysisResponse = await callAiWithTracking({
+      userId: user.id,
+      functionName: "visual-search",
+      model,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           {
             role: "system",
@@ -78,7 +76,7 @@ Responda APENAS em JSON com este formato:
             ]
           }
         ]
-      }),
+      },
     });
 
     if (!analysisResponse.ok) {
@@ -132,7 +130,6 @@ Responda APENAS em JSON com este formato:
     const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    // Build search query combining keywords
     const searchTerms = [
       productAnalysis.productType,
       productAnalysis.material,
@@ -142,7 +139,6 @@ Responda APENAS em JSON com este formato:
 
     console.log("Searching products with terms:", searchTerms);
 
-    // Use semantic search function
     const { data: products, error: searchError } = await supabase
       .rpc("search_products_semantic", {
         search_query: searchTerms,
@@ -154,7 +150,6 @@ Responda APENAS em JSON com este formato:
       throw new Error(`Search failed: ${searchError.message}`);
     }
 
-    // If no results from semantic search, try direct query
     let finalProducts = products || [];
     
     if (finalProducts.length === 0) {
@@ -184,6 +179,12 @@ Responda APENAS em JSON com este formato:
     );
 
   } catch (error) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Visual search error:", error);
     const errorMessage = error instanceof Error ? error.message : "Erro ao processar busca visual";
     return new Response(

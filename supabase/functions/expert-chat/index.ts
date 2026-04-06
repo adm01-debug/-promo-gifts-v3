@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
@@ -458,17 +459,15 @@ IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de c
     console.log("Calling Lovable AI with", apiMessages.length, "messages");
     console.log("System prompt length:", systemPrompt.length);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const response = await callAiWithTracking({
+      userId,
+      functionName: "expert-chat",
+      model: "google/gemini-2.5-flash",
+      apiKey: LOVABLE_API_KEY,
+      stream: true,
+      requestBody: {
         messages: apiMessages,
-        stream: true,
-      }),
+      },
     });
 
     if (!response.ok) {
@@ -496,6 +495,12 @@ IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de c
     });
 
   } catch (error) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Expert chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),
