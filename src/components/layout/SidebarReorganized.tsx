@@ -53,8 +53,8 @@ const navGroups: NavGroup[] = [
     icon: Package,
     defaultOpen: true,
     items: [
-      { icon: Package, label: "Produtos", href: "/", tourId: "products" },
-      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros" },
+      { icon: Package, label: "Produtos", href: "/", tourId: "products", shortcut: "Alt+P" },
+      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros", shortcut: "Alt+F" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
       { icon: Layers, label: "Estoque", href: "/estoque" },
