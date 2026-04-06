@@ -1,11 +1,12 @@
 /**
- * useCatalogRealStats — Fetches real aggregate counts from the external DB
- * for variants, categories, and suppliers (data not available in lightweight loader).
+ * useCatalogRealStats — Fetches real aggregate counts from the external DB.
+ * Uses individual queries (not batch) because batch doesn't support countMode.
  */
 import { useQuery } from '@tanstack/react-query';
+import { invokeExternalDb } from '@/lib/external-db/bridge';
 import { invokeBatchBridge } from '@/lib/external-db/bridge';
 
-interface CatalogRealStats {
+export interface CatalogRealStats {
   totalVariants: number;
   totalCategories: number;
   totalSuppliers: number;
@@ -23,69 +24,50 @@ function isHiddenCategory(name: string): boolean {
 
 export function useCatalogRealStats() {
   return useQuery<CatalogRealStats>({
-    queryKey: ['catalog-real-stats', 'v1'],
+    queryKey: ['catalog-real-stats', 'v4'],
     queryFn: async () => {
-      const queries = [
-        {
+      // Run 3 parallel queries with countMode: exact
+      const [variantsResult, categoriesResult, suppliersResult] = await Promise.all([
+        invokeExternalDb<{ id: string }>({
           table: 'product_variants',
-          operation: 'select' as const,
+          operation: 'select',
           select: 'id',
-          filters: { active: true },
+          filters: {},
           limit: 1,
           offset: 0,
           countMode: 'exact',
-        },
-        {
+        }),
+        invokeExternalDb<{ id: string; name: string }>({
           table: 'categories',
-          operation: 'select' as const,
+          operation: 'select',
           select: 'id,name',
           filters: { active: true },
           limit: 1000,
           offset: 0,
           countMode: 'exact',
-        },
-        {
+        }),
+        invokeExternalDb<{ id: string }>({
           table: 'suppliers',
-          operation: 'select' as const,
+          operation: 'select',
           select: 'id',
           filters: { active: true },
           limit: 1,
           offset: 0,
           countMode: 'exact',
-        },
-      ];
+        }),
+      ]);
 
-      try {
-        const results = await invokeBatchBridge(queries);
+      // Variants: use count from countMode
+      const totalVariants = variantsResult.count ?? 0;
 
-        // Variants count
-        const variantsCount = results[0]?.success && results[0]?.data?.count != null
-          ? (results[0].data.count as number)
-          : 0;
+      // Categories: filter hidden ones from records
+      const visible = categoriesResult.records.filter(c => !isHiddenCategory(c.name || ''));
+      const totalCategories = visible.length;
 
-        // Categories — filter hidden ones
-        let categoriesCount = 0;
-        if (results[1]?.success && results[1]?.data?.records) {
-          const allCategories = results[1].data.records as Array<{ id: string; name: string }>;
-          const visible = allCategories.filter(c => !isHiddenCategory(c.name || ''));
-          categoriesCount = visible.length;
-        } else if (results[1]?.success && results[1]?.data?.count != null) {
-          categoriesCount = results[1].data.count as number;
-        }
+      // Suppliers: use count from countMode
+      const totalSuppliers = suppliersResult.count ?? 0;
 
-        // Suppliers count
-        const suppliersCount = results[2]?.success && results[2]?.data?.count != null
-          ? (results[2].data.count as number)
-          : 0;
-
-        return {
-          totalVariants: variantsCount,
-          totalCategories: categoriesCount,
-          totalSuppliers: suppliersCount,
-        };
-      } catch {
-        return { totalVariants: 0, totalCategories: 0, totalSuppliers: 0 };
-      }
+      return { totalVariants, totalCategories, totalSuppliers };
     },
     staleTime: 30 * 60 * 1000,
     gcTime: 60 * 60 * 1000,

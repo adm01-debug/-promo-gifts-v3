@@ -331,11 +331,10 @@ export function useCatalogState() {
       return true;
     });
 
-    // FIX: "Produtos Únicos" — use totalEstimate when showing unfiltered catalog
-    // and not all pages are loaded yet, to avoid misleading partial counts
+    // "Produtos Únicos" — use totalEstimate (from countMode:exact on first catalog page)
     const productCount = hasActiveFilters
       ? deduped.length
-      : (isFullCatalogLoaded ? deduped.length : (totalEstimate ?? deduped.length));
+      : (totalEstimate || deduped.length);
 
     // Variações: use real DB count when unfiltered, fallback to local count
     const localVariants = deduped.reduce((sum, p) => {
