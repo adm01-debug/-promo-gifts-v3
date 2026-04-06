@@ -55,7 +55,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs",
+                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
                   viewMode === "list" && "bg-card shadow-sm"
                 )}
                 onClick={() => setViewMode("list")}
