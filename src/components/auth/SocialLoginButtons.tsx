@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import { useState } from "react";
+import { useState, forwardRef } from "react";
 import { lovable } from "@/integrations/lovable/index";
 import { useToast } from "@/hooks/use-toast";
 
-export function SocialLoginButtons() {
+export const SocialLoginButtons = forwardRef<HTMLDivElement>(function SocialLoginButtons(_, ref) {
   const [isLoading, setIsLoading] = useState<string | null>(null);
   const { toast } = useToast();
 
@@ -34,7 +34,7 @@ export function SocialLoginButtons() {
   };
 
   return (
-    <div className="space-y-3">
+    <div ref={ref} className="space-y-3">
       <Button
         type="button"
         variant="outline"
@@ -56,4 +56,4 @@ export function SocialLoginButtons() {
       </Button>
     </div>
   );
-}
+});
