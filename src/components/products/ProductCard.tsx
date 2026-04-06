@@ -164,6 +164,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
   return (
     <article
+      ref={ref}
       className={cn(
         "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer card-lift",
         "transition-all duration-300 ease-out",
