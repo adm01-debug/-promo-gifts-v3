@@ -26,10 +26,10 @@ export function CatalogHeader({
           <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
             · {shouldShowCatalogSkeleton
               ? "Carregando catálogo..."
-              : totalEstimate && totalEstimate > filteredCount
-                ? `${filteredCount.toLocaleString("pt-BR")} de ${totalEstimate.toLocaleString("pt-BR")} itens`
+              : totalEstimate
+                ? `${totalEstimate.toLocaleString("pt-BR")} itens`
                 : `${filteredCount.toLocaleString("pt-BR")} itens`
-            }{hasNextPage && !shouldShowCatalogSkeleton ? '+' : ''}
+            }
           </span>
         </h1>
       </div>
