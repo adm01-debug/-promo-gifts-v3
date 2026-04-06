@@ -86,8 +86,8 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
 // INFINITE CATALOG HOOK
 // ============================================
 
-const CATALOG_PAGE_SIZE = 100; // Products per server page — smaller for faster progressive loading
-const CATALOG_BATCH_PAGES = 2; // Fetch 2 lightweight pages on first load (200 products)
+const CATALOG_PAGE_SIZE = 500; // Products per server page — larger for faster full-catalog loading
+const CATALOG_BATCH_PAGES = 4; // Fetch 4 lightweight pages on first load (2000 products)
 const PRODUCT_SELECT_LIGHTWEIGHT = 'id, name, sku, sale_price, cost_price, primary_image_url, supplier_id, category_id, main_category_id, brand, is_active, active, stock_quantity, min_quantity, is_kit, gender';
 
 interface CatalogPage {
