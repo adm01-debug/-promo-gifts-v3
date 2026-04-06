@@ -495,6 +495,12 @@ IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de c
     });
 
   } catch (error) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Expert chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),
