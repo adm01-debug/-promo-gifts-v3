@@ -30,7 +30,7 @@ export function useCatalogRealStats() {
           table: 'product_variants',
           operation: 'select' as const,
           select: 'id',
-          filters: { active: true },
+          filters: {},
           limit: 1,
           offset: 0,
           countMode: 'exact',
