@@ -64,8 +64,7 @@ function getDefaultColumns(): ColumnCount {
   // Responsive default based on screen width
   if (typeof window !== "undefined") {
     const w = window.innerWidth;
-    if (w < 640) return 1;
-    if (w < 768) return 2;
+    if (w < 768) return 3;
     if (w < 1024) return 3;
   }
   return 5;
