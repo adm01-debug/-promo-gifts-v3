@@ -467,6 +467,14 @@ export function useVariantStock() {
   const dismissAllAlerts = useCallback(() => {
     setDismissedAlerts(new Set(rawAlerts.map(a => a.id)));
   }, [rawAlerts]);
+
+  const dismissAlertsBySeverity = useCallback((severity: 'error' | 'warning' | 'info') => {
+    setDismissedAlerts(prev => {
+      const next = new Set(prev);
+      rawAlerts.filter(a => a.severity === severity).forEach(a => next.add(a.id));
+      return next;
+    });
+  }, [rawAlerts]);
   
   // Buscar estoque de um produto específico
   const getProductStock = useCallback((productId: string): ProductStockSummary | undefined => {
