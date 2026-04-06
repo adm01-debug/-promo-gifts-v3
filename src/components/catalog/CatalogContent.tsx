@@ -186,7 +186,7 @@ function VirtualGrid({
                     </>
                   ) : products.length > itemsPerPage ? (
                     <p className="text-sm text-muted-foreground">
-                      Todos os {filteredCount} produtos foram carregados ✓
+                      Todos os {(totalEstimate ?? filteredCount).toLocaleString("pt-BR")} produtos foram carregados ✓
                     </p>
                   ) : null}
                 </div>
