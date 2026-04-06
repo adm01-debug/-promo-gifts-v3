@@ -472,20 +472,20 @@ export function StockDashboard() {
       </Card>
 
       {/* Alertas Gerais (apenas info — warning e error já estão nos dialogs) */}
-      {alerts.filter(a => a.severity === 'info').length > 0 && (
+      {infoAlerts.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
                 <AlertCircle className="h-5 w-5" aria-hidden="true" />
-                Outros Alertas ({alerts.filter(a => a.severity === 'info').length})
+                Outros Alertas ({infoAlerts.length})
               </CardTitle>
               <Button
                 variant="ghost"
                 size="sm"
                 className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-                onClick={dismissAllAlerts}
-                aria-label="Dispensar todos os alertas"
+                onClick={() => dismissAlertsBySeverity('info')}
+                aria-label="Dispensar todos os alertas informativos"
               >
                 <X className="h-3.5 w-3.5" />
                 Limpar Todos
@@ -495,8 +495,7 @@ export function StockDashboard() {
           <CardContent>
             <ScrollArea className="max-h-60">
               <div className="space-y-2">
-                {alerts
-                  .filter(a => a.severity === 'info')
+                {infoAlerts
                   .slice(0, 10)
                   .map(alert => (
                     <AlertCard 
