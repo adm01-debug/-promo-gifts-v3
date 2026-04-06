@@ -459,17 +459,15 @@ IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de c
     console.log("Calling Lovable AI with", apiMessages.length, "messages");
     console.log("System prompt length:", systemPrompt.length);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const response = await callAiWithTracking({
+      userId,
+      functionName: "expert-chat",
+      model: "google/gemini-2.5-flash",
+      apiKey: LOVABLE_API_KEY,
+      stream: true,
+      requestBody: {
         messages: apiMessages,
-        stream: true,
-      }),
+      },
     });
 
     if (!response.ok) {
