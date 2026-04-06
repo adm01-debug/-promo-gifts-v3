@@ -122,6 +122,7 @@ const navGroups: NavGroup[] = [
 export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   function SidebarReorganized({ isOpen, onToggle }, ref) {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isItemActive = (href: string, exact?: boolean) => {
     if (href === "/" || exact) return location.pathname === href;
