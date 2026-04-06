@@ -95,13 +95,15 @@ function StatCard({
   value, 
   icon, 
   trend, 
-  variant = 'default' 
+  variant = 'default',
+  onClick,
 }: { 
   title: string; 
   value: number | string; 
   icon: React.ReactNode;
   trend?: { value: number; label: string };
   variant?: 'default' | 'success' | 'warning' | 'error';
+  onClick?: () => void;
 }) {
   const variantStyles = {
     default: 'bg-card',
@@ -111,7 +113,16 @@ function StatCard({
   };
 
   return (
-    <Card className={cn("relative overflow-hidden", variantStyles[variant])} role="status" aria-label={`${title}: ${value}`}>
+    <Card 
+      className={cn(
+        "relative overflow-hidden transition-all duration-200", 
+        variantStyles[variant],
+        onClick && "cursor-pointer hover:shadow-md hover:border-destructive/40"
+      )} 
+      role="status" 
+      aria-label={`${title}: ${value}`}
+      onClick={onClick}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
