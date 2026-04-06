@@ -344,8 +344,8 @@ export function useVariantStock() {
       variantsCritical: allVariants.filter(v => v.status === 'critical').length,
       variantsOutOfStock: allVariants.filter(v => v.status === 'out_of_stock').length,
       
-      totalStockValue: allVariants.reduce((sum, v) => sum + ((v.stockQuantity || 0) * (v.price || 0)), 0),
-      totalAvailableValue: allVariants.filter(v => v.status === 'in_stock').reduce((sum, v) => sum + ((v.stockQuantity || 0) * (v.price || 0)), 0),
+      totalStockValue: 0, // VariantStock doesn't carry price — calculated elsewhere if needed
+      totalAvailableValue: 0,
       averageDaysOfStock: allVariants.reduce((sum, v) => sum + (v.daysUntilStockout || 0), 0) / Math.max(1, allVariants.length),
       stockTurnoverRate: 0,
       
