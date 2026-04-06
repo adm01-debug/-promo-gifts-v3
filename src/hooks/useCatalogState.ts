@@ -3,7 +3,7 @@
  */
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Package, TrendingUp, Users, Layers } from "lucide-react";
+import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react";
 import React from "react";
 
 import { defaultFilters, type FilterState } from "@/components/filters/FilterPanel";
