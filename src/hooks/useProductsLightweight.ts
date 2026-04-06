@@ -120,7 +120,7 @@ async function fetchCatalogPage(
     orderBy,
     limit: CATALOG_PAGE_SIZE,
     offset: offset + i * CATALOG_PAGE_SIZE,
-    ...(i === 0 && isFirstLoad ? { countMode: 'planned' } : {}),
+    ...(i === 0 && isFirstLoad ? { countMode: 'exact' } : {}),
   }));
 
   let batchResults;

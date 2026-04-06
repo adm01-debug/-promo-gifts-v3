@@ -168,7 +168,7 @@ function VirtualGrid({
                       <p className="text-sm text-muted-foreground">
                         Mostrando {products.length} de{" "}
                         {totalEstimate
-                          ? `~${totalEstimate.toLocaleString("pt-BR")}`
+                          ? totalEstimate.toLocaleString("pt-BR")
                           : filteredCount.toLocaleString("pt-BR")}{" "}
                         produtos
                       </p>
@@ -325,7 +325,7 @@ export function CatalogContent({
           {hasMoreProducts && (
             <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4" style={{ minHeight: "60px" }}>
               <p className="text-sm text-muted-foreground">
-                Mostrando {paginatedProducts.length} de {totalEstimate ? `~${totalEstimate.toLocaleString("pt-BR")}` : filteredProducts.length.toLocaleString("pt-BR")} produtos
+                Mostrando {paginatedProducts.length} de {totalEstimate ? totalEstimate.toLocaleString("pt-BR") : filteredProducts.length.toLocaleString("pt-BR")} produtos
               </p>
               {isLoadingMore && (
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 w-full mt-4">
