@@ -61,6 +61,7 @@ function StatCard({
   trend, 
   variant = 'default',
   onClick,
+  clickHint,
 }: { 
   title: string; 
   value: number | string; 
@@ -68,6 +69,7 @@ function StatCard({
   trend?: { value: number; label: string };
   variant?: 'default' | 'success' | 'warning' | 'error';
   onClick?: () => void;
+  clickHint?: string;
 }) {
   const variantStyles = {
     default: 'bg-card',
@@ -76,18 +78,22 @@ function StatCard({
     error: 'bg-destructive/5 border-destructive/20',
   };
 
+  const isClickable = !!onClick;
+
   return (
     <Card 
       className={cn(
         "relative overflow-hidden transition-all duration-200", 
         variantStyles[variant],
-        onClick && "cursor-pointer hover:shadow-md",
-        onClick && variant === 'error' && "hover:border-destructive/40",
-        onClick && variant === 'warning' && "hover:border-warning/40",
+        isClickable && "cursor-pointer hover:shadow-md",
+        isClickable && variant === 'error' && "hover:border-destructive/40",
+        isClickable && variant === 'warning' && "hover:border-warning/40",
       )} 
-      role="status" 
-      aria-label={`${title}: ${value}`}
+      role={isClickable ? "button" : "status"}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={`${title}: ${value}${clickHint ? `. ${clickHint}` : ''}`}
       onClick={onClick}
+      onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } } : undefined}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
