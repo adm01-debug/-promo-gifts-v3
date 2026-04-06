@@ -275,6 +275,7 @@ export function CatalogContent({
   onToggleCompare,
   canAddToCompare,
   onLoadMore,
+  onResetFilters,
 }: CatalogContentProps) {
   // Extract product IDs for batch sparkline data
   const sparklineProductIds = useMemo(
