@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, lazy, Suspense } from "react";
+import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 import {
   DndContext,
@@ -361,6 +362,15 @@ export function QuoteKanbanBoard({ quotes }: QuoteKanbanBoardProps) {
         toast.success("Status atualizado!", {
           description: `Orçamento movido para "${columns.find(c => c.id === targetStatus)?.title}"`,
         });
+        // 🎉 Celebration when quote is approved
+        if (targetStatus === "approved") {
+          confetti({
+            particleCount: 80,
+            spread: 60,
+            origin: { y: 0.7 },
+            colors: ["hsl(25, 100%, 50%)", "hsl(142, 71%, 45%)", "hsl(217, 91%, 60%)"],
+          });
+        }
       }
     }
   };

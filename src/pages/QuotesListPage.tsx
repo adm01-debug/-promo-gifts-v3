@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -389,6 +390,9 @@ export default function QuotesListPage() {
                     if (ok) successCount++;
                   }
                   toast.success(`${successCount} orçamento(s) atualizado(s)`);
+                  if (status === "approved" && successCount > 0) {
+                    confetti({ particleCount: 80, spread: 60, origin: { y: 0.7 }, colors: ["hsl(25,100%,50%)", "hsl(142,71%,45%)", "hsl(217,91%,60%)"] });
+                  }
                 }}
                 onBulkExport={(ids) => {
                   const selected = filteredQuotes.filter((q) => ids.includes(q.id!));
