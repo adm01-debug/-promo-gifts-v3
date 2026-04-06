@@ -277,6 +277,7 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
       const qOffset = (q.offset as number) || 0;
       const qLimit = computeSafeLimit(rawLimit, qTable, hasSearch, qOffset);
       const qCacheKey = q.cacheKey as string | undefined;
+      const qCountMode = q.countMode as string | undefined;
 
       if (qCacheKey) {
         const cached = getCached<{ records: unknown[]; count: number | null }>(qCacheKey);
@@ -295,7 +296,10 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
         const effectiveBatchSelect = (qTable === 'products' && (!qSelect || qSelect === '*'))
           ? PRODUCTS_LIGHTWEIGHT_SELECT
           : qSelect;
-        let query = externalSupabase.from(qTable).select(effectiveBatchSelect);
+        const selectOpts = qCountMode ? { count: qCountMode } : undefined;
+        let query = selectOpts
+          ? externalSupabase.from(qTable).select(effectiveBatchSelect, selectOpts)
+          : externalSupabase.from(qTable).select(effectiveBatchSelect);
         if (qFilters) query = applyFilters(query, qFilters, null);
         if (qOrderBy) query = query.order(qOrderBy.column, { ascending: qOrderBy.ascending ?? false });
         query = query.range(qOffset, qOffset + qLimit - 1);
