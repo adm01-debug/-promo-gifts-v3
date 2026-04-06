@@ -183,6 +183,7 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
 // ============================================
 
 export function StockDashboard() {
+  const [outOfStockDialogOpen, setOutOfStockDialogOpen] = useState(false);
   const {
     isLoading,
     isFetching,
