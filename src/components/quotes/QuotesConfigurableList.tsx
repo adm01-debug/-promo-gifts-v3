@@ -440,8 +440,8 @@ export function QuotesConfigurableList({
         {paginatedQuotes.map((quote) => (
           <div
             key={quote.id}
-            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 hover:bg-muted/30 cursor-pointer transition-colors ${
-              isSelected(quote.id!) || allPagesSelected ? "bg-primary/5" : ""
+            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
+              isSelected(quote.id!) || allPagesSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
             }`}
             style={{ gridTemplateColumns: gridTemplate }}
             onClick={() => navigate(`/orcamentos/${quote.id}`)}
