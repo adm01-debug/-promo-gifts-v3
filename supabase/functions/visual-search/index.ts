@@ -1,5 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 Deno.serve(async (req) => {
@@ -9,16 +9,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Auth check
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader?.startsWith('Bearer ')) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
-    const supabaseAuth = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_ANON_KEY')!, { global: { headers: { Authorization: authHeader } } });
-    const { data: { user } } = await supabaseAuth.auth.getUser();
-    if (!user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-    }
+    const auth = await authenticateRequest(req);
+    const user = { id: auth.userId };
 
     const { imageBase64 } = await req.json();
     
@@ -125,10 +117,8 @@ Responda APENAS em JSON com este formato:
       };
     }
 
-    // Step 2: Search products in database
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Step 2: Search products in database using service client from auth
+    const supabase = auth.localServiceClient;
 
     const searchTerms = [
       productAnalysis.productType,
@@ -184,6 +174,9 @@ Responda APENAS em JSON com este formato:
         JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
     }
     console.error("Visual search error:", error);
     const errorMessage = error instanceof Error ? error.message : "Erro ao processar busca visual";

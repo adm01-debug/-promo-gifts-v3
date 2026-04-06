@@ -1,5 +1,6 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
@@ -82,30 +83,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Authenticate the user
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Não autorizado" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const { data: { user }, error: userError } = await authClient.auth.getUser();
-    if (userError || !user) {
-      return new Response(
-        JSON.stringify({ error: "Token inválido ou expirado" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    const userId = user.id;
+    const auth = await authenticateRequest(req);
+    const userId = auth.userId;
     console.log("Authenticated user:", userId);
 
     const rawBody = await req.json();
@@ -123,9 +102,8 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY não está configurada");
     }
 
-    // Use service role for data queries (RLS bypass needed for cross-table queries)
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service role client from auth (bypasses RLS for cross-table queries)
+    const supabase = auth.localServiceClient;
 
     // Fetch client data if clientId is provided
     let clientContext = "";
@@ -500,6 +478,9 @@ IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de c
         JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
+    }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
     }
     console.error("Expert chat error:", error);
     return new Response(
