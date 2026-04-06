@@ -41,6 +41,7 @@ import {
   CheckCircle2,
   Clock,
   TrendingUp,
+  TrendingDown,
   DollarSign,
 } from "lucide-react";
 import { useQuotes, Quote } from "@/hooks/useQuotes";
