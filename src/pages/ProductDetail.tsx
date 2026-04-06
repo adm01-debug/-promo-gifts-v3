@@ -483,10 +483,10 @@ export default function ProductDetail() {
               </div>
 
               {/* RIGHT — Specs + Description */}
-              <div id="sec-specs" className="scroll-mt-28 rounded-2xl border border-border/60 bg-card/40 p-4 xl:p-5 space-y-3 xl:space-y-4 flex flex-col">
+              <div id="sec-specs" className="scroll-mt-28 rounded-2xl border border-border/60 bg-card/40 p-5 xl:p-6 flex flex-col gap-4">
                 {/* Description */}
-                <div id="sec-descricao" className="scroll-mt-28 max-w-prose">
-                  <h4 className="text-xs xl:text-sm font-bold text-foreground mb-1.5 uppercase tracking-wide">Descrição</h4>
+                <div id="sec-descricao" className="scroll-mt-28">
+                  <h4 className="text-xs xl:text-sm font-bold text-foreground mb-2 uppercase tracking-wide">Descrição</h4>
                   {product.description ? (() => {
                     const sentences = product.description
                       .split(/[.]\s+/)
@@ -494,29 +494,29 @@ export default function ProductDetail() {
                       .filter(s => s.length > 5);
                     if (sentences.length > 2) {
                       return (
-                        <ul className="space-y-0.5">
+                        <ul className="space-y-1">
                           {sentences.map((sentence, i) => (
-                            <li key={i} className="flex items-start gap-1.5 text-[11px] text-muted-foreground leading-relaxed">
-                              <span className="mt-1.5 w-1 h-1 rounded-full bg-primary shrink-0" />
+                            <li key={i} className="flex items-start gap-2 text-xs text-muted-foreground leading-relaxed">
+                              <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0" />
                               {sentence}
                             </li>
                           ))}
                         </ul>
                       );
                     }
-                    return <p className="text-muted-foreground leading-relaxed text-[11px]">{product.description}</p>;
+                    return <p className="text-muted-foreground leading-relaxed text-xs">{product.description}</p>;
                   })() : (
-                    <p className="text-muted-foreground italic text-[11px]">Sem descrição disponível</p>
+                    <p className="text-muted-foreground italic text-xs">Sem descrição disponível</p>
                   )}
                 </div>
 
                 {/* Specs */}
-                <div className="border-t border-border/30 pt-3 space-y-2">
+                <div className="border-t border-border/30 pt-4 space-y-3">
                   <h4 className="text-xs xl:text-sm font-bold text-foreground uppercase tracking-wide">Especificações</h4>
                   {product.materials && product.materials.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1.5">
                       {product.materials.map((material) => (
-                        <Badge key={material} variant="secondary" className="px-2 py-0.5 text-[10px] rounded-full">
+                        <Badge key={material} variant="secondary" className="px-2.5 py-0.5 text-[11px] rounded-full">
                           {material}
                         </Badge>
                       ))}

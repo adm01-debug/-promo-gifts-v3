@@ -25,13 +25,13 @@ interface SpecItemProps {
 function SpecItem({ icon, label, value, unit, iconBgClass = "bg-primary/10", iconColorClass = "text-primary", compact }: SpecItemProps) {
   if (compact) {
     return (
-      <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border">
-        <div className={`w-7 h-7 rounded-md ${iconBgClass} flex items-center justify-center shrink-0 [&_svg]:h-3.5 [&_svg]:w-3.5`}>
+      <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-secondary/40 border border-border/40">
+        <div className={`w-8 h-8 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0 [&_svg]:h-4 [&_svg]:w-4`}>
           <span className={iconColorClass}>{icon}</span>
         </div>
         <div className="min-w-0">
-          <p className="text-[10px] text-muted-foreground leading-tight truncate">{label}</p>
-          <p className="text-xs font-medium text-foreground leading-tight">{value} {unit}</p>
+          <p className="text-[10px] text-muted-foreground/70 leading-tight">{label}</p>
+          <p className="text-sm font-bold text-foreground leading-tight">{value} <span className="text-[10px] font-normal text-muted-foreground">{unit}</span></p>
         </div>
       </div>
     );
