@@ -318,6 +318,9 @@ export function useCatalogState() {
 
   // Stats — contextual to filtered products
   const statBadges = useMemo(() => {
+    const hasActiveFilters = activeFiltersCount > 0 || searchQuery.trim().length > 0;
+    const isFullCatalogLoaded = !hasNextPage;
+
     // BUG-004/EDGE-004: deduplicate products by ID
     const seen = new Set<string>();
     const deduped = filteredProducts.filter((p) => {
@@ -326,22 +329,35 @@ export function useCatalogState() {
       return true;
     });
 
-    // EDGE-003: only count colors with a non-empty name
-    const totalVariants = deduped.reduce(
-      (sum, p) => sum + (p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0),
-      0
-    );
+    // FIX: "Produtos Únicos" — use totalEstimate when showing unfiltered catalog
+    // and not all pages are loaded yet, to avoid misleading partial counts
+    const productCount = hasActiveFilters
+      ? deduped.length
+      : (isFullCatalogLoaded ? deduped.length : (totalEstimate ?? deduped.length));
 
-    // BUG-001/BUG-004: categories from filtered products, not global externalCategories
+    // EDGE-003: only count colors with a non-empty name
+    // Also count variations array when colors is empty
+    const totalVariants = deduped.reduce((sum, p) => {
+      const colorCount = p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
+      const variationCount = !colorCount && p.variations?.length ? p.variations.length : 0;
+      return sum + colorCount + variationCount;
+    }, 0);
+
+    // FIX: categories — filter out hidden categories from external list
+    const hiddenCategoryPatterns = ['matéria', 'prima', 'gravações', 'personalização', 'suprimentos', 'insumos', 'gravação | mochila'];
+    const visibleExternalCategories = externalCategories.filter((cat: { name: string }) => {
+      const lower = cat.name.toLowerCase();
+      return !hiddenCategoryPatterns.some(p => lower.includes(p));
+    });
+
     const uniqueCategoryIds = new Set(
       deduped
         .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ""))
         .filter((id) => id && id !== "0")
     );
-    const hasActiveFilters = activeFiltersCount > 0 || searchQuery.trim().length > 0;
     const categoriesCount = hasActiveFilters
       ? uniqueCategoryIds.size
-      : externalCategories.length || uniqueCategoryIds.size;
+      : visibleExternalCategories.length || uniqueCategoryIds.size;
 
     // BUG-003/EDGE-001: case-insensitive supplier dedup, trim whitespace
     const uniqueSuppliers = new Set(
@@ -356,13 +372,13 @@ export function useCatalogState() {
       : favoriteCount;
 
     return [
-      { id: "products", label: "Produtos Únicos", value: deduped.length, icon: React.createElement(Package, { className: "h-4 w-4" }) },
+      { id: "products", label: "Produtos Únicos", value: productCount, icon: React.createElement(Package, { className: "h-4 w-4" }) },
       { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Palette, { className: "h-4 w-4" }) },
       { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(FolderTree, { className: "h-4 w-4" }) },
       { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: React.createElement(Users, { className: "h-4 w-4" }) },
       { id: "favorites", label: "Favoritos", value: contextualFavoriteCount, icon: React.createElement(Heart, { className: "h-4 w-4" }) },
     ];
-  }, [filteredProducts, favoriteCount, isFavorite, externalCategories.length, activeFiltersCount, searchQuery]);
+  }, [filteredProducts, favoriteCount, isFavorite, externalCategories, activeFiltersCount, searchQuery, totalEstimate, hasNextPage]);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
