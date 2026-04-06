@@ -25,26 +25,19 @@ function isHiddenCategory(name: string): boolean {
 
 export function useCatalogRealStats() {
   return useQuery<CatalogRealStats>({
-    queryKey: ['catalog-real-stats', 'v2'],
+    queryKey: ['catalog-real-stats', 'v3'],
     queryFn: async () => {
+      // Batch doesn't support countMode, so we fetch records to count them.
+      // Products: use the catalog's totalEstimate instead (already available).
+      // Variants/Categories/Suppliers: fetch IDs to count.
       const queries = [
-        {
-          table: 'products',
-          operation: 'select' as const,
-          select: 'id',
-          filters: { active: true },
-          limit: 1,
-          offset: 0,
-          countMode: 'exact',
-        },
         {
           table: 'product_variants',
           operation: 'select' as const,
           select: 'id',
           filters: {},
-          limit: 1,
+          limit: 50000,
           offset: 0,
-          countMode: 'exact',
         },
         {
           table: 'categories',
@@ -53,49 +46,40 @@ export function useCatalogRealStats() {
           filters: { active: true },
           limit: 1000,
           offset: 0,
-          countMode: 'exact',
         },
         {
           table: 'suppliers',
           operation: 'select' as const,
           select: 'id',
           filters: { active: true },
-          limit: 1,
+          limit: 500,
           offset: 0,
-          countMode: 'exact',
         },
       ];
 
       try {
         const results = await invokeBatchBridge(queries);
 
-        // Products count
-        const productsCount = results[0]?.success && results[0]?.data?.count != null
-          ? (results[0].data.count as number)
+        // Variants: count records directly
+        const variantsCount = results[0]?.success && results[0]?.data?.records
+          ? results[0].data.records.length
           : 0;
 
-        // Variants count
-        const variantsCount = results[1]?.success && results[1]?.data?.count != null
-          ? (results[1].data.count as number)
-          : 0;
-
-        // Categories — filter hidden ones
+        // Categories: filter hidden ones, count visible
         let categoriesCount = 0;
-        if (results[2]?.success && results[2]?.data?.records) {
-          const allCategories = results[2].data.records as Array<{ id: string; name: string }>;
+        if (results[1]?.success && results[1]?.data?.records) {
+          const allCategories = results[1].data.records as Array<{ id: string; name: string }>;
           const visible = allCategories.filter(c => !isHiddenCategory(c.name || ''));
           categoriesCount = visible.length;
-        } else if (results[2]?.success && results[2]?.data?.count != null) {
-          categoriesCount = results[2].data.count as number;
         }
 
-        // Suppliers count
-        const suppliersCount = results[3]?.success && results[3]?.data?.count != null
-          ? (results[3].data.count as number)
+        // Suppliers: count records directly
+        const suppliersCount = results[2]?.success && results[2]?.data?.records
+          ? results[2].data.records.length
           : 0;
 
         return {
-          totalProducts: productsCount,
+          totalProducts: 0, // Will use totalEstimate from catalog hook
           totalVariants: variantsCount,
           totalCategories: categoriesCount,
           totalSuppliers: suppliersCount,
