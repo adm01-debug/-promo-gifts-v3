@@ -79,9 +79,9 @@ export function CatalogHeader({
         </h1>
 
         {/* Search inline next to product count on desktop */}
-        <div className="hidden sm:block w-80 lg:w-[25rem]">
+        <div className="hidden sm:block w-80 lg:w-[25rem]" ref={searchRef}>
           <SmartSearchInput
-            placeholder="Buscar produtos..."
+            placeholder="Buscar produtos…  /"
             onSelect={onSelect}
             className="w-full"
           />
