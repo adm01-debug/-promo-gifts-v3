@@ -102,9 +102,8 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY não está configurada");
     }
 
-    // Use service role for data queries (RLS bypass needed for cross-table queries)
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Use service role client from auth (bypasses RLS for cross-table queries)
+    const supabase = auth.localServiceClient;
 
     // Fetch client data if clientId is provided
     let clientContext = "";
