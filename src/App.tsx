@@ -76,8 +76,6 @@ const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"))
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
-// User Pages
-const ProfilePage = lazyWithRetry(() => import("./pages/ProfilePage"));
 
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
