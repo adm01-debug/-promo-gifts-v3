@@ -16,6 +16,7 @@ import {
   CheckCircle2,
   XCircle,
   Palette,
+  Loader2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +31,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useVariantStock } from "@/hooks/useVariantStock";
 import { VariantStockTable } from "./VariantStockTable";
@@ -105,12 +105,12 @@ function StatCard({
   };
 
   return (
-    <Card className={cn("relative overflow-hidden", variantStyles[variant])}>
+    <Card className={cn("relative overflow-hidden", variantStyles[variant])} role="status" aria-label={`${title}: ${value}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold">{value}</p>
+            <p className="text-2xl font-bold tabular-nums">{value}</p>
             {trend && (
               <p className={cn(
                 "text-xs flex items-center gap-1",
@@ -121,7 +121,7 @@ function StatCard({
               </p>
             )}
           </div>
-          <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center">
+          <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center" aria-hidden="true">
             {icon}
           </div>
         </div>
@@ -144,23 +144,22 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
   };
 
   return (
-    <div className={cn(
-      "flex items-start gap-3 p-3 rounded-lg border",
-      severityStyles[alert.severity]
-    )}>
-      {severityIcons[alert.severity]}
+    <div
+      className={cn("flex items-start gap-3 p-3 rounded-lg border", severityStyles[alert.severity])}
+      role="alert"
+    >
+      <span aria-hidden="true">{severityIcons[alert.severity]}</span>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">{alert.productName}</p>
         <p className="text-xs text-muted-foreground">{alert.message}</p>
         <p className="text-xs text-muted-foreground mt-1">SKU: {alert.productSku}</p>
       </div>
-      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss} aria-label="Fechar"><X className="h-3 w-3" />
+      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss} aria-label={`Dispensar alerta de ${alert.productName}`}>
+        <X className="h-3 w-3" />
       </Button>
     </div>
   );
 }
-
-// StockTableRow removido - agora usamos VariantStockTable
 
 // ============================================
 // COMPONENTE PRINCIPAL
@@ -169,6 +168,7 @@ function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => v
 export function StockDashboard() {
   const {
     isLoading,
+    isFetching,
     loadingProgress,
     productStocks,
     allProductStocks,
@@ -187,9 +187,9 @@ export function StockDashboard() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-6">
+      <div className="space-y-6 p-6" aria-live="polite" aria-busy="true">
         <div className="flex flex-col items-center justify-center py-12">
-          <Package className="h-12 w-12 text-primary animate-pulse mb-4" />
+          <Package className="h-12 w-12 text-primary animate-pulse mb-4" aria-hidden="true" />
           <p className="text-lg font-medium mb-2">Carregando estoque...</p>
           {loadingProgress && (
             <p className="text-sm text-muted-foreground">
@@ -207,22 +207,34 @@ export function StockDashboard() {
     );
   }
 
+  const hasActiveFilters = filters.search || filters.status !== 'all';
+
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <h2 className="text-2xl font-display font-bold flex items-center gap-2">
-            <Package className="h-6 w-6 text-primary" />
+            <Package className="h-6 w-6 text-primary" aria-hidden="true" />
             Dashboard de Estoque
           </h2>
           <p className="text-muted-foreground text-sm mt-1">
             Visão geral do estoque em tempo real
           </p>
         </div>
-        <Button variant="outline" onClick={fetchStockData} className="gap-2">
-          <RefreshCw className="h-4 w-4" />
-          Atualizar
+        <Button
+          variant="outline"
+          onClick={fetchStockData}
+          className="gap-2"
+          disabled={isFetching}
+          aria-label={isFetching ? "Atualizando estoque..." : "Atualizar dados de estoque"}
+        >
+          {isFetching ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <RefreshCw className="h-4 w-4" />
+          )}
+          {isFetching ? "Atualizando..." : "Atualizar"}
         </Button>
       </div>
 
@@ -232,7 +244,7 @@ export function StockDashboard() {
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2 text-destructive">
-                <AlertTriangle className="h-5 w-5" />
+                <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 Alertas Críticos ({criticalAlerts.length})
               </CardTitle>
               <Button
@@ -240,6 +252,7 @@ export function StockDashboard() {
                 size="sm"
                 className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
                 onClick={dismissAllAlerts}
+                aria-label="Dispensar todos os alertas"
               >
                 <X className="h-3.5 w-3.5" />
                 Limpar Todos
@@ -247,7 +260,7 @@ export function StockDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-40">
+            <ScrollArea className="max-h-48">
               <div className="space-y-2">
                 {criticalAlerts.slice(0, 5).map(alert => (
                   <AlertCard 
@@ -302,19 +315,20 @@ export function StockDashboard() {
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
               <Input
                 placeholder="Buscar por nome ou SKU..."
                 value={filters.search}
                 onChange={(e) => updateFilter('search', e.target.value)}
                 className="pl-9"
+                aria-label="Buscar produtos no estoque"
               />
             </div>
             <Select
               value={filters.status}
               onValueChange={(value) => updateFilter('status', value as StockStatus | 'all')}
             >
-              <SelectTrigger className="w-full sm:w-44">
+              <SelectTrigger className="w-full sm:w-44" aria-label="Filtrar por status de estoque">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
@@ -333,7 +347,7 @@ export function StockDashboard() {
               value={filters.sortBy}
               onValueChange={(value) => updateFilter('sortBy', value as typeof filters.sortBy)}
             >
-              <SelectTrigger className="w-full sm:w-44">
+              <SelectTrigger className="w-full sm:w-44" aria-label="Ordenar produtos">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Ordenar" />
               </SelectTrigger>
@@ -344,8 +358,9 @@ export function StockDashboard() {
                 <SelectItem value="days_remaining">Dias Restantes</SelectItem>
               </SelectContent>
             </Select>
-            {(filters.search || filters.status !== 'all') && (
-              <Button variant="ghost" onClick={resetFilters} size="icon" aria-label="Fechar"><X className="h-4 w-4" />
+            {hasActiveFilters && (
+              <Button variant="ghost" onClick={resetFilters} size="icon" aria-label="Limpar todos os filtros">
+                <X className="h-4 w-4" />
               </Button>
             )}
           </div>
@@ -357,7 +372,7 @@ export function StockDashboard() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
+              <Palette className="h-5 w-5" aria-hidden="true" />
               Estoque por Cor/Variação ({productStocks.length} produtos)
             </span>
           </CardTitle>
@@ -366,7 +381,7 @@ export function StockDashboard() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <ScrollArea className="h-[600px]">
+          <ScrollArea className="h-[min(600px,_60vh)]">
             <VariantStockTable products={productStocks} />
           </ScrollArea>
         </CardContent>
@@ -378,7 +393,7 @@ export function StockDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg flex items-center gap-2">
-                <AlertCircle className="h-5 w-5" />
+                <AlertCircle className="h-5 w-5" aria-hidden="true" />
                 Outros Alertas ({alerts.length - criticalAlerts.length})
               </CardTitle>
               <Button
@@ -386,6 +401,7 @@ export function StockDashboard() {
                 size="sm"
                 className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
                 onClick={dismissAllAlerts}
+                aria-label="Dispensar todos os alertas"
               >
                 <X className="h-3.5 w-3.5" />
                 Limpar Todos
