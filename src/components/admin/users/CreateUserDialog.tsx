@@ -53,7 +53,7 @@ export function CreateUserDialog({ open, onOpenChange, onCreate }: CreateUserDia
             <Label htmlFor="create-password">Senha *</Label>
             <div className="relative">
               <Input id="create-password" type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))} placeholder="Mínimo 6 caracteres" className="pr-10" />
-              <button type="button" onClick={() = aria-label="Ocultar"> setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>

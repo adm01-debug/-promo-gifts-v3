@@ -283,7 +283,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
                     />
                     <button
                       type="button"
-                      onClick={() = aria-label="Editar"> setEditingMaterialId(editingMaterialId === t.id ? null : t.id)}
+                      onClick={() => setEditingMaterialId(editingMaterialId === t.id ? null : t.id)}
                       className="text-muted-foreground hover:text-primary p-0.5"
                       title="Editar detalhes (parte, %, obs)"
                     >
@@ -316,7 +316,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
         {search && (
           <button
             type="button"
-            onClick={() = aria-label="Fechar"> setSearch('')}
+            onClick={() => setSearch('')}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />
@@ -359,7 +359,7 @@ export function ProductMaterialsSection({ productId }: ProductMaterialsSectionPr
                 <div className="flex items-center gap-2 p-2.5">
                   <button
                     type="button"
-                    onClick={() = aria-label="Recolher"> toggleGroup(group.group_id)}
+                    onClick={() => toggleGroup(group.group_id)}
                     className={cn(
                       "p-1 rounded-md transition-all duration-200",
                       isOpen ? "bg-primary/10" : "bg-muted hover:bg-muted/80"

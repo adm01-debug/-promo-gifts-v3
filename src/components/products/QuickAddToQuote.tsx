@@ -118,7 +118,7 @@ export function QuickAddToQuote({
         {/* Close button */}
         <button
           className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
-          onClick={() = aria-label="Fechar"> setIsOpen(false)}
+          onClick={() => setIsOpen(false)}
         >
           <X className="h-3.5 w-3.5" />
         </button>

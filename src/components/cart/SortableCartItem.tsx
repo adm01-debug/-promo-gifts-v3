@@ -240,7 +240,7 @@ export function SortableCartItem({
               </span>
               <button
                 className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                onClick={() = aria-label="Adicionar"> onUpdateQuantity(item.id, item.quantity + 1)}
+                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>

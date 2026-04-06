@@ -409,7 +409,7 @@ export const GlobalCommandBar = forwardRef<HTMLDivElement, GlobalCommandBarProps
       {/* Trigger Button (opcional, pode ser ocultado) */}
       {showTrigger && (
         <button
-          onClick={() = aria-label="Buscar"> setOpen(true)}
+          onClick={() => setOpen(true)}
           className="hidden md:flex items-center gap-2 px-3 py-2 text-sm text-muted-foreground 
                    bg-muted/50 hover:bg-muted rounded-lg border border-border 
                    transition-all duration-200 hover:text-foreground"

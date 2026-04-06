@@ -49,7 +49,7 @@ export function RamoAtividadeGroupAccordion({
         <div className="flex items-center gap-2 p-2">
           <button
             type="button"
-            onClick={() = aria-label="Recolher"> setIsOpen(!isOpen)}
+            onClick={() => setIsOpen(!isOpen)}
             className="p-0.5 hover:bg-muted rounded transition-colors"
             aria-label={`${isOpen ? 'Recolher' : 'Expandir'} segmentos de ${group.group_name}`}
           >

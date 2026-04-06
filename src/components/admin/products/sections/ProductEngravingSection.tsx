@@ -824,7 +824,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
             </div>
           </div>
           <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button type="button" onClick={() = aria-label="Recolher"> setExpandedId(isExpanded ? null : area.id)} className="p-1 rounded hover:bg-muted transition-colors">
+            <button type="button" onClick={() => setExpandedId(isExpanded ? null : area.id)} className="p-1 rounded hover:bg-muted transition-colors">
               {isExpanded ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
             </button>
             <button type="button" onClick={() => handleToggleActive(area)} className="p-1 rounded hover:bg-muted transition-colors">
@@ -832,7 +832,7 @@ export default function ProductEngravingSection({ productId, isEdit }: Props) {
             </button>
             <button
               type="button"
-              onClick={() = aria-label="Excluir"> handleDeleteArea(area)}
+              onClick={() => handleDeleteArea(area)}
               className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />

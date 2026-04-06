@@ -269,7 +269,7 @@ export function StockAlertsIndicator({
             {/* Close */}
             <button
               className="absolute top-3 right-3 h-7 w-7 flex items-center justify-center rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
-              onClick={() = aria-label="Fechar"> setIsOpen(false)}
+              onClick={() => setIsOpen(false)}
             >
               <X className="h-4 w-4" />
             </button>
@@ -404,7 +404,7 @@ export function StockAlertsIndicator({
                         </Tooltip>
                         <button
                           className="h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100"
-                          onClick={(e) = aria-label="Fechar"> {
+                          onClick={(e) => {
                             e.stopPropagation();
                             dismiss(item.id);
                           }}

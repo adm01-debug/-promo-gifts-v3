@@ -179,7 +179,7 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
                   )}
                   <button
                     type="button"
-                    onClick={(e) = aria-label="Fechar"> { e.stopPropagation(); toggleTechnique(t.id, true); }}
+                    onClick={(e) => { e.stopPropagation(); toggleTechnique(t.id, true); }}
                     className="rounded-full p-0.5 ml-0.5 hover:bg-destructive/20 hover:text-destructive transition-all duration-150"
                   >
                     <X className="w-2.5 h-2.5" />
@@ -202,7 +202,7 @@ export function ProductTechniquesSection({ productId }: ProductTechniquesSection
         {search && (
           <button
             type="button"
-            onClick={() = aria-label="Fechar"> setSearch('')}
+            onClick={() => setSearch('')}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />

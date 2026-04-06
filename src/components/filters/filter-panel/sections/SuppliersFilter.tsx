@@ -31,7 +31,7 @@ export function SuppliersFilter({
             aria-label="Buscar fornecedor por nome"
           />
           {supplierSearch && (
-            <button type="button" onClick={() = aria-label="Fechar"> setSupplierSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
+            <button type="button" onClick={() => setSupplierSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca">
               <X className="h-3.5 w-3.5" />
             </button>
           )}

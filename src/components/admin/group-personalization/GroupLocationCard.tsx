@@ -188,7 +188,7 @@ export function GroupLocationCard({
                   {lt.max_colors && <span className="opacity-70">({lt.max_colors} cores)</span>}
                   <button
                     className="opacity-0 group-hover:opacity-100 transition-opacity ml-1"
-                    onClick={(e) = aria-label="Fechar"> { e.stopPropagation(); onDeleteTechnique(lt.id); }}
+                    onClick={(e) => { e.stopPropagation(); onDeleteTechnique(lt.id); }}
                   >
                     <X className="h-2 w-2" />
                   </button>

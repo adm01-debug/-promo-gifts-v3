@@ -206,7 +206,7 @@ export function VariantSelector({
                               ? 'bg-primary/10 border-primary/40 text-primary font-medium'
                               : 'border-border text-foreground',
                           )}
-                          onClick={() = aria-label="Confirmar"> handleSelect(variant)}
+                          onClick={() => handleSelect(variant)}
                         >
                           <span className="flex items-center gap-1">
                             <Ruler className="h-3 w-3" />

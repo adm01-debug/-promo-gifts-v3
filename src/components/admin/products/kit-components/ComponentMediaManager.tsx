@@ -154,7 +154,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                     {item.media_type === 'image' && !item.is_cover && (
                       <button
                         type="button"
-                        onClick={() = aria-label="Favoritar"> handleSetCover(item)}
+                        onClick={() => handleSetCover(item)}
                         className="p-1.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition-colors"
                         title="Definir como capa"
                       >
@@ -163,7 +163,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                     )}
                     <button
                       type="button"
-                      onClick={() = aria-label="Excluir"> handleDelete(item)}
+                      onClick={() => handleDelete(item)}
                       className="p-1.5 rounded-md bg-destructive/60 hover:bg-destructive/80 text-white transition-colors"
                       title="Excluir"
                     >

@@ -65,7 +65,7 @@ export function RamosFilter({
         <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
         <Input placeholder="Buscar nicho/segmento..." value={ramoSearch} onChange={(e) => setRamoSearch(e.target.value)} className="h-8 text-sm pl-8 pr-8" aria-label="Buscar nicho ou segmento de atividade" />
         {ramoSearch && (
-          <button type="button" onClick={() = aria-label="Fechar"> setRamoSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca de nicho/segmento">
+          <button type="button" onClick={() => setRamoSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" aria-label="Limpar busca de nicho/segmento">
             <X className="h-3.5 w-3.5" />
           </button>
         )}
