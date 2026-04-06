@@ -211,7 +211,7 @@ export default function Auth() {
   }
 
   return (
-    <main className="min-h-screen relative bg-background" role="main" aria-label="Autenticação">
+    <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
       <PageSEO
         title="Login"
         description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo."
@@ -225,7 +225,7 @@ export default function Auth() {
         }}
       />
       {/* Left side - Branding */}
-      <div className="hidden lg:flex lg:absolute lg:inset-0 bg-gradient-to-br from-card via-card to-background overflow-hidden">
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
         {/* Background decoration */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute top-1/4 -left-20 w-80 h-80 bg-orange/10 rounded-full blur-3xl" />
@@ -344,7 +344,7 @@ export default function Auth() {
       </div>
 
       {/* Right side - Auth Form */}
-      <div className="relative z-10 flex items-center justify-center min-h-screen p-6 lg:p-12">
+      <div className="flex-1 flex items-center justify-center p-6 lg:p-12">
         <div className="w-full max-w-md space-y-8 animate-fade-in">
           {/* Mobile Logo */}
           <div className="text-center lg:hidden space-y-3">
