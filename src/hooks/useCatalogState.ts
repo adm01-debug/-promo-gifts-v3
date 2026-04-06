@@ -244,6 +244,19 @@ export function useCatalogState() {
       });
     }
 
+    // ⚠️ REGRA DE NEGÓCIO — NÃO ALTERAR
+    // Quando há busca ativa e o sort é "Nome A-Z" (padrão), a reordenação
+    // alfabética é PULADA para preservar a ordem de relevância calculada pelo
+    // motor rankProductSearchResults (product-search.ts). A hierarquia é:
+    //   1. SKU/Referência exata
+    //   2. Nome exato
+    //   3. Nome começa com o termo
+    //   4. Palavra exata no nome (word boundary)
+    //   5. Nome contém o termo
+    //   6. Código começa com / contém
+    //   7. Metadados (marca, categoria, descrição)
+    //   8. Fuzzy (Fuse.js, threshold < 0.45)
+    // Se o usuário escolher outro sort (preço, estoque, etc.), reordena normalmente.
     const skipSort = hasFuzzySearch && sortBy === 'name';
     if (!skipSort) {
       switch (sortBy) {
