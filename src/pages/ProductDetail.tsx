@@ -10,9 +10,7 @@ import {
   Tag,
   Layers,
   Sparkles,
-  Palette,
   ChevronDown,
-  ChevronUp,
   FileText,
   Eye,
 } from "lucide-react";
@@ -24,10 +22,7 @@ import { ProductStickyHeader } from "@/components/products/ProductStickyHeader";
 import { KitComposition } from "@/components/products/KitComposition";
 import { ProductCategoryBadges } from "@/components/products/ProductCategoryBadges";
 import { GenderBadge } from "@/components/products/GenderBadge";
-import { ShareActions } from "@/components/products/ShareActions";
 import { SimilarProducts } from "@/components/products/SimilarProducts";
-import { ProductCustomizationOptions } from "@/components/products/ProductCustomizationOptions";
-import { ProductPersonalizationRules } from "@/components/products/ProductPersonalizationRules";
 import { ProductQuickActions } from "@/components/products/ProductQuickActions";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { StockHistoryChart } from "@/components/products/StockHistoryChart";
@@ -41,7 +36,7 @@ import { PackagingModal } from "@/components/products/PackagingModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+
 import { Card, CardHeader } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useToast } from "@/hooks/use-toast";
@@ -70,45 +65,6 @@ import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
 
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
-
-/** Collapsible wrapper for personalization section */
-function PersonalizationCollapsible({ id, productSku, productName }: { id: string; productSku: string; productName: string }) {
-  const [isOpen, setIsOpen] = useState(false);
-  return (
-    <div id="sec-personalizacao" className="scroll-mt-28">
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <Card className="border-accent/20 bg-gradient-to-br from-accent/5 to-transparent">
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-accent/5 transition-colors py-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-accent/10">
-                    <Palette className="h-5 w-5 text-accent-foreground" />
-                  </div>
-                  <div>
-                    <h3 className="font-display text-base font-semibold text-foreground">Personalização</h3>
-                    <p className="text-xs text-muted-foreground">Técnicas e locais de gravação disponíveis</p>
-                  </div>
-                </div>
-                {isOpen ? (
-                  <ChevronUp className="h-5 w-5 text-muted-foreground" />
-                ) : (
-                  <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                )}
-              </div>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="px-4 pb-4 space-y-2">
-              <ProductCustomizationOptions productId={id} productSku={productSku} />
-              <ProductPersonalizationRules productId={id} productSku={productSku} productName={productName} />
-            </div>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
-    </div>
-  );
-}
 
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
