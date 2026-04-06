@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, memo } from "react";
+import { useState, useRef, useEffect, memo, forwardRef } from "react";
 import { GenderBadge } from "./GenderBadge";
 import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
@@ -40,7 +40,7 @@ export interface ProductCardProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export const ProductCard = memo(function ProductCard({ 
+export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(function ProductCard({ 
   product, 
   onClick, 
   onView, 
@@ -56,7 +56,7 @@ export const ProductCard = memo(function ProductCard({
   isNovelty = false,
   noveltyDaysRemaining,
   activeColorFilter,
-}: ProductCardProps) {
+}, ref) {
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -164,6 +164,7 @@ export const ProductCard = memo(function ProductCard({
 
   return (
     <article
+      ref={ref}
       className={cn(
         "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer card-lift",
         "transition-all duration-300 ease-out",
@@ -594,6 +595,6 @@ export const ProductCard = memo(function ProductCard({
       />
     </article>
   );
-});
+}));
 
 ProductCard.displayName = 'ProductCard';
