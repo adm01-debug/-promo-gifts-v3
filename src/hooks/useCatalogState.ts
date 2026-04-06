@@ -383,7 +383,9 @@ export function useCatalogState() {
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
     setSortBy("name");
-  }, []);
+    setSearchQuery("");
+    navigate("/", { replace: true });
+  }, [navigate]);
 
   const handleViewProduct = useCallback((product: Product) => {
     navigate(`/produto/${product.id}`);

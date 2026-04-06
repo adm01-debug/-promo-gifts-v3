@@ -1,7 +1,8 @@
 import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
-import type { FilterState } from "@/components/filters/FilterPanel";
-import type { NavigateFunction } from "react-router-dom";
+import { Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface CatalogHeaderProps {
   shouldShowCatalogSkeleton: boolean;
@@ -9,6 +10,9 @@ interface CatalogHeaderProps {
   filteredCount: number;
   hasNextPage: boolean | undefined;
   onSelect: (result: { type: string; id: string; label: string }) => void;
+  searchQuery?: string;
+  onReset?: () => void;
+  activeFiltersCount?: number;
 }
 
 export function CatalogHeader({
@@ -17,18 +21,42 @@ export function CatalogHeader({
   filteredCount,
   hasNextPage,
   onSelect,
+  searchQuery = "",
+  onReset,
+  activeFiltersCount = 0,
 }: CatalogHeaderProps) {
+  const hasActiveConstraints = searchQuery.trim().length > 0 || activeFiltersCount > 0;
+
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap">
       <div className="flex items-center gap-3 flex-1 min-w-0">
+        {/* Reset / Home button — visible when search or filters are active */}
+        {hasActiveConstraints && onReset && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={onReset}
+                className="shrink-0 h-9 w-9 border-primary/40 text-primary hover:bg-primary/10"
+              >
+                <Home className="h-4 w-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Voltar ao catálogo completo</TooltipContent>
+          </Tooltip>
+        )}
+
         <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
           Catálogo de Produtos
           <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">
             · {shouldShowCatalogSkeleton
               ? "Carregando catálogo..."
-              : totalEstimate
-                ? `${totalEstimate.toLocaleString("pt-BR")} itens`
-                : `${filteredCount.toLocaleString("pt-BR")} itens`
+              : hasActiveConstraints
+                ? `${filteredCount.toLocaleString("pt-BR")} itens`
+                : totalEstimate
+                  ? `${totalEstimate.toLocaleString("pt-BR")} itens`
+                  : `${filteredCount.toLocaleString("pt-BR")} itens`
             }
           </span>
         </h1>
