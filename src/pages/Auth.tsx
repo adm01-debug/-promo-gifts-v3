@@ -259,7 +259,7 @@ export default function Auth() {
         </div>
         
         {/* Content */}
-        <div className="relative z-10 flex flex-col justify-center px-12 xl:px-20">
+        <div className="relative z-10 flex flex-col justify-center items-center px-12 xl:px-20 w-full">
           <div className="space-y-6">
             <div className="flex items-center gap-3">
               <div className="w-14 h-14 rounded-xl bg-orange flex items-center justify-center shadow-lg shadow-orange/30">
