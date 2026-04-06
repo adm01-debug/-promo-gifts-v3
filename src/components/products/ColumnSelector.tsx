@@ -47,9 +47,7 @@ interface ColumnOption {
 }
 
 const columnOptions: ColumnOption[] = [
-  { value: 1, label: "1 coluna", icon: <GridCustomIcon cols={1} rows={2} />, minWidth: 0 },
-  { value: 2, label: "2 colunas", icon: <GridCustomIcon cols={2} rows={2} />, minWidth: 0 },
-  { value: 3, label: "3 colunas", icon: <Columns3 className="h-7 w-7" />, minWidth: 640 },
+  { value: 3, label: "3 colunas", icon: <Columns3 className="h-7 w-7" />, minWidth: 0 },
   { value: 4, label: "4 colunas", icon: <Grid2x2 className="h-7 w-7" />, minWidth: 768 },
   { value: 5, label: "5 colunas", icon: <Grid3x3 className="h-7 w-7" />, minWidth: 1024 },
   { value: 6, label: "6 colunas", icon: <GridCustomIcon cols={3} rows={2} />, minWidth: 1280 },
