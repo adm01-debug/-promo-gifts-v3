@@ -23,7 +23,7 @@ interface MockupWizardProps {
   onStepClick?: (step: number) => void;
 }
 
-export function MockupWizard({
+export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(function MockupWizard({
   currentStep,
   hasClient,
   hasProduct,
@@ -33,7 +33,7 @@ export function MockupWizard({
   hasGenerated,
   className,
   onStepClick,
-}: MockupWizardProps) {
+}, ref) {
   const steps: MockupWizardStep[] = [
     {
       id: 1,
