@@ -11,6 +11,8 @@ interface ProductCategoryBadgesProps {
   groups?: Category[];
   className?: string;
   showLabels?: boolean;
+  // UUID real da categoria (para deep-link correto ao Super Filtro)
+  categoryUuid?: string | null;
   // Props para o link de personalização
   productId?: string;
   productName?: string;
