@@ -2,7 +2,7 @@ import { useState, useEffect, forwardRef, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AlertTriangle, TrendingDown, Package, X, Bell,
+  AlertTriangle, TrendingDown, Package, X,
   ExternalLink, Sparkles, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
