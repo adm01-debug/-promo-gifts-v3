@@ -201,7 +201,7 @@ export function MockupProductSelector({ selection, onSelect, disabled }: MockupP
             disabled={disabled || isLoadingProducts}
           />
           {searchQuery && (
-            <button
+            <button aria-label="Fechar"
               onClick={() => setSearchQuery("")}
               className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
             >

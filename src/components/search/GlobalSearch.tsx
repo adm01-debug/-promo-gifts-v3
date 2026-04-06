@@ -241,7 +241,7 @@ export function GlobalSearch({ isOpen, onClose, placeholder = "Buscar produtos, 
                   className="flex-1 bg-transparent outline-none text-foreground placeholder:text-muted-foreground"
                 />
                 {query && (
-                  <button
+                  <button aria-label="Fechar"
                     onClick={() => setQuery("")}
                     className="p-1 rounded-full hover:bg-muted transition-colors"
                   >

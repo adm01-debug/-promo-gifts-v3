@@ -541,7 +541,7 @@ export function ProductsManager() {
                 className="pl-10 h-10 bg-background"
               />
               {searchTerm && (
-                <button
+                <button aria-label="Fechar"
                   onClick={() => setSearchTerm('')}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
                 >

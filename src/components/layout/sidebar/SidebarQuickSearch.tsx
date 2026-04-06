@@ -18,7 +18,7 @@ export const SidebarQuickSearch = React.forwardRef<HTMLDivElement, SidebarQuickS
         <div ref={ref} className="px-2 mb-2">
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
-              <button
+              <button aria-label="Buscar"
                 onClick={handleClick}
                 className="w-full flex items-center justify-center h-9 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
                aria-label="Buscar">

@@ -219,7 +219,7 @@ export function CategoryTreeNavigator({
               className="pl-9 h-9"
             />
             {searchQuery && (
-              <button
+              <button aria-label="Fechar"
                 onClick={() => setSearchQuery("")}
                 className="absolute right-3 top-1/2 -translate-y-1/2 p-0.5 hover:bg-muted rounded"
               >
