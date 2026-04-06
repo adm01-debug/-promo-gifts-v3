@@ -106,6 +106,7 @@ export function useCatalogState() {
   });
 
   const { data: externalCategories = [] } = useExternalCategoriesQuery();
+  const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
   const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
