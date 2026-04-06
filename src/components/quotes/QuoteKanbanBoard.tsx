@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, lazy, Suspense } from "react";
+import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 import {
   DndContext,
