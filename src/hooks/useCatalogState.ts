@@ -81,6 +81,11 @@ export function useCatalogState() {
 
   const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
 
+  // Auto-fetch all server pages in background so full catalog is available
+  useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+
   useEffect(() => {
     if (realProducts.length > 0) registerProducts(realProducts);
   }, [realProducts, registerProducts]);
