@@ -212,6 +212,7 @@ const App = () => {
                               <Route path="/admin/login-attempts" element={<AdminLoginAttemptsPage />} />
                               <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
+                              <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
