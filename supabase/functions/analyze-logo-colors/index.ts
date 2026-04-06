@@ -1,7 +1,6 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -10,6 +9,9 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Authenticate
+    const auth = await authenticateRequest(req);
+
     const { imageBase64 } = await req.json();
     if (!imageBase64) {
       return new Response(JSON.stringify({ error: "imageBase64 is required" }), {
@@ -26,7 +28,6 @@ Deno.serve(async (req) => {
         if (!imgResponse.ok) throw new Error(`Failed to fetch image: ${imgResponse.status}`);
         const contentType = imgResponse.headers.get("content-type") || "image/png";
         
-        // Reject SVG — AI vision models don't support it
         if (contentType.includes("svg")) {
           return new Response(JSON.stringify({ 
             error: "Formato SVG não é suportado para análise de cores. Por favor, envie a logo em PNG, JPG ou WEBP." 
@@ -53,7 +54,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Also reject SVG from base64 data URIs
     if (imageContent.startsWith("data:image/svg")) {
       return new Response(JSON.stringify({ 
         error: "Formato SVG não é suportado para análise de cores. Por favor, envie a logo em PNG, JPG ou WEBP." 
@@ -68,14 +68,14 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const model = "google/gemini-2.5-flash";
+
+    const aiResponse = await callAiWithTracking({
+      userId: auth.userId,
+      functionName: "analyze-logo-colors",
+      model,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           {
             role: "user",
@@ -106,31 +106,28 @@ Return ONLY a JSON array, no markdown, no explanation. Example:
             ]
           }
         ],
-      }),
+      },
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
+    if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Rate limit exceeded, tente novamente em alguns segundos." }), {
-          status: 429,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (response.status === 402) {
+      if (aiResponse.status === 402) {
         return new Response(JSON.stringify({ error: "Créditos insuficientes." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      const t = await response.text();
-      console.error("AI error:", response.status, t);
-      throw new Error(`AI gateway error: ${response.status}`);
+      const t = await aiResponse.text();
+      console.error("AI error:", aiResponse.status, t);
+      throw new Error(`AI gateway error: ${aiResponse.status}`);
     }
 
-    const data = await response.json();
+    const data = await aiResponse.json();
     const content = data.choices?.[0]?.message?.content || "[]";
     
-    // Parse JSON from response (handle markdown wrapping)
     let colors;
     try {
       const jsonMatch = content.match(/\[[\s\S]*\]/);
@@ -144,10 +141,17 @@ Return ONLY a JSON array, no markdown, no explanation. Example:
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e) {
+    if (e instanceof QuotaExceededError) {
+      return new Response(JSON.stringify({ error: "Cota de IA excedida este mês." }), {
+        status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    if ((e as any)?.status === 401 || (e as any)?.status === 403) {
+      return authErrorResponse(e, corsHeaders);
+    }
     console.error("analyze-logo-colors error:", e);
     return new Response(JSON.stringify({ error: e instanceof Error ? e.message : "Unknown error" }), {
-      status: 500,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
 });

@@ -1,7 +1,6 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 // ========================================
 // CACHE IMPLEMENTATION - TTL 5 minutes
@@ -24,118 +23,65 @@ class TTLCache<T> {
     this.maxEntries = maxEntries;
   }
 
-  // Generate cache key using hash
   generateKey(query: string): string {
     const normalized = query.toLowerCase().trim();
     const encoder = new TextEncoder();
     const data = encoder.encode(normalized);
-    // Simple hash for cache key
     let hash = 0;
     for (let i = 0; i < data.length; i++) {
       const char = data[i];
       hash = ((hash << 5) - hash) + char;
-      hash = hash & hash; // Convert to 32bit integer
+      hash = hash & hash;
     }
     return `search:${hash.toString(16)}`;
   }
 
   get(key: string): T | null {
     const entry = this.cache.get(key);
-    
-    if (!entry) {
-      this.misses++;
-      return null;
-    }
-
-    // Check if expired
-    if (Date.now() > entry.expiresAt) {
-      this.cache.delete(key);
-      this.misses++;
-      return null;
-    }
-
+    if (!entry) { this.misses++; return null; }
+    if (Date.now() > entry.expiresAt) { this.cache.delete(key); this.misses++; return null; }
     this.hits++;
     return entry.data;
   }
 
   set(key: string, data: T): void {
-    // Enforce LRU-like behavior by removing oldest entries when at capacity
-    if (this.cache.size >= this.maxEntries) {
-      this.evictOldest();
-    }
-
-    this.cache.set(key, {
-      data,
-      expiresAt: Date.now() + this.ttlMs
-    });
+    if (this.cache.size >= this.maxEntries) this.evictOldest();
+    this.cache.set(key, { data, expiresAt: Date.now() + this.ttlMs });
   }
 
   private evictOldest(): void {
     const now = Date.now();
     let oldestKey: string | null = null;
     let oldestTime = Infinity;
-
-    // First, try to remove expired entries
     for (const [key, entry] of this.cache.entries()) {
-      if (now > entry.expiresAt) {
-        this.cache.delete(key);
-        return;
-      }
-      if (entry.expiresAt < oldestTime) {
-        oldestTime = entry.expiresAt;
-        oldestKey = key;
-      }
+      if (now > entry.expiresAt) { this.cache.delete(key); return; }
+      if (entry.expiresAt < oldestTime) { oldestTime = entry.expiresAt; oldestKey = key; }
     }
-
-    // If no expired entries, remove the oldest one
-    if (oldestKey) {
-      this.cache.delete(oldestKey);
-    }
+    if (oldestKey) this.cache.delete(oldestKey);
   }
 
-  // Cleanup expired entries (called periodically)
   cleanup(): number {
     const now = Date.now();
     let cleaned = 0;
-
     for (const [key, entry] of this.cache.entries()) {
-      if (now > entry.expiresAt) {
-        this.cache.delete(key);
-        cleaned++;
-      }
+      if (now > entry.expiresAt) { this.cache.delete(key); cleaned++; }
     }
-
     return cleaned;
   }
 
-  getStats(): { hits: number; misses: number; size: number; hitRate: string } {
+  getStats() {
     const total = this.hits + this.misses;
     const hitRate = total > 0 ? ((this.hits / total) * 100).toFixed(1) + '%' : '0%';
-    return {
-      hits: this.hits,
-      misses: this.misses,
-      size: this.cache.size,
-      hitRate
-    };
-  }
-
-  // Reset stats (useful for monitoring)
-  resetStats(): void {
-    this.hits = 0;
-    this.misses = 0;
+    return { hits: this.hits, misses: this.misses, size: this.cache.size, hitRate };
   }
 }
 
 // ========================================
 // GLOBAL CACHE INSTANCE
 // ========================================
-
-// 5 minutes TTL, max 1000 entries
 const searchCache = new TTLCache<SearchIntent>(5 * 60 * 1000, 1000);
-
-// Cleanup expired entries every minute (roughly)
 let lastCleanup = Date.now();
-const CLEANUP_INTERVAL = 60 * 1000; // 1 minute
+const CLEANUP_INTERVAL = 60 * 1000;
 
 interface SearchIntent {
   type: 'product' | 'client' | 'quote' | 'order' | 'mixed';
@@ -159,8 +105,10 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { query } = await req.json();
+    // Authenticate
+    const auth = await authenticateRequest(req);
 
+    const { query } = await req.json();
     if (!query || query.trim().length < 2) {
       return new Response(
         JSON.stringify({ success: false, error: 'Query too short' }),
@@ -168,45 +116,33 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Periodic cleanup (probabilistic, ~1% of requests)
+    // Periodic cleanup
     if (Date.now() - lastCleanup > CLEANUP_INTERVAL) {
       const cleaned = searchCache.cleanup();
-      if (cleaned > 0) {
-        console.log(`[Cache] Cleaned ${cleaned} expired entries`);
-      }
+      if (cleaned > 0) console.log(`[Cache] Cleaned ${cleaned} expired entries`);
       lastCleanup = Date.now();
     }
 
-    // ========================================
-    // CHECK CACHE FIRST
-    // ========================================
+    // Check cache
     const cacheKey = searchCache.generateKey(query);
     const cachedResult = searchCache.get(cacheKey);
 
     if (cachedResult) {
       const stats = searchCache.getStats();
       console.log(`[Cache HIT] Query: "${query}" | Stats: ${JSON.stringify(stats)}`);
-      
       return new Response(
-        JSON.stringify({ 
-          success: true, 
-          intent: cachedResult,
-          cached: true,
-          cacheStats: stats
-        }),
+        JSON.stringify({ success: true, intent: cachedResult, cached: true, cacheStats: stats }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // ========================================
-    // CACHE MISS - Call AI
-    // ========================================
+    // Cache miss — call AI with tracking
     console.log(`[Cache MISS] Query: "${query}" - Calling AI...`);
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+
+    const model = "google/gemini-2.5-flash";
 
     const systemPrompt = `Você é um assistente de busca inteligente para um sistema de catálogo de produtos promocionais e brindes corporativos.
 
@@ -237,14 +173,12 @@ EXEMPLOS:
 
 Responda APENAS com JSON válido no formato especificado.`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
+    const aiResponse = await callAiWithTracking({
+      userId: auth.userId,
+      functionName: "semantic-search",
+      model,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: `Analise esta busca: "${query}"` }
@@ -258,28 +192,20 @@ Responda APENAS com JSON válido no formato especificado.`;
               parameters: {
                 type: "object",
                 properties: {
-                  type: {
-                    type: "string",
-                    enum: ["product", "client", "quote", "order", "mixed"],
-                    description: "Tipo principal da busca"
-                  },
+                  type: { type: "string", enum: ["product", "client", "quote", "order", "mixed"] },
                   filters: {
                     type: "object",
                     properties: {
-                      category: { type: "string", description: "Categoria do produto" },
-                      color: { type: "string", description: "Cor do produto" },
-                      material: { type: "string", description: "Material do produto" },
+                      category: { type: "string" },
+                      color: { type: "string" },
+                      material: { type: "string" },
                       priceRange: { type: "string", enum: ["low", "medium", "high"] },
-                      status: { type: "string", description: "Status do orçamento/pedido" },
-                      clientName: { type: "string", description: "Nome do cliente" },
+                      status: { type: "string" },
+                      clientName: { type: "string" },
                       dateRange: { type: "string", enum: ["today", "week", "month", "year"] }
                     }
                   },
-                  keywords: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "Palavras-chave para busca textual"
-                  }
+                  keywords: { type: "array", items: { type: "string" } }
                 },
                 required: ["type", "filters", "keywords"]
               }
@@ -287,27 +213,22 @@ Responda APENAS com JSON válido no formato especificado.`;
           }
         ],
         tool_choice: { type: "function", function: { name: "parse_search_intent" } }
-      }),
+      },
     });
 
-    if (!response.ok) {
-      if (response.status === 429) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Rate limit exceeded, please try again later" }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+    if (!aiResponse.ok) {
+      if (aiResponse.status === 429) {
+        return new Response(JSON.stringify({ success: false, error: "Rate limit exceeded" }),
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ success: false, error: "Payment required" }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+      if (aiResponse.status === 402) {
+        return new Response(JSON.stringify({ success: false, error: "Payment required" }),
+          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
       }
-      throw new Error(`AI gateway error: ${response.status}`);
+      throw new Error(`AI gateway error: ${aiResponse.status}`);
     }
 
-    const aiResponse = await response.json();
-    console.log("[AI Response]:", JSON.stringify(aiResponse));
+    const aiData = await aiResponse.json();
 
     let searchIntent: SearchIntent = {
       type: 'mixed',
@@ -316,38 +237,33 @@ Responda APENAS com JSON válido no formato especificado.`;
       originalQuery: query
     };
 
-    // Parse tool call response
-    const toolCall = aiResponse.choices?.[0]?.message?.tool_calls?.[0];
+    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
     if (toolCall?.function?.arguments) {
       try {
         const parsed = JSON.parse(toolCall.function.arguments);
-        searchIntent = {
-          ...parsed,
-          originalQuery: query
-        };
+        searchIntent = { ...parsed, originalQuery: query };
       } catch (e) {
         console.error("[Error] Parsing tool response:", e);
       }
     }
 
-    // ========================================
-    // STORE IN CACHE
-    // ========================================
     searchCache.set(cacheKey, searchIntent);
     const stats = searchCache.getStats();
     console.log(`[Cache SET] Query: "${query}" | Cache size: ${stats.size} | Hit rate: ${stats.hitRate}`);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
-        intent: searchIntent,
-        cached: false,
-        cacheStats: stats
-      }),
+      JSON.stringify({ success: true, intent: searchIntent, cached: false, cacheStats: stats }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
   } catch (error) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(JSON.stringify({ success: false, error: "Cota de IA excedida este mês." }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("[Error] semantic-search:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return new Response(
