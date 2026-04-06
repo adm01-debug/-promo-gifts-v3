@@ -35,6 +35,9 @@ export default function Index() {
               totalEstimate={catalog.totalEstimate}
               filteredCount={catalog.filteredProducts.length}
               hasNextPage={catalog.hasNextPage}
+              searchQuery={catalog.searchQuery}
+              activeFiltersCount={catalog.activeFiltersCount}
+              onReset={catalog.resetFilters}
               onSelect={(result) => {
                 if (result.type === "product") {
                   catalog.navigate(`/produto/${result.id}`);
