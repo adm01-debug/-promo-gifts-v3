@@ -407,7 +407,7 @@ export function ProductGallery({
                   }}
                 >
                   {/* Imagem da variação */}
-                  <div className="relative aspect-square overflow-hidden">
+                  <div className="relative aspect-[1/1.05] overflow-hidden">
                     {color.image || color.images?.[0] ? (
                       <ColorThumb 
                         src={getCdnUrl(color.images?.[0] || color.image || '', 'thumbnail')} 
