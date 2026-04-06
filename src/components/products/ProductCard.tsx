@@ -40,7 +40,7 @@ export interface ProductCardProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export function ProductCard({ 
+export const ProductCard = memo(function ProductCard({ 
   product, 
   onClick, 
   onView, 
