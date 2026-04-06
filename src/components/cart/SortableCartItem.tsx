@@ -2,7 +2,7 @@
  * SortableCartItem - Draggable product card for seller carts
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,7 +41,7 @@ interface SortableCartItemProps {
   onNavigate: (path: string) => void;
 }
 
-export function SortableCartItem({
+export const SortableCartItem = memo(function SortableCartItem({
   item, index, otherCarts, companyAccentColor, stockMap,
   onRemove, onUpdateQuantity, onUpdateNotes, onMoveToCart, onDuplicateToCart, onNavigate,
 }: SortableCartItemProps) {
@@ -82,7 +82,7 @@ export function SortableCartItem({
     >
       <Card className={cn(
         "overflow-hidden group hover:border-primary/20 transition-all duration-200",
-        isDragging && "shadow-xl ring-2 ring-emerald-500/30",
+        isDragging && "shadow-xl ring-2 ring-primary/30",
         isOutOfStock && "opacity-60"
       )}>
         {companyAccentColor && (
@@ -273,4 +273,6 @@ export function SortableCartItem({
       </Card>
     </motion.div>
   );
-}
+});
+
+SortableCartItem.displayName = 'SortableCartItem';
