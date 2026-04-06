@@ -587,6 +587,245 @@ describe("statBadges — Real-world simulations", () => {
 });
 
 // ============================================
+// FIX: totalEstimate for "Produtos Únicos"
+// ============================================
+
+describe("statBadges — totalEstimate (progressive loading)", () => {
+  it("shows totalEstimate when unfiltered and still loading (hasNextPage=true)", () => {
+    const products = makeProducts(400);
+    const stats = calculateStatBadges(products, 0, 0, { totalEstimate: 6090, hasNextPage: true });
+    expect(stats[0].value).toBe(6090);
+  });
+
+  it("shows deduped.length when fully loaded (hasNextPage=false)", () => {
+    const products = makeProducts(6090);
+    const stats = calculateStatBadges(products, 0, 0, { totalEstimate: 6090, hasNextPage: false });
+    expect(stats[0].value).toBe(6090);
+  });
+
+  it("shows deduped.length when filters active even if still loading", () => {
+    const products = makeProducts(50);
+    const stats = calculateStatBadges(products, 0, 0, {
+      totalEstimate: 6090, hasNextPage: true, hasActiveFilters: true,
+    });
+    expect(stats[0].value).toBe(50); // filtered = exact count
+  });
+
+  it("falls back to deduped.length when totalEstimate is null and still loading", () => {
+    const products = makeProducts(400);
+    const stats = calculateStatBadges(products, 0, 0, { totalEstimate: null, hasNextPage: true });
+    expect(stats[0].value).toBe(400);
+  });
+
+  it("falls back to deduped.length when totalEstimate is 0", () => {
+    const stats = calculateStatBadges([], 0, 0, { totalEstimate: 0, hasNextPage: true });
+    expect(stats[0].value).toBe(0);
+  });
+
+  it("totalEstimate ignored when hasNextPage is false (fully loaded)", () => {
+    const products = makeProducts(100);
+    const stats = calculateStatBadges(products, 0, 0, { totalEstimate: 9999, hasNextPage: false });
+    expect(stats[0].value).toBe(100); // real count, not estimate
+  });
+
+  it("default options (no totalEstimate, no hasNextPage) shows deduped count", () => {
+    const products = makeProducts(250);
+    const stats = calculateStatBadges(products, 0, 0);
+    expect(stats[0].value).toBe(250);
+  });
+
+  it("progressive loading: 500 loaded of 6090 total", () => {
+    const stats = calculateStatBadges(makeProducts(500), 0, 438, { totalEstimate: 6090, hasNextPage: true });
+    expect(stats[0].value).toBe(6090);
+  });
+
+  it("progressive loading: 2000 loaded of 6090 total", () => {
+    const stats = calculateStatBadges(makeProducts(2000), 0, 438, { totalEstimate: 6090, hasNextPage: true });
+    expect(stats[0].value).toBe(6090);
+  });
+
+  it("progressive loading complete: 6090 loaded, no next page", () => {
+    const stats = calculateStatBadges(makeProducts(6090), 0, 438, { totalEstimate: 6090, hasNextPage: false });
+    expect(stats[0].value).toBe(6090);
+  });
+});
+
+// ============================================
+// FIX: Variations fallback to variations array
+// ============================================
+
+describe("statBadges — Variations fallback logic", () => {
+  it("uses colors when both colors and variations exist", () => {
+    const p = { ...makeProduct({ colors: [{ name: "Red" }, { name: "Blue" }] }), variations: [{ id: "v1" }, { id: "v2" }, { id: "v3" }] } as any;
+    const stats = calculateStatBadges([p], 0, 0);
+    expect(stats[1].value).toBe(2); // colors win
+  });
+
+  it("falls back to variations when colors is empty", () => {
+    const p = { ...makeProduct({ colors: [] }), variations: [{ id: "v1" }, { id: "v2" }] } as any;
+    const stats = calculateStatBadges([p], 0, 0);
+    expect(stats[1].value).toBe(2); // variations fallback
+  });
+
+  it("falls back to variations when colors is undefined", () => {
+    const p = { ...makeProduct({ colors: undefined }), variations: [{ id: "v1" }] } as any;
+    const stats = calculateStatBadges([p], 0, 0);
+    expect(stats[1].value).toBe(1);
+  });
+
+  it("falls back to variations when all colors have empty names", () => {
+    const p = { ...makeProduct({ colors: [{ name: "" }, { name: "  " }] }), variations: [{ id: "v1" }, { id: "v2" }, { id: "v3" }] } as any;
+    const stats = calculateStatBadges([p], 0, 0);
+    expect(stats[1].value).toBe(3); // colors filtered to 0, so variations kick in
+  });
+
+  it("returns 0 when neither colors nor variations exist", () => {
+    const p = makeProduct({ colors: undefined });
+    const stats = calculateStatBadges([p], 0, 0);
+    expect(stats[1].value).toBe(0);
+  });
+
+  it("sums colors + variations across mixed products", () => {
+    const p1 = makeProduct({ colors: [{ name: "A" }, { name: "B" }] }); // 2 from colors
+    const p2 = { ...makeProduct({ colors: [] }), variations: [{ id: "v1" }, { id: "v2" }] } as any; // 2 from variations
+    const p3 = makeProduct({ colors: [{ name: "C" }] }); // 1 from colors
+    const stats = calculateStatBadges([p1, p2, p3], 0, 0);
+    expect(stats[1].value).toBe(5);
+  });
+
+  it("does NOT double count: colors > 0 means variations ignored", () => {
+    const p = { ...makeProduct({ colors: [{ name: "X" }] }), variations: [{ id: "v1" }, { id: "v2" }, { id: "v3" }, { id: "v4" }] } as any;
+    const stats = calculateStatBadges([p], 0, 0);
+    expect(stats[1].value).toBe(1); // only colors count
+  });
+});
+
+// ============================================
+// FIX: Hidden categories filtering (production code)
+// These test the hidden category logic in useCatalogState
+// ============================================
+
+describe("statBadges — Hidden categories filtering", () => {
+  const hiddenCategoryPatterns = ['matéria', 'prima', 'gravações', 'personalização', 'suprimentos', 'insumos', 'gravação | mochila'];
+
+  function filterVisibleCategories(cats: { name: string }[]) {
+    return cats.filter(cat => {
+      const lower = cat.name.toLowerCase();
+      return !hiddenCategoryPatterns.some(p => lower.includes(p));
+    });
+  }
+
+  it("filters 'Matéria | Prima' from category count", () => {
+    const cats = [{ name: "Canetas" }, { name: "Matéria | Prima" }, { name: "Mochilas" }];
+    expect(filterVisibleCategories(cats)).toHaveLength(2);
+  });
+
+  it("filters 'Gravações | Personalização' from category count", () => {
+    const cats = [{ name: "Gravações | Personalização" }, { name: "Copos" }];
+    expect(filterVisibleCategories(cats)).toHaveLength(1);
+  });
+
+  it("filters 'Suprimentos | Insumos' from category count", () => {
+    const cats = [{ name: "Suprimentos | Insumos" }, { name: "Garrafas" }];
+    expect(filterVisibleCategories(cats)).toHaveLength(1);
+  });
+
+  it("filters 'Gravação | Mochila' from category count", () => {
+    const cats = [{ name: "Gravação | Mochila" }, { name: "Bonés" }];
+    expect(filterVisibleCategories(cats)).toHaveLength(1);
+  });
+
+  it("case-insensitive filtering", () => {
+    const cats = [{ name: "MATÉRIA Prima" }, { name: "gravações especiais" }, { name: "Canetas" }];
+    expect(filterVisibleCategories(cats)).toHaveLength(1);
+  });
+
+  it("does not filter legitimate categories", () => {
+    const cats = [{ name: "Canetas" }, { name: "Mochilas" }, { name: "Copos" }, { name: "Cadernos" }];
+    expect(filterVisibleCategories(cats)).toHaveLength(4);
+  });
+
+  it("handles empty category list", () => {
+    expect(filterVisibleCategories([])).toHaveLength(0);
+  });
+
+  it("realistic scenario: 438 categories with ~5 hidden", () => {
+    const visible = Array.from({ length: 433 }, (_, i) => ({ name: `Categoria ${i}` }));
+    const hidden = [
+      { name: "Matéria | Prima" },
+      { name: "Gravações | Personalização" },
+      { name: "Suprimentos | Insumos" },
+      { name: "Gravação | Mochila" },
+      { name: "Gravações Especiais" },
+    ];
+    const all = [...visible, ...hidden];
+    expect(filterVisibleCategories(all)).toHaveLength(433);
+  });
+});
+
+// ============================================
+// COMBINED EDGE CASES
+// ============================================
+
+describe("statBadges — Combined edge cases", () => {
+  it("all fixes together: partial load + filters + variations fallback", () => {
+    const p1 = { ...makeProduct({ id: "a", category_id: "5", supplier: { name: "BIC" }, colors: [] }), variations: [{ id: "v1" }] } as any;
+    const p2 = makeProduct({ id: "b", category_id: "5", supplier: { name: "bic" }, colors: [{ name: "Azul" }] });
+    const stats = calculateStatBadges([p1, p2], 0, 438, {
+      hasActiveFilters: true,
+      totalEstimate: 6090,
+      hasNextPage: true,
+    });
+    expect(stats[0].value).toBe(2); // filtered → exact count
+    expect(stats[1].value).toBe(2); // 1 variation + 1 color
+    expect(stats[2].value).toBe(1); // filtered → 1 category
+    expect(stats[3].value).toBe(1); // BIC = bic (deduped)
+  });
+
+  it("empty filtered result with progressive loading", () => {
+    const stats = calculateStatBadges([], 0, 438, {
+      hasActiveFilters: true,
+      totalEstimate: 6090,
+      hasNextPage: true,
+    });
+    expect(stats[0].value).toBe(0); // filtered to 0
+    expect(stats[1].value).toBe(0);
+    expect(stats[2].value).toBe(0);
+    expect(stats[3].value).toBe(0);
+  });
+
+  it("unfiltered during progressive loading shows estimates", () => {
+    const products = makeProducts(500);
+    const stats = calculateStatBadges(products, 3, 438, {
+      totalEstimate: 6090,
+      hasNextPage: true,
+    });
+    expect(stats[0].value).toBe(6090); // estimate
+    expect(stats[2].value).toBe(438); // global categories
+    expect(stats[4].value).toBe(3); // fallback favoriteCount
+  });
+
+  it("dedup + totalEstimate: duplicates don't affect estimate usage", () => {
+    const products = [
+      makeProduct({ id: "dup" }),
+      makeProduct({ id: "dup" }),
+      makeProduct({ id: "unique" }),
+    ];
+    const stats = calculateStatBadges(products, 0, 0, { totalEstimate: 6090, hasNextPage: true });
+    expect(stats[0].value).toBe(6090); // still uses estimate since unfiltered + loading
+  });
+
+  it("fully loaded catalog ignores totalEstimate, uses real count", () => {
+    const products = makeProducts(6090);
+    // Add some duplicates
+    products.push(makeProduct({ id: "prod-0" }));
+    products.push(makeProduct({ id: "prod-1" }));
+    const stats = calculateStatBadges(products, 0, 0, { totalEstimate: 6090, hasNextPage: false });
+    expect(stats[0].value).toBe(6090); // deduped count
+  });
+});
+
+// ============================================
 // COMPONENT TESTS
 // ============================================
 
