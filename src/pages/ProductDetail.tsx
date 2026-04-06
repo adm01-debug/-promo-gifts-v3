@@ -568,8 +568,6 @@ export default function ProductDetail() {
               <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
             )}
 
-            {/* Personalização — collapsible */}
-            <PersonalizationCollapsible id={product.id} productSku={product.sku} productName={product.name} />
 
 
 
