@@ -158,6 +158,31 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
     });
   };
 
+  // Global keyboard shortcuts for navigation
+  useEffect(() => {
+    const shortcutMap: Record<string, string> = {};
+    navGroups.forEach(g => g.items.forEach(item => {
+      if (item.shortcut) {
+        const key = item.shortcut.replace("Alt+", "").toLowerCase();
+        shortcutMap[key] = item.href;
+      }
+    }));
+
+    const handler = (e: KeyboardEvent) => {
+      if (e.altKey && !e.ctrlKey && !e.metaKey) {
+        const target = e.target as HTMLElement;
+        if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
+        const href = shortcutMap[e.key.toLowerCase()];
+        if (href) {
+          e.preventDefault();
+          navigate(href);
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [navigate]);
+
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 
 
