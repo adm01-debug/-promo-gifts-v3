@@ -34,6 +34,7 @@ export function ProductCategoryBadges({
   groups, 
   className,
   showLabels = false,
+  categoryUuid,
   productId,
   productName,
   productSku,
