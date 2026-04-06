@@ -377,7 +377,7 @@ export function ProductGallery({
             </button>
           </div>
           
-          <div className="relative group/variations">
+          <div className="relative mt-1 group/variations">
             <div ref={variationsScrollRef} className="flex gap-3 overflow-x-auto pb-2 scrollbar-thin" style={{ scrollbarWidth: 'none' }}>
             {sortedColors.map((color) => {
               // Encontrar o índice original para manter a seleção funcionando
@@ -443,7 +443,7 @@ export function ProductGallery({
                   </div>
                   
                   {/* Info da variação */}
-                  <div className="p-2 space-y-1">
+                  <div className="p-2 pb-2.5 space-y-1">
                     {/* Cor e nome */}
                     <div className="flex items-center gap-1.5">
                       <div
