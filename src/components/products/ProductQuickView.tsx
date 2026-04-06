@@ -355,6 +355,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
               <ProductCategoryBadges 
                 category={product.category} 
                 groups={product.groups}
+                categoryUuid={product.category_id}
               />
               
               <div className="flex items-center gap-2 text-sm">
