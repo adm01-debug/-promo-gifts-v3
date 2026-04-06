@@ -259,7 +259,7 @@ export function ProductGallery({
         {/* Decorative background glow */}
         <div className="absolute -inset-4 bg-gradient-to-br from-primary/5 via-transparent to-primary/5 rounded-3xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
         
-        <div className="relative rounded-2xl overflow-hidden shadow-lg border border-border/50 group-hover:shadow-2xl group-hover:border-primary/20 transition-all duration-500">
+        <div className="relative rounded-2xl overflow-hidden shadow-lg border border-border/30 group-hover:shadow-2xl group-hover:shadow-primary/10 group-hover:border-primary/20 transition-all duration-500">
           <ImageView />
 
           {/* Play button - top right corner */}
@@ -399,7 +399,7 @@ export function ProductGallery({
                   onClick={() => handleColorClick(originalIndex)}
                     className={cn(
                       "group/color relative shrink-0 w-24 rounded-xl overflow-hidden transition-all duration-300",
-                      "bg-card shadow-md hover:shadow-lg hover:-translate-y-1"
+                      "bg-card shadow-sm hover:shadow-xl hover:shadow-primary/10 hover:-translate-y-1.5"
                     )}
                   style={{
                     border: isSelected ? `2px solid ${color.hex}` : '1px solid hsl(var(--border))',
