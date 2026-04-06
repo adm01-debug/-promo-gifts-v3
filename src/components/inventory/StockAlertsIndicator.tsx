@@ -62,7 +62,18 @@ const NotificationTrigger = forwardRef<HTMLButtonElement, TriggerProps>(
       size="icon"
       className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
       {...props}
-     aria-label="Alertas de estoque"><Package className="h-4.5 w-4.5" />
+      aria-label="Alertas de estoque"
+    >
+      <Tooltip delayDuration={300}>
+        <TooltipTrigger asChild>
+          <span className="flex items-center justify-center">
+            <Package className="h-4.5 w-4.5" />
+          </span>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          Alerta de Estoque
+        </TooltipContent>
+      </Tooltip>
       {totalCount > 0 && (
         <motion.span
           initial={{ scale: 0 }}
