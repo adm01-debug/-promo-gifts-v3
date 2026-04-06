@@ -57,11 +57,11 @@ export function CatalogToolbar({
       <div className="flex items-center gap-2 flex-shrink-0">
         <Sheet open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
-              Filtros
+            <Button variant="outline" size="sm" className="px-2.5 sm:px-3">
+              <Filter className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Filtros</span>
               {activeFiltersCount > 0 && (
-                <Badge variant="secondary" className="ml-2">
+                <Badge variant="secondary" className="ml-1 sm:ml-2 h-5 min-w-5 text-xs">
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -82,9 +82,9 @@ export function CatalogToolbar({
         </Sheet>
 
         <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
-          <SelectTrigger className="w-32 sm:w-44">
-            <ArrowUpDown className="h-4 w-4 mr-2" />
-            <SelectValue placeholder="Ordenar" />
+          <SelectTrigger className="w-10 sm:w-44" aria-label="Ordenar por">
+            <ArrowUpDown className="h-4 w-4 sm:mr-2 shrink-0" />
+            <span className="hidden sm:inline"><SelectValue placeholder="Ordenar" /></span>
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="name">Nome A-Z</SelectItem>
