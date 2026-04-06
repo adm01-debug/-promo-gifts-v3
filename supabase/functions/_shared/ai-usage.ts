@@ -40,6 +40,7 @@ interface QuotaResult {
   remaining: number;
   unlimited?: boolean;
   reason?: string;
+  log_id?: string;
 }
 
 /**
@@ -51,6 +52,25 @@ export async function checkAiQuota(userId: string): Promise<QuotaResult> {
   if (error) {
     console.error("[ai-usage] Quota check failed:", error.message);
     return { allowed: true, used: 0, limit: -1, remaining: -1, reason: "quota_check_failed" };
+  }
+  return data as QuotaResult;
+}
+
+/**
+ * Atomically acquire an AI quota slot (check + reserve in single transaction).
+ * Returns quota result with log_id if allowed.
+ */
+export async function acquireAiQuota(userId: string, functionName: string, model: string): Promise<QuotaResult> {
+  const supabase = getServiceClient();
+  const { data, error } = await supabase.rpc("acquire_ai_quota", {
+    _user_id: userId,
+    _function_name: functionName,
+    _model: model,
+  });
+  if (error) {
+    console.error("[ai-usage] Atomic quota acquire failed:", error.message);
+    // Fallback: allow but without log_id (will create new log later)
+    return { allowed: true, used: 0, limit: -1, remaining: -1, reason: "acquire_failed" };
   }
   return data as QuotaResult;
 }
