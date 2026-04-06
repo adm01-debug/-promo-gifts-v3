@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle2, Package, Paintbrush, Upload, Move, Sparkles, Building2 } from "lucide-react";
 
@@ -22,7 +23,7 @@ interface MockupWizardProps {
   onStepClick?: (step: number) => void;
 }
 
-export function MockupWizard({
+export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(function MockupWizard({
   currentStep,
   hasClient,
   hasProduct,
@@ -32,7 +33,7 @@ export function MockupWizard({
   hasGenerated,
   className,
   onStepClick,
-}: MockupWizardProps) {
+}, ref) {
   const steps: MockupWizardStep[] = [
     {
       id: 1,
@@ -99,7 +100,7 @@ export function MockupWizard({
   };
 
   return (
-    <div className={cn("w-full", className)}>
+    <div ref={ref} className={cn("w-full", className)}>
       {/* Desktop Stepper */}
       <div className="hidden md:block">
         <div className="relative flex items-start justify-between">
@@ -226,5 +227,5 @@ export function MockupWizard({
       </div>
     </div>
   );
-}
+});
 
