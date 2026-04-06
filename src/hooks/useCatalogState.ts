@@ -25,6 +25,16 @@ import { useToast } from "@/hooks/use-toast";
 export type ViewMode = "grid" | "list";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
 
+const VIEW_MODE_KEY = "catalog-view-mode";
+
+function getPersistedViewMode(): ViewMode {
+  try {
+    const saved = localStorage.getItem(VIEW_MODE_KEY);
+    if (saved === "grid" || saved === "list") return saved;
+  } catch {}
+  return "grid";
+}
+
 const ITEMS_PER_PAGE = 12;
 
 export function useCatalogState() {
