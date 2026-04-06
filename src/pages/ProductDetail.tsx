@@ -335,25 +335,25 @@ export default function ProductDetail() {
             </div>
 
             {/* ===== PRICE + SPECS — two columns ===== */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 items-start">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 items-stretch">
               {/* LEFT — Price & CTA */}
-              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col justify-between transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/5">
+              <div className="group/price rounded-2xl bg-gradient-to-br from-card via-card to-secondary/10 border border-border/60 p-4 xl:p-5 shadow-lg relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/20">
                 {product.featured && (
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
+                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/8 to-transparent rounded-bl-full transition-opacity duration-500 group-hover/price:from-primary/15" />
                 )}
                 <div className="relative space-y-2">
                   <div>
-                    <p className="text-[11px] xl:text-xs text-muted-foreground">A partir de</p>
-                    <span className="text-2xl xl:text-3xl font-display font-bold text-foreground">
+                    <p className="text-[11px] xl:text-xs text-muted-foreground/70 uppercase tracking-wider font-medium">A partir de</p>
+                    <span className="text-3xl xl:text-4xl font-display font-extrabold text-foreground tracking-tight">
                       {formatPrice(product.price)}
                     </span>
-                    <span className="text-sm xl:text-base text-muted-foreground ml-1">/un</span>
+                    <span className="text-sm xl:text-base text-muted-foreground/60 ml-1 font-medium">/un</span>
                   </div>
                   
                   {/* Stock per color */}
                   {product.variations && product.variations.length > 0 ? (
-                    <div className="space-y-1">
-                      <div className="flex flex-wrap items-center gap-1">
+                    <div className="space-y-1 opacity-70 hover:opacity-100 transition-opacity duration-300">
+                      <div className="flex flex-wrap items-center gap-0.5">
                         {sortVariationsByColor(product.variations).map((variation) => {
                           const isSelected = selectedVariation?.id === variation.id;
                           return (
@@ -363,8 +363,8 @@ export default function ProductDetail() {
                               title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
                               aria-label={`Cor ${variation.color.name}, ${Math.max(0, variation.stock)} unidades`}
                               className={cn(
-                                "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-all",
-                                !isSelected && "bg-secondary/50 border border-border hover:bg-secondary hover:scale-105",
+                                "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium transition-all duration-200",
+                                !isSelected && "bg-secondary/30 border border-border/40 hover:bg-secondary/60 hover:scale-105",
                                 Math.max(0, variation.stock) === 0 && "opacity-50"
                               )}
                               style={isSelected ? {
@@ -413,7 +413,7 @@ export default function ProductDetail() {
                   </div>
 
                   {/* CTA Buttons */}
-                  <div className="flex gap-2 xl:gap-3">
+                  <div className="flex gap-2 xl:gap-3 pt-1">
                     <QuickAddToQuote
                       productId={id || ""}
                       productName={product.name}
@@ -422,13 +422,13 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-8 xl:h-10 rounded-lg bg-success hover:bg-success/90 text-success-foreground font-semibold text-xs xl:text-sm shadow-sm"
+                      className="flex-1 h-10 xl:h-11 rounded-xl bg-gradient-to-r from-success to-success/90 hover:from-success/90 hover:to-success/80 text-success-foreground font-bold text-xs xl:text-sm shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
                     <Button
                       size="sm"
-                      className="flex-1 h-8 xl:h-10 rounded-lg bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs xl:text-sm shadow-sm gap-1.5"
+                      className="flex-1 h-10 xl:h-11 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-bold text-xs xl:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] gap-1.5"
                       onClick={() => navigate(`/orcamentos/novo?product_id=${id}&product_name=${encodeURIComponent(product.name)}&product_sku=${encodeURIComponent(product.sku || '')}&product_price=${product.price}&product_image=${encodeURIComponent(product.images?.[0] || '')}&min_quantity=${product.minQuantity || 1}`)}
                     >
                       <FileText className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
@@ -473,10 +473,10 @@ export default function ProductDetail() {
               </div>
 
               {/* RIGHT — Specs + Description */}
-              <div id="sec-specs" className="scroll-mt-28 rounded-xl border border-border bg-card/50 p-3 xl:p-5 space-y-2 xl:space-y-3 flex flex-col">
+              <div id="sec-specs" className="scroll-mt-28 rounded-2xl border border-border/60 bg-card/40 p-4 xl:p-5 space-y-3 xl:space-y-4 flex flex-col">
                 {/* Description */}
                 <div id="sec-descricao" className="scroll-mt-28 max-w-prose">
-                  <h4 className="text-xs xl:text-sm font-semibold text-foreground mb-1">Descrição</h4>
+                  <h4 className="text-xs xl:text-sm font-bold text-foreground mb-1.5 uppercase tracking-wide">Descrição</h4>
                   {product.description ? (() => {
                     const sentences = product.description
                       .split(/[.]\s+/)
@@ -501,8 +501,8 @@ export default function ProductDetail() {
                 </div>
 
                 {/* Specs */}
-                <div className="border-t border-border/40 pt-2 space-y-2">
-                  <h4 className="text-xs xl:text-sm font-semibold text-foreground">Especificações</h4>
+                <div className="border-t border-border/30 pt-3 space-y-2">
+                  <h4 className="text-xs xl:text-sm font-bold text-foreground uppercase tracking-wide">Especificações</h4>
                   {product.materials && product.materials.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {product.materials.map((material) => (
