@@ -2,7 +2,7 @@ import { useState, useEffect, forwardRef, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  AlertTriangle, TrendingDown, Package, X, Bell,
+  AlertTriangle, TrendingDown, Package, X,
   ExternalLink, Sparkles, RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,7 +62,7 @@ const NotificationTrigger = forwardRef<HTMLButtonElement, TriggerProps>(
       size="icon"
       className="relative h-9 w-9 hover:bg-primary/10 hover:text-primary transition-colors"
       {...props}
-     aria-label="Notificações"><Bell className="h-4 w-4" />
+     aria-label="Alertas de estoque"><Package className="h-4.5 w-4.5" />
       {totalCount > 0 && (
         <motion.span
           initial={{ scale: 0 }}
