@@ -85,6 +85,25 @@ function escapeRegExp(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+/**
+ * Classifica produtos por relevância ao termo de busca.
+ *
+ * ⚠️ REGRA DE NEGÓCIO — NÃO ALTERAR A HIERARQUIA DE PRIORIDADE:
+ *   1. SKU / Referência exata (match perfeito)
+ *   2. Nome exato
+ *   3. Nome começa com o termo  ("Caneta Plástica" para busca "caneta")
+ *   4. Palavra exata no nome    ("Porta Caneta" — word boundary)
+ *   5. Nome contém o termo
+ *   6. Código (SKU/ref) começa com / contém
+ *   7. Metadados (marca, categoria, descrição)
+ *   8. Fuzzy via Fuse.js (score < fuzzyThreshold)
+ *
+ * Dentro de cada grupo, itens são sub-ordenados pela posição do match
+ * mais à esquerda nos campos do produto (sortByRelevancePosition).
+ *
+ * Esta ordem é preservada no catálogo quando o sort padrão "Nome A-Z"
+ * está ativo (ver useCatalogState.ts → skipSort).
+ */
 export function rankProductSearchResults<T extends SearchableProductLike>(
   products: T[],
   searchQuery: string,
