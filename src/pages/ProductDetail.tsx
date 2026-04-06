@@ -571,10 +571,6 @@ export default function ProductDetail() {
             {/* Personalização — collapsible */}
             <PersonalizationCollapsible id={product.id} productSku={product.sku} productName={product.name} />
 
-            {/* Share Actions */}
-            <div className="flex items-center gap-2">
-              <ShareActions product={product} selectedPhotosCount={displayImages.length} />
-            </div>
 
 
             {/* Quick Action Buttons — bottom bar */}
