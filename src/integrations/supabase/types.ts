@@ -2001,6 +2001,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      acquire_ai_quota: {
+        Args: { _function_name: string; _model: string; _user_id: string }
+        Returns: Json
+      }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       create_organization_with_owner: {
