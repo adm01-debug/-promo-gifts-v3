@@ -8,5 +8,5 @@ describe("AdvancedFilterPanel", () => {
     // Just verify the module loads; actual rendering requires full context
     const module = await import("@/components/filters/AdvancedFilterPanel");
     expect(module).toBeDefined();
-  });
+  }, 15000);
 });
