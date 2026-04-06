@@ -127,6 +127,12 @@ export function MainLayout({ children }: MainLayoutProps) {
       
       <div className="print:hidden">
         <Suspense fallback={null}>
+          <ScrollProgressIndicator />
+        </Suspense>
+      </div>
+      
+      <div className="print:hidden">
+        <Suspense fallback={null}>
           <ScrollToTopButton threshold={150} />
         </Suspense>
       </div>

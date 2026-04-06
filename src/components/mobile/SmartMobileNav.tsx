@@ -208,7 +208,7 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                 key={item.href}
                 to={item.href}
                 className={cn(
-                  "flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all",
+                  "relative flex flex-col items-center justify-center min-w-[56px] sm:min-w-[64px] min-h-[44px] sm:min-h-[48px] px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg transition-all",
                   "touch-manipulation tap-highlight-transparent",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                   "active:scale-95",
@@ -221,10 +221,17 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
                 onMouseEnter={prefetch.onMouseEnter}
                 onTouchStart={prefetch.onTouchStart}
               >
-                <Icon className={cn("h-5 w-5 sm:mb-1", active && "text-primary")} aria-hidden="true" />
+                <Icon className={cn("h-5 w-5 sm:mb-1 transition-transform duration-200", active && "text-primary scale-110")} aria-hidden="true" />
                 <span className="text-[9px] sm:text-[10px] font-medium leading-tight truncate max-w-[56px]">
                   {item.label}
                 </span>
+                {active && (
+                  <motion.div
+                    layoutId="bottomNavIndicator"
+                    className="absolute -bottom-0.5 h-0.5 w-5 rounded-full bg-primary"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
               </NavLink>
             );
           })}

@@ -1,7 +1,7 @@
 import { useRouteError, isRouteErrorResponse, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AlertTriangle, Home, RefreshCw, ArrowLeft, WifiOff, Lock, FileQuestion } from "lucide-react";
+import { AlertTriangle, Home, RefreshCw, ArrowLeft, WifiOff, Lock, FileQuestion, Gift } from "lucide-react";
 import { motion } from "framer-motion";
 
 interface ErrorDetails {
@@ -122,6 +122,16 @@ export function RouteErrorBoundary() {
       >
         <Card className="max-w-md w-full border-border/50">
           <CardContent className="pt-8 pb-6 text-center space-y-6">
+            {/* Branding */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center">
+                <Gift className="h-5 w-5 text-primary" />
+              </div>
+              <span className="font-display text-[10px] font-semibold text-muted-foreground tracking-widest uppercase">
+                Promo Gifts
+              </span>
+            </div>
+
             <motion.div
               initial={{ scale: 0.8 }}
               animate={{ scale: 1 }}
