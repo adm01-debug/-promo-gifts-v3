@@ -338,52 +338,56 @@ export default function ProductDetail() {
             {/* ===== PRICE + SPECS — two columns ===== */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 items-stretch flex-1">
               {/* LEFT — Price & CTA */}
-              <div className="group/price rounded-2xl bg-gradient-to-br from-card via-card to-secondary/10 border border-border/60 p-4 xl:p-5 shadow-lg relative overflow-hidden flex flex-col justify-between transition-all duration-500 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/20">
+              <div className="group/price rounded-2xl bg-gradient-to-br from-card via-card to-secondary/10 border border-border/60 p-5 xl:p-6 shadow-lg relative overflow-hidden flex flex-col transition-all duration-500 hover:shadow-xl hover:shadow-primary/10 hover:border-primary/20">
                 {product.featured && (
-                  <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-primary/8 to-transparent rounded-bl-full transition-opacity duration-500 group-hover/price:from-primary/15" />
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-gradient-to-br from-primary/8 to-transparent rounded-bl-full transition-opacity duration-500 group-hover/price:from-primary/15" />
                 )}
-                <div className="relative space-y-2">
+
+                <div className="relative flex flex-col gap-4">
+                  {/* ── SEÇÃO 1: Preço ── */}
                   <div>
-                    <p className="text-[11px] xl:text-xs text-muted-foreground/70 uppercase tracking-wider font-medium">A partir de</p>
-                    <span className="text-3xl xl:text-4xl font-display font-extrabold text-foreground tracking-tight">
-                      {formatPrice(product.price)}
-                    </span>
-                    <span className="text-sm xl:text-base text-muted-foreground/60 ml-1 font-medium">/un</span>
+                    <p className="text-[10px] xl:text-[11px] text-muted-foreground/60 uppercase tracking-[0.15em] font-semibold mb-1">A partir de</p>
+                    <div className="flex items-baseline gap-1.5">
+                      <span className="text-3xl xl:text-4xl font-display font-extrabold text-foreground tracking-tight leading-none">
+                        {formatPrice(product.price)}
+                      </span>
+                      <span className="text-sm text-muted-foreground/50 font-medium">/un</span>
+                    </div>
                   </div>
-                  
-                  {/* Stock per color */}
+
+                  {/* ── SEÇÃO 2: Estoque por cor ── */}
                   {product.variations && product.variations.length > 0 ? (
-                    <div className="space-y-1 opacity-70 hover:opacity-100 transition-opacity duration-300">
-                      <div className="flex flex-wrap items-center gap-0.5">
+                    <div className="space-y-1.5">
+                      <p className="text-[10px] text-muted-foreground/50 uppercase tracking-wider font-semibold">Estoque por cor</p>
+                      <div className="flex flex-wrap items-center gap-1">
                         {sortVariationsByColor(product.variations).map((variation) => {
                           const isSelected = selectedVariation?.id === variation.id;
+                          const stock = Math.max(0, variation.stock);
                           return (
                             <button
                               key={variation.id}
                               onClick={() => setSelectedVariation(variation)}
-                              title={`${variation.color.name}: ${Math.max(0, variation.stock).toLocaleString("pt-BR")} un.`}
-                              aria-label={`Cor ${variation.color.name}, ${Math.max(0, variation.stock)} unidades`}
+                              title={`${variation.color.name}: ${stock.toLocaleString("pt-BR")} un.`}
+                              aria-label={`Cor ${variation.color.name}, ${stock} unidades`}
                               className={cn(
-                                "flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-medium transition-all duration-200",
-                                !isSelected && "bg-secondary/30 border border-border/40 hover:bg-secondary/60 hover:scale-105",
-                                Math.max(0, variation.stock) === 0 && "opacity-50"
+                                "flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-medium transition-all duration-200",
+                                !isSelected && "bg-secondary/30 border border-border/30 hover:bg-secondary/50",
+                                stock === 0 && "opacity-40"
                               )}
                               style={isSelected ? {
-                                backgroundColor: `${variation.color.hex}20`,
-                                border: `1px solid ${variation.color.hex}`,
-                                boxShadow: `0 0 0 2px ${variation.color.hex}30`
+                                backgroundColor: `${variation.color.hex}15`,
+                                border: `1.5px solid ${variation.color.hex}`,
+                                boxShadow: `0 0 0 2px ${variation.color.hex}20`
                               } : undefined}
                             >
                               <div
-                                className="w-2 h-2 rounded-full border border-white/20 shadow-sm shrink-0"
+                                className="w-2.5 h-2.5 rounded-full border border-border/40 shrink-0"
                                 style={{ backgroundColor: variation.color.hex }}
                               />
                               <span className={cn(
-                                Math.max(0, variation.stock) === 0 ? "text-destructive" : Math.max(0, variation.stock) < 100 ? "text-warning" : "text-foreground"
+                                stock === 0 ? "text-destructive" : stock < 100 ? "text-warning" : "text-muted-foreground"
                               )}>
-                                {Math.max(0, variation.stock) >= 1000 
-                                  ? `${(Math.max(0, variation.stock) / 1000).toFixed(1)}k` 
-                                  : Math.max(0, variation.stock).toLocaleString("pt-BR")}
+                                {stock >= 1000 ? `${(stock / 1000).toFixed(1)}k` : stock.toLocaleString("pt-BR")}
                               </span>
                             </button>
                           );
@@ -391,30 +395,32 @@ export default function ProductDetail() {
                       </div>
                     </div>
                   ) : (
-                    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border", stockInfo.class)}>
+                    <span className={cn("inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border w-fit", stockInfo.class)}>
                       <Package className="h-3.5 w-3.5" />
                       {Math.max(0, product.stock).toLocaleString("pt-BR")} un.
                     </span>
                   )}
 
-                  {/* Info row */}
-                  <div className="grid grid-cols-3 gap-1 py-1 border-y border-border/40">
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Tag className="h-2.5 w-2.5 text-primary shrink-0" />
-                      <span>Mín. {minQuantity}</span>
+                  {/* ── SEÇÃO 3: Info compacta ── */}
+                  <div className="flex items-center gap-4 py-2.5 px-3 rounded-lg bg-secondary/20 border border-border/20">
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Tag className="h-3 w-3 text-primary shrink-0" />
+                      <span className="font-medium">Mín. {minQuantity}</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Truck className="h-2.5 w-2.5 text-info shrink-0" />
+                    <div className="h-3.5 w-px bg-border/40" />
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Truck className="h-3 w-3 text-info shrink-0" />
                       <span>Consultar</span>
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                      <Shield className="h-2.5 w-2.5 text-success shrink-0" />
+                    <div className="h-3.5 w-px bg-border/40" />
+                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+                      <Shield className="h-3 w-3 text-success shrink-0" />
                       <span>Garantia</span>
                     </div>
                   </div>
 
-                  {/* CTA Buttons */}
-                  <div className="flex gap-2 xl:gap-3 pt-1">
+                  {/* ── SEÇÃO 4: CTAs ── */}
+                  <div className="flex gap-2.5">
                     <QuickAddToQuote
                       productId={id || ""}
                       productName={product.name}
@@ -423,51 +429,54 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-10 xl:h-11 rounded-xl bg-gradient-to-r from-success to-success/90 hover:from-success/90 hover:to-success/80 text-success-foreground font-bold text-xs xl:text-sm shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      className="flex-1 h-11 xl:h-12 rounded-xl bg-gradient-to-r from-success to-success/85 hover:from-success/90 hover:to-success/75 text-success-foreground font-bold text-sm shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
                     <Button
                       size="sm"
-                      className="flex-1 h-10 xl:h-11 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-bold text-xs xl:text-sm shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] gap-1.5"
+                      variant="outline"
+                      className="flex-1 h-11 xl:h-12 rounded-xl border-primary/40 text-primary hover:bg-primary/10 hover:border-primary font-bold text-sm transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] gap-1.5"
                       onClick={() => navigate(`/orcamentos/novo?product_id=${id}&product_name=${encodeURIComponent(product.name)}&product_sku=${encodeURIComponent(product.sku || '')}&product_price=${product.price}&product_image=${encodeURIComponent(product.images?.[0] || '')}&min_quantity=${product.minQuantity || 1}`)}
                     >
-                      <FileText className="h-3.5 w-3.5 xl:h-4 xl:w-4" />
+                      <FileText className="h-4 w-4" />
                       Orçamento
                     </Button>
                   </div>
 
-                  <DynamicTrustBadges
-                    trust={supplierTrust ?? { isVerified: false, deliveryDays: null, avgRating: null }}
-                    productFlags={{
-                      newArrival: product?.newArrival ?? false,
-                      onSale: product?.onSale ?? false,
-                      featured: product?.featured ?? false,
-                      minQuantity: product?.minQuantity,
-                    }}
-                    className="text-[10px]"
-                  />
+                  {/* ── SEÇÃO 5: Trust + Social proof ── */}
+                  <div className="space-y-2.5 pt-1">
+                    <DynamicTrustBadges
+                      trust={supplierTrust ?? { isVerified: false, deliveryDays: null, avgRating: null }}
+                      productFlags={{
+                        newArrival: product?.newArrival ?? false,
+                        onSale: product?.onSale ?? false,
+                        featured: product?.featured ?? false,
+                        minQuantity: product?.minQuantity,
+                      }}
+                      className="text-[10px]"
+                    />
 
-                  {/* Visualizações + Favoritar */}
-                  <div className="flex items-center gap-3 pt-1 border-t border-border/40">
-                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <Eye className="h-3.5 w-3.5" />
-                      <span className="font-semibold text-foreground">{viewCount}</span>
-                      <span>visualizações</span>
+                    <div className="flex items-center gap-3 pt-2 border-t border-border/30">
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <Eye className="h-3.5 w-3.5" />
+                        <span className="font-semibold text-foreground">{viewCount}</span>
+                        <span>visualizações</span>
+                      </div>
+                      <div className="h-4 w-px bg-border/30" />
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleFavorite}
+                        className={cn(
+                          "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10 h-7",
+                          isFavorite && "text-destructive"
+                        )}
+                      >
+                        <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
+                        {isFavorite ? "Favoritado" : "Favoritar"}
+                      </Button>
                     </div>
-                    <div className="h-4 w-px bg-border" />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleFavorite}
-                      className={cn(
-                        "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10 h-7",
-                        isFavorite && "text-destructive"
-                      )}
-                    >
-                      <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
-                      {isFavorite ? "Favoritado" : "Favoritar"}
-                    </Button>
                   </div>
 
                 </div>
