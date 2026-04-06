@@ -3,6 +3,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowUp } from "lucide-react";
 import { ProductCard } from "./ProductCard";
+import { ProductListItem } from "./ProductListItem";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
 import { InlineFilterBar } from "@/components/filters/StickyFilterBar";
 import type { Product } from "@/hooks/useProducts";
@@ -62,24 +63,29 @@ export function VirtualizedProductGrid({
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // In list mode, always 1 column; in grid mode use columns prop
+  const effectiveColumns = viewMode === "list" ? 1 : columns;
+
   // Column gap varies by density, row gap is always consistent (16px = gap-y-4)
   const getColumnGapPx = () => {
-    if (columns >= 8) return 16;  // gap-x-4 (doubled from 8)
-    if (columns >= 6) return 24;  // gap-x-6 (doubled from 12)
-    return 32; // gap-x-8 (doubled from 16)
+    if (effectiveColumns >= 8) return 16;
+    if (effectiveColumns >= 6) return 24;
+    return 32;
   };
   const colGapPx = getColumnGapPx();
-  const rowGapPx = 32; // gap-y-8 (doubled from 16), matching ProductGrid
+  const rowGapPx = viewMode === "list" ? 8 : 32; // list: compact 8px gap; grid: 32px
 
   // Calculate rows based on columns
-  const rowCount = Math.ceil(products.length / columns);
-  const estimatedRowHeight = columns >= 8 ? 420 : columns >= 6 ? 460 : 520;
+  const rowCount = Math.ceil(products.length / effectiveColumns);
+  const estimatedRowHeight = viewMode === "list" 
+    ? 88  // compact list item height
+    : (effectiveColumns >= 8 ? 420 : effectiveColumns >= 6 ? 460 : 520);
 
   const virtualizer = useVirtualizer({
     count: hasMore ? rowCount + 1 : rowCount,
     getScrollElement: () => parentRef.current,
     estimateSize: () => estimatedRowHeight,
-    overscan: 3,
+    overscan: viewMode === "list" ? 8 : 3,
     measureElement: (el) => el.getBoundingClientRect().height,
   });
 
@@ -191,8 +197,8 @@ export function VirtualizedProductGrid({
             }
 
             // Get products for this row
-            const startIndex = virtualRow.index * columns;
-            const rowProducts = products.slice(startIndex, startIndex + columns);
+            const startIndex = virtualRow.index * effectiveColumns;
+            const rowProducts = products.slice(startIndex, startIndex + effectiveColumns);
 
             return (
               <div
@@ -205,25 +211,29 @@ export function VirtualizedProductGrid({
                   left: 0,
                   width: "100%",
                   transform: `translateY(${virtualRow.start}px)`,
-                  display: "grid",
-                  gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`,
-                  columnGap: `${colGapPx}px`,
-                  paddingLeft: "0.5rem",
-                  paddingRight: "1.5rem",
-                  paddingBottom: `${rowGapPx}px`,
-                  isolation: "isolate",
+                  ...(viewMode === "list"
+                    ? {
+                        display: "flex",
+                        flexDirection: "column" as const,
+                        paddingLeft: "0.5rem",
+                        paddingRight: "1.5rem",
+                        paddingBottom: `${rowGapPx}px`,
+                      }
+                    : {
+                        display: "grid",
+                        gridTemplateColumns: `repeat(${effectiveColumns}, minmax(0, 1fr))`,
+                        columnGap: `${colGapPx}px`,
+                        paddingLeft: "0.5rem",
+                        paddingRight: "1.5rem",
+                        paddingBottom: `${rowGapPx}px`,
+                        isolation: "isolate",
+                      }),
                 }}
               >
-                {rowProducts.map((product, colIndex) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: colIndex * 0.05 }}
-                    className="relative"
-                    style={{ zIndex: 1 }} // Base z-index para cada card
-                  >
-                    <ProductCard
+                {rowProducts.map((product, colIndex) =>
+                  viewMode === "list" ? (
+                    <ProductListItem
+                      key={product.id}
                       product={product}
                       onClick={() => onProductClick?.(product)}
                       isFavorited={isFavorited?.(product.id)}
@@ -231,11 +241,31 @@ export function VirtualizedProductGrid({
                       isInCompare={isInCompare?.(product.id)}
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
-                      hideCategoryBadges
                       activeColorFilter={activeColorFilter}
                     />
-                  </motion.div>
-                ))}
+                  ) : (
+                    <motion.div
+                      key={product.id}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: colIndex * 0.05 }}
+                      className="relative"
+                      style={{ zIndex: 1 }}
+                    >
+                      <ProductCard
+                        product={product}
+                        onClick={() => onProductClick?.(product)}
+                        isFavorited={isFavorited?.(product.id)}
+                        onToggleFavorite={onToggleFavorite}
+                        isInCompare={isInCompare?.(product.id)}
+                        onToggleCompare={onToggleCompare}
+                        canAddToCompare={canAddToCompare}
+                        hideCategoryBadges
+                        activeColorFilter={activeColorFilter}
+                      />
+                    </motion.div>
+                  )
+                )}
               </div>
             );
           })}
