@@ -205,7 +205,12 @@ export function StockDashboard() {
     resetFilters,
     dismissAlert,
     dismissAllAlerts,
+    dismissAlertsBySeverity,
   } = useVariantStock();
+
+  // Memoize warning alerts to avoid 3x filter in render
+  const warningAlerts = useMemo(() => alerts.filter(a => a.severity === 'warning'), [alerts]);
+  const infoAlerts = useMemo(() => alerts.filter(a => a.severity === 'info'), [alerts]);
 
   if (isLoading) {
     return (
