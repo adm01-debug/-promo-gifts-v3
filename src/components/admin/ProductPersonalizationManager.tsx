@@ -248,7 +248,7 @@ export function ProductPersonalizationManager() {
                                                   {lt.is_default && <Check className="h-2 w-2" />}
                                                   {lt.technique?.name}
                                                   {lt.max_colors && <span className="opacity-70">({lt.max_colors} cores)</span>}
-                                                  <button className="opacity-0 group-hover:opacity-100 transition-opacity ml-1" onClick={e = aria-label="Fechar"> { e.stopPropagation(); deleteTechniqueMutation.mutate(lt.id); }}><X className="h-2 w-2" /></button>
+                                                  <button className="opacity-0 group-hover:opacity-100 transition-opacity ml-1" onClick={(e) => { e.stopPropagation(); deleteTechniqueMutation.mutate(lt.id); }}><X className="h-2 w-2" /></button>
                                                 </Badge>
                                               </TooltipTrigger>
                                               <TooltipContent><p>Clique para {lt.is_default ? "remover" : "definir"} como padrão</p></TooltipContent>
