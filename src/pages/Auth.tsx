@@ -212,7 +212,18 @@ export default function Auth() {
 
   return (
     <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
-      <PageSEO title="Login" description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo." path="/login" />
+      <PageSEO
+        title="Login"
+        description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo."
+        path="/login"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Login — Promo Gifts",
+          "description": "Página de autenticação da plataforma Promo Gifts.",
+          "url": "https://criar-together-now.lovable.app/login"
+        }}
+      />
       {/* Left side - Branding */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-card via-card to-background relative overflow-hidden">
         {/* Background decoration */}

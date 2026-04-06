@@ -160,7 +160,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
               <p className="text-xs text-muted-foreground">{selectedCompany.cnpj}</p>
             )}
           </div>
-          <button type="button" onClick={handleClear} className="text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={handleClear} className="text-muted-foreground hover:text-foreground" aria-label="Fechar">
             <X className="h-3.5 w-3.5" />
           </button>
         </div>

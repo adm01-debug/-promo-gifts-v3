@@ -29,7 +29,7 @@ export function CopyButton({ text }: { text: string }) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <button onClick={handleCopy} className="inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted transition-colors shrink-0">
+          <button onClick={handleCopy} className="inline-flex items-center justify-center h-5 w-5 rounded hover:bg-muted transition-colors shrink-0" aria-label="Copiar">
             {copied ? <CheckCheck className="h-3 w-3 text-success" /> : <Copy className="h-3 w-3 text-muted-foreground/50 hover:text-muted-foreground" />}
           </button>
         </TooltipTrigger>

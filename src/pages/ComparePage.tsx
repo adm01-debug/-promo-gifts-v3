@@ -87,7 +87,18 @@ export default function ComparePage() {
   if (compareCount < 2) {
     return (
       <MainLayout>
-        <PageSEO title="Comparar Produtos" description="Compare brindes lado a lado: preço, materiais, cores e disponibilidade." path="/comparar" />
+        <PageSEO
+          title="Comparar Produtos"
+          description="Compare brindes lado a lado: preço, materiais, cores e disponibilidade."
+          path="/comparar"
+          jsonLd={{
+            "@context": "https://schema.org",
+            "@type": "WebPage",
+            "name": "Comparar Produtos Promocionais",
+            "description": "Ferramenta de comparação lado a lado de brindes corporativos.",
+            "url": "https://criar-together-now.lovable.app/comparar"
+          }}
+        />
         <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6">
           <div className="w-20 h-20 rounded-full bg-muted flex items-center justify-center">
             <GitCompare className="h-10 w-10 text-muted-foreground" />
@@ -185,7 +196,7 @@ export default function ComparePage() {
                         {formatCurrency(product.price)}
                       </span>
                       <button
-                        onClick={() => removeFromCompare(product.id)}
+                        onClick={() = aria-label="Fechar"> removeFromCompare(product.id)}
                         className="p-1 rounded-full hover:bg-destructive/20 transition-colors"
                       >
                         <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
@@ -250,7 +261,7 @@ export default function ComparePage() {
                         >
                           <div className="relative group">
                             <button
-                              onClick={() => removeFromCompare(product.id)}
+                              onClick={() = aria-label="Fechar"> removeFromCompare(product.id)}
                               className="absolute -top-1 -right-1 p-1 rounded-full bg-background border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 z-10"
                             >
                               <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />

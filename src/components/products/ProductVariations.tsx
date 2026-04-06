@@ -75,7 +75,7 @@ export function ProductVariations({
               ? "bg-primary text-primary-foreground"
               : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
           )}
-        >
+         aria-label="Confirmar">
           {selectAll && <Check className="h-4 w-4" />}
           Selecionar Todas
         </button>

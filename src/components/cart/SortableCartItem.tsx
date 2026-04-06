@@ -95,7 +95,7 @@ export function SortableCartItem({
             {...attributes}
             {...listeners}
             className="absolute top-2 left-2 z-10 h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity"
-          >
+           aria-label="Arrastar">
             <GripVertical className="h-3.5 w-3.5" />
           </button>
 
@@ -128,7 +128,7 @@ export function SortableCartItem({
           <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground">
+                <button className="h-7 w-7 flex items-center justify-center rounded-lg bg-card/80 backdrop-blur-sm text-muted-foreground hover:text-foreground" aria-label="Mais opções">
                   <MoreHorizontal className="h-3.5 w-3.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -240,7 +240,7 @@ export function SortableCartItem({
               </span>
               <button
                 className="h-8 w-8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors"
-                onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+                onClick={() = aria-label="Adicionar"> onUpdateQuantity(item.id, item.quantity + 1)}
               >
                 <Plus className="h-3.5 w-3.5" />
               </button>
@@ -253,7 +253,7 @@ export function SortableCartItem({
           {/* Collapsible notes */}
           <Collapsible open={notesOpen} onOpenChange={setNotesOpen}>
             <CollapsibleTrigger asChild>
-              <button className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full">
+              <button className="flex items-center gap-1.5 text-[11px] text-muted-foreground hover:text-foreground transition-colors w-full" aria-label="Recolher">
                 <MessageSquare className="h-3 w-3" />
                 {item.notes ? "Observações" : "Adicionar observação"}
                 <ChevronDown className={cn("h-3 w-3 ml-auto transition-transform", notesOpen && "rotate-180")} />

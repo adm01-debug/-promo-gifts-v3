@@ -44,7 +44,7 @@ export function SortableItem({ id, children, className }: SortableItemProps) {
           )}
           {...attributes}
           {...listeners}
-        >
+         aria-label="Arrastar">
           <GripVertical className="h-4 w-4" />
         </button>
         <div className="flex-1">{children}</div>

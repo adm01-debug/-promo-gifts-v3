@@ -68,7 +68,7 @@ export function QuoteBuilderProductSearch({
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input placeholder="Buscar por nome ou SKU..." value={productSearch} onChange={(e) => setProductSearch(e.target.value)} className="pl-10 h-11 text-sm border-primary/30 focus-visible:ring-primary/20" autoFocus />
                 {productSearch && (
-                  <button onClick={() => setProductSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+                  <button onClick={() = aria-label="Fechar"> setProductSearch("")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                     <X className="h-4 w-4" />
                   </button>
                 )}

@@ -175,7 +175,7 @@ function TreeNode({
           isSelected && 'bg-primary/10 text-primary font-medium ring-1 ring-primary/20'
         )}
         style={{ paddingLeft: `${depth * 20 + 10}px` }}
-        onClick={() => {
+        onClick={() = aria-label="Avançar"> {
           onSelect(node.id);
           if (hasChildren) setExpanded(prev => !prev);
         }}
@@ -345,7 +345,7 @@ export function CategoryCascadeSelector({ value, onChange, error }: CategoryCasc
           <button
             type="button"
             className="ml-2 p-1 rounded-md hover:bg-destructive/10 hover:text-destructive transition-all duration-200 group"
-            onClick={() => onChange('')}
+            onClick={() = aria-label="Fechar"> onChange('')}
             title="Limpar seleção"
           >
             <X className="h-3.5 w-3.5 text-muted-foreground group-hover:text-destructive" />

@@ -50,7 +50,7 @@ function TreeNode({
         {/* Botão de expandir/colapsar */}
         {hasChildren ? (
           <button
-            onClick={(e) => {
+            onClick={(e) = aria-label="Avançar"> {
               e.stopPropagation();
               onToggle(node.id);
             }}
@@ -260,7 +260,7 @@ export function CategoryTreeNavigation({
               <button
                 onClick={clearSearch}
                 className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
-              >
+               aria-label="Fechar">
                 <X className="h-4 w-4" />
               </button>
             )}

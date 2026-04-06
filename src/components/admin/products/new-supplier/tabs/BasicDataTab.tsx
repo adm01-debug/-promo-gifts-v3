@@ -22,7 +22,7 @@ export function BasicDataTab({ form }: BasicDataTabProps) {
             <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
               
 <img src={form.logoUrl} alt="Logo" className="w-full h-full object-contain"  loading="lazy" />
-              <button type="button" onClick={() => form.setLogoUrl('')} className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5">
+              <button type="button" onClick={() = aria-label="Fechar"> form.setLogoUrl('')} className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5">
                 <X className="h-3 w-3" />
               </button>
             </div>

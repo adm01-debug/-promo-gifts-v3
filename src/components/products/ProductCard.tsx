@@ -333,7 +333,7 @@ export function ProductCard({
               ? "bg-muted text-muted-foreground rotate-45"
               : "bg-orange/60 text-orange-foreground hover:bg-orange/80"
           )}
-          onClick={(e) => {
+          onClick={(e) = aria-label="Adicionar"> {
             e.stopPropagation();
             setActionsOpen(!actionsOpen);
           }}

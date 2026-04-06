@@ -13,7 +13,19 @@ export default function Index() {
 
   return (
     <MainLayout>
-      <PageSEO title="Catálogo de Produtos" description="Explore nosso catálogo com mais de 15.000 brindes promocionais. Filtre por categoria, cor e preço." path="/" />
+      <PageSEO
+        title="Catálogo de Produtos"
+        description="Explore nosso catálogo com mais de 15.000 brindes promocionais. Filtre por categoria, cor e preço."
+        path="/"
+        jsonLd={{
+          "@context": "https://schema.org",
+          "@type": "CollectionPage",
+          "name": "Catálogo de Produtos Promocionais",
+          "description": "Mais de 15.000 brindes promocionais com filtros inteligentes por categoria, cor, preço e fornecedor.",
+          "url": "https://criar-together-now.lovable.app/",
+          "isPartOf": { "@type": "WebSite", "name": "Promo Gifts", "url": "https://criar-together-now.lovable.app" }
+        }}
+      />
       <div>
         <div className="flex-1 min-w-0">
           <div className="space-y-3 p-4 sm:p-6">

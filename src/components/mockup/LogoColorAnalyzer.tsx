@@ -172,7 +172,7 @@ function PantoneDropdown({ selectedCode, pantoneHex, deltaE, onChange }: Pantone
         <button
           className="flex items-center gap-2 px-2 py-1.5 rounded-md border border-border/50 
                      hover:bg-muted/50 transition-colors w-full text-left"
-        >
+         aria-label="Recolher">
           <div
             className="w-6 h-6 rounded border border-border/50 shrink-0"
             style={{ backgroundColor: displayHex }}

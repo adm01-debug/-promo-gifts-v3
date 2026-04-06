@@ -438,7 +438,7 @@ export function VariantGridMatrix({
                   <button
                     onClick={selectedIds.size === allVariantIds.length ? deselectAll : selectAll}
                     className="hover:text-primary transition-colors"
-                  >
+                   aria-label="Remover">
                     {selectedIds.size === allVariantIds.length
                       ? <CheckSquare className="h-3.5 w-3.5 text-primary mx-auto" />
                       : selectedIds.size > 0

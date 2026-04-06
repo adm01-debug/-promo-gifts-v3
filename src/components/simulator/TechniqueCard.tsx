@@ -59,7 +59,7 @@ const TECHNIQUE_THUMBNAILS: Record<string, string> = {
 const getTechniqueStyle = (code: string) => {
   const c = code?.toUpperCase() || '';
   if (c.includes('SILK') || c.includes('SERIGRAFIA')) {
-    return { color: 'bg-violet-500', textColor: 'text-violet-600', icon: '🎨' };
+    return { color: 'bg-primary', textColor: 'text-primary', icon: '🎨' };
   }
   if (c.includes('DTF')) {
     return { color: 'bg-info', textColor: 'text-info', icon: '🖨️' };

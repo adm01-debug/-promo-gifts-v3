@@ -514,7 +514,7 @@ function SellerCartsContent() {
             {/* Cart general notes */}
             <Collapsible open={cartNotesOpen} onOpenChange={setCartNotesOpen}>
               <CollapsibleTrigger asChild>
-                <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors">
+                <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors" aria-label="Recolher">
                   <FileText className="h-3.5 w-3.5" />
                   {activeCart.notes ? "Notas da negociação" : "Adicionar notas da negociação"}
                   <ChevronDown className={cn("h-3 w-3 transition-transform", cartNotesOpen && "rotate-180")} />
