@@ -383,7 +383,7 @@ export default function ProductDetail() {
             {/* ===== PRICE + SPECS — two columns ===== */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 flex-1">
               {/* LEFT — Price & CTA */}
-              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col">
+              <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/5">
                 {product.featured && (
                   <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-br from-primary/10 to-transparent rounded-bl-full" />
                 )}
