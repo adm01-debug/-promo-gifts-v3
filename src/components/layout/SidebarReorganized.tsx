@@ -287,8 +287,7 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
             ))}
           </nav>
 
-          {/* User Profile Footer */}
-          <SidebarUserFooter isCollapsed={isCollapsed} />
+
         </div>
       </aside>
     </>
