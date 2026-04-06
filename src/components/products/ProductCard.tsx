@@ -594,4 +594,6 @@ export const ProductCard = memo(function ProductCard({
       />
     </article>
   );
-}
+});
+
+ProductCard.displayName = 'ProductCard';
