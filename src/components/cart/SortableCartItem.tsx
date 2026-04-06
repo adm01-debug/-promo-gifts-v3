@@ -41,7 +41,7 @@ interface SortableCartItemProps {
   onNavigate: (path: string) => void;
 }
 
-export function SortableCartItem({
+export const SortableCartItem = memo(function SortableCartItem({
   item, index, otherCarts, companyAccentColor, stockMap,
   onRemove, onUpdateQuantity, onUpdateNotes, onMoveToCart, onDuplicateToCart, onNavigate,
 }: SortableCartItemProps) {
