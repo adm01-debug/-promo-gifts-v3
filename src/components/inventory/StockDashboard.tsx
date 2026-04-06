@@ -44,48 +44,15 @@ import { StockStatus, StockAlert } from "@/types/stock";
 // COMPONENTES AUXILIARES
 // ============================================
 
-const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  in_stock: { 
-    label: 'Em Estoque', 
-    color: 'bg-primary/10 text-primary border-primary/20',
-    icon: <CheckCircle2 className="h-4 w-4" />
-  },
-  low_stock: { 
-    label: 'Estoque Baixo', 
-    color: 'bg-warning/10 text-warning border-warning/20',
-    icon: <TrendingDown className="h-4 w-4" />
-  },
-  critical: { 
-    label: 'Crítico', 
-    color: 'bg-destructive/10 text-destructive border-destructive/20',
-    icon: <AlertTriangle className="h-4 w-4" />
-  },
-  out_of_stock: { 
-    label: 'Sem Estoque', 
-    color: 'bg-destructive/15 text-destructive border-destructive/25',
-    icon: <XCircle className="h-4 w-4" />
-  },
-  overstocked: { 
-    label: 'Excesso', 
-    color: 'bg-primary/10 text-primary border-primary/20',
-    icon: <TrendingUp className="h-4 w-4" />
-  },
-  incoming: { 
-    label: 'Chegando', 
-    color: 'bg-accent text-accent-foreground border-accent',
-    icon: <Truck className="h-4 w-4" />
-  },
+// Status config — used only for filter dropdown labels
+const STATUS_CONFIG: Record<StockStatus, { label: string; icon: React.ReactNode }> = {
+  in_stock: { label: 'Em Estoque', icon: <CheckCircle2 className="h-4 w-4" /> },
+  low_stock: { label: 'Estoque Baixo', icon: <TrendingDown className="h-4 w-4" /> },
+  critical: { label: 'Crítico', icon: <AlertTriangle className="h-4 w-4" /> },
+  out_of_stock: { label: 'Sem Estoque', icon: <XCircle className="h-4 w-4" /> },
+  overstocked: { label: 'Excesso', icon: <TrendingUp className="h-4 w-4" /> },
+  incoming: { label: 'Chegando', icon: <Truck className="h-4 w-4" /> },
 };
-
-function StockStatusBadge({ status }: { status: StockStatus }) {
-  const config = STATUS_CONFIG[status];
-  return (
-    <Badge variant="outline" className={cn("gap-1", config.color)}>
-      {config.icon}
-      {config.label}
-    </Badge>
-  );
-}
 
 function StatCard({ 
   title, 
