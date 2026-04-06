@@ -93,14 +93,12 @@ Deno.serve(async (req) => {
 
     const { transcript } = parsed.data;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-3-flash-preview',
+    const response = await callAiWithTracking({
+      userId: authUserId,
+      functionName: "voice-agent",
+      model: 'google/gemini-3-flash-preview',
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           { role: 'system', content: SYSTEM_PROMPT },
           { role: 'user', content: transcript },
@@ -147,7 +145,7 @@ Deno.serve(async (req) => {
           },
         ],
         tool_choice: { type: 'function', function: { name: 'execute_voice_command' } },
-      }),
+      },
     });
 
     if (!response.ok) {
