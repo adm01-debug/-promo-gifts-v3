@@ -63,24 +63,29 @@ export function VirtualizedProductGrid({
   const [loadingMore, setLoadingMore] = useState(false);
   const [showScrollTop, setShowScrollTop] = useState(false);
 
+  // In list mode, always 1 column; in grid mode use columns prop
+  const effectiveColumns = viewMode === "list" ? 1 : columns;
+
   // Column gap varies by density, row gap is always consistent (16px = gap-y-4)
   const getColumnGapPx = () => {
-    if (columns >= 8) return 16;  // gap-x-4 (doubled from 8)
-    if (columns >= 6) return 24;  // gap-x-6 (doubled from 12)
-    return 32; // gap-x-8 (doubled from 16)
+    if (effectiveColumns >= 8) return 16;
+    if (effectiveColumns >= 6) return 24;
+    return 32;
   };
   const colGapPx = getColumnGapPx();
-  const rowGapPx = 32; // gap-y-8 (doubled from 16), matching ProductGrid
+  const rowGapPx = viewMode === "list" ? 8 : 32; // list: compact 8px gap; grid: 32px
 
   // Calculate rows based on columns
-  const rowCount = Math.ceil(products.length / columns);
-  const estimatedRowHeight = columns >= 8 ? 420 : columns >= 6 ? 460 : 520;
+  const rowCount = Math.ceil(products.length / effectiveColumns);
+  const estimatedRowHeight = viewMode === "list" 
+    ? 88  // compact list item height
+    : (effectiveColumns >= 8 ? 420 : effectiveColumns >= 6 ? 460 : 520);
 
   const virtualizer = useVirtualizer({
     count: hasMore ? rowCount + 1 : rowCount,
     getScrollElement: () => parentRef.current,
     estimateSize: () => estimatedRowHeight,
-    overscan: 3,
+    overscan: viewMode === "list" ? 8 : 3,
     measureElement: (el) => el.getBoundingClientRect().height,
   });
 
