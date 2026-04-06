@@ -82,7 +82,7 @@ export const SortableCartItem = memo(function SortableCartItem({
     >
       <Card className={cn(
         "overflow-hidden group hover:border-primary/20 transition-all duration-200",
-        isDragging && "shadow-xl ring-2 ring-emerald-500/30",
+        isDragging && "shadow-xl ring-2 ring-primary/30",
         isOutOfStock && "opacity-60"
       )}>
         {companyAccentColor && (
