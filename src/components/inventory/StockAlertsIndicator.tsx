@@ -64,16 +64,7 @@ const NotificationTrigger = forwardRef<HTMLButtonElement, TriggerProps>(
       {...props}
       aria-label="Alertas de estoque"
     >
-      <Tooltip delayDuration={300}>
-        <TooltipTrigger asChild>
-          <span className="flex items-center justify-center">
-            <Package className="h-[17px] w-[17px]" strokeWidth={1.75} />
-          </span>
-        </TooltipTrigger>
-        <TooltipContent side="bottom" className="text-xs">
-          Alerta de Estoque
-        </TooltipContent>
-      </Tooltip>
+      <Package className="h-[17px] w-[17px]" strokeWidth={1.75} />
       {totalCount > 0 && (
         <motion.span
           initial={{ scale: 0 }}
@@ -268,9 +259,16 @@ export function StockAlertsIndicator({
     return (
       <div>
         <Popover open={isOpen} onOpenChange={setIsOpen}>
-          <PopoverTrigger asChild>
-            <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Alertas de estoque" />
-          </PopoverTrigger>
+          <Tooltip delayDuration={300}>
+            <TooltipTrigger asChild>
+              <PopoverTrigger asChild>
+                <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Alertas de estoque" />
+              </PopoverTrigger>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="text-xs">
+              Alerta de Estoque
+            </TooltipContent>
+          </Tooltip>
 
           <PopoverContent
             className="w-[420px] p-0 rounded-xl border-border/50 shadow-xl overflow-hidden relative"
