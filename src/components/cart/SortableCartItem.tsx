@@ -2,7 +2,7 @@
  * SortableCartItem - Draggable product card for seller carts
  */
 
-import { useState, useRef } from "react";
+import { useState, useRef, memo } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
