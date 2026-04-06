@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { AnimatePresence, motion } from "framer-motion";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductList } from "@/components/products/ProductList";
+import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
 import { EmptyState } from "@/components/common/EmptyState";
