@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 const STORAGE_KEY = "product-grid-columns";
 
-export type ColumnCount = 1 | 2 | 3 | 4 | 5 | 6 | 8;
+export type ColumnCount = 3 | 4 | 5 | 6 | 8;
 
 // Custom grid icon with configurable columns
 function GridCustomIcon({ cols, rows = 2 }: { cols: number; rows?: number }) {
