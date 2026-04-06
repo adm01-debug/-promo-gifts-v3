@@ -221,7 +221,7 @@ export function AuditHistory({
                         {/* Expand trigger for UPDATE */}
                         {hasDetails && (
                           <CollapsibleTrigger asChild>
-                            <button className="flex items-center gap-1 text-xs text-primary mt-2 hover:underline">
+                            <button className="flex items-center gap-1 text-xs text-primary mt-2 hover:underline" aria-label="Avançar">
                               {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
                               {isExpanded ? "Ocultar detalhes" : "Ver campos alterados"}
                             </button>

@@ -172,7 +172,7 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
                   <span className="truncate max-w-[100px]">{t.name}</span>
                   <button
                     type="button"
-                    onClick={(e) => { e.stopPropagation(); toggleTag(t.id, true); }}
+                    onClick={(e) = aria-label="Fechar"> { e.stopPropagation(); toggleTag(t.id, true); }}
                     className="rounded-full p-0.5 ml-0.5 hover:bg-destructive/20 hover:text-destructive transition-all duration-150"
                   >
                     <X className="w-2.5 h-2.5" />
@@ -195,7 +195,7 @@ export function ProductTagsSection({ productId }: ProductTagsSectionProps) {
         {search && (
           <button
             type="button"
-            onClick={() => setSearch('')}
+            onClick={() = aria-label="Fechar"> setSearch('')}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />

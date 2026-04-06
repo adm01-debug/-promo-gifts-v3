@@ -524,7 +524,7 @@ export function EnhancedSpotlightTrigger({ className }: { className?: string }) 
         "active:scale-[0.98]",
         className
       )}
-    >
+     aria-label="Buscar">
       <Search className="h-4 w-4" />
       <span className="hidden sm:inline">Buscar...</span>
       <kbd className="hidden sm:inline-flex items-center gap-0.5 rounded bg-background px-1.5 py-0.5 text-xs font-medium border border-border/50">

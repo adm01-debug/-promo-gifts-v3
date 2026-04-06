@@ -408,7 +408,7 @@ function ComparisonCard({
             <div className="mt-3">
               <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); setShowDetails(!showDetails); }}
+                onClick={(e) = aria-label="Recolher"> { e.stopPropagation(); setShowDetails(!showDetails); }}
                 className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", showDetails && "rotate-180")} />

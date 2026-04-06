@@ -140,7 +140,7 @@ export function ExternalCategoryFilter({
           {hasChildren ? (
             <button
               type="button"
-              onClick={() => toggleExpand(node.id)}
+              onClick={() = aria-label="Recolher"> toggleExpand(node.id)}
               className={cn(
                 "p-0.5 rounded transition-colors",
                 isSelected ? "hover:bg-orange/10" : "hover:bg-muted"
@@ -254,7 +254,7 @@ export function ExternalCategoryFilter({
         {search && (
           <button
             type="button"
-            onClick={() => setSearch("")}
+            onClick={() = aria-label="Fechar"> setSearch("")}
             className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
             <X className="h-3.5 w-3.5" />
@@ -268,7 +268,7 @@ export function ExternalCategoryFilter({
         <div className="flex items-center gap-2">
           <button
             type="button"
-            onClick={() => refetch()}
+            onClick={() = aria-label="Atualizar"> refetch()}
             disabled={isFetching}
             className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-primary transition-colors disabled:opacity-50"
             title="Atualizar categorias"

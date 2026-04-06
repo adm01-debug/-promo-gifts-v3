@@ -85,7 +85,7 @@ export function SupplierSelect({ value, onChange, error }: SupplierSelectProps) 
                       'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent text-left',
                       value === s.id && 'bg-accent'
                     )}
-                    onClick={() => {
+                    onClick={() = aria-label="Confirmar"> {
                       onChange(s.id, s.name, s.defaultMarkupPercent);
                       setOpen(false);
                       setSearch('');

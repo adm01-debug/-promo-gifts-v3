@@ -179,13 +179,13 @@ export function CategorySelect({ value, onChange, error }: CategorySelectProps) 
                 type="button"
                 className="shrink-0 p-0.5 rounded hover:bg-accent transition-colors"
                 onClick={handleBack}
-              >
+               aria-label="Voltar">
                 <ArrowLeft className="h-3.5 w-3.5" />
               </button>
               <button
                 type="button"
                 className="shrink-0 hover:text-foreground transition-colors"
-                onClick={() => setCurrentParentId(null)}
+                onClick={() = aria-label="Avançar"> setCurrentParentId(null)}
               >
                 Raiz
               </button>
@@ -233,7 +233,7 @@ export function CategorySelect({ value, onChange, error }: CategorySelectProps) 
                       <button
                         type="button"
                         className="flex-1 flex items-center gap-2 px-2 py-1.5 text-sm text-left min-w-0"
-                        onClick={() => handleSelect(node.id)}
+                        onClick={() = aria-label="Confirmar"> handleSelect(node.id)}
                       >
                         <Check className={cn('h-4 w-4 shrink-0', isSelected ? 'opacity-100' : 'opacity-0')} />
                         {hasChildren ? (
@@ -260,7 +260,7 @@ export function CategorySelect({ value, onChange, error }: CategorySelectProps) 
                         <button
                           type="button"
                           className="shrink-0 px-2 py-1.5 text-muted-foreground hover:text-foreground transition-colors"
-                          onClick={() => handleNavigate(node.id)}
+                          onClick={() = aria-label="Avançar"> handleNavigate(node.id)}
                           title={`Ver ${node.children.length} subcategorias`}
                         >
                           <ChevronRight className="h-4 w-4" />
@@ -282,7 +282,7 @@ export function CategorySelect({ value, onChange, error }: CategorySelectProps) 
                   'w-full flex items-center gap-2 px-2 py-1.5 text-sm rounded-sm hover:bg-accent text-left',
                   value === currentParentId && 'bg-accent'
                 )}
-                onClick={() => handleSelect(currentParentId)}
+                onClick={() = aria-label="Confirmar"> handleSelect(currentParentId)}
               >
                 <Check className={cn('h-4 w-4 shrink-0', value === currentParentId ? 'opacity-100' : 'opacity-0')} />
                 <span className="text-muted-foreground">Selecionar "</span>

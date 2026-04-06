@@ -92,7 +92,7 @@ export function FilterPanelHeader({
           aria-label="Buscar seção de filtro por nome"
         />
         {filterSearch && (
-          <button type="button" onClick={() => setFilterSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+          <button type="button" onClick={() = aria-label="Fechar"> setFilterSearch('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
             <X className="h-3.5 w-3.5" />
           </button>
         )}

@@ -21,7 +21,7 @@ export const SidebarQuickSearch = React.forwardRef<HTMLDivElement, SidebarQuickS
               <button
                 onClick={handleClick}
                 className="w-full flex items-center justify-center h-9 rounded-lg bg-sidebar-accent/50 hover:bg-sidebar-accent transition-colors text-sidebar-foreground/50 hover:text-sidebar-foreground/80"
-              >
+               aria-label="Buscar">
                 <Search className="h-4 w-4" />
               </button>
             </TooltipTrigger>
@@ -44,7 +44,7 @@ export const SidebarQuickSearch = React.forwardRef<HTMLDivElement, SidebarQuickS
             "border border-sidebar-border/30 hover:border-sidebar-border/60",
             "text-sm"
           )}
-        >
+         aria-label="Buscar">
           <Search className="h-4 w-4 shrink-0" />
           <span className="flex-1 text-left">Buscar...</span>
           <kbd className="hidden sm:inline-flex items-center gap-0.5 text-[10px] font-medium bg-sidebar-accent/80 px-1.5 py-0.5 rounded text-sidebar-foreground/30">

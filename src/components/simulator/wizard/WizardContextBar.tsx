@@ -79,7 +79,7 @@ export function WizardContextBar({ wizard }: WizardContextBarProps) {
               onBlur={commitQty}
               className="h-7 w-20 text-xs text-center"
             />
-            <button onClick={commitQty} className="p-1 rounded hover:bg-muted">
+            <button onClick={commitQty} className="p-1 rounded hover:bg-muted" aria-label="Confirmar">
               <Check className="h-3.5 w-3.5 text-primary" />
             </button>
           </div>

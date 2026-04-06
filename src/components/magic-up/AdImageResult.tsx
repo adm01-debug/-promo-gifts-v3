@@ -146,7 +146,7 @@ export function AdImageResult({
                   <div className="flex gap-1 mt-1">
                     {onToggleHistoryFavorite && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); onToggleHistoryFavorite(item.id, item.is_favorite); }}
+                        onClick={(e) = aria-label="Favoritar"> { e.stopPropagation(); onToggleHistoryFavorite(item.id, item.is_favorite); }}
                         className="p-1 rounded bg-white/20 hover:bg-white/30"
                       >
                         <Heart className={cn("h-3 w-3", item.is_favorite ? "fill-red-400 text-destructive" : "text-primary-foreground")} />
@@ -154,7 +154,7 @@ export function AdImageResult({
                     )}
                     {onDeleteHistory && (
                       <button
-                        onClick={(e) => { e.stopPropagation(); onDeleteHistory(item.id); }}
+                        onClick={(e) = aria-label="Excluir"> { e.stopPropagation(); onDeleteHistory(item.id); }}
                         className="p-1 rounded bg-white/20 hover:bg-destructive/50"
                       >
                         <Trash2 className="h-3 w-3 text-primary-foreground" />
@@ -213,7 +213,7 @@ export function AdImageResult({
             <button
               onClick={onToggleFavorite}
               className="absolute top-3 right-3 p-2 rounded-full bg-black/30 hover:bg-black/50 transition-colors"
-            >
+             aria-label="Favoritar">
               <Heart className={cn("h-5 w-5", isFavorite ? "fill-red-400 text-destructive" : "text-primary-foreground")} />
             </button>
           )}

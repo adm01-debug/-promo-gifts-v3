@@ -107,7 +107,7 @@ export function SupplierFormDialog({
                   <div className="relative w-20 h-20 rounded-lg border border-border overflow-hidden bg-muted">
                     
 <img src={editingSupplier.logo_url} alt="Logo" className="w-full h-full object-contain"  loading="lazy" />
-                    <button type="button" onClick={() => updateField('logo_url', null)} className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"><X className="h-3 w-3" /></button>
+                    <button type="button" onClick={() = aria-label="Fechar"> updateField('logo_url', null)} className="absolute -top-1 -right-1 rounded-full bg-destructive text-destructive-foreground p-0.5"><X className="h-3 w-3" /></button>
                   </div>
                 ) : (
                   <button type="button" onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo} className="w-20 h-20 rounded-lg border-2 border-dashed border-border hover:border-primary/50 flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors">

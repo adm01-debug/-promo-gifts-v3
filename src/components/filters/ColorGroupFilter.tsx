@@ -82,7 +82,7 @@ function ColorSwatch({
       style={{ 
         backgroundColor: isTransparent ? undefined : (hexCode || '#ccc'),
       }}
-    >
+     aria-label="Confirmar">
       {isSelected && showCheckmark && (
         <Check 
           className={cn(
