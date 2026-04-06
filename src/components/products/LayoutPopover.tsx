@@ -1,5 +1,5 @@
 import React from "react";
-import { Settings2, LayoutGrid, List } from "lucide-react";
+import { Settings2, LayoutGrid, List, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
@@ -7,8 +7,8 @@ import { ColumnSelector, ColumnCount } from "@/components/products/ColumnSelecto
 import { cn } from "@/lib/utils";
 
 interface LayoutPopoverProps {
-  viewMode: "grid" | "list";
-  setViewMode: (mode: "grid" | "list") => void;
+  viewMode: "grid" | "list" | "table";
+  setViewMode: (mode: "grid" | "list" | "table") => void;
   gridColumns: ColumnCount;
   setGridColumns: (cols: ColumnCount) => void;
 }
@@ -62,6 +62,18 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
               >
                 <List className="h-3.5 w-3.5" />
                 Lista
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "flex-1 h-8 gap-1.5 text-xs",
+                  viewMode === "table" && "bg-card shadow-sm"
+                )}
+                onClick={() => setViewMode("table")}
+              >
+                <Table2 className="h-3.5 w-3.5" />
+                Tabela
               </Button>
             </div>
           </div>

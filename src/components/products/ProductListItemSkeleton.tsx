@@ -1,57 +1,54 @@
 import { Skeleton } from "@/components/ui/skeleton";
 
+/**
+ * Skeleton para ProductListItem — espelha o layout horizontal compacto.
+ * Thumb 56-72px | Info (meta + nome + stock) | Preço | Actions
+ */
 export function ProductListItemSkeleton() {
   return (
-    <div className="flex gap-4 p-4 rounded-xl bg-card border border-border/50">
-      {/* Image skeleton */}
-      <Skeleton className="w-24 h-24 sm:w-32 sm:h-32 rounded-lg shrink-0" />
-      
-      {/* Content skeleton */}
-      <div className="flex-1 min-w-0 flex flex-col justify-between py-1">
-        <div className="space-y-2">
-          {/* Category & supplier */}
-          <div className="flex items-center gap-2">
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-1 w-1 rounded-full" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          
-          {/* Title */}
-          <Skeleton className="h-5 w-2/3" />
-          
-          {/* Colors */}
-          <div className="flex items-center gap-1.5">
-            {[...Array(5)].map((_, i) => (
-              <Skeleton key={i} className="h-4 w-4 rounded-full" />
-            ))}
-          </div>
+    <div className="flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl bg-card border border-border/50">
+      {/* Thumbnail */}
+      <Skeleton className="w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg shrink-0" />
+
+      {/* Info block */}
+      <div className="flex-1 min-w-0 py-0.5 space-y-1.5">
+        {/* Meta: category + supplier */}
+        <div className="flex items-center gap-1.5">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-3 w-16" />
         </div>
-        
-        {/* Bottom row */}
-        <div className="flex items-center justify-between mt-2">
-          <Skeleton className="h-5 w-20" />
-          <Skeleton className="h-6 w-24" />
+        {/* Name */}
+        <Skeleton className="h-4 w-3/5" />
+        {/* Stock + SKU */}
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-3 w-28" />
+          <Skeleton className="h-3 w-16 hidden sm:block" />
         </div>
       </div>
-      
-      {/* Actions skeleton */}
-      <div className="flex flex-col items-center justify-center gap-2 shrink-0">
+
+      {/* Price */}
+      <div className="shrink-0 text-right min-w-[80px] sm:min-w-[100px]">
+        <Skeleton className="h-5 w-20 ml-auto" />
+      </div>
+
+      {/* Actions */}
+      <div className="shrink-0 flex items-center gap-0.5">
         <Skeleton className="h-8 w-8 rounded-full" />
         <Skeleton className="h-8 w-8 rounded-full" />
-        <Skeleton className="h-8 w-8 rounded-full" />
+        <Skeleton className="h-8 w-8 rounded-full hidden sm:block" />
       </div>
     </div>
   );
 }
 
-export function ProductListSkeleton({ count = 6 }: { count?: number }) {
+export function ProductListSkeleton({ count = 8 }: { count?: number }) {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-2">
       {[...Array(count)].map((_, i) => (
         <div
           key={i}
           className="animate-pulse"
-          style={{ animationDelay: `${i * 80}ms` }}
+          style={{ animationDelay: `${i * 60}ms` }}
         >
           <ProductListItemSkeleton />
         </div>

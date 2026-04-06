@@ -1,3 +1,4 @@
+import { useRef, useEffect } from "react";
 import { SmartSearchInput } from "@/components/search";
 import { RecentlyViewedPopover } from "@/components/products/RecentlyViewedPopover";
 import { Home } from "lucide-react";
@@ -26,6 +27,22 @@ export function CatalogHeader({
   activeFiltersCount = 0,
 }: CatalogHeaderProps) {
   const hasActiveConstraints = searchQuery.trim().length > 0 || activeFiltersCount > 0;
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // "/" shortcut to focus search (standard pattern: Notion, GitHub, Figma)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+        e.preventDefault();
+        const input = searchRef.current?.querySelector("input");
+        input?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -53,7 +70,10 @@ export function CatalogHeader({
             · {shouldShowCatalogSkeleton
               ? "Carregando catálogo..."
               : hasActiveConstraints
-                ? `${filteredCount.toLocaleString("pt-BR")} itens`
+                ? <>
+                    <span className="text-primary font-semibold">{filteredCount.toLocaleString("pt-BR")}</span>
+                    {totalEstimate ? ` de ${totalEstimate.toLocaleString("pt-BR")}` : ""} itens
+                  </>
                 : totalEstimate
                   ? `${totalEstimate.toLocaleString("pt-BR")} itens`
                   : `${filteredCount.toLocaleString("pt-BR")} itens`
@@ -62,9 +82,9 @@ export function CatalogHeader({
         </h1>
 
         {/* Search inline next to product count on desktop */}
-        <div className="hidden sm:block w-80 lg:w-[25rem]">
+        <div className="hidden sm:block w-80 lg:w-[25rem]" ref={searchRef}>
           <SmartSearchInput
-            placeholder="Buscar produtos..."
+            placeholder="Buscar produtos…  /"
             onSelect={onSelect}
             className="w-full"
           />

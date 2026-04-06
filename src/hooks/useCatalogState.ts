@@ -22,8 +22,18 @@ import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
 
-export type ViewMode = "grid" | "list";
+export type ViewMode = "grid" | "list" | "table";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
+
+const VIEW_MODE_KEY = "catalog-view-mode";
+
+function getPersistedViewMode(): ViewMode {
+  try {
+    const saved = localStorage.getItem(VIEW_MODE_KEY);
+    if (saved === "grid" || saved === "list" || saved === "table") return saved;
+  } catch {}
+  return "grid";
+}
 
 const ITEMS_PER_PAGE = 12;
 
@@ -38,7 +48,11 @@ export function useCatalogState() {
   const searchQueryFromUrl = searchParams.get("search") || "";
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    try { localStorage.setItem(VIEW_MODE_KEY, mode); } catch {}
+  }, []);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortBy, setSortBy] = useState<SortOption>("name");
 
