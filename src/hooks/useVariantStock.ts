@@ -483,6 +483,7 @@ export function useVariantStock() {
   return {
     // Estado
     isLoading,
+    isFetching,
     loadingProgress,
     productStocks: filteredProducts,
     allProductStocks: productStocks,
