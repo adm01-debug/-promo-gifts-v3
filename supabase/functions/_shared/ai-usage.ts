@@ -152,11 +152,13 @@ export async function callAiWithTracking(options: {
 }): Promise<Response> {
   const { userId, functionName, model, requestBody, apiKey, stream = false } = options;
 
-  // 1. Check quota
-  const quota = await checkAiQuota(userId);
+  // 1. Atomically check quota AND reserve slot
+  const quota = await acquireAiQuota(userId, functionName, model);
   if (!quota.allowed) {
     throw new QuotaExceededError(quota);
   }
+
+  const logId = quota.log_id;
 
   // 2. Call AI
   const startMs = Date.now();
@@ -171,13 +173,9 @@ export async function callAiWithTracking(options: {
 
   const durationMs = Date.now() - startMs;
 
-  // For streaming, log with estimated tokens (actual will be unknown)
+  // 3. Update the reserved log with actual results
   if (stream) {
-    // Fire-and-forget log with estimated tokens
-    logAiUsage({
-      userId,
-      functionName,
-      model,
+    updateAiLog(logId, {
       durationMs,
       status: response.ok ? "success" : "error",
       errorMessage: response.ok ? undefined : `HTTP ${response.status}`,
@@ -186,26 +184,22 @@ export async function callAiWithTracking(options: {
     return response;
   }
 
-  // 3. For non-streaming, extract tokens and log
   const cloned = response.clone();
   try {
     const body = await cloned.json();
     const tokens = extractTokensFromResponse(body);
-    await logAiUsage({
-      userId,
-      functionName,
-      model,
+    const cost = estimateCost(model, tokens.input, tokens.output);
+    await updateAiLog(logId, {
       inputTokens: tokens.input,
       outputTokens: tokens.output,
+      totalTokens: tokens.input + tokens.output,
+      estimatedCostUsd: cost,
       durationMs,
       status: response.ok ? "success" : "error",
       errorMessage: response.ok ? undefined : body?.error?.message || `HTTP ${response.status}`,
     });
   } catch {
-    await logAiUsage({
-      userId,
-      functionName,
-      model,
+    await updateAiLog(logId, {
       durationMs,
       status: "error",
       errorMessage: "Failed to parse AI response",
@@ -213,6 +207,47 @@ export async function callAiWithTracking(options: {
   }
 
   return response;
+}
+
+/**
+ * Update an existing AI usage log entry with actual results.
+ */
+async function updateAiLog(logId: string | undefined, params: {
+  inputTokens?: number;
+  outputTokens?: number;
+  totalTokens?: number;
+  estimatedCostUsd?: number;
+  durationMs?: number;
+  status?: string;
+  errorMessage?: string;
+  metadata?: Record<string, unknown>;
+}): Promise<void> {
+  if (!logId) {
+    // Fallback: no log_id from atomic acquire, create new log
+    console.warn("[ai-usage] No log_id, skipping update");
+    return;
+  }
+  try {
+    const supabase = getServiceClient();
+    const updateData: Record<string, unknown> = {
+      status: params.status || "success",
+    };
+    if (params.inputTokens !== undefined) updateData.input_tokens = params.inputTokens;
+    if (params.outputTokens !== undefined) updateData.output_tokens = params.outputTokens;
+    if (params.totalTokens !== undefined) updateData.total_tokens = params.totalTokens;
+    if (params.estimatedCostUsd !== undefined) updateData.estimated_cost_usd = params.estimatedCostUsd;
+    if (params.durationMs !== undefined) updateData.duration_ms = params.durationMs;
+    if (params.errorMessage) updateData.error_message = params.errorMessage;
+    if (params.metadata) updateData.metadata = params.metadata;
+
+    const { error } = await supabase
+      .from("ai_usage_logs")
+      .update(updateData)
+      .eq("id", logId);
+    if (error) console.error("[ai-usage] Failed to update log:", error.message);
+  } catch (e) {
+    console.error("[ai-usage] Update log error:", e);
+  }
 }
 
 export class QuotaExceededError extends Error {
