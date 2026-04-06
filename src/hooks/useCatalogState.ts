@@ -22,7 +22,7 @@ import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
 
-export type ViewMode = "grid" | "list";
+export type ViewMode = "grid" | "list" | "table";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match";
 
 const VIEW_MODE_KEY = "catalog-view-mode";
@@ -30,7 +30,7 @@ const VIEW_MODE_KEY = "catalog-view-mode";
 function getPersistedViewMode(): ViewMode {
   try {
     const saved = localStorage.getItem(VIEW_MODE_KEY);
-    if (saved === "grid" || saved === "list") return saved;
+    if (saved === "grid" || saved === "list" || saved === "table") return saved;
   } catch {}
   return "grid";
 }
