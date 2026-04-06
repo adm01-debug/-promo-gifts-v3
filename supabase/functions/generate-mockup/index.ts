@@ -261,6 +261,12 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
     );
 
   } catch (error: unknown) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("Error generating mockup:", error);
     const message = error instanceof Error ? error.message : "Failed to generate mockup";
     return new Response(
