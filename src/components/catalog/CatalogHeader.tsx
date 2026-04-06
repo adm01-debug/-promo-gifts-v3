@@ -56,9 +56,6 @@ export function CatalogHeader({
         />
       </div>
       
-      <div className="hidden sm:flex items-center gap-2">
-        <RecentlyViewedPopover maxVisible={10} />
-      </div>
     </div>
   );
 }
