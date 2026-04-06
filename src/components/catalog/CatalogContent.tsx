@@ -168,7 +168,7 @@ function VirtualGrid({
                       <p className="text-sm text-muted-foreground">
                         Mostrando {products.length} de{" "}
                         {totalEstimate
-                          ? `~${totalEstimate.toLocaleString("pt-BR")}`
+                          ? totalEstimate.toLocaleString("pt-BR")
                           : filteredCount.toLocaleString("pt-BR")}{" "}
                         produtos
                       </p>
