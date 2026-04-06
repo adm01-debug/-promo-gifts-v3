@@ -199,14 +199,12 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
     console.log("Sending request to Lovable AI Gateway...");
     console.log(`Model: ${aiModel}`);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: aiModel,
+    const response = await callAiWithTracking({
+      userId: user.id,
+      functionName: "generate-mockup",
+      model: aiModel,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           {
             role: "user",
@@ -218,7 +216,7 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
           }
         ],
         modalities: ["image", "text"]
-      }),
+      },
     });
 
     if (!response.ok) {
