@@ -48,7 +48,11 @@ export function useCatalogState() {
   const searchQueryFromUrl = searchParams.get("search") || "";
 
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
-  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [viewMode, setViewModeState] = useState<ViewMode>(getPersistedViewMode);
+  const setViewMode = useCallback((mode: ViewMode) => {
+    setViewModeState(mode);
+    try { localStorage.setItem(VIEW_MODE_KEY, mode); } catch {}
+  }, []);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortBy, setSortBy] = useState<SortOption>("name");
 
