@@ -274,7 +274,7 @@ describe('aggregateVariantsToProduct', () => {
     const result = aggregateVariantsToProduct([]);
     expect(result.totalCurrentStock).toBe(0);
     expect(result.totalVariants).toBe(0);
-    expect(result.overallStatus).toBe('out_of_stock'); // edge case: 0===0 triggers out_of_stock
+    expect(result.overallStatus).toBe('in_stock'); // empty variants = safe default
     expect(result.availableColors).toHaveLength(0);
   });
 });

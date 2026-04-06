@@ -419,8 +419,10 @@ export function aggregateVariantsToProduct(
   
   // Status geral - prioridade: incoming > out_of_stock > critical > low_stock > in_stock
   let overallStatus: StockStatus = 'in_stock';
-  if (variantsIncoming > 0 && (variantsOutOfStock > 0 || totalCurrentStock === 0)) {
-    // Há estoque chegando para produtos sem estoque ou com variantes zeradas
+  if (variants.length === 0) {
+    // Edge case: no variants — report as in_stock (nothing to alert on)
+    overallStatus = 'in_stock';
+  } else if (variantsIncoming > 0 && (variantsOutOfStock > 0 || totalCurrentStock === 0)) {
     overallStatus = 'incoming';
   } else if (variantsOutOfStock === variants.length) {
     overallStatus = 'out_of_stock';
@@ -428,9 +430,6 @@ export function aggregateVariantsToProduct(
     overallStatus = 'critical';
   } else if (variantsLowStock > 0) {
     overallStatus = 'low_stock';
-  } else if (totalInTransitStock > 0) {
-    // Produto com estoque OK mas também tem reposição chegando
-    // Mantém in_stock mas podemos considerar incoming secundário
   }
   
   return {

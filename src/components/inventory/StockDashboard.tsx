@@ -6,12 +6,9 @@ import {
   TrendingUp,
   RefreshCw,
   Search,
-  Filter,
   ArrowUpDown,
   X,
-  Clock,
   Truck,
-  BarChart3,
   AlertCircle,
   CheckCircle2,
   XCircle,
@@ -27,7 +24,6 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -48,48 +44,15 @@ import { StockStatus, StockAlert } from "@/types/stock";
 // COMPONENTES AUXILIARES
 // ============================================
 
-const STATUS_CONFIG: Record<StockStatus, { label: string; color: string; icon: React.ReactNode }> = {
-  in_stock: { 
-    label: 'Em Estoque', 
-    color: 'bg-primary/10 text-primary border-primary/20',
-    icon: <CheckCircle2 className="h-4 w-4" />
-  },
-  low_stock: { 
-    label: 'Estoque Baixo', 
-    color: 'bg-warning/10 text-warning border-warning/20',
-    icon: <TrendingDown className="h-4 w-4" />
-  },
-  critical: { 
-    label: 'Crítico', 
-    color: 'bg-destructive/10 text-destructive border-destructive/20',
-    icon: <AlertTriangle className="h-4 w-4" />
-  },
-  out_of_stock: { 
-    label: 'Sem Estoque', 
-    color: 'bg-destructive/15 text-destructive border-destructive/25',
-    icon: <XCircle className="h-4 w-4" />
-  },
-  overstocked: { 
-    label: 'Excesso', 
-    color: 'bg-primary/10 text-primary border-primary/20',
-    icon: <TrendingUp className="h-4 w-4" />
-  },
-  incoming: { 
-    label: 'Chegando', 
-    color: 'bg-accent text-accent-foreground border-accent',
-    icon: <Truck className="h-4 w-4" />
-  },
+// Status config — used only for filter dropdown labels
+const STATUS_CONFIG: Record<StockStatus, { label: string; icon: React.ReactNode }> = {
+  in_stock: { label: 'Em Estoque', icon: <CheckCircle2 className="h-4 w-4" /> },
+  low_stock: { label: 'Estoque Baixo', icon: <TrendingDown className="h-4 w-4" /> },
+  critical: { label: 'Crítico', icon: <AlertTriangle className="h-4 w-4" /> },
+  out_of_stock: { label: 'Sem Estoque', icon: <XCircle className="h-4 w-4" /> },
+  overstocked: { label: 'Excesso', icon: <TrendingUp className="h-4 w-4" /> },
+  incoming: { label: 'Chegando', icon: <Truck className="h-4 w-4" /> },
 };
-
-function StockStatusBadge({ status }: { status: StockStatus }) {
-  const config = STATUS_CONFIG[status];
-  return (
-    <Badge variant="outline" className={cn("gap-1", config.color)}>
-      {config.icon}
-      {config.label}
-    </Badge>
-  );
-}
 
 function StatCard({ 
   title, 
@@ -98,6 +61,7 @@ function StatCard({
   trend, 
   variant = 'default',
   onClick,
+  clickHint,
 }: { 
   title: string; 
   value: number | string; 
@@ -105,6 +69,7 @@ function StatCard({
   trend?: { value: number; label: string };
   variant?: 'default' | 'success' | 'warning' | 'error';
   onClick?: () => void;
+  clickHint?: string;
 }) {
   const variantStyles = {
     default: 'bg-card',
@@ -113,18 +78,22 @@ function StatCard({
     error: 'bg-destructive/5 border-destructive/20',
   };
 
+  const isClickable = !!onClick;
+
   return (
     <Card 
       className={cn(
         "relative overflow-hidden transition-all duration-200", 
         variantStyles[variant],
-        onClick && "cursor-pointer hover:shadow-md",
-        onClick && variant === 'error' && "hover:border-destructive/40",
-        onClick && variant === 'warning' && "hover:border-warning/40",
+        isClickable && "cursor-pointer hover:shadow-md",
+        isClickable && variant === 'error' && "hover:border-destructive/40",
+        isClickable && variant === 'warning' && "hover:border-warning/40",
       )} 
-      role="status" 
-      aria-label={`${title}: ${value}`}
+      role={isClickable ? "button" : "status"}
+      tabIndex={isClickable ? 0 : undefined}
+      aria-label={`${title}: ${value}${clickHint ? `. ${clickHint}` : ''}`}
       onClick={onClick}
+      onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } } : undefined}
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
@@ -198,13 +167,11 @@ export function StockDashboard() {
     alerts,
     criticalAlerts,
     filters,
-    allColors,
     futureStock,
     fetchStockData,
     updateFilter,
     resetFilters,
     dismissAlert,
-    dismissAllAlerts,
     dismissAlertsBySeverity,
   } = useVariantStock();
 
@@ -375,14 +342,16 @@ export function StockDashboard() {
           value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />}
           variant="warning"
-          onClick={() => setLowStockDialogOpen(true)}
+          onClick={warningAlerts.length > 0 ? () => setLowStockDialogOpen(true) : undefined}
+          clickHint={warningAlerts.length > 0 ? "Clique para ver alertas" : undefined}
         />
         <StatCard
           title="Sem Estoque"
           value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />}
           variant="error"
-          onClick={() => setOutOfStockDialogOpen(true)}
+          onClick={criticalAlerts.length > 0 ? () => setOutOfStockDialogOpen(true) : undefined}
+          clickHint={criticalAlerts.length > 0 ? "Clique para ver alertas" : undefined}
         />
         <StatCard
           title="Estoque Futuro"
