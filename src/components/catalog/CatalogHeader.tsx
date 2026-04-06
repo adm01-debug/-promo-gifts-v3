@@ -41,6 +41,10 @@ export function CatalogHeader({
             className="w-full"
           />
         </div>
+
+        <div className="hidden sm:block">
+          <RecentlyViewedPopover maxVisible={10} />
+        </div>
       </div>
 
       {/* Search full-width on mobile */}
@@ -52,9 +56,6 @@ export function CatalogHeader({
         />
       </div>
       
-      <div className="hidden sm:flex items-center gap-2">
-        <RecentlyViewedPopover maxVisible={10} />
-      </div>
     </div>
   );
 }
