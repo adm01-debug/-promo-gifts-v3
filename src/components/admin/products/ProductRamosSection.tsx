@@ -170,7 +170,7 @@ export function ProductRamosSection({ productId }: ProductRamosSectionProps) {
                     <span className="truncate max-w-[100px]">{s.nome}</span>
                     <button
                       type="button"
-                      onClick={(e) = aria-label="Fechar"> { e.stopPropagation(); toggleSegmento(s.id, true); }}
+                      onClick={(e) => { e.stopPropagation(); toggleSegmento(s.id, true); }}
                       className="rounded-full p-0.5 ml-0.5 hover:bg-destructive/20 hover:text-destructive transition-all duration-150"
                     >
                       <X className="w-2.5 h-2.5" />

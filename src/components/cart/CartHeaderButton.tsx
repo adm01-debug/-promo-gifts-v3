@@ -249,7 +249,7 @@ export function CartHeaderButton() {
                                     <button
                                       className="h-7 w-7 flex items-center justify-center rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
                                       style={{ opacity: isActive ? 1 : undefined }}
-                                      onClick={(e) = aria-label="Excluir"> {
+                                      onClick={(e) => {
                                         e.stopPropagation();
                                         deleteCart(cart.id);
                                       }}
@@ -329,7 +329,7 @@ export function CartHeaderButton() {
                                     {/* Remove button */}
                                     <button
                                       className="h-5 w-5 flex items-center justify-center opacity-0 group-hover/item:opacity-100 text-muted-foreground hover:text-destructive transition-all flex-shrink-0 rounded mt-0.5"
-                                      onClick={(e) = aria-label="Fechar"> {
+                                      onClick={(e) => {
                                         e.stopPropagation();
                                         removeItem(item.id);
                                       }}

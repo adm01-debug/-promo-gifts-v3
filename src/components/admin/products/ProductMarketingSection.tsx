@@ -196,7 +196,7 @@ export function ProductMarketingSection({ productId }: ProductMarketingSectionPr
                   <span className="truncate max-w-[100px]">{item}</span>
                   <button
                     type="button"
-                    onClick={(e) = aria-label="Fechar"> { e.stopPropagation(); toggleItem(cat.key, item); }}
+                    onClick={(e) => { e.stopPropagation(); toggleItem(cat.key, item); }}
                     className="rounded-full p-0.5 ml-0.5 hover:bg-destructive/20 hover:text-destructive transition-all duration-150"
                   >
                     <X className="w-2.5 h-2.5" />

@@ -119,7 +119,7 @@ export function CategoryTreeNavigator({
           {/* Expand/Collapse Button */}
           {hasChildren ? (
             <button
-              onClick={(e) = aria-label="Recolher"> {
+              onClick={(e) => {
                 e.stopPropagation();
                 toggleExpand(node.id);
               }}

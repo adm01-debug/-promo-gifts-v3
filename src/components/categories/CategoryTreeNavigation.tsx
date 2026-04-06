@@ -50,7 +50,7 @@ function TreeNode({
         {/* Botão de expandir/colapsar */}
         {hasChildren ? (
           <button
-            onClick={(e) = aria-label="Avançar"> {
+            onClick={(e) => {
               e.stopPropagation();
               onToggle(node.id);
             }}
