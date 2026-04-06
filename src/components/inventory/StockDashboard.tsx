@@ -361,6 +361,7 @@ export function StockDashboard() {
           value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />}
           variant="warning"
+          onClick={() => setLowStockDialogOpen(true)}
         />
         <StatCard
           title="Sem Estoque"
