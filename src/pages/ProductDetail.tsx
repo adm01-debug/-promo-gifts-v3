@@ -527,8 +527,8 @@ export default function ProductDetail() {
 
 
 
-            {/* Quick Action Buttons — bottom bar */}
-            <div className="-mt-2">
+            {/* Quick Action Buttons — bottom bar, aligned with gallery color thumbnails */}
+            <div className="mt-auto">
               <ProductQuickActions
                 productId={product.id}
                 productName={product.name}
