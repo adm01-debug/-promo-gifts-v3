@@ -335,7 +335,7 @@ export default function ProductDetail() {
             </div>
 
             {/* ===== PRICE + SPECS — two columns ===== */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 flex-1 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 xl:gap-4 items-start">
               {/* LEFT — Price & CTA */}
               <div className="rounded-xl bg-gradient-to-br from-card via-card to-secondary/20 border border-border p-3 xl:p-5 shadow-md relative overflow-hidden flex flex-col justify-between transition-shadow duration-300 hover:shadow-lg hover:shadow-primary/5">
                 {product.featured && (
@@ -528,7 +528,7 @@ export default function ProductDetail() {
 
 
             {/* Quick Action Buttons — bottom bar */}
-            <div className="-mt-4">
+            <div className="-mt-2">
               <ProductQuickActions
                 productId={product.id}
                 productName={product.name}
