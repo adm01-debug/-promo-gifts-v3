@@ -274,7 +274,7 @@ export default function ProductDetail() {
           </div>
 
            {/* RIGHT — All product info in a compact flow */}
-          <div className="flex flex-col gap-3 md:gap-4 xl:gap-5 min-w-0 lg:min-h-[calc(100vh-6rem)]">
+          <div className="flex flex-col gap-3 md:gap-4 xl:gap-5 min-w-0">
             
             {/* Header: badges + title + info bar — compact */}
             <div className="space-y-2">
