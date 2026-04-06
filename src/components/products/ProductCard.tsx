@@ -595,6 +595,6 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       />
     </article>
   );
-});
+}));
 
 ProductCard.displayName = 'ProductCard';
