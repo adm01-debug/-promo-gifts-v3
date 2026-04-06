@@ -259,6 +259,9 @@ Output the final image maintaining the exact same dimensions and aspect ratio as
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("Error generating mockup:", error);
     const message = error instanceof Error ? error.message : "Failed to generate mockup";
     return new Response(

@@ -178,6 +178,9 @@ Responda APENAS em JSON com este formato:
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("Visual search error:", error);
     const errorMessage = error instanceof Error ? error.message : "Erro ao processar busca visual";
     return new Response(

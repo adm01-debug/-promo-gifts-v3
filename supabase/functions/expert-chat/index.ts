@@ -479,6 +479,9 @@ IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de c
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("Expert chat error:", error);
     return new Response(
       JSON.stringify({ error: error instanceof Error ? error.message : "Erro desconhecido" }),

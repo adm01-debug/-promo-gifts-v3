@@ -154,6 +154,9 @@ Create ${numPrompts} distinct scene concepts that:
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("[ad-prompt] Error:", error);
     const message = error instanceof Error ? error.message : "Falha ao gerar prompts";
     return new Response(

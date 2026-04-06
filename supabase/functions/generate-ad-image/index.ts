@@ -181,6 +181,9 @@ Style: Professional commercial photography, advertising campaign quality, magazi
         { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    if ((error as any)?.status === 401 || (error as any)?.status === 403) {
+      return authErrorResponse(error, corsHeaders);
+    }
     console.error("[ad-image] Error:", error);
     const message = error instanceof Error ? error.message : "Falha ao gerar imagem publicitária";
     return new Response(
