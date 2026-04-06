@@ -199,6 +199,12 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error: unknown) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: 'Limite mensal de IA atingido.' }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     console.error('Voice agent error:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
