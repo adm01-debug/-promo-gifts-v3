@@ -1,8 +1,6 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -28,17 +26,9 @@ Deno.serve(async (req) => {
     }
 
     const {
-      productImageUrl,
-      logoBase64,
-      logoUrl,
-      productName,
-      productColor,
-      techniqueName,
-      locationName,
-      scenePrompt,
-      sceneCategory,
-      brandColorHex,
-      brandColorName,
+      productImageUrl, logoBase64, logoUrl, productName, productColor,
+      techniqueName, locationName, scenePrompt, sceneCategory,
+      brandColorHex, brandColorName,
     } = await req.json();
 
     const logoImageSrc = logoBase64 || logoUrl;
@@ -134,14 +124,14 @@ Style: Professional commercial photography, advertising campaign quality, magazi
 
     console.log("[ad-image] Sending request to AI Gateway...");
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-pro-image-preview",
+    const model = "google/gemini-3-pro-image-preview";
+
+    const response = await callAiWithTracking({
+      userId: user.id,
+      functionName: "generate-ad-image",
+      model,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           {
             role: "user",
@@ -153,7 +143,7 @@ Style: Professional commercial photography, advertising campaign quality, magazi
           },
         ],
         modalities: ["image", "text"],
-      }),
+      },
     });
 
     if (!response.ok) {
@@ -193,6 +183,12 @@ Style: Professional commercial photography, advertising campaign quality, magazi
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("[ad-image] Error:", error);
     const message = error instanceof Error ? error.message : "Falha ao gerar imagem publicitária";
     return new Response(

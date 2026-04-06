@@ -1,8 +1,6 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -26,23 +24,9 @@ Deno.serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     const {
-      productName,
-      productColor,
-      productCategory,
-      techniqueName,
-      locationName,
-      maxWidth,
-      maxHeight,
-      dimensionUnit,
-      isCurved,
-      clientSegment,
-      clientName,
-      brandColorName,
-      objective,
-      tone,
-      targetAudience,
-      season,
-      numberOfPrompts,
+      productName, productColor, productCategory, techniqueName, locationName,
+      maxWidth, maxHeight, dimensionUnit, isCurved, clientSegment, clientName,
+      brandColorName, objective, tone, targetAudience, season, numberOfPrompts,
     } = await req.json();
 
     if (!productName) {
@@ -54,15 +38,12 @@ Deno.serve(async (req) => {
 
     const numPrompts = Math.min(numberOfPrompts || 4, 6);
 
-    // Build customization detail string
     const customizationParts: string[] = [];
     if (techniqueName) customizationParts.push(`Technique: ${techniqueName}`);
     if (locationName) customizationParts.push(`Location: ${locationName}`);
     if (maxWidth && maxHeight) customizationParts.push(`Max print area: ${maxWidth}×${maxHeight}${dimensionUnit || 'cm'}`);
     if (isCurved) customizationParts.push(`Surface type: curved/cylindrical`);
-    const customizationDetail = customizationParts.length > 0
-      ? customizationParts.join(' | ')
-      : 'standard printing on front';
+    const customizationDetail = customizationParts.length > 0 ? customizationParts.join(' | ') : 'standard printing on front';
 
     const systemPrompt = `You are a world-class advertising creative director specialized in promotional product photography. 
 
@@ -119,19 +100,19 @@ Create ${numPrompts} distinct scene concepts that:
 
     console.log("[ad-prompt] Generating prompts for:", productName);
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
+    const model = "google/gemini-3-flash-preview";
+
+    const response = await callAiWithTracking({
+      userId: user.id,
+      functionName: "generate-ad-prompt",
+      model,
+      apiKey: LOVABLE_API_KEY,
+      requestBody: {
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userMessage },
         ],
-      }),
+      },
     });
 
     if (!response.ok) {
@@ -155,7 +136,6 @@ Create ${numPrompts} distinct scene concepts that:
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content || "";
 
-    // Parse JSON from response (handle markdown code blocks)
     let prompts;
     try {
       const cleaned = content.replace(/```json\n?/g, "").replace(/```\n?/g, "").trim();
@@ -176,6 +156,12 @@ Create ${numPrompts} distinct scene concepts that:
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
+    if (error instanceof QuotaExceededError) {
+      return new Response(
+        JSON.stringify({ error: "Limite mensal de IA atingido. Contate o administrador." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
     console.error("[ad-prompt] Error:", error);
     const message = error instanceof Error ? error.message : "Falha ao gerar prompts";
     return new Response(
