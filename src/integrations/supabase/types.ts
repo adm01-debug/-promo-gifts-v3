@@ -50,6 +50,81 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_usage_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          estimated_cost_usd: number | null
+          function_name: string
+          id: string
+          input_tokens: number | null
+          metadata: Json | null
+          model: string | null
+          output_tokens: number | null
+          status: string
+          total_tokens: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          function_name: string
+          id?: string
+          input_tokens?: number | null
+          metadata?: Json | null
+          model?: string | null
+          output_tokens?: number | null
+          status?: string
+          total_tokens?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          estimated_cost_usd?: number | null
+          function_name?: string
+          id?: string
+          input_tokens?: number | null
+          metadata?: Json | null
+          model?: string | null
+          output_tokens?: number | null
+          status?: string
+          total_tokens?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage_quotas: {
+        Row: {
+          created_at: string
+          id: string
+          is_unlimited: boolean
+          monthly_limit: number
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_unlimited?: boolean
+          monthly_limit?: number
+          role: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_unlimited?: boolean
+          monthly_limit?: number
+          role?: Database["public"]["Enums"]["app_role"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
       cart_templates: {
         Row: {
           created_at: string
@@ -1926,6 +2001,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      check_ai_quota: { Args: { _user_id: string }; Returns: Json }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }

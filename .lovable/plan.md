@@ -1,39 +1,42 @@
 
-# 🎤 Agente de Voz Completo — ElevenLabs + Lovable AI
+# Sistema de Rastreamento de Consumo de IA (AI Usage Tracking)
 
-## Arquitetura
-O sistema terá 3 camadas:
-1. **Ouvir** — ElevenLabs Scribe v2 Realtime (STT) para transcrição precisa em pt-BR
-2. **Entender** — Lovable AI (Gemini Flash) para interpretar comandos em linguagem natural
-3. **Responder** — ElevenLabs TTS para falar a resposta de volta
+## 1. Tabela `ai_usage_logs`
+Registra cada chamada de IA com detalhes completos:
+- `user_id`, `function_name` (ex: generate-ad-image, ai-recommendations)
+- `model` (ex: google/gemini-3-flash-preview, openai/gpt-5)
+- `input_tokens`, `output_tokens`, `total_tokens`
+- `estimated_cost_usd` (calculado com base na tabela de preços por modelo)
+- `duration_ms`, `status` (success/error), `error_message`
+- `metadata` (JSONB para contexto adicional)
 
-## Etapas de implementação
+## 2. Tabela `ai_usage_quotas`
+Define limites mensais por role:
+- `role` (app_role enum), `monthly_limit` (requests), `is_unlimited` (boolean)
+- Valores padrão: admin=ilimitado, manager=500 req/mês, vendedor=100 req/mês
 
-### 1. Edge Functions (backend)
-- `elevenlabs-scribe-token` — Gera token de uso único para transcrição realtime
-- `voice-agent` — Recebe o texto transcrito, envia para Lovable AI com contexto do catálogo, e retorna a ação + resposta em texto
-- `elevenlabs-tts` — Converte a resposta de texto em áudio via ElevenLabs TTS
+## 3. Função `check_ai_quota` (SECURITY DEFINER)
+- Verifica se o usuário ainda tem quota disponível no mês corrente
+- Retorna `allowed: boolean`, `used: number`, `limit: number`, `remaining: number`
 
-### 2. Dependências
-- Instalar `@elevenlabs/react` para o hook `useScribe` (STT realtime)
+## 4. Middleware nas Edge Functions
+- Antes de cada chamada de IA, verificar quota via `check_ai_quota`
+- Após a chamada, registrar em `ai_usage_logs` com tokens e custo
+- Retornar erro 429 se quota excedida
 
-### 3. Frontend
-- Substituir `useSpeechRecognition` (Web Speech API) pelo `useScribe` do ElevenLabs
-- Criar hook `useVoiceAgent` que orquestra: escutar → transcrever → IA → TTS → executar ação
-- Atualizar `VoiceSearchOverlay` com novo fluxo e feedback visual (ouvindo → processando → respondendo)
+## 5. Dashboard Admin (`/admin/consumo-ia`)
+- Cards de resumo: total de requests, custo total, top usuários
+- Gráfico de consumo por período (dia/semana/mês)
+- Tabela detalhada com filtros por usuário, função e modelo
+- Gestão de quotas por role
 
-### 4. Capacidades do agente
-O agente de voz poderá:
-- Buscar produtos por descrição natural ("quero algo pra dar de presente corporativo")
-- Filtrar com linguagem livre ("mostra canetas azuis baratas")
-- Navegar entre páginas ("vai pro painel de orçamentos")
-- Responder perguntas sobre o catálogo ("tem alguma garrafa térmica?")
-- Ordenar resultados ("ordena pelo mais barato")
-- Limpar filtros ("começa de novo")
+## 6. Widget do Usuário (perfil ou sidebar)
+- Barra de progresso: X/Y requests usados no mês
+- Lista das últimas chamadas com custo estimado
+- Alerta quando próximo do limite (80%+)
 
-### 5. Fluxo do usuário
-1. Clica no 🎤 → overlay abre
-2. Fala naturalmente → ElevenLabs transcreve em tempo real
-3. Ao finalizar → texto vai pra IA que interpreta e decide a ação
-4. IA responde em texto → ElevenLabs fala a resposta
-5. Ação é executada (filtro, navegação, busca, etc.)
+## RLS
+- Usuários só veem seus próprios logs
+- Admins veem todos os logs
+- Apenas admins podem gerenciar quotas
+- Insert restrito a `service_role` (via edge functions)
