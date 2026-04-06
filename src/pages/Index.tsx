@@ -51,7 +51,8 @@ export default function Index() {
               }}
             />
 
-            {/* Toolbar: Filters + Sort + Stats + Layout */}
+            {/* Toolbar: Filters + Sort + Stats + Layout — sticky when scrolling */}
+            <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md -mx-4 sm:-mx-6 px-4 sm:px-6 py-2 border-b border-transparent [&:not(:first-child)]:border-border/30">
             <CatalogToolbar
               filters={catalog.filters}
               setFilters={catalog.setFilters}
