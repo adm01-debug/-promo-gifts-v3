@@ -218,7 +218,7 @@ export function getFallback(pathname: string): React.ReactNode {
     return <AdminSkeleton />;
   if (pathname === "/dashboard") return <DashboardSkeleton />;
   if (pathname.startsWith("/pedidos")) return <OrdersSkeleton />;
-  if (pathname === "/perfil") return <ProfileSkeleton />;
+  
   if (
     pathname === "/mockup-generator" ||
     pathname === "/montar-kit" ||

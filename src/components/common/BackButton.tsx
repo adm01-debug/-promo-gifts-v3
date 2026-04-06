@@ -20,7 +20,7 @@ const routeLabels: Record<string, string> = {
   "/magic-up": "Magic Up",
   "/favoritos": "Favoritos",
   "/comparar": "Comparar",
-  "/perfil": "Meu Perfil",
+  
   "/configuracoes": "Configurações",
   "/admin": "Administração",
   "/seguranca": "Segurança",

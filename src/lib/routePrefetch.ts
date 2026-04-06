@@ -27,7 +27,7 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   '/kits': () => import('@/pages/KitBuilderPage'),
   '/meus-kits': () => import('@/pages/MeusKitsPage'),
   '/pedidos': () => import('@/pages/OrdersPage'),
-  '/perfil': () => import('@/pages/ProfilePage'),
+  
   '/dashboard': () => import('@/pages/BIDashboard'),
   '/tendencias': () => import('@/pages/TrendsPage'),
   '/busca-precos': () => import('@/pages/AdvancedPriceSearchPage'),
