@@ -260,9 +260,9 @@ export function StockDashboard() {
             </div>
           </CardHeader>
           <CardContent>
-            <ScrollArea className="max-h-48">
-              <div className="space-y-2">
-                {criticalAlerts.slice(0, 5).map(alert => (
+            <ScrollArea className="max-h-[280px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
+                {criticalAlerts.map(alert => (
                   <AlertCard 
                     key={alert.id} 
                     alert={alert} 
