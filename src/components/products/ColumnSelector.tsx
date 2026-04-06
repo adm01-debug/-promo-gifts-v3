@@ -58,8 +58,7 @@ function getDefaultColumns(): ColumnCount {
   try {
     const saved = localStorage.getItem(STORAGE_KEY);
     if (saved) {
-      const parsed = parseInt(saved, 10) as ColumnCount;
-      if ([1, 2, 3, 4, 5, 6, 8].includes(parsed)) return parsed;
+      if ([3, 4, 5, 6, 8].includes(parsed)) return parsed;
     }
   } catch {}
   // Responsive default based on screen width
