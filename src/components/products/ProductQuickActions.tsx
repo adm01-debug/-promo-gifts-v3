@@ -85,7 +85,7 @@ export function ProductQuickActions({
                 onClick={() => handleClick(key)}
                 title={disabled ? `Sem dados de ${label.toLowerCase()} para este produto` : undefined}
                 className={cn(
-                  "group inline-flex items-center justify-center gap-2 flex-1 px-4 py-3 rounded-2xl text-xs font-bold border",
+                  "group inline-flex items-center justify-center gap-2 flex-1 px-4 py-3 rounded-lg text-xs font-bold border",
                   "transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   disabled
                     ? "bg-muted/30 text-muted-foreground/50 border-border/20 cursor-not-allowed"
