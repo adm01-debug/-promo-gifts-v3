@@ -211,7 +211,7 @@ export default function Auth() {
   }
 
   return (
-    <main className="min-h-screen flex bg-background" role="main" aria-label="Autenticação">
+    <main className="min-h-screen relative bg-background" role="main" aria-label="Autenticação">
       <PageSEO
         title="Login"
         description="Acesse a plataforma Promo Gifts. Faça login para gerenciar seus orçamentos e catálogo."
