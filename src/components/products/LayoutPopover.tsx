@@ -5,6 +5,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Separator } from "@/components/ui/separator";
 import { ColumnSelector, ColumnCount } from "@/components/products/ColumnSelector";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+
+const viewModes = [
+  { value: "grid" as const, label: "Grid", icon: LayoutGrid },
+  { value: "list" as const, label: "Lista", icon: List },
+  { value: "table" as const, label: "Tabela", icon: Table2 },
+];
 
 interface LayoutPopoverProps {
   viewMode: "grid" | "list" | "table";
@@ -14,84 +21,71 @@ interface LayoutPopoverProps {
 }
 
 export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps>(
-  function LayoutPopover({
-    viewMode,
-    setViewMode,
-    gridColumns,
-    setGridColumns,
-  }, ref) {
+  function LayoutPopover({ viewMode, setViewMode, gridColumns, setGridColumns }, ref) {
     return (
       <div ref={ref}>
-      <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-1.5 h-8"
-        >
-          <Settings2 className="h-3.5 w-3.5" />
-          <span className="hidden sm:inline text-xs">Layout</span>
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent align="end" className="w-56 p-3" sideOffset={8}>
-        <div className="space-y-3">
-          {/* View Mode */}
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2">Visualização</p>
-            <div className="flex items-center gap-1 p-1 rounded-lg bg-secondary overflow-hidden">
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
-                  viewMode === "grid" && "bg-card shadow-sm"
-                )}
-                onClick={() => setViewMode("grid")}
-              >
-                <LayoutGrid className="h-3.5 w-3.5" />
-                Grid
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
-                  viewMode === "list" && "bg-card shadow-sm"
-                )}
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-3.5 w-3.5" />
-                Lista
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className={cn(
-                  "flex-1 h-8 gap-1.5 text-xs whitespace-nowrap overflow-hidden",
-                  viewMode === "table" && "bg-card shadow-sm"
-                )}
-                onClick={() => setViewMode("table")}
-              >
-                <Table2 className="h-3.5 w-3.5" />
-                Tabela
-              </Button>
-            </div>
-          </div>
-
-          {/* Column Selector - only in grid mode */}
-          {viewMode === "grid" && (
-            <>
-              <Separator />
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" size="sm" className="gap-1.5 h-8">
+              <Settings2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline text-xs">Layout</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="end" className="w-60 p-4" sideOffset={8}>
+            <div className="space-y-4">
+              {/* View Mode */}
               <div>
-                <p className="text-xs font-medium text-muted-foreground mb-2">Colunas</p>
-                <ColumnSelector value={gridColumns} onChange={setGridColumns} />
+                <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">
+                  Visualização
+                </p>
+                <div className="relative flex items-center gap-0.5 p-1 rounded-xl bg-muted/60 border border-border/40">
+                  {viewModes.map((mode) => {
+                    const Icon = mode.icon;
+                    const isActive = viewMode === mode.value;
+                    return (
+                      <button
+                        key={mode.value}
+                        className={cn(
+                          "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-medium transition-colors duration-150 z-10",
+                          isActive
+                            ? "text-primary-foreground"
+                            : "text-muted-foreground hover:text-foreground"
+                        )}
+                        onClick={() => setViewMode(mode.value)}
+                      >
+                        {isActive && (
+                          <motion.div
+                            layoutId="viewmode-pill"
+                            className="absolute inset-0 rounded-lg bg-primary shadow-sm"
+                            transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                          />
+                        )}
+                        <span className="relative z-10 flex items-center gap-1.5">
+                          <Icon className="h-3.5 w-3.5" />
+                          {mode.label}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
-            </>
-          )}
-        </div>
-      </PopoverContent>
-    </Popover>
-    </div>
+
+              {/* Column Selector - only in grid mode */}
+              {viewMode === "grid" && (
+                <>
+                  <Separator className="opacity-50" />
+                  <div>
+                    <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground mb-2.5">
+                      Colunas
+                    </p>
+                    <ColumnSelector value={gridColumns} onChange={setGridColumns} />
+                  </div>
+                </>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
     );
   }
 );
