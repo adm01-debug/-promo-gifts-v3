@@ -27,6 +27,22 @@ export function CatalogHeader({
   activeFiltersCount = 0,
 }: CatalogHeaderProps) {
   const hasActiveConstraints = searchQuery.trim().length > 0 || activeFiltersCount > 0;
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  // "/" shortcut to focus search (standard pattern: Notion, GitHub, Figma)
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "/" && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const tag = (e.target as HTMLElement)?.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || (e.target as HTMLElement)?.isContentEditable) return;
+        e.preventDefault();
+        const input = searchRef.current?.querySelector("input");
+        input?.focus();
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, []);
 
   return (
     <div className="flex items-center justify-between gap-3 flex-wrap">
