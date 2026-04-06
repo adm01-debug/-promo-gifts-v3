@@ -70,7 +70,10 @@ export function CatalogHeader({
             · {shouldShowCatalogSkeleton
               ? "Carregando catálogo..."
               : hasActiveConstraints
-                ? `${filteredCount.toLocaleString("pt-BR")} itens`
+                ? <>
+                    <span className="text-primary font-semibold">{filteredCount.toLocaleString("pt-BR")}</span>
+                    {totalEstimate ? ` de ${totalEstimate.toLocaleString("pt-BR")}` : ""} itens
+                  </>
                 : totalEstimate
                   ? `${totalEstimate.toLocaleString("pt-BR")} itens`
                   : `${filteredCount.toLocaleString("pt-BR")} itens`
