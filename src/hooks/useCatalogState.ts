@@ -19,6 +19,7 @@ import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
+import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
 
 export type ViewMode = "grid" | "list";
@@ -105,6 +106,7 @@ export function useCatalogState() {
   });
 
   const { data: externalCategories = [] } = useExternalCategoriesQuery();
+  const { data: realStats } = useCatalogRealStats();
 
   const isLoading = isLoadingProducts || isLoadingMaterialFilter || isLoadingCategoryFilter;
   const isInitialCatalogLoad = (isLoadingProducts || isFetchingProducts) && realProducts.length === 0;
@@ -335,21 +337,17 @@ export function useCatalogState() {
       ? deduped.length
       : (isFullCatalogLoaded ? deduped.length : (totalEstimate ?? deduped.length));
 
-    // EDGE-003: only count colors with a non-empty name
-    // Also count variations array when colors is empty
-    const totalVariants = deduped.reduce((sum, p) => {
+    // Variações: use real DB count when unfiltered, fallback to local count
+    const localVariants = deduped.reduce((sum, p) => {
       const colorCount = p.colors?.filter((c: Record<string, string>) => c.name?.trim()).length || 0;
       const variationCount = !colorCount && p.variations?.length ? p.variations.length : 0;
       return sum + colorCount + variationCount;
     }, 0);
+    const totalVariants = hasActiveFilters
+      ? localVariants
+      : (realStats?.totalVariants ?? localVariants);
 
-    // FIX: categories — filter out hidden categories from external list
-    const hiddenCategoryPatterns = ['matéria', 'prima', 'gravações', 'personalização', 'suprimentos', 'insumos', 'gravação | mochila'];
-    const visibleExternalCategories = externalCategories.filter((cat: { name: string }) => {
-      const lower = cat.name.toLowerCase();
-      return !hiddenCategoryPatterns.some(p => lower.includes(p));
-    });
-
+    // Categorias: use real DB count when unfiltered
     const uniqueCategoryIds = new Set(
       deduped
         .map((p) => p.category_id || (p.category?.id ? String(p.category.id) : ""))
@@ -357,14 +355,17 @@ export function useCatalogState() {
     );
     const categoriesCount = hasActiveFilters
       ? uniqueCategoryIds.size
-      : visibleExternalCategories.length || uniqueCategoryIds.size;
+      : (realStats?.totalCategories ?? uniqueCategoryIds.size);
 
-    // BUG-003/EDGE-001: case-insensitive supplier dedup, trim whitespace
+    // Fornecedores: use real DB count when unfiltered
     const uniqueSuppliers = new Set(
       deduped
         .map((p) => p.supplier?.name?.trim().toLowerCase())
         .filter((n): n is string => !!n && n !== "sem fornecedor")
     );
+    const suppliersCount = hasActiveFilters
+      ? uniqueSuppliers.size
+      : (realStats?.totalSuppliers ?? uniqueSuppliers.size);
 
     // BUG-002: contextual favorite count — intersection with filtered products
     const contextualFavoriteCount = isFavorite
@@ -375,10 +376,10 @@ export function useCatalogState() {
       { id: "products", label: "Produtos Únicos", value: productCount, icon: React.createElement(Package, { className: "h-4 w-4" }) },
       { id: "variants", label: "Variações", value: totalVariants, icon: React.createElement(Palette, { className: "h-4 w-4" }) },
       { id: "categories", label: "Categorias", value: categoriesCount, icon: React.createElement(FolderTree, { className: "h-4 w-4" }) },
-      { id: "suppliers", label: "Fornecedores", value: uniqueSuppliers.size, icon: React.createElement(Users, { className: "h-4 w-4" }) },
+      { id: "suppliers", label: "Fornecedores", value: suppliersCount, icon: React.createElement(Users, { className: "h-4 w-4" }) },
       { id: "favorites", label: "Favoritos", value: contextualFavoriteCount, icon: React.createElement(Heart, { className: "h-4 w-4" }) },
     ];
-  }, [filteredProducts, favoriteCount, isFavorite, externalCategories, activeFiltersCount, searchQuery, totalEstimate, hasNextPage]);
+  }, [filteredProducts, favoriteCount, isFavorite, activeFiltersCount, searchQuery, totalEstimate, hasNextPage, realStats]);
 
   const resetFilters = useCallback(() => {
     setFilters(defaultFilters);
