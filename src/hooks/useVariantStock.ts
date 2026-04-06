@@ -293,7 +293,7 @@ export function useVariantStock() {
   const queryClient = useQueryClient();
 
   // React Query com cache de 10 min — não refaz ao voltar à página
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isFetching } = useQuery({
     queryKey: ['variant-stock-data'],
     queryFn: fetchAndProcessStockData,
     staleTime: 10 * 60 * 1000,
