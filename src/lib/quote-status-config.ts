@@ -52,7 +52,7 @@ export const QUOTE_STATUS_CONFIG: Record<string, QuoteStatusConfig> = {
     label: "Rejeitado",
     color: "hsl(var(--destructive))",
     badgeVariant: "destructive",
-    badgeClassName: "bg-red-500/15 text-red-400 border-red-500/30",
+    badgeClassName: "bg-destructive/15 text-destructive border-destructive/30",
   },
   expired: {
     label: "Expirado",
