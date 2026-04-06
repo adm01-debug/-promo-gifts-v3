@@ -528,7 +528,7 @@ export default function ProductDetail() {
 
 
             {/* Quick Action Buttons — bottom bar */}
-            <div className="-mt-3">
+            <div className="-mt-4">
               <ProductQuickActions
                 productId={product.id}
                 productName={product.name}
