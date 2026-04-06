@@ -118,10 +118,8 @@ Responda APENAS em JSON com este formato:
       };
     }
 
-    // Step 2: Search products in database
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    // Step 2: Search products in database using service client from auth
+    const supabase = auth.localServiceClient;
 
     const searchTerms = [
       productAnalysis.productType,
