@@ -10,9 +10,7 @@ import {
   Tag,
   Layers,
   Sparkles,
-  Palette,
   ChevronDown,
-  ChevronUp,
   FileText,
   Eye,
 } from "lucide-react";
