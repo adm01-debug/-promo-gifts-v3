@@ -360,28 +360,31 @@ function VirtualList({
                   paddingBottom: "8px",
                 }}
               >
-                <div className={cn("relative group/row", isSelected && "ring-2 ring-primary/40 rounded-xl")}>
-                  {/* Checkbox — hover or selected */}
+                <div className={cn(
+                  "flex items-center gap-2 rounded-xl transition-all duration-200",
+                  isSelected && "ring-2 ring-primary/40 bg-primary/5"
+                )}>
+                  {/* Checkbox — always visible in list */}
                   <button
                     className={cn(
-                      "absolute -left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center",
-                      "w-6 h-6 rounded-md border-2 transition-all duration-200",
+                      "flex-shrink-0 flex items-center justify-center ml-1",
+                      "w-7 h-7 rounded-lg border-2 transition-all duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       isSelected
-                        ? "bg-primary border-primary text-primary-foreground scale-100 opacity-100"
-                        : "border-muted-foreground/30 bg-card opacity-0 group-hover/row:opacity-100 hover:border-primary/50"
+                        ? "bg-primary border-primary text-primary-foreground"
+                        : "border-muted-foreground/30 bg-card hover:border-primary/50"
                     )}
                     onClick={(e) => { e.stopPropagation(); toggleSelect(product.id); }}
                     aria-label={isSelected ? "Desselecionar" : "Selecionar"}
                   >
                     {isSelected && (
-                      <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
+                      <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
                         <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                       </svg>
                     )}
                   </button>
 
-                  <div className={cn(isSelected ? "ml-4" : "ml-0 group-hover/row:ml-4", "transition-all duration-200")}>
+                  <div className="flex-1 min-w-0">
                     <ProductListItem
                       product={product}
                       onClick={() => navigate(`/produto/${product.id}`)}
