@@ -236,7 +236,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
       logger.log("[Voice] Scribe connection initiated");
     } catch (err) {
-      isStartingRef.current = false;
+    isStartingRef.current = false;
       clearSessionStartTimer();
       console.error("[Voice] startListening error:", err);
       const message = friendlyErrorMessage(err);
