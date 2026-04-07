@@ -59,6 +59,7 @@ import { useProductIntelligenceBadges } from "@/hooks/useProductIntelligenceBadg
 import { IntelligenceBadges } from "@/components/common/IntelligenceBadges";
 import { useSupplierTrust } from "@/hooks/useSupplierTrust";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
+import { BulkVariantWizard, type BulkVariantSelection } from "@/components/catalog/BulkVariantWizard";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
