@@ -146,7 +146,58 @@ export function filterGroupsByTechnique(
     .filter((g) => g.locations.length > 0);
 }
 
-// ============================================
+/**
+ * Filtra áreas agrupadas por componente específico.
+ */
+export function filterGroupsByComponent(
+  groups: GroupedPrintArea[],
+  componentName: string
+): GroupedPrintArea[] {
+  return groups.filter((g) => g.componentName === componentName);
+}
+
+/**
+ * Achata toda a hierarquia em uma lista plana de técnicas com contexto.
+ * Útil para iteração simples no simulador.
+ */
+export interface FlattenedTechnique {
+  componentName: string;
+  componentCode: string;
+  locationName: string;
+  locationCode: string;
+  techniqueCode: string;
+  areaName: string;
+  maxWidth: number | null;
+  maxHeight: number | null;
+  areaCm2: number | null;
+  isPrimary: boolean;
+  isCurved: boolean;
+}
+
+export function flattenTechniques(groups: GroupedPrintArea[]): FlattenedTechnique[] {
+  const result: FlattenedTechnique[] = [];
+  for (const g of groups) {
+    for (const loc of g.locations) {
+      for (const tech of loc.techniques) {
+        result.push({
+          componentName: g.componentName,
+          componentCode: g.componentCode,
+          locationName: loc.locationName,
+          locationCode: loc.locationCode,
+          techniqueCode: tech.techniqueCode,
+          areaName: tech.areaName,
+          maxWidth: tech.maxWidth,
+          maxHeight: tech.maxHeight,
+          areaCm2: tech.areaCm2,
+          isPrimary: tech.isPrimary,
+          isCurved: tech.isCurved,
+        });
+      }
+    }
+  }
+  return result;
+}
+
 // CONTADORES E ESTATÍSTICAS
 // ============================================
 

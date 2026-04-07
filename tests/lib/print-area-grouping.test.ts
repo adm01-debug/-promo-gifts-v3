@@ -3,6 +3,8 @@ import {
   groupPrintAreasByComponent,
   getUniqueTechniques,
   filterGroupsByTechnique,
+  filterGroupsByComponent,
+  flattenTechniques,
   countTotalAreas,
   countTotalLocations,
   countTotalComponents,
@@ -199,5 +201,41 @@ describe("findLargestArea", () => {
 
   it("returns null for empty groups", () => {
     expect(findLargestArea([])).toBeNull();
+  });
+});
+
+describe("filterGroupsByComponent", () => {
+  it("filters to specific component", () => {
+    const groups = groupPrintAreasByComponent(mockAreas);
+    const corpo = filterGroupsByComponent(groups, "Corpo");
+    expect(corpo).toHaveLength(1);
+    expect(corpo[0].componentName).toBe("Corpo");
+  });
+
+  it("returns empty for unknown component", () => {
+    const groups = groupPrintAreasByComponent(mockAreas);
+    expect(filterGroupsByComponent(groups, "Inexistente")).toHaveLength(0);
+  });
+});
+
+describe("flattenTechniques", () => {
+  it("flattens hierarchy into a plain list", () => {
+    const groups = groupPrintAreasByComponent(mockAreas);
+    const flat = flattenTechniques(groups);
+    expect(flat.length).toBeGreaterThan(0);
+    expect(flat[0]).toHaveProperty("componentName");
+    expect(flat[0]).toHaveProperty("locationName");
+    expect(flat[0]).toHaveProperty("techniqueCode");
+  });
+
+  it("preserves primary and curved flags", () => {
+    const groups = groupPrintAreasByComponent(mockAreas);
+    const flat = flattenTechniques(groups);
+    expect(flat.some((t) => t.isPrimary)).toBe(true);
+    expect(flat.some((t) => t.isCurved)).toBe(true);
+  });
+
+  it("returns empty for empty groups", () => {
+    expect(flattenTechniques([])).toEqual([]);
   });
 });

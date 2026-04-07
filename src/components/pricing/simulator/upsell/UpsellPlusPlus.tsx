@@ -1,8 +1,9 @@
 /**
  * UpsellPlusPlus — Componente visual de sugestões inteligentes de upsell/cross-sell.
- * Exibido no simulador de preços quando há oportunidades de upgrade.
+ * Design 10/10 com animações premium via framer-motion.
  */
 import { useMemo } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -59,6 +60,34 @@ const PRIORITY_STYLES: Record<UpsellPriority, string> = {
 };
 
 // ============================================
+// ANIMAÇÕES
+// ============================================
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: { staggerChildren: 0.08, delayChildren: 0.1 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, x: -12, scale: 0.97 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    scale: 1,
+    transition: { type: "spring", stiffness: 400, damping: 25 },
+  },
+  exit: {
+    opacity: 0,
+    x: 12,
+    scale: 0.97,
+    transition: { duration: 0.15 },
+  },
+};
+
+// ============================================
 // COMPONENTE
 // ============================================
 
@@ -85,45 +114,72 @@ export function UpsellPlusPlus({
   if (suggestions.length === 0) return null;
 
   return (
-    <Card className={cn("border-dashed", className)}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <Sparkles className="h-4 w-4 text-accent" />
-          Sugestões inteligentes
-          <Badge variant="secondary" className="text-xs">
-            {suggestions.length}
-          </Badge>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-2">
-        {suggestions.slice(0, maxVisible).map((s) => {
-          const Icon = ICON_MAP[s.type];
-          return (
-            <button
-              key={s.id}
-              onClick={() => onSuggestionClick?.(s)}
-              className={cn(
-                "w-full text-left rounded-md border-l-4 p-3 transition-colors hover:opacity-90",
-                PRIORITY_STYLES[s.priority]
-              )}
+    <motion.div
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 300, damping: 24 }}
+    >
+      <Card className={cn("border-dashed", className)}>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-medium">
+            <motion.div
+              animate={{ rotate: [0, 12, -12, 0] }}
+              transition={{ duration: 0.6, delay: 0.3 }}
             >
-              <div className="flex items-start gap-2">
-                <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium leading-tight">{s.title}</p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {s.description}
-                  </p>
-                  <Badge variant="outline" className="mt-1 text-[10px]">
-                    {s.impact}
-                  </Badge>
-                </div>
-              </div>
-            </button>
-          );
-        })}
-      </CardContent>
-    </Card>
+              <Sparkles className="h-4 w-4 text-accent" />
+            </motion.div>
+            Sugestões inteligentes
+            <Badge variant="secondary" className="text-xs">
+              {suggestions.length}
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <AnimatePresence mode="popLayout">
+            <motion.div
+              className="space-y-2"
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+            >
+              {suggestions.slice(0, maxVisible).map((s) => {
+                const Icon = ICON_MAP[s.type];
+                return (
+                  <motion.button
+                    key={s.id}
+                    variants={itemVariants}
+                    exit="exit"
+                    layout
+                    onClick={() => onSuggestionClick?.(s)}
+                    whileHover={{ scale: 1.01, x: 2 }}
+                    whileTap={{ scale: 0.99 }}
+                    className={cn(
+                      "w-full text-left rounded-md border-l-4 p-3 transition-colors",
+                      PRIORITY_STYLES[s.priority]
+                    )}
+                  >
+                    <div className="flex items-start gap-2">
+                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium leading-tight">
+                          {s.title}
+                        </p>
+                        <p className="mt-0.5 text-xs text-muted-foreground">
+                          {s.description}
+                        </p>
+                        <Badge variant="outline" className="mt-1 text-[10px]">
+                          {s.impact}
+                        </Badge>
+                      </div>
+                    </div>
+                  </motion.button>
+                );
+              })}
+            </motion.div>
+          </AnimatePresence>
+        </CardContent>
+      </Card>
+    </motion.div>
   );
 }
 
