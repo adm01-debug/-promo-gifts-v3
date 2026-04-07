@@ -34,6 +34,12 @@ interface VirtualizedProductGridProps {
   activeColorFilter?: ActiveColorFilter | null;
   /** Column selector React node to render in the filter bar */
   columnSelector?: React.ReactNode;
+  /** External selection mode */
+  selectionMode?: boolean;
+  /** External selected IDs */
+  selectedIds?: Set<string>;
+  /** External toggle handler */
+  onToggleSelect?: (id: string) => void;
 }
 
 export function VirtualizedProductGrid({
