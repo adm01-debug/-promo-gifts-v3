@@ -138,14 +138,12 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
       if (action.response) {
         setPhase("speaking");
-        try {
           const { promise, stop } = playTtsAudio(action.response);
           stopSpeakingRef.current = stop;
-          await promise;
-        } catch {
-        } finally {
+          await promise.catch((ttsErr) => {
+            logger.warn('[VoiceAgent] TTS playback failed:', ttsErr);
+          });
           stopSpeakingRef.current = null;
-        }
       }
 
       logVoiceCommand(action, {
