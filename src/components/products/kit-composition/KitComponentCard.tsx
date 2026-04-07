@@ -61,14 +61,11 @@ export interface KitComponentCardProps {
   item: KitComponent;
   index: number;
   variant: "packaging" | "item";
-  isSelected: boolean;
-  selectable: boolean;
-  onToggle: () => void;
   onViewProduct?: (productId: string) => void;
   onZoomImage?: (url: string) => void;
 }
 
-export function KitComponentCard({ item, index, variant, isSelected, selectable, onToggle, onViewProduct, onZoomImage }: KitComponentCardProps) {
+export function KitComponentCard({ item, index, variant, onViewProduct, onZoomImage }: KitComponentCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   const hasDimensions = (item.heightMm != null && item.heightMm > 0) || (item.widthMm != null && item.widthMm > 0) || (item.lengthMm != null && item.lengthMm > 0);
@@ -80,19 +77,12 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
   const formatWeight = (g: number) => g >= 1000 ? `${(g / 1000).toFixed(1)} kg` : `${g} g`;
 
   return (
-    <div className={cn("rounded-xl border transition-all overflow-hidden", selectable && isSelected ? "border-primary/50 bg-primary/5 shadow-sm shadow-primary/10" : cn(borderColor, "bg-card hover:shadow-sm"))}>
+    <div className={cn("rounded-xl border transition-all overflow-hidden", cn(borderColor, "bg-card hover:shadow-sm"))}>
       {/* Header Row */}
       <div
         className="flex items-start gap-3.5 px-4 pt-4 pb-3 cursor-pointer group"
-        onClick={() => selectable ? onToggle() : hasExpandableInfo && setExpanded(!expanded)}
-        role={selectable ? "button" : undefined}
-        tabIndex={selectable ? 0 : undefined}
+        onClick={() => hasExpandableInfo && setExpanded(!expanded)}
       >
-        {selectable && (
-          <div className={cn("w-5 h-5 mt-1 rounded-md border-2 flex items-center justify-center transition-all shrink-0", isSelected ? "bg-primary border-primary scale-105" : "border-muted-foreground/30 group-hover:border-primary/50")}>
-            {isSelected && <Check className="h-3 w-3 text-primary-foreground" />}
-          </div>
-        )}
 
         <div className="shrink-0">
           <div className="relative">
@@ -122,7 +112,7 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
               <h4 className="text-sm font-semibold text-foreground leading-tight">{item.productName}</h4>
             </div>
             <div className="flex items-center gap-0.5 shrink-0">
-              {hasExpandableInfo && !selectable && (
+              {hasExpandableInfo && (
                 <Button variant="ghost" size="icon" aria-label="Expandir" className="h-7 w-7" onClick={(e) => { e.stopPropagation(); setExpanded(!expanded); }}>
                   {expanded ? <ChevronUp className="h-3.5 w-3.5 text-muted-foreground" /> : <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />}
                 </Button>
