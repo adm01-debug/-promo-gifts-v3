@@ -14,6 +14,7 @@ import {
 import { SpectrumWaveform } from "./voice/VoiceVisualEffects";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import { FloatingParticles } from "./voice/FloatingParticles";
+import type { VoiceHistoryEntry } from "@/hooks/voice/useVoiceHistory";
 
 interface VoiceSearchOverlayProps {
   isOpen: boolean;
@@ -22,6 +23,7 @@ interface VoiceSearchOverlayProps {
   finalTranscript: string;
   agentResponse: string;
   error?: string | null;
+  recentCommands?: VoiceHistoryEntry[];
   onClose: () => void;
   onStartListening: () => void;
   onStopListening: () => void;
