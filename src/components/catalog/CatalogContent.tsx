@@ -417,16 +417,20 @@ export function CatalogContent({
   onLoadMore,
   onResetFilters,
   selectionMode,
+  onSelectedCountChange,
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
 
-  // Shared selection state for grid/table modes (list has its own)
+  // Shared selection state across all view modes
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
 
   // Clear selection when leaving selection mode or products change
   useEffect(() => { if (!selectionMode) setSelectedIds(new Set()); }, [selectionMode]);
   useEffect(() => { setSelectedIds(new Set()); }, [paginatedProducts.length]);
+
+  // Sync count to parent for toolbar badge
+  useEffect(() => { onSelectedCountChange?.(selectedIds.size); }, [selectedIds.size, onSelectedCountChange]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
