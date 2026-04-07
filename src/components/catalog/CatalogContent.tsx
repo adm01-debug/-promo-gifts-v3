@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { ProductListItem } from "@/components/products/ProductListItem";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
@@ -446,6 +447,8 @@ export function CatalogContent({
 
   const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
 
+  const [cartModalOpen, setCartModalOpen] = useState(false);
+
   const navHook = useNavHook();
   const handleBulkQuote = useCallback(() => {
     const ids = Array.from(selectedIds);
@@ -460,24 +463,13 @@ export function CatalogContent({
   }, [selectedIds, paginatedProducts, navHook, clearSelection]);
 
   const handleBulkCart = useCallback(() => {
+    setCartModalOpen(true);
+  }, []);
+
+  const bulkCartProducts = useMemo(() => {
     const ids = Array.from(selectedIds);
-    const selectedProducts = paginatedProducts.filter(p => ids.includes(p.id));
-    if (selectedProducts.length === 0) return;
-    navHook('/carrinhos/novo', {
-      state: {
-        bulkProducts: selectedProducts.map(p => ({
-          product_id: p.id,
-          product_name: p.name,
-          product_sku: p.sku || '',
-          product_price: p.price,
-          product_image_url: p.images?.[0] || '',
-          quantity: 1,
-        })),
-      },
-    });
-    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para o carrinho`);
-    clearSelection();
-  }, [selectedIds, paginatedProducts, navHook, clearSelection]);
+    return paginatedProducts.filter(p => ids.includes(p.id));
+  }, [selectedIds, paginatedProducts]);
 
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = paginatedProducts.find((p) => p.id === firstSelectedId);
@@ -553,6 +545,12 @@ export function CatalogContent({
             productName={`${selectedIds.size} produtos selecionados`}
           />
         )}
+        <BulkAddToCartModal
+          open={cartModalOpen}
+          onOpenChange={setCartModalOpen}
+          products={bulkCartProducts}
+          onDone={clearSelection}
+        />
       </>
     );
   }
@@ -604,6 +602,12 @@ export function CatalogContent({
             productName={`${selectedIds.size} produtos selecionados`}
           />
         )}
+        <BulkAddToCartModal
+          open={cartModalOpen}
+          onOpenChange={setCartModalOpen}
+          products={bulkCartProducts}
+          onDone={clearSelection}
+        />
       </>
     );
   }
@@ -658,6 +662,12 @@ export function CatalogContent({
           productName={`${selectedIds.size} produtos selecionados`}
         />
       )}
+      <BulkAddToCartModal
+        open={cartModalOpen}
+        onOpenChange={setCartModalOpen}
+        products={bulkCartProducts}
+        onDone={clearSelection}
+      />
     </>
   );
 }
