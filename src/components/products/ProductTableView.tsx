@@ -110,6 +110,7 @@ export const ProductTableView = memo(function ProductTableView({
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-border/50 bg-muted/30">
+            {selectionMode && <th className="w-10 px-2 py-2.5" />}
             <th className="w-12 px-2 py-2.5" />
             <th className="text-left px-3 py-2.5">
               <SortHeader label="Produto" col="name" activeCol={sortCol} activeDir={sortDir} onSort={handleSort} />
@@ -137,12 +138,37 @@ export const ProductTableView = memo(function ProductTableView({
             const thumbUrl = product.og_image_url || product.images[0]
               ? getCdnUrl(product.og_image_url || product.images[0], "card")
               : "/placeholder.svg";
+            const isSelected = selectionMode && selectedIds?.has(product.id);
             return (
               <tr
                 key={product.id}
-                className="border-b border-border/30 hover:bg-accent/30 cursor-pointer transition-colors group"
-                onClick={() => onProductClick?.(product.id)}
+                className={cn(
+                  "border-b border-border/30 hover:bg-accent/30 cursor-pointer transition-colors group",
+                  isSelected && "bg-primary/5 ring-1 ring-primary/30"
+                )}
+                onClick={() => selectionMode ? onToggleSelect?.(product.id) : onProductClick?.(product.id)}
               >
+                {/* Selection checkbox */}
+                {selectionMode && (
+                  <td className="px-2 py-1.5">
+                    <button
+                      className={cn(
+                        "flex items-center justify-center w-6 h-6 rounded-md border-2 transition-all",
+                        isSelected
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "border-muted-foreground/30 bg-card hover:border-primary/50"
+                      )}
+                      onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
+                      aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+                    >
+                      {isSelected && (
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
+                          <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+                  </td>
+                )}
                 {/* Thumb */}
                 <td className="px-2 py-1.5">
                   <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 border border-border/30">
