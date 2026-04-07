@@ -79,6 +79,7 @@ export default function ProductDetail() {
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
+  const [quoteVariantWizardOpen, setQuoteVariantWizardOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedStore();
 
   const { data: product, isLoading, isError } = useProduct(id || "");
