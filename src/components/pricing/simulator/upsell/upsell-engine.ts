@@ -34,11 +34,15 @@ export const QUANTITY_TIERS = [50, 100, 250, 500, 1000, 2500] as const;
 
 /** Ranking de técnicas por qualidade percebida (maior = melhor) */
 const TECHNIQUE_RANKING: Record<string, number> = {
-  TRF: 1, // transfer
-  SER: 2, // serigrafia
-  SUB: 3, // sublimação
-  GRA: 4, // gravação laser
-  BOR: 5, // bordado
+  TRF: 1,  // transfer
+  ADH: 1,  // adesivo
+  SER: 2,  // serigrafia
+  TAMP: 2, // tampografia
+  SUB: 3,  // sublimação
+  UV: 3,   // UV digital
+  HOT: 4,  // hot stamping
+  GRA: 4,  // gravação laser
+  BOR: 5,  // bordado
 };
 
 /** Mapa de produtos complementares por categoria */
