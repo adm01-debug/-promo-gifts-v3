@@ -138,7 +138,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
                   <CollapsibleContent>
                     <div className="mt-3 space-y-3">
                       {packagingItems.map((item, idx) => (
-                        <KitComponentCard key={item.id} item={item} index={idx + 1} variant="packaging" isSelected={selectedItems.includes(item.id)} selectable={!!onSelectItems} onToggle={() => toggleItem(item.id)} onViewProduct={onViewProduct} onZoomImage={(url) => setZoomImageUrl(url)} />
+                        <KitComponentCard key={item.id} item={item} index={idx + 1} variant="packaging" onViewProduct={onViewProduct} onZoomImage={(url) => setZoomImageUrl(url)} />
                       ))}
                     </div>
                   </CollapsibleContent>
@@ -154,7 +154,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
                   <CollapsibleContent>
                     <div className="mt-3 space-y-3">
                       {productItems.map((item, idx) => (
-                        <KitComponentCard key={item.id} item={item} index={idx + 1} variant="item" isSelected={selectedItems.includes(item.id)} selectable={!!onSelectItems} onToggle={() => toggleItem(item.id)} onViewProduct={onViewProduct} onZoomImage={(url) => setZoomImageUrl(url)} />
+                        <KitComponentCard key={item.id} item={item} index={idx + 1} variant="item" onViewProduct={onViewProduct} onZoomImage={(url) => setZoomImageUrl(url)} />
                       ))}
                     </div>
                   </CollapsibleContent>
