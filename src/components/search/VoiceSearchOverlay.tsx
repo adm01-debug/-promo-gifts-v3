@@ -67,10 +67,16 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       }
     }, [isOpen]);
 
-    // Close on ESC
+    // Keyboard shortcuts: ESC to close, Space to toggle listening
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && isOpen) onClose();
+        if (!isOpen) return;
+        if (e.key === "Escape") { onClose(); return; }
+        // Space toggles listen/stop when not typing in an input
+        if (e.key === " " && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+          e.preventDefault();
+          handleOrbClick();
+        }
       };
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
