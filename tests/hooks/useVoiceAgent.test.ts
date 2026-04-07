@@ -116,7 +116,6 @@ describe("useVoiceAgent", () => {
     expect(result.current.phase).toBe("idle");
     expect(mockConnect).toHaveBeenCalledWith({
       token: "test-token",
-      modelId: "scribe_v2_realtime",
       microphone: {
         echoCancellation: true,
         noiseSuppression: true,
