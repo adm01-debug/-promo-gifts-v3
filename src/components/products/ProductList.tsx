@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ProductListItem } from "./ProductListItem";
 import { BulkActionBar } from "./BulkActionBar";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import type { Product } from "@/hooks/useProducts";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { toast } from "sonner";
