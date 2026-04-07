@@ -55,6 +55,8 @@ export function useCatalogState() {
   }, []);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortBy, setSortBy] = useState<SortOption>("name");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const toggleSelectionMode = useCallback(() => setSelectionMode(prev => !prev), []);
 
   // Responsive clamp: force appropriate columns on small screens
   useEffect(() => {
@@ -447,6 +449,7 @@ export function useCatalogState() {
     filters, setFilters,
     viewMode, setViewMode,
     gridColumns, setGridColumns,
+    selectionMode, toggleSelectionMode,
     sortBy, setSortBy,
     filterSheetOpen, setFilterSheetOpen,
     searchQuery,
