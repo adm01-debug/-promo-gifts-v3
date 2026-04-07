@@ -120,14 +120,6 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
 
           <ScrollArea className="max-h-[calc(72vh-160px)]">
             <div className="px-6 py-4 space-y-5">
-              {onSelectItems && (
-                <div className="flex items-center justify-between px-4 py-2.5 bg-muted/40 rounded-lg border border-border">
-                  <span className="text-xs text-muted-foreground">{selectedItems.length} de {items.length} selecionados</span>
-                  <Button variant="ghost" size="sm" onClick={handleSelectAll} className={cn("h-7 text-xs", selectAll && "bg-primary/10 text-primary")}>
-                    {selectAll ? <><Check className="h-3.5 w-3.5 mr-1" />Desmarcar</> : "Selecionar Todos"}
-                  </Button>
-                </div>
-              )}
 
               {packagingItems.length > 0 && (
                 <Collapsible open={expandedSections.packaging} onOpenChange={(open) => setExpandedSections((s) => ({ ...s, packaging: open }))}>
