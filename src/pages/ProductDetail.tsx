@@ -468,8 +468,9 @@ export default function ProductDetail() {
                         size="sm"
                         onClick={handleFavorite}
                         className={cn(
-                          "rounded-full px-3 text-xs gap-1.5 hover:bg-destructive/10 h-7",
-                          isFavorite && "text-destructive"
+                          "rounded-full px-3 text-xs gap-1.5 h-7 transition-all duration-300",
+                          "hover:bg-destructive/15 hover:text-destructive hover:scale-105 hover:shadow-md hover:shadow-destructive/20",
+                          isFavorite && "text-destructive bg-destructive/10"
                         )}
                       >
                         <Heart className={cn("h-3.5 w-3.5 transition-all duration-300", isFavorite && "fill-destructive text-destructive scale-110")} />
