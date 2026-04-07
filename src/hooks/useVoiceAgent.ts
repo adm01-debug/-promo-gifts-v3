@@ -230,7 +230,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
       await scribe.connect({
         token: data.token,
-        ...SCRIBE_CONNECT_OPTIONS,
+        microphone: SCRIBE_MICROPHONE_OPTIONS,
       });
 
       logger.log("[Voice] Scribe connection initiated");
