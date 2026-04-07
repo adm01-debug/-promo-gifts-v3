@@ -232,6 +232,7 @@ export default function ProductDetail() {
         minQuantity={product.minQuantity || 1}
         isFavorite={isFavorite}
         onToggleFavorite={handleFavorite}
+        product={product}
       />
 
       <div className="max-w-[1600px] mx-auto space-y-4 md:space-y-6 xl:space-y-8 animate-fade-in pb-20 md:pb-0 min-w-0 overflow-x-hidden xl:px-4 2xl:px-8">
@@ -627,6 +628,7 @@ export default function ProductDetail() {
         minQuantity={product.minQuantity || 1}
         isFavorite={isFavorite}
         onToggleFavorite={handleFavorite}
+        product={product}
       />
     </MainLayout>
   );
