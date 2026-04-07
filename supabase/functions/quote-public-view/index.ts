@@ -12,7 +12,44 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { action, token, response, response_notes } = await req.json();
+    // Safely parse body — GET requests have no body
+    let body: Record<string, unknown> = {};
+    if (req.method === "POST" || req.method === "PUT") {
+      try {
+        body = await req.json();
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "Corpo da requisição inválido. Envie um JSON com action e token." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // For GET requests, try to read token from query params
+      const url = new URL(req.url);
+      const tokenParam = url.searchParams.get("token");
+      if (tokenParam) {
+        body = { action: "get_quote", token: tokenParam };
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Use POST com JSON body ou GET com ?token=..." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const { action, token, response, response_notes } = body as {
+      action?: string;
+      token?: string;
+      response?: string;
+      response_notes?: string;
+    };
+
+    if (!action || !token) {
+      return new Response(
+        JSON.stringify({ error: "Parâmetros 'action' e 'token' são obrigatórios" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -210,14 +247,14 @@ Deno.serve(async (req: Request) => {
         metadata: { via: "public_link", client_name: tokenData.client_name },
       });
 
-      // Create notification for seller (best-effort, may fail if table doesn't exist)
+      // Create notification for seller
       try {
-        await supabase.from("notifications").insert({
+        await supabase.from("workspace_notifications").insert({
           user_id: tokenData.seller_id,
           title: response === "approved" ? "🎉 Orçamento aprovado!" : "❌ Orçamento rejeitado",
           message: `${tokenData.client_name || "Cliente"} ${response === "approved" ? "aprovou" : "rejeitou"} o orçamento.${response_notes ? ` Obs: ${response_notes}` : ""}`,
           type: "quote_approval",
-          data: { quote_id: tokenData.quote_id, response },
+          category: "quotes",
         });
       } catch (_) {
         // Notification is optional — don't block the response flow

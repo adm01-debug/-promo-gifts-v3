@@ -12,7 +12,39 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { action, token } = await req.json();
+    // Safely parse body — GET requests have no body
+    let body: Record<string, unknown> = {};
+    if (req.method === "POST" || req.method === "PUT") {
+      try {
+        body = await req.json();
+      } catch {
+        return new Response(
+          JSON.stringify({ error: "Corpo da requisição inválido. Envie um JSON com action e token." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // For GET requests, try to read token from query params
+      const url = new URL(req.url);
+      const tokenParam = url.searchParams.get("token");
+      if (tokenParam) {
+        body = { action: "get_kit", token: tokenParam };
+      } else {
+        return new Response(
+          JSON.stringify({ error: "Use POST com JSON body ou GET com ?token=..." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    }
+
+    const { action, token } = body as { action?: string; token?: string };
+
+    if (!action || !token) {
+      return new Response(
+        JSON.stringify({ error: "Parâmetros 'action' e 'token' são obrigatórios" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -107,9 +139,9 @@ Deno.serve(async (req: Request) => {
       }));
 
       const cleanBox = kit.box_data ? {
-        name: kit.box_data.name,
-        imageUrl: kit.box_data.imageUrl || kit.box_data.image_url || null,
-        dimensions: kit.box_data.dimensions || null,
+        name: (kit.box_data as any).name,
+        imageUrl: (kit.box_data as any).imageUrl || (kit.box_data as any).image_url || null,
+        dimensions: (kit.box_data as any).dimensions || null,
       } : null;
 
       return new Response(
