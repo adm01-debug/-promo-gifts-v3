@@ -5,7 +5,7 @@ import {
   Home, 
   Package, 
   FileText, 
-  Users, 
+   
   Plus,
   Heart,
   Wand2,
@@ -43,7 +43,7 @@ const mainNavItems: NavItem[] = [
 
 const quickActions: NavItem[] = [
   { icon: FileText, label: "Novo Orçamento", href: "/orcamentos/novo" },
-  { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
+  { icon: Heart, label: "Favoritos", href: "/favoritos" },
   { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
   { icon: Calculator, label: "Simulador", href: "/simulador" },
   { icon: Heart, label: "Favoritos", href: "/favoritos" },
