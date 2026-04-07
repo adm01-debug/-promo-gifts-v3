@@ -64,6 +64,9 @@ export function VirtualizedProductGrid({
   showFilterBar = true,
   activeColorFilter,
   columnSelector,
+  selectionMode = false,
+  selectedIds,
+  onToggleSelect,
 }: VirtualizedProductGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [loadingMore, setLoadingMore] = useState(false);
