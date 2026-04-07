@@ -18,6 +18,9 @@ interface ProductTableViewProps {
   onToggleFavorite?: (id: string) => void;
   isInCompare?: (id: string) => boolean;
   onToggleCompare?: (id: string) => { added: boolean; isFull: boolean };
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 type SortCol = "name" | "sku" | "price" | "stock" | "supplier";
