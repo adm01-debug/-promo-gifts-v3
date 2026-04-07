@@ -77,6 +77,9 @@ export const ProductTableView = memo(function ProductTableView({
   onToggleFavorite,
   isInCompare,
   onToggleCompare,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
 }: ProductTableViewProps) {
   const [sortCol, setSortCol] = useState<SortCol>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
