@@ -414,12 +414,7 @@ export default function ProductDetail() {
                         {product.leadTimeDays ? `${product.leadTimeDays} dias úteis` : 'Consultar prazo'}
                       </span>
                     </div>
-                    <div className="h-3.5 w-px bg-border/40" />
-                    <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <Shield className="h-3 w-3 text-success shrink-0" />
-                      <span>Garantia</span>
                     </div>
-                  </div>
 
                   {/* ── SEÇÃO 4: CTAs ── */}
                   <div className="flex gap-2.5">
