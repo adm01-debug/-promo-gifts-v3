@@ -215,14 +215,8 @@ export default function FiltersPage() {
                   )}
                   onClick={toggleSelectionMode}
                 >
-                  {state.selectionMode ? (
-                    <motion.div initial={{ rotate: 0 }} animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.3 }}>
-                      <CheckSquare className="h-3.5 w-3.5" />
-                    </motion.div>
-                  ) : (
-                    <CheckSquare className="h-3.5 w-3.5" />
-                  )}
-                  <span className="hidden sm:inline text-xs">Selecionar</span>
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">{state.selectionMode ? "Cancelar" : "Selecionar"}</span>
                   <AnimatePresence>
                     {state.selectionMode && selectedCount > 0 && (
                       <motion.div
@@ -239,15 +233,6 @@ export default function FiltersPage() {
                     )}
                   </AnimatePresence>
                 </Button>
-                <AnimatePresence>
-                  {state.selectionMode && (
-                    <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: "auto", opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={toggleSelectionMode}>
-                        <X className="h-3.5 w-3.5" />
-                      </Button>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
 
                 <div className="hidden sm:block shrink-0">
                   <LayoutPopover viewMode={state.viewMode} setViewMode={state.setViewMode} gridColumns={state.gridColumns} setGridColumns={state.setGridColumns} />
