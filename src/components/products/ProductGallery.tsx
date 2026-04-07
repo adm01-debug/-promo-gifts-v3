@@ -641,7 +641,7 @@ export function ProductGallery({
 
       {/* Video Player Dialog */}
       <Dialog open={isVideoPlayerOpen} onOpenChange={setIsVideoPlayerOpen}>
-        <DialogContent className="max-w-4xl w-full p-0 bg-black border-none overflow-hidden">
+        <DialogContent className="max-w-4xl w-full p-0 bg-black border-none overflow-hidden [&>button.absolute]:hidden">
           <div className="relative w-full">
             {/* Header com controles */}
             <div className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between p-4 bg-gradient-to-b from-black/80 to-transparent">
@@ -657,14 +657,13 @@ export function ProductGallery({
                   </span>
                 )}
               </div>
-              <Button
-                variant="ghost"
-                size="icon" aria-label="Fechar"
-                className="h-9 w-9 rounded-full text-primary-foreground hover:bg-white/20"
+              <button
+                aria-label="Fechar"
+                className="h-9 w-9 rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
                 onClick={() => setIsVideoPlayerOpen(false)}
               >
                 <X className="h-5 w-5" />
-              </Button>
+              </button>
             </div>
 
             {/* Video player */}
