@@ -18,6 +18,7 @@ import type { ViewMode } from "@/hooks/useCatalogState";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
 import type { RefObject } from "react";
 import { SparklineSalesProvider } from "@/hooks/useSparklineSales";
+import { useNavigate as useNavHook } from "react-router-dom";
 
 interface CatalogContentProps {
   viewMode: ViewMode;
@@ -44,6 +45,7 @@ interface CatalogContentProps {
   onLoadMore?: () => void;
   onResetFilters?: () => void;
   selectionMode?: boolean;
+  onSelectedCountChange?: (count: number) => void;
 }
 
 // ──────────────────────────────────────────────────────
@@ -167,28 +169,51 @@ function VirtualGrid({
                   return (
                     <div key={product.id} className="relative">
                       {selectionMode && (
-                        <button
+                        <motion.button
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
                           className={cn(
                             "absolute top-2 left-2 z-20 flex items-center justify-center",
-                            "w-7 h-7 rounded-lg border-2 transition-all duration-200 shadow-sm",
+                            "w-7 h-7 rounded-lg border-2 transition-colors duration-150 shadow-sm",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             isSelected
-                              ? "bg-primary border-primary text-primary-foreground scale-100"
+                              ? "bg-primary border-primary text-primary-foreground"
                               : "border-muted-foreground/40 bg-card/90 backdrop-blur-sm hover:border-primary/50 hover:bg-card"
                           )}
                           onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
                           aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+                          whileTap={{ scale: 0.85 }}
                         >
-                          {isSelected && (
-                            <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
-                              <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </button>
+                          <AnimatePresence>
+                            {isSelected && (
+                              <motion.svg
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                                className="h-4 w-4"
+                                viewBox="0 0 14 14"
+                                fill="none"
+                              >
+                                <motion.path
+                                  d="M3 7l3 3 5-6"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  initial={{ pathLength: 0 }}
+                                  animate={{ pathLength: 1 }}
+                                  transition={{ duration: 0.2 }}
+                                />
+                              </motion.svg>
+                            )}
+                          </AnimatePresence>
+                        </motion.button>
                       )}
                       <div className={cn(
-                        "transition-all duration-200",
-                        isSelected && "ring-2 ring-primary/50 rounded-xl"
+                        "transition-all duration-200 rounded-xl",
+                        isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]"
                       )}>
                         <ProductCard
                           product={product}
@@ -415,16 +440,28 @@ export function CatalogContent({
   onLoadMore,
   onResetFilters,
   selectionMode,
+  onSelectedCountChange,
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
 
-  // Shared selection state for grid/table modes (list has its own)
+  // Shared selection state across all view modes
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
 
-  // Clear selection when leaving selection mode or products change
+  // Clear selection when leaving selection mode
   useEffect(() => { if (!selectionMode) setSelectedIds(new Set()); }, [selectionMode]);
-  useEffect(() => { setSelectedIds(new Set()); }, [paginatedProducts.length]);
+  // Remove stale IDs when products change (but preserve valid selections across view switches)
+  useEffect(() => {
+    setSelectedIds(prev => {
+      if (prev.size === 0) return prev;
+      const validIds = new Set(paginatedProducts.map(p => p.id));
+      const filtered = new Set([...prev].filter(id => validIds.has(id)));
+      return filtered.size === prev.size ? prev : filtered;
+    });
+  }, [paginatedProducts]);
+
+  // Sync count to parent for toolbar badge
+  useEffect(() => { onSelectedCountChange?.(selectedIds.size); }, [selectedIds.size, onSelectedCountChange]);
 
   const toggleSelect = useCallback((id: string) => {
     setSelectedIds((prev) => {
@@ -452,6 +489,19 @@ export function CatalogContent({
   }, [selectedIds, onToggleCompare, isInCompare, clearSelection]);
 
   const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+
+  const navHook = useNavHook();
+  const handleBulkQuote = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    const selectedProducts = paginatedProducts.filter(p => ids.includes(p.id));
+    if (selectedProducts.length === 0) return;
+    const params = selectedProducts.map(p =>
+      `items[]=${encodeURIComponent(JSON.stringify({ product_id: p.id, product_name: p.name, product_sku: p.sku || '', product_price: p.price, product_image: p.images?.[0] || '', quantity: 1 }))}`
+    ).join('&');
+    navHook(`/orcamentos/novo?${params}`);
+    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para orçamento`);
+    clearSelection();
+  }, [selectedIds, paginatedProducts, navHook, clearSelection]);
 
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = paginatedProducts.find((p) => p.id === firstSelectedId);
@@ -514,6 +564,7 @@ export function CatalogContent({
             onBulkFavorite={handleBulkFavorite}
             onBulkCompare={handleBulkCompare}
             onBulkCollection={handleBulkCollection}
+            onBulkQuote={handleBulkQuote}
           />
         )}
 
@@ -563,6 +614,7 @@ export function CatalogContent({
             onBulkFavorite={handleBulkFavorite}
             onBulkCompare={handleBulkCompare}
             onBulkCollection={handleBulkCollection}
+            onBulkQuote={handleBulkQuote}
           />
         )}
 
@@ -614,6 +666,7 @@ export function CatalogContent({
           onBulkFavorite={handleBulkFavorite}
           onBulkCompare={handleBulkCompare}
           onBulkCollection={handleBulkCollection}
+          onBulkQuote={handleBulkQuote}
         />
       )}
 

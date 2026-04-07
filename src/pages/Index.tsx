@@ -69,6 +69,7 @@ export default function Index() {
               setGridColumns={catalog.setGridColumns}
               selectionMode={catalog.selectionMode}
               onToggleSelectionMode={catalog.toggleSelectionMode}
+              selectedCount={catalog.selectedCount}
             />
             </div>
 
@@ -105,6 +106,7 @@ export default function Index() {
               onLoadMore={catalog.loadMore}
               onResetFilters={catalog.resetFilters}
               selectionMode={catalog.selectionMode}
+              onSelectedCountChange={catalog.setSelectedCount}
             />
           </div>
         </div>

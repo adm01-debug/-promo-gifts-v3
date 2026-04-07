@@ -1,11 +1,19 @@
 /**
- * BulkActionBar — Barra flutuante para ações em lote no catálogo.
- * Aparece quando 1+ produtos estão selecionados no modo lista.
+ * BulkActionBar — Barra flutuante premium para ações em lote no catálogo.
+ * Aparece quando 1+ produtos estão selecionados em qualquer visualização.
+ * 
+ * 🎨 DESIGN 10/10:
+ * - Glass morphism com blur intenso
+ * - Spring animations com stagger nos botões
+ * - Ícones semânticos para cada ação
+ * - Separadores visuais entre grupos de ação
+ * - Responsivo: labels escondidos em mobile, apenas ícones
  */
 import { memo } from "react";
-import { Heart, GitCompare, FolderPlus, X, CheckSquare } from "lucide-react";
+import { Heart, GitCompare, FolderPlus, X, CheckSquare, ShoppingBag, FileText, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
@@ -17,6 +25,56 @@ interface BulkActionBarProps {
   onBulkFavorite: () => void;
   onBulkCompare: () => void;
   onBulkCollection: () => void;
+  onBulkCart?: () => void;
+  onBulkQuote?: () => void;
+}
+
+const actionVariants = {
+  hidden: { opacity: 0, scale: 0.8 },
+  visible: (i: number) => ({
+    opacity: 1,
+    scale: 1,
+    transition: { delay: i * 0.04, type: "spring", stiffness: 500, damping: 30 },
+  }),
+};
+
+function ActionButton({
+  icon: Icon,
+  label,
+  onClick,
+  disabled,
+  className,
+  index,
+}: {
+  icon: React.ElementType;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  className?: string;
+  index: number;
+}) {
+  return (
+    <motion.div custom={index} variants={actionVariants} initial="hidden" animate="visible">
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "gap-1.5 text-xs h-8 font-medium transition-all hover:scale-105 active:scale-95",
+              className
+            )}
+            onClick={onClick}
+            disabled={disabled}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{label}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs sm:hidden">{label}</TooltipContent>
+      </Tooltip>
+    </motion.div>
+  );
 }
 
 export const BulkActionBar = memo(function BulkActionBar({
@@ -27,57 +85,104 @@ export const BulkActionBar = memo(function BulkActionBar({
   onBulkFavorite,
   onBulkCompare,
   onBulkCollection,
+  onBulkCart,
+  onBulkQuote,
 }: BulkActionBarProps) {
   return (
     <AnimatePresence>
       {selectedCount > 0 && (
         <motion.div
-          initial={{ y: 80, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 80, opacity: 0 }}
+          initial={{ y: 80, opacity: 0, scale: 0.95 }}
+          animate={{ y: 0, opacity: 1, scale: 1 }}
+          exit={{ y: 80, opacity: 0, scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className={cn(
             "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
-            "flex items-center gap-3 px-4 py-2.5 rounded-2xl",
-            "bg-card/95 backdrop-blur-xl border border-primary/30 shadow-2xl shadow-primary/10"
+            "flex items-center gap-1.5 sm:gap-3 px-3 sm:px-5 py-2.5 rounded-2xl",
+            "bg-card/95 backdrop-blur-xl border border-primary/20",
+            "shadow-[0_8px_40px_-8px_hsl(var(--primary)/0.25),0_2px_12px_-2px_rgba(0,0,0,0.4)]"
           )}
         >
-          <div className="flex items-center gap-2 pr-3 border-r border-border">
-            <Badge variant="default" className="bg-primary text-primary-foreground text-xs font-bold px-2 py-0.5">
+          {/* Selection counter */}
+          <motion.div
+            className="flex items-center gap-2 pr-2.5 sm:pr-3 border-r border-border/50"
+            initial={{ opacity: 0, x: -10 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.1 }}
+          >
+            <Badge
+              variant="default"
+              className="bg-primary text-primary-foreground text-xs font-bold px-2.5 py-0.5 min-w-[1.75rem] justify-center tabular-nums"
+            >
               {selectedCount}
             </Badge>
-            <span className="text-sm text-muted-foreground whitespace-nowrap">
+            <span className="text-sm text-muted-foreground whitespace-nowrap hidden sm:inline">
               selecionado{selectedCount > 1 ? "s" : ""}
             </span>
-          </div>
+          </motion.div>
 
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onBulkFavorite}>
-              <Heart className="h-3.5 w-3.5" /> Favoritar
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-1.5 text-xs h-8"
+          {/* Primary actions — Cart & Quote */}
+          {(onBulkCart || onBulkQuote) && (
+            <div className="flex items-center gap-0.5 pr-2 sm:pr-2.5 border-r border-border/50">
+              {onBulkCart && (
+                <ActionButton
+                  icon={ShoppingBag}
+                  label="Carrinho"
+                  onClick={onBulkCart}
+                  index={0}
+                  className="text-cart hover:text-cart hover:bg-cart/10"
+                />
+              )}
+              {onBulkQuote && (
+                <ActionButton
+                  icon={FileText}
+                  label="Orçamento"
+                  onClick={onBulkQuote}
+                  index={1}
+                  className="text-primary hover:text-primary hover:bg-primary/10"
+                />
+              )}
+            </div>
+          )}
+
+          {/* Secondary actions */}
+          <div className="flex items-center gap-0.5">
+            <ActionButton icon={Heart} label="Favoritar" onClick={onBulkFavorite} index={2} />
+            <ActionButton
+              icon={GitCompare}
+              label="Comparar"
               onClick={onBulkCompare}
               disabled={selectedCount > 4}
-            >
-              <GitCompare className="h-3.5 w-3.5" /> Comparar
-            </Button>
-            <Button variant="ghost" size="sm" className="gap-1.5 text-xs h-8" onClick={onBulkCollection}>
-              <FolderPlus className="h-3.5 w-3.5" /> Coleção
-            </Button>
+              index={3}
+            />
+            <ActionButton icon={FolderPlus} label="Coleção" onClick={onBulkCollection} index={4} />
           </div>
 
-          <div className="flex items-center gap-1 pl-2 border-l border-border">
+          {/* Controls */}
+          <div className="flex items-center gap-0.5 pl-2 sm:pl-2.5 border-l border-border/50">
             {selectedCount < totalCount && (
-              <Button variant="ghost" size="sm" className="gap-1 text-xs h-8 text-muted-foreground" onClick={onSelectAll}>
-                <CheckSquare className="h-3.5 w-3.5" /> Todos
-              </Button>
+              <motion.div custom={5} variants={actionVariants} initial="hidden" animate="visible">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-xs h-8 text-muted-foreground hover:text-foreground"
+                  onClick={onSelectAll}
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Todos</span>
+                </Button>
+              </motion.div>
             )}
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground" onClick={onClearSelection}>
-              <X className="h-3.5 w-3.5" />
-            </Button>
+            <motion.div custom={6} variants={actionVariants} initial="hidden" animate="visible">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={onClearSelection}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </motion.div>
           </div>
         </motion.div>
       )}
