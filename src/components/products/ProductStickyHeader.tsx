@@ -87,6 +87,7 @@ export function ProductStickyHeader({
                 productPrice={productPrice}
                 minQuantity={minQuantity}
                 variant="button"
+                buttonSize="sm"
                 labelOverride="Carrinho"
                 iconOverride="cart"
                 className="h-9 rounded-full px-5 bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"

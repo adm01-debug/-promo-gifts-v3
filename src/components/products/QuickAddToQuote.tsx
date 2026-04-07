@@ -19,10 +19,11 @@ interface QuickAddToQuoteProps {
   variant?: "icon" | "button" | "badge";
   labelOverride?: string;
   iconOverride?: "cart" | "plus";
+  buttonSize?: "default" | "sm" | "lg" | "xl" | "icon";
 }
 
-export function QuickAddToQuote({ 
-  productId, 
+export function QuickAddToQuote({
+  productId,
   productName,
   productSku,
   productImageUrl,
@@ -32,6 +33,7 @@ export function QuickAddToQuote({
   variant = "button",
   labelOverride,
   iconOverride,
+  buttonSize,
 }: QuickAddToQuoteProps) {
   const [quantity, setQuantity] = useState(minQuantity);
   const [isOpen, setIsOpen] = useState(false);
@@ -48,7 +50,7 @@ export function QuickAddToQuote({
       product_price: productPrice,
       quantity,
     });
-    
+
     setIsAdded(true);
     setTimeout(() => {
       setIsAdded(false);
@@ -82,7 +84,7 @@ export function QuickAddToQuote({
               "border-primary/50 bg-primary/10 hover:bg-primary/20",
               "text-primary hover:text-primary/80",
               "transition-all duration-200 hover:scale-105 hover:border-primary",
-              className
+              className,
             )}
             onClick={(e) => e.stopPropagation()}
           >
@@ -92,11 +94,12 @@ export function QuickAddToQuote({
         ) : variant === "icon" ? (
           <Button
             variant="secondary"
-            size="icon" aria-label="ShoppingCart"
+            size="icon"
+            aria-label="ShoppingCart"
             className={cn(
               "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
               "hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-200",
-              className
+              className,
             )}
             onClick={(e) => e.stopPropagation()}
           >
@@ -104,7 +107,7 @@ export function QuickAddToQuote({
           </Button>
         ) : (
           <Button
-            size="lg"
+            size={buttonSize}
             className={cn("w-full gap-2 font-display !text-[0.875rem]", className)}
             onClick={(e) => e.stopPropagation()}
           >
@@ -113,34 +116,28 @@ export function QuickAddToQuote({
           </Button>
         )}
       </PopoverTrigger>
+
       <PopoverContent className="w-72 p-4 relative" align="end" onClick={(e) => e.stopPropagation()}>
-        {/* Close button */}
-        <button aria-label="Fechar"
+        <button
+          aria-label="Fechar"
           className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
           onClick={() => setIsOpen(false)}
         >
           <X className="h-3.5 w-3.5" />
         </button>
 
-        {/* Step 1: Pick company if no active cart */}
         {showCompanyPicker && !activeCart ? (
-          <CartCompanyPicker
-            onCreated={handleCompanyCreated}
-            onCancel={() => setIsOpen(false)}
-          />
+          <CartCompanyPicker onCreated={handleCompanyCreated} onCancel={() => setIsOpen(false)} />
         ) : (
-          /* Step 2: Add product to cart */
           <div className="space-y-4">
             <div>
               <h4 className="font-medium text-sm mb-1 pr-6">Adicionar ao carrinho</h4>
               <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
               {activeCart && (
-                <p className="text-[10px] text-primary mt-1 font-medium truncate">
-                  → {activeCart.company_name}
-                </p>
+                <p className="text-[10px] text-primary mt-1 font-medium truncate">→ {activeCart.company_name}</p>
               )}
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm text-muted-foreground">Quantidade</label>
               <div className="flex items-center gap-2">
@@ -170,12 +167,8 @@ export function QuickAddToQuote({
               </div>
               <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
             </div>
-            
-            <Button
-              className="w-full gap-2"
-              onClick={handleAddToQuote}
-              disabled={isAdded || !activeCart}
-            >
+
+            <Button className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>
               {isAdded ? (
                 <>
                   <Check className="h-4 w-4" />

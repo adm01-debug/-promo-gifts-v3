@@ -85,6 +85,7 @@ export const MobileProductActions = React.forwardRef<HTMLDivElement, MobileProdu
           productPrice={productPrice}
           minQuantity={minQuantity}
           variant="button"
+          buttonSize="default"
           labelOverride="Carrinho"
           iconOverride="cart"
           className="flex-1 h-10 rounded-full bg-primary hover:bg-primary/90 text-primary-foreground font-medium text-sm"
