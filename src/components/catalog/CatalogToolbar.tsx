@@ -107,7 +107,7 @@ export function CatalogToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Selecionar toggle with animated badge */}
+        {/* Selecionar / Cancelar toggle */}
         <Button
           variant={selectionMode ? "default" : "outline"}
           size="sm"
@@ -119,18 +119,8 @@ export function CatalogToolbar({
           )}
           onClick={onToggleSelectionMode}
         >
-          {selectionMode ? (
-            <motion.div
-              initial={{ rotate: 0 }}
-              animate={{ rotate: [0, -10, 10, 0] }}
-              transition={{ duration: 0.3 }}
-            >
-              <CheckSquare className="h-3.5 w-3.5" />
-            </motion.div>
-          ) : (
-            <CheckSquare className="h-3.5 w-3.5" />
-          )}
-          <span className="hidden sm:inline text-xs">Selecionar</span>
+          <CheckSquare className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
 
           {/* Animated counter badge */}
           <AnimatePresence>
@@ -151,28 +141,6 @@ export function CatalogToolbar({
             )}
           </AnimatePresence>
         </Button>
-
-        {/* Cancel selection — visible when selection mode is active */}
-        <AnimatePresence>
-          {selectionMode && (
-            <motion.div
-              initial={{ width: 0, opacity: 0 }}
-              animate={{ width: "auto", opacity: 1 }}
-              exit={{ width: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
-                onClick={onToggleSelectionMode}
-              >
-                <X className="h-3.5 w-3.5" />
-              </Button>
-            </motion.div>
-          )}
-        </AnimatePresence>
 
         <div className="hidden sm:block">
           <LayoutPopover
