@@ -147,6 +147,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(session?.user ?? null);
         
         if (session?.user) {
+          // Show greeting on login
+          if (event === 'SIGNED_IN') {
+            const displayName = session.user.user_metadata?.full_name
+              || session.user.user_metadata?.name
+              || session.user.email?.split('@')[0]
+              || 'Usuário';
+            const firstName = displayName.split(' ')[0];
+            toast.success(`${getGreeting()}, ${firstName}! 👋`, {
+              description: 'Bem-vindo de volta à plataforma.',
+              duration: 4000,
+            });
+          }
+
           // Defer Supabase calls with setTimeout to avoid deadlocks
           setTimeout(() => {
             fetchUserData(session.user.id);
