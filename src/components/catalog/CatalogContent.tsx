@@ -461,8 +461,47 @@ export function CatalogContent({
   canAddToCompare,
   onLoadMore,
   onResetFilters,
+  selectionMode,
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
+
+  // Shared selection state for grid/table modes (list has its own)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+
+  // Clear selection when leaving selection mode or products change
+  useEffect(() => { if (!selectionMode) setSelectedIds(new Set()); }, [selectionMode]);
+  useEffect(() => { setSelectedIds(new Set()); }, [paginatedProducts.length]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => setSelectedIds(new Set(paginatedProducts.map((p) => p.id))), [paginatedProducts]);
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleBulkFavorite = useCallback(() => {
+    let added = 0;
+    selectedIds.forEach((id) => { if (!isFavorite(id)) { toggleFavorite(id); added++; } });
+    toast.success(`${added} produto${added > 1 ? "s" : ""} adicionado${added > 1 ? "s" : ""} aos favoritos`);
+    clearSelection();
+  }, [selectedIds, toggleFavorite, isFavorite, clearSelection]);
+
+  const handleBulkCompare = useCallback(() => {
+    const ids = Array.from(selectedIds).slice(0, 4);
+    ids.forEach((id) => { if (!isInCompare(id)) onToggleCompare(id); });
+    toast.success(`${ids.length} produto${ids.length > 1 ? "s" : ""} adicionado${ids.length > 1 ? "s" : ""} à comparação`);
+    clearSelection();
+  }, [selectedIds, onToggleCompare, isInCompare, clearSelection]);
+
+  const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+
+  const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
+  const firstSelectedProduct = paginatedProducts.find((p) => p.id === firstSelectedId);
 
   if (shouldShowCatalogSkeleton) {
     return (
