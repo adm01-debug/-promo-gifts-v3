@@ -29,12 +29,12 @@ describe("useAIRecommendations", () => {
     { id: "2", name: "Mochila", category: "Bags" },
   ];
 
-  it("returns recommendations on success", async () => {
-    const mockResult = {
-      recommendations: [{ productId: "1", score: 0.95, reason: "Ideal para tech" }],
-      insights: "Cliente tech prefere itens premium",
-    };
+  const mockResult = {
+    recommendations: [{ productId: "1", score: 0.95, reason: "Ideal para tech" }],
+    insights: "Cliente tech prefere itens premium",
+  };
 
+  it("returns recommendations on success", async () => {
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(mockResult),
@@ -52,7 +52,27 @@ describe("useAIRecommendations", () => {
     expect(result.current.error).toBeNull();
   });
 
-  it("handles 429 rate limit", async () => {
+  it("uses cache on repeated identical requests", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockResult),
+    });
+
+    const { result } = renderHook(() => useAIRecommendations());
+
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+
+    // fetch should only be called once (second call uses cache)
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(result.current.recommendations).toHaveLength(1);
+  });
+
+  it("handles 429 rate limit without retry", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 429, text: () => Promise.resolve("") });
 
     const { result } = renderHook(() => useAIRecommendations());
@@ -63,6 +83,8 @@ describe("useAIRecommendations", () => {
 
     expect(result.current.error).toContain("Limite");
     expect(result.current.data).toBeNull();
+    // Should not retry on 429
+    expect(global.fetch).toHaveBeenCalledTimes(1);
   });
 
   it("handles 402 credits exhausted", async () => {
@@ -97,7 +119,7 @@ describe("useAIRecommendations", () => {
     expect(result.current.error).toContain("produto");
   });
 
-  it("resets state correctly", async () => {
+  it("resets state and aborts correctly", async () => {
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, text: () => Promise.resolve("err") });
 
     const { result } = renderHook(() => useAIRecommendations());
@@ -112,5 +134,26 @@ describe("useAIRecommendations", () => {
 
     expect(result.current.error).toBeNull();
     expect(result.current.data).toBeNull();
+  });
+
+  it("clearCache forces new fetch", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockResult),
+    });
+
+    const { result } = renderHook(() => useAIRecommendations());
+
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+
+    act(() => result.current.clearCache());
+
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
   });
 });
