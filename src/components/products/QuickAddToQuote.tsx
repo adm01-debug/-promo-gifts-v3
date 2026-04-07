@@ -104,8 +104,8 @@ export function QuickAddToQuote({
           </Button>
         ) : (
           <Button
-            size="sm"
-            className={cn("gap-2 font-display", className)}
+            size="lg"
+            className={cn("w-full gap-2 font-display", className)}
             onClick={(e) => e.stopPropagation()}
           >
             {iconOverride === "cart" ? <ShoppingCart className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
