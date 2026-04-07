@@ -576,24 +576,52 @@ export function CatalogContent({
 
   // Grid mode — virtualized
   return (
-    <SparklineSalesProvider productIds={sparklineProductIds}>
-      <VirtualGrid
-        products={paginatedProducts}
-        columns={gridColumns}
-        navigate={navigate}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        isInCompare={isInCompare}
-        onToggleCompare={onToggleCompare}
-        canAddToCompare={canAddToCompare}
-        hasMore={hasMoreProducts}
-        isLoadingMore={isLoadingMore}
-        totalEstimate={totalEstimate}
-        filteredCount={filteredProducts.length}
-        loadMoreRef={loadMoreRef}
-        itemsPerPage={itemsPerPage}
-        onLoadMore={onLoadMore}
-      />
-    </SparklineSalesProvider>
+    <>
+      <SparklineSalesProvider productIds={sparklineProductIds}>
+        <VirtualGrid
+          products={paginatedProducts}
+          columns={gridColumns}
+          navigate={navigate}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+          isInCompare={isInCompare}
+          onToggleCompare={onToggleCompare}
+          canAddToCompare={canAddToCompare}
+          hasMore={hasMoreProducts}
+          isLoadingMore={isLoadingMore}
+          totalEstimate={totalEstimate}
+          filteredCount={filteredProducts.length}
+          loadMoreRef={loadMoreRef}
+          itemsPerPage={itemsPerPage}
+          onLoadMore={onLoadMore}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+        />
+      </SparklineSalesProvider>
+
+      {/* Bulk Action Bar for grid/table when selection mode is active */}
+      {selectionMode && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          totalCount={paginatedProducts.length}
+          onSelectAll={selectAll}
+          onClearSelection={clearSelection}
+          onBulkFavorite={handleBulkFavorite}
+          onBulkCompare={handleBulkCompare}
+          onBulkCollection={handleBulkCollection}
+        />
+      )}
+
+      {/* Collection modal for bulk add */}
+      {firstSelectedProduct && (
+        <AddToCollectionModal
+          open={collectionModalOpen}
+          onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
+          productId={firstSelectedId}
+          productName={`${selectedIds.size} produtos selecionados`}
+        />
+      )}
+    </>
   );
 }
