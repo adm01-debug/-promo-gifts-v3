@@ -45,6 +45,7 @@ interface CatalogContentProps {
   onLoadMore?: () => void;
   onResetFilters?: () => void;
   selectionMode?: boolean;
+  onSelectedCountChange?: (count: number) => void;
 }
 
 // ──────────────────────────────────────────────────────
