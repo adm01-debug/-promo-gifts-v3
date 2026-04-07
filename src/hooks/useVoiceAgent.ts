@@ -13,13 +13,10 @@ export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 const ERROR_RESET_DELAY_MS = 5000;
 const PROCESSING_ERROR_RESET_DELAY_MS = 3000;
 const SESSION_START_TIMEOUT_MS = 8000;
-const SCRIBE_CONNECT_OPTIONS = {
-  modelId: "scribe_v2_realtime",
-  microphone: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-  },
+const SCRIBE_MICROPHONE_OPTIONS = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
 } as const;
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
