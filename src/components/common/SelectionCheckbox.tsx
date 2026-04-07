@@ -28,75 +28,74 @@ const sizeMap: Record<CheckboxSize, { box: string; icon: string; viewBox: string
   lg: { box: "w-7 h-7", icon: "w-4 h-4", viewBox: "0 0 14 14" },
 };
 
-export function SelectionCheckbox({
-  checked,
-  onChange,
-  size = "md",
-  className,
-  animateEntry = false,
-}: SelectionCheckboxProps) {
-  const s = sizeMap[size];
+export const SelectionCheckbox = React.forwardRef<HTMLButtonElement, SelectionCheckboxProps>(
+  ({ checked, onChange, size = "md", className, animateEntry = false }, ref) => {
+    const s = sizeMap[size];
 
-  const Wrapper = animateEntry ? motion.button : "button";
-  const wrapperProps = animateEntry
-    ? {
-        initial: { scale: 0, opacity: 0 },
-        animate: { scale: 1, opacity: 1 },
-        exit: { scale: 0, opacity: 0 },
-        transition: { type: "spring", stiffness: 500, damping: 28 },
-        whileTap: { scale: 0.85 },
-      }
-    : {};
+    const Wrapper = animateEntry ? motion.button : "button";
+    const wrapperProps = animateEntry
+      ? {
+          initial: { scale: 0, opacity: 0 },
+          animate: { scale: 1, opacity: 1 },
+          exit: { scale: 0, opacity: 0 },
+          transition: { type: "spring", stiffness: 500, damping: 28 },
+          whileTap: { scale: 0.85 },
+        }
+      : {};
 
-  return (
-    <Wrapper
-      type="button"
-      className={cn(
-        "relative flex items-center justify-center rounded-full transition-all duration-200",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-        s.box,
-        checked
-          ? "bg-primary border-2 border-primary text-primary-foreground shadow-md shadow-primary/25"
-          : [
-              "border-2 border-foreground/20",
-              "bg-background/60 backdrop-blur-sm",
-              "hover:border-primary/50 hover:bg-primary/10",
-              "hover:shadow-sm",
-            ],
-        className
-      )}
-      onClick={(e: React.MouseEvent) => {
-        e.stopPropagation();
-        onChange();
-      }}
-      aria-label={checked ? "Desselecionar" : "Selecionar"}
-      {...wrapperProps}
-    >
-      <AnimatePresence>
-        {checked && (
-          <motion.svg
-            key="check"
-            className={s.icon}
-            viewBox={s.viewBox}
-            fill="none"
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            exit={{ scale: 0, opacity: 0 }}
-            transition={{ type: "spring", stiffness: 600, damping: 25 }}
-          >
-            <motion.path
-              d="M3 7l3 3 5-6"
-              stroke="currentColor"
-              strokeWidth="2.2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.25, delay: 0.05 }}
-            />
-          </motion.svg>
+    return (
+      <Wrapper
+        ref={ref}
+        type="button"
+        className={cn(
+          "relative flex items-center justify-center rounded-full transition-all duration-200",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+          s.box,
+          checked
+            ? "bg-primary border-2 border-primary text-primary-foreground shadow-md shadow-primary/25"
+            : [
+                "border-2 border-foreground/20",
+                "bg-background/60 backdrop-blur-sm",
+                "hover:border-primary/50 hover:bg-primary/10",
+                "hover:shadow-sm",
+              ],
+          className
         )}
-      </AnimatePresence>
-    </Wrapper>
-  );
-}
+        onClick={(e: React.MouseEvent) => {
+          e.stopPropagation();
+          onChange();
+        }}
+        aria-label={checked ? "Desselecionar" : "Selecionar"}
+        {...wrapperProps}
+      >
+        <AnimatePresence>
+          {checked && (
+            <motion.svg
+              key="check"
+              className={s.icon}
+              viewBox={s.viewBox}
+              fill="none"
+              initial={{ scale: 0, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0, opacity: 0 }}
+              transition={{ type: "spring", stiffness: 600, damping: 25 }}
+            >
+              <motion.path
+                d="M3 7l3 3 5-6"
+                stroke="currentColor"
+                strokeWidth="2.2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.25, delay: 0.05 }}
+              />
+            </motion.svg>
+          )}
+        </AnimatePresence>
+      </Wrapper>
+    );
+  }
+);
+
+SelectionCheckbox.displayName = "SelectionCheckbox";
