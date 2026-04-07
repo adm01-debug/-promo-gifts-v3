@@ -528,7 +528,7 @@ export default function ProductDetail() {
 
             {/* Kit Composition */}
             {product.isKit && product.kitItems && (
-              <KitComposition items={product.kitItems} onSelectItems={setSelectedKitItems} />
+              <KitComposition items={product.kitItems} />
             )}
 
 
