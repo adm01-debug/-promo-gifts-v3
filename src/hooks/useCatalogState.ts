@@ -56,7 +56,13 @@ export function useCatalogState() {
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortBy, setSortBy] = useState<SortOption>("name");
   const [selectionMode, setSelectionMode] = useState(false);
-  const toggleSelectionMode = useCallback(() => setSelectionMode(prev => !prev), []);
+  const [selectedCount, setSelectedCount] = useState(0);
+  const toggleSelectionMode = useCallback(() => {
+    setSelectionMode(prev => {
+      if (prev) setSelectedCount(0);
+      return !prev;
+    });
+  }, []);
 
   // Responsive clamp: force appropriate columns on small screens
   useEffect(() => {
