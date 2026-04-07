@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { sortByColorGroup } from "@/utils/colorSorting";
-import { getCloudflareEmbedUrl } from "@/utils/cloudflare-stream";
+import { getCloudflareEmbedUrl, getCloudflareThumbnailUrl } from "@/utils/cloudflare-stream";
 import { getCdnUrl } from "@/utils/image-utils";
 
 interface ProductVideo {
@@ -671,9 +671,13 @@ export function ProductGallery({
             <div className="aspect-video w-full bg-black">
               {(() => {
                 const v = productVideos[activeVideoIndex];
+                const posterUrl =
+                  getCloudflareThumbnailUrl(v?.url_stream, { time: "1s", height: 720 }) ??
+                  v?.url_thumbnail ??
+                  null;
                 const embedUrl = getCloudflareEmbedUrl(v?.url_stream, {
                   autoplay: true,
-                  poster: v?.url_thumbnail,
+                  poster: posterUrl,
                 });
 
                 if (!embedUrl) return null;
@@ -681,6 +685,7 @@ export function ProductGallery({
                 return (
                   <iframe
                     src={embedUrl}
+                    title={v?.title || `Vídeo do produto ${productName}`}
                     className="w-full h-full"
                     allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
                     allowFullScreen
@@ -703,14 +708,24 @@ export function ProductGallery({
                         : "opacity-60 hover:opacity-100"
                     )}
                   >
-                    {pv.url_thumbnail ? (
-                      
-<img src={pv.url_thumbnail} alt={pv.title || `Vídeo ${idx + 1}`} className="w-full h-full object-cover"  loading="lazy" />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center">
-                        <Play className="h-4 w-4 text-foreground" />
-                      </div>
-                    )}
+                    {(() => {
+                      const thumbnailUrl =
+                        getCloudflareThumbnailUrl(pv.url_stream, { time: "1s", height: 270 }) ??
+                        pv.url_thumbnail;
+
+                      return thumbnailUrl ? (
+                        <img
+                          src={thumbnailUrl}
+                          alt={pv.title || `Vídeo ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                      ) : (
+                        <div className="w-full h-full bg-muted flex items-center justify-center">
+                          <Play className="h-4 w-4 text-foreground" />
+                        </div>
+                      );
+                    })()}
                     <div className="absolute inset-0 flex items-center justify-center">
                       <Play className="h-5 w-5 text-primary-foreground drop-shadow-lg fill-white/50" />
                     </div>
