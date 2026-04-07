@@ -19,8 +19,13 @@ import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 describe("useAIRecommendations", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.stubEnv("VITE_SUPABASE_URL", "https://test.supabase.co");
     vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "test-key");
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   const mockClient = { name: "Acme Corp", industry: "Tecnologia" };
