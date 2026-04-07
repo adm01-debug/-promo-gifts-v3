@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
 import {
-  Package, Image as ImageIcon, Check, Palette, Settings2, Weight, Eye, Layers,
+  Package, Image as ImageIcon, Palette, Settings2, Weight, Eye, Layers,
   BoxSelect, ShoppingBag, ChevronUp, ChevronDown, Tag, FileText, Hash,
   Copy, CheckCheck, Maximize2, Box, Utensils, ArrowUpDown, ArrowLeftRight, MoveHorizontal,
 } from "lucide-react";
