@@ -40,7 +40,6 @@ export function QuickAddToQuote({
   const [quantity, setQuantity] = useState(minQuantity);
   const [isOpen, setIsOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
-  const [showCompanyPicker, setShowCompanyPicker] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ExternalVariantStock | null | undefined>(undefined);
   const { activeCart, addToActiveCart } = useSellerCartContext();
 
@@ -71,21 +70,19 @@ export function QuickAddToQuote({
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
-    if (open && !activeCart) {
-      setShowCompanyPicker(true);
-    }
     if (!open) {
-      setShowCompanyPicker(false);
       setSelectedVariant(undefined);
     }
   };
 
   const handleCompanyCreated = () => {
-    setShowCompanyPicker(false);
+    // Company created, activeCart will update via context
   };
 
   // Whether variant has been chosen (null = skipped, undefined = not yet chosen)
   const variantChosen = selectedVariant !== undefined;
+  // Need company picker if variant chosen but no active cart
+  const needsCompanyPicker = variantChosen && !activeCart;
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
