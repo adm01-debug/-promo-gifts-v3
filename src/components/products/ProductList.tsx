@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { ProductListItem } from "./ProductListItem";
 import { BulkActionBar } from "./BulkActionBar";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import type { Product } from "@/hooks/useProducts";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { toast } from "sonner";
@@ -49,42 +50,34 @@ function ProductListItemWrapper({
     return () => clearTimeout(timer);
   }, [index]);
 
-  return (
-    <div
-      className={cn(
-        "relative transition-all duration-300 ease-out group/row",
-        hasAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3",
-        isSelected && "ring-2 ring-primary/40 rounded-xl"
-      )}
-    >
-      {/* Checkbox — only visible when selection mode is active */}
-      {selectionMode && (
-        <button
-          className={cn(
-            "absolute -left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center",
-            "w-6 h-6 rounded-md border-2 transition-all duration-200",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            isSelected
-              ? "bg-primary border-primary text-primary-foreground scale-100 opacity-100"
-              : "border-muted-foreground/30 bg-card opacity-0 group-hover/row:opacity-100 hover:border-primary/50"
+    return (
+      <div
+        className={cn(
+          "relative transition-all duration-300 ease-out group/row",
+          hasAnimated ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-3",
+          isSelected && "ring-2 ring-primary/40 rounded-xl bg-primary/5"
+        )}
+      >
+        <div className={cn(
+          "flex items-center gap-2",
+          selectionMode && "pl-1"
+        )}>
+          {selectionMode && (
+            <div className="flex-shrink-0">
+              <SelectionCheckbox
+                checked={isSelected}
+                onChange={() => onToggleSelect(product.id)}
+                size="md"
+              />
+            </div>
           )}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleSelect(product.id);
-          }}
-          aria-label={isSelected ? "Desselecionar" : "Selecionar"}
-        >
-          {isSelected && (
-            <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
-              <path d="M11.5 3.5L5.5 10L2.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          )}
-        </button>
-      )}
 
-      <ProductListItem product={product} {...props} />
-    </div>
-  );
+          <div className="flex-1 min-w-0">
+            <ProductListItem product={product} {...props} />
+          </div>
+        </div>
+      </div>
+    );
 }
 
 export function ProductList({
