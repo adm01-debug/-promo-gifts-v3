@@ -1,8 +1,19 @@
 /**
  * print-area-grouping — Utilitário para agrupar áreas de personalização
  * por componente e localização, facilitando exibição hierárquica no simulador.
+ *
+ * Features:
+ * - Agrupamento hierárquico: Componente → Localização → Técnicas
+ * - Priorização de áreas primárias
+ * - Filtragem por técnica
+ * - Estatísticas e resumos
+ * - Detecção de área máxima por grupo
  */
 import type { PrintAreaWithTechniques, GroupedPrintArea } from "@/types/gravacao";
+
+// ============================================
+// AGRUPAMENTO PRINCIPAL
+// ============================================
 
 /**
  * Agrupa áreas de impressão/personalização por componente → localização → técnicas.
@@ -11,13 +22,13 @@ import type { PrintAreaWithTechniques, GroupedPrintArea } from "@/types/gravacao
 export function groupPrintAreasByComponent(
   areas: PrintAreaWithTechniques[]
 ): GroupedPrintArea[] {
+  if (!areas.length) return [];
+
   const componentMap = new Map<string, Map<string, GroupedPrintArea["locations"][number]["techniques"]>>();
 
   for (const area of areas) {
     const compName = area.component_name || "Produto";
-    const compCode = compName.toLowerCase().replace(/\s+/g, "-");
     const locName = area.location_name || area.area_name || "Padrão";
-    const locCode = locName.toLowerCase().replace(/\s+/g, "-");
 
     if (!componentMap.has(compName)) {
       componentMap.set(compName, new Map());
@@ -34,7 +45,7 @@ export function groupPrintAreasByComponent(
       techniques.push({
         id: area.area_id,
         areaName: area.area_name,
-        techniqueCode: tech.code,
+        techniqueCode: tech.code ?? tech.codigo,
         maxWidth: area.max_width ?? null,
         maxHeight: area.max_height ?? null,
         maxColors: tech.max_colors ?? null,
@@ -44,7 +55,7 @@ export function groupPrintAreasByComponent(
             : null,
         isCurved: area.is_curved,
         isPrimary: area.is_primary,
-        servCode: tech.code ?? null,
+        servCode: tech.code ?? tech.codigo ?? null,
       });
     }
   }
@@ -88,6 +99,10 @@ export function groupPrintAreasByComponent(
   return grouped;
 }
 
+// ============================================
+// FILTROS E CONSULTAS
+// ============================================
+
 /**
  * Retorna todas as técnicas únicas de todas as áreas agrupadas.
  */
@@ -123,6 +138,10 @@ export function filterGroupsByTechnique(
     .filter((g) => g.locations.length > 0);
 }
 
+// ============================================
+// CONTADORES E ESTATÍSTICAS
+// ============================================
+
 /**
  * Conta o total de áreas de impressão em todos os grupos.
  */
@@ -134,4 +153,105 @@ export function countTotalAreas(groups: GroupedPrintArea[]): number {
     }
   }
   return count;
+}
+
+/**
+ * Conta total de localizações únicas.
+ */
+export function countTotalLocations(groups: GroupedPrintArea[]): number {
+  let count = 0;
+  for (const g of groups) {
+    count += g.locations.length;
+  }
+  return count;
+}
+
+/**
+ * Conta total de componentes.
+ */
+export function countTotalComponents(groups: GroupedPrintArea[]): number {
+  return groups.length;
+}
+
+// ============================================
+// RESUMO E ANÁLISE
+// ============================================
+
+export interface PrintAreaSummary {
+  totalComponents: number;
+  totalLocations: number;
+  totalTechniqueSlots: number;
+  uniqueTechniques: string[];
+  hasPrimaryArea: boolean;
+  hasCurvedArea: boolean;
+  maxAreaCm2: number | null;
+  primaryLocations: string[];
+}
+
+/**
+ * Gera resumo estatístico completo das áreas agrupadas.
+ */
+export function summarizeGroups(groups: GroupedPrintArea[]): PrintAreaSummary {
+  const uniqueTechniques = getUniqueTechniques(groups);
+  let totalTechniqueSlots = 0;
+  let totalLocations = 0;
+  let hasPrimaryArea = false;
+  let hasCurvedArea = false;
+  let maxAreaCm2: number | null = null;
+  const primaryLocations: string[] = [];
+
+  for (const g of groups) {
+    totalLocations += g.locations.length;
+    for (const loc of g.locations) {
+      totalTechniqueSlots += loc.techniques.length;
+      for (const tech of loc.techniques) {
+        if (tech.isPrimary) {
+          hasPrimaryArea = true;
+          if (!primaryLocations.includes(loc.locationName)) {
+            primaryLocations.push(loc.locationName);
+          }
+        }
+        if (tech.isCurved) hasCurvedArea = true;
+        if (tech.areaCm2 !== null) {
+          maxAreaCm2 = maxAreaCm2 === null ? tech.areaCm2 : Math.max(maxAreaCm2, tech.areaCm2);
+        }
+      }
+    }
+  }
+
+  return {
+    totalComponents: groups.length,
+    totalLocations,
+    totalTechniqueSlots,
+    uniqueTechniques,
+    hasPrimaryArea,
+    hasCurvedArea,
+    maxAreaCm2,
+    primaryLocations,
+  };
+}
+
+/**
+ * Encontra a maior área disponível (em cm²) entre todos os grupos.
+ */
+export function findLargestArea(
+  groups: GroupedPrintArea[]
+): { componentName: string; locationName: string; areaCm2: number } | null {
+  let largest: { componentName: string; locationName: string; areaCm2: number } | null = null;
+
+  for (const g of groups) {
+    for (const loc of g.locations) {
+      for (const tech of loc.techniques) {
+        if (tech.areaCm2 !== null && (largest === null || tech.areaCm2 > largest.areaCm2)) {
+          largest = {
+            componentName: g.componentName,
+            locationName: loc.locationName,
+            areaCm2: tech.areaCm2,
+          };
+        }
+      }
+    }
+  }
+
+  return largest;
 }
