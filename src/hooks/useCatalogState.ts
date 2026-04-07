@@ -455,7 +455,7 @@ export function useCatalogState() {
     filters, setFilters,
     viewMode, setViewMode,
     gridColumns, setGridColumns,
-    selectionMode, toggleSelectionMode,
+    selectionMode, toggleSelectionMode, selectedCount, setSelectedCount,
     sortBy, setSortBy,
     filterSheetOpen, setFilterSheetOpen,
     searchQuery,
