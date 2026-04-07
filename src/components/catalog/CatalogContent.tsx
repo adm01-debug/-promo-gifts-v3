@@ -8,6 +8,7 @@ import { ProductListItem } from "@/components/products/ProductListItem";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
+import { BulkVariantWizard, type BulkVariantSelection } from "@/components/catalog/BulkVariantWizard";
 import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
@@ -448,22 +449,46 @@ export function CatalogContent({
   const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
 
   const [cartModalOpen, setCartModalOpen] = useState(false);
+  const [variantWizardOpen, setVariantWizardOpen] = useState(false);
+  const [wizardMode, setWizardMode] = useState<'cart' | 'quote'>('cart');
+  const [wizardSelections, setWizardSelections] = useState<BulkVariantSelection[]>([]);
 
   const navHook = useNavHook();
+
+  const handleWizardComplete = useCallback((selections: BulkVariantSelection[]) => {
+    if (wizardMode === 'cart') {
+      setWizardSelections(selections);
+      setCartModalOpen(true);
+    } else {
+      // Quote flow
+      if (selections.length === 0) return;
+      const params = selections.map(s =>
+        `items[]=${encodeURIComponent(JSON.stringify({
+          product_id: s.product.id,
+          product_name: s.product.name,
+          product_sku: s.product.sku || '',
+          product_price: s.product.price,
+          product_image: s.variant?.selected_thumbnail || s.product.images?.[0] || '',
+          quantity: 1,
+          color_name: s.variant?.color_name || null,
+          color_hex: s.variant?.color_hex || null,
+          size_code: s.variant?.size_code || null,
+        }))}`
+      ).join('&');
+      navHook(`/orcamentos/novo?${params}`);
+      toast.success(`${selections.length} produto${selections.length > 1 ? 's' : ''} enviado${selections.length > 1 ? 's' : ''} para orçamento`);
+      clearSelection();
+    }
+  }, [wizardMode, navHook, clearSelection]);
+
   const handleBulkQuote = useCallback(() => {
-    const ids = Array.from(selectedIds);
-    const selectedProducts = paginatedProducts.filter(p => ids.includes(p.id));
-    if (selectedProducts.length === 0) return;
-    const params = selectedProducts.map(p =>
-      `items[]=${encodeURIComponent(JSON.stringify({ product_id: p.id, product_name: p.name, product_sku: p.sku || '', product_price: p.price, product_image: p.images?.[0] || '', quantity: 1 }))}`
-    ).join('&');
-    navHook(`/orcamentos/novo?${params}`);
-    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para orçamento`);
-    clearSelection();
-  }, [selectedIds, paginatedProducts, navHook, clearSelection]);
+    setWizardMode('quote');
+    setVariantWizardOpen(true);
+  }, []);
 
   const handleBulkCart = useCallback(() => {
-    setCartModalOpen(true);
+    setWizardMode('cart');
+    setVariantWizardOpen(true);
   }, []);
 
   const bulkCartProducts = useMemo(() => {
@@ -549,7 +574,15 @@ export function CatalogContent({
           open={cartModalOpen}
           onOpenChange={setCartModalOpen}
           products={bulkCartProducts}
+          variantSelections={wizardSelections}
           onDone={clearSelection}
+        />
+        <BulkVariantWizard
+          open={variantWizardOpen}
+          onOpenChange={setVariantWizardOpen}
+          products={bulkCartProducts}
+          mode={wizardMode}
+          onComplete={handleWizardComplete}
         />
       </>
     );
@@ -606,7 +639,15 @@ export function CatalogContent({
           open={cartModalOpen}
           onOpenChange={setCartModalOpen}
           products={bulkCartProducts}
+          variantSelections={wizardSelections}
           onDone={clearSelection}
+        />
+        <BulkVariantWizard
+          open={variantWizardOpen}
+          onOpenChange={setVariantWizardOpen}
+          products={bulkCartProducts}
+          mode={wizardMode}
+          onComplete={handleWizardComplete}
         />
       </>
     );
@@ -666,7 +707,15 @@ export function CatalogContent({
         open={cartModalOpen}
         onOpenChange={setCartModalOpen}
         products={bulkCartProducts}
+        variantSelections={wizardSelections}
         onDone={clearSelection}
+      />
+      <BulkVariantWizard
+        open={variantWizardOpen}
+        onOpenChange={setVariantWizardOpen}
+        products={bulkCartProducts}
+        mode={wizardMode}
+        onComplete={handleWizardComplete}
       />
     </>
   );

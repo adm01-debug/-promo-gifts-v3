@@ -1,7 +1,6 @@
 /**
  * BulkAddToCartModal — Modal para adicionar múltiplos produtos ao carrinho.
- * Mostra o CartCompanyPicker se não houver carrinho ativo,
- * depois adiciona todos os produtos de uma vez.
+ * Aceita seleções de variantes do BulkVariantWizard.
  */
 import { useState, useCallback, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,41 +10,51 @@ import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 import { toast } from "sonner";
 import type { Product } from "@/hooks/useProducts";
+import type { BulkVariantSelection } from "./BulkVariantWizard";
 
 interface BulkAddToCartModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   products: Product[];
+  variantSelections?: BulkVariantSelection[];
   onDone?: () => void;
 }
 
-export function BulkAddToCartModal({ open, onOpenChange, products, onDone }: BulkAddToCartModalProps) {
+export function BulkAddToCartModal({ open, onOpenChange, products, variantSelections, onDone }: BulkAddToCartModalProps) {
   const { activeCart, addToActiveCart } = useSellerCartContext();
   const [adding, setAdding] = useState(false);
   const [done, setDone] = useState(false);
 
-  // Reset state when modal opens
   useEffect(() => {
     if (open) { setAdding(false); setDone(false); }
   }, [open]);
 
-  // Auto-add when cart becomes active (after company selection)
   const handleAdd = useCallback(async () => {
-    if (!activeCart || products.length === 0) return;
+    if (!activeCart) return;
+
+    const items = variantSelections && variantSelections.length > 0
+      ? variantSelections
+      : products.map(p => ({ product: p, variant: null }));
+
+    if (items.length === 0) return;
     setAdding(true);
     try {
-      for (const p of products) {
+      for (const item of items) {
+        const p = item.product;
+        const v = item.variant;
         addToActiveCart({
           product_id: p.id,
           product_name: p.name,
           product_sku: p.sku || undefined,
-          product_image_url: p.images?.[0] || undefined,
+          product_image_url: v?.selected_thumbnail || p.images?.[0] || undefined,
           product_price: p.price,
           quantity: 1,
+          color_name: v?.color_name || undefined,
+          color_hex: v?.color_hex || undefined,
         });
       }
       setDone(true);
-      toast.success(`${products.length} produto${products.length > 1 ? 's' : ''} adicionado${products.length > 1 ? 's' : ''} ao carrinho`, {
+      toast.success(`${items.length} produto${items.length > 1 ? 's' : ''} adicionado${items.length > 1 ? 's' : ''} ao carrinho`, {
         description: activeCart.company_name,
       });
       setTimeout(() => {
@@ -57,9 +66,10 @@ export function BulkAddToCartModal({ open, onOpenChange, products, onDone }: Bul
     } finally {
       setAdding(false);
     }
-  }, [activeCart, products, addToActiveCart, onOpenChange, onDone]);
+  }, [activeCart, products, variantSelections, addToActiveCart, onOpenChange, onDone]);
 
   const hasCart = !!activeCart;
+  const count = variantSelections?.length || products.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -67,7 +77,7 @@ export function BulkAddToCartModal({ open, onOpenChange, products, onDone }: Bul
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-base">
             <ShoppingBag className="h-4 w-4 text-cart" />
-            Adicionar {products.length} produto{products.length > 1 ? 's' : ''} ao carrinho
+            Adicionar {count} produto{count > 1 ? 's' : ''} ao carrinho
           </DialogTitle>
         </DialogHeader>
 
@@ -83,8 +93,27 @@ export function BulkAddToCartModal({ open, onOpenChange, products, onDone }: Bul
               <p className="text-sm font-medium">{activeCart.company_name}</p>
             </div>
 
+            {/* Show variant selections summary */}
+            {variantSelections && variantSelections.some(s => s.variant) && (
+              <div className="space-y-1 max-h-32 overflow-y-auto">
+                {variantSelections.map((s, i) => (
+                  <div key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="truncate flex-1">{s.product.name}</span>
+                    {s.variant ? (
+                      <span className="text-foreground font-medium shrink-0">
+                        {s.variant.color_name}
+                        {s.variant.size_code && ` — ${s.variant.size_code}`}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground/60 shrink-0">Sem cor</span>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
             <div className="text-sm text-muted-foreground">
-              {products.length} produto{products.length > 1 ? 's' : ''} será{products.length > 1 ? 'ão' : ''} adicionado{products.length > 1 ? 's' : ''} com quantidade 1.
+              {count} produto{count > 1 ? 's' : ''} será{count > 1 ? 'ão' : ''} adicionado{count > 1 ? 's' : ''} com quantidade 1.
             </div>
 
             <Button

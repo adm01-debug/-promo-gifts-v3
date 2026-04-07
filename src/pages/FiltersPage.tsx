@@ -10,6 +10,7 @@ import { ProductTableView } from "@/components/products/ProductTableView";
 import { ColumnSelector } from "@/components/products/ColumnSelector";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
+import { BulkVariantWizard, type BulkVariantSelection } from "@/components/catalog/BulkVariantWizard";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { Button } from "@/components/ui/button";
@@ -83,19 +84,45 @@ export default function FiltersPage() {
   }, [selectedIds, toggleCompare, isInCompare, clearSelection]);
 
   const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
-  const handleBulkCart = useCallback(() => setCartModalOpen(true), []);
+  
+  const [variantWizardOpen, setVariantWizardOpen] = useState(false);
+  const [wizardMode, setWizardMode] = useState<'cart' | 'quote'>('cart');
+  const [wizardSelections, setWizardSelections] = useState<BulkVariantSelection[]>([]);
+
+  const handleBulkCart = useCallback(() => {
+    setWizardMode('cart');
+    setVariantWizardOpen(true);
+  }, []);
 
   const handleBulkQuote = useCallback(() => {
-    const ids = Array.from(selectedIds);
-    const selectedProducts = state.filteredProducts.filter(p => ids.includes(p.id));
-    if (selectedProducts.length === 0) return;
-    const params = selectedProducts.map(p =>
-      `items[]=${encodeURIComponent(JSON.stringify({ product_id: p.id, product_name: p.name, product_sku: p.sku || '', product_price: p.price, product_image: p.images?.[0] || '', quantity: 1 }))}`
-    ).join('&');
-    navigate(`/orcamentos/novo?${params}`);
-    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para orçamento`);
-    clearSelection();
-  }, [selectedIds, state.filteredProducts, navigate, clearSelection]);
+    setWizardMode('quote');
+    setVariantWizardOpen(true);
+  }, []);
+
+  const handleWizardComplete = useCallback((selections: BulkVariantSelection[]) => {
+    if (wizardMode === 'cart') {
+      setWizardSelections(selections);
+      setCartModalOpen(true);
+    } else {
+      if (selections.length === 0) return;
+      const params = selections.map(s =>
+        `items[]=${encodeURIComponent(JSON.stringify({
+          product_id: s.product.id,
+          product_name: s.product.name,
+          product_sku: s.product.sku || '',
+          product_price: s.product.price,
+          product_image: s.variant?.selected_thumbnail || s.product.images?.[0] || '',
+          quantity: 1,
+          color_name: s.variant?.color_name || null,
+          color_hex: s.variant?.color_hex || null,
+          size_code: s.variant?.size_code || null,
+        }))}`
+      ).join('&');
+      navigate(`/orcamentos/novo?${params}`);
+      toast.success(`${selections.length} produto${selections.length > 1 ? 's' : ''} enviado${selections.length > 1 ? 's' : ''} para orçamento`);
+      clearSelection();
+    }
+  }, [wizardMode, navigate, clearSelection]);
 
   const bulkCartProducts = useMemo(() => {
     const ids = Array.from(selectedIds);
@@ -324,7 +351,15 @@ export default function FiltersPage() {
                     open={cartModalOpen}
                     onOpenChange={setCartModalOpen}
                     products={bulkCartProducts}
+                    variantSelections={wizardSelections}
                     onDone={clearSelection}
+                  />
+                  <BulkVariantWizard
+                    open={variantWizardOpen}
+                    onOpenChange={setVariantWizardOpen}
+                    products={bulkCartProducts}
+                    mode={wizardMode}
+                    onComplete={handleWizardComplete}
                   />
                 </>
               ) : (
