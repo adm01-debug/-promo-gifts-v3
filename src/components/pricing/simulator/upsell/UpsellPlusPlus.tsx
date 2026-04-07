@@ -53,8 +53,8 @@ const ICON_MAP: Record<UpsellType, typeof Sparkles> = {
 };
 
 const PRIORITY_STYLES: Record<UpsellPriority, string> = {
-  high: "border-l-amber-500 bg-amber-50/50 dark:bg-amber-950/20",
-  medium: "border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20",
+  high: "border-l-accent bg-accent/10",
+  medium: "border-l-primary bg-primary/5",
   low: "border-l-muted bg-muted/30",
 };
 
@@ -88,7 +88,7 @@ export function UpsellPlusPlus({
     <Card className={cn("border-dashed", className)}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-sm font-medium">
-          <Sparkles className="h-4 w-4 text-amber-500" />
+          <Sparkles className="h-4 w-4 text-accent" />
           Sugestões inteligentes
           <Badge variant="secondary" className="text-xs">
             {suggestions.length}

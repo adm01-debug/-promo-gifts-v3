@@ -4,46 +4,53 @@ import {
   getUniqueTechniques,
   filterGroupsByTechnique,
   countTotalAreas,
+  countTotalLocations,
+  countTotalComponents,
+  summarizeGroups,
+  findLargestArea,
 } from "@/lib/print-area-grouping";
 import type { PrintAreaWithTechniques } from "@/types/gravacao";
 
+// Helper com tipos corretos (TecnicaSimples: id, nome, codigo)
+const makeArea = (overrides: Partial<PrintAreaWithTechniques> = {}): PrintAreaWithTechniques => ({
+  area_id: "a1",
+  area_code: "FRENTE",
+  area_name: "Frente",
+  component_name: "Corpo",
+  location_name: "Frente",
+  max_width: 10,
+  max_height: 5,
+  unit: "cm",
+  shape: "rectangle",
+  is_curved: false,
+  is_primary: true,
+  display_order: 1,
+  techniques: [{ id: "t1", nome: "Serigrafia", codigo: "SER" }],
+  ...overrides,
+});
+
 const mockAreas: PrintAreaWithTechniques[] = [
-  {
+  makeArea(),
+  makeArea({
     area_id: "a1",
-    area_code: "FRENTE",
     area_name: "Frente",
-    component_name: "Corpo",
-    location_name: "Frente",
-    max_width: 10,
-    max_height: 5,
-    unit: "cm",
-    shape: "retangular",
-    is_curved: false,
-    is_primary: true,
-    display_order: 1,
     techniques: [
-      { id: "t1", code: "SER", name: "Serigrafia", max_colors: 4 },
-      { id: "t2", code: "BOR", name: "Bordado", max_colors: 8 },
+      { id: "t1", nome: "Serigrafia", codigo: "SER" },
+      { id: "t2", nome: "Bordado", codigo: "BOR" },
     ],
-  },
-  {
+  }),
+  makeArea({
     area_id: "a2",
     area_code: "COSTAS",
     area_name: "Costas",
-    component_name: "Corpo",
     location_name: "Costas",
     max_width: 20,
     max_height: 15,
-    unit: "cm",
-    shape: "retangular",
-    is_curved: false,
     is_primary: false,
     display_order: 2,
-    techniques: [
-      { id: "t1", code: "SER", name: "Serigrafia", max_colors: 4 },
-    ],
-  },
-  {
+    techniques: [{ id: "t1", nome: "Serigrafia", codigo: "SER" }],
+  }),
+  makeArea({
     area_id: "a3",
     area_code: "MANGA",
     area_name: "Manga",
@@ -51,16 +58,12 @@ const mockAreas: PrintAreaWithTechniques[] = [
     location_name: "Manga Esquerda",
     max_width: 5,
     max_height: 5,
-    unit: "cm",
-    shape: "circular",
     is_curved: true,
     is_primary: false,
     display_order: 3,
-    techniques: [
-      { id: "t2", code: "BOR", name: "Bordado", max_colors: 8 },
-    ],
-  },
-  {
+    techniques: [{ id: "t2", nome: "Bordado", codigo: "BOR" }],
+  }),
+  makeArea({
     area_id: "a4",
     area_code: "GERAL",
     area_name: "Geral",
@@ -68,15 +71,10 @@ const mockAreas: PrintAreaWithTechniques[] = [
     location_name: null,
     max_width: 8,
     max_height: 4,
-    unit: "cm",
-    shape: "retangular",
-    is_curved: false,
     is_primary: false,
     display_order: 4,
-    techniques: [
-      { id: "t3", code: "LAZ", name: "Laser", max_colors: 1 },
-    ],
-  },
+    techniques: [{ id: "t3", nome: "Laser", codigo: "LAZ" }],
+  }),
 ];
 
 describe("groupPrintAreasByComponent", () => {
@@ -91,7 +89,7 @@ describe("groupPrintAreasByComponent", () => {
 
   it("puts null component under 'Produto'", () => {
     const groups = groupPrintAreasByComponent(mockAreas);
-    expect(groups[0].componentName).toBe("Produto"); // first due to sort
+    expect(groups[0].componentName).toBe("Produto");
   });
 
   it("sorts primary areas first within locations", () => {
@@ -111,6 +109,26 @@ describe("groupPrintAreasByComponent", () => {
   it("handles empty array", () => {
     expect(groupPrintAreasByComponent([])).toEqual([]);
   });
+
+  it("deduplicates identical techniques in same area+location", () => {
+    const dupeAreas: PrintAreaWithTechniques[] = [
+      makeArea({
+        techniques: [
+          { id: "t1", nome: "Serigrafia", codigo: "SER" },
+          { id: "t1", nome: "Serigrafia", codigo: "SER" }, // duplicate
+        ],
+      }),
+    ];
+    const groups = groupPrintAreasByComponent(dupeAreas);
+    const frente = groups[0].locations[0];
+    expect(frente.techniques).toHaveLength(1);
+  });
+
+  it("handles null dimensions for areaCm2", () => {
+    const areas = [makeArea({ max_width: null as any, max_height: null as any })];
+    const result = groupPrintAreasByComponent(areas);
+    expect(result[0].locations[0].techniques[0].areaCm2).toBeNull();
+  });
 });
 
 describe("getUniqueTechniques", () => {
@@ -125,7 +143,7 @@ describe("filterGroupsByTechnique", () => {
   it("filters to only groups containing the technique", () => {
     const groups = groupPrintAreasByComponent(mockAreas);
     const filtered = filterGroupsByTechnique(groups, "BOR");
-    expect(filtered).toHaveLength(2); // Corpo (Frente has BOR) and Manga
+    expect(filtered).toHaveLength(2); // Corpo + Manga
   });
 
   it("returns empty for unknown technique", () => {
@@ -134,9 +152,52 @@ describe("filterGroupsByTechnique", () => {
   });
 });
 
-describe("countTotalAreas", () => {
-  it("counts all technique entries across all groups", () => {
+describe("counters", () => {
+  const groups = groupPrintAreasByComponent(mockAreas);
+
+  it("counts total areas", () => {
+    expect(countTotalAreas(groups)).toBeGreaterThan(0);
+  });
+
+  it("counts total locations", () => {
+    expect(countTotalLocations(groups)).toBe(4); // Frente, Costas, Manga Esquerda, Padrão(Geral)
+  });
+
+  it("counts total components", () => {
+    expect(countTotalComponents(groups)).toBe(3); // Produto, Corpo, Manga
+  });
+});
+
+describe("summarizeGroups", () => {
+  it("produces complete summary", () => {
     const groups = groupPrintAreasByComponent(mockAreas);
-    expect(countTotalAreas(groups)).toBe(5); // 2 (Frente) + 1 (Costas) + 1 (Manga) + 1 (Geral)
+    const summary = summarizeGroups(groups);
+
+    expect(summary.totalComponents).toBe(3);
+    expect(summary.hasPrimaryArea).toBe(true);
+    expect(summary.hasCurvedArea).toBe(true);
+    expect(summary.maxAreaCm2).toBe(300); // 20*15
+    expect(summary.primaryLocations).toContain("Frente");
+    expect(summary.uniqueTechniques).toContain("SER");
+  });
+
+  it("handles empty groups", () => {
+    const summary = summarizeGroups([]);
+    expect(summary.totalComponents).toBe(0);
+    expect(summary.maxAreaCm2).toBeNull();
+  });
+});
+
+describe("findLargestArea", () => {
+  it("finds the largest area", () => {
+    const groups = groupPrintAreasByComponent(mockAreas);
+    const largest = findLargestArea(groups);
+    expect(largest).not.toBeNull();
+    expect(largest!.areaCm2).toBe(300); // 20*15
+    expect(largest!.locationName).toBe("Costas");
+  });
+
+  it("returns null for empty groups", () => {
+    expect(findLargestArea([])).toBeNull();
   });
 });

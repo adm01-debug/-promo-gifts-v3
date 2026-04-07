@@ -42,20 +42,28 @@ export function groupPrintAreasByComponent(
     const techniques = locMap.get(locName)!;
 
     for (const tech of area.techniques) {
+      const code = tech.codigo;
+
+      // Deduplicação: evita técnica duplicada na mesma localização+área
+      const isDuplicate = techniques.some(
+        (t) => t.techniqueCode === code && t.id === area.area_id
+      );
+      if (isDuplicate) continue;
+
       techniques.push({
         id: area.area_id,
         areaName: area.area_name,
-        techniqueCode: tech.code ?? tech.codigo,
+        techniqueCode: code,
         maxWidth: area.max_width ?? null,
         maxHeight: area.max_height ?? null,
-        maxColors: tech.max_colors ?? null,
+        maxColors: null, // TecnicaSimples não carrega max_colors; preenchido downstream
         areaCm2:
           area.max_width && area.max_height
             ? Math.round(area.max_width * area.max_height * 100) / 100
             : null,
         isCurved: area.is_curved,
         isPrimary: area.is_primary,
-        servCode: tech.code ?? tech.codigo ?? null,
+        servCode: code,
       });
     }
   }
