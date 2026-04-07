@@ -671,34 +671,6 @@ export function ProductGallery({
               {(() => {
                 const v = productVideos[activeVideoIndex];
                 if (!v) return null;
-                const isDirectFile = v.url_original && !v.url_original.includes('youtube.com') && !v.url_original.includes('youtu.be');
-                
-                // 1) Direct file (mp4 etc) → native video
-                if (isDirectFile) {
-                  return (
-                    <video src={v.url_original!} controls autoPlay className="w-full h-full"
-                      poster={v.url_thumbnail || undefined} />
-                  );
-                }
-                // 2) YouTube → embed iframe
-                if (v.source_youtube_id) {
-                  return (
-                    <iframe
-                      src={`https://www.youtube.com/embed/${v.source_youtube_id}?autoplay=1&rel=0`}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  );
-                }
-                // 3) HLS stream → native video (Safari) / best-effort
-                if (v.url_hls) {
-                  return (
-                    <video src={v.url_hls} controls autoPlay className="w-full h-full"
-                      poster={v.url_thumbnail || undefined} />
-                  );
-                }
-                // 4) Cloudflare Stream iframe → last resort
                 if (v.url_stream) {
                   return (
                     <iframe
