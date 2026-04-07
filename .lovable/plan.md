@@ -1,19 +1,29 @@
-## Product Detail — Visual Refinement Plan
 
-### 1. Hierarquia Visual (guiar o olho: preço → CTA → variações)
-- **Preço**: Aumentar peso/tamanho do valor, adicionar glow sutil no hover do card de preço
-- **CTAs (Carrinho/Orçamento)**: Aumentar altura dos botões, dar mais destaque ao Carrinho com gradiente mais vivo
-- **Badges de estoque por cor**: Reduzir ruído — os pills de estoque (33.0k, 4.4k...) estão competindo com o preço. Torná-los mais discretos
-- **"Mais vendido" / "Fornecedor verificado"**: Reduzir tamanho, são info secundária
 
-### 2. Cards e Micro-interações
-- **Cards de variação (cores)**: Adicionar hover com scale + elevação de sombra mais pronunciada, borda com glow na cor do produto ao hover
-- **Card de Preço**: Borda sutil com gradiente no hover, transição mais suave
-- **Card de Descrição/Specs**: Separar visualmente com background diferenciado, bordas mais definidas
-- **Botões de ação (Preços, Gravação...)**: Hover com scale + ícone animado, bordas mais arredondadas e uniformes
-- **Botão WhatsApp**: Manter destaque azul mas refinar com gradiente e sombra
+## Corrigir vídeo bloqueado no player de produto
 
-### 3. Ajustes finos
-- Uniformizar border-radius em todos os cards (xl)
-- Melhorar spacing entre seções
-- Refinar a galeria: borda mais sutil, sombra mais elegante
+### Problema
+Ao clicar no botão "Vídeo" na galeria do produto, o dialog mostra "Este conteúdo está bloqueado". Isso ocorre porque o `url_stream` (Cloudflare Stream) usa um iframe que bloqueia a incorporação no domínio do preview/produção.
+
+### Solução
+Implementar uma estratégia de fallback resiliente no player de vídeo:
+
+1. **Priorizar `<video>` nativo sobre `<iframe>`** — Usar `url_hls` ou `url_original` com o elemento `<video>` HTML5, que não sofre restrições de embedding.
+
+2. **Cadeia de fallback**:
+   - 1º: `url_original` (arquivo direto) → `<video>` nativo
+   - 2º: `url_hls` (stream HLS) → `<video>` nativo  
+   - 3º: `source_youtube_id` → `<iframe>` YouTube embed
+   - 4º: `url_stream` (Cloudflare) → `<iframe>` (último recurso)
+
+3. **Detecção de erro no iframe** — Adicionar `onError` no iframe do Cloudflare Stream para automaticamente trocar para a URL alternativa caso o embed falhe.
+
+### Arquivo alterado
+**`src/components/products/ProductGallery.tsx`** (linhas 670-693)
+- Reorganizar a lógica condicional do player de vídeo para priorizar `<video>` nativo com `url_original` ou `url_hls`
+- Mover o iframe de `url_stream` para o final da cadeia de fallback
+- Manter o iframe do YouTube como está (funciona normalmente)
+
+### Resultado esperado
+O vídeo será reproduzido diretamente via player HTML5 nativo, sem depender do iframe do Cloudflare que bloqueia o embedding.
+
