@@ -161,4 +161,52 @@ describe("useAIRecommendations", () => {
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
   });
+
+  it("retries up to 3 times on 5xx errors", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: false,
+      status: 503,
+      text: () => Promise.resolve("Service Unavailable"),
+    });
+
+    const { result } = renderHook(() => useAIRecommendations());
+
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+
+    // 1 initial + 2 retries = 3 total
+    expect(global.fetch).toHaveBeenCalledTimes(3);
+    expect(result.current.error).toContain("503");
+  });
+
+  it("handles unauthenticated user", async () => {
+    // Override the supabase mock for this test
+    const supabaseModule = await import("@/integrations/supabase/client");
+    vi.spyOn(supabaseModule.supabase.auth, "getSession").mockResolvedValueOnce({
+      data: { session: null },
+      error: null,
+    } as any);
+
+    const { result } = renderHook(() => useAIRecommendations());
+
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+
+    expect(result.current.error).toContain("autenticado");
+  });
+
+  it("handles network failure gracefully", async () => {
+    global.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
+
+    const { result } = renderHook(() => useAIRecommendations());
+
+    await act(async () => {
+      await result.current.fetchRecommendations(mockClient, mockProducts);
+    });
+
+    expect(result.current.error).toBeTruthy();
+    expect(result.current.data).toBeNull();
+  });
 });
