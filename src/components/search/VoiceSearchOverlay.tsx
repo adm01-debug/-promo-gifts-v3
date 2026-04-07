@@ -171,9 +171,11 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     const prevVibratePhase = useRef(phase);
     useEffect(() => {
       if (phase !== prevVibratePhase.current) {
-        if (phase === "listening") vibrate(10);
-        else if (phase === "speaking") vibrate([10, 50, 10]);
-        else if (phase === "error") vibrate([30, 80, 30]);
+        if (phase === "listening") { vibrate(10); playStartSound(); }
+        else if (phase === "processing") { playProcessingSound(); }
+        else if (phase === "speaking") { vibrate([10, 50, 10]); playSpeakingSound(); }
+        else if (phase === "error") { vibrate([30, 80, 30]); playErrorSound(); }
+        else if (phase === "idle" && prevVibratePhase.current === "listening") { playStopSound(); }
         prevVibratePhase.current = phase;
       }
     }, [phase, vibrate]);
