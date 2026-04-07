@@ -40,6 +40,7 @@ function VoiceSearchOverlayConnected({ isOpen, onClose, onAction, onError }: Pro
       agentResponse={voice.agentResponse}
       error={voice.error}
       recentCommands={history}
+      currentAction={voice.currentAction}
       onClose={() => { onClose(); voice.reset(); }}
       onStartListening={voice.startListening}
       onStopListening={voice.stopListening}
