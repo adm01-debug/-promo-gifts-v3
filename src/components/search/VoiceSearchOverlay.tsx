@@ -50,7 +50,7 @@ const SUGGESTION_COMMANDS = [
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen, phase, partialTranscript, finalTranscript, agentResponse, error,
-    recentCommands, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
+    recentCommands, currentAction, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
   }, ref) {
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
