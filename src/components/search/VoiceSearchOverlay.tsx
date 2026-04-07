@@ -370,7 +370,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   )}
                 </AnimatePresence>
 
-                {/* Suggestions */}
+                {/* Suggestions / Recent Commands */}
                 {phase === "idle" && !showBooting && (
                   <motion.div
                     initial={{ y: 15, opacity: 0 }}
@@ -378,20 +378,41 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     transition={{ delay: 0.25 }}
                     className="space-y-3 text-center w-full"
                   >
-                    <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
-                      Experimente dizer
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {SUGGESTION_COMMANDS.map((cmd) => (
-                        <button
-                          key={cmd}
-                          onClick={() => onCommandSelect?.(cmd)}
-                          className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
-                        >
-                          <span className="group-hover:tracking-wide transition-all duration-200">"{cmd}"</span>
-                        </button>
-                      ))}
-                    </div>
+                    {recentCommands && recentCommands.length > 0 ? (
+                      <>
+                        <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
+                          Comandos recentes
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {recentCommands.slice(0, 4).map((entry) => (
+                            <button
+                              key={entry.timestamp}
+                              onClick={() => onCommandSelect?.(entry.transcript)}
+                              className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
+                            >
+                              <span className="group-hover:tracking-wide transition-all duration-200">"{entry.transcript}"</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
+                          Experimente dizer
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {SUGGESTION_COMMANDS.map((cmd) => (
+                            <button
+                              key={cmd}
+                              onClick={() => onCommandSelect?.(cmd)}
+                              className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
+                            >
+                              <span className="group-hover:tracking-wide transition-all duration-200">"{cmd}"</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 )}
 
