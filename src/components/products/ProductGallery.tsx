@@ -668,37 +668,49 @@ export function ProductGallery({
 
             {/* Video player */}
             <div className="aspect-video w-full bg-black">
-              {productVideos[activeVideoIndex]?.url_original ? (
-                <video
-                  src={productVideos[activeVideoIndex].url_original!}
-                  controls
-                  autoPlay
-                  className="w-full h-full"
-                  poster={productVideos[activeVideoIndex].url_thumbnail || undefined}
-                />
-              ) : productVideos[activeVideoIndex]?.url_hls ? (
-                <video
-                  src={productVideos[activeVideoIndex].url_hls!}
-                  controls
-                  autoPlay
-                  className="w-full h-full"
-                  poster={productVideos[activeVideoIndex].url_thumbnail || undefined}
-                />
-              ) : productVideos[activeVideoIndex]?.source_youtube_id ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${productVideos[activeVideoIndex].source_youtube_id}?autoplay=1&rel=0`}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : productVideos[activeVideoIndex]?.url_stream ? (
-                <iframe
-                  src={`${productVideos[activeVideoIndex].url_stream}?autoplay=true&poster=${encodeURIComponent(productVideos[activeVideoIndex].url_thumbnail || '')}`}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : null}
+              {(() => {
+                const v = productVideos[activeVideoIndex];
+                if (!v) return null;
+                const isDirectFile = v.url_original && !v.url_original.includes('youtube.com') && !v.url_original.includes('youtu.be');
+                
+                // 1) Direct file (mp4 etc) → native video
+                if (isDirectFile) {
+                  return (
+                    <video src={v.url_original!} controls autoPlay className="w-full h-full"
+                      poster={v.url_thumbnail || undefined} />
+                  );
+                }
+                // 2) YouTube → embed iframe
+                if (v.source_youtube_id) {
+                  return (
+                    <iframe
+                      src={`https://www.youtube.com/embed/${v.source_youtube_id}?autoplay=1&rel=0`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+                // 3) HLS stream → native video (Safari) / best-effort
+                if (v.url_hls) {
+                  return (
+                    <video src={v.url_hls} controls autoPlay className="w-full h-full"
+                      poster={v.url_thumbnail || undefined} />
+                  );
+                }
+                // 4) Cloudflare Stream iframe → last resort
+                if (v.url_stream) {
+                  return (
+                    <iframe
+                      src={`${v.url_stream}?autoplay=true&poster=${encodeURIComponent(v.url_thumbnail || '')}`}
+                      className="w-full h-full"
+                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  );
+                }
+                return null;
+              })()}
             </div>
 
             {/* Thumbnails de vídeos múltiplos */}
