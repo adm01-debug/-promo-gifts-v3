@@ -19,6 +19,7 @@ interface QuickAddToQuoteProps {
   variant?: "icon" | "button" | "badge";
   labelOverride?: string;
   iconOverride?: "cart" | "plus";
+  buttonSize?: "default" | "sm" | "lg" | "xl" | "icon";
 }
 
 export function QuickAddToQuote({ 
@@ -32,79 +33,12 @@ export function QuickAddToQuote({
   variant = "button",
   labelOverride,
   iconOverride,
+  buttonSize,
 }: QuickAddToQuoteProps) {
-  const [quantity, setQuantity] = useState(minQuantity);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isAdded, setIsAdded] = useState(false);
-  const [showCompanyPicker, setShowCompanyPicker] = useState(false);
-  const { activeCart, addToActiveCart } = useSellerCartContext();
-
-  const handleAddToQuote = () => {
-    addToActiveCart({
-      product_id: productId,
-      product_name: productName,
-      product_sku: productSku,
-      product_image_url: productImageUrl,
-      product_price: productPrice,
-      quantity,
-    });
-    
-    setIsAdded(true);
-    setTimeout(() => {
-      setIsAdded(false);
-      setIsOpen(false);
-      setQuantity(minQuantity);
-    }, 1200);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsOpen(open);
-    if (open && !activeCart) {
-      setShowCompanyPicker(true);
-    }
-    if (!open) {
-      setShowCompanyPicker(false);
-    }
-  };
-
-  const handleCompanyCreated = () => {
-    setShowCompanyPicker(false);
-  };
-
-  return (
-    <Popover open={isOpen} onOpenChange={handleOpenChange}>
-      <PopoverTrigger asChild>
-        {variant === "badge" ? (
-          <Badge
-            variant="outline"
-            className={cn(
-              "px-2.5 py-1 text-sm font-medium cursor-pointer",
-              "border-primary/50 bg-primary/10 hover:bg-primary/20",
-              "text-primary hover:text-primary/80",
-              "transition-all duration-200 hover:scale-105 hover:border-primary",
-              className
-            )}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
-            <span className="text-xs">Orçar</span>
-          </Badge>
-        ) : variant === "icon" ? (
-          <Button
-            variant="secondary"
-            size="icon" aria-label="ShoppingCart"
-            className={cn(
-              "h-10 w-10 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50",
-              "hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-200",
-              className
-            )}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <ShoppingCart className="h-4 w-4" />
-          </Button>
+...
         ) : (
           <Button
-            size="lg"
+            size={buttonSize}
             className={cn("w-full gap-2 font-display !text-[0.875rem]", className)}
             onClick={(e) => e.stopPropagation()}
           >
