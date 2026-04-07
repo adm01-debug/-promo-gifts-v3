@@ -8,6 +8,7 @@ import { Package, AlertTriangle, SkipForward } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useExternalVariantStock, type ExternalVariantStock } from '@/hooks/useExternalVariantStock';
+import { useEffect } from 'react';
 
 interface SingleVariantPickerProps {
   productId: string;
