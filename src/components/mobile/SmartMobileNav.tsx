@@ -5,7 +5,7 @@ import {
   Home, 
   Package, 
   FileText, 
-  Users, 
+   
   Plus,
   Heart,
   Wand2,
@@ -38,12 +38,12 @@ const mainNavItems: NavItem[] = [
   // FAB placeholder
   { icon: Plus, label: "Ação", href: "#fab", ariaLabel: "Ação rápida" },
   { icon: FileText, label: "Orçamentos", href: "/orcamentos", ariaLabel: "Gerenciar orçamentos" },
-  { icon: Users, label: "Clientes", href: "/clientes", ariaLabel: "Gerenciar clientes" },
+  { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", ariaLabel: "Gerenciar carrinhos" },
 ];
 
 const quickActions: NavItem[] = [
   { icon: FileText, label: "Novo Orçamento", href: "/orcamentos/novo" },
-  { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos" },
+  { icon: Heart, label: "Favoritos", href: "/favoritos" },
   { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
   { icon: Calculator, label: "Simulador", href: "/simulador" },
   { icon: Heart, label: "Favoritos", href: "/favoritos" },
