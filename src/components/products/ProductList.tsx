@@ -20,18 +20,26 @@ export interface ProductListProps {
   canAddToCompare?: boolean;
   highlightColors?: string[];
   activeColorFilter?: ActiveColorFilter | null;
+  /** External selection mode — when provided, internal state is bypassed */
+  selectionMode?: boolean;
+  /** External selected IDs — controlled externally */
+  externalSelectedIds?: Set<string>;
+  /** External toggle handler */
+  onToggleSelect?: (id: string) => void;
 }
 
 function ProductListItemWrapper({
   product,
   index,
   isSelected,
+  selectionMode,
   onToggleSelect,
   ...props
 }: {
   product: Product;
   index: number;
   isSelected: boolean;
+  selectionMode: boolean;
   onToggleSelect: (id: string) => void;
 } & Omit<React.ComponentProps<typeof ProductListItem>, 'product'>) {
   const [hasAnimated, setHasAnimated] = useState(false);
@@ -49,32 +57,32 @@ function ProductListItemWrapper({
         isSelected && "ring-2 ring-primary/40 rounded-xl"
       )}
     >
-      {/* Checkbox — appears on hover or when item is selected */}
-      <button
-        className={cn(
-          "absolute -left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center",
-          "w-6 h-6 rounded-md border-2 transition-all duration-200",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          isSelected
-            ? "bg-primary border-primary text-primary-foreground scale-100 opacity-100"
-            : "border-muted-foreground/30 bg-card opacity-0 group-hover/row:opacity-100 hover:border-primary/50"
-        )}
-        onClick={(e) => {
-          e.stopPropagation();
-          onToggleSelect(product.id);
-        }}
-        aria-label={isSelected ? "Desselecionar" : "Selecionar"}
-      >
-        {isSelected && (
-          <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
-            <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-          </svg>
-        )}
-      </button>
+      {/* Checkbox — only visible when selection mode is active */}
+      {selectionMode && (
+        <button
+          className={cn(
+            "absolute -left-1 top-1/2 -translate-y-1/2 z-10 flex items-center justify-center",
+            "w-6 h-6 rounded-md border-2 transition-all duration-200",
+            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            isSelected
+              ? "bg-primary border-primary text-primary-foreground scale-100 opacity-100"
+              : "border-muted-foreground/30 bg-card opacity-0 group-hover/row:opacity-100 hover:border-primary/50"
+          )}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggleSelect(product.id);
+          }}
+          aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+        >
+          {isSelected && (
+            <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
+              <path d="M11.5 3.5L5.5 10L2.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          )}
+        </button>
+      )}
 
-      <div className={cn(isSelected ? "ml-4" : "ml-0 group-hover/row:ml-4", "transition-all duration-200")}>
-        <ProductListItem product={product} {...props} />
-      </div>
+      <ProductListItem product={product} {...props} />
     </div>
   );
 }
@@ -92,31 +100,50 @@ export function ProductList({
   canAddToCompare = true,
   highlightColors,
   activeColorFilter,
+  selectionMode: externalSelectionMode,
+  externalSelectedIds,
+  onToggleSelect: externalToggleSelect,
 }: ProductListProps) {
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  // Determine if we're using external or internal selection state
+  const isExternallyControlled = externalSelectedIds !== undefined && externalToggleSelect !== undefined;
+
+  // Internal fallback state (only used when NOT externally controlled)
+  const [internalSelectedIds, setInternalSelectedIds] = useState<Set<string>>(new Set());
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
 
-  // Clear selection when products change significantly
+  // Resolve which state to use
+  const selectedIds = isExternallyControlled ? externalSelectedIds : internalSelectedIds;
+  const selectionMode = isExternallyControlled ? (externalSelectionMode ?? false) : internalSelectedIds.size > 0;
+
+  // Clear internal selection when products change significantly
   useEffect(() => {
-    setSelectedIds(new Set());
-  }, [products.length]);
+    if (!isExternallyControlled) setInternalSelectedIds(new Set());
+  }, [products.length, isExternallyControlled]);
 
   const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+    if (isExternallyControlled) {
+      externalToggleSelect!(id);
+    } else {
+      setInternalSelectedIds((prev) => {
+        const next = new Set(prev);
+        if (next.has(id)) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
+  }, [isExternallyControlled, externalToggleSelect]);
 
   const selectAll = useCallback(() => {
-    setSelectedIds(new Set(products.map((p) => p.id)));
-  }, [products]);
+    if (!isExternallyControlled) {
+      setInternalSelectedIds(new Set(products.map((p) => p.id)));
+    }
+  }, [products, isExternallyControlled]);
 
   const clearSelection = useCallback(() => {
-    setSelectedIds(new Set());
-  }, []);
+    if (!isExternallyControlled) {
+      setInternalSelectedIds(new Set());
+    }
+  }, [isExternallyControlled]);
 
   const handleBulkFavorite = useCallback(() => {
     if (!onToggleFavorite) return;
@@ -174,6 +201,7 @@ export function ProductList({
             product={product}
             index={index}
             isSelected={selectedIds.has(product.id)}
+            selectionMode={selectionMode}
             onToggleSelect={toggleSelect}
             onClick={onProductClick ? () => onProductClick(product.id) : undefined}
             onView={onViewProduct}
@@ -190,17 +218,20 @@ export function ProductList({
         ))}
       </div>
 
-      <BulkActionBar
-        selectedCount={selectedIds.size}
-        totalCount={products.length}
-        onSelectAll={selectAll}
-        onClearSelection={clearSelection}
-        onBulkFavorite={handleBulkFavorite}
-        onBulkCompare={handleBulkCompare}
-        onBulkCollection={handleBulkCollection}
-      />
+      {/* Only render internal BulkActionBar when NOT externally controlled */}
+      {!isExternallyControlled && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          totalCount={products.length}
+          onSelectAll={selectAll}
+          onClearSelection={clearSelection}
+          onBulkFavorite={handleBulkFavorite}
+          onBulkCompare={handleBulkCompare}
+          onBulkCollection={handleBulkCollection}
+        />
+      )}
 
-      {firstSelectedProduct && (
+      {!isExternallyControlled && firstSelectedProduct && (
         <AddToCollectionModal
           open={collectionModalOpen}
           onOpenChange={(open) => {
