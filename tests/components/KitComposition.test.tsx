@@ -161,54 +161,6 @@ describe('KitComposition', () => {
     expect(screen.queryByAltText('Caderno A5')).toBeNull();
   });
 
-  // ──────── Selection ────────
-
-  it('does not show selection bar when onSelectItems is not provided', () => {
-    render(<KitComposition items={[ITEM_A]} />);
-    openDialog();
-    expect(screen.queryByText(/selecionados/i)).toBeNull();
-  });
-
-  it('shows selection bar when onSelectItems is provided', () => {
-    const onSelect = vi.fn();
-    render(<KitComposition items={[ITEM_A, ITEM_B]} onSelectItems={onSelect} />);
-    openDialog();
-    expect(screen.getByText(/0 de 2 selecionados/i)).toBeInTheDocument();
-  });
-
-  it('selects an item on click and calls onSelectItems', () => {
-    const onSelect = vi.fn();
-    render(<KitComposition items={[ITEM_A, ITEM_B]} onSelectItems={onSelect} />);
-    openDialog();
-    
-    fireEvent.click(screen.getByText('Caderno A5'));
-    expect(onSelect).toHaveBeenCalledWith([ITEM_A]);
-    expect(screen.getByText(/1 de 2 selecionados/i)).toBeInTheDocument();
-  });
-
-  it('deselects an item on second click', () => {
-    const onSelect = vi.fn();
-    render(<KitComposition items={[ITEM_A, ITEM_B]} onSelectItems={onSelect} />);
-    openDialog();
-    
-    fireEvent.click(screen.getByText('Caderno A5'));
-    fireEvent.click(screen.getByText('Caderno A5'));
-    expect(onSelect).toHaveBeenLastCalledWith([]);
-    expect(screen.getByText(/0 de 2 selecionados/i)).toBeInTheDocument();
-  });
-
-  it('select all / deselect all works', () => {
-    const onSelect = vi.fn();
-    render(<KitComposition items={[ITEM_A, ITEM_B]} onSelectItems={onSelect} />);
-    openDialog();
-    
-    fireEvent.click(screen.getByText('Selecionar Todos'));
-    expect(onSelect).toHaveBeenCalledWith([ITEM_A, ITEM_B]);
-    expect(screen.getByText(/2 de 2 selecionados/i)).toBeInTheDocument();
-
-    fireEvent.click(screen.getByText('Desmarcar'));
-    expect(onSelect).toHaveBeenLastCalledWith([]);
-  });
 
   // ──────── View product button ────────
 

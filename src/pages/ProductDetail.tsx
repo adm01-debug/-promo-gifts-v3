@@ -48,8 +48,8 @@ import { sortVariationsByColor } from "@/utils/colorSorting";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 
 type ProductVariation = any;
-import type { KitComponent } from "@/types/product-catalog";
-type KitItem = KitComponent;
+
+
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
 import { GlassCard } from "@/components/common/GlassElements";
@@ -74,7 +74,7 @@ export default function ProductDetail() {
   const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   
-  const [selectedKitItems, setSelectedKitItems] = useState<KitItem[]>([]);
+  
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);

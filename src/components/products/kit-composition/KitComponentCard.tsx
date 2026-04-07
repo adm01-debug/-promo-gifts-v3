@@ -1,8 +1,8 @@
 import { useState, useCallback } from "react";
 import {
-  Package, Image as ImageIcon, Palette, Settings2, Weight, Eye, Layers,
-  BoxSelect, ShoppingBag, ChevronUp, ChevronDown, Tag, FileText, Hash,
-  Copy, CheckCheck, Maximize2, Box, Utensils, ArrowUpDown, ArrowLeftRight, MoveHorizontal,
+  Package, Palette, Settings2, Weight, Eye, Layers,
+  ChevronUp, ChevronDown, Tag, FileText, Hash,
+  Copy, CheckCheck, Box, Utensils, ArrowUpDown, ArrowLeftRight, MoveHorizontal,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
