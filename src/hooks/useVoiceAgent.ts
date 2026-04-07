@@ -179,8 +179,9 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   useEffect(() => { processTranscriptRef.current = processTranscript; }, [processTranscript]);
 
   const handleScribeError = useCallback((err: unknown) => {
+    const errMsg = err instanceof Error ? err.message : String(err);
     console.error("[Voice] Scribe runtime error:", err);
-    isStartingRef.current = false;
+    logger.warn("[Voice] Scribe error details:", errMsg || "(empty message - likely WebSocket handshake rejection)");
     clearResetPhaseTimer();
     clearSessionStartTimer();
     forceDisconnectScribe();
