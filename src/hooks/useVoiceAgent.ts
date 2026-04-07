@@ -13,13 +13,10 @@ export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 const ERROR_RESET_DELAY_MS = 5000;
 const PROCESSING_ERROR_RESET_DELAY_MS = 3000;
 const SESSION_START_TIMEOUT_MS = 8000;
-const SCRIBE_CONNECT_OPTIONS = {
-  modelId: "scribe_v2_realtime",
-  microphone: {
-    echoCancellation: true,
-    noiseSuppression: true,
-    autoGainControl: true,
-  },
+const SCRIBE_MICROPHONE_OPTIONS = {
+  echoCancellation: true,
+  noiseSuppression: true,
+  autoGainControl: true,
 } as const;
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
@@ -182,7 +179,9 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   useEffect(() => { processTranscriptRef.current = processTranscript; }, [processTranscript]);
 
   const handleScribeError = useCallback((err: unknown) => {
+    const errMsg = err instanceof Error ? err.message : String(err);
     console.error("[Voice] Scribe runtime error:", err);
+    logger.warn("[Voice] Scribe error details:", errMsg || "(empty message - likely WebSocket handshake rejection)");
     isStartingRef.current = false;
     clearResetPhaseTimer();
     clearSessionStartTimer();
@@ -233,7 +232,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
       await scribe.connect({
         token: data.token,
-        ...SCRIBE_CONNECT_OPTIONS,
+        microphone: SCRIBE_MICROPHONE_OPTIONS,
       });
 
       logger.log("[Voice] Scribe connection initiated");
