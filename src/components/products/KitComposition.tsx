@@ -97,7 +97,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
 
       {/* Dialog Modal */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[72vh] p-0 gap-0 overflow-hidden">
+        <DialogContent className="sm:max-w-[540px] max-h-[72vh] p-0 gap-0 overflow-hidden">
           <DialogHeader className="px-6 pt-6 pb-4 border-b border-border space-y-3">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
