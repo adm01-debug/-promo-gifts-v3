@@ -10,6 +10,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { getCdnUrl } from "@/utils/image-utils";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 
 interface ProductTableViewProps {
   products: Product[];
@@ -151,22 +152,11 @@ export const ProductTableView = memo(function ProductTableView({
                 {/* Selection checkbox */}
                 {selectionMode && (
                   <td className="px-2 py-1.5">
-                    <button
-                      className={cn(
-                        "flex items-center justify-center w-6 h-6 rounded-md border-2 transition-all",
-                        isSelected
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : "border-muted-foreground/30 bg-card hover:border-primary/50"
-                      )}
-                      onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
-                      aria-label={isSelected ? "Desselecionar" : "Selecionar"}
-                    >
-                      {isSelected && (
-                        <svg className="h-3.5 w-3.5" viewBox="0 0 14 14" fill="none">
-                          <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </button>
+                    <SelectionCheckbox
+                      checked={!!isSelected}
+                      onChange={() => onToggleSelect?.(product.id)}
+                      size="sm"
+                    />
                   </td>
                 )}
                 {/* Thumb */}
