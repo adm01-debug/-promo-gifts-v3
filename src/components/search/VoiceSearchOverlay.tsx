@@ -401,7 +401,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     transition={{ delay: 0.4 }}
                     className="text-[10px] text-white/20"
                   >
-                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> para fechar
+                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> fechar
+                    <span className="mx-1.5 text-white/10">·</span>
+                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">SPACE</kbd> ativar
                   </motion.p>
                   <button
                     onClick={onClose}
