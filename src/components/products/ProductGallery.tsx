@@ -500,7 +500,7 @@ export function ProductGallery({
               variant="secondary"
               size="icon" aria-label="Avançar"
               className={cn(
-                "absolute right-0 top-1/2 -translate-y-1/2 z-10 h-10 w-10 rounded-full",
+                "absolute right-0 top-[30%] -translate-y-1/2 z-10 h-10 w-10 rounded-full",
                 "bg-card/95 backdrop-blur-md shadow-xl border border-border/50",
                 "opacity-0 group-hover/variations:opacity-100",
                 "hover:bg-card hover:scale-110",
