@@ -96,7 +96,8 @@ export function useFiltersPageState() {
   const { productIds: colorFilteredProductIds, hasFilter: hasColorFilter, isLoading: isLoadingColorFilter } = useProductsByColor({ colorGroups: filters.colorGroups || [], colorVariations: filters.colorVariations || [], colorNuances: filters.colorNuances || [], colors: filters.colors });
 
   const [activePresetId, setActivePresetId] = useState<string | undefined>();
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list" | "table">("grid");
+  const [selectionMode, setSelectionMode] = useState(false);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
 
   // Responsive clamp: force appropriate columns on small screens
@@ -230,6 +231,7 @@ export function useFiltersPageState() {
     filters, setFilters, searchParams, realProducts, isLoadingProducts, isFullyLoaded,
     isLoadingMaterialFilter, isLoadingCategoryFilter, isLoadingColorFilter,
     activePresetId, viewMode, setViewMode, gridColumns, setGridColumns,
+    selectionMode, setSelectionMode,
     voiceOverlayOpen, setVoiceOverlayOpen, commandAction, setCommandAction,
     appliedFilters, setAppliedFilters, mobileFiltersOpen, setMobileFiltersOpen,
     isFiltering, sortBy, setSortBy, filteredProducts, activeFiltersCount,

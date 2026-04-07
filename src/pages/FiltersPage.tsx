@@ -1,17 +1,22 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, lazy, Suspense } from "react";
+import { useCallback, useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
+import { ProductTableView } from "@/components/products/ProductTableView";
 import { ColumnSelector } from "@/components/products/ColumnSelector";
+import { BulkActionBar } from "@/components/products/BulkActionBar";
+import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, ArrowUpDown, X } from "lucide-react";
+import { Filter, ArrowUpDown, X, CheckSquare } from "lucide-react";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
@@ -19,6 +24,8 @@ import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
+import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const LazyVoiceOverlay = lazy(() => import("@/components/search/VoiceSearchOverlayConnected"));
 
@@ -29,6 +36,76 @@ export default function FiltersPage() {
 
   const state = useFiltersPageState();
 
+  // ========== SELECTION MODE ==========
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [cartModalOpen, setCartModalOpen] = useState(false);
+  const [selectedCount, setSelectedCount] = useState(0);
+
+  // Clear selection when leaving selection mode
+  useEffect(() => { if (!state.selectionMode) setSelectedIds(new Set()); }, [state.selectionMode]);
+
+  // Remove stale IDs when products change
+  useEffect(() => {
+    setSelectedIds(prev => {
+      if (prev.size === 0) return prev;
+      const validIds = new Set(state.filteredProducts.map(p => p.id));
+      const filtered = new Set([...prev].filter(id => validIds.has(id)));
+      return filtered.size === prev.size ? prev : filtered;
+    });
+  }, [state.filteredProducts]);
+
+  useEffect(() => { setSelectedCount(selectedIds.size); }, [selectedIds.size]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => setSelectedIds(new Set(state.filteredProducts.map(p => p.id))), [state.filteredProducts]);
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleBulkFavorite = useCallback(() => {
+    let added = 0;
+    selectedIds.forEach(id => { if (!isFavorite(id)) { toggleFavorite(id); added++; } });
+    toast.success(`${added} produto${added > 1 ? "s" : ""} adicionado${added > 1 ? "s" : ""} aos favoritos`);
+    clearSelection();
+  }, [selectedIds, toggleFavorite, isFavorite, clearSelection]);
+
+  const handleBulkCompare = useCallback(() => {
+    const ids = Array.from(selectedIds).slice(0, 4);
+    ids.forEach(id => { if (!isInCompare(id)) toggleCompare(id); });
+    toast.success(`${ids.length} produto${ids.length > 1 ? "s" : ""} adicionado${ids.length > 1 ? "s" : ""} à comparação`);
+    clearSelection();
+  }, [selectedIds, toggleCompare, isInCompare, clearSelection]);
+
+  const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+  const handleBulkCart = useCallback(() => setCartModalOpen(true), []);
+
+  const handleBulkQuote = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    const selectedProducts = state.filteredProducts.filter(p => ids.includes(p.id));
+    if (selectedProducts.length === 0) return;
+    const params = selectedProducts.map(p =>
+      `items[]=${encodeURIComponent(JSON.stringify({ product_id: p.id, product_name: p.name, product_sku: p.sku || '', product_price: p.price, product_image: p.images?.[0] || '', quantity: 1 }))}`
+    ).join('&');
+    navigate(`/orcamentos/novo?${params}`);
+    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para orçamento`);
+    clearSelection();
+  }, [selectedIds, state.filteredProducts, navigate, clearSelection]);
+
+  const bulkCartProducts = useMemo(() => {
+    const ids = Array.from(selectedIds);
+    return state.filteredProducts.filter(p => ids.includes(p.id));
+  }, [selectedIds, state.filteredProducts]);
+
+  const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
+  const firstSelectedProduct = state.filteredProducts.find(p => p.id === firstSelectedId);
+
+  // ========== VOICE ==========
   const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
     if (!action.data) return;
 
@@ -63,7 +140,9 @@ export default function FiltersPage() {
     }
   }, [state, navigate]);
 
-  
+  const toggleSelectionMode = useCallback(() => {
+    state.setSelectionMode((prev: boolean) => !prev);
+  }, [state]);
 
   return (
     <MainLayout>
@@ -123,6 +202,53 @@ export default function FiltersPage() {
                   </SelectContent>
                 </Select>
                 <PresetsBar currentFilters={state.filters} onApplyPreset={(f, id) => state.handleApplyPreset(f, id)} activePresetId={state.activePresetId} />
+
+                {/* Selection toggle */}
+                <Button
+                  variant={state.selectionMode ? "default" : "outline"}
+                  size="sm"
+                  className={cn(
+                    "gap-1.5 h-8 transition-all relative",
+                    state.selectionMode
+                      ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                      : "hover:border-primary/50"
+                  )}
+                  onClick={toggleSelectionMode}
+                >
+                  {state.selectionMode ? (
+                    <motion.div initial={{ rotate: 0 }} animate={{ rotate: [0, -10, 10, 0] }} transition={{ duration: 0.3 }}>
+                      <CheckSquare className="h-3.5 w-3.5" />
+                    </motion.div>
+                  ) : (
+                    <CheckSquare className="h-3.5 w-3.5" />
+                  )}
+                  <span className="hidden sm:inline text-xs">Selecionar</span>
+                  <AnimatePresence>
+                    {state.selectionMode && selectedCount > 0 && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        className="absolute -top-2 -right-2"
+                      >
+                        <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
+                          {selectedCount}
+                        </Badge>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Button>
+                <AnimatePresence>
+                  {state.selectionMode && (
+                    <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: "auto", opacity: 1 }} exit={{ width: 0, opacity: 0 }} transition={{ duration: 0.2 }} className="overflow-hidden">
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10" onClick={toggleSelectionMode}>
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
                 <div className="hidden sm:block shrink-0">
                   <LayoutPopover viewMode={state.viewMode} setViewMode={state.setViewMode} gridColumns={state.gridColumns} setGridColumns={state.setGridColumns} />
                 </div>
@@ -163,13 +289,59 @@ export default function FiltersPage() {
                   </div>
                 </div>
               ) : state.filteredProducts.length > 0 ? (
-                state.viewMode === "grid" ? (
-                  <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} />
-                ) : (
-                  <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
-                    <ProductList products={state.filteredProducts} onProductClick={(productId) => navigate(`/produto/${productId}`)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} />
-                  </div>
-                )
+                <>
+                  {state.viewMode === "grid" ? (
+                    <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => state.selectionMode ? toggleSelect(product.id) : navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} />
+                  ) : state.viewMode === "list" ? (
+                    <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
+                      <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? toggleSelect(productId) : navigate(`/produto/${productId}`)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} />
+                    </div>
+                  ) : (
+                    <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
+                      <ProductTableView
+                        products={state.filteredProducts}
+                        onProductClick={(productId) => state.selectionMode ? toggleSelect(productId) : navigate(`/produto/${productId}`)}
+                        isFavorite={isFavorite}
+                        onToggleFavorite={toggleFavorite}
+                        isInCompare={isInCompare}
+                        onToggleCompare={toggleCompare}
+                        selectionMode={state.selectionMode}
+                        selectedIds={selectedIds}
+                        onToggleSelect={toggleSelect}
+                      />
+                    </div>
+                  )}
+
+                  {/* Bulk Action Bar */}
+                  {state.selectionMode && (
+                    <BulkActionBar
+                      selectedCount={selectedIds.size}
+                      totalCount={state.filteredProducts.length}
+                      onSelectAll={selectAll}
+                      onClearSelection={clearSelection}
+                      onBulkFavorite={handleBulkFavorite}
+                      onBulkCompare={handleBulkCompare}
+                      onBulkCollection={handleBulkCollection}
+                      onBulkQuote={handleBulkQuote}
+                      onBulkCart={handleBulkCart}
+                    />
+                  )}
+
+                  {firstSelectedProduct && (
+                    <AddToCollectionModal
+                      open={collectionModalOpen}
+                      onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
+                      productId={firstSelectedId}
+                      productName={`${selectedIds.size} produtos selecionados`}
+                    />
+                  )}
+                  <BulkAddToCartModal
+                    open={cartModalOpen}
+                    onOpenChange={setCartModalOpen}
+                    products={bulkCartProducts}
+                    onDone={clearSelection}
+                  />
+                </>
               ) : (
                 <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
                   <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
