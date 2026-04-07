@@ -33,6 +33,14 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
 
   const fmt = (qty: number) => (qty >= 1000 ? `${(qty / 1000).toFixed(1)}k` : qty.toString());
 
+  // Auto-skip when no variants
+  useEffect(() => {
+    if (!isLoading && !sortedVariants.length) {
+      onSelect(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, sortedVariants.length]);
+
   if (isLoading) {
     return (
       <div className={cn('space-y-2', className)}>
@@ -45,14 +53,6 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
       </div>
     );
   }
-
-  // Auto-skip when no variants
-  useEffect(() => {
-    if (!isLoading && !sortedVariants.length) {
-      onSelect(null);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoading, sortedVariants.length]);
 
   if (!sortedVariants.length) return null;
 
