@@ -4,6 +4,13 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, MicOff } from "lucide-react";
 import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
+import {
+  playStartSound,
+  playStopSound,
+  playErrorSound,
+  playProcessingSound,
+  playSpeakingSound,
+} from "@/hooks/voice/feedbackSounds";
 import { SpectrumWaveform } from "./voice/VoiceVisualEffects";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import { FloatingParticles } from "./voice/FloatingParticles";
