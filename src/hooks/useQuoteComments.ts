@@ -163,10 +163,11 @@ async function createCommentNotification(quoteId: string, authorId: string, cont
       title: parentId ? "Nova resposta em orçamento" : "Novo comentário em orçamento",
       message: preview,
       type: "quote_comment",
-      data: { quote_id: quoteId },
+      category: "quotes",
+      metadata: { quote_id: quoteId },
     }));
 
-    await supabase.from("notifications").insert(notifications);
+    await supabase.from("workspace_notifications").insert(notifications);
   } catch {
     // Non-blocking
   }
