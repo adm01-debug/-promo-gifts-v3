@@ -13,6 +13,7 @@ import { ProductListSkeleton } from "@/components/products/ProductListItemSkelet
 import { EmptyState } from "@/components/common/EmptyState";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import type { Product } from "@/hooks/useProducts";
 import type { ViewMode } from "@/hooks/useCatalogState";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
@@ -169,47 +170,14 @@ function VirtualGrid({
                   return (
                     <div key={product.id} className="relative">
                       {selectionMode && (
-                        <motion.button
-                          initial={{ scale: 0, opacity: 0 }}
-                          animate={{ scale: 1, opacity: 1 }}
-                          exit={{ scale: 0, opacity: 0 }}
-                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
-                          className={cn(
-                            "absolute top-2 left-2 z-20 flex items-center justify-center",
-                            "w-7 h-7 rounded-lg border-2 transition-colors duration-150 shadow-sm",
-                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                            isSelected
-                              ? "bg-primary border-primary text-primary-foreground"
-                              : "border-muted-foreground/40 bg-card/90 backdrop-blur-sm hover:border-primary/50 hover:bg-card"
-                          )}
-                          onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
-                          aria-label={isSelected ? "Desselecionar" : "Selecionar"}
-                          whileTap={{ scale: 0.85 }}
-                        >
-                          <AnimatePresence>
-                            {isSelected && (
-                              <motion.svg
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                exit={{ scale: 0 }}
-                                className="h-4 w-4"
-                                viewBox="0 0 14 14"
-                                fill="none"
-                              >
-                                <motion.path
-                                  d="M3 7l3 3 5-6"
-                                  stroke="currentColor"
-                                  strokeWidth="2"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  initial={{ pathLength: 0 }}
-                                  animate={{ pathLength: 1 }}
-                                  transition={{ duration: 0.2 }}
-                                />
-                              </motion.svg>
-                            )}
-                          </AnimatePresence>
-                        </motion.button>
+                        <div className="absolute top-2.5 left-2.5 z-20">
+                          <SelectionCheckbox
+                            checked={!!isSelected}
+                            onChange={() => onToggleSelect?.(product.id)}
+                            size="lg"
+                            animateEntry
+                          />
+                        </div>
                       )}
                       <div className={cn(
                         "transition-all duration-200 rounded-xl",
@@ -358,26 +326,14 @@ function VirtualList({
                   "flex items-center gap-2 rounded-xl transition-all duration-200",
                   isSelected && "ring-2 ring-primary/40 bg-primary/5"
                 )}>
-                  {/* Checkbox — visible when selection mode is active */}
                   {selectionMode && (
-                    <button
-                      className={cn(
-                        "flex-shrink-0 flex items-center justify-center ml-1",
-                        "w-7 h-7 rounded-lg border-2 transition-all duration-200",
-                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                        isSelected
-                          ? "bg-primary border-primary text-primary-foreground"
-                          : "border-muted-foreground/30 bg-card hover:border-primary/50"
-                      )}
-                      onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
-                      aria-label={isSelected ? "Desselecionar" : "Selecionar"}
-                    >
-                      {isSelected && (
-                        <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
-                          <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                        </svg>
-                      )}
-                    </button>
+                    <div className="flex-shrink-0 ml-1">
+                      <SelectionCheckbox
+                        checked={!!isSelected}
+                        onChange={() => onToggleSelect?.(product.id)}
+                        size="md"
+                      />
+                    </div>
                   )}
 
                   <div className="flex-1 min-w-0">
