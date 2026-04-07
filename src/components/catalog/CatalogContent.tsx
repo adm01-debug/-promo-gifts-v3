@@ -528,6 +528,7 @@ export function CatalogContent({
             onBulkFavorite={handleBulkFavorite}
             onBulkCompare={handleBulkCompare}
             onBulkCollection={handleBulkCollection}
+            onBulkQuote={handleBulkQuote}
           />
         )}
 
@@ -577,6 +578,7 @@ export function CatalogContent({
             onBulkFavorite={handleBulkFavorite}
             onBulkCompare={handleBulkCompare}
             onBulkCollection={handleBulkCollection}
+            onBulkQuote={handleBulkQuote}
           />
         )}
 
@@ -628,6 +630,7 @@ export function CatalogContent({
           onBulkFavorite={handleBulkFavorite}
           onBulkCompare={handleBulkCompare}
           onBulkCollection={handleBulkCollection}
+          onBulkQuote={handleBulkQuote}
         />
       )}
 
