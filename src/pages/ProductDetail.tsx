@@ -429,7 +429,7 @@ export default function ProductDetail() {
                       productPrice={product.price}
                       minQuantity={product.minQuantity || 1}
                       variant="button"
-                      className="flex-1 h-11 xl:h-12 rounded-xl bg-gradient-to-r from-success to-success/85 hover:from-success/90 hover:to-success/75 text-success-foreground font-bold text-sm shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
+                      className="flex-1 h-11 xl:h-12 rounded-xl bg-gradient-to-r from-success to-success/85 hover:from-success/90 hover:to-success/75 text-success-foreground font-display font-bold text-sm shadow-md shadow-success/20 hover:shadow-lg hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98]"
                       labelOverride="Carrinho"
                       iconOverride="cart"
                     />
