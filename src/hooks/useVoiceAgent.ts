@@ -5,6 +5,12 @@ import { playTtsAudio } from "./voice/playTtsAudio";
 import { processVoiceTranscript } from "./voice/processTranscript";
 import { withRetry, friendlyErrorMessage } from "./voice/retry";
 import { logVoiceCommand } from "./voice/logVoiceCommand";
+import {
+  startWebSpeech,
+  stopWebSpeech,
+  isWebSpeechSupported,
+  isWebSpeechActive,
+} from "./voice/webSpeechFallback";
 import type { VoiceAgentAction, VoiceAgentPhase, UseVoiceAgentOptions } from "./voice/types";
 import { logger } from '@/lib/logger';
 
@@ -13,11 +19,8 @@ export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 const ERROR_RESET_DELAY_MS = 5000;
 const PROCESSING_ERROR_RESET_DELAY_MS = 3000;
 const SESSION_START_TIMEOUT_MS = 8000;
-const SCRIBE_MICROPHONE_OPTIONS = {
-  echoCancellation: true,
-  noiseSuppression: true,
-  autoGainControl: true,
-} as const;
+const SCRIBE_CONNECT_MAX_RETRIES = 2;
+const SCRIBE_RETRY_DELAY_MS = 1000;
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
   // === Stable refs for callbacks to avoid dependency churn ===
@@ -36,6 +39,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   const stopSpeakingRef = useRef<(() => void) | null>(null);
   const isProcessingRef = useRef(false);
   const isStartingRef = useRef(false);
+  const usingFallbackRef = useRef(false);
   const resetPhaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const sessionStartTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const disconnectScribeRef = useRef<() => void>(() => undefined);
@@ -72,8 +76,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     }
   }, [clearSessionStartTimer]);
 
-  // === useScribe MUST be called before any callbacks that reference `scribe` ===
-  // This ensures the hook order is always consistent.
+  // === useScribe MUST be called unconditionally ===
   const handleScribeErrorRef = useRef<(err: unknown) => void>(() => undefined);
 
   const scribe = useScribe({
@@ -85,6 +88,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     onSessionStarted: () => {
       logger.log("[Voice] Scribe session started");
       isStartingRef.current = false;
+      usingFallbackRef.current = false;
       clearResetPhaseTimer();
       clearSessionStartTimer();
       setError(null);
@@ -115,7 +119,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
   disconnectScribeRef.current = () => scribe.disconnect();
 
-  // === Callbacks that depend on scribe ===
+  // === Callbacks ===
 
   const processTranscriptRef = useRef<(text: string) => void>(() => undefined);
 
@@ -175,9 +179,60 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     }
   }, [clearResetPhaseTimer, scheduleIdleReset]);
 
-  // Keep refs in sync
   useEffect(() => { processTranscriptRef.current = processTranscript; }, [processTranscript]);
 
+  // === Fallback: start Web Speech API ===
+  const startFallbackSTT = useCallback(() => {
+    if (!isWebSpeechSupported()) {
+      logger.warn("[Voice] Web Speech API not supported, no fallback available");
+      return false;
+    }
+
+    logger.log("[Voice] Starting Web Speech API fallback...");
+    usingFallbackRef.current = true;
+
+    return startWebSpeech({
+      onSessionStarted: () => {
+        logger.log("[Voice] Web Speech fallback session started");
+        isStartingRef.current = false;
+        clearResetPhaseTimer();
+        clearSessionStartTimer();
+        setError(null);
+        setPhase("listening");
+      },
+      onPartialTranscript: (text) => {
+        setPartialTranscript(text);
+      },
+      onCommittedTranscript: (text) => {
+        if (text.trim()) {
+          setPartialTranscript("");
+          processTranscriptRef.current(text.trim());
+        }
+      },
+      onError: (err) => {
+        console.error("[Voice] Web Speech fallback error:", err);
+        isStartingRef.current = false;
+        const message = friendlyErrorMessage(err);
+        setError(message);
+        setPhase("error");
+        onErrorRef.current?.(message);
+        scheduleIdleReset();
+      },
+      onDisconnect: () => {
+        logger.log("[Voice] Web Speech fallback disconnected");
+        isStartingRef.current = false;
+        usingFallbackRef.current = false;
+        setPartialTranscript("");
+        setPhase((current) => (
+          current === "processing" || current === "speaking" || current === "error"
+            ? current
+            : "idle"
+        ));
+      },
+    });
+  }, [clearResetPhaseTimer, clearSessionStartTimer, scheduleIdleReset]);
+
+  // === Handle Scribe errors — try fallback ===
   const handleScribeError = useCallback((err: unknown) => {
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error("[Voice] Scribe runtime error:", err);
@@ -188,14 +243,105 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     forceDisconnectScribe();
     setPartialTranscript("");
 
+    // Try Web Speech API fallback instead of showing error
+    logger.log("[Voice] Attempting Web Speech API fallback after Scribe failure...");
+    const fallbackStarted = startFallbackSTT();
+    if (fallbackStarted) {
+      isStartingRef.current = true;
+      setError(null);
+      setPhase("idle"); // Will transition to listening when fallback starts
+      return;
+    }
+
+    // No fallback available — show error
     const message = friendlyErrorMessage(err);
     setError(message);
     setPhase("error");
     onErrorRef.current?.(message);
     scheduleIdleReset();
-  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, scheduleIdleReset]);
+  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, scheduleIdleReset, startFallbackSTT]);
 
   useEffect(() => { handleScribeErrorRef.current = handleScribeError; }, [handleScribeError]);
+
+  // === Request microphone permission explicitly ===
+  const requestMicPermission = useCallback(async (): Promise<boolean> => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      // Stop all tracks immediately — we just needed permission
+      stream.getTracks().forEach(t => t.stop());
+      return true;
+    } catch (err) {
+      logger.warn("[Voice] Microphone permission denied:", err);
+      return false;
+    }
+  }, []);
+
+  // === Try Scribe connection with retry ===
+  const tryScribeConnect = useCallback(async (): Promise<boolean> => {
+    for (let attempt = 0; attempt <= SCRIBE_CONNECT_MAX_RETRIES; attempt++) {
+      try {
+        const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
+        if (tokenError || !data?.token) {
+          console.error("[Voice] Token error (attempt", attempt + 1, "):", tokenError);
+          if (attempt < SCRIBE_CONNECT_MAX_RETRIES) {
+            await new Promise(r => setTimeout(r, SCRIBE_RETRY_DELAY_MS));
+            continue;
+          }
+          return false;
+        }
+
+        logger.log(`[Voice] Token obtained (attempt ${attempt + 1}), connecting to Scribe...`);
+
+        // Set a session start timeout
+        const sessionPromise = new Promise<boolean>((resolve) => {
+          sessionStartTimerRef.current = setTimeout(() => {
+            logger.warn("[Voice] Scribe session start timeout (attempt", attempt + 1, ")");
+            resolve(false);
+          }, SESSION_START_TIMEOUT_MS);
+        });
+
+        // Attempt connection
+        await scribe.connect({
+          token: data.token,
+          microphone: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+        });
+
+        logger.log("[Voice] Scribe connection initiated, waiting for session...");
+
+        // Wait a short time to see if the connection actually succeeds
+        // (errors fire async via onError callback)
+        await new Promise(r => setTimeout(r, 2000));
+
+        // If we're still starting (no error fired), consider it success
+        if (isStartingRef.current) {
+          return true; // Session will start and set phase to "listening"
+        }
+
+        // If an error already fired, retry
+        if (attempt < SCRIBE_CONNECT_MAX_RETRIES) {
+          logger.log(`[Voice] Scribe failed on attempt ${attempt + 1}, retrying...`);
+          forceDisconnectScribe();
+          await new Promise(r => setTimeout(r, SCRIBE_RETRY_DELAY_MS));
+          continue;
+        }
+
+        return false;
+      } catch (err) {
+        logger.warn(`[Voice] Scribe connect attempt ${attempt + 1} threw:`, err);
+        forceDisconnectScribe();
+        if (attempt < SCRIBE_CONNECT_MAX_RETRIES) {
+          await new Promise(r => setTimeout(r, SCRIBE_RETRY_DELAY_MS));
+          continue;
+        }
+        return false;
+      }
+    }
+    return false;
+  }, [forceDisconnectScribe, scribe]);
 
   const startListening = useCallback(async () => {
     const scribeStatus = scribe.status ?? "disconnected";
@@ -204,11 +350,16 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     clearResetPhaseTimer();
     clearSessionStartTimer();
 
+    // Disconnect any existing connections
     if (scribeStatus !== "disconnected" || scribe.isConnected) {
       forceDisconnectScribe();
     }
+    if (isWebSpeechActive()) {
+      stopWebSpeech();
+    }
 
     isStartingRef.current = true;
+    usingFallbackRef.current = false;
     setError(null);
     setPartialTranscript("");
     setFinalTranscript("");
@@ -216,43 +367,72 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     setCurrentAction(null);
     setPhase("idle");
 
+    // 1. Request microphone permission first
+    const hasMic = await requestMicPermission();
+    if (!hasMic) {
+      isStartingRef.current = false;
+      const message = "Permissão do microfone negada. Habilite o microfone nas configurações do navegador.";
+      setError(message);
+      setPhase("error");
+      onErrorRef.current?.(message);
+      scheduleIdleReset();
+      return;
+    }
+
+    // 2. Try ElevenLabs Scribe first
     try {
       const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
       if (tokenError || !data?.token) {
-        console.error("[Voice] Token error:", tokenError);
-        throw new Error("Não foi possível obter token de transcrição");
+        throw new Error("Token error");
       }
 
       logger.log("[Voice] Token obtained, connecting to Scribe...");
 
       sessionStartTimerRef.current = setTimeout(() => {
         if (!isStartingRef.current) return;
+        // Timeout → try fallback
         handleScribeError(new Error("Scribe session start timeout"));
       }, SESSION_START_TIMEOUT_MS);
 
       await scribe.connect({
         token: data.token,
-        microphone: SCRIBE_MICROPHONE_OPTIONS,
+        microphone: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+        },
       });
 
       logger.log("[Voice] Scribe connection initiated");
+      // If Scribe fails, onError → handleScribeError → fallback kicks in automatically
     } catch (err) {
-      isStartingRef.current = false;
+      logger.warn("[Voice] Scribe connection failed, trying fallback...", err);
       clearSessionStartTimer();
-      console.error("[Voice] startListening error:", err);
-      const message = friendlyErrorMessage(err);
-      setError(message);
-      setPhase("error");
-      onErrorRef.current?.(message);
-      scheduleIdleReset();
+      forceDisconnectScribe();
+
+      // 3. Fallback to Web Speech API
+      const fallbackStarted = startFallbackSTT();
+      if (!fallbackStarted) {
+        isStartingRef.current = false;
+        const message = friendlyErrorMessage(err);
+        setError(message);
+        setPhase("error");
+        onErrorRef.current?.(message);
+        scheduleIdleReset();
+      }
     }
-  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, handleScribeError, scheduleIdleReset, scribe]);
+  }, [clearResetPhaseTimer, clearSessionStartTimer, forceDisconnectScribe, handleScribeError, requestMicPermission, scheduleIdleReset, scribe, startFallbackSTT]);
 
   const stopListening = useCallback(() => {
     isStartingRef.current = false;
     clearResetPhaseTimer();
     clearSessionStartTimer();
-    scribe.disconnect();
+
+    if (usingFallbackRef.current) {
+      stopWebSpeech();
+    } else {
+      scribe.disconnect();
+    }
 
     if (phase === "listening") {
       if (partialTranscript.trim()) {
@@ -274,9 +454,11 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
   const reset = useCallback(() => {
     isStartingRef.current = false;
+    usingFallbackRef.current = false;
     clearResetPhaseTimer();
     clearSessionStartTimer();
     scribe.disconnect();
+    stopWebSpeech();
     stopSpeakingRef.current?.();
     stopSpeakingRef.current = null;
     setPhase("idle");
@@ -296,6 +478,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
         disconnectScribeRef.current();
       } catch {
       }
+      stopWebSpeech();
       stopSpeakingRef.current?.();
       stopSpeakingRef.current = null;
     };
@@ -308,7 +491,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     agentResponse,
     error,
     currentAction,
-    isConnected: scribe.isConnected,
+    isConnected: scribe.isConnected || isWebSpeechActive(),
     startListening,
     stopListening,
     stopSpeaking,
