@@ -162,9 +162,48 @@ function VirtualGrid({
             return (
               <div key={virtualRow.key} data-index={virtualRow.index} ref={virtualizer.measureElement}
                 style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${virtualRow.start}px)`, display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, columnGap: `${gap}px`, paddingBottom: `${gap}px` }}>
-                {rowProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onClick={() => navigate(`/produto/${product.id}`)} isFavorited={isFavorite(product.id)} onToggleFavorite={toggleFavorite} isInCompare={isInCompare(product.id)} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare} hideCategoryBadges />
-                ))}
+                {rowProducts.map((product) => {
+                  const isSelected = selectionMode && selectedIds?.has(product.id);
+                  return (
+                    <div key={product.id} className="relative">
+                      {selectionMode && (
+                        <button
+                          className={cn(
+                            "absolute top-2 left-2 z-20 flex items-center justify-center",
+                            "w-7 h-7 rounded-lg border-2 transition-all duration-200 shadow-sm",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            isSelected
+                              ? "bg-primary border-primary text-primary-foreground scale-100"
+                              : "border-muted-foreground/40 bg-card/90 backdrop-blur-sm hover:border-primary/50 hover:bg-card"
+                          )}
+                          onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
+                          aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+                        >
+                          {isSelected && (
+                            <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
+                              <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
+                      <div className={cn(
+                        "transition-all duration-200",
+                        isSelected && "ring-2 ring-primary/50 rounded-xl"
+                      )}>
+                        <ProductCard
+                          product={product}
+                          onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)}
+                          isFavorited={isFavorite(product.id)}
+                          onToggleFavorite={toggleFavorite}
+                          isInCompare={isInCompare(product.id)}
+                          onToggleCompare={onToggleCompare}
+                          canAddToCompare={canAddToCompare}
+                          hideCategoryBadges
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
