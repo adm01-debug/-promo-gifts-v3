@@ -574,7 +574,15 @@ export function CatalogContent({
           open={cartModalOpen}
           onOpenChange={setCartModalOpen}
           products={bulkCartProducts}
+          variantSelections={wizardSelections}
           onDone={clearSelection}
+        />
+        <BulkVariantWizard
+          open={variantWizardOpen}
+          onOpenChange={setVariantWizardOpen}
+          products={bulkCartProducts}
+          mode={wizardMode}
+          onComplete={handleWizardComplete}
         />
       </>
     );
@@ -631,7 +639,15 @@ export function CatalogContent({
           open={cartModalOpen}
           onOpenChange={setCartModalOpen}
           products={bulkCartProducts}
+          variantSelections={wizardSelections}
           onDone={clearSelection}
+        />
+        <BulkVariantWizard
+          open={variantWizardOpen}
+          onOpenChange={setVariantWizardOpen}
+          products={bulkCartProducts}
+          mode={wizardMode}
+          onComplete={handleWizardComplete}
         />
       </>
     );
@@ -691,7 +707,15 @@ export function CatalogContent({
         open={cartModalOpen}
         onOpenChange={setCartModalOpen}
         products={bulkCartProducts}
+        variantSelections={wizardSelections}
         onDone={clearSelection}
+      />
+      <BulkVariantWizard
+        open={variantWizardOpen}
+        onOpenChange={setVariantWizardOpen}
+        products={bulkCartProducts}
+        mode={wizardMode}
+        onComplete={handleWizardComplete}
       />
     </>
   );
