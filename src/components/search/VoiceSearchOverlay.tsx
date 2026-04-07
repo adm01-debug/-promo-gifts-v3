@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, MicOff } from "lucide-react";
-import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
+import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle } from "lucide-react";
+import type { VoiceAgentAction, VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import {
   playStartSound,
@@ -24,6 +24,7 @@ interface VoiceSearchOverlayProps {
   agentResponse: string;
   error?: string | null;
   recentCommands?: VoiceHistoryEntry[];
+  currentAction?: VoiceAgentAction | null;
   onClose: () => void;
   onStartListening: () => void;
   onStopListening: () => void;
@@ -45,11 +46,19 @@ const SUGGESTION_COMMANDS = [
   "Abre os orçamentos",
   "Qual o produto mais vendido?",
 ];
+const ACTION_META: Record<string, { icon: React.ElementType; label: string; color: string }> = {
+  search: { icon: Search, label: "Busca", color: "text-blue-400" },
+  filter: { icon: Filter, label: "Filtro", color: "text-purple-400" },
+  navigate: { icon: Navigation, label: "Navegação", color: "text-emerald-400" },
+  sort: { icon: ArrowUpDown, label: "Ordenação", color: "text-amber-400" },
+  clear: { icon: Trash2, label: "Limpar", color: "text-red-400" },
+  answer: { icon: HelpCircle, label: "Resposta", color: "text-cyan-400" },
+};
 
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen, phase, partialTranscript, finalTranscript, agentResponse, error,
-    recentCommands, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
+    recentCommands, currentAction, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
   }, ref) {
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -287,7 +296,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                     >
-                      <SpectrumWaveform colors={colors} isActive={isWaveformActive} />
+                      <SpectrumWaveform colors={colors} isActive={isWaveformActive} isSpeaking={phase === "speaking"} />
                     </motion.div>
                   )}
                 </AnimatePresence>
@@ -323,7 +332,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   )}
                 </AnimatePresence>
 
-                {/* Agent response */}
+                {/* Agent response with action badge */}
                 <AnimatePresence mode="wait">
                   {agentResponse && (phase === "speaking" || phase === "idle") && (
                     <motion.div
@@ -335,11 +344,29 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     >
                       <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
                         <div className="flex items-start gap-3">
-                          <div className="h-7 w-7 rounded-full bg-primary/20 flex items-center justify-center shrink-0 mt-0.5">
-                            <MessageCircle className="h-3.5 w-3.5 text-primary" />
-                          </div>
-                          <div>
-                            <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">Assistente</p>
+                          {(() => {
+                            const actionType = currentAction?.action || "answer";
+                            const meta = ACTION_META[actionType] || ACTION_META.answer;
+                            const Icon = meta.icon;
+                            return (
+                              <div className={`h-7 w-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-0.5`}>
+                                <Icon className={`h-3.5 w-3.5 ${meta.color}`} />
+                              </div>
+                            );
+                          })()}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="text-[10px] text-white/30 uppercase tracking-widest">Assistente</p>
+                              {currentAction && currentAction.action !== "answer" && (
+                                <motion.span
+                                  initial={{ scale: 0, opacity: 0 }}
+                                  animate={{ scale: 1, opacity: 1 }}
+                                  className={`text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 border border-white/10 ${ACTION_META[currentAction.action]?.color || "text-white/50"}`}
+                                >
+                                  {ACTION_META[currentAction.action]?.label}
+                                </motion.span>
+                              )}
+                            </div>
                             <p className="text-sm font-medium text-white/90">{agentResponse}</p>
                           </div>
                         </div>

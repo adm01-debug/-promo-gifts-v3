@@ -184,7 +184,7 @@ export function LightRays({ color1, color2, count, isActive }: {
 /* ------------------------------------------------------------------ */
 /*  Spectrum Waveform — brilliant animated bars                        */
 /* ------------------------------------------------------------------ */
-export function SpectrumWaveform({ colors, isActive }: { colors: PhaseColors; isActive: boolean }) {
+export function SpectrumWaveform({ colors, isActive, isSpeaking }: { colors: PhaseColors; isActive: boolean; isSpeaking?: boolean }) {
   const barCount = 15;
 
   // Pre-compute stable random offsets
@@ -198,8 +198,13 @@ export function SpectrumWaveform({ colors, isActive }: { colors: PhaseColors; is
       {Array.from({ length: barCount }).map((_, i) => {
         const center = (barCount - 1) / 2;
         const distFromCenter = Math.abs(i - center) / center;
-        const maxH = isActive ? 26 - distFromCenter * 12 : 10 - distFromCenter * 5;
-        const minH = 3;
+        // Speaking: smoother, wider bars. Listening: sharper, reactive bars
+        const maxH = isActive
+          ? isSpeaking
+            ? 22 - distFromCenter * 8   // Speaking: more uniform, flowing
+            : 26 - distFromCenter * 12   // Listening: peaky
+          : 10 - distFromCenter * 5;
+        const minH = isSpeaking ? 5 : 3;
         const color = i % 3 === 0 ? colors.primary : i % 3 === 1 ? colors.secondary : colors.accent;
 
         return (
@@ -207,16 +212,20 @@ export function SpectrumWaveform({ colors, isActive }: { colors: PhaseColors; is
             key={i}
             className="rounded-full"
             style={{
-              width: 2.5,
+              width: isSpeaking ? 3 : 2.5,
               background: `linear-gradient(to top, ${color}, ${colors.accent})`,
-              boxShadow: `0 0 6px ${color}50`,
+              boxShadow: `0 0 ${isSpeaking ? 8 : 6}px ${color}50`,
             }}
             animate={{ height: [minH, maxH, minH] }}
             transition={{
-              duration: isActive ? 0.35 + barOffsets[i] : 1 + barOffsets[i] * 2,
+              duration: isActive
+                ? isSpeaking
+                  ? 0.55 + barOffsets[i] * 0.5  // Speaking: slower, wave-like
+                  : 0.35 + barOffsets[i]          // Listening: fast, reactive
+                : 1 + barOffsets[i] * 2,
               repeat: Infinity,
-              delay: i * 0.05,
-              ease: "easeInOut",
+              delay: isSpeaking ? i * 0.08 : i * 0.05, // Speaking: staggered wave effect
+              ease: isSpeaking ? "easeInOut" : "easeInOut",
             }}
           />
         );
