@@ -187,7 +187,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             {/* Glass backdrop with breathing effect — always active when overlay is open */}
             <motion.div
               className="absolute inset-0 backdrop-blur-xl"
-              animate={{ backgroundColor: ["rgba(2,2,10,0.30)", "rgba(2,2,10,0.85)", "rgba(2,2,10,0.30)"] }}
+              animate={{ backgroundColor: ["rgba(2,2,10,0.20)", "rgba(2,2,10,0.65)", "rgba(2,2,10,0.20)"] }}
               transition={{ duration: 6.6, repeat: Infinity, ease: "easeInOut" }}
               onClick={onClose}
             />
