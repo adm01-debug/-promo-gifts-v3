@@ -158,20 +158,40 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         <DialogContent className="max-w-3xl p-2">
           {g.previewVideo && (
             <div className="space-y-2">
-              <div className="aspect-video rounded-md overflow-hidden bg-black">
-                {g.previewVideo.source_youtube_id ? (
-                  <iframe
-                    src={`https://www.youtube.com/embed/${g.previewVideo.source_youtube_id}?autoplay=1`}
-                    className="w-full h-full"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : g.previewVideo.url_stream || g.previewVideo.url_original ? (
-                  <video src={g.previewVideo.url_stream || g.previewVideo.url_original || ''} controls className="w-full h-full object-contain" />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Film className="h-8 w-8 opacity-40" /></div>
-                )}
-              </div>
+                <div className="aspect-video rounded-md overflow-hidden bg-black">
+                  {(() => {
+                    const v = g.previewVideo;
+                    const isDirectFile = v.url_original && !v.url_original.includes('youtube.com') && !v.url_original.includes('youtu.be');
+                    
+                    if (isDirectFile) {
+                      return <video src={v.url_original!} controls autoPlay className="w-full h-full object-contain" />;
+                    }
+                    if (v.source_youtube_id) {
+                      return (
+                        <iframe
+                          src={`https://www.youtube.com/embed/${v.source_youtube_id}?autoplay=1`}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    if (v.url_hls) {
+                      return <video src={v.url_hls} controls autoPlay className="w-full h-full object-contain" />;
+                    }
+                    if (v.url_stream) {
+                      return (
+                        <iframe
+                          src={`${v.url_stream}?autoplay=true`}
+                          className="w-full h-full"
+                          allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    return <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Film className="h-8 w-8 opacity-40" /></div>;
+                  })()}
+                </div>
               <div className="flex flex-wrap gap-2 px-2 pb-1 text-[11px] text-muted-foreground">
                 {g.previewVideo.title && <span className="font-medium text-foreground/70">{g.previewVideo.title}</span>}
                 {g.previewVideo.video_type && (
