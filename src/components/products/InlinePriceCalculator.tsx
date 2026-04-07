@@ -202,6 +202,121 @@ export function InlinePriceCalculator({
     }).format(price);
   };
 
+  // When defaultOpen, render directly without collapsible wrapper (used inside modal)
+  if (defaultOpen) {
+    return (
+      <div className={cn("space-y-5", className)}>
+        {/* Price tiers table */}
+        <div className="overflow-hidden rounded-xl border border-border/40">
+          {isLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              <span className="ml-2 text-sm text-muted-foreground">Carregando preços...</span>
+            </div>
+          ) : priceTiers.length === 0 ? (
+            <div className="py-8 text-center text-muted-foreground text-sm">
+              Nenhuma tabela de preços disponível
+            </div>
+          ) : (
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-muted/30 border-b border-border/40">
+                  <th className="px-4 py-2.5 text-left text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Qtd.</th>
+                  <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Preço/un</th>
+                  <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Total</th>
+                  <th className="px-4 py-2.5 text-right text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">Desc.</th>
+                </tr>
+              </thead>
+              <tbody>
+                {priceTiers.map((tier, idx) => (
+                  <tr 
+                    key={`tier-${idx}-${tier.quantity}`}
+                    className={cn(
+                      "border-t border-border/30 transition-colors",
+                      idx === 0 && "bg-primary/5",
+                      idx > 0 && "hover:bg-muted/20"
+                    )}
+                  >
+                    <td className="px-4 py-2.5 font-medium text-foreground">
+                      <div className="flex items-center gap-1.5">
+                        {tier.quantity.toLocaleString('pt-BR')} un
+                        {idx === 0 && (
+                          <span className="text-[9px] font-semibold uppercase tracking-wide text-primary bg-primary/10 px-1.5 py-0.5 rounded">Mín</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-4 py-2.5 text-right font-bold text-foreground">
+                      {formatPrice(tier.unitPrice)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right text-muted-foreground">
+                      {formatPrice(tier.total)}
+                    </td>
+                    <td className="px-4 py-2.5 text-right">
+                      {tier.discount ? (
+                        <span className="text-xs font-bold text-success">-{tier.discount}%</span>
+                      ) : (
+                        <span className="text-muted-foreground/40">—</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        {/* Custom quantity calculator */}
+        <div className="space-y-3 pt-1">
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-sm text-foreground">Calcule seu pedido</h4>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-3.5 w-3.5 text-muted-foreground/50" />
+              </TooltipTrigger>
+              <TooltipContent>
+                Digite a quantidade desejada para ver o preço aplicado
+              </TooltipContent>
+            </Tooltip>
+          </div>
+          
+          <div className="flex items-center gap-3">
+            <div className="space-y-1 flex-1">
+              <Label htmlFor="custom-qty" className="text-[10px] text-muted-foreground uppercase tracking-wider">Quantidade</Label>
+              <Input
+                id="custom-qty"
+                type="number"
+                min={minQuantity}
+                value={customQuantity}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setCustomQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
+                className="h-11 font-bold text-base"
+              />
+            </div>
+            
+            <ArrowRight className="h-4 w-4 text-muted-foreground/40 mt-5 shrink-0" />
+            
+            <div className="space-y-1 flex-[1.5]">
+              <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Resultado</Label>
+              <div className="h-11 px-3 rounded-lg bg-success/10 border border-success/20 flex items-center gap-2">
+                <span className="font-bold text-base text-success whitespace-nowrap">
+                  {formatPrice(customTotal)}
+                </span>
+                <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap">
+                  ({formatPrice(customPriceInfo.unitPrice)}/un)
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <Button className="w-full gap-2 h-11 font-bold" size="lg">
+          <Calculator className="h-4 w-4" />
+          Adicionar {customQuantity.toLocaleString('pt-BR')} un ao Orçamento
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className={className}>
       <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
@@ -230,7 +345,6 @@ export function InlinePriceCalculator({
 
         <CollapsibleContent>
           <CardContent className="pt-0 space-y-6">
-            {/* Price tiers table */}
             <div className="overflow-hidden rounded-lg border border-border">
               {isLoading ? (
                 <div className="flex items-center justify-center py-8">
@@ -291,7 +405,6 @@ export function InlinePriceCalculator({
 
             <Separator />
 
-            {/* Custom quantity calculator */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <h4 className="font-semibold text-sm">Calcule seu pedido</h4>
@@ -307,9 +420,9 @@ export function InlinePriceCalculator({
               
               <div className="flex flex-col sm:flex-row gap-4">
                 <div className="flex-1 space-y-2">
-                  <Label htmlFor="custom-qty" className="text-sm">Quantidade</Label>
+                  <Label htmlFor="custom-qty-col" className="text-sm">Quantidade</Label>
                   <Input
-                    id="custom-qty"
+                    id="custom-qty-col"
                     type="number"
                     min={minQuantity}
                     value={customQuantity}
@@ -343,7 +456,6 @@ export function InlinePriceCalculator({
               </div>
             </div>
 
-            {/* CTA */}
             <Button className="w-full gap-2" size="lg">
               <Calculator className="h-4 w-4" />
               Adicionar {customQuantity.toLocaleString('pt-BR')} un ao Orçamento
