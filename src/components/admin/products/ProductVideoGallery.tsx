@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import { getCloudflareEmbedUrl } from '@/utils/cloudflare-stream';
 import { useProductVideoGallery } from './video-gallery/useProductVideoGallery';
 import { VideoGrid } from './video-gallery/VideoGrid';
 import { VideoUploadArea } from './video-gallery/VideoUploadArea';
@@ -159,16 +160,20 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
           {g.previewVideo && (
             <div className="space-y-2">
                 <div className="aspect-video rounded-md overflow-hidden bg-black">
-                  {g.previewVideo.url_stream ? (
-                    <iframe
-                      src={`${g.previewVideo.url_stream}?autoplay=true`}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Film className="h-8 w-8 opacity-40" /></div>
-                  )}
+                  {(() => {
+                    const embedUrl = getCloudflareEmbedUrl(g.previewVideo.url_stream, { autoplay: true });
+
+                    return embedUrl ? (
+                      <iframe
+                        src={embedUrl}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-muted-foreground"><Film className="h-8 w-8 opacity-40" /></div>
+                    );
+                  })()}
                 </div>
               <div className="flex flex-wrap gap-2 px-2 pb-1 text-[11px] text-muted-foreground">
                 {g.previewVideo.title && <span className="font-medium text-foreground/70">{g.previewVideo.title}</span>}

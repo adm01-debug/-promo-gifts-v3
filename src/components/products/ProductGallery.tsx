@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { sortByColorGroup } from "@/utils/colorSorting";
+import { getCloudflareEmbedUrl } from "@/utils/cloudflare-stream";
 import { getCdnUrl } from "@/utils/image-utils";
 
 interface ProductVideo {
@@ -670,18 +671,21 @@ export function ProductGallery({
             <div className="aspect-video w-full bg-black">
               {(() => {
                 const v = productVideos[activeVideoIndex];
-                if (!v) return null;
-                if (v.url_stream) {
-                  return (
-                    <iframe
-                      src={`${v.url_stream}?autoplay=true&poster=${encodeURIComponent(v.url_thumbnail || '')}`}
-                      className="w-full h-full"
-                      allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    />
-                  );
-                }
-                return null;
+                const embedUrl = getCloudflareEmbedUrl(v?.url_stream, {
+                  autoplay: true,
+                  poster: v?.url_thumbnail,
+                });
+
+                if (!embedUrl) return null;
+
+                return (
+                  <iframe
+                    src={embedUrl}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                  />
+                );
               })()}
             </div>
 
