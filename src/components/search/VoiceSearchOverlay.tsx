@@ -24,6 +24,7 @@ interface VoiceSearchOverlayProps {
   agentResponse: string;
   error?: string | null;
   recentCommands?: VoiceHistoryEntry[];
+  currentAction?: VoiceAgentAction | null;
   onClose: () => void;
   onStartListening: () => void;
   onStopListening: () => void;
