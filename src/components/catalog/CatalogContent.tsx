@@ -228,6 +228,7 @@ function VirtualList({
   isFavorite, toggleFavorite, isInCompare, onToggleCompare, canAddToCompare,
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
+  selectionMode, selectedIds, onToggleSelect,
 }: {
   products: Product[];
   navigate: (path: string) => void;
@@ -245,41 +246,12 @@ function VirtualList({
   loadMoreRef: RefObject<HTMLDivElement>;
   itemsPerPage: number;
   onLoadMore?: () => void;
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
-
-  // Clear selection when products change significantly
-  useEffect(() => { setSelectedIds(new Set()); }, [products.length]);
-
-  const toggleSelect = useCallback((id: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
-      return next;
-    });
-  }, []);
-
-  const selectAll = useCallback(() => setSelectedIds(new Set(products.map((p) => p.id))), [products]);
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
-
-  const handleBulkFavorite = useCallback(() => {
-    let added = 0;
-    selectedIds.forEach((id) => { if (!isFavorite(id)) { toggleFavorite(id); added++; } });
-    toast.success(`${added} produto${added > 1 ? "s" : ""} adicionado${added > 1 ? "s" : ""} aos favoritos`);
-    clearSelection();
-  }, [selectedIds, toggleFavorite, isFavorite, clearSelection]);
-
-  const handleBulkCompare = useCallback(() => {
-    const ids = Array.from(selectedIds).slice(0, 4);
-    ids.forEach((id) => { if (!isInCompare(id)) onToggleCompare(id); });
-    toast.success(`${ids.length} produto${ids.length > 1 ? "s" : ""} adicionado${ids.length > 1 ? "s" : ""} à comparação`);
-    clearSelection();
-  }, [selectedIds, onToggleCompare, isInCompare, clearSelection]);
-
-  const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
 
   const rowCount = products.length;
   const totalRows = rowCount + 1;
@@ -308,9 +280,6 @@ function VirtualList({
   }, [handleScroll]);
 
   const scrollToTop = () => parentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-
-  const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
-  const firstSelectedProduct = products.find((p) => p.id === firstSelectedId);
 
   return (
     <div className="relative h-full">
@@ -344,7 +313,7 @@ function VirtualList({
 
             const product = products[virtualRow.index];
             if (!product) return null;
-            const isSelected = selectedIds.has(product.id);
+            const isSelected = selectionMode && selectedIds?.has(product.id);
 
             return (
               <div
@@ -364,30 +333,32 @@ function VirtualList({
                   "flex items-center gap-2 rounded-xl transition-all duration-200",
                   isSelected && "ring-2 ring-primary/40 bg-primary/5"
                 )}>
-                  {/* Checkbox — always visible in list */}
-                  <button
-                    className={cn(
-                      "flex-shrink-0 flex items-center justify-center ml-1",
-                      "w-7 h-7 rounded-lg border-2 transition-all duration-200",
-                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                      isSelected
-                        ? "bg-primary border-primary text-primary-foreground"
-                        : "border-muted-foreground/30 bg-card hover:border-primary/50"
-                    )}
-                    onClick={(e) => { e.stopPropagation(); toggleSelect(product.id); }}
-                    aria-label={isSelected ? "Desselecionar" : "Selecionar"}
-                  >
-                    {isSelected && (
-                      <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
-                        <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    )}
-                  </button>
+                  {/* Checkbox — visible when selection mode is active */}
+                  {selectionMode && (
+                    <button
+                      className={cn(
+                        "flex-shrink-0 flex items-center justify-center ml-1",
+                        "w-7 h-7 rounded-lg border-2 transition-all duration-200",
+                        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                        isSelected
+                          ? "bg-primary border-primary text-primary-foreground"
+                          : "border-muted-foreground/30 bg-card hover:border-primary/50"
+                      )}
+                      onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
+                      aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+                    >
+                      {isSelected && (
+                        <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
+                          <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      )}
+                    </button>
+                  )}
 
                   <div className="flex-1 min-w-0">
                     <ProductListItem
                       product={product}
-                      onClick={() => navigate(`/produto/${product.id}`)}
+                      onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)}
                       onView={handleViewProduct}
                       onShare={handleShareProduct}
                       isFavorited={isFavorite(product.id)}
@@ -412,27 +383,6 @@ function VirtualList({
           </motion.button>
         )}
       </AnimatePresence>
-
-      {/* Bulk Action Bar */}
-      <BulkActionBar
-        selectedCount={selectedIds.size}
-        totalCount={products.length}
-        onSelectAll={selectAll}
-        onClearSelection={clearSelection}
-        onBulkFavorite={handleBulkFavorite}
-        onBulkCompare={handleBulkCompare}
-        onBulkCollection={handleBulkCollection}
-      />
-
-      {/* Collection modal for bulk add */}
-      {firstSelectedProduct && (
-        <AddToCollectionModal
-          open={collectionModalOpen}
-          onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
-          productId={firstSelectedId}
-          productName={`${selectedIds.size} produtos selecionados`}
-        />
-      )}
     </div>
   );
 }
@@ -528,52 +478,103 @@ export function CatalogContent({
     );
   }
 
-  // List mode — virtualized with bulk actions
   if (viewMode === "list") {
     return (
-      <SparklineSalesProvider productIds={sparklineProductIds}>
-        <VirtualList
-          products={paginatedProducts}
-          navigate={(path) => navigate(path)}
-          handleViewProduct={handleViewProduct}
-          handleShareProduct={handleShareProduct}
-          isFavorite={isFavorite}
-          toggleFavorite={toggleFavorite}
-          isInCompare={isInCompare}
-          onToggleCompare={onToggleCompare}
-          canAddToCompare={canAddToCompare}
-          hasMore={hasMoreProducts}
-          isLoadingMore={isLoadingMore}
-          totalEstimate={totalEstimate}
-          filteredCount={filteredProducts.length}
-          loadMoreRef={loadMoreRef}
-          itemsPerPage={itemsPerPage}
-          onLoadMore={onLoadMore}
-        />
-      </SparklineSalesProvider>
+      <>
+        <SparklineSalesProvider productIds={sparklineProductIds}>
+          <VirtualList
+            products={paginatedProducts}
+            navigate={(path) => navigate(path)}
+            handleViewProduct={handleViewProduct}
+            handleShareProduct={handleShareProduct}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            isInCompare={isInCompare}
+            onToggleCompare={onToggleCompare}
+            canAddToCompare={canAddToCompare}
+            hasMore={hasMoreProducts}
+            isLoadingMore={isLoadingMore}
+            totalEstimate={totalEstimate}
+            filteredCount={filteredProducts.length}
+            loadMoreRef={loadMoreRef}
+            itemsPerPage={itemsPerPage}
+            onLoadMore={onLoadMore}
+            selectionMode={selectionMode}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+          />
+        </SparklineSalesProvider>
+
+        {selectionMode && (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            totalCount={paginatedProducts.length}
+            onSelectAll={selectAll}
+            onClearSelection={clearSelection}
+            onBulkFavorite={handleBulkFavorite}
+            onBulkCompare={handleBulkCompare}
+            onBulkCollection={handleBulkCollection}
+          />
+        )}
+
+        {firstSelectedProduct && (
+          <AddToCollectionModal
+            open={collectionModalOpen}
+            onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
+            productId={firstSelectedId}
+            productName={`${selectedIds.size} produtos selecionados`}
+          />
+        )}
+      </>
     );
   }
 
   // Table mode
   if (viewMode === "table") {
     return (
-      <div className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
-        <ProductTableView
-          products={paginatedProducts}
-          onProductClick={(productId) => navigate(`/produto/${productId}`)}
-          isFavorite={isFavorite}
-          onToggleFavorite={toggleFavorite}
-          isInCompare={isInCompare}
-          onToggleCompare={onToggleCompare}
-        />
-        {hasMoreProducts && (
-          <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
-            <p className="text-sm text-muted-foreground">
-              Mostrando {paginatedProducts.length} de {(totalEstimate ?? filteredProducts.length).toLocaleString("pt-BR")} produtos
-            </p>
-          </div>
+      <>
+        <div className="h-[calc(100vh-200px)] min-h-[550px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
+          <ProductTableView
+            products={paginatedProducts}
+            onProductClick={(productId) => navigate(`/produto/${productId}`)}
+            isFavorite={isFavorite}
+            onToggleFavorite={toggleFavorite}
+            isInCompare={isInCompare}
+            onToggleCompare={onToggleCompare}
+            selectionMode={selectionMode}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+          />
+          {hasMoreProducts && (
+            <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
+              <p className="text-sm text-muted-foreground">
+                Mostrando {paginatedProducts.length} de {(totalEstimate ?? filteredProducts.length).toLocaleString("pt-BR")} produtos
+              </p>
+            </div>
+          )}
+        </div>
+
+        {selectionMode && (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            totalCount={paginatedProducts.length}
+            onSelectAll={selectAll}
+            onClearSelection={clearSelection}
+            onBulkFavorite={handleBulkFavorite}
+            onBulkCompare={handleBulkCompare}
+            onBulkCollection={handleBulkCollection}
+          />
         )}
-      </div>
+
+        {firstSelectedProduct && (
+          <AddToCollectionModal
+            open={collectionModalOpen}
+            onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
+            productId={firstSelectedId}
+            productName={`${selectedIds.size} produtos selecionados`}
+          />
+        )}
+      </>
     );
   }
 
