@@ -1,6 +1,6 @@
 import { forwardRef, useCallback } from "react";
 import { useLocation, useNavigate, Link } from "react-router-dom";
-import { ChevronRight, Home, ArrowLeft } from "lucide-react";
+import { ChevronRight, Home } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface BreadcrumbItem {
@@ -116,10 +116,30 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
       {showBackButton && isNotHome && (
         <button
           onClick={handleBack}
-          aria-label="Voltar"
-          className="hidden sm:flex items-center justify-center h-7 w-7 rounded-md text-muted-foreground hover:text-foreground hover:bg-accent transition-colors flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label="Teletransporte — Voltar"
+          title="Teletransporte"
+          className="hidden sm:flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium text-primary-foreground bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
         >
-          <ArrowLeft className="h-4 w-4" />
+          {/* Teleport icon — person with rings */}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="h-3.5 w-3.5 group-hover:animate-pulse"
+          >
+            <circle cx="12" cy="5" r="2.5" fill="currentColor" stroke="none" />
+            <path d="M10 10h4v6h-4z" fill="currentColor" stroke="none" />
+            <rect x="10" y="17" width="1.5" height="3" rx="0.5" fill="currentColor" stroke="none" />
+            <rect x="12.5" y="17" width="1.5" height="3" rx="0.5" fill="currentColor" stroke="none" />
+            <ellipse cx="12" cy="8" rx="6" ry="1.5" className="opacity-70" />
+            <ellipse cx="12" cy="13" rx="5" ry="1.3" className="opacity-50" />
+            <ellipse cx="12" cy="17.5" rx="4.5" ry="1.2" className="opacity-30" />
+          </svg>
+          <span className="hidden md:inline">Teletransporte</span>
         </button>
       )}
       <ol className="flex items-center gap-1.5 flex-wrap">
