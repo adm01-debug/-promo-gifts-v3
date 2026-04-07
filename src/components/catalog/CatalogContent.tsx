@@ -43,6 +43,7 @@ interface CatalogContentProps {
   canAddToCompare: boolean;
   onLoadMore?: () => void;
   onResetFilters?: () => void;
+  selectionMode?: boolean;
 }
 
 // ──────────────────────────────────────────────────────
