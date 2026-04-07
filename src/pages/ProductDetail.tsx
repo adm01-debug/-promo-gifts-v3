@@ -628,6 +628,7 @@ export default function ProductDetail() {
         minQuantity={product.minQuantity || 1}
         isFavorite={isFavorite}
         onToggleFavorite={handleFavorite}
+        product={product}
       />
     </MainLayout>
   );
