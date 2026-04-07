@@ -668,19 +668,13 @@ export function ProductGallery({
 
             {/* Video player */}
             <div className="aspect-video w-full bg-black">
-              {productVideos[activeVideoIndex]?.url_stream ? (
-                <iframe
-                  src={`${productVideos[activeVideoIndex].url_stream}?autoplay=true&poster=${encodeURIComponent(productVideos[activeVideoIndex].url_thumbnail || '')}`}
+              {productVideos[activeVideoIndex]?.url_original ? (
+                <video
+                  src={productVideos[activeVideoIndex].url_original!}
+                  controls
+                  autoPlay
                   className="w-full h-full"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
-                />
-              ) : productVideos[activeVideoIndex]?.source_youtube_id ? (
-                <iframe
-                  src={`https://www.youtube.com/embed/${productVideos[activeVideoIndex].source_youtube_id}?autoplay=1&rel=0`}
-                  className="w-full h-full"
-                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
-                  allowFullScreen
+                  poster={productVideos[activeVideoIndex].url_thumbnail || undefined}
                 />
               ) : productVideos[activeVideoIndex]?.url_hls ? (
                 <video
@@ -689,6 +683,20 @@ export function ProductGallery({
                   autoPlay
                   className="w-full h-full"
                   poster={productVideos[activeVideoIndex].url_thumbnail || undefined}
+                />
+              ) : productVideos[activeVideoIndex]?.source_youtube_id ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${productVideos[activeVideoIndex].source_youtube_id}?autoplay=1&rel=0`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              ) : productVideos[activeVideoIndex]?.url_stream ? (
+                <iframe
+                  src={`${productVideos[activeVideoIndex].url_stream}?autoplay=true&poster=${encodeURIComponent(productVideos[activeVideoIndex].url_thumbnail || '')}`}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
                 />
               ) : null}
             </div>
