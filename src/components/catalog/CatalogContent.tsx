@@ -54,6 +54,7 @@ function VirtualGrid({
   isInCompare, onToggleCompare, canAddToCompare,
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
+  selectionMode, selectedIds, onToggleSelect,
 }: {
   products: Product[];
   columns: ColumnCount;
@@ -70,6 +71,9 @@ function VirtualGrid({
   loadMoreRef: RefObject<HTMLDivElement>;
   itemsPerPage: number;
   onLoadMore?: () => void;
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
