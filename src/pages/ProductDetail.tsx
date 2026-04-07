@@ -48,7 +48,7 @@ import { sortVariationsByColor } from "@/utils/colorSorting";
 import { ProductDetailSkeleton } from "@/components/products/ProductDetailSkeleton";
 
 type ProductVariation = any;
-import type { KitComponent } from "@/types/product-catalog";
+
 
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { FadeInView, SlideIn, HoverCard } from "@/components/common/MicroInteractions";
