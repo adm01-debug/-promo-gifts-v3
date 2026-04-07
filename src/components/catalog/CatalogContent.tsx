@@ -478,29 +478,54 @@ export function CatalogContent({
     );
   }
 
-  // List mode — virtualized with bulk actions
   if (viewMode === "list") {
     return (
-      <SparklineSalesProvider productIds={sparklineProductIds}>
-        <VirtualList
-          products={paginatedProducts}
-          navigate={(path) => navigate(path)}
-          handleViewProduct={handleViewProduct}
-          handleShareProduct={handleShareProduct}
-          isFavorite={isFavorite}
-          toggleFavorite={toggleFavorite}
-          isInCompare={isInCompare}
-          onToggleCompare={onToggleCompare}
-          canAddToCompare={canAddToCompare}
-          hasMore={hasMoreProducts}
-          isLoadingMore={isLoadingMore}
-          totalEstimate={totalEstimate}
-          filteredCount={filteredProducts.length}
-          loadMoreRef={loadMoreRef}
-          itemsPerPage={itemsPerPage}
-          onLoadMore={onLoadMore}
-        />
-      </SparklineSalesProvider>
+      <>
+        <SparklineSalesProvider productIds={sparklineProductIds}>
+          <VirtualList
+            products={paginatedProducts}
+            navigate={(path) => navigate(path)}
+            handleViewProduct={handleViewProduct}
+            handleShareProduct={handleShareProduct}
+            isFavorite={isFavorite}
+            toggleFavorite={toggleFavorite}
+            isInCompare={isInCompare}
+            onToggleCompare={onToggleCompare}
+            canAddToCompare={canAddToCompare}
+            hasMore={hasMoreProducts}
+            isLoadingMore={isLoadingMore}
+            totalEstimate={totalEstimate}
+            filteredCount={filteredProducts.length}
+            loadMoreRef={loadMoreRef}
+            itemsPerPage={itemsPerPage}
+            onLoadMore={onLoadMore}
+            selectionMode={selectionMode}
+            selectedIds={selectedIds}
+            onToggleSelect={toggleSelect}
+          />
+        </SparklineSalesProvider>
+
+        {selectionMode && (
+          <BulkActionBar
+            selectedCount={selectedIds.size}
+            totalCount={paginatedProducts.length}
+            onSelectAll={selectAll}
+            onClearSelection={clearSelection}
+            onBulkFavorite={handleBulkFavorite}
+            onBulkCompare={handleBulkCompare}
+            onBulkCollection={handleBulkCollection}
+          />
+        )}
+
+        {firstSelectedProduct && (
+          <AddToCollectionModal
+            open={collectionModalOpen}
+            onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
+            productId={firstSelectedId}
+            productName={`${selectedIds.size} produtos selecionados`}
+          />
+        )}
+      </>
     );
   }
 
