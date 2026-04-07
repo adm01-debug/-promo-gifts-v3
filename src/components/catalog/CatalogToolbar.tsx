@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { Filter, ArrowUpDown, CheckSquare } from "lucide-react";
+import { Filter, ArrowUpDown, CheckSquare, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -12,6 +12,7 @@ import type { ViewMode, SortOption } from "@/hooks/useCatalogState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const LazyFilterPanel = lazyWithRetry(() =>
   import("@/components/filters/FilterPanel").then((m) => ({ default: m.FilterPanel }))
@@ -45,6 +46,7 @@ interface CatalogToolbarProps {
   setGridColumns: (c: ColumnCount) => void;
   selectionMode: boolean;
   onToggleSelectionMode: () => void;
+  selectedCount?: number;
 }
 
 export function CatalogToolbar({
@@ -55,6 +57,7 @@ export function CatalogToolbar({
   viewMode, setViewMode,
   gridColumns, setGridColumns,
   selectionMode, onToggleSelectionMode,
+  selectedCount = 0,
 }: CatalogToolbarProps) {
   return (
     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -104,19 +107,72 @@ export function CatalogToolbar({
       </div>
 
       <div className="flex items-center gap-2">
-        {/* Selecionar toggle */}
+        {/* Selecionar toggle with animated badge */}
         <Button
           variant={selectionMode ? "default" : "outline"}
           size="sm"
           className={cn(
-            "gap-1.5 h-8 transition-all",
-            selectionMode && "bg-primary text-primary-foreground shadow-md"
+            "gap-1.5 h-8 transition-all relative",
+            selectionMode
+              ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+              : "hover:border-primary/50"
           )}
           onClick={onToggleSelectionMode}
         >
-          <CheckSquare className="h-3.5 w-3.5" />
+          {selectionMode ? (
+            <motion.div
+              initial={{ rotate: 0 }}
+              animate={{ rotate: [0, -10, 10, 0] }}
+              transition={{ duration: 0.3 }}
+            >
+              <CheckSquare className="h-3.5 w-3.5" />
+            </motion.div>
+          ) : (
+            <CheckSquare className="h-3.5 w-3.5" />
+          )}
           <span className="hidden sm:inline text-xs">Selecionar</span>
+
+          {/* Animated counter badge */}
+          <AnimatePresence>
+            {selectionMode && selectedCount > 0 && (
+              <motion.div
+                initial={{ scale: 0, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0, opacity: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="absolute -top-2 -right-2"
+              >
+                <Badge
+                  className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg"
+                >
+                  {selectedCount}
+                </Badge>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </Button>
+
+        {/* Cancel selection — visible when selection mode is active */}
+        <AnimatePresence>
+          {selectionMode && (
+            <motion.div
+              initial={{ width: 0, opacity: 0 }}
+              animate={{ width: "auto", opacity: 1 }}
+              exit={{ width: 0, opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="overflow-hidden"
+            >
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10"
+                onClick={onToggleSelectionMode}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         <div className="hidden sm:block">
           <LayoutPopover
