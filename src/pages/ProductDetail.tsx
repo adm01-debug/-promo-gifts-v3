@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { getCdnUrl } from "@/utils/image-utils";
@@ -59,6 +59,7 @@ import { useProductIntelligenceBadges } from "@/hooks/useProductIntelligenceBadg
 import { IntelligenceBadges } from "@/components/common/IntelligenceBadges";
 import { useSupplierTrust } from "@/hooks/useSupplierTrust";
 import { QuickAddToQuote } from "@/components/products/QuickAddToQuote";
+import { BulkVariantWizard, type BulkVariantSelection } from "@/components/catalog/BulkVariantWizard";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { MobileProductActions } from "@/components/mobile/MobileProductActions";
 import { useRecentlyViewedStore } from "@/stores/useRecentlyViewedStore";
@@ -78,6 +79,7 @@ export default function ProductDetail() {
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
   const [futureStockOpen, setFutureStockOpen] = useState(false);
   const [packagingModalOpen, setPackagingModalOpen] = useState(false);
+  const [quoteVariantWizardOpen, setQuoteVariantWizardOpen] = useState(false);
   const { addToRecentlyViewed } = useRecentlyViewedStore();
 
   const { data: product, isLoading, isError } = useProduct(id || "");
@@ -433,11 +435,35 @@ export default function ProductDetail() {
                     <Button
                       size="lg"
                       className="flex-1 basis-0 h-12 xl:h-13 rounded-xl bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary/80 text-primary-foreground font-display font-bold text-[0.875rem] tracking-wide shadow-md shadow-primary/20 hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] gap-1.5"
-                      onClick={() => navigate(`/orcamentos/novo?product_id=${id}&product_name=${encodeURIComponent(product.name)}&product_sku=${encodeURIComponent(product.sku || '')}&product_price=${product.price}&product_image=${encodeURIComponent(product.images?.[0] || '')}&min_quantity=${product.minQuantity || 1}`)}
+                      onClick={() => setQuoteVariantWizardOpen(true)}
                     >
                       <FileText className="h-4 w-4" />
                       Orçamento
                     </Button>
+                    {product && (
+                      <BulkVariantWizard
+                        open={quoteVariantWizardOpen}
+                        onOpenChange={setQuoteVariantWizardOpen}
+                        products={[product]}
+                        mode="quote"
+                        onComplete={(selections) => {
+                          const s = selections[0];
+                          const v = s?.variant;
+                          const params = new URLSearchParams({
+                            product_id: id || '',
+                            product_name: product.name,
+                            product_sku: product.sku || '',
+                            product_price: String(product.price),
+                            product_image: v?.selected_thumbnail || product.images?.[0] || '',
+                            min_quantity: String(product.minQuantity || 1),
+                          });
+                          if (v?.color_name) params.set('color_name', v.color_name);
+                          if (v?.color_hex) params.set('color_hex', v.color_hex);
+                          if (v?.size_code) params.set('size_code', v.size_code);
+                          navigate(`/orcamentos/novo?${params.toString()}`);
+                        }}
+                      />
+                    )}
                   </div>
 
                   {/* ── SEÇÃO 5: Trust + Social proof ── */}

@@ -7,6 +7,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
+import { SingleVariantPicker } from "@/components/products/SingleVariantPicker";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 
 interface QuickAddToQuoteProps {
   productId: string;
@@ -39,16 +41,23 @@ export function QuickAddToQuote({
   const [isOpen, setIsOpen] = useState(false);
   const [isAdded, setIsAdded] = useState(false);
   const [showCompanyPicker, setShowCompanyPicker] = useState(false);
+  const [selectedVariant, setSelectedVariant] = useState<ExternalVariantStock | null | undefined>(undefined);
   const { activeCart, addToActiveCart } = useSellerCartContext();
+
+  const handleVariantSelect = (v: ExternalVariantStock | null) => {
+    setSelectedVariant(v);
+  };
 
   const handleAddToQuote = () => {
     addToActiveCart({
       product_id: productId,
       product_name: productName,
       product_sku: productSku,
-      product_image_url: productImageUrl,
+      product_image_url: selectedVariant?.selected_thumbnail || productImageUrl,
       product_price: productPrice,
       quantity,
+      color_name: selectedVariant?.color_name || undefined,
+      color_hex: selectedVariant?.color_hex || undefined,
     });
 
     setIsAdded(true);
@@ -56,6 +65,7 @@ export function QuickAddToQuote({
       setIsAdded(false);
       setIsOpen(false);
       setQuantity(minQuantity);
+      setSelectedVariant(undefined);
     }, 1200);
   };
 
@@ -66,12 +76,16 @@ export function QuickAddToQuote({
     }
     if (!open) {
       setShowCompanyPicker(false);
+      setSelectedVariant(undefined);
     }
   };
 
   const handleCompanyCreated = () => {
     setShowCompanyPicker(false);
   };
+
+  // Whether variant has been chosen (null = skipped, undefined = not yet chosen)
+  const variantChosen = selectedVariant !== undefined;
 
   return (
     <Popover open={isOpen} onOpenChange={handleOpenChange}>
@@ -117,7 +131,7 @@ export function QuickAddToQuote({
         )}
       </PopoverTrigger>
 
-      <PopoverContent className="w-72 p-4 relative" align="end" onClick={(e) => e.stopPropagation()}>
+      <PopoverContent className="w-80 p-4 relative" align="end" onClick={(e) => e.stopPropagation()}>
         <button
           aria-label="Fechar"
           className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
@@ -129,7 +143,7 @@ export function QuickAddToQuote({
         {showCompanyPicker && !activeCart ? (
           <CartCompanyPicker onCreated={handleCompanyCreated} onCancel={() => setIsOpen(false)} />
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-3">
             <div>
               <h4 className="font-medium text-sm mb-1 pr-6">Adicionar ao carrinho</h4>
               <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
@@ -138,49 +152,85 @@ export function QuickAddToQuote({
               )}
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm text-muted-foreground">Quantidade</label>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
-                >
-                  -
-                </Button>
-                <Input
-                  type="number"
-                  min={minQuantity}
-                  value={quantity}
-                  onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
-                  className="h-8 text-center"
-                />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="h-8 w-8"
-                  onClick={() => setQuantity(quantity + 10)}
-                >
-                  +
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
-            </div>
+            {/* Variant selection step */}
+            {!variantChosen ? (
+              <SingleVariantPicker
+                productId={productId}
+                onSelect={handleVariantSelect}
+                compact
+              />
+            ) : (
+              <>
+                {/* Show selected variant summary */}
+                {selectedVariant && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border/50">
+                    {selectedVariant.selected_thumbnail ? (
+                      <img
+                        src={`${selectedVariant.selected_thumbnail}/thumbnail`}
+                        alt={selectedVariant.color_name ?? ''}
+                        className="w-7 h-7 rounded-md object-cover border border-border/50"
+                      />
+                    ) : selectedVariant.color_hex ? (
+                      <div className="w-7 h-7 rounded-md border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
+                    ) : null}
+                    <span className="text-xs font-medium flex-1 truncate">
+                      {selectedVariant.color_name}
+                      {selectedVariant.size_code && ` — ${selectedVariant.size_code}`}
+                    </span>
+                    <button
+                      onClick={() => setSelectedVariant(undefined)}
+                      className="text-[10px] text-primary hover:underline shrink-0"
+                    >
+                      Trocar
+                    </button>
+                  </div>
+                )}
 
-            <Button className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>
-              {isAdded ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  Adicionado!
-                </>
-              ) : (
-                <>
-                  <ShoppingCart className="h-4 w-4" />
-                  Adicionar ao Carrinho
-                </>
-              )}
-            </Button>
+                <div className="space-y-2">
+                  <label className="text-sm text-muted-foreground">Quantidade</label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
+                    >
+                      -
+                    </Button>
+                    <Input
+                      type="number"
+                      min={minQuantity}
+                      value={quantity}
+                      onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
+                      className="h-8 text-center"
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={() => setQuantity(quantity + 10)}
+                    >
+                      +
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
+                </div>
+
+                <Button className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>
+                  {isAdded ? (
+                    <>
+                      <Check className="h-4 w-4" />
+                      Adicionado!
+                    </>
+                  ) : (
+                    <>
+                      <ShoppingCart className="h-4 w-4" />
+                      Adicionar ao Carrinho
+                    </>
+                  )}
+                </Button>
+              </>
+            )}
           </div>
         )}
       </PopoverContent>
