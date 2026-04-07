@@ -50,6 +50,11 @@ export default {
           DEFAULT: "hsl(var(--info))",
           foreground: "hsl(var(--info-foreground))",
         },
+        cart: {
+          DEFAULT: "hsl(var(--cart))",
+          hover: "hsl(var(--cart-hover))",
+          foreground: "hsl(var(--cart-foreground))",
+        },
         orange: {
           DEFAULT: "hsl(var(--orange))",
           hover: "hsl(var(--orange-hover))",
