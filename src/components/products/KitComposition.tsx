@@ -1,27 +1,22 @@
 import { useState, useMemo } from "react";
 import {
-  Package, Check, Palette, Weight, Layers, BoxSelect, ShoppingBag,
+  Package, Palette, Weight, Layers, BoxSelect, ShoppingBag,
   ChevronUp, ChevronDown, Box,
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { cn } from "@/lib/utils";
 import type { KitComponent } from "@/types/product-catalog";
 import { KitComponentCard } from "./kit-composition/KitComponentCard";
 
 interface KitCompositionProps {
   items: KitComponent[];
-  onSelectItems?: (selectedItems: KitComponent[]) => void;
   onViewProduct?: (productId: string) => void;
 }
 
-export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompositionProps) {
+export function KitComposition({ items, onViewProduct }: KitCompositionProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [selectAll, setSelectAll] = useState(false);
   const [zoomImageUrl, setZoomImageUrl] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState({ packaging: true, products: true });
 
@@ -33,27 +28,6 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
     const personalizableCount = items.filter((i) => i.allowsPersonalization).length;
     return { totalPieces, totalWeight, packagingCount, productCount, personalizableCount };
   }, [items]);
-
-  const toggleItem = (itemId: string) => {
-    const newSelected = selectedItems.includes(itemId)
-      ? selectedItems.filter((id) => id !== itemId)
-      : [...selectedItems, itemId];
-    setSelectedItems(newSelected);
-    setSelectAll(newSelected.length === items.length);
-    onSelectItems?.(items.filter((item) => newSelected.includes(item.id)));
-  };
-
-  const handleSelectAll = () => {
-    if (selectAll) {
-      setSelectedItems([]);
-      onSelectItems?.([]);
-    } else {
-      const allIds = items.map((item) => item.id);
-      setSelectedItems(allIds);
-      onSelectItems?.(items);
-    }
-    setSelectAll(!selectAll);
-  };
 
   const formatWeight = (grams: number) => grams >= 1000 ? `${(grams / 1000).toFixed(1)} kg` : `${grams} g`;
 
@@ -85,7 +59,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
               {items.slice(0, 4).map((item) => (
                 <div key={item.id} className="w-8 h-8 rounded-lg bg-muted border-2 border-card flex items-center justify-center overflow-hidden">
                   {item.imageUrl ? 
-<img src={item.imageUrl} alt="" className="w-full h-full object-contain p-0.5"  loading="lazy" /> : <Package className="h-3.5 w-3.5 text-muted-foreground/50" />}
+<img src={item.imageUrl} alt="" className="w-full h-full object-contain p-0.5" loading="lazy" /> : <Package className="h-3.5 w-3.5 text-muted-foreground/50" />}
                 </div>
               ))}
               {items.length > 4 && <div className="w-8 h-8 rounded-lg bg-muted border-2 border-card flex items-center justify-center text-[10px] font-bold text-muted-foreground">+{items.length - 4}</div>}
@@ -120,7 +94,6 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
 
           <ScrollArea className="max-h-[calc(72vh-160px)]">
             <div className="px-6 py-4 space-y-5">
-
               {packagingItems.length > 0 && (
                 <Collapsible open={expandedSections.packaging} onOpenChange={(open) => setExpandedSections((s) => ({ ...s, packaging: open }))}>
                   <CollapsibleTrigger className="flex items-center justify-between w-full px-3 py-2.5 bg-warning/5 border border-warning/20 rounded-lg hover:bg-warning/10 transition-colors">
@@ -161,7 +134,7 @@ export function KitComposition({ items, onSelectItems, onViewProduct }: KitCompo
       <Dialog open={!!zoomImageUrl} onOpenChange={() => setZoomImageUrl(null)}>
         <DialogContent className="max-w-2xl p-2 bg-background/95 backdrop-blur-xl">
           {zoomImageUrl && 
-<img src={zoomImageUrl} alt="Zoom" className="w-full h-auto max-h-[80vh] object-contain rounded-lg"  loading="lazy" />}
+<img src={zoomImageUrl} alt="Zoom" className="w-full h-auto max-h-[80vh] object-contain rounded-lg" loading="lazy" />}
         </DialogContent>
       </Dialog>
     </>
