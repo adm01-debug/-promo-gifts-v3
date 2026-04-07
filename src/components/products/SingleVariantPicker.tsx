@@ -46,6 +46,14 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
     );
   }
 
+  // Auto-skip when no variants
+  useEffect(() => {
+    if (!isLoading && !sortedVariants.length) {
+      onSelect(null);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, sortedVariants.length]);
+
   if (!sortedVariants.length) return null;
 
   return (
