@@ -459,6 +459,26 @@ export function CatalogContent({
     clearSelection();
   }, [selectedIds, paginatedProducts, navHook, clearSelection]);
 
+  const handleBulkCart = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    const selectedProducts = paginatedProducts.filter(p => ids.includes(p.id));
+    if (selectedProducts.length === 0) return;
+    navHook('/carrinhos/novo', {
+      state: {
+        bulkProducts: selectedProducts.map(p => ({
+          product_id: p.id,
+          product_name: p.name,
+          product_sku: p.sku || '',
+          product_price: p.price,
+          product_image_url: p.images?.[0] || '',
+          quantity: 1,
+        })),
+      },
+    });
+    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para o carrinho`);
+    clearSelection();
+  }, [selectedIds, paginatedProducts, navHook, clearSelection]);
+
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = paginatedProducts.find((p) => p.id === firstSelectedId);
 
