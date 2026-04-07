@@ -96,6 +96,11 @@ html[data-scroll-locked] body {
     --info: 200 85% 55%;
     --info-foreground: 0 0% 100%;
     
+    /* ===== CART (EMERALD) ===== */
+    --cart: 152 69% 36%;
+    --cart-hover: 152 69% 41%;
+    --cart-foreground: 0 0% 100%;
+    
     /* ===== LARANJA (COR DE DESTAQUE) ===== */
     --orange: 25 95% 53%;
     --orange-hover: 25 95% 48%;
@@ -285,6 +290,11 @@ html[data-scroll-locked] body {
     --warning-foreground: 0 0% 100%;
     --info: 200 85% 58%;
     --info-foreground: 0 0% 100%;
+    
+    /* ===== CART (EMERALD) ===== */
+    --cart: 152 69% 38%;
+    --cart-hover: 152 69% 45%;
+    --cart-foreground: 0 0% 100%;
     
     /* ===== LARANJA (COR DE DESTAQUE — Fusion glow) ===== */
     --orange: 24 100% 50%;
