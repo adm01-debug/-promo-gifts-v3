@@ -6,7 +6,6 @@ import {
   Heart,
   Package,
   Clock,
-  Shield,
   Tag,
   Layers,
   Sparkles,
