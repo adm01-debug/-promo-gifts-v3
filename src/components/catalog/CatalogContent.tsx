@@ -545,6 +545,12 @@ export function CatalogContent({
             productName={`${selectedIds.size} produtos selecionados`}
           />
         )}
+        <BulkAddToCartModal
+          open={cartModalOpen}
+          onOpenChange={setCartModalOpen}
+          products={bulkCartProducts}
+          onDone={clearSelection}
+        />
       </>
     );
   }
@@ -596,6 +602,12 @@ export function CatalogContent({
             productName={`${selectedIds.size} produtos selecionados`}
           />
         )}
+        <BulkAddToCartModal
+          open={cartModalOpen}
+          onOpenChange={setCartModalOpen}
+          products={bulkCartProducts}
+          onDone={clearSelection}
+        />
       </>
     );
   }
@@ -650,6 +662,12 @@ export function CatalogContent({
           productName={`${selectedIds.size} produtos selecionados`}
         />
       )}
+      <BulkAddToCartModal
+        open={cartModalOpen}
+        onOpenChange={setCartModalOpen}
+        products={bulkCartProducts}
+        onDone={clearSelection}
+      />
     </>
   );
 }
