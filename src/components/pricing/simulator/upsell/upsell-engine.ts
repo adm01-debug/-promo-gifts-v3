@@ -56,6 +56,12 @@ const COMPLEMENTARY_MAP: Record<string, string[]> = {
   Ecobags: ["Squeezes", "Canetas", "Cadernos"],
   Necessaires: ["Squeezes", "Toalhas", "Canetas"],
   Toalhas: ["Squeezes", "Necessaires", "Mochilas"],
+  Sacolas: ["Canetas", "Cadernos", "Squeezes"],
+  Pastas: ["Canetas", "Cadernos", "Blocos de notas"],
+  Copos: ["Squeezes", "Canetas", "Cadernos"],
+  Chaveiros: ["Canetas", "Cordões", "Adesivos"],
+  Agendas: ["Canetas", "Cadernos", "Marcadores"],
+  Guarda_chuvas: ["Bonés", "Mochilas", "Camisetas"],
 };
 
 /** Limiar: só sugere próxima faixa se faltar ≤30% da quantidade atual */
