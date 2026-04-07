@@ -7,4 +7,3 @@
 
 export * from './personalization';
 export * from './simulation';
-export * from './gravacao';
