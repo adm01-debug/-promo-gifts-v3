@@ -8,6 +8,7 @@
  * - Animated SVG checkmark with draw effect
  * - Three sizes: sm (table), md (list), lg (grid overlay)
  */
+import React from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
