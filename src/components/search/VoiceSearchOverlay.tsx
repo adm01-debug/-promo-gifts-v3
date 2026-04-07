@@ -296,7 +296,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
                     >
-                      <SpectrumWaveform colors={colors} isActive={isWaveformActive} />
+                      <SpectrumWaveform colors={colors} isActive={isWaveformActive} isSpeaking={phase === "speaking"} />
                     </motion.div>
                   )}
                 </AnimatePresence>
