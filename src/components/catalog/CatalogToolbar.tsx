@@ -1,5 +1,5 @@
 import React, { Suspense } from "react";
-import { Filter, ArrowUpDown } from "lucide-react";
+import { Filter, ArrowUpDown, CheckSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -11,6 +11,7 @@ import type { ColumnCount } from "@/components/products/ColumnSelector";
 import type { ViewMode, SortOption } from "@/hooks/useCatalogState";
 import { Skeleton } from "@/components/ui/skeleton";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
+import { cn } from "@/lib/utils";
 
 const LazyFilterPanel = lazyWithRetry(() =>
   import("@/components/filters/FilterPanel").then((m) => ({ default: m.FilterPanel }))
@@ -42,6 +43,8 @@ interface CatalogToolbarProps {
   setViewMode: (m: ViewMode) => void;
   gridColumns: ColumnCount;
   setGridColumns: (c: ColumnCount) => void;
+  selectionMode: boolean;
+  onToggleSelectionMode: () => void;
 }
 
 export function CatalogToolbar({
@@ -51,6 +54,7 @@ export function CatalogToolbar({
   statBadges,
   viewMode, setViewMode,
   gridColumns, setGridColumns,
+  selectionMode, onToggleSelectionMode,
 }: CatalogToolbarProps) {
   return (
     <div className="flex items-center justify-between gap-2 flex-wrap">
@@ -99,13 +103,29 @@ export function CatalogToolbar({
         </div>
       </div>
 
-      <div className="hidden sm:block">
-        <LayoutPopover
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          gridColumns={gridColumns}
-          setGridColumns={setGridColumns}
-        />
+      <div className="flex items-center gap-2">
+        {/* Selecionar toggle */}
+        <Button
+          variant={selectionMode ? "default" : "outline"}
+          size="sm"
+          className={cn(
+            "gap-1.5 h-8 transition-all",
+            selectionMode && "bg-primary text-primary-foreground shadow-md"
+          )}
+          onClick={onToggleSelectionMode}
+        >
+          <CheckSquare className="h-3.5 w-3.5" />
+          <span className="hidden sm:inline text-xs">Selecionar</span>
+        </Button>
+
+        <div className="hidden sm:block">
+          <LayoutPopover
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            gridColumns={gridColumns}
+            setGridColumns={setGridColumns}
+          />
+        </div>
       </div>
     </div>
   );

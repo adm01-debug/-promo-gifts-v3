@@ -67,6 +67,8 @@ export default function Index() {
               setViewMode={catalog.setViewMode}
               gridColumns={catalog.gridColumns}
               setGridColumns={catalog.setGridColumns}
+              selectionMode={catalog.selectionMode}
+              onToggleSelectionMode={catalog.toggleSelectionMode}
             />
             </div>
 
@@ -102,6 +104,7 @@ export default function Index() {
               canAddToCompare={catalog.canAddMore}
               onLoadMore={catalog.loadMore}
               onResetFilters={catalog.resetFilters}
+              selectionMode={catalog.selectionMode}
             />
           </div>
         </div>

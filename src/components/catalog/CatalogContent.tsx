@@ -43,6 +43,7 @@ interface CatalogContentProps {
   canAddToCompare: boolean;
   onLoadMore?: () => void;
   onResetFilters?: () => void;
+  selectionMode?: boolean;
 }
 
 // ──────────────────────────────────────────────────────
@@ -53,6 +54,7 @@ function VirtualGrid({
   isInCompare, onToggleCompare, canAddToCompare,
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
+  selectionMode, selectedIds, onToggleSelect,
 }: {
   products: Product[];
   columns: ColumnCount;
@@ -69,6 +71,9 @@ function VirtualGrid({
   loadMoreRef: RefObject<HTMLDivElement>;
   itemsPerPage: number;
   onLoadMore?: () => void;
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -157,9 +162,48 @@ function VirtualGrid({
             return (
               <div key={virtualRow.key} data-index={virtualRow.index} ref={virtualizer.measureElement}
                 style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${virtualRow.start}px)`, display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, columnGap: `${gap}px`, paddingBottom: `${gap}px` }}>
-                {rowProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} onClick={() => navigate(`/produto/${product.id}`)} isFavorited={isFavorite(product.id)} onToggleFavorite={toggleFavorite} isInCompare={isInCompare(product.id)} onToggleCompare={onToggleCompare} canAddToCompare={canAddToCompare} hideCategoryBadges />
-                ))}
+                {rowProducts.map((product) => {
+                  const isSelected = selectionMode && selectedIds?.has(product.id);
+                  return (
+                    <div key={product.id} className="relative">
+                      {selectionMode && (
+                        <button
+                          className={cn(
+                            "absolute top-2 left-2 z-20 flex items-center justify-center",
+                            "w-7 h-7 rounded-lg border-2 transition-all duration-200 shadow-sm",
+                            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                            isSelected
+                              ? "bg-primary border-primary text-primary-foreground scale-100"
+                              : "border-muted-foreground/40 bg-card/90 backdrop-blur-sm hover:border-primary/50 hover:bg-card"
+                          )}
+                          onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
+                          aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+                        >
+                          {isSelected && (
+                            <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
+                              <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </button>
+                      )}
+                      <div className={cn(
+                        "transition-all duration-200",
+                        isSelected && "ring-2 ring-primary/50 rounded-xl"
+                      )}>
+                        <ProductCard
+                          product={product}
+                          onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)}
+                          isFavorited={isFavorite(product.id)}
+                          onToggleFavorite={toggleFavorite}
+                          isInCompare={isInCompare(product.id)}
+                          onToggleCompare={onToggleCompare}
+                          canAddToCompare={canAddToCompare}
+                          hideCategoryBadges
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             );
           })}
@@ -417,8 +461,47 @@ export function CatalogContent({
   canAddToCompare,
   onLoadMore,
   onResetFilters,
+  selectionMode,
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
+
+  // Shared selection state for grid/table modes (list has its own)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+
+  // Clear selection when leaving selection mode or products change
+  useEffect(() => { if (!selectionMode) setSelectedIds(new Set()); }, [selectionMode]);
+  useEffect(() => { setSelectedIds(new Set()); }, [paginatedProducts.length]);
+
+  const toggleSelect = useCallback((id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => setSelectedIds(new Set(paginatedProducts.map((p) => p.id))), [paginatedProducts]);
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
+  const handleBulkFavorite = useCallback(() => {
+    let added = 0;
+    selectedIds.forEach((id) => { if (!isFavorite(id)) { toggleFavorite(id); added++; } });
+    toast.success(`${added} produto${added > 1 ? "s" : ""} adicionado${added > 1 ? "s" : ""} aos favoritos`);
+    clearSelection();
+  }, [selectedIds, toggleFavorite, isFavorite, clearSelection]);
+
+  const handleBulkCompare = useCallback(() => {
+    const ids = Array.from(selectedIds).slice(0, 4);
+    ids.forEach((id) => { if (!isInCompare(id)) onToggleCompare(id); });
+    toast.success(`${ids.length} produto${ids.length > 1 ? "s" : ""} adicionado${ids.length > 1 ? "s" : ""} à comparação`);
+    clearSelection();
+  }, [selectedIds, onToggleCompare, isInCompare, clearSelection]);
+
+  const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+
+  const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
+  const firstSelectedProduct = paginatedProducts.find((p) => p.id === firstSelectedId);
 
   if (shouldShowCatalogSkeleton) {
     return (
@@ -493,24 +576,52 @@ export function CatalogContent({
 
   // Grid mode — virtualized
   return (
-    <SparklineSalesProvider productIds={sparklineProductIds}>
-      <VirtualGrid
-        products={paginatedProducts}
-        columns={gridColumns}
-        navigate={navigate}
-        isFavorite={isFavorite}
-        toggleFavorite={toggleFavorite}
-        isInCompare={isInCompare}
-        onToggleCompare={onToggleCompare}
-        canAddToCompare={canAddToCompare}
-        hasMore={hasMoreProducts}
-        isLoadingMore={isLoadingMore}
-        totalEstimate={totalEstimate}
-        filteredCount={filteredProducts.length}
-        loadMoreRef={loadMoreRef}
-        itemsPerPage={itemsPerPage}
-        onLoadMore={onLoadMore}
-      />
-    </SparklineSalesProvider>
+    <>
+      <SparklineSalesProvider productIds={sparklineProductIds}>
+        <VirtualGrid
+          products={paginatedProducts}
+          columns={gridColumns}
+          navigate={navigate}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+          isInCompare={isInCompare}
+          onToggleCompare={onToggleCompare}
+          canAddToCompare={canAddToCompare}
+          hasMore={hasMoreProducts}
+          isLoadingMore={isLoadingMore}
+          totalEstimate={totalEstimate}
+          filteredCount={filteredProducts.length}
+          loadMoreRef={loadMoreRef}
+          itemsPerPage={itemsPerPage}
+          onLoadMore={onLoadMore}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={toggleSelect}
+        />
+      </SparklineSalesProvider>
+
+      {/* Bulk Action Bar for grid/table when selection mode is active */}
+      {selectionMode && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          totalCount={paginatedProducts.length}
+          onSelectAll={selectAll}
+          onClearSelection={clearSelection}
+          onBulkFavorite={handleBulkFavorite}
+          onBulkCompare={handleBulkCompare}
+          onBulkCollection={handleBulkCollection}
+        />
+      )}
+
+      {/* Collection modal for bulk add */}
+      {firstSelectedProduct && (
+        <AddToCollectionModal
+          open={collectionModalOpen}
+          onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
+          productId={firstSelectedId}
+          productName={`${selectedIds.size} produtos selecionados`}
+        />
+      )}
+    </>
   );
 }
