@@ -1,8 +1,8 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, MicOff } from "lucide-react";
-import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
+import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle } from "lucide-react";
+import type { VoiceAgentAction, VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import {
   playStartSound,
