@@ -18,6 +18,7 @@ import type { ViewMode } from "@/hooks/useCatalogState";
 import type { ColumnCount } from "@/components/products/ColumnSelector";
 import type { RefObject } from "react";
 import { SparklineSalesProvider } from "@/hooks/useSparklineSales";
+import { useNavigate as useNavHook } from "react-router-dom";
 
 interface CatalogContentProps {
   viewMode: ViewMode;
