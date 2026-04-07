@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { ProductListItem } from "@/components/products/ProductListItem";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
@@ -445,6 +446,8 @@ export function CatalogContent({
   }, [selectedIds, onToggleCompare, isInCompare, clearSelection]);
 
   const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+
+  const [cartModalOpen, setCartModalOpen] = useState(false);
 
   const navHook = useNavHook();
   const handleBulkQuote = useCallback(() => {
