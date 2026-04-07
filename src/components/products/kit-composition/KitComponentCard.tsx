@@ -171,36 +171,41 @@ export function KitComponentCard({ item, index, variant, isSelected, selectable,
 
       {/* Specs */}
       {hasSpecs && (
-        <div className="px-4 pb-3">
-          <div className="grid grid-cols-2 gap-1.5">
+        <div className="px-4 pb-2.5">
+          <div className="flex items-center gap-1 rounded-lg border border-border bg-muted/20 px-1 py-0.5 divide-x divide-border">
             {(item.heightMm ?? 0) > 0 && (
-              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 min-w-0">
-                <ArrowUpDown className="h-3.5 w-3.5 text-primary shrink-0" />
-                <div><div className="text-[9px] text-muted-foreground leading-tight">Altura</div><div className="text-xs font-bold text-foreground tabular-nums leading-tight">{item.heightMm} <span className="text-[9px] font-normal text-muted-foreground">mm</span></div></div>
+              <div className="flex items-center gap-1 px-2 py-0.5 min-w-0">
+                <ArrowUpDown className="h-3 w-3 text-primary shrink-0" />
+                <span className="text-[10px] text-muted-foreground">Altura</span>
+                <span className="text-[11px] font-bold text-foreground tabular-nums">{item.heightMm}<span className="text-[9px] font-normal text-muted-foreground ml-0.5">mm</span></span>
               </div>
             )}
             {(item.widthMm ?? 0) > 0 && (
-              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 min-w-0">
-                <ArrowLeftRight className="h-3.5 w-3.5 text-primary shrink-0" />
-                <div><div className="text-[9px] text-muted-foreground leading-tight">Largura</div><div className="text-xs font-bold text-foreground tabular-nums leading-tight">{item.widthMm} <span className="text-[9px] font-normal text-muted-foreground">mm</span></div></div>
+              <div className="flex items-center gap-1 px-2 py-0.5 min-w-0">
+                <ArrowLeftRight className="h-3 w-3 text-primary shrink-0" />
+                <span className="text-[10px] text-muted-foreground">Largura</span>
+                <span className="text-[11px] font-bold text-foreground tabular-nums">{item.widthMm}<span className="text-[9px] font-normal text-muted-foreground ml-0.5">mm</span></span>
               </div>
             )}
             {(item.lengthMm ?? 0) > 0 && (
-              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 min-w-0">
-                <MoveHorizontal className="h-3.5 w-3.5 text-primary shrink-0" />
-                <div><div className="text-[9px] text-muted-foreground leading-tight">Profundidade</div><div className="text-xs font-bold text-foreground tabular-nums leading-tight">{item.lengthMm} <span className="text-[9px] font-normal text-muted-foreground">mm</span></div></div>
+              <div className="flex items-center gap-1 px-2 py-0.5 min-w-0">
+                <MoveHorizontal className="h-3 w-3 text-primary shrink-0" />
+                <span className="text-[10px] text-muted-foreground">Prof.</span>
+                <span className="text-[11px] font-bold text-foreground tabular-nums">{item.lengthMm}<span className="text-[9px] font-normal text-muted-foreground ml-0.5">mm</span></span>
               </div>
             )}
             {item.weightG != null && item.weightG > 0 && (
-              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 min-w-0">
-                <Weight className="h-3.5 w-3.5 text-primary shrink-0" />
-                <div><div className="text-[9px] text-muted-foreground leading-tight">Peso</div><div className="text-xs font-bold text-foreground tabular-nums leading-tight">{formatWeight(item.weightG)}</div></div>
+              <div className="flex items-center gap-1 px-2 py-0.5 min-w-0">
+                <Weight className="h-3 w-3 text-primary shrink-0" />
+                <span className="text-[10px] text-muted-foreground">Peso</span>
+                <span className="text-[11px] font-bold text-foreground tabular-nums">{formatWeight(item.weightG)}</span>
               </div>
             )}
             {item.volumeMl != null && item.volumeMl > 0 && (
-              <div className="flex items-center gap-1.5 rounded-md border border-border bg-muted/20 px-2 py-1.5 min-w-0">
-                <Box className="h-3.5 w-3.5 text-primary shrink-0" />
-                <div><div className="text-[9px] text-muted-foreground leading-tight">Volume</div><div className="text-xs font-bold text-foreground tabular-nums leading-tight">{item.volumeMl} <span className="text-[9px] font-normal text-muted-foreground">ml</span></div></div>
+              <div className="flex items-center gap-1 px-2 py-0.5 min-w-0">
+                <Box className="h-3 w-3 text-primary shrink-0" />
+                <span className="text-[10px] text-muted-foreground">Vol.</span>
+                <span className="text-[11px] font-bold text-foreground tabular-nums">{item.volumeMl}<span className="text-[9px] font-normal text-muted-foreground ml-0.5">ml</span></span>
               </div>
             )}
           </div>
