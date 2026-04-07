@@ -425,9 +425,17 @@ export function CatalogContent({
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
 
-  // Clear selection when leaving selection mode or products change
+  // Clear selection when leaving selection mode
   useEffect(() => { if (!selectionMode) setSelectedIds(new Set()); }, [selectionMode]);
-  useEffect(() => { setSelectedIds(new Set()); }, [paginatedProducts.length]);
+  // Remove stale IDs when products change (but preserve valid selections across view switches)
+  useEffect(() => {
+    setSelectedIds(prev => {
+      if (prev.size === 0) return prev;
+      const validIds = new Set(paginatedProducts.map(p => p.id));
+      const filtered = new Set([...prev].filter(id => validIds.has(id)));
+      return filtered.size === prev.size ? prev : filtered;
+    });
+  }, [paginatedProducts]);
 
   // Sync count to parent for toolbar badge
   useEffect(() => { onSelectedCountChange?.(selectedIds.size); }, [selectedIds.size, onSelectedCountChange]);
