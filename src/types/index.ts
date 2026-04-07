@@ -1,38 +1,17 @@
 // src/types/index.ts
 // Central Types Export - SSOT
 
-// ============================================
-// DOMAIN TYPES (SSOT interno)
-// ============================================
+// Domain types
 export * from './domain';
 
-// ============================================
-// INFRASTRUCTURE TYPES (BD externo Promobrind)
-// ============================================
+// Infrastructure types (external DB)
 export * from './infrastructure';
 
-// ============================================
-// TIPOS PORTUGUESE (compatibilidade)
-// ============================================
+// Unified technique types
 export * from './tecnica-unificada';
 export * from './gravacao-database';
 
-// ============================================
-// MÓDULOS ESPECÍFICOS
-// ============================================
-export * from './profile';
+// Feature modules
 export * from './product';
-export * from './category';
 export * from './quote';
-export * from './favorite';
-export * from './client';
-
-export * from './expert';
-export * from './onboarding';
 export * from './mockup';
-
-// Legacy re-exports
-export type {
-  Product as LegacyProduct,
-  Category as LegacyCategory,
-} from './database';
