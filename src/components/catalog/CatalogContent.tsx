@@ -169,28 +169,51 @@ function VirtualGrid({
                   return (
                     <div key={product.id} className="relative">
                       {selectionMode && (
-                        <button
+                        <motion.button
+                          initial={{ scale: 0, opacity: 0 }}
+                          animate={{ scale: 1, opacity: 1 }}
+                          exit={{ scale: 0, opacity: 0 }}
+                          transition={{ type: "spring", stiffness: 500, damping: 25 }}
                           className={cn(
                             "absolute top-2 left-2 z-20 flex items-center justify-center",
-                            "w-7 h-7 rounded-lg border-2 transition-all duration-200 shadow-sm",
+                            "w-7 h-7 rounded-lg border-2 transition-colors duration-150 shadow-sm",
                             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                             isSelected
-                              ? "bg-primary border-primary text-primary-foreground scale-100"
+                              ? "bg-primary border-primary text-primary-foreground"
                               : "border-muted-foreground/40 bg-card/90 backdrop-blur-sm hover:border-primary/50 hover:bg-card"
                           )}
                           onClick={(e) => { e.stopPropagation(); onToggleSelect?.(product.id); }}
                           aria-label={isSelected ? "Desselecionar" : "Selecionar"}
+                          whileTap={{ scale: 0.85 }}
                         >
-                          {isSelected && (
-                            <svg className="h-4 w-4" viewBox="0 0 14 14" fill="none">
-                              <path d="M3 7l3 3 5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          )}
-                        </button>
+                          <AnimatePresence>
+                            {isSelected && (
+                              <motion.svg
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                exit={{ scale: 0 }}
+                                className="h-4 w-4"
+                                viewBox="0 0 14 14"
+                                fill="none"
+                              >
+                                <motion.path
+                                  d="M3 7l3 3 5-6"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  initial={{ pathLength: 0 }}
+                                  animate={{ pathLength: 1 }}
+                                  transition={{ duration: 0.2 }}
+                                />
+                              </motion.svg>
+                            )}
+                          </AnimatePresence>
+                        </motion.button>
                       )}
                       <div className={cn(
-                        "transition-all duration-200",
-                        isSelected && "ring-2 ring-primary/50 rounded-xl"
+                        "transition-all duration-200 rounded-xl",
+                        isSelected && "ring-2 ring-primary/50 shadow-[0_0_12px_-4px_hsl(var(--primary)/0.3)]"
                       )}>
                         <ProductCard
                           product={product}
