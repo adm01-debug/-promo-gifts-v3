@@ -19,8 +19,6 @@ export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 const ERROR_RESET_DELAY_MS = 5000;
 const PROCESSING_ERROR_RESET_DELAY_MS = 3000;
 const SESSION_START_TIMEOUT_MS = 8000;
-const SCRIBE_CONNECT_MAX_RETRIES = 2;
-const SCRIBE_RETRY_DELAY_MS = 1000;
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
   // === Stable refs for callbacks to avoid dependency churn ===
@@ -276,72 +274,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     }
   }, []);
 
-  // === Try Scribe connection with retry ===
-  const tryScribeConnect = useCallback(async (): Promise<boolean> => {
-    for (let attempt = 0; attempt <= SCRIBE_CONNECT_MAX_RETRIES; attempt++) {
-      try {
-        const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
-        if (tokenError || !data?.token) {
-          console.error("[Voice] Token error (attempt", attempt + 1, "):", tokenError);
-          if (attempt < SCRIBE_CONNECT_MAX_RETRIES) {
-            await new Promise(r => setTimeout(r, SCRIBE_RETRY_DELAY_MS));
-            continue;
-          }
-          return false;
-        }
 
-        logger.log(`[Voice] Token obtained (attempt ${attempt + 1}), connecting to Scribe...`);
-
-        // Set a session start timeout
-        const sessionPromise = new Promise<boolean>((resolve) => {
-          sessionStartTimerRef.current = setTimeout(() => {
-            logger.warn("[Voice] Scribe session start timeout (attempt", attempt + 1, ")");
-            resolve(false);
-          }, SESSION_START_TIMEOUT_MS);
-        });
-
-        // Attempt connection
-        await scribe.connect({
-          token: data.token,
-          microphone: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true,
-          },
-        });
-
-        logger.log("[Voice] Scribe connection initiated, waiting for session...");
-
-        // Wait a short time to see if the connection actually succeeds
-        // (errors fire async via onError callback)
-        await new Promise(r => setTimeout(r, 2000));
-
-        // If we're still starting (no error fired), consider it success
-        if (isStartingRef.current) {
-          return true; // Session will start and set phase to "listening"
-        }
-
-        // If an error already fired, retry
-        if (attempt < SCRIBE_CONNECT_MAX_RETRIES) {
-          logger.log(`[Voice] Scribe failed on attempt ${attempt + 1}, retrying...`);
-          forceDisconnectScribe();
-          await new Promise(r => setTimeout(r, SCRIBE_RETRY_DELAY_MS));
-          continue;
-        }
-
-        return false;
-      } catch (err) {
-        logger.warn(`[Voice] Scribe connect attempt ${attempt + 1} threw:`, err);
-        forceDisconnectScribe();
-        if (attempt < SCRIBE_CONNECT_MAX_RETRIES) {
-          await new Promise(r => setTimeout(r, SCRIBE_RETRY_DELAY_MS));
-          continue;
-        }
-        return false;
-      }
-    }
-    return false;
-  }, [forceDisconnectScribe, scribe]);
 
   const startListening = useCallback(async () => {
     const scribeStatus = scribe.status ?? "disconnected";

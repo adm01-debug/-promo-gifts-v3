@@ -66,6 +66,15 @@ const mockLogVoiceCommand = vi.fn();
 vi.mock("@/hooks/voice/logVoiceCommand", () => ({
   logVoiceCommand: (...args: unknown[]) => mockLogVoiceCommand(...args),
 }));
+// Mock navigator.mediaDevices for jsdom
+const mockGetUserMedia = vi.fn().mockResolvedValue({
+  getTracks: () => [{ stop: vi.fn() }],
+});
+Object.defineProperty(global.navigator, "mediaDevices", {
+  value: { getUserMedia: mockGetUserMedia },
+  writable: true,
+  configurable: true,
+});
 
 import { useVoiceAgent } from "@/hooks/useVoiceAgent";
 
@@ -107,7 +116,6 @@ describe("useVoiceAgent", () => {
     expect(result.current.phase).toBe("idle");
     expect(mockConnect).toHaveBeenCalledWith({
       token: "test-token",
-      modelId: "scribe_v2_realtime",
       microphone: {
         echoCancellation: true,
         noiseSuppression: true,

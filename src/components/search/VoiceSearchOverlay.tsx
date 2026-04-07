@@ -4,9 +4,17 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, MessageCircle, MicOff } from "lucide-react";
 import type { VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
+import {
+  playStartSound,
+  playStopSound,
+  playErrorSound,
+  playProcessingSound,
+  playSpeakingSound,
+} from "@/hooks/voice/feedbackSounds";
 import { SpectrumWaveform } from "./voice/VoiceVisualEffects";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import { FloatingParticles } from "./voice/FloatingParticles";
+import type { VoiceHistoryEntry } from "@/hooks/voice/useVoiceHistory";
 
 interface VoiceSearchOverlayProps {
   isOpen: boolean;
@@ -15,6 +23,7 @@ interface VoiceSearchOverlayProps {
   finalTranscript: string;
   agentResponse: string;
   error?: string | null;
+  recentCommands?: VoiceHistoryEntry[];
   onClose: () => void;
   onStartListening: () => void;
   onStopListening: () => void;
@@ -40,7 +49,7 @@ const SUGGESTION_COMMANDS = [
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen, phase, partialTranscript, finalTranscript, agentResponse, error,
-    onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
+    recentCommands, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
   }, ref) {
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
@@ -60,10 +69,16 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       }
     }, [isOpen]);
 
-    // Close on ESC
+    // Keyboard shortcuts: ESC to close, Space to toggle listening
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
-        if (e.key === "Escape" && isOpen) onClose();
+        if (!isOpen) return;
+        if (e.key === "Escape") { onClose(); return; }
+        // Space toggles listen/stop when not typing in an input
+        if (e.key === " " && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
+          e.preventDefault();
+          handleOrbClick();
+        }
       };
       document.addEventListener("keydown", handleKeyDown);
       return () => document.removeEventListener("keydown", handleKeyDown);
@@ -164,9 +179,11 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     const prevVibratePhase = useRef(phase);
     useEffect(() => {
       if (phase !== prevVibratePhase.current) {
-        if (phase === "listening") vibrate(10);
-        else if (phase === "speaking") vibrate([10, 50, 10]);
-        else if (phase === "error") vibrate([30, 80, 30]);
+        if (phase === "listening") { vibrate(10); playStartSound(); }
+        else if (phase === "processing") { playProcessingSound(); }
+        else if (phase === "speaking") { vibrate([10, 50, 10]); playSpeakingSound(); }
+        else if (phase === "error") { vibrate([30, 80, 30]); playErrorSound(); }
+        else if (phase === "idle" && prevVibratePhase.current === "listening") { playStopSound(); }
         prevVibratePhase.current = phase;
       }
     }, [phase, vibrate]);
@@ -353,7 +370,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   )}
                 </AnimatePresence>
 
-                {/* Suggestions */}
+                {/* Suggestions / Recent Commands */}
                 {phase === "idle" && !showBooting && (
                   <motion.div
                     initial={{ y: 15, opacity: 0 }}
@@ -361,20 +378,41 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     transition={{ delay: 0.25 }}
                     className="space-y-3 text-center w-full"
                   >
-                    <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
-                      Experimente dizer
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-2">
-                      {SUGGESTION_COMMANDS.map((cmd) => (
-                        <button
-                          key={cmd}
-                          onClick={() => onCommandSelect?.(cmd)}
-                          className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
-                        >
-                          <span className="group-hover:tracking-wide transition-all duration-200">"{cmd}"</span>
-                        </button>
-                      ))}
-                    </div>
+                    {recentCommands && recentCommands.length > 0 ? (
+                      <>
+                        <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
+                          Comandos recentes
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {recentCommands.slice(0, 4).map((entry) => (
+                            <button
+                              key={entry.timestamp}
+                              onClick={() => onCommandSelect?.(entry.transcript)}
+                              className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
+                            >
+                              <span className="group-hover:tracking-wide transition-all duration-200">"{entry.transcript}"</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
+                          Experimente dizer
+                        </p>
+                        <div className="flex flex-wrap justify-center gap-2">
+                          {SUGGESTION_COMMANDS.map((cmd) => (
+                            <button
+                              key={cmd}
+                              onClick={() => onCommandSelect?.(cmd)}
+                              className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
+                            >
+                              <span className="group-hover:tracking-wide transition-all duration-200">"{cmd}"</span>
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    )}
                   </motion.div>
                 )}
 
@@ -386,7 +424,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     transition={{ delay: 0.4 }}
                     className="text-[10px] text-white/20"
                   >
-                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> para fechar
+                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> fechar
+                    <span className="mx-1.5 text-white/10">·</span>
+                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">SPACE</kbd> ativar
                   </motion.p>
                   <button
                     onClick={onClose}

@@ -6,8 +6,9 @@
  *   const LazyVoice = lazy(() => import("./VoiceSearchOverlayConnected"));
  *   {voiceOpen && <Suspense fallback={null}><LazyVoice isOpen onClose={...} onAction={...} /></Suspense>}
  */
-import React from "react";
+import React, { useCallback } from "react";
 import { useVoiceAgent, type VoiceAgentAction } from "@/hooks/useVoiceAgent";
+import { useVoiceHistory } from "@/hooks/voice/useVoiceHistory";
 import { VoiceSearchOverlay } from "./VoiceSearchOverlay";
 
 interface Props {
@@ -18,7 +19,17 @@ interface Props {
 }
 
 function VoiceSearchOverlayConnected({ isOpen, onClose, onAction, onError }: Props) {
-  const voice = useVoiceAgent({ onAction, onError });
+  const { history, addEntry } = useVoiceHistory();
+
+  const handleAction = useCallback((action: VoiceAgentAction) => {
+    // Save to local history
+    if (action.action !== "answer") {
+      addEntry(action.response, action);
+    }
+    onAction?.(action);
+  }, [addEntry, onAction]);
+
+  const voice = useVoiceAgent({ onAction: handleAction, onError });
 
   return (
     <VoiceSearchOverlay
@@ -28,6 +39,7 @@ function VoiceSearchOverlayConnected({ isOpen, onClose, onAction, onError }: Pro
       finalTranscript={voice.finalTranscript}
       agentResponse={voice.agentResponse}
       error={voice.error}
+      recentCommands={history}
       onClose={() => { onClose(); voice.reset(); }}
       onStartListening={voice.startListening}
       onStopListening={voice.stopListening}
