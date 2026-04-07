@@ -454,6 +454,19 @@ export function CatalogContent({
 
   const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
 
+  const navHook = useNavHook();
+  const handleBulkQuote = useCallback(() => {
+    const ids = Array.from(selectedIds);
+    const selectedProducts = paginatedProducts.filter(p => ids.includes(p.id));
+    if (selectedProducts.length === 0) return;
+    const params = selectedProducts.map(p =>
+      `items[]=${encodeURIComponent(JSON.stringify({ product_id: p.id, product_name: p.name, product_sku: p.sku || '', product_price: p.price, product_image: p.images?.[0] || '', quantity: 1 }))}`
+    ).join('&');
+    navHook(`/orcamentos/novo?${params}`);
+    toast.success(`${selectedProducts.length} produto${selectedProducts.length > 1 ? 's' : ''} enviado${selectedProducts.length > 1 ? 's' : ''} para orçamento`);
+    clearSelection();
+  }, [selectedIds, paginatedProducts, navHook, clearSelection]);
+
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = paginatedProducts.find((p) => p.id === firstSelectedId);
 
