@@ -19,8 +19,6 @@ export type { VoiceAgentAction, VoiceAgentPhase } from "./voice/types";
 const ERROR_RESET_DELAY_MS = 5000;
 const PROCESSING_ERROR_RESET_DELAY_MS = 3000;
 const SESSION_START_TIMEOUT_MS = 8000;
-const SCRIBE_CONNECT_MAX_RETRIES = 2;
-const SCRIBE_RETRY_DELAY_MS = 1000;
 
 export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) {
   // === Stable refs for callbacks to avoid dependency churn ===
