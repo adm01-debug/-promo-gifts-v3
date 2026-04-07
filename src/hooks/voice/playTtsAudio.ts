@@ -17,6 +17,8 @@ export function playTtsAudio(
     const { data: { session } } = await supabase.auth.getSession();
     const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
+    console.log('[TTS] Starting fetch for text:', text.substring(0, 40));
+
     // Timeout after 10s to avoid hanging on slow TTS
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 10000);
@@ -40,11 +42,16 @@ export function playTtsAudio(
       clearTimeout(timeout);
     }
 
+    console.log('[TTS] Response status:', ttsResponse.status);
+
     if (!ttsResponse.ok) {
-      throw new Error(`TTS failed: ${ttsResponse.status}`);
+      const errBody = await ttsResponse.text().catch(() => '');
+      console.error('[TTS] Error body:', errBody);
+      throw new Error(`TTS failed: ${ttsResponse.status} - ${errBody}`);
     }
 
     const blob = await ttsResponse.blob();
+    console.log('[TTS] Blob size:', blob.size, 'type:', blob.type);
     if (blob.size === 0) {
       throw new Error("Empty audio response");
     }
