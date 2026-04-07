@@ -43,6 +43,13 @@ export function groupPrintAreasByComponent(
 
     for (const tech of area.techniques) {
       const code = tech.codigo;
+
+      // Deduplicação: evita técnica duplicada na mesma localização+área
+      const isDuplicate = techniques.some(
+        (t) => t.techniqueCode === code && t.id === area.area_id
+      );
+      if (isDuplicate) continue;
+
       techniques.push({
         id: area.area_id,
         areaName: area.area_name,
