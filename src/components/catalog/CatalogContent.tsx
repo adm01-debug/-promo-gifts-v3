@@ -541,6 +541,7 @@ export function CatalogContent({
             onBulkCompare={handleBulkCompare}
             onBulkCollection={handleBulkCollection}
             onBulkQuote={handleBulkQuote}
+            onBulkCart={handleBulkCart}
           />
         )}
 
@@ -591,6 +592,7 @@ export function CatalogContent({
             onBulkCompare={handleBulkCompare}
             onBulkCollection={handleBulkCollection}
             onBulkQuote={handleBulkQuote}
+            onBulkCart={handleBulkCart}
           />
         )}
 
@@ -643,6 +645,7 @@ export function CatalogContent({
           onBulkCompare={handleBulkCompare}
           onBulkCollection={handleBulkCollection}
           onBulkQuote={handleBulkQuote}
+          onBulkCart={handleBulkCart}
         />
       )}
 
