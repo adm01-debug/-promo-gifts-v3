@@ -5,7 +5,7 @@ import { getCdnUrl } from "@/utils/image-utils";
 import {
   Heart,
   Package,
-  Truck,
+  Clock,
   Shield,
   Tag,
   Layers,
