@@ -182,6 +182,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     const errMsg = err instanceof Error ? err.message : String(err);
     console.error("[Voice] Scribe runtime error:", err);
     logger.warn("[Voice] Scribe error details:", errMsg || "(empty message - likely WebSocket handshake rejection)");
+    isStartingRef.current = false;
     clearResetPhaseTimer();
     clearSessionStartTimer();
     forceDisconnectScribe();
