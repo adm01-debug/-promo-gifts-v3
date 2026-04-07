@@ -94,7 +94,7 @@ export function ProductQuickActions({
               >
                 <Icon className={cn(
                   "h-4 w-4 shrink-0 transition-all duration-300",
-                  disabled ? "opacity-40" : cn(iconColor, "group-hover:scale-110 group-hover:rotate-3")
+                  disabled ? "opacity-40" : cn(iconColor, "group-hover:scale-125 group-hover:rotate-6 group-hover:drop-shadow-sm")
                 )} />
                 {label}
               </button>
