@@ -5,7 +5,7 @@ import { getCdnUrl } from "@/utils/image-utils";
 import {
   Heart,
   Package,
-  Truck,
+  Clock,
   Shield,
   Tag,
   Layers,
@@ -409,8 +409,10 @@ export default function ProductDetail() {
                     </div>
                     <div className="h-3.5 w-px bg-border/40" />
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                      <Truck className="h-3 w-3 text-info shrink-0" />
-                      <span>Consultar</span>
+                      <Clock className="h-3 w-3 text-info shrink-0" />
+                      <span className="font-medium">
+                        {product.leadTimeDays ? `${product.leadTimeDays} dias úteis` : 'Consultar prazo'}
+                      </span>
                     </div>
                     <div className="h-3.5 w-px bg-border/40" />
                     <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
