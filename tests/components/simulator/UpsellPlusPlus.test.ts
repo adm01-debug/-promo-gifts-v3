@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { generateSuggestions } from "@/components/pricing/simulator/UpsellPlusPlus";
+import { generateSuggestions } from "@/components/pricing/simulator/upsell/upsell-engine";
 import type { ProductTechnique, ConfiguredEngraving } from "@/components/pricing/simulator/types";
 
 const makeTech = (overrides: Partial<ProductTechnique> = {}): ProductTechnique => ({
@@ -39,6 +39,12 @@ describe("UpsellPlusPlus generateSuggestions", () => {
     expect(result.some((s) => s.type === "add_position")).toBe(true);
   });
 
+  it("does NOT suggest position when no engravings exist", () => {
+    const techniques = [makeTech()];
+    const result = generateSuggestions([], techniques, 100);
+    expect(result.some((s) => s.type === "add_position")).toBe(false);
+  });
+
   it("suggests technique upgrade when premium option available", () => {
     const engravings = [makeEngraving({ technique: makeTech({ techniqueCode: "SER" }) })];
     const techniques = [
@@ -50,12 +56,23 @@ describe("UpsellPlusPlus generateSuggestions", () => {
   });
 
   it("suggests next quantity tier when close enough", () => {
-    const result = generateSuggestions([], [], 90); // 90 → next tier is 100, diff = 10 (11%)
+    const result = generateSuggestions([], [], 90);
     expect(result.some((s) => s.type === "quantity_tier")).toBe(true);
   });
 
+  it("marks quantity tier as high priority when very close", () => {
+    const result = generateSuggestions([], [], 95);
+    const tierSuggestion = result.find((s) => s.type === "quantity_tier");
+    expect(tierSuggestion?.priority).toBe("high");
+  });
+
   it("does NOT suggest quantity tier when too far", () => {
-    const result = generateSuggestions([], [], 10); // 10 → next tier 50, diff = 40 (400%)
+    const result = generateSuggestions([], [], 10);
+    expect(result.some((s) => s.type === "quantity_tier")).toBe(false);
+  });
+
+  it("does NOT suggest quantity tier for zero quantity", () => {
+    const result = generateSuggestions([], [], 0);
     expect(result.some((s) => s.type === "quantity_tier")).toBe(false);
   });
 
@@ -65,10 +82,14 @@ describe("UpsellPlusPlus generateSuggestions", () => {
     expect(result.find((s) => s.type === "complementary")?.title).toContain("Cadernos");
   });
 
-  it("returns empty for no opportunities", () => {
-    const result = generateSuggestions([], [], 1000, "UnknownCategory");
-    // No engravings = no position/upgrade suggestions, quantity 1000 is already high tier
-    expect(result.filter((s) => s.type !== "quantity_tier")).toHaveLength(0);
+  it("does NOT suggest complementary for unknown category", () => {
+    const result = generateSuggestions([], [], 100, "CategoriaInexistente");
+    expect(result.some((s) => s.type === "complementary")).toBe(false);
+  });
+
+  it("returns empty for no opportunities at max tier", () => {
+    const result = generateSuggestions([], [], 5000, "UnknownCategory");
+    expect(result).toHaveLength(0);
   });
 
   it("sorts by priority: high > medium > low", () => {
@@ -79,7 +100,7 @@ describe("UpsellPlusPlus generateSuggestions", () => {
       makeTech({ id: "t3", techniqueCode: "BOR", techniqueName: "Bordado" }),
     ];
     const result = generateSuggestions(engravings, techniques, 90, "Canetas");
-    
+
     const priorities = result.map((s) => s.priority);
     const order = { high: 0, medium: 1, low: 2 };
     for (let i = 1; i < priorities.length; i++) {
