@@ -1,6 +1,0 @@
-# Force Vercel Redeploy
-Timestamp: 2026-01-02T18:02:45Z
-
-Forcing redeploy to clear cache and use updated dependencies:
-- @tailwindcss/postcss: ^4.0.0
-- postcss.config.js: updated format
