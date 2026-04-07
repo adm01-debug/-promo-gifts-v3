@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Check, ShoppingCart, X, Minus } from "lucide-react";
+import { Plus, Check, ShoppingCart, ShoppingBag, X, Minus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -111,7 +111,7 @@ export function QuickAddToQuote({
             className={cn("w-full gap-2 font-display !text-[0.875rem]", className)}
             onClick={(e) => e.stopPropagation()}
           >
-            {iconOverride === "cart" ? <ShoppingCart className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
+            {iconOverride === "cart" ? <ShoppingBag className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {labelOverride || "Orçar"}
           </Button>
         )}
