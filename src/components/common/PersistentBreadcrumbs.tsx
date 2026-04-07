@@ -118,7 +118,7 @@ export const PersistentBreadcrumbs = forwardRef<HTMLElement, PersistentBreadcrum
           onClick={handleBack}
           aria-label="Teletransporte — Voltar"
           title="Teletransporte"
-          className="hidden sm:flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium text-primary-foreground bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
+          className="hidden sm:flex items-center justify-center gap-1.5 h-7 px-2.5 rounded-full text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200 flex-shrink-0 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 group"
         >
           {/* Teleport icon — person with rings */}
           <svg
