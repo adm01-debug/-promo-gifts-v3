@@ -137,9 +137,24 @@ export function QuickAddToQuote({
           <X className="h-3.5 w-3.5" />
         </button>
 
-        {showCompanyPicker && !activeCart ? (
+        {/* Step 1: Variant selection */}
+        {!variantChosen ? (
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-medium text-sm mb-1 pr-6">Escolha a cor</h4>
+              <p className="text-xs text-muted-foreground line-clamp-1">{productName}</p>
+            </div>
+            <SingleVariantPicker
+              productId={productId}
+              onSelect={handleVariantSelect}
+              compact
+            />
+          </div>
+        ) : needsCompanyPicker ? (
+          /* Step 2: Company picker (only if no active cart) */
           <CartCompanyPicker onCreated={handleCompanyCreated} onCancel={() => setIsOpen(false)} />
         ) : (
+          /* Step 3: Quantity + Add */
           <div className="space-y-3">
             <div>
               <h4 className="font-medium text-sm mb-1 pr-6">Adicionar ao carrinho</h4>
@@ -149,85 +164,74 @@ export function QuickAddToQuote({
               )}
             </div>
 
-            {/* Variant selection step */}
-            {!variantChosen ? (
-              <SingleVariantPicker
-                productId={productId}
-                onSelect={handleVariantSelect}
-                compact
-              />
-            ) : (
-              <>
-                {/* Show selected variant summary */}
-                {selectedVariant && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border/50">
-                    {selectedVariant.selected_thumbnail ? (
-                      <img
-                        src={`${selectedVariant.selected_thumbnail}/thumbnail`}
-                        alt={selectedVariant.color_name ?? ''}
-                        className="w-7 h-7 rounded-md object-cover border border-border/50"
-                      />
-                    ) : selectedVariant.color_hex ? (
-                      <div className="w-7 h-7 rounded-md border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
-                    ) : null}
-                    <span className="text-xs font-medium flex-1 truncate">
-                      {selectedVariant.color_name}
-                      {selectedVariant.size_code && ` — ${selectedVariant.size_code}`}
-                    </span>
-                    <button
-                      onClick={() => setSelectedVariant(undefined)}
-                      className="text-[10px] text-primary hover:underline shrink-0"
-                    >
-                      Trocar
-                    </button>
-                  </div>
-                )}
-
-                <div className="space-y-2">
-                  <label className="text-sm text-muted-foreground">Quantidade</label>
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
-                    >
-                      -
-                    </Button>
-                    <Input
-                      type="number"
-                      min={minQuantity}
-                      value={quantity}
-                      onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
-                      className="h-8 text-center"
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setQuantity(quantity + 10)}
-                    >
-                      +
-                    </Button>
-                  </div>
-                  <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
-                </div>
-
-                <Button className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>
-                  {isAdded ? (
-                    <>
-                      <Check className="h-4 w-4" />
-                      Adicionado!
-                    </>
-                  ) : (
-                    <>
-                      <ShoppingCart className="h-4 w-4" />
-                      Adicionar ao Carrinho
-                    </>
-                  )}
-                </Button>
-              </>
+            {/* Selected variant summary */}
+            {selectedVariant && (
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border/50">
+                {selectedVariant.selected_thumbnail ? (
+                  <img
+                    src={`${selectedVariant.selected_thumbnail}/thumbnail`}
+                    alt={selectedVariant.color_name ?? ''}
+                    className="w-7 h-7 rounded-md object-cover border border-border/50"
+                  />
+                ) : selectedVariant.color_hex ? (
+                  <div className="w-7 h-7 rounded-md border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
+                ) : null}
+                <span className="text-xs font-medium flex-1 truncate">
+                  {selectedVariant.color_name}
+                  {selectedVariant.size_code && ` — ${selectedVariant.size_code}`}
+                </span>
+                <button
+                  onClick={() => setSelectedVariant(undefined)}
+                  className="text-[10px] text-primary hover:underline shrink-0"
+                >
+                  Trocar
+                </button>
+              </div>
             )}
+
+            <div className="space-y-2">
+              <label className="text-sm text-muted-foreground">Quantidade</label>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
+                >
+                  -
+                </Button>
+                <Input
+                  type="number"
+                  min={minQuantity}
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(minQuantity, parseInt(e.target.value) || minQuantity))}
+                  className="h-8 text-center"
+                />
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={() => setQuantity(quantity + 10)}
+                >
+                  +
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
+            </div>
+
+            <Button className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>
+              {isAdded ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Adicionado!
+                </>
+              ) : (
+                <>
+                  <ShoppingCart className="h-4 w-4" />
+                  Adicionar ao Carrinho
+                </>
+              )}
+            </Button>
           </div>
         )}
       </PopoverContent>
