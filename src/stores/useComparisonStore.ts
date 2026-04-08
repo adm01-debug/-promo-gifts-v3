@@ -134,7 +134,10 @@ export const useComparisonStore = create<ComparisonStore>((set, get) => {
     toggleCompare: (productId: string, variant?: CompareVariantInfo) => {
       const { compareItems } = get();
       const key = itemKey(productId, variant);
-      const existingIdx = compareItems.findIndex(i => itemKeyFromItem(i) === key);
+      // If no variant provided, match by productId only (first occurrence)
+      const existingIdx = variant
+        ? compareItems.findIndex(i => itemKeyFromItem(i) === key)
+        : compareItems.findIndex(i => i.productId === productId);
       
       if (existingIdx >= 0) {
         const next = compareItems.filter((_, idx) => idx !== existingIdx);
