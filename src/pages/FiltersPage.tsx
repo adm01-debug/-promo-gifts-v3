@@ -256,7 +256,22 @@ export default function FiltersPage() {
               <div className="flex-shrink-0">
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                    Super Filtro
-                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">· {state.isLoadingProducts && state.realProducts.length === 0 ? 'carregando...' : `${(state.activeFiltersCount > 0 ? state.filteredProducts.length : (state.totalEstimate ?? state.filteredProducts.length)).toLocaleString("pt-BR")}${!state.isFullyLoaded && state.activeFiltersCount === 0 ? '+' : ''} itens`}</span>
+                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2 inline-flex items-center gap-1.5">
+                    · <span className="tabular-nums">{state.isLoadingProducts && state.realProducts.length === 0 ? 'carregando...' : `${(state.activeFiltersCount > 0 ? state.filteredProducts.length : (state.totalEstimate ?? state.filteredProducts.length)).toLocaleString("pt-BR")}${!state.isFullyLoaded && state.activeFiltersCount === 0 ? '+' : ''} itens`}</span>
+                    {!state.isFullyLoaded && state.loadingProgress > 0 && state.loadingProgress < 100 && state.activeFiltersCount === 0 && (
+                      <span className="inline-flex items-center gap-1 ml-1">
+                        <span className="h-1 w-12 bg-muted/50 rounded-full overflow-hidden inline-block align-middle">
+                          <motion.span
+                            className="block h-full bg-primary/60 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${state.loadingProgress}%` }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                          />
+                        </span>
+                        <span className="text-[10px] tabular-nums opacity-60">{state.loadingProgress}%</span>
+                      </span>
+                    )}
+                  </span>
                 </h1>
               </div>
               <div className="flex items-center gap-2 flex-1 min-w-0">
