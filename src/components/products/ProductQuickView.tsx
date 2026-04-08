@@ -503,7 +503,13 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   className="flex-1 h-11"
                   onClick={() => {
                     onOpenChange(false);
-                    const params = new URLSearchParams({ productId: product.id });
+                    const params = new URLSearchParams({
+                      product_id: product.id,
+                      product_name: product.name || '',
+                      product_sku: product.sku || '',
+                      product_price: String(product.price ?? 0),
+                    });
+                    if (product.images?.[0]) params.set('product_image', product.images[0]);
                     navigate(`/orcamentos/novo?${params.toString()}`);
                   }}
                 >
