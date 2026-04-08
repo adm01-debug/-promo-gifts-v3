@@ -37,11 +37,29 @@ import { useComparisonHighlight, highlightClasses } from "@/components/compare/C
 
 export default function ComparePage() {
   const navigate = useNavigate();
-  const { compareIds, removeFromCompare, clearCompare, compareCount } =
+  const { compareItems, removeByIndex, clearCompare, compareCount } =
     useComparisonStore();
-  const { getProductsByIds } = useProductsContext();
+  const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
-  const products = useMemo(() => getProductsByIds(compareIds), [getProductsByIds, compareIds]);
+  // Build enriched list: product + variant info, keyed by index
+  const compareEntries = useMemo(() => {
+    const uniqueIds = [...new Set(compareItems.map(i => i.productId))];
+    const productMap = new Map<string, any>();
+    getProductsByIds(uniqueIds).forEach(p => productMap.set(p.id, p));
+    
+    return compareItems.map((item, index) => {
+      const product = productMap.get(item.productId);
+      if (!product) return null;
+      // Override image if variant has thumbnail
+      const displayProduct = item.variant?.thumbnail
+        ? { ...product, images: [item.variant.thumbnail, ...product.images] }
+        : product;
+      return { product: displayProduct, variant: item.variant, index };
+    }).filter(Boolean) as { product: any; variant?: CompareVariantInfo; index: number }[];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compareItems, getProductsByIds, _cacheSignal]);
+
+  const products = compareEntries.map(e => e.product);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
