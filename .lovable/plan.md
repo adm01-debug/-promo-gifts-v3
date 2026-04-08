@@ -1,29 +1,26 @@
 
 
-## Corrigir vídeo bloqueado no player de produto
+## Plano: Linkar botão Compartilhar ao fluxo "Enviar - WhatsApp"
 
-### Problema
-Ao clicar no botão "Vídeo" na galeria do produto, o dialog mostra "Este conteúdo está bloqueado". Isso ocorre porque o `url_stream` (Cloudflare Stream) usa um iframe que bloqueia a incorporação no domínio do preview/produção.
+### Contexto
+O botão de compartilhar (ícone de corrente/share) no catálogo atualmente apenas copia o link ou usa a Web Share API. O objetivo é que ele abra o **SharePreviewDialog** — o mesmo fluxo completo de "Enviar - WhatsApp" com seleção de fotos, template de mensagem e contato.
 
-### Solução
-Implementar uma estratégia de fallback resiliente no player de vídeo:
+### Alterações
 
-1. **Priorizar `<video>` nativo sobre `<iframe>`** — Usar `url_hls` ou `url_original` com o elemento `<video>` HTML5, que não sofre restrições de embedding.
+**1. `src/hooks/useCatalogState.ts`**
+- Remover a lógica simples de `handleShareProduct` (clipboard/navigator.share)
+- Substituir por um estado que armazena o produto selecionado para compartilhamento: `shareProduct` / `setShareProduct`
+- `handleShareProduct` passa a apenas setar esse estado (abrir o dialog)
+- Expor `shareProduct` e `setShareProduct` no retorno do hook
 
-2. **Cadeia de fallback**:
-   - 1º: `url_original` (arquivo direto) → `<video>` nativo
-   - 2º: `url_hls` (stream HLS) → `<video>` nativo  
-   - 3º: `source_youtube_id` → `<iframe>` YouTube embed
-   - 4º: `url_stream` (Cloudflare) → `<iframe>` (último recurso)
+**2. `src/pages/Index.tsx`**
+- Importar `SharePreviewDialog`
+- Renderizar o dialog controlado por `catalog.shareProduct`
+- Passar `onOpenChange` que limpa o estado ao fechar
 
-3. **Detecção de erro no iframe** — Adicionar `onError` no iframe do Cloudflare Stream para automaticamente trocar para a URL alternativa caso o embed falhe.
+**3. `src/pages/FiltersPage.tsx`** (se também usa share)
+- Mesma integração: estado local + `SharePreviewDialog`
 
-### Arquivo alterado
-**`src/components/products/ProductGallery.tsx`** (linhas 670-693)
-- Reorganizar a lógica condicional do player de vídeo para priorizar `<video>` nativo com `url_original` ou `url_hls`
-- Mover o iframe de `url_stream` para o final da cadeia de fallback
-- Manter o iframe do YouTube como está (funciona normalmente)
-
-### Resultado esperado
-O vídeo será reproduzido diretamente via player HTML5 nativo, sem depender do iframe do Cloudflare que bloqueia o embedding.
+### Resultado
+Ao clicar no botão de compartilhar em qualquer ProductCard do catálogo, abre o dialog completo de WhatsApp com seleção de fotos, templates de mensagem e seleção de contato — idêntico ao fluxo da página de detalhes do produto.
 
