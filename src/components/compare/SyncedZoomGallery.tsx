@@ -24,18 +24,22 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
   const [selectedImageIndices, setSelectedImageIndices] = useState<Record<string, number>>({});
   const panStartRef = useRef({ x: 0, y: 0 });
 
+  // Use index-based keys to support same product with different variants
+  const productKeys = products.map((_, i) => `slot-${i}`);
+
   // Initialize selected image indices
   useEffect(() => {
     const indices: Record<string, number> = {};
-    products.forEach(p => {
-      if (!(p.id in selectedImageIndices)) {
-        indices[p.id] = 0;
+    productKeys.forEach(key => {
+      if (!(key in selectedImageIndices)) {
+        indices[key] = 0;
       }
     });
     if (Object.keys(indices).length > 0) {
       setSelectedImageIndices(prev => ({ ...prev, ...indices }));
     }
-  }, [products]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products.length]);
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 4));
   const handleZoomOut = () => {
