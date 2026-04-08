@@ -99,6 +99,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         toast.success(`"${product.name}" adicionado à comparação${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
       }
     } else if (variantPickerMode === 'collection') {
+      setCollectionVariant(variantInfo);
       setCollectionModalOpen(true);
     } else if (variantPickerMode === 'quote') {
       const params = new URLSearchParams({ productId: product.id });
