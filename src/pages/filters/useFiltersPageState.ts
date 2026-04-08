@@ -231,7 +231,7 @@ export function useFiltersPageState() {
   };
 
   return {
-    filters, setFilters, searchParams, realProducts, isLoadingProducts, isFullyLoaded, totalEstimate,
+    filters, setFilters, searchParams, realProducts, isLoadingProducts, isFullyLoaded, totalEstimate, loadedCount, loadingProgress,
     isLoadingMaterialFilter, isLoadingCategoryFilter, isLoadingColorFilter,
     activePresetId, viewMode, setViewMode, gridColumns, setGridColumns,
     selectionMode, setSelectionMode,
