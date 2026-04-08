@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo, forwardRef, useCallback } from "react";
 import { GenderBadge } from "./GenderBadge";
-import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
+import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -61,6 +62,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   noveltyDaysRemaining,
   activeColorFilter,
 }, ref) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
@@ -476,6 +478,25 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
               </Button>
             </TooltipTrigger>
             <TooltipContent side="left">Compartilhar</TooltipContent>
+          </Tooltip>
+
+          {/* Orçamento */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="secondary"
+                size="icon"
+                className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/orcamentos/novo?productId=${product.id}`);
+                }}
+                aria-label="Criar orçamento"
+              >
+                <FileText className="h-4 w-4 md:h-5 md:w-5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="left">Orçamento</TooltipContent>
           </Tooltip>
 
           {/* Add to Cart */}
