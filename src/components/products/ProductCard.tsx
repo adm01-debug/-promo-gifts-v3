@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, memo, forwardRef, useCallback } from "react";
 import { GenderBadge } from "./GenderBadge";
-import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
+import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
