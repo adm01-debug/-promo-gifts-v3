@@ -119,11 +119,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         });
       }
     } else {
-      // Add directly without variant picker — just toggle
-      if (onToggleFavorite) {
-        onToggleFavorite(product.id);
-        toast.success(`"${product.name}" adicionado aos favoritos`);
-      }
+      setVariantPickerMode('favorite');
+      setVariantPickerOpen(true);
     }
   };
 
@@ -138,10 +135,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         });
       }
     } else {
-      if (onToggleCompare) {
-        onToggleCompare(product.id);
-        toast.success(`"${product.name}" adicionado à comparação`);
-      }
+      setVariantPickerMode('compare');
+      setVariantPickerOpen(true);
     }
   };
 
