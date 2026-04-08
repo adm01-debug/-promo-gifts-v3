@@ -19,11 +19,12 @@ export default function FavoritesPage() {
   const navigate = useNavigate();
   const { favorites, clearFavorites, favoriteCount, toggleFavorite } =
     useFavoritesStore();
-  const { getProductsByIds } = useProductsContext();
+  const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
   const favoriteProducts = useMemo(
     () => getProductsByIds(favorites.map((f) => f.productId)),
-    [getProductsByIds, favorites]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [getProductsByIds, favorites, _cacheSignal]
   );
 
   // Build a map of productId -> variant info for quick lookup
