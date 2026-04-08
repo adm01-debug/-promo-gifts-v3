@@ -109,8 +109,15 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     }
   }, [variantPickerMode, product, favStore, compStore, navigate]);
 
+  const markBusy = () => {
+    actionBusyRef.current = true;
+    setTimeout(() => { actionBusyRef.current = false; }, 500);
+  };
+
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
+    markBusy();
+    setActionsOpen(false);
     if (isFavorited) {
       if (onToggleFavorite) {
         onToggleFavorite(product.id);
