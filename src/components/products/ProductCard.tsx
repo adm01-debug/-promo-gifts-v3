@@ -109,8 +109,15 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     }
   }, [variantPickerMode, product, favStore, compStore, navigate]);
 
+  const markBusy = () => {
+    actionBusyRef.current = true;
+    setTimeout(() => { actionBusyRef.current = false; }, 500);
+  };
+
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
+    markBusy();
+    setActionsOpen(false);
     if (isFavorited) {
       if (onToggleFavorite) {
         onToggleFavorite(product.id);
@@ -127,6 +134,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
+    markBusy();
+    setActionsOpen(false);
     if (isInCompare) {
       if (onToggleCompare) {
         onToggleCompare(product.id);
@@ -365,6 +374,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       >
         {/* Main FAB "+" button */}
         <button
+          type="button"
           className={cn(
             "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
             "transition-all duration-300 ease-out",
@@ -461,6 +471,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
+                  markBusy();
+                  setActionsOpen(false);
                   setVariantPickerMode('collection');
                   setVariantPickerOpen(true);
                 }}
@@ -482,8 +494,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 onClick={(e) => {
                   e.stopPropagation();
                   e.preventDefault();
-                  actionBusyRef.current = true;
-                  setTimeout(() => { actionBusyRef.current = false; }, 500);
+                  markBusy();
+                  setActionsOpen(false);
                   onShare?.(product);
                 }}
                 aria-label="Compartilhar produto"
@@ -503,6 +515,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
+                  markBusy();
+                  setActionsOpen(false);
                   setVariantPickerMode('quote');
                   setVariantPickerOpen(true);
                 }}
@@ -535,6 +549,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
+                  markBusy();
+                  setActionsOpen(false);
                   setQuickViewOpen(true);
                 }}
                 aria-label="Visualização rápida"

@@ -45,6 +45,15 @@ const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string
   },
 };
 
+interface VariantPickerDialogProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  productId: string;
+  productName: string;
+  mode: VariantActionMode;
+  onComplete: (variant: ExternalVariantStock | null) => void;
+}
+
 export function VariantPickerDialog({
   open,
   onOpenChange,
