@@ -3,13 +3,28 @@ import { Product } from "@/hooks/useProducts";
 
 const STORAGE_KEY = "product-collections";
 
+export interface CollectionVariantInfo {
+  color_name?: string | null;
+  color_hex?: string | null;
+  size_code?: string | null;
+  variant_id?: string | null;
+  thumbnail?: string | null;
+}
+
+export interface CollectionProductItem {
+  productId: string;
+  variant?: CollectionVariantInfo;
+}
+
 export interface Collection {
   id: string;
   name: string;
   description?: string;
   color: string;
   icon: string;
+  /** @deprecated Use productItems instead */
   productIds: string[];
+  productItems: CollectionProductItem[];
   createdAt: string;
   updatedAt: string;
 }
@@ -27,6 +42,26 @@ const DEFAULT_COLORS = [
 
 const DEFAULT_ICONS = ["📁", "⭐", "🎁", "💼", "🎯", "💡", "🔥", "❤️"];
 
+/** Migrate old collections that only have productIds to the new productItems format */
+function migrateCollections(collections: any[]): Collection[] {
+  return collections.map((col) => {
+    if (!col.productItems) {
+      return {
+        ...col,
+        productItems: (col.productIds || []).map((id: string) => ({ productId: id })),
+      };
+    }
+    // Keep productIds in sync for backward compatibility
+    if (!col.productIds || col.productIds.length !== col.productItems.length) {
+      return {
+        ...col,
+        productIds: col.productItems.map((item: CollectionProductItem) => item.productId),
+      };
+    }
+    return col;
+  });
+}
+
 export function useCollections() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
@@ -35,7 +70,7 @@ export function useCollections() {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        setCollections(JSON.parse(stored));
+        setCollections(migrateCollections(JSON.parse(stored)));
       }
     } catch (e) {
       console.error("Error loading collections:", e);
@@ -59,6 +94,7 @@ export function useCollections() {
           color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
         icon: icon || DEFAULT_ICONS[0],
         productIds: [],
+        productItems: [],
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
@@ -86,17 +122,19 @@ export function useCollections() {
   }, []);
 
   const addProductToCollection = useCallback(
-    (collectionId: string, productId: string) => {
+    (collectionId: string, productId: string, variant?: CollectionVariantInfo) => {
       setCollections((prev) =>
-        prev.map((col) =>
-          col.id === collectionId && !col.productIds.includes(productId)
-            ? {
-                ...col,
-                productIds: [...col.productIds, productId],
-                updatedAt: new Date().toISOString(),
-              }
-            : col
-        )
+        prev.map((col) => {
+          if (col.id !== collectionId) return col;
+          // Check if already exists
+          if (col.productIds.includes(productId)) return col;
+          return {
+            ...col,
+            productIds: [...col.productIds, productId],
+            productItems: [...col.productItems, { productId, variant }],
+            updatedAt: new Date().toISOString(),
+          };
+        })
       );
     },
     []
@@ -110,6 +148,7 @@ export function useCollections() {
             ? {
                 ...col,
                 productIds: col.productIds.filter((id) => id !== productId),
+                productItems: col.productItems.filter((item) => item.productId !== productId),
                 updatedAt: new Date().toISOString(),
               }
             : col
@@ -120,13 +159,14 @@ export function useCollections() {
   );
 
   const addProductToMultipleCollections = useCallback(
-    (productId: string, collectionIds: string[]) => {
+    (productId: string, collectionIds: string[], variant?: CollectionVariantInfo) => {
       setCollections((prev) =>
         prev.map((col) => {
           if (collectionIds.includes(col.id) && !col.productIds.includes(productId)) {
             return {
               ...col,
               productIds: [...col.productIds, productId],
+              productItems: [...col.productItems, { productId, variant }],
               updatedAt: new Date().toISOString(),
             };
           }
@@ -135,6 +175,26 @@ export function useCollections() {
       );
     },
     []
+  );
+
+  /** Get variant info for a product in a collection */
+  const getCollectionProductVariant = useCallback(
+    (collectionId: string, productId: string): CollectionVariantInfo | undefined => {
+      const collection = collections.find((col) => col.id === collectionId);
+      if (!collection) return undefined;
+      const item = collection.productItems.find((i) => i.productId === productId);
+      return item?.variant;
+    },
+    [collections]
+  );
+
+  /** Get all product items with variant info for a collection */
+  const getCollectionProductItems = useCallback(
+    (collectionId: string): CollectionProductItem[] => {
+      const collection = collections.find((col) => col.id === collectionId);
+      return collection?.productItems || [];
+    },
+    [collections]
   );
 
   /** Resolver produtos usando a função do ProductsContext */
@@ -174,6 +234,8 @@ export function useCollections() {
     removeProductFromCollection,
     addProductToMultipleCollections,
     getCollectionProductsFromMap,
+    getCollectionProductItems,
+    getCollectionProductVariant,
     getProductCollections,
     isProductInCollection,
     defaultColors: DEFAULT_COLORS,
