@@ -640,6 +640,7 @@ export function CatalogContent({
             onToggleFavorite={toggleFavorite}
             isInCompare={isInCompare}
             onToggleCompare={onToggleCompare}
+            canAddToCompare={canAddToCompare}
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
