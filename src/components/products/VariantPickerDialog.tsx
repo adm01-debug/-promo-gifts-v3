@@ -10,7 +10,7 @@ import { Heart, GitCompare, FolderPlus, MessageCircle } from 'lucide-react';
 import { SingleVariantPicker } from '@/components/products/SingleVariantPicker';
 import type { ExternalVariantStock } from '@/hooks/useExternalVariantStock';
 
-export type VariantActionMode = 'favorite' | 'compare' | 'collection' | 'share';
+export type VariantActionMode = 'favorite' | 'compare' | 'collection' | 'share' | 'quote';
 
 const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string; colorClass: string; bgClass: string }> = {
   favorite: {
@@ -36,6 +36,12 @@ const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string
     title: 'Compartilhar com Cor',
     colorClass: 'text-success',
     bgClass: 'bg-success/15',
+  },
+  quote: {
+    icon: FolderPlus,
+    title: 'Orçamento com Cor',
+    colorClass: 'text-primary',
+    bgClass: 'bg-primary/15',
   },
 };
 
