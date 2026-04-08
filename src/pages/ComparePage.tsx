@@ -342,8 +342,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         SKU
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center font-mono text-sm">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center font-mono text-sm">
                           {product.sku}
                         </TableCell>
                       ))}
@@ -354,8 +354,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Categoria
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <Badge variant="outline">
                             {product.category.icon} {product.category.name}
                           </Badge>
@@ -368,8 +368,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Fornecedor
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           {product.supplier.name}
                         </TableCell>
                       ))}
@@ -380,10 +380,10 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Estoque
                       </TableCell>
-                      {products.map((product) => {
+                      {products.map((product, idx) => {
                         const status = getStockStatusLabel(product.stockStatus);
                         return (
-                          <TableCell key={product.id} className="text-center">
+                          <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                             <div className="flex flex-col items-center gap-1">
                               <span className={cn("font-medium", status.color)}>
                                 {status.label}
@@ -402,8 +402,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         É Kit?
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           {product.isKit ? (
                             <Check className="h-5 w-5 text-success mx-auto" />
                           ) : (
@@ -418,8 +418,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Cores Disponíveis
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <div className="flex flex-wrap justify-center gap-1">
                             {product.colors.slice(0, 6).map((color, idx) => (
                               <div
@@ -444,8 +444,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Materiais
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <div className="flex flex-wrap justify-center gap-1">
                             {product.materials.map((material) => (
                               <Badge key={material} variant="secondary" className="text-xs">
@@ -462,8 +462,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Público-Alvo
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <div className="flex flex-wrap justify-center gap-1">
                             {product.tags.publicoAlvo.slice(0, 3).map((publico) => (
                               <Badge key={publico} variant="outline" className="text-xs">
@@ -480,8 +480,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Datas Comemorativas
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           {product.tags.datasComemorativas.length > 0 ? (
                             <div className="flex flex-wrap justify-center gap-1">
                               {product.tags.datasComemorativas.slice(0, 2).map((data) => (
@@ -502,8 +502,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Descrição
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <p className="text-sm text-muted-foreground line-clamp-3">
                             {product.description}
                           </p>
@@ -516,8 +516,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Ações
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <Button
                             size="sm"
                             onClick={() => navigate(`/produto/${product.id}`)}
@@ -557,7 +557,7 @@ function HighlightedPriceRow({
       </TableCell>
       {products.map((product, idx) => (
         <TableCell 
-          key={product.id} 
+          key={`cell-${idx ?? product.id}`} 
           className={cn("text-center", highlightClasses[highlights[idx]])}
         >
           <div className="flex items-center justify-center gap-1">
@@ -593,7 +593,7 @@ function HighlightedMinQtyRow({ products }: { products: any[] }) {
       </TableCell>
       {products.map((product, idx) => (
         <TableCell 
-          key={product.id} 
+          key={`cell-${idx ?? product.id}`} 
           className={cn("text-center", highlightClasses[highlights[idx]])}
         >
           <div className="flex items-center justify-center gap-1">
