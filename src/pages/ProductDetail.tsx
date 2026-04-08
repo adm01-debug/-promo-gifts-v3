@@ -180,8 +180,7 @@ export default function ProductDetail() {
       removeFavorite(id);
       toast({ title: "Removido dos favoritos", description: product.name });
     } else {
-      toggleFavorite(id);
-      toast({ title: "Adicionado aos favoritos", description: product.name });
+      setFavPickerOpen(true);
     }
   };
 
