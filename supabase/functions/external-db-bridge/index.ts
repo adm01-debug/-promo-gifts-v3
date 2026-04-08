@@ -84,10 +84,19 @@ function computeSafeLimit(
   table: string,
   hasSearch: boolean,
   offset: number,
+  selectFields?: string,
 ): number {
   const isHeavy = HEAVY_TABLES.includes(table);
   const isVeryHeavy = VERY_HEAVY_TABLES.includes(table);
   if (!isHeavy) return requestedLimit;
+
+  // Lightweight selects (few scalar fields, no JSONB) can handle larger pages safely
+  const isLightweight = selectFields && selectFields !== '*' && selectFields.split(',').length <= 20;
+  if (isLightweight) {
+    if (hasSearch) return Math.min(requestedLimit, 250);
+    return Math.min(requestedLimit, 500);
+  }
+
   if (hasSearch) return Math.min(requestedLimit, 120);
   if (isVeryHeavy) return Math.min(requestedLimit, 100);
   if (offset >= 1000) return Math.min(requestedLimit, 125);
@@ -275,7 +284,7 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
       const hasSearch = !!(qFilters && '_search' in qFilters);
       const rawLimit = (q.limit as number) || 500;
       const qOffset = (q.offset as number) || 0;
-      const qLimit = computeSafeLimit(rawLimit, qTable, hasSearch, qOffset);
+      const qLimit = computeSafeLimit(rawLimit, qTable, hasSearch, qOffset, qSelect);
       const qCacheKey = q.cacheKey as string | undefined;
       const qCountMode = q.countMode as string | undefined;
 
@@ -628,7 +637,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
 
   const requestedLimit = typeof queryLimit === 'number' && queryLimit > 0 ? queryLimit : 500;
   const safeOffset = typeof queryOffset === 'number' && queryOffset >= 0 ? queryOffset : 0;
-  const safeLimit = computeSafeLimit(requestedLimit, table, !!(hasSearch || hasNamePrefix), safeOffset);
+  const safeLimit = computeSafeLimit(requestedLimit, table, !!(hasSearch || hasNamePrefix), safeOffset, effectiveSelect);
   query = query.range(safeOffset, safeOffset + safeLimit - 1);
 
   const selectStart = performance.now();
