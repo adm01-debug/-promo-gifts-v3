@@ -130,7 +130,6 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isInCompare) {
-      // Remove directly
       if (onToggleCompare) {
         onToggleCompare(product.id);
         showUndoToast({
@@ -139,9 +138,10 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         });
       }
     } else {
-      // Show variant picker before adding
-      setVariantPickerMode('compare');
-      setVariantPickerOpen(true);
+      if (onToggleCompare) {
+        onToggleCompare(product.id);
+        toast.success(`"${product.name}" adicionado à comparação`);
+      }
     }
   };
 
