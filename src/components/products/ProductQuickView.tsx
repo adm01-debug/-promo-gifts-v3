@@ -329,6 +329,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                 {displayImages.map((_, idx) => (
                   <button
+                    type="button"
                     key={idx}
                     className={cn(
                       "w-2.5 h-2.5 rounded-full transition-all duration-200",
