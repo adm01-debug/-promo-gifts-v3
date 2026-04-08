@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
+import type { Product } from "@/hooks/useProducts";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
@@ -36,6 +38,9 @@ export default function FiltersPage() {
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
 
   const state = useFiltersPageState();
+
+  // ========== SHARE STATE ==========
+  const [shareProduct, setShareProduct] = useState<Product | null>(null);
 
   // ========== SELECTION MODE ==========
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -339,7 +344,7 @@ export default function FiltersPage() {
               ) : state.filteredProducts.length > 0 ? (
                 <>
                   {state.viewMode === "grid" ? (
-                    <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => state.selectionMode ? toggleSelect(product.id) : navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} selectedIds={selectedIds} onToggleSelect={toggleSelect} />
+                    <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => state.selectionMode ? toggleSelect(product.id) : navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} onShare={(product) => setShareProduct(product)} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} selectedIds={selectedIds} onToggleSelect={toggleSelect} />
                   ) : state.viewMode === "list" ? (
                     <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
                       <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? toggleSelect(productId) : navigate(`/produto/${productId}`)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} externalSelectedIds={selectedIds} onToggleSelect={toggleSelect} />
@@ -418,6 +423,14 @@ export default function FiltersPage() {
             onAction={handleVoiceAction}
           />
         </Suspense>
+      )}
+
+      {shareProduct && (
+        <SharePreviewDialog
+          open={!!shareProduct}
+          onOpenChange={(open) => { if (!open) setShareProduct(null); }}
+          product={shareProduct}
+        />
       )}
     </MainLayout>
   );

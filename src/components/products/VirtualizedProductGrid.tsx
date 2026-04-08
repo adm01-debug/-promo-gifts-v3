@@ -22,6 +22,7 @@ interface VirtualizedProductGridProps {
   isInCompare?: (productId: string) => boolean;
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
+  onShare?: (product: Product) => void;
   // Filter controls
   activeFiltersCount?: number;
   sortBy?: string;
@@ -55,6 +56,7 @@ export function VirtualizedProductGrid({
   isInCompare,
   onToggleCompare,
   canAddToCompare = true,
+  onShare,
   activeFiltersCount = 0,
   sortBy = "name",
   onSortChange,
@@ -293,6 +295,7 @@ export function VirtualizedProductGrid({
                         isInCompare={isInCompare?.(product.id)}
                         onToggleCompare={onToggleCompare}
                         canAddToCompare={canAddToCompare}
+                        onShare={onShare}
                         hideCategoryBadges
                         activeColorFilter={activeColorFilter}
                       />
