@@ -2,6 +2,7 @@
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
+import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
 import { CatalogHeader } from "@/components/catalog/CatalogHeader";
 import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
 import { CatalogActiveFilters } from "@/components/catalog/CatalogActiveFilters";
@@ -113,6 +114,14 @@ export default function Index() {
       </div>
 
       <FloatingCompareBar />
+
+      {catalog.shareProduct && (
+        <SharePreviewDialog
+          open={!!catalog.shareProduct}
+          onOpenChange={(open) => { if (!open) catalog.setShareProduct(null); }}
+          product={catalog.shareProduct}
+        />
+      )}
     </MainLayout>
   );
 }
