@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import {
-  Package, AlertTriangle, SkipForward, ShoppingBag, FileText,
+  Package, AlertTriangle, SkipForward, ShoppingBag, FileText, Heart, GitCompare, FolderPlus,
 } from 'lucide-react';
 import { useExternalVariantStock, type ExternalVariantStock } from '@/hooks/useExternalVariantStock';
 import type { Product } from '@/hooks/useProducts';
@@ -19,11 +19,13 @@ export interface BulkVariantSelection {
   variant: ExternalVariantStock | null;
 }
 
+export type BulkWizardMode = 'cart' | 'quote' | 'favorite' | 'compare' | 'collection';
+
 interface BulkVariantWizardProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   products: Product[];
-  mode: 'cart' | 'quote';
+  mode: BulkWizardMode;
   onComplete: (selections: BulkVariantSelection[]) => void;
 }
 
@@ -269,9 +271,15 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
   const currentProduct = products[currentIndex];
   if (!currentProduct) return null;
 
-  const Icon = mode === 'cart' ? ShoppingBag : FileText;
-  const title = mode === 'cart' ? 'Adicionar ao Carrinho' : 'Enviar para Orçamento';
-  const colorClass = mode === 'cart' ? 'text-cart' : 'text-primary';
+  const modeConfig: Record<BulkWizardMode, { icon: typeof ShoppingBag; title: string; colorClass: string; bgClass: string }> = {
+    cart: { icon: ShoppingBag, title: 'Adicionar ao Carrinho', colorClass: 'text-cart', bgClass: 'bg-cart/15' },
+    quote: { icon: FileText, title: 'Enviar para Orçamento', colorClass: 'text-primary', bgClass: 'bg-primary/15' },
+    favorite: { icon: Heart, title: 'Favoritar com Cor', colorClass: 'text-destructive', bgClass: 'bg-destructive/15' },
+    compare: { icon: GitCompare, title: 'Comparar com Cor', colorClass: 'text-primary', bgClass: 'bg-primary/15' },
+    collection: { icon: FolderPlus, title: 'Coleção com Cor', colorClass: 'text-info', bgClass: 'bg-info/15' },
+  };
+  const { icon: Icon, title, colorClass } = modeConfig[mode];
+  const bgClass = modeConfig[mode].bgClass;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -282,7 +290,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
             <DialogTitle className="flex items-center gap-2.5 text-base font-display font-semibold">
               <div className={cn(
                 'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
-                mode === 'cart' ? 'bg-cart/15' : 'bg-primary/15',
+                bgClass,
               )}>
                 <Icon className={cn('h-4 w-4', colorClass)} />
               </div>
