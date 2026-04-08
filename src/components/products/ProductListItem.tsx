@@ -129,10 +129,10 @@ export const ProductListItem = memo(function ProductListItem({
 
   const getStockColor = (status: string) => {
     switch (status) {
-      case "in-stock": return "text-emerald-400";
-      case "low-stock": return "text-amber-400";
-      case "out-of-stock": return "text-red-400";
-      default: return "text-emerald-400";
+      case "in-stock": return "text-success";
+      case "low-stock": return "text-warning";
+      case "out-of-stock": return "text-destructive";
+      default: return "text-success";
     }
   };
 
