@@ -13,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
+import { CollectionVariantInfo } from "@/hooks/useCollections";
 import { toast } from "sonner";
 
 interface AddToCollectionModalProps {
@@ -20,6 +21,7 @@ interface AddToCollectionModalProps {
   onOpenChange: (open: boolean) => void;
   productId: string;
   productName: string;
+  variant?: CollectionVariantInfo;
 }
 
 export const AddToCollectionModal = ({
@@ -27,6 +29,7 @@ export const AddToCollectionModal = ({
   onOpenChange,
   productId,
   productName,
+  variant,
 }: AddToCollectionModalProps) => {
   const {
     collections,
@@ -48,7 +51,7 @@ export const AddToCollectionModal = ({
       removeProductFromCollection(collectionId, productId);
       toast.success(`Removido de "${collectionName}"`);
     } else {
-      addProductToCollection(collectionId, productId);
+      addProductToCollection(collectionId, productId, variant);
       toast.success(`Adicionado a "${collectionName}"`);
     }
   };
@@ -57,7 +60,7 @@ export const AddToCollectionModal = ({
     if (!newName.trim()) return;
 
     const newCollection = createCollection(newName, undefined, selectedColor, selectedIcon);
-    addProductToCollection(newCollection.id, productId);
+    addProductToCollection(newCollection.id, productId, variant);
     toast.success(`Coleção "${newName}" criada`);
     
     setNewName("");
@@ -69,8 +72,17 @@ export const AddToCollectionModal = ({
       <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Adicionar à Coleção</DialogTitle>
-          <DialogDescription className="truncate">
+          <DialogDescription className="truncate flex items-center gap-2">
+            {variant?.color_hex && (
+              <span
+                className="inline-block w-3 h-3 rounded-full border border-border shrink-0"
+                style={{ backgroundColor: variant.color_hex }}
+              />
+            )}
             {productName}
+            {variant?.color_name && (
+              <span className="text-xs text-muted-foreground">({variant.color_name})</span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
