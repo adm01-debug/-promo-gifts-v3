@@ -426,18 +426,12 @@ export function useCatalogState() {
     navigate(`/produto/${product.id}`);
   }, [navigate]);
 
+  // Share opens the WhatsApp dialog instead of clipboard/native share
+  const [shareProduct, setShareProduct] = useState<Product | null>(null);
+
   const handleShareProduct = useCallback((product: Product) => {
-    const shareUrl = `${window.location.origin}/produto/${product.id}`;
-    const shareText = `Confira ${product.name} por R$ ${product.price.toFixed(2)}`;
-    if (navigator.share) {
-      navigator.share({ title: product.name, text: shareText, url: shareUrl })
-        .then(() => toast({ title: "Compartilhado!", description: "Produto compartilhado com sucesso" }))
-        .catch(() => {});
-    } else {
-      navigator.clipboard.writeText(shareUrl);
-      toast({ title: "Link copiado!", description: "O link do produto foi copiado para a área de transferência" });
-    }
-  }, [toast]);
+    setShareProduct(product);
+  }, []);
 
   const handleFavoriteProduct = useCallback((product: Product) => {
     toggleFavorite(product.id);
@@ -481,6 +475,7 @@ export function useCatalogState() {
     resetFilters,
     handleViewProduct,
     handleShareProduct,
+    shareProduct, setShareProduct,
     handleFavoriteProduct,
     handleSearch,
 
