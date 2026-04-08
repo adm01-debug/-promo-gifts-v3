@@ -157,6 +157,8 @@ export function useFiltersPageState() {
     if (filters.hasCommercialPackaging) count++;
     if ((filters.techniques?.length || 0) > 0) count++;
     if ((filters.tags?.length || 0) > 0) count++;
+    if (((filters as any).gender?.length || 0) > 0) count++;
+    if (((filters as any).sizes?.length || 0) > 0) count++;
     if (filters.search) count++;
     return count;
   }, [filters]);
