@@ -8,7 +8,7 @@
  * - Ações de hover no desktop, sempre visíveis no mobile
  * - Altura fixa ~72-88px para virtualização consistente
  */
-import { memo, useState } from "react";
+import { memo, useState, useCallback } from "react";
 import { Heart, GitCompare, Share2, Package, Building2, FolderPlus } from "lucide-react";
 import { getCdnUrl } from "@/utils/image-utils";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +23,10 @@ import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveCo
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDialog";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 
 interface ProductListItemProps {
   product: Product;
@@ -53,6 +57,34 @@ export const ProductListItem = memo(function ProductListItem({
   activeColorFilter,
 }: ProductListItemProps) {
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [variantPickerOpen, setVariantPickerOpen] = useState(false);
+  const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
+  const favStore = useFavoritesStore();
+  const compStore = useComparisonStore();
+
+  const handleVariantComplete = useCallback((variant: ExternalVariantStock | null) => {
+    const variantInfo = variant ? {
+      color_name: variant.color_name,
+      color_hex: variant.color_hex,
+      size_code: variant.size_code,
+      variant_id: variant.id,
+      thumbnail: variant.selected_thumbnail,
+    } : undefined;
+
+    if (variantPickerMode === 'favorite') {
+      favStore.addFavorite(product.id, variantInfo);
+      toast.success(`"${product.name}" favoritado${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
+    } else if (variantPickerMode === 'compare') {
+      const result = compStore.addToCompare(product.id, variantInfo);
+      if (!result) {
+        showErrorToast({ title: "Limite de 4 produtos para comparação atingido" });
+      } else {
+        toast.success(`"${product.name}" adicionado à comparação${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
+      }
+    } else if (variantPickerMode === 'collection') {
+      setCollectionModalOpen(true);
+    }
+  }, [variantPickerMode, product, favStore, compStore]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
@@ -82,33 +114,33 @@ export const ProductListItem = memo(function ProductListItem({
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!onToggleFavorite) return;
-    const was = isFavorited;
-    onToggleFavorite(product.id);
-    if (was) {
-      showUndoToast({
-        title: `"${product.name}" removido dos favoritos`,
-        onUndo: () => onToggleFavorite(product.id),
-      });
+    if (isFavorited) {
+      if (onToggleFavorite) {
+        onToggleFavorite(product.id);
+        showUndoToast({
+          title: `"${product.name}" removido dos favoritos`,
+          onUndo: () => onToggleFavorite(product.id),
+        });
+      }
     } else {
-      toast.success(`"${product.name}" adicionado aos favoritos`);
+      setVariantPickerMode('favorite');
+      setVariantPickerOpen(true);
     }
   };
 
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!onToggleCompare) return;
-    const was = isInCompare;
-    const result = onToggleCompare(product.id);
-    if (result.isFull) {
-      showErrorToast({ title: "Limite de 4 produtos para comparação atingido" });
-    } else if (!result.added && was) {
-      showUndoToast({
-        title: `"${product.name}" removido da comparação`,
-        onUndo: () => onToggleCompare(product.id),
-      });
-    } else if (result.added) {
-      toast.success(`"${product.name}" adicionado à comparação`);
+    if (isInCompare) {
+      if (onToggleCompare) {
+        onToggleCompare(product.id);
+        showUndoToast({
+          title: `"${product.name}" removido da comparação`,
+          onUndo: () => onToggleCompare(product.id),
+        });
+      }
+    } else {
+      setVariantPickerMode('compare');
+      setVariantPickerOpen(true);
     }
   };
 
@@ -277,6 +309,15 @@ export const ProductListItem = memo(function ProductListItem({
           />
         </div>
       </article>
+
+      <VariantPickerDialog
+        open={variantPickerOpen}
+        onOpenChange={setVariantPickerOpen}
+        productId={product.id}
+        productName={product.name}
+        mode={variantPickerMode}
+        onComplete={handleVariantComplete}
+      />
 
       <AddToCollectionModal
         open={collectionModalOpen}

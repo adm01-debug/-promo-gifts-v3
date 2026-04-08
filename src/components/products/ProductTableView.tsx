@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { getCdnUrl } from "@/utils/image-utils";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDialog";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { toast } from "sonner";
+import { showErrorToast } from "@/utils/undoToast";
 
 interface ProductTableViewProps {
   products: Product[];
@@ -84,6 +90,42 @@ export const ProductTableView = memo(function ProductTableView({
 }: ProductTableViewProps) {
   const [sortCol, setSortCol] = useState<SortCol>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  
+  // Shared variant picker state
+  const [variantPickerOpen, setVariantPickerOpen] = useState(false);
+  const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
+  const [variantPickerProduct, setVariantPickerProduct] = useState<Product | null>(null);
+  const favStore = useFavoritesStore();
+  const compStore = useComparisonStore();
+
+  const openVariantPicker = useCallback((product: Product, mode: VariantActionMode) => {
+    setVariantPickerProduct(product);
+    setVariantPickerMode(mode);
+    setVariantPickerOpen(true);
+  }, []);
+
+  const handleVariantComplete = useCallback((variant: ExternalVariantStock | null) => {
+    if (!variantPickerProduct) return;
+    const variantInfo = variant ? {
+      color_name: variant.color_name,
+      color_hex: variant.color_hex,
+      size_code: variant.size_code,
+      variant_id: variant.id,
+      thumbnail: variant.selected_thumbnail,
+    } : undefined;
+
+    if (variantPickerMode === 'favorite') {
+      favStore.addFavorite(variantPickerProduct.id, variantInfo);
+      toast.success(`"${variantPickerProduct.name}" favoritado${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
+    } else if (variantPickerMode === 'compare') {
+      const result = compStore.addToCompare(variantPickerProduct.id, variantInfo);
+      if (!result) {
+        showErrorToast({ title: "Limite de 4 produtos para comparação atingido" });
+      } else {
+        toast.success(`"${variantPickerProduct.name}" adicionado à comparação${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
+      }
+    }
+  }, [variantPickerMode, variantPickerProduct, favStore, compStore]);
 
   const handleSort = useCallback((col: SortCol) => {
     if (sortCol === col) {
@@ -219,7 +261,14 @@ export const ProductTableView = memo(function ProductTableView({
                       variant="ghost"
                       size="icon"
                       className={cn("h-7 w-7 rounded-full", isFavorite?.(product.id) && "text-destructive")}
-                      onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(product.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isFavorite?.(product.id)) {
+                          onToggleFavorite?.(product.id);
+                        } else {
+                          openVariantPicker(product, 'favorite');
+                        }
+                      }}
                       aria-label="Favoritar"
                     >
                       <Heart className={cn("h-3 w-3", isFavorite?.(product.id) && "fill-current")} />
@@ -228,7 +277,14 @@ export const ProductTableView = memo(function ProductTableView({
                       variant="ghost"
                       size="icon"
                       className={cn("h-7 w-7 rounded-full", isInCompare?.(product.id) && "text-primary")}
-                      onClick={(e) => { e.stopPropagation(); onToggleCompare?.(product.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isInCompare?.(product.id)) {
+                          onToggleCompare?.(product.id);
+                        } else {
+                          openVariantPicker(product, 'compare');
+                        }
+                      }}
                       aria-label="Comparar"
                     >
                       <GitCompare className="h-3 w-3" />
@@ -249,6 +305,17 @@ export const ProductTableView = memo(function ProductTableView({
           })}
         </tbody>
       </table>
+
+      {variantPickerProduct && (
+        <VariantPickerDialog
+          open={variantPickerOpen}
+          onOpenChange={setVariantPickerOpen}
+          productId={variantPickerProduct.id}
+          productName={variantPickerProduct.name}
+          mode={variantPickerMode}
+          onComplete={handleVariantComplete}
+        />
+      )}
     </div>
   );
 });
