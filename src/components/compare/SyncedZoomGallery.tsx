@@ -176,12 +176,13 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
           products.length >= 4 && "grid-cols-2 lg:grid-cols-4"
         )}
       >
-        {products.map((product) => {
-          const currentIndex = selectedImageIndices[product.id] || 0;
+        {products.map((product, slotIdx) => {
+          const slotKey = productKeys[slotIdx];
+          const currentIndex = selectedImageIndices[slotKey] || 0;
           const currentImage = product.images[currentIndex];
           
           return (
-            <div key={product.id} className="space-y-3">
+            <div key={slotKey} className="space-y-3">
               {/* Product name */}
               <h3 
                 className="font-display text-sm font-medium text-center truncate cursor-pointer hover:text-primary transition-colors"
@@ -219,7 +220,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                   {product.images.slice(0, 5).map((img, idx) => (
                     <button
                       key={idx}
-                      onClick={() => selectImage(product.id, idx)}
+                      onClick={() => selectImage(slotKey, idx)}
                       className={cn(
                         "shrink-0 w-10 h-10 rounded-md overflow-hidden transition-all",
                         currentIndex === idx
