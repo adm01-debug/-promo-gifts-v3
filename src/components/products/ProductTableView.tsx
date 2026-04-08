@@ -11,6 +11,12 @@ import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { getCdnUrl } from "@/utils/image-utils";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDialog";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { toast } from "sonner";
+import { showErrorToast } from "@/utils/undoToast";
 
 interface ProductTableViewProps {
   products: Product[];
