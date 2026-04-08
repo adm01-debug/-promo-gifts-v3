@@ -362,6 +362,7 @@ export const ProductTableView = memo(function ProductTableView({
                           variant="ghost"
                           size="icon"
                           className={cn("h-7 w-7 rounded-full", inComp && "text-primary bg-primary/10")}
+                          disabled={!inComp && !canAddToCompare}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (inComp) {

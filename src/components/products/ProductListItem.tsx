@@ -12,8 +12,8 @@
  *    estão implementadas aqui com a mesma arquitetura de variante/cor:
  *    Favoritar, Comparar, Coleção, Share, Orçamento, Carrinho, QuickView
  */
-import { memo, useState, useCallback, useRef } from "react";
-import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText, ShoppingCart } from "lucide-react";
+import { memo, useState, useCallback, useRef, forwardRef } from "react";
+import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl } from "@/utils/image-utils";
 import { Badge } from "@/components/ui/badge";
@@ -50,7 +50,7 @@ interface ProductListItemProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export const ProductListItem = memo(function ProductListItem({
+export const ProductListItem = memo(forwardRef<HTMLElement, ProductListItemProps>(function ProductListItem({
   product,
   onClick,
   onView,
@@ -62,7 +62,7 @@ export const ProductListItem = memo(function ProductListItem({
   canAddToCompare = true,
   highlightColors = [],
   activeColorFilter,
-}: ProductListItemProps) {
+}: ProductListItemProps, ref) {
   const navigate = useNavigate();
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
@@ -199,6 +199,7 @@ export const ProductListItem = memo(function ProductListItem({
   return (
     <>
       <article
+        ref={ref as React.Ref<HTMLElement>}
         className={cn(
           "group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5",
           "rounded-xl bg-card border border-border/50 cursor-pointer",
@@ -261,7 +262,12 @@ export const ProductListItem = memo(function ProductListItem({
                 {product.colors.slice(0, 5).map((color, idx) => (
                   <div
                     key={idx}
-                    className="w-3 h-3 rounded-full border border-border/50"
+                    className={cn(
+                      "w-3 h-3 rounded-full border",
+                      highlightColors.includes(color.group)
+                        ? "border-success ring-1 ring-success/30 scale-110"
+                        : "border-border/50"
+                    )}
                     style={{ backgroundColor: color.hex }}
                     title={color.name}
                   />
@@ -463,4 +469,6 @@ export const ProductListItem = memo(function ProductListItem({
       />
     </>
   );
-});
+}));
+
+ProductListItem.displayName = 'ProductListItem';
