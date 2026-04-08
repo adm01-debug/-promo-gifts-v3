@@ -93,8 +93,8 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
     if (value[0] === 1) setPan({ x: 0, y: 0 });
   };
 
-  const selectImage = (productId: string, index: number) => {
-    setSelectedImageIndices(prev => ({ ...prev, [productId]: index }));
+  const selectImage = (slotKey: string, index: number) => {
+    setSelectedImageIndices(prev => ({ ...prev, [slotKey]: index }));
   };
 
   const GalleryContent = ({ inDialog = false }: { inDialog?: boolean }) => (
