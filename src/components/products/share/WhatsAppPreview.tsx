@@ -80,7 +80,7 @@ export function WhatsAppPreview({
 
       {/* Chat body — dark wallpaper */}
       <div
-        className="p-4 min-h-[200px] max-h-[360px] overflow-y-auto"
+        className="p-3 min-h-[120px] max-h-[220px] overflow-y-auto"
         style={{
           backgroundColor: chatBg,
           backgroundImage:
@@ -91,7 +91,7 @@ export function WhatsAppPreview({
         {selectedPhotos.length > 0 && (
           <div className="flex justify-end mb-1">
             <div
-              className="rounded-lg p-1 max-w-[85%] shadow-sm"
+              className="rounded-lg p-1 max-w-[65%] shadow-sm"
               style={{ backgroundColor: bubbleOut }}
             >
               <div
