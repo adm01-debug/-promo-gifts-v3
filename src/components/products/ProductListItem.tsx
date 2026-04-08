@@ -114,33 +114,33 @@ export const ProductListItem = memo(function ProductListItem({
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!onToggleFavorite) return;
-    const was = isFavorited;
-    onToggleFavorite(product.id);
-    if (was) {
-      showUndoToast({
-        title: `"${product.name}" removido dos favoritos`,
-        onUndo: () => onToggleFavorite(product.id),
-      });
+    if (isFavorited) {
+      if (onToggleFavorite) {
+        onToggleFavorite(product.id);
+        showUndoToast({
+          title: `"${product.name}" removido dos favoritos`,
+          onUndo: () => onToggleFavorite(product.id),
+        });
+      }
     } else {
-      toast.success(`"${product.name}" adicionado aos favoritos`);
+      setVariantPickerMode('favorite');
+      setVariantPickerOpen(true);
     }
   };
 
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
-    if (!onToggleCompare) return;
-    const was = isInCompare;
-    const result = onToggleCompare(product.id);
-    if (result.isFull) {
-      showErrorToast({ title: "Limite de 4 produtos para comparação atingido" });
-    } else if (!result.added && was) {
-      showUndoToast({
-        title: `"${product.name}" removido da comparação`,
-        onUndo: () => onToggleCompare(product.id),
-      });
-    } else if (result.added) {
-      toast.success(`"${product.name}" adicionado à comparação`);
+    if (isInCompare) {
+      if (onToggleCompare) {
+        onToggleCompare(product.id);
+        showUndoToast({
+          title: `"${product.name}" removido da comparação`,
+          onUndo: () => onToggleCompare(product.id),
+        });
+      }
+    } else {
+      setVariantPickerMode('compare');
+      setVariantPickerOpen(true);
     }
   };
 
