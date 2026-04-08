@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, memo, forwardRef } from "react";
+import { useState, useRef, useEffect, memo, forwardRef, useCallback } from "react";
 import { GenderBadge } from "./GenderBadge";
 import { Heart, Share2, Eye, Package, Layers, GitCompare, FolderPlus, Sparkles, Building2, ShoppingCart, Plus, X } from "lucide-react";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
@@ -18,6 +18,10 @@ import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useProductBounds } from "@/hooks/useProductBounds";
 import { ProductSparkline } from "./ProductSparkline";
+import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDialog";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 export interface ProductCardProps {
   product: Product;
   onClick?: () => void;
