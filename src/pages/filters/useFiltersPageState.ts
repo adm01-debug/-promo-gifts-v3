@@ -38,6 +38,8 @@ export function useFiltersPageState() {
     const mat = getArr('materiais'); if (mat.length) f.materiais = mat;
     const tech = getArr('techniques'); if (tech.length) f.techniques = tech;
     const tags = getArr('tags'); if (tags.length) f.tags = tags;
+    const gender = getArr('gender'); if (gender.length) (f as any).gender = gender;
+    const sizes = getArr('sizes'); if (sizes.length) (f as any).sizes = sizes;
     const pMin = get('priceMin'); const pMax = get('priceMax');
     if (pMin || pMax) f.priceRange = [pMin ? parseInt(pMin) : 0, pMax ? parseInt(pMax) : 9999];
     const ms = get('minStock'); if (ms) f.minStock = parseInt(ms);
@@ -81,6 +83,8 @@ export function useFiltersPageState() {
     setArr('materialGroups', filters.materialGroups || []); setArr('materialTypes', filters.materialTypes || []);
     setArr('materiais', filters.materiais); setArr('techniques', filters.techniques || []);
     setArr('tags', filters.tags || []);
+    setArr('gender', (filters as any).gender || []);
+    setArr('sizes', (filters as any).sizes || []);
     if (filters.priceRange[0] > 0) params.set('priceMin', String(filters.priceRange[0]));
     if (filters.priceRange[1] < 9999) params.set('priceMax', String(filters.priceRange[1]));
     if (filters.minStock > 0) params.set('minStock', String(filters.minStock));
@@ -153,6 +157,8 @@ export function useFiltersPageState() {
     if (filters.hasCommercialPackaging) count++;
     if ((filters.techniques?.length || 0) > 0) count++;
     if ((filters.tags?.length || 0) > 0) count++;
+    if (((filters as any).gender?.length || 0) > 0) count++;
+    if (((filters as any).sizes?.length || 0) > 0) count++;
     if (filters.search) count++;
     return count;
   }, [filters]);
