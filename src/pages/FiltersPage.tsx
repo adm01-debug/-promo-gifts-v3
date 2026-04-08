@@ -222,7 +222,7 @@ export default function FiltersPage() {
       <div className="animate-fade-in">
         <div className="flex gap-8">
           {/* Sidebar */}
-          <aside className="hidden lg:flex lg:flex-col w-80 shrink-0 sticky top-4 max-h-[calc(100vh-2rem)] self-start">
+          <aside className="hidden lg:flex lg:flex-col w-80 shrink-0 sticky top-4 max-h-[calc(100vh-6rem)] overflow-hidden">
             <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-2 space-y-4">
               <FilterPanel filters={state.filters} onFilterChange={state.handleFilterChange} onReset={state.handleReset} activeFiltersCount={state.activeFiltersCount} products={state.realProducts} filteredResultsCount={state.filteredProducts.length} />
             </div>
