@@ -673,6 +673,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         onOpenChange={setCollectionModalOpen}
         productId={product.id}
         productName={product.name}
+        variant={collectionVariant}
       />
 
       {/* Quick View Modal */}
