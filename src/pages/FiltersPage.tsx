@@ -434,14 +434,16 @@ export default function FiltersPage() {
         <VariantPickerDialog
           open
           onOpenChange={(open) => {
-            if (!open && variantForShare === undefined) {
+            if (!open && !variantSelectedRef.current) {
               setShareProduct(null);
             }
+            variantSelectedRef.current = false;
           }}
           productId={shareProduct.id}
           productName={shareProduct.name}
           mode="share"
           onComplete={(variant) => {
+            variantSelectedRef.current = true;
             setVariantForShare(variant ?? null);
           }}
         />
