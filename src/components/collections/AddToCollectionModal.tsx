@@ -72,16 +72,16 @@ export const AddToCollectionModal = ({
       <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <DialogHeader>
           <DialogTitle>Adicionar à Coleção</DialogTitle>
-          <DialogDescription className="truncate flex items-center gap-2">
+          <DialogDescription className="flex flex-wrap items-center gap-1.5 leading-snug">
             {variant?.color_hex && (
               <span
                 className="inline-block w-3 h-3 rounded-full border border-border shrink-0"
                 style={{ backgroundColor: variant.color_hex }}
               />
             )}
-            {productName}
+            <span className="break-words">{productName}</span>
             {variant?.color_name && (
-              <span className="text-xs text-muted-foreground">({variant.color_name})</span>
+              <span className="text-xs text-muted-foreground whitespace-nowrap">({variant.color_name})</span>
             )}
           </DialogDescription>
         </DialogHeader>
