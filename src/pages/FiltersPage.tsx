@@ -10,7 +10,7 @@ import { ProductTableView } from "@/components/products/ProductTableView";
 import { ColumnSelector } from "@/components/products/ColumnSelector";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
-import { BulkVariantWizard, type BulkVariantSelection } from "@/components/catalog/BulkVariantWizard";
+import { BulkVariantWizard, type BulkVariantSelection, type BulkWizardMode } from "@/components/catalog/BulkVariantWizard";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { Button } from "@/components/ui/button";
@@ -70,23 +70,22 @@ export default function FiltersPage() {
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
   const handleBulkFavorite = useCallback(() => {
-    let added = 0;
-    selectedIds.forEach(id => { if (!isFavorite(id)) { toggleFavorite(id); added++; } });
-    toast.success(`${added} produto${added > 1 ? "s" : ""} adicionado${added > 1 ? "s" : ""} aos favoritos`);
-    clearSelection();
-  }, [selectedIds, toggleFavorite, isFavorite, clearSelection]);
+    setWizardMode('favorite');
+    setVariantWizardOpen(true);
+  }, []);
 
   const handleBulkCompare = useCallback(() => {
-    const ids = Array.from(selectedIds).slice(0, 4);
-    ids.forEach(id => { if (!isInCompare(id)) toggleCompare(id); });
-    toast.success(`${ids.length} produto${ids.length > 1 ? "s" : ""} adicionado${ids.length > 1 ? "s" : ""} à comparação`);
-    clearSelection();
-  }, [selectedIds, toggleCompare, isInCompare, clearSelection]);
+    setWizardMode('compare');
+    setVariantWizardOpen(true);
+  }, []);
 
-  const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+  const handleBulkCollection = useCallback(() => {
+    setWizardMode('collection');
+    setVariantWizardOpen(true);
+  }, []);
   
   const [variantWizardOpen, setVariantWizardOpen] = useState(false);
-  const [wizardMode, setWizardMode] = useState<'cart' | 'quote'>('cart');
+  const [wizardMode, setWizardMode] = useState<BulkWizardMode>('cart');
   const [wizardSelections, setWizardSelections] = useState<BulkVariantSelection[]>([]);
 
   const handleBulkCart = useCallback(() => {
