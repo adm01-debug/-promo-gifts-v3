@@ -475,7 +475,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                         isInCompare && "bg-primary/10 border-primary/30 text-primary"
                       )}
                       onClick={handleCompare}
-                     aria-label="GitCompare"><GitCompare className="h-5 w-5" />
+                     aria-label="Comparar"><GitCompare className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -501,7 +501,9 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   variant="orange"
                   className="flex-1 h-11"
                   onClick={() => {
-                    toast.success(`${quantity}x "${product.name}" adicionado ao orçamento`);
+                    onOpenChange(false);
+                    const params = new URLSearchParams({ productId: product.id });
+                    navigate(`/orcamentos/novo?${params.toString()}`);
                   }}
                 >
                   <ShoppingCart className="h-5 w-5 mr-2" />
