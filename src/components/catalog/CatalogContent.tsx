@@ -8,7 +8,7 @@ import { ProductListItem } from "@/components/products/ProductListItem";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
-import { BulkVariantWizard, type BulkVariantSelection } from "@/components/catalog/BulkVariantWizard";
+import { BulkVariantWizard, type BulkVariantSelection, type BulkWizardMode } from "@/components/catalog/BulkVariantWizard";
 import { ProductTableView } from "@/components/products/ProductTableView";
 import { ProductGridSkeleton } from "@/components/products/ProductCardSkeleton";
 import { ProductListSkeleton } from "@/components/products/ProductListItemSkeleton";
