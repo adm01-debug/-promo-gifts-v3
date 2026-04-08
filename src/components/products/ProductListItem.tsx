@@ -7,9 +7,14 @@
  * - Thumb 64-80px contém o produto sem dominar o layout
  * - Ações de hover no desktop, sempre visíveis no mobile
  * - Altura fixa ~72-88px para virtualização consistente
+ *
+ * ✅ PARIDADE COM GRID: Todas as ações rápidas do ProductCard (Grid)
+ *    estão implementadas aqui com a mesma arquitetura de variante/cor:
+ *    Favoritar, Comparar, Coleção, Share, Orçamento, Carrinho, QuickView
  */
-import { memo, useState, useCallback } from "react";
-import { Heart, GitCompare, Share2, Package, Building2, FolderPlus } from "lucide-react";
+import { memo, useState, useCallback, useRef } from "react";
+import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText, ShoppingCart } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { getCdnUrl } from "@/utils/image-utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -23,6 +28,8 @@ import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveCo
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { ProductQuickView } from "./ProductQuickView";
+import { SharePreviewDialog } from "./share/SharePreviewDialog";
 import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDialog";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
@@ -56,12 +63,22 @@ export const ProductListItem = memo(function ProductListItem({
   highlightColors = [],
   activeColorFilter,
 }: ProductListItemProps) {
+  const navigate = useNavigate();
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
+  const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareVariant, setShareVariant] = useState<{ variantName?: string | null; colorHex?: string | null; thumbnailUrl?: string | null } | null>(null);
   const [variantPickerOpen, setVariantPickerOpen] = useState(false);
   const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
+  const actionBusyRef = useRef(false);
   const favStore = useFavoritesStore();
   const compStore = useComparisonStore();
+
+  const markBusy = () => {
+    actionBusyRef.current = true;
+    setTimeout(() => { actionBusyRef.current = false; }, 500);
+  };
 
   const handleVariantComplete = useCallback((variant: ExternalVariantStock | null) => {
     const variantInfo = variant ? {
@@ -85,8 +102,27 @@ export const ProductListItem = memo(function ProductListItem({
     } else if (variantPickerMode === 'collection') {
       setCollectionVariant(variantInfo);
       setCollectionModalOpen(true);
+    } else if (variantPickerMode === 'quote') {
+      const params = new URLSearchParams({
+        product_id: product.id,
+        product_name: product.name,
+        product_sku: product.sku || '',
+        product_price: String(product.price ?? 0),
+      });
+      if (variant?.color_name) params.set('color_name', variant.color_name);
+      if (variant?.color_hex) params.set('color_hex', variant.color_hex);
+      if (variant?.selected_thumbnail) params.set('product_image', variant.selected_thumbnail);
+      if (product.images?.[0]) params.set('product_image', variant?.selected_thumbnail || product.images[0]);
+      setTimeout(() => navigate(`/orcamentos/novo?${params.toString()}`), 0);
+    } else if (variantPickerMode === 'share') {
+      setShareVariant(variant ? {
+        variantName: variant.color_name,
+        colorHex: variant.color_hex,
+        thumbnailUrl: variant.selected_thumbnail,
+      } : null);
+      setShareDialogOpen(true);
     }
-  }, [variantPickerMode, product, favStore, compStore]);
+  }, [variantPickerMode, product, favStore, compStore, navigate]);
 
   const formatPrice = (price: number) =>
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
@@ -110,12 +146,14 @@ export const ProductListItem = memo(function ProductListItem({
   };
 
   const handleClick = () => {
+    if (actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen || shareDialogOpen) return;
     if (onClick) onClick();
     else if (onView) onView(product);
   };
 
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
+    markBusy();
     if (isFavorited) {
       if (onToggleFavorite) {
         onToggleFavorite(product.id);
@@ -132,6 +170,7 @@ export const ProductListItem = memo(function ProductListItem({
 
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
+    markBusy();
     if (isInCompare) {
       if (onToggleCompare) {
         onToggleCompare(product.id);
@@ -248,6 +287,7 @@ export const ProductListItem = memo(function ProductListItem({
           "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
           "transition-opacity duration-200"
         )}>
+          {/* Favoritar */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -266,6 +306,7 @@ export const ProductListItem = memo(function ProductListItem({
             <TooltipContent side="bottom">{isFavorited ? "Remover favorito" : "Favoritar"}</TooltipContent>
           </Tooltip>
 
+          {/* Comparar */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
@@ -282,14 +323,21 @@ export const ProductListItem = memo(function ProductListItem({
             <TooltipContent side="bottom">Comparar</TooltipContent>
           </Tooltip>
 
+          {/* Desktop-only actions */}
           <div className="hidden sm:flex items-center gap-0.5">
+            {/* Compartilhar via VariantPicker */}
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="ghost"
                   size="icon"
                   className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => { e.stopPropagation(); onShare?.(product); }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markBusy();
+                    setVariantPickerMode('share');
+                    setVariantPickerOpen(true);
+                  }}
                   aria-label="Compartilhar"
                 >
                   <Share2 className="h-3.5 w-3.5" />
@@ -297,8 +345,51 @@ export const ProductListItem = memo(function ProductListItem({
               </TooltipTrigger>
               <TooltipContent side="bottom">Compartilhar</TooltipContent>
             </Tooltip>
+
+            {/* Coleção */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markBusy();
+                    setVariantPickerMode('collection');
+                    setVariantPickerOpen(true);
+                  }}
+                  aria-label="Adicionar à coleção"
+                >
+                  <FolderPlus className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Coleção</TooltipContent>
+            </Tooltip>
+
+            {/* Orçamento via VariantPicker */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    markBusy();
+                    setVariantPickerMode('quote');
+                    setVariantPickerOpen(true);
+                  }}
+                  aria-label="Orçamento"
+                >
+                  <FileText className="h-3.5 w-3.5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom">Orçamento</TooltipContent>
+            </Tooltip>
           </div>
 
+          {/* Carrinho (QuickAddToQuote) */}
           <QuickAddToQuote
             productId={product.id}
             productName={product.name}
@@ -309,9 +400,30 @@ export const ProductListItem = memo(function ProductListItem({
             variant="icon"
             className="h-8 w-8"
           />
+
+          {/* Quick View */}
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hidden sm:flex"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  markBusy();
+                  setQuickViewOpen(true);
+                }}
+                aria-label="Visualização rápida"
+              >
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent side="bottom">Quick View</TooltipContent>
+          </Tooltip>
         </div>
       </article>
 
+      {/* Variant Picker Dialog */}
       <VariantPickerDialog
         open={variantPickerOpen}
         onOpenChange={setVariantPickerOpen}
@@ -321,12 +433,33 @@ export const ProductListItem = memo(function ProductListItem({
         onComplete={handleVariantComplete}
       />
 
+      {/* Collection Modal */}
       <AddToCollectionModal
         open={collectionModalOpen}
         onOpenChange={setCollectionModalOpen}
         productId={product.id}
         productName={product.name}
         variant={collectionVariant}
+      />
+
+      {/* Quick View Modal */}
+      <ProductQuickView
+        product={product}
+        open={quickViewOpen}
+        onOpenChange={setQuickViewOpen}
+        isFavorited={isFavorited}
+        onToggleFavorite={onToggleFavorite}
+        isInCompare={isInCompare}
+        onToggleCompare={onToggleCompare}
+        onShare={onShare}
+      />
+
+      {/* Share Preview Dialog */}
+      <SharePreviewDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        product={product}
+        selectedVariant={shareVariant}
       />
     </>
   );
