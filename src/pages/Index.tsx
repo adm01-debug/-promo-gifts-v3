@@ -1,5 +1,5 @@
 // Catálogo de Produtos - Index Page (v3 - refactored)
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
@@ -15,6 +15,7 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 export default function Index() {
   const catalog = useCatalogState();
   const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
+  const variantSelectedRef = useRef(false);
   // undefined = picker not answered yet; null = "sem cor específica"; object = selected variant
 
   return (
@@ -124,12 +125,18 @@ export default function Index() {
       {catalog.shareProduct && variantForShare === undefined && (
         <VariantPickerDialog
           open
-          onOpenChange={(open) => { if (!open) { catalog.setShareProduct(null); } }}
+          onOpenChange={(open) => {
+            if (!open && !variantSelectedRef.current) {
+              catalog.setShareProduct(null);
+            }
+            variantSelectedRef.current = false;
+          }}
           productId={catalog.shareProduct.id}
           productName={catalog.shareProduct.name}
           mode="share"
           onComplete={(variant) => {
-            setVariantForShare(variant);
+            variantSelectedRef.current = true;
+            setVariantForShare(variant ?? null);
           }}
         />
       )}

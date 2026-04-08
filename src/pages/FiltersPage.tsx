@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
 import { VariantPickerDialog } from "@/components/products/VariantPickerDialog";
 import type { Product } from "@/hooks/useProducts";
@@ -44,6 +44,7 @@ export default function FiltersPage() {
   // ========== SHARE STATE ==========
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
   const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
+  const variantSelectedRef = useRef(false);
 
   // ========== SELECTION MODE ==========
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -432,12 +433,18 @@ export default function FiltersPage() {
       {shareProduct && variantForShare === undefined && (
         <VariantPickerDialog
           open
-          onOpenChange={(open) => { if (!open) { setShareProduct(null); } }}
+          onOpenChange={(open) => {
+            if (!open && !variantSelectedRef.current) {
+              setShareProduct(null);
+            }
+            variantSelectedRef.current = false;
+          }}
           productId={shareProduct.id}
           productName={shareProduct.name}
           mode="share"
           onComplete={(variant) => {
-            setVariantForShare(variant);
+            variantSelectedRef.current = true;
+            setVariantForShare(variant ?? null);
           }}
         />
       )}
