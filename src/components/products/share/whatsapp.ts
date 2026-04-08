@@ -23,16 +23,28 @@ export function openWhatsAppShare({
 }: {
   message: string;
   phone?: string | null;
-}) {
+}): { url: string; opened: boolean } {
   const encodedMessage = encodeURIComponent(message);
   const normalizedPhone = normalizePhoneForWhatsApp(phone);
   const url = normalizedPhone
     ? `https://wa.me/${normalizedPhone}?text=${encodedMessage}`
     : `https://wa.me/?text=${encodedMessage}`;
 
+  let opened = false;
   if (typeof window !== "undefined") {
-    window.open(url, "_blank", "noopener,noreferrer");
+    const win = window.open(url, "_blank", "noopener,noreferrer");
+    opened = win !== null;
+
+    // Fallback: if popup was blocked, try location redirect
+    if (!opened) {
+      try {
+        window.location.href = url;
+        opened = true;
+      } catch {
+        // silently fail — caller should show toast
+      }
+    }
   }
 
-  return url;
+  return { url, opened };
 }

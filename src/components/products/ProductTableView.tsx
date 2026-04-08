@@ -3,7 +3,7 @@
  * Mostra SKU, nome, fornecedor, preço, estoque e cores em colunas.
  */
 import { memo, useState, useCallback } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, Package, Heart, GitCompare, ExternalLink } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Package, Heart, GitCompare, ExternalLink, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -25,6 +25,7 @@ interface ProductTableViewProps {
   onToggleFavorite?: (id: string) => void;
   isInCompare?: (id: string) => boolean;
   onToggleCompare?: (id: string) => { added: boolean; isFull: boolean };
+  onShareProduct?: (product: Product) => void;
   selectionMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
@@ -84,6 +85,7 @@ export const ProductTableView = memo(function ProductTableView({
   onToggleFavorite,
   isInCompare,
   onToggleCompare,
+  onShareProduct,
   selectionMode,
   selectedIds,
   onToggleSelect,
@@ -289,6 +291,17 @@ export const ProductTableView = memo(function ProductTableView({
                     >
                       <GitCompare className="h-3 w-3" />
                     </Button>
+                    {onShareProduct && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 rounded-full"
+                        onClick={(e) => { e.stopPropagation(); onShareProduct(product); }}
+                        aria-label="Compartilhar"
+                      >
+                        <Share2 className="h-3 w-3" />
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="icon"
