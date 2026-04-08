@@ -362,7 +362,9 @@ export default function FiltersPage() {
                         onToggleFavorite={toggleFavorite}
                         isInCompare={isInCompare}
                         onToggleCompare={toggleCompare}
+                        canAddToCompare={canAddMore}
                         onShareProduct={(product) => setShareProduct(product)}
+                        activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null}
                         selectionMode={state.selectionMode}
                         selectedIds={selectedIds}
                         onToggleSelect={toggleSelect}
