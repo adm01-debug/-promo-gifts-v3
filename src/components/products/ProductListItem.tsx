@@ -57,6 +57,7 @@ export const ProductListItem = memo(function ProductListItem({
   activeColorFilter,
 }: ProductListItemProps) {
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
   const [variantPickerOpen, setVariantPickerOpen] = useState(false);
   const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
   const favStore = useFavoritesStore();
@@ -82,6 +83,7 @@ export const ProductListItem = memo(function ProductListItem({
         toast.success(`"${product.name}" adicionado à comparação${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
       }
     } else if (variantPickerMode === 'collection') {
+      setCollectionVariant(variantInfo);
       setCollectionModalOpen(true);
     }
   }, [variantPickerMode, product, favStore, compStore]);
@@ -324,6 +326,7 @@ export const ProductListItem = memo(function ProductListItem({
         onOpenChange={setCollectionModalOpen}
         productId={product.id}
         productName={product.name}
+        variant={collectionVariant}
       />
     </>
   );
