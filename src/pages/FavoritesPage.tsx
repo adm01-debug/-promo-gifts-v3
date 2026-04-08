@@ -55,7 +55,11 @@ export default function FavoritesPage() {
   };
 
   const handleShareAll = () => {
-    const productNames = favoriteProducts.map((p) => `• ${p.name}`).join("\n");
+    const productNames = favoriteProducts.map((p) => {
+      const variant = variantMap.get(p.id);
+      const colorSuffix = variant?.color_name ? ` (${variant.color_name})` : '';
+      return `• ${p.name}${colorSuffix}`;
+    }).join("\n");
     const message = `Meus produtos favoritos:\n\n${productNames}`;
     
     if (navigator.share) {
