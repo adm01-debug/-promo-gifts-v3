@@ -227,7 +227,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-card border-border gap-0">
+      <DialogContent className="max-w-4xl p-0 overflow-hidden bg-card border-border gap-0" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <VisuallyHidden>
           <DialogTitle>Visualização rápida: {product.name}</DialogTitle>
         </VisuallyHidden>
@@ -329,6 +329,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
                 {displayImages.map((_, idx) => (
                   <button
+                    type="button"
                     key={idx}
                     className={cn(
                       "w-2.5 h-2.5 rounded-full transition-all duration-200",
@@ -475,7 +476,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                         isInCompare && "bg-primary/10 border-primary/30 text-primary"
                       )}
                       onClick={handleCompare}
-                     aria-label="GitCompare"><GitCompare className="h-5 w-5" />
+                     aria-label="Comparar"><GitCompare className="h-5 w-5" />
                     </Button>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -501,7 +502,9 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                   variant="orange"
                   className="flex-1 h-11"
                   onClick={() => {
-                    toast.success(`${quantity}x "${product.name}" adicionado ao orçamento`);
+                    onOpenChange(false);
+                    const params = new URLSearchParams({ productId: product.id });
+                    navigate(`/orcamentos/novo?${params.toString()}`);
                   }}
                 >
                   <ShoppingCart className="h-5 w-5 mr-2" />
