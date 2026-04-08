@@ -226,7 +226,23 @@ export default function FiltersPage() {
             <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-2 space-y-4">
               <FilterPanel filters={state.filters} onFilterChange={state.handleFilterChange} onReset={state.handleReset} activeFiltersCount={state.activeFiltersCount} products={state.realProducts} filteredResultsCount={state.filteredProducts.length} />
             </div>
-            <div className="border-t border-border/40 bg-gradient-to-t from-card via-card to-card/80 px-3 py-2.5 shrink-0 mt-1">
+            <div className="border-t border-border/40 bg-gradient-to-t from-card via-card to-card/80 px-3 py-2.5 shrink-0 mt-1 space-y-2">
+              {/* Loading progress bar */}
+              {!state.isFullyLoaded && state.loadingProgress > 0 && state.loadingProgress < 100 && (
+                <div className="space-y-1">
+                  <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/70 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${state.loadingProgress}%` }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center tabular-nums">
+                    Carregando {state.loadedCount.toLocaleString('pt-BR')} de {(state.totalEstimate ?? 0).toLocaleString('pt-BR')} produtos ({state.loadingProgress}%)
+                  </p>
+                </div>
+              )}
               <div className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${state.activeFiltersCount > 0 ? "bg-gradient-to-r from-orange to-orange-hover text-orange-foreground shadow-md shadow-orange/20" : "bg-muted/60 text-muted-foreground"}`}>
                 <Filter className="h-4 w-4" />
                 <span>{state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando catálogo...' : state.activeFiltersCount > 0 ? `Ver ${state.filteredProducts.length.toLocaleString('pt-BR')} resultado${state.filteredProducts.length !== 1 ? 's' : ''}` : `${(state.totalEstimate ?? state.filteredProducts.length).toLocaleString('pt-BR')}${!state.isFullyLoaded ? '+' : ''} produtos disponíveis`}</span>
