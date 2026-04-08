@@ -223,11 +223,14 @@ export function useQuoteBuilderState() {
   // ── Pre-fill from product detail page (query params) ──
   useEffect(() => {
     if (isEditMode) return;
-    const productId = searchParams.get("product_id");
-    const productName = searchParams.get("product_name");
-    if (!productId || !productName) return;
+    // Support both "product_id" (canonical) and "productId" (legacy from cards)
+    const productId = searchParams.get("product_id") || searchParams.get("productId");
+    if (!productId) return;
     // Avoid duplicating if items already exist (e.g. restored draft)
     if (items.length > 0) return;
+    const productName = searchParams.get("product_name") || "";
+    const colorName = searchParams.get("color_name") || undefined;
+    const colorHex = searchParams.get("color_hex") || undefined;
     const newItem: QuoteItem = {
       product_id: productId,
       product_name: productName,
@@ -235,11 +238,15 @@ export function useQuoteBuilderState() {
       product_image_url: searchParams.get("product_image") || undefined,
       quantity: Math.max(1, parseInt(searchParams.get("min_quantity") || "1", 10)),
       unit_price: parseFloat(searchParams.get("product_price") || "0"),
+      color_name: colorName,
+      color_hex: colorHex,
       personalizations: [],
     };
     setItems([newItem]);
     setActiveItemIndex(0);
-    toast.success(`Produto "${productName}" adicionado ao orçamento`);
+    if (productName) {
+      toast.success(`Produto "${productName}" adicionado ao orçamento${colorName ? ` — ${colorName}` : ''}`);
+    }
     // Clean URL params without triggering React Router re-render
     window.history.replaceState({}, document.title, location.pathname);
   }, []);
