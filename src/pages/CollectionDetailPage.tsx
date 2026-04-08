@@ -18,6 +18,7 @@ export default function CollectionDetailPage() {
   const {
     collections,
     getCollectionProducts,
+    getCollectionProductItems,
     removeProductFromCollection,
   } = useCollectionsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
@@ -32,6 +33,30 @@ export default function CollectionDetailPage() {
     if (!id) return [];
     return getCollectionProducts(id);
   }, [id, getCollectionProducts]);
+
+  // Map productId -> variant info for display
+  const variantMap = useMemo(() => {
+    if (!id) return new Map();
+    const items = getCollectionProductItems(id);
+    const map = new Map<string, { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null }>();
+    items.forEach((item) => {
+      if (item.variant) {
+        map.set(item.productId, item.variant);
+      }
+    });
+    return map;
+  }, [id, getCollectionProductItems]);
+
+  // Products with variant thumbnails injected
+  const productsWithVariant = useMemo(() => {
+    return products.map((product) => {
+      const variant = variantMap.get(product.id);
+      if (variant?.thumbnail) {
+        return { ...product, images: [variant.thumbnail, ...product.images] };
+      }
+      return product;
+    });
+  }, [products, variantMap]);
 
   if (!collection) {
     return (
@@ -106,7 +131,7 @@ export default function CollectionDetailPage() {
             </div>
             
             <ProductGrid
-              products={products}
+              products={productsWithVariant}
               onProductClick={(productId) => navigate(`/produto/${productId}`)}
               isFavorite={isFavorite}
               onToggleFavorite={toggleFavorite}
@@ -117,29 +142,48 @@ export default function CollectionDetailPage() {
 
             {/* Quick remove buttons */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
-                >
-                  <img
-                    src={product.images[0]}
-                    alt={product.name}
-                    className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-muted-foreground">{product.sku}</p>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon" aria-label="Excluir"
-                    className="shrink-0 text-muted-foreground hover:text-destructive"
-                    onClick={() => handleRemoveFromCollection(product.id)}
+              {products.map((product) => {
+                const variant = variantMap.get(product.id);
+                const displayImage = variant?.thumbnail || product.images[0];
+                return (
+                  <div
+                    key={product.id}
+                    className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
                   >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
+                    <img
+                      src={displayImage}
+                      alt={product.name}
+                      className="w-12 h-12 rounded-lg object-cover" loading="lazy" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{product.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-xs text-muted-foreground">{product.sku}</p>
+                        {variant?.color_hex && (
+                          <span className="flex items-center gap-1">
+                            <span
+                              className="w-2.5 h-2.5 rounded-full border border-border"
+                              style={{ backgroundColor: variant.color_hex }}
+                            />
+                            {variant.color_name && (
+                              <span className="text-xs text-muted-foreground truncate max-w-[80px]">
+                                {variant.color_name}
+                              </span>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon" aria-label="Excluir"
+                      className="shrink-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemoveFromCollection(product.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : (
@@ -165,13 +209,19 @@ export default function CollectionDetailPage() {
         subtitle={collection.description || undefined}
         brandName="Promo Brindes"
         onClose={() => setShowPresentation(false)}
-        slides={products.map((p) => ({
-          id: p.id,
-          title: p.name,
-          subtitle: p.sku ? `SKU: ${p.sku}` : undefined,
-          imageUrl: p.images?.[0] || null,
-          badge: p.brand || null,
-        }))}
+        slides={products.map((p) => {
+          const variant = variantMap.get(p.id);
+          return {
+            id: p.id,
+            title: p.name,
+            subtitle: [
+              p.sku ? `SKU: ${p.sku}` : null,
+              variant?.color_name ? `Cor: ${variant.color_name}` : null,
+            ].filter(Boolean).join(' • ') || undefined,
+            imageUrl: variant?.thumbnail || p.images?.[0] || null,
+            badge: p.brand || null,
+          };
+        })}
       />
     )}
     </>
