@@ -11,12 +11,28 @@ import { cn } from "@/lib/utils";
 export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
   function FloatingCompareBar(_props, ref) {
   const navigate = useNavigate();
-  const { compareIds, removeFromCompare, clearCompare, compareCount } =
+  const { compareItems, removeByIndex, clearCompare, compareCount } =
     useComparisonStore();
   const ctx = useProductsContextSafe();
   const getProductsByIds = ctx?.getProductsByIds;
+  const cacheSignal = ctx?.products;
 
-  const compareProducts = useMemo(() => getProductsByIds ? getProductsByIds(compareIds) : [], [getProductsByIds, compareIds]);
+  const compareEntries = useMemo(() => {
+    if (!getProductsByIds) return [];
+    const uniqueIds = [...new Set(compareItems.map(i => i.productId))];
+    const productMap = new Map<string, any>();
+    getProductsByIds(uniqueIds).forEach((p: any) => productMap.set(p.id, p));
+    
+    return compareItems.map((item, index) => {
+      const product = productMap.get(item.productId);
+      if (!product) return null;
+      const displayProduct = item.variant?.thumbnail
+        ? { ...product, images: [item.variant.thumbnail, ...product.images] }
+        : product;
+      return { product: displayProduct, variant: item.variant, index };
+    }).filter(Boolean) as { product: any; variant?: any; index: number }[];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compareItems, getProductsByIds, cacheSignal]);
 
   if (compareCount === 0) return null;
 
