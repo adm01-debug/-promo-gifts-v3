@@ -448,7 +448,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
-                  setCollectionModalOpen(true);
+                  setVariantPickerMode('collection');
+                  setVariantPickerOpen(true);
                 }}
                 aria-label="Adicionar à coleção"
               >
