@@ -26,6 +26,29 @@ export default function FavoritesPage() {
     [getProductsByIds, favorites]
   );
 
+  // Build a map of productId -> variant info for quick lookup
+  const variantMap = useMemo(() => {
+    const map = new Map<string, FavoriteVariantInfo>();
+    favorites.forEach((f) => {
+      if (f.variant) map.set(f.productId, f.variant);
+    });
+    return map;
+  }, [favorites]);
+
+  // Create products with variant thumbnail as primary image
+  const productsWithVariant = useMemo(() => {
+    return favoriteProducts.map((product) => {
+      const variant = variantMap.get(product.id);
+      if (variant?.thumbnail) {
+        return {
+          ...product,
+          images: [variant.thumbnail, ...(product.images || [])],
+        };
+      }
+      return product;
+    });
+  }, [favoriteProducts, variantMap]);
+
   const handleClearAll = () => {
     clearFavorites();
     toast.success("Todos os favoritos foram removidos");
