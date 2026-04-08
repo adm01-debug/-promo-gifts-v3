@@ -603,6 +603,16 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         </div>
       </div>
 
+      {/* Variant Picker Dialog for favorite/compare/collection */}
+      <VariantPickerDialog
+        open={variantPickerOpen}
+        onOpenChange={setVariantPickerOpen}
+        productId={product.id}
+        productName={product.name}
+        mode={variantPickerMode}
+        onComplete={handleVariantComplete}
+      />
+
       {/* Collection Modal */}
       <AddToCollectionModal
         open={collectionModalOpen}
