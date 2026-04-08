@@ -63,7 +63,11 @@ export function VariantPickerDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden flex flex-col gap-0 p-0">
+      <DialogContent
+        className="sm:max-w-md max-h-[80vh] overflow-hidden flex flex-col gap-0 p-0"
+        onClick={(e) => e.stopPropagation()}
+        onPointerDown={(e) => e.stopPropagation()}
+      >
         <div className="px-5 pt-5 pb-3 space-y-2">
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-2.5 text-base font-display font-semibold">

@@ -62,7 +62,12 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
 
       {/* Skip option */}
       <button
-        onClick={() => onSelect(null)}
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          onSelect(null);
+        }}
         className="w-full flex items-center gap-2 p-2 rounded-lg border border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-xs text-muted-foreground group"
       >
         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform" />
@@ -82,8 +87,13 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
 
           return (
             <button
+              type="button"
               key={variant.id}
-              onClick={() => onSelect(variant)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                onSelect(variant);
+              }}
               className={cn(
                 'flex items-center gap-2 p-2 rounded-lg border transition-all text-left group',
                 'hover:border-primary/50 hover:bg-accent/60 hover:shadow-sm',
