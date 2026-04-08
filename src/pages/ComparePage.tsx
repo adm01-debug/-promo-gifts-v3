@@ -202,19 +202,33 @@ export default function ComparePage() {
               products.length === 3 && "grid-cols-3",
               products.length >= 4 && "grid-cols-2 lg:grid-cols-4"
             )}>
-              {products.map((product) => {
+              {compareEntries.map((entry) => {
+                const { product, variant, index } = entry;
                 const status = getStockStatusLabel(product.stockStatus);
                 return (
                   <div 
-                    key={product.id} 
+                    key={`card-${index}`} 
                     className="p-4 rounded-xl bg-card border border-border space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-primary">
-                        {formatCurrency(product.price)}
-                      </span>
-                      <button aria-label="Fechar"
-                        onClick={() => removeFromCompare(product.id)}
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-primary">
+                          {formatCurrency(product.price)}
+                        </span>
+                        {variant?.color_name && (
+                          <Badge variant="secondary" className="text-[10px] gap-1 px-1.5 py-0.5">
+                            {variant.color_hex && (
+                              <span
+                                className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                                style={{ backgroundColor: variant.color_hex }}
+                              />
+                            )}
+                            {variant.color_name}
+                          </Badge>
+                        )}
+                      </div>
+                      <button aria-label="Remover da comparação"
+                        onClick={() => removeByIndex(index)}
                         className="p-1 rounded-full hover:bg-destructive/20 transition-colors"
                       >
                         <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
@@ -233,7 +247,7 @@ export default function ComparePage() {
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Cores:</span>
                         <div className="flex gap-0.5">
-                          {product.colors.slice(0, 4).map((color, idx) => (
+                          {product.colors.slice(0, 4).map((color: any, idx: number) => (
                             <div
                               key={idx}
                               className="w-4 h-4 rounded-full border border-border"
