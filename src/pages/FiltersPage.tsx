@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { useCallback, useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
 import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
 import { VariantPickerDialog } from "@/components/products/VariantPickerDialog";
 import type { Product } from "@/hooks/useProducts";
