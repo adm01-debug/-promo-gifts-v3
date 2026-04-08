@@ -28,6 +28,7 @@ import { StockHistoryChart } from "@/components/products/StockHistoryChart";
 import { SalesHistoryChart } from "@/components/products/SalesHistoryChart";
 import { ProductDimensions } from "@/components/products/ProductDimensions";
 import { SupplierComparisonModal } from "@/components/compare/SupplierComparisonModal";
+import { VariantPickerDialog } from "@/components/products/VariantPickerDialog";
 import { ProductInfoBar } from "@/components/products/ProductInfoBar";
 import { FutureStockModal } from "@/components/products/FutureStockModal";
 import { PackagingBadge } from "@/components/products/PackagingBadge";
@@ -72,8 +73,9 @@ export default function ProductDetail() {
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
-  const { isFavorite: isFavoriteCheck, toggleFavorite } = useFavoritesStore();
+  const { isFavorite: isFavoriteCheck, toggleFavorite, removeFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
+  const [favPickerOpen, setFavPickerOpen] = useState(false);
   
   
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
@@ -174,11 +176,24 @@ export default function ProductDetail() {
 
   const handleFavorite = () => {
     if (!id) return;
-    toggleFavorite(id);
-    toast({
-      title: isFavorite ? "Removido dos favoritos" : "Adicionado aos favoritos",
-      description: product.name,
-    });
+    if (isFavorite) {
+      removeFavorite(id);
+      toast({ title: "Removido dos favoritos", description: product.name });
+    } else {
+      setFavPickerOpen(true);
+    }
+  };
+
+  const handleFavoriteVariantSelected = (variant: import('@/hooks/useExternalVariantStock').ExternalVariantStock | null) => {
+    if (!id) return;
+    toggleFavorite(id, variant ? {
+      color_name: variant.color_name,
+      color_hex: variant.color_hex,
+      size_code: variant.size_code,
+      variant_id: variant.variant_id,
+      thumbnail: variant.thumbnail,
+    } : undefined);
+    toast({ title: "Adicionado aos favoritos", description: product.name });
   };
 
   const displayImages = product.images;
