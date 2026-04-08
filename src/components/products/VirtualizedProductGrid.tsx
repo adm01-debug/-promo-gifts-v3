@@ -56,6 +56,7 @@ export function VirtualizedProductGrid({
   isInCompare,
   onToggleCompare,
   canAddToCompare = true,
+  onShare,
   activeFiltersCount = 0,
   sortBy = "name",
   onSortChange,
@@ -294,6 +295,7 @@ export function VirtualizedProductGrid({
                         isInCompare={isInCompare?.(product.id)}
                         onToggleCompare={onToggleCompare}
                         canAddToCompare={canAddToCompare}
+                        onShare={onShare}
                         hideCategoryBadges
                         activeColorFilter={activeColorFilter}
                       />

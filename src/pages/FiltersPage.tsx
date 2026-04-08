@@ -39,6 +39,9 @@ export default function FiltersPage() {
 
   const state = useFiltersPageState();
 
+  // ========== SHARE STATE ==========
+  const [shareProduct, setShareProduct] = useState<Product | null>(null);
+
   // ========== SELECTION MODE ==========
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
