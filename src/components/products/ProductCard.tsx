@@ -134,6 +134,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
   const handleCompare = (e: React.MouseEvent) => {
     e.stopPropagation();
+    markBusy();
+    setActionsOpen(false);
     if (isInCompare) {
       if (onToggleCompare) {
         onToggleCompare(product.id);
