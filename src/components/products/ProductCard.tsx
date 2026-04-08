@@ -103,7 +103,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       if (variant?.color_name) params.set('color_name', variant.color_name);
       if (variant?.color_hex) params.set('color_hex', variant.color_hex);
       if (variant?.selected_thumbnail) params.set('product_image', variant.selected_thumbnail);
-      navigate(`/orcamentos/novo?${params.toString()}`);
+      // Delay navigation to avoid Radix Dialog close event propagating to card onClick
+      setTimeout(() => navigate(`/orcamentos/novo?${params.toString()}`), 0);
     }
   }, [variantPickerMode, product, favStore, compStore, navigate]);
 
