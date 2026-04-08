@@ -286,28 +286,39 @@ export default function ComparePage() {
                       <TableHead className="w-[200px] bg-muted/50 sticky left-0 z-10">
                         Atributo
                       </TableHead>
-                      {products.map((product) => (
+                      {compareEntries.map((entry) => (
                         <TableHead
-                          key={product.id}
+                          key={`th-${entry.index}`}
                           className="min-w-[200px] text-center"
                         >
                           <div className="relative group">
-                            <button aria-label="Fechar"
-                              onClick={() => removeFromCompare(product.id)}
+                            <button aria-label="Remover da comparação"
+                              onClick={() => removeByIndex(entry.index)}
                               className="absolute -top-1 -right-1 p-1 rounded-full bg-background border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 z-10"
                             >
                               <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                             </button>
                             <div className="flex flex-col items-center gap-2">
                               <img
-                                src={product.images[0]}
-                                alt={product.name}
+                                src={entry.product.images[0]}
+                                alt={entry.product.name}
                                 className="w-24 h-24 rounded-lg object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                                onClick={() => navigate(`/produto/${product.id}`)}
+                                onClick={() => navigate(`/produto/${entry.product.id}`)}
                               />
                               <span className="font-medium text-foreground text-sm line-clamp-2">
-                                {product.name}
+                                {entry.product.name}
                               </span>
+                              {entry.variant?.color_name && (
+                                <Badge variant="secondary" className="text-[10px] gap-1 px-1.5 py-0.5">
+                                  {entry.variant.color_hex && (
+                                    <span
+                                      className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                                      style={{ backgroundColor: entry.variant.color_hex }}
+                                    />
+                                  )}
+                                  {entry.variant.color_name}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </TableHead>
