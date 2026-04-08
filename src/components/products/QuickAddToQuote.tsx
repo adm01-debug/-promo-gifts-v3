@@ -128,7 +128,7 @@ export function QuickAddToQuote({
         )}
       </PopoverTrigger>
 
-      <PopoverContent className="w-80 p-4 relative" align="end" onClick={(e) => e.stopPropagation()}>
+      <PopoverContent className="w-80 p-4 relative" align="end" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <button
           aria-label="Fechar"
           className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
