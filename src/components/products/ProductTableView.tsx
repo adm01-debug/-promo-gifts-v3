@@ -236,18 +236,24 @@ export const ProductTableView = memo(function ProductTableView({
         </thead>
         <tbody>
           {sorted.map((product) => {
-            const thumbUrl = product.og_image_url || product.images[0]
-              ? getCdnUrl(product.og_image_url || product.images[0], "card")
-              : "/placeholder.svg";
+            const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+            const rawImg = colorSpecificImage || product.og_image_url || product.images[0] || null;
+            const thumbUrl = rawImg ? getCdnUrl(rawImg, "card") : "/placeholder.svg";
+            const colorStock = resolveColorStock(product, activeColorFilter);
+            const displayStock = colorStock?.stock ?? product.stock;
+            const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
             const isSelected = selectionMode && selectedIds?.has(product.id);
             const fav = isFavorite?.(product.id) ?? false;
             const inComp = isInCompare?.(product.id) ?? false;
+            const hasColorMatch = highlightColors.length > 0 &&
+              product.colors.some((c) => highlightColors.includes(c.group));
             return (
               <tr
                 key={product.id}
                 className={cn(
                   "border-b border-border/30 hover:bg-accent/30 cursor-pointer transition-colors group",
-                  isSelected && "bg-primary/5 ring-1 ring-primary/30"
+                  isSelected && "bg-primary/5 ring-1 ring-primary/30",
+                  hasColorMatch && "bg-success/5"
                 )}
                 onClick={() => selectionMode ? onToggleSelect?.(product.id) : onProductClick?.(product.id)}
               >
@@ -289,7 +295,12 @@ export const ProductTableView = memo(function ProductTableView({
                       <Tooltip key={i}>
                         <TooltipTrigger asChild>
                           <div
-                            className="w-4 h-4 rounded-full border border-border/50"
+                            className={cn(
+                              "w-4 h-4 rounded-full border",
+                              highlightColors.includes(c.group)
+                                ? "border-success ring-1 ring-success/40 scale-110"
+                                : "border-border/50"
+                            )}
                             style={{ backgroundColor: c.hex }}
                           />
                         </TooltipTrigger>
@@ -307,16 +318,16 @@ export const ProductTableView = memo(function ProductTableView({
                     {formatPrice(product.price)}
                   </span>
                 </td>
-                {/* Stock */}
+                {/* Stock — color-aware */}
                 <td className="px-3 py-1.5 text-right">
-                  <span className={cn("flex items-center gap-1 justify-end text-xs font-medium", stockColor(product.stockStatus))}>
+                  <span className={cn("flex items-center gap-1 justify-end text-xs font-medium", stockColor(displayStatus))}>
                     <Package className="h-3 w-3" />
-                    {(product.stock || 0).toLocaleString("pt-BR")}
+                    {(displayStock || 0).toLocaleString("pt-BR")}
                   </span>
                 </td>
                 {/* Actions — full parity with Grid */}
                 <td className="px-2 py-1.5">
-                  <div className="flex items-center justify-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center justify-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     {/* Favoritar */}
                     <Tooltip>
                       <TooltipTrigger asChild>
