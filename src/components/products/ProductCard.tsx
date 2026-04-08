@@ -374,6 +374,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       >
         {/* Main FAB "+" button */}
         <button
+          type="button"
           className={cn(
             "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
             "transition-all duration-300 ease-out",
