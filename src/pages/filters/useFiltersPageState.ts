@@ -224,6 +224,10 @@ export function useFiltersPageState() {
     if (totalMateriais > 0) summary.push({ label: "Materiais", value: `${totalMateriais} selecionado${totalMateriais > 1 ? 's' : ''}`, key: "materiais" });
     const totalRamos = (filters.ramosAtividade?.length || 0) + (filters.segmentosAtividade?.length || 0);
     if (totalRamos > 0) summary.push({ label: "Nichos", value: `${totalRamos} selecionado${totalRamos > 1 ? 's' : ''}`, key: "ramosAtividade" });
+    const genderArr = (filters as any).gender || [];
+    if (genderArr.length > 0) summary.push({ label: "Gênero", value: genderArr.join(", "), key: "gender" as any });
+    const sizesArr = (filters as any).sizes || [];
+    if (sizesArr.length > 0) summary.push({ label: "Tamanhos", value: `${sizesArr.length} selecionado${sizesArr.length > 1 ? 's' : ''}`, key: "sizes" as any });
     return summary;
   }, [filters]);
 

@@ -21,7 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Filter, ArrowUpDown, X, CheckSquare } from "lucide-react";
+import { Filter, ArrowUpDown, X, CheckSquare, SearchX, Sparkles } from "lucide-react";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { SmartSearchInput } from "@/components/search";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
@@ -395,8 +395,24 @@ export default function FiltersPage() {
                       <div className="h-3 w-32 rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite_0.3s] bg-[length:200%_100%]" />
                     </div>
                   </div>
-                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : "space-y-3"}`}>
-                    {Array.from({ length: state.viewMode === "grid" ? 6 : 8 }).map((_, index) => (
+                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : state.viewMode === "table" ? "space-y-0" : "space-y-3"}`}>
+                    {state.viewMode === "table" ? (
+                      <div className="rounded-xl border border-border/50 overflow-hidden">
+                        <div className="h-10 bg-muted/40 border-b border-border/30 flex items-center gap-4 px-4">
+                          {[80, 200, 100, 80, 80, 100].map((w, i) => (
+                            <div key={i} className="h-3 rounded bg-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" style={{ width: w, animationDelay: `${i * 100}ms` }} />
+                          ))}
+                        </div>
+                        {Array.from({ length: 8 }).map((_, index) => (
+                          <div key={index} className="h-14 border-b border-border/20 flex items-center gap-4 px-4" style={{ animationDelay: `${index * 60}ms` }}>
+                            <div className="h-9 w-9 rounded-lg bg-muted/40 animate-[shimmer_2s_infinite] bg-[length:200%_100%] shrink-0" />
+                            <div className="h-3.5 flex-1 max-w-[200px] rounded bg-muted/50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-3 w-20 rounded bg-muted/40 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-3 w-16 rounded bg-muted/40 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                          </div>
+                        ))}
+                      </div>
+                    ) : Array.from({ length: state.viewMode === "grid" ? 6 : 8 }).map((_, index) => (
                       state.viewMode === "grid" ? (
                         <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card" style={{ animationDelay: `${index * 100}ms` }}>
                           <div className="aspect-[4/5] bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" style={{ animationDelay: `${index * 150}ms` }} />
@@ -484,11 +500,22 @@ export default function FiltersPage() {
                   />
                 </>
               ) : (
-                <div className="text-center py-12 bg-muted/30 rounded-xl border border-dashed border-border">
-                  <Filter className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium font-display text-foreground">Nenhum produto encontrado</h3>
-                  <p className="text-muted-foreground mt-1 mb-4">Tente ajustar os filtros para ver mais resultados</p>
-                  <Button variant="outline" onClick={state.handleReset}>Limpar filtros</Button>
+                <div className="text-center py-16 rounded-xl border border-dashed border-border/60 bg-gradient-to-b from-muted/20 to-muted/5">
+                  <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-muted/40 mb-5">
+                    <SearchX className="h-8 w-8 text-muted-foreground/60" />
+                  </div>
+                  <h3 className="text-lg font-semibold font-display text-foreground">Nenhum produto encontrado</h3>
+                  <p className="text-muted-foreground mt-1.5 mb-6 max-w-sm mx-auto text-sm">
+                    {state.activeFiltersCount > 1
+                      ? 'A combinação de filtros não retornou resultados. Tente remover algum filtro.'
+                      : 'Tente ajustar os filtros ou buscar por outro termo.'}
+                  </p>
+                  <div className="flex items-center justify-center gap-2">
+                    <Button variant="outline" onClick={state.handleReset} className="gap-1.5">
+                      <Sparkles className="h-3.5 w-3.5" />
+                      Limpar filtros
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>
