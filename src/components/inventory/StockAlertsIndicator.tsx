@@ -261,9 +261,11 @@ export function StockAlertsIndicator({
         <Popover open={isOpen} onOpenChange={setIsOpen}>
           <Tooltip delayDuration={300}>
             <TooltipTrigger asChild>
-              <PopoverTrigger asChild>
-                <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Alertas de estoque" />
-              </PopoverTrigger>
+              <span className="inline-flex">
+                <PopoverTrigger asChild>
+                  <NotificationTrigger totalCount={counts.total} dominantColor={dominantColor} aria-label="Alertas de estoque" />
+                </PopoverTrigger>
+              </span>
             </TooltipTrigger>
             <TooltipContent side="bottom" className="text-xs">
               Alerta de Estoque
