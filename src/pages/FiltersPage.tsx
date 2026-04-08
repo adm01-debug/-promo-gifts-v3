@@ -458,6 +458,7 @@ export default function FiltersPage() {
             if (!open) {
               setShareProduct(null);
               setVariantForShare(undefined);
+              variantSelectedRef.current = false;
             }
           }}
           product={shareProduct}

@@ -58,7 +58,8 @@ export function VariantPickerDialog({
 
   const handleSelect = (variant: ExternalVariantStock | null) => {
     onComplete(variant);
-    onOpenChange(false);
+    // Don't call onOpenChange(false) here — parent will unmount via state change
+    // This prevents race conditions with the Dialog's own onOpenChange
   };
 
   return (
