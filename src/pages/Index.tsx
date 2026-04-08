@@ -15,6 +15,7 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 export default function Index() {
   const catalog = useCatalogState();
   const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
+  const variantSelectedRef = useRef(false);
   // undefined = picker not answered yet; null = "sem cor específica"; object = selected variant
 
   return (

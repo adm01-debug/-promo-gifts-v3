@@ -44,6 +44,7 @@ export default function FiltersPage() {
   // ========== SHARE STATE ==========
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
   const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
+  const variantSelectedRef = useRef(false);
 
   // ========== SELECTION MODE ==========
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
