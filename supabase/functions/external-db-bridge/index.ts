@@ -84,10 +84,19 @@ function computeSafeLimit(
   table: string,
   hasSearch: boolean,
   offset: number,
+  selectFields?: string,
 ): number {
   const isHeavy = HEAVY_TABLES.includes(table);
   const isVeryHeavy = VERY_HEAVY_TABLES.includes(table);
   if (!isHeavy) return requestedLimit;
+
+  // Lightweight selects (few scalar fields, no JSONB) can handle larger pages safely
+  const isLightweight = selectFields && selectFields !== '*' && selectFields.split(',').length <= 20;
+  if (isLightweight) {
+    if (hasSearch) return Math.min(requestedLimit, 250);
+    return Math.min(requestedLimit, 500);
+  }
+
   if (hasSearch) return Math.min(requestedLimit, 120);
   if (isVeryHeavy) return Math.min(requestedLimit, 100);
   if (offset >= 1000) return Math.min(requestedLimit, 125);
