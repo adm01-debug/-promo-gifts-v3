@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useFavoritesStore, type FavoriteVariantInfo } from "@/stores/useFavoritesStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
@@ -26,13 +26,40 @@ export default function FavoritesPage() {
     [getProductsByIds, favorites]
   );
 
+  // Build a map of productId -> variant info for quick lookup
+  const variantMap = useMemo(() => {
+    const map = new Map<string, FavoriteVariantInfo>();
+    favorites.forEach((f) => {
+      if (f.variant) map.set(f.productId, f.variant);
+    });
+    return map;
+  }, [favorites]);
+
+  // Create products with variant thumbnail as primary image
+  const productsWithVariant = useMemo(() => {
+    return favoriteProducts.map((product) => {
+      const variant = variantMap.get(product.id);
+      if (variant?.thumbnail) {
+        return {
+          ...product,
+          images: [variant.thumbnail, ...(product.images || [])],
+        };
+      }
+      return product;
+    });
+  }, [favoriteProducts, variantMap]);
+
   const handleClearAll = () => {
     clearFavorites();
     toast.success("Todos os favoritos foram removidos");
   };
 
   const handleShareAll = () => {
-    const productNames = favoriteProducts.map((p) => `• ${p.name}`).join("\n");
+    const productNames = favoriteProducts.map((p) => {
+      const variant = variantMap.get(p.id);
+      const colorSuffix = variant?.color_name ? ` (${variant.color_name})` : '';
+      return `• ${p.name}${colorSuffix}`;
+    }).join("\n");
     const message = `Meus produtos favoritos:\n\n${productNames}`;
     
     if (navigator.share) {
@@ -95,35 +122,53 @@ export default function FavoritesPage() {
         </div>
 
         {/* Products grid */}
-        {favoriteProducts.length > 0 ? (
+        {productsWithVariant.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-            {favoriteProducts.map((product, index) => (
-              <div
-                key={product.id}
-                className="animate-fade-in relative"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
-                <ProductCard
-                  product={product}
-                  onClick={() => navigate(`/produto/${product.id}`)}
-                  onFavorite={() => handleRemoveFavorite(product.id, product.name)}
-                />
-                {/* Overlay badge showing it's favorited */}
-                <div className="absolute top-3 right-3 z-10">
-                  <Button
-                    variant="secondary"
-                    size="icon" aria-label="Favoritar"
-                    className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveFavorite(product.id, product.name);
-                    }}
-                  >
-                    <Heart className="h-4 w-4 fill-destructive text-destructive" />
-                  </Button>
+            {productsWithVariant.map((product, index) => {
+              const variant = variantMap.get(product.id);
+              return (
+                <div
+                  key={product.id}
+                  className="animate-fade-in relative"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
+                  <ProductCard
+                    product={product}
+                    onClick={() => navigate(`/produto/${product.id}`)}
+                    onFavorite={() => handleRemoveFavorite(product.id, product.name)}
+                  />
+                  {/* Overlay: heart + saved color badge */}
+                  <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
+                    <Button
+                      variant="secondary"
+                      size="icon"
+                      aria-label="Remover favorito"
+                      className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleRemoveFavorite(product.id, product.name);
+                      }}
+                    >
+                      <Heart className="h-4 w-4 fill-destructive text-destructive" />
+                    </Button>
+                    {variant?.color_name && (
+                      <Badge
+                        variant="secondary"
+                        className="bg-card/90 backdrop-blur-sm text-[10px] gap-1 px-1.5 py-0.5"
+                      >
+                        {variant.color_hex && (
+                          <span
+                            className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                            style={{ backgroundColor: variant.color_hex }}
+                          />
+                        )}
+                        <span className="truncate max-w-[80px]">{variant.color_name}</span>
+                      </Badge>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         ) : (
           <EmptyState
