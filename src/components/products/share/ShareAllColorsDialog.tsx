@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductColor } from "@/hooks/useProducts";
 import { ShareContactSelector, type ShareContactSelection } from "./ShareContactSelector";
 import { WhatsAppPreview } from "./WhatsAppPreview";
+import { openWhatsAppShare } from "./whatsapp";
 import { cn } from "@/lib/utils";
 
 interface ShareAllColorsDialogProps {
@@ -97,11 +98,15 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
 
   const handleSend = () => {
     const target = contactSelection?.contactName || contactSelection?.companyName || "destinatário";
-    const photoCount = selectedColors.reduce((sum, c) => sum + (c.images?.length || (c.image ? 1 : 0)), 0);
+
+    openWhatsAppShare({
+      message,
+      phone: contactSelection?.contactPhone,
+    });
 
     toast({
-      title: "Enviando Catálogo de Cores",
-      description: `${selectedColors.length} cores (${photoCount} fotos) para ${target}`,
+      title: "WhatsApp aberto",
+      description: `Catálogo de cores preparado para ${target}`,
     });
     onOpenChange(false);
   };
