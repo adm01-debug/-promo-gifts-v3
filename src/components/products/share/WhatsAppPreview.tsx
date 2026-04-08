@@ -80,7 +80,7 @@ export function WhatsAppPreview({
 
       {/* Chat body — dark wallpaper */}
       <div
-        className="p-3 min-h-[120px] max-h-[220px] overflow-y-auto"
+        className="p-2 min-h-[80px] max-h-[150px] overflow-y-auto"
         style={{
           backgroundColor: chatBg,
           backgroundImage:
