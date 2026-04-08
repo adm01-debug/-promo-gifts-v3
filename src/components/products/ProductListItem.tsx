@@ -12,7 +12,7 @@
  *    estão implementadas aqui com a mesma arquitetura de variante/cor:
  *    Favoritar, Comparar, Coleção, Share, Orçamento, Carrinho, QuickView
  */
-import { memo, useState, useCallback, useRef, forwardRef } from "react";
+import { memo, useState, useCallback, useRef } from "react";
 import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl } from "@/utils/image-utils";
@@ -50,7 +50,7 @@ interface ProductListItemProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export const ProductListItem = memo(forwardRef<HTMLElement, ProductListItemProps>(function ProductListItem({
+export const ProductListItem = memo(function ProductListItem({
   product,
   onClick,
   onView,
@@ -62,7 +62,7 @@ export const ProductListItem = memo(forwardRef<HTMLElement, ProductListItemProps
   canAddToCompare = true,
   highlightColors = [],
   activeColorFilter,
-}: ProductListItemProps, ref) {
+}: ProductListItemProps) {
   const navigate = useNavigate();
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
@@ -469,6 +469,6 @@ export const ProductListItem = memo(forwardRef<HTMLElement, ProductListItemProps
       />
     </>
   );
-}));
+});
 
 ProductListItem.displayName = 'ProductListItem';
