@@ -62,6 +62,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   noveltyDaysRemaining,
   activeColorFilter,
 }, ref) {
+  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
