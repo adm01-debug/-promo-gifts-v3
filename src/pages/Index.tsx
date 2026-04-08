@@ -124,12 +124,16 @@ export default function Index() {
       {catalog.shareProduct && variantForShare === undefined && (
         <VariantPickerDialog
           open
-          onOpenChange={(open) => { if (!open) { catalog.setShareProduct(null); } }}
+          onOpenChange={(open) => {
+            if (!open && variantForShare === undefined) {
+              catalog.setShareProduct(null);
+            }
+          }}
           productId={catalog.shareProduct.id}
           productName={catalog.shareProduct.name}
           mode="share"
           onComplete={(variant) => {
-            setVariantForShare(variant);
+            setVariantForShare(variant ?? null);
           }}
         />
       )}

@@ -432,12 +432,16 @@ export default function FiltersPage() {
       {shareProduct && variantForShare === undefined && (
         <VariantPickerDialog
           open
-          onOpenChange={(open) => { if (!open) { setShareProduct(null); } }}
+          onOpenChange={(open) => {
+            if (!open && variantForShare === undefined) {
+              setShareProduct(null);
+            }
+          }}
           productId={shareProduct.id}
           productName={shareProduct.name}
           mode="share"
           onComplete={(variant) => {
-            setVariantForShare(variant);
+            setVariantForShare(variant ?? null);
           }}
         />
       )}
