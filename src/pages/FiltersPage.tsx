@@ -1,7 +1,9 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
+import { VariantPickerDialog } from "@/components/products/VariantPickerDialog";
 import type { Product } from "@/hooks/useProducts";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
@@ -41,6 +43,7 @@ export default function FiltersPage() {
 
   // ========== SHARE STATE ==========
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
+  const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
 
   // ========== SELECTION MODE ==========
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -425,11 +428,36 @@ export default function FiltersPage() {
         </Suspense>
       )}
 
-      {shareProduct && (
+      {/* Step 1: Variant picker for share */}
+      {shareProduct && variantForShare === undefined && (
+        <VariantPickerDialog
+          open
+          onOpenChange={(open) => { if (!open) { setShareProduct(null); } }}
+          productId={shareProduct.id}
+          productName={shareProduct.name}
+          mode="share"
+          onComplete={(variant) => {
+            setVariantForShare(variant);
+          }}
+        />
+      )}
+
+      {/* Step 2: Share dialog after variant is chosen */}
+      {shareProduct && variantForShare !== undefined && (
         <SharePreviewDialog
-          open={!!shareProduct}
-          onOpenChange={(open) => { if (!open) setShareProduct(null); }}
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              setShareProduct(null);
+              setVariantForShare(undefined);
+            }
+          }}
           product={shareProduct}
+          selectedVariant={variantForShare ? {
+            variantName: variantForShare.color_name,
+            colorHex: variantForShare.color_hex,
+            thumbnailUrl: variantForShare.selected_thumbnail,
+          } : null}
         />
       )}
     </MainLayout>

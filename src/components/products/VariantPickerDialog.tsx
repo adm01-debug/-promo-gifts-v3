@@ -6,20 +6,11 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Heart, GitCompare, FolderPlus } from 'lucide-react';
+import { Heart, GitCompare, FolderPlus, MessageCircle } from 'lucide-react';
 import { SingleVariantPicker } from '@/components/products/SingleVariantPicker';
 import type { ExternalVariantStock } from '@/hooks/useExternalVariantStock';
 
-export type VariantActionMode = 'favorite' | 'compare' | 'collection';
-
-interface VariantPickerDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  productId: string;
-  productName: string;
-  mode: VariantActionMode;
-  onComplete: (variant: ExternalVariantStock | null) => void;
-}
+export type VariantActionMode = 'favorite' | 'compare' | 'collection' | 'share';
 
 const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string; colorClass: string; bgClass: string }> = {
   favorite: {
@@ -39,6 +30,12 @@ const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string
     title: 'Coleção com Cor',
     colorClass: 'text-info',
     bgClass: 'bg-info/15',
+  },
+  share: {
+    icon: MessageCircle,
+    title: 'Compartilhar com Cor',
+    colorClass: 'text-success',
+    bgClass: 'bg-success/15',
   },
 };
 

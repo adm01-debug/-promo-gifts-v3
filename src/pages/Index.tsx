@@ -1,16 +1,21 @@
 // Catálogo de Produtos - Index Page (v3 - refactored)
+import { useState } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
+import { VariantPickerDialog } from "@/components/products/VariantPickerDialog";
 import { CatalogHeader } from "@/components/catalog/CatalogHeader";
 import { CatalogToolbar } from "@/components/catalog/CatalogToolbar";
 import { CatalogActiveFilters } from "@/components/catalog/CatalogActiveFilters";
 import { CatalogContent } from "@/components/catalog/CatalogContent";
 import { useCatalogState } from "@/hooks/useCatalogState";
+import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 
 export default function Index() {
   const catalog = useCatalogState();
+  const [variantForShare, setVariantForShare] = useState<ExternalVariantStock | null | undefined>(undefined);
+  // undefined = picker not answered yet; null = "sem cor específica"; object = selected variant
 
   return (
     <MainLayout>
@@ -115,11 +120,36 @@ export default function Index() {
 
       <FloatingCompareBar />
 
-      {catalog.shareProduct && (
+      {/* Step 1: Variant picker for share */}
+      {catalog.shareProduct && variantForShare === undefined && (
+        <VariantPickerDialog
+          open
+          onOpenChange={(open) => { if (!open) { catalog.setShareProduct(null); } }}
+          productId={catalog.shareProduct.id}
+          productName={catalog.shareProduct.name}
+          mode="share"
+          onComplete={(variant) => {
+            setVariantForShare(variant);
+          }}
+        />
+      )}
+
+      {/* Step 2: Share dialog after variant is chosen */}
+      {catalog.shareProduct && variantForShare !== undefined && (
         <SharePreviewDialog
-          open={!!catalog.shareProduct}
-          onOpenChange={(open) => { if (!open) catalog.setShareProduct(null); }}
+          open
+          onOpenChange={(open) => {
+            if (!open) {
+              catalog.setShareProduct(null);
+              setVariantForShare(undefined);
+            }
+          }}
           product={catalog.shareProduct}
+          selectedVariant={variantForShare ? {
+            variantName: variantForShare.color_name,
+            colorHex: variantForShare.color_hex,
+            thumbnailUrl: variantForShare.selected_thumbnail,
+          } : null}
         />
       )}
     </MainLayout>
