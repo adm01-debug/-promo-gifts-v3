@@ -22,6 +22,8 @@ import type { ColumnCount } from "@/components/products/ColumnSelector";
 import type { RefObject } from "react";
 import { SparklineSalesProvider } from "@/hooks/useSparklineSales";
 import { useNavigate as useNavHook } from "react-router-dom";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 
 interface CatalogContentProps {
   viewMode: ViewMode;
