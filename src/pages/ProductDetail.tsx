@@ -645,6 +645,17 @@ export default function ProductDetail() {
         onToggleFavorite={handleFavorite}
         product={product}
       />
+
+      {id && (
+        <VariantPickerDialog
+          open={favPickerOpen}
+          onOpenChange={setFavPickerOpen}
+          productId={id}
+          productName={product.name}
+          mode="favorite"
+          onComplete={handleFavoriteVariantSelected}
+        />
+      )}
     </MainLayout>
   );
 }
