@@ -212,7 +212,7 @@ export default function FiltersPage() {
                   <CheckSquare className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline text-xs">{state.selectionMode ? "Cancelar" : "Selecionar"}</span>
                   <AnimatePresence>
-                    {state.selectionMode && selectedCount > 0 && (
+                    {state.selectionMode && sel.selectedCount > 0 && (
                       <motion.div
                         initial={{ scale: 0, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
@@ -221,7 +221,7 @@ export default function FiltersPage() {
                         className="absolute -top-2 -right-2"
                       >
                         <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
-                          {selectedCount}
+                          {sel.selectedCount}
                         </Badge>
                       </motion.div>
                     )}
@@ -307,16 +307,16 @@ export default function FiltersPage() {
               ) : state.filteredProducts.length > 0 ? (
                 <>
                   {state.viewMode === "grid" ? (
-                    <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => state.selectionMode ? toggleSelect(product.id) : navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} onShare={(product) => setShareProduct(product)} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} selectedIds={selectedIds} onToggleSelect={toggleSelect} />
+                    <VirtualizedProductGrid products={state.filteredProducts} onProductClick={(product) => state.selectionMode ? sel.toggleSelect(product.id) : navigate(`/produto/${product.id}`)} isFavorited={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} onShare={(product) => setShareProduct(product)} columns={state.gridColumns} columnSelector={<ColumnSelector value={state.gridColumns} onChange={state.setGridColumns} />} activeFiltersCount={state.activeFiltersCount} sortBy={state.sortBy} onSortChange={state.setSortBy} onOpenFilters={() => state.setMobileFiltersOpen(true)} onClearFilters={state.handleReset} viewMode={state.viewMode} onViewModeChange={state.setViewMode} showFilterBar={false} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} sel.selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />
                   ) : state.viewMode === "list" ? (
                     <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm scrollbar-products shadow-inner p-4">
-                      <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? toggleSelect(productId) : navigate(`/produto/${productId}`)} onShareProduct={(product) => setShareProduct(product)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} externalSelectedIds={selectedIds} onToggleSelect={toggleSelect} />
+                      <ProductList products={state.filteredProducts} onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)} onShareProduct={(product) => setShareProduct(product)} isFavorite={isFavorite} onToggleFavorite={toggleFavorite} isInCompare={isInCompare} onToggleCompare={toggleCompare} canAddToCompare={canAddMore} activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null} selectionMode={state.selectionMode} externalSelectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />
                     </div>
                   ) : (
                     <div className="h-[calc(100vh-280px)] min-h-[500px] overflow-y-auto rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm shadow-inner">
                       <ProductTableView
                         products={state.filteredProducts}
-                        onProductClick={(productId) => state.selectionMode ? toggleSelect(productId) : navigate(`/produto/${productId}`)}
+                        onProductClick={(productId) => state.selectionMode ? sel.toggleSelect(productId) : navigate(`/produto/${productId}`)}
                         isFavorite={isFavorite}
                         onToggleFavorite={toggleFavorite}
                         isInCompare={isInCompare}
@@ -325,8 +325,8 @@ export default function FiltersPage() {
                         onShareProduct={(product) => setShareProduct(product)}
                         activeColorFilter={(state.filters.colorGroups.length > 0 || state.filters.colorVariations.length > 0) ? { groups: state.filters.colorGroups, variations: state.filters.colorVariations } : null}
                         selectionMode={state.selectionMode}
-                        selectedIds={selectedIds}
-                        onToggleSelect={toggleSelect}
+                        sel.selectedIds={sel.selectedIds}
+                        onToggleSelect={sel.toggleSelect}
                       />
                     </div>
                   )}
@@ -334,39 +334,39 @@ export default function FiltersPage() {
                   {/* Bulk Action Bar */}
                   {state.selectionMode && (
                     <BulkActionBar
-                      selectedCount={selectedIds.size}
+                      sel.selectedCount={sel.selectedIds.size}
                       totalCount={state.filteredProducts.length}
-                      onSelectAll={selectAll}
-                      onClearSelection={clearSelection}
-                      onBulkFavorite={handleBulkFavorite}
-                      onBulkCompare={handleBulkCompare}
-                      onBulkCollection={handleBulkCollection}
-                      onBulkQuote={handleBulkQuote}
-                      onBulkCart={handleBulkCart}
+                      onSelectAll={sel.selectAll}
+                      onClearSelection={sel.clearSelection}
+                      onBulkFavorite={sel.handleBulkFavorite}
+                      onBulkCompare={sel.handleBulkCompare}
+                      onBulkCollection={sel.handleBulkCollection}
+                      onBulkQuote={sel.handleBulkQuote}
+                      onBulkCart={sel.handleBulkCart}
                     />
                   )}
 
-                  {firstSelectedProduct && (
+                  {sel.firstSelectedProduct && (
                     <AddToCollectionModal
-                      open={collectionModalOpen}
-                      onOpenChange={(open) => { setCollectionModalOpen(open); if (!open) clearSelection(); }}
-                      productId={firstSelectedId}
-                      productName={`${selectedIds.size} produtos selecionados`}
+                      open={sel.collectionModalOpen}
+                      onOpenChange={(open) => { sel.setCollectionModalOpen(open); if (!open) sel.clearSelection(); }}
+                      productId={sel.firstSelectedId}
+                      productName={`${sel.selectedIds.size} produtos selecionados`}
                     />
                   )}
                   <BulkAddToCartModal
-                    open={cartModalOpen}
-                    onOpenChange={setCartModalOpen}
-                    products={bulkCartProducts}
-                    variantSelections={wizardSelections}
-                    onDone={clearSelection}
+                    open={sel.cartModalOpen}
+                    onOpenChange={sel.setCartModalOpen}
+                    products={sel.bulkCartProducts}
+                    variantSelections={sel.wizardSelections}
+                    onDone={sel.clearSelection}
                   />
                   <BulkVariantWizard
-                    open={variantWizardOpen}
-                    onOpenChange={setVariantWizardOpen}
-                    products={bulkCartProducts}
-                    mode={wizardMode}
-                    onComplete={handleWizardComplete}
+                    open={sel.variantWizardOpen}
+                    onOpenChange={sel.setVariantWizardOpen}
+                    products={sel.bulkCartProducts}
+                    mode={sel.wizardMode}
+                    onComplete={sel.handleWizardComplete}
                   />
                 </>
               ) : (
