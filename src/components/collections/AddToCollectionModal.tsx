@@ -203,6 +203,15 @@ export const AddToCollectionModal = ({
               Nova Coleção
             </Button>
           )}
+
+          {/* Confirm & close button */}
+          <Button
+            className="w-full gap-2"
+            onClick={() => onOpenChange(false)}
+          >
+            <Check className="h-4 w-4" />
+            Confirmar
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
