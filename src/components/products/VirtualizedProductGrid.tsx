@@ -22,6 +22,7 @@ interface VirtualizedProductGridProps {
   isInCompare?: (productId: string) => boolean;
   onToggleCompare?: (productId: string) => { added: boolean; isFull: boolean };
   canAddToCompare?: boolean;
+  onShare?: (product: Product) => void;
   // Filter controls
   activeFiltersCount?: number;
   sortBy?: string;

@@ -1,5 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { useCallback, useState, useEffect, useMemo, lazy, Suspense } from "react";
+import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
+import type { Product } from "@/hooks/useProducts";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
