@@ -434,25 +434,28 @@ export function CatalogContent({
   const selectAll = useCallback(() => setSelectedIds(new Set(paginatedProducts.map((p) => p.id))), [paginatedProducts]);
   const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
 
+  // Store direct access for variant-aware actions
+  const favStore = useFavoritesStore();
+  const compStore = useComparisonStore();
+
   const handleBulkFavorite = useCallback(() => {
-    let added = 0;
-    selectedIds.forEach((id) => { if (!isFavorite(id)) { toggleFavorite(id); added++; } });
-    toast.success(`${added} produto${added > 1 ? "s" : ""} adicionado${added > 1 ? "s" : ""} aos favoritos`);
-    clearSelection();
-  }, [selectedIds, toggleFavorite, isFavorite, clearSelection]);
+    setWizardMode('favorite');
+    setVariantWizardOpen(true);
+  }, []);
 
   const handleBulkCompare = useCallback(() => {
-    const ids = Array.from(selectedIds).slice(0, 4);
-    ids.forEach((id) => { if (!isInCompare(id)) onToggleCompare(id); });
-    toast.success(`${ids.length} produto${ids.length > 1 ? "s" : ""} adicionado${ids.length > 1 ? "s" : ""} à comparação`);
-    clearSelection();
-  }, [selectedIds, onToggleCompare, isInCompare, clearSelection]);
+    setWizardMode('compare');
+    setVariantWizardOpen(true);
+  }, []);
 
-  const handleBulkCollection = useCallback(() => setCollectionModalOpen(true), []);
+  const handleBulkCollection = useCallback(() => {
+    setWizardMode('collection');
+    setVariantWizardOpen(true);
+  }, []);
 
   const [cartModalOpen, setCartModalOpen] = useState(false);
   const [variantWizardOpen, setVariantWizardOpen] = useState(false);
-  const [wizardMode, setWizardMode] = useState<'cart' | 'quote'>('cart');
+  const [wizardMode, setWizardMode] = useState<BulkWizardMode>('cart');
   const [wizardSelections, setWizardSelections] = useState<BulkVariantSelection[]>([]);
 
   const navHook = useNavHook();
@@ -461,8 +464,7 @@ export function CatalogContent({
     if (wizardMode === 'cart') {
       setWizardSelections(selections);
       setCartModalOpen(true);
-    } else {
-      // Quote flow
+    } else if (wizardMode === 'quote') {
       if (selections.length === 0) return;
       const params = selections.map(s =>
         `items[]=${encodeURIComponent(JSON.stringify({
@@ -480,8 +482,44 @@ export function CatalogContent({
       navHook(`/orcamentos/novo?${params}`);
       toast.success(`${selections.length} produto${selections.length > 1 ? 's' : ''} enviado${selections.length > 1 ? 's' : ''} para orçamento`);
       clearSelection();
+    } else if (wizardMode === 'favorite') {
+      let added = 0;
+      selections.forEach(s => {
+        if (!favStore.isFavorite(s.product.id)) {
+          favStore.addFavorite(s.product.id, s.variant ? {
+            color_name: s.variant.color_name,
+            color_hex: s.variant.color_hex,
+            size_code: s.variant.size_code,
+            variant_id: s.variant.id,
+            thumbnail: s.variant.selected_thumbnail,
+          } : undefined);
+          added++;
+        }
+      });
+      toast.success(`${added} produto${added > 1 ? 's' : ''} favoritado${added > 1 ? 's' : ''} com cor selecionada`);
+      clearSelection();
+    } else if (wizardMode === 'compare') {
+      const toAdd = selections.slice(0, 4);
+      let added = 0;
+      toAdd.forEach(s => {
+        if (!compStore.isInCompare(s.product.id)) {
+          compStore.addToCompare(s.product.id, s.variant ? {
+            color_name: s.variant.color_name,
+            color_hex: s.variant.color_hex,
+            size_code: s.variant.size_code,
+            variant_id: s.variant.id,
+            thumbnail: s.variant.selected_thumbnail,
+          } : undefined);
+          added++;
+        }
+      });
+      toast.success(`${added} produto${added > 1 ? 's' : ''} adicionado${added > 1 ? 's' : ''} à comparação`);
+      clearSelection();
+    } else if (wizardMode === 'collection') {
+      setWizardSelections(selections);
+      setCollectionModalOpen(true);
     }
-  }, [wizardMode, navHook, clearSelection]);
+  }, [wizardMode, navHook, clearSelection, favStore, compStore]);
 
   const handleBulkQuote = useCallback(() => {
     setWizardMode('quote');
