@@ -199,7 +199,7 @@ export const ProductListItem = memo(function ProductListItem({
   return (
     <>
       <article
-        ref={ref as React.Ref<HTMLElement>}
+        
         className={cn(
           "group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5",
           "rounded-xl bg-card border border-border/50 cursor-pointer",
