@@ -261,7 +261,14 @@ export const ProductTableView = memo(function ProductTableView({
                       variant="ghost"
                       size="icon"
                       className={cn("h-7 w-7 rounded-full", isFavorite?.(product.id) && "text-destructive")}
-                      onClick={(e) => { e.stopPropagation(); onToggleFavorite?.(product.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isFavorite?.(product.id)) {
+                          onToggleFavorite?.(product.id);
+                        } else {
+                          openVariantPicker(product, 'favorite');
+                        }
+                      }}
                       aria-label="Favoritar"
                     >
                       <Heart className={cn("h-3 w-3", isFavorite?.(product.id) && "fill-current")} />
@@ -270,7 +277,14 @@ export const ProductTableView = memo(function ProductTableView({
                       variant="ghost"
                       size="icon"
                       className={cn("h-7 w-7 rounded-full", isInCompare?.(product.id) && "text-primary")}
-                      onClick={(e) => { e.stopPropagation(); onToggleCompare?.(product.id); }}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        if (isInCompare?.(product.id)) {
+                          onToggleCompare?.(product.id);
+                        } else {
+                          openVariantPicker(product, 'compare');
+                        }
+                      }}
                       aria-label="Comparar"
                     >
                       <GitCompare className="h-3 w-3" />
@@ -291,6 +305,17 @@ export const ProductTableView = memo(function ProductTableView({
           })}
         </tbody>
       </table>
+
+      {variantPickerProduct && (
+        <VariantPickerDialog
+          open={variantPickerOpen}
+          onOpenChange={setVariantPickerOpen}
+          productId={variantPickerProduct.id}
+          productName={variantPickerProduct.name}
+          mode={variantPickerMode}
+          onComplete={handleVariantComplete}
+        />
+      )}
     </div>
   );
 });
