@@ -23,6 +23,7 @@ import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDial
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
+import { SharePreviewDialog } from "./share/SharePreviewDialog";
 export interface ProductCardProps {
   product: Product;
   onClick?: () => void;
@@ -67,6 +68,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [shareVariant, setShareVariant] = useState<{ variantName?: string | null; colorHex?: string | null; thumbnailUrl?: string | null } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
@@ -112,8 +115,14 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       if (variant?.color_hex) params.set('color_hex', variant.color_hex);
       if (variant?.selected_thumbnail) params.set('product_image', variant.selected_thumbnail);
       if (product.images?.[0]) params.set('product_image', variant?.selected_thumbnail || product.images[0]);
-      // Delay navigation to avoid Radix Dialog close event propagating to card onClick
       setTimeout(() => navigate(`/orcamentos/novo?${params.toString()}`), 0);
+    } else if (variantPickerMode === 'share') {
+      setShareVariant(variant ? {
+        variantName: variant.color_name,
+        colorHex: variant.color_hex,
+        thumbnailUrl: variant.selected_thumbnail,
+      } : null);
+      setShareDialogOpen(true);
     }
   }, [variantPickerMode, product, favStore, compStore, navigate]);
 
@@ -504,7 +513,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                   e.preventDefault();
                   markBusy();
                   setActionsOpen(false);
-                  onShare?.(product);
+                  setVariantPickerMode('share');
+                  setVariantPickerOpen(true);
                 }}
                 aria-label="Compartilhar produto"
               >
@@ -692,6 +702,14 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         isInCompare={isInCompare}
         onToggleCompare={onToggleCompare}
         onShare={onShare}
+      />
+
+      {/* Share Preview Dialog */}
+      <SharePreviewDialog
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        product={product}
+        selectedVariant={shareVariant}
       />
     </article>
   );
