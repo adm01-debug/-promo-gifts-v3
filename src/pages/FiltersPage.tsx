@@ -239,8 +239,8 @@ export default function FiltersPage() {
             <div className="flex items-center gap-3 flex-wrap">
               <div className="flex-shrink-0">
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
-                  Super Filtro
-                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">· {state.isLoadingProducts && state.realProducts.length === 0 ? 'carregando...' : `${state.filteredProducts.length.toLocaleString("pt-BR")}${!state.isFullyLoaded ? '+' : ''} itens`}</span>
+                   Super Filtro
+                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">· {state.isLoadingProducts && state.realProducts.length === 0 ? 'carregando...' : `${(state.activeFiltersCount > 0 ? state.filteredProducts.length : (state.totalEstimate ?? state.filteredProducts.length)).toLocaleString("pt-BR")}${!state.isFullyLoaded && state.activeFiltersCount === 0 ? '+' : ''} itens`}</span>
                 </h1>
               </div>
               <div className="flex items-center gap-2 flex-1 min-w-0">
