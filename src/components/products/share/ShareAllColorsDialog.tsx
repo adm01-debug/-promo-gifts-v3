@@ -99,15 +99,23 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
   const handleSend = () => {
     const target = contactSelection?.contactName || contactSelection?.companyName || "destinatário";
 
-    openWhatsAppShare({
+    const { opened } = openWhatsAppShare({
       message,
       phone: contactSelection?.contactPhone,
     });
 
-    toast({
-      title: "WhatsApp aberto",
-      description: `Catálogo de cores preparado para ${target}`,
-    });
+    if (opened) {
+      toast({
+        title: "WhatsApp aberto",
+        description: `Catálogo de cores preparado para ${target}`,
+      });
+    } else {
+      toast({
+        title: "Não foi possível abrir o WhatsApp",
+        description: "Verifique se popups estão permitidos no navegador.",
+        variant: "destructive",
+      });
+    }
     onOpenChange(false);
   };
 
