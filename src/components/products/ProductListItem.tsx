@@ -50,7 +50,7 @@ interface ProductListItemProps {
   activeColorFilter?: ActiveColorFilter | null;
 }
 
-export const ProductListItem = memo(forwardRef<HTMLElement, ProductListItemProps>(function ProductListItem({
+export const ProductListItem = memo(function ProductListItem({
   product,
   onClick,
   onView,
@@ -62,7 +62,7 @@ export const ProductListItem = memo(forwardRef<HTMLElement, ProductListItemProps
   canAddToCompare = true,
   highlightColors = [],
   activeColorFilter,
-}: ProductListItemProps, ref) {
+}: ProductListItemProps) {
   const navigate = useNavigate();
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
   const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
