@@ -6,7 +6,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Heart, GitCompare, FolderPlus, MessageCircle } from 'lucide-react';
+import { Heart, GitCompare, FolderPlus, MessageCircle, FileText } from 'lucide-react';
 import { SingleVariantPicker } from '@/components/products/SingleVariantPicker';
 import type { ExternalVariantStock } from '@/hooks/useExternalVariantStock';
 
@@ -38,7 +38,7 @@ const MODE_CONFIG: Record<VariantActionMode, { icon: typeof Heart; title: string
     bgClass: 'bg-success/15',
   },
   quote: {
-    icon: FolderPlus,
+    icon: FileText,
     title: 'Orçamento com Cor',
     colorClass: 'text-primary',
     bgClass: 'bg-primary/15',
