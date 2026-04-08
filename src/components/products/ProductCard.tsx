@@ -111,7 +111,6 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const handleFavorite = (e: React.MouseEvent) => {
     e.stopPropagation();
     if (isFavorited) {
-      // Remove directly (no variant picker needed)
       if (onToggleFavorite) {
         onToggleFavorite(product.id);
         showUndoToast({
@@ -120,9 +119,11 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         });
       }
     } else {
-      // Show variant picker before adding
-      setVariantPickerMode('favorite');
-      setVariantPickerOpen(true);
+      // Add directly without variant picker — just toggle
+      if (onToggleFavorite) {
+        onToggleFavorite(product.id);
+        toast.success(`"${product.name}" adicionado aos favoritos`);
+      }
     }
   };
 
