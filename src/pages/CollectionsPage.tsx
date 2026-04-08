@@ -169,7 +169,7 @@ export default function CollectionsPage() {
                   <div
                     key={collection.id}
                     className="group relative card-interactive p-4 cursor-pointer border-primary/20"
-                    onClick={() => navigate(`/colecao-externa/${collection.id}`)}
+                    onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     {/* Badge sync */}
                     <div className="absolute top-2 left-2 z-10">
@@ -248,7 +248,7 @@ export default function CollectionsPage() {
                   <div
                     key={collection.id}
                     className="group relative card-interactive p-4 cursor-pointer"
-                    onClick={() => navigate(`/colecao/${collection.id}`)}
+                    onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     {/* Menu */}
                     <div className="absolute top-2 right-2 z-10">
