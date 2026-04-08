@@ -226,7 +226,23 @@ export default function FiltersPage() {
             <div className="flex-1 min-h-0 overflow-y-auto scrollbar-thin pr-2 space-y-4">
               <FilterPanel filters={state.filters} onFilterChange={state.handleFilterChange} onReset={state.handleReset} activeFiltersCount={state.activeFiltersCount} products={state.realProducts} filteredResultsCount={state.filteredProducts.length} />
             </div>
-            <div className="border-t border-border/40 bg-gradient-to-t from-card via-card to-card/80 px-3 py-2.5 shrink-0 mt-1">
+            <div className="border-t border-border/40 bg-gradient-to-t from-card via-card to-card/80 px-3 py-2.5 shrink-0 mt-1 space-y-2">
+              {/* Loading progress bar */}
+              {!state.isFullyLoaded && state.loadingProgress > 0 && state.loadingProgress < 100 && (
+                <div className="space-y-1">
+                  <div className="h-1.5 w-full bg-muted/50 rounded-full overflow-hidden">
+                    <motion.div
+                      className="h-full bg-gradient-to-r from-primary/70 via-primary to-primary/70 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${state.loadingProgress}%` }}
+                      transition={{ duration: 0.5, ease: "easeOut" }}
+                    />
+                  </div>
+                  <p className="text-[10px] text-muted-foreground text-center tabular-nums">
+                    Carregando {state.loadedCount.toLocaleString('pt-BR')} de {(state.totalEstimate ?? 0).toLocaleString('pt-BR')} produtos ({state.loadingProgress}%)
+                  </p>
+                </div>
+              )}
               <div className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold transition-all duration-300 ${state.activeFiltersCount > 0 ? "bg-gradient-to-r from-orange to-orange-hover text-orange-foreground shadow-md shadow-orange/20" : "bg-muted/60 text-muted-foreground"}`}>
                 <Filter className="h-4 w-4" />
                 <span>{state.isLoadingProducts && state.realProducts.length === 0 ? 'Carregando catálogo...' : state.activeFiltersCount > 0 ? `Ver ${state.filteredProducts.length.toLocaleString('pt-BR')} resultado${state.filteredProducts.length !== 1 ? 's' : ''}` : `${(state.totalEstimate ?? state.filteredProducts.length).toLocaleString('pt-BR')}${!state.isFullyLoaded ? '+' : ''} produtos disponíveis`}</span>
@@ -240,7 +256,22 @@ export default function FiltersPage() {
               <div className="flex-shrink-0">
                 <h1 className="font-display text-xl sm:text-2xl lg:text-3xl font-bold whitespace-nowrap">
                    Super Filtro
-                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2">· {state.isLoadingProducts && state.realProducts.length === 0 ? 'carregando...' : `${(state.activeFiltersCount > 0 ? state.filteredProducts.length : (state.totalEstimate ?? state.filteredProducts.length)).toLocaleString("pt-BR")}${!state.isFullyLoaded && state.activeFiltersCount === 0 ? '+' : ''} itens`}</span>
+                  <span className="text-muted-foreground font-normal text-sm sm:text-base ml-2 inline-flex items-center gap-1.5">
+                    · <span className="tabular-nums">{state.isLoadingProducts && state.realProducts.length === 0 ? 'carregando...' : `${(state.activeFiltersCount > 0 ? state.filteredProducts.length : (state.totalEstimate ?? state.filteredProducts.length)).toLocaleString("pt-BR")}${!state.isFullyLoaded && state.activeFiltersCount === 0 ? '+' : ''} itens`}</span>
+                    {!state.isFullyLoaded && state.loadingProgress > 0 && state.loadingProgress < 100 && state.activeFiltersCount === 0 && (
+                      <span className="inline-flex items-center gap-1 ml-1">
+                        <span className="h-1 w-12 bg-muted/50 rounded-full overflow-hidden inline-block align-middle">
+                          <motion.span
+                            className="block h-full bg-primary/60 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${state.loadingProgress}%` }}
+                            transition={{ duration: 0.4, ease: "easeOut" }}
+                          />
+                        </span>
+                        <span className="text-[10px] tabular-nums opacity-60">{state.loadingProgress}%</span>
+                      </span>
+                    )}
+                  </span>
                 </h1>
               </div>
               <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -335,12 +366,33 @@ export default function FiltersPage() {
               )}
               {(state.isLoadingProducts || state.isLoadingMaterialFilter || state.isLoadingCategoryFilter) && state.realProducts.length === 0 ? (
                 <div className="rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 p-4 sm:p-6 shadow-inner">
-                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : "space-y-3"} animate-pulse`}>
+                  {/* Premium shimmer loading header */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" />
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-4 w-48 rounded-md bg-gradient-to-r from-muted/80 via-muted/40 to-muted/80 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                      <div className="h-3 w-32 rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite_0.3s] bg-[length:200%_100%]" />
+                    </div>
+                  </div>
+                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : "space-y-3"}`}>
                     {Array.from({ length: state.viewMode === "grid" ? 6 : 8 }).map((_, index) => (
                       state.viewMode === "grid" ? (
-                        <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card"><div className="aspect-[4/5] bg-muted/50" /><div className="space-y-3 p-4"><div className="h-3 w-24 rounded bg-muted" /><div className="h-5 w-full rounded bg-muted" /><div className="h-5 w-2/3 rounded bg-muted" /></div></div>
+                        <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card" style={{ animationDelay: `${index * 100}ms` }}>
+                          <div className="aspect-[4/5] bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" style={{ animationDelay: `${index * 150}ms` }} />
+                          <div className="space-y-3 p-4">
+                            <div className="h-3 w-24 rounded-md bg-gradient-to-r from-muted/70 via-muted/30 to-muted/70 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-5 w-full rounded-md bg-gradient-to-r from-muted/60 via-muted/25 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-5 w-2/3 rounded-md bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                          </div>
+                        </div>
                       ) : (
-                        <div key={index} className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4"><div className="h-20 w-20 rounded-lg bg-muted shrink-0" /><div className="flex-1 space-y-3"><div className="h-4 w-1/3 rounded bg-muted" /><div className="h-5 w-2/3 rounded bg-muted" /></div></div>
+                        <div key={index} className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4" style={{ animationDelay: `${index * 80}ms` }}>
+                          <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%] shrink-0" />
+                          <div className="flex-1 space-y-3">
+                            <div className="h-4 w-1/3 rounded-md bg-gradient-to-r from-muted/70 via-muted/30 to-muted/70 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-5 w-2/3 rounded-md bg-gradient-to-r from-muted/60 via-muted/25 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                          </div>
+                        </div>
                       )
                     ))}
                   </div>
