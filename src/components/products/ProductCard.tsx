@@ -65,6 +65,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
+  const [collectionVariant, setCollectionVariant] = useState<{ color_name?: string | null; color_hex?: string | null; variant_id?: string | null; thumbnail?: string | null } | undefined>(undefined);
   const [quickViewOpen, setQuickViewOpen] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
