@@ -57,9 +57,9 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
 
         {/* Product Thumbnails */}
         <div className="flex items-center gap-2 flex-1 min-w-0 overflow-x-auto scrollbar-none">
-          {compareProducts.map((product, idx) => (
+          {compareEntries.map((entry, idx) => (
             <motion.div
-              key={product.id}
+              key={`cmp-${entry.index}`}
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0, opacity: 0 }}
@@ -70,19 +70,22 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
                 <TooltipTrigger asChild>
                   <div className="w-12 h-12 rounded-lg overflow-hidden border-2 border-border/50 bg-muted cursor-pointer hover:border-primary/50 transition-colors">
                     <img
-                      src={product.images[0]}
-                      alt={product.name}
+                      src={entry.product.images[0]}
+                      alt={entry.product.name}
                       className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-[200px]">
-                  <p className="font-medium truncate">{product.name}</p>
+                  <p className="font-medium truncate">
+                    {entry.product.name}
+                    {entry.variant?.color_name && ` — ${entry.variant.color_name}`}
+                  </p>
                 </TooltipContent>
               </Tooltip>
 
               {/* Remove button */}
               <button
-                onClick={() => removeFromCompare(product.id)}
+                onClick={() => removeByIndex(entry.index)}
                 className={cn(
                   "absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full",
                   "bg-destructive text-destructive-foreground",
@@ -93,6 +96,14 @@ export const FloatingCompareBar = React.forwardRef<HTMLDivElement>(
               >
                 <X className="h-3 w-3" />
               </button>
+
+              {/* Color dot indicator */}
+              {entry.variant?.color_hex && (
+                <div
+                  className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-3 h-3 rounded-full border-2 border-card"
+                  style={{ backgroundColor: entry.variant.color_hex }}
+                />
+              )}
             </motion.div>
           ))}
 
