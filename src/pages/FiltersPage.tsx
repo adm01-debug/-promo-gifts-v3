@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { useCallback, useState, useEffect, useMemo, useRef, lazy, Suspense } from "react";
+import { useCallback, useState, useRef, lazy, Suspense } from "react";
 import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
 import { VariantPickerDialog } from "@/components/products/VariantPickerDialog";
 import type { Product } from "@/hooks/useProducts";
@@ -14,8 +14,7 @@ import { ProductTableView } from "@/components/products/ProductTableView";
 import { ColumnSelector } from "@/components/products/ColumnSelector";
 import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
-import { BulkVariantWizard, type BulkVariantSelection, type BulkWizardMode } from "@/components/catalog/BulkVariantWizard";
-import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +28,7 @@ import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
+import { useFiltersSelectionMode } from "./filters/useFiltersSelectionMode";
 import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 
