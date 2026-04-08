@@ -61,6 +61,7 @@ export function useFiltersPageState() {
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const realProducts = useMemo(() => catalogData?.pages ? catalogData.pages.flatMap(page => page.products) : [], [catalogData]);
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
   const isFullyLoaded = !hasNextPage && !isFetchingNextPage;
 
   // Serialize filters to URL
