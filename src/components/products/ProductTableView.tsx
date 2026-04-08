@@ -8,6 +8,7 @@
  */
 import { memo, useState, useCallback } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Heart, GitCompare, ExternalLink, Share2, FolderPlus, Eye, FileText } from "lucide-react";
+import { resolveColorImage, resolveColorStock, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -34,7 +35,10 @@ interface ProductTableViewProps {
   onToggleFavorite?: (id: string) => void;
   isInCompare?: (id: string) => boolean;
   onToggleCompare?: (id: string) => { added: boolean; isFull: boolean };
+  canAddToCompare?: boolean;
   onShareProduct?: (product: Product) => void;
+  highlightColors?: string[];
+  activeColorFilter?: ActiveColorFilter | null;
   selectionMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
@@ -47,9 +51,9 @@ const formatPrice = (price: number) =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(price);
 
 const stockColor = (status: string) => {
-  if (status === "in-stock") return "text-emerald-400";
-  if (status === "low-stock") return "text-amber-400";
-  return "text-red-400";
+  if (status === "in-stock") return "text-success";
+  if (status === "low-stock") return "text-warning";
+  return "text-destructive";
 };
 
 function SortHeader({
@@ -94,7 +98,10 @@ export const ProductTableView = memo(function ProductTableView({
   onToggleFavorite,
   isInCompare,
   onToggleCompare,
+  canAddToCompare = true,
   onShareProduct,
+  highlightColors = [],
+  activeColorFilter,
   selectionMode,
   selectedIds,
   onToggleSelect,
