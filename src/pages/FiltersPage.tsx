@@ -334,7 +334,7 @@ export default function FiltersPage() {
                   {/* Bulk Action Bar */}
                   {state.selectionMode && (
                     <BulkActionBar
-                      sel.selectedCount={sel.selectedIds.size}
+                      selectedCount={sel.selectedIds.size}
                       totalCount={state.filteredProducts.length}
                       onSelectAll={sel.selectAll}
                       onClearSelection={sel.clearSelection}
