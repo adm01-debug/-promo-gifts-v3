@@ -16,6 +16,15 @@ export interface CompareItem {
   variant?: CompareVariantInfo;
 }
 
+/** Composite key: allows same product with different variants */
+function itemKey(productId: string, variant?: CompareVariantInfo): string {
+  return variant?.variant_id ? `${productId}::${variant.variant_id}` : productId;
+}
+
+function itemKeyFromItem(item: CompareItem): string {
+  return itemKey(item.productId, item.variant);
+}
+
 interface ComparisonState {
   compareIds: string[];
   compareItems: CompareItem[];
@@ -24,9 +33,10 @@ interface ComparisonState {
 
 interface ComparisonActions {
   addToCompare: (productId: string, variant?: CompareVariantInfo) => boolean;
-  removeFromCompare: (productId: string) => void;
+  removeFromCompare: (productId: string, variantId?: string | null) => void;
+  removeByIndex: (index: number) => void;
   toggleCompare: (productId: string, variant?: CompareVariantInfo) => { added: boolean; isFull: boolean };
-  isInCompare: (productId: string) => boolean;
+  isInCompare: (productId: string, variantId?: string | null) => boolean;
   clearCompare: () => void;
   getCompareVariant: (productId: string) => CompareVariantInfo | undefined;
 }
@@ -60,88 +70,102 @@ function saveToStorage(items: CompareItem[]) {
   }
 }
 
+function applyState(next: CompareItem[]) {
+  return {
+    compareItems: next,
+    compareIds: next.map(i => i.productId),
+    compareCount: next.length,
+    canAddMore: next.length < MAX_COMPARE_ITEMS,
+  };
+}
+
 export const useComparisonStore = create<ComparisonStore>((set, get) => {
   const initial = loadFromStorage();
-  const initialIds = initial.map(i => i.productId);
   return {
-    compareIds: initialIds,
-    compareItems: initial,
+    ...applyState(initial),
     isLoaded: true,
-    compareCount: initial.length,
     maxItems: MAX_COMPARE_ITEMS,
-    canAddMore: initial.length < MAX_COMPARE_ITEMS,
 
     addToCompare: (productId: string, variant?: CompareVariantInfo) => {
       const { compareItems } = get();
-      if (compareItems.some(i => i.productId === productId) || compareItems.length >= MAX_COMPARE_ITEMS) {
+      const key = itemKey(productId, variant);
+      if (compareItems.some(i => itemKeyFromItem(i) === key) || compareItems.length >= MAX_COMPARE_ITEMS) {
         return false;
       }
       const next = [...compareItems, { productId, variant }];
-      const nextIds = next.map(i => i.productId);
       saveToStorage(next);
-      set({
-        compareItems: next,
-        compareIds: nextIds,
-        compareCount: next.length,
-        canAddMore: next.length < MAX_COMPARE_ITEMS,
-      });
+      set(applyState(next));
       return true;
     },
 
-    removeFromCompare: (productId: string) => {
-      const next = get().compareItems.filter((i) => i.productId !== productId);
-      const nextIds = next.map(i => i.productId);
-      saveToStorage(next);
-      set({
-        compareItems: next,
-        compareIds: nextIds,
-        compareCount: next.length,
-        canAddMore: next.length < MAX_COMPARE_ITEMS,
+    removeFromCompare: (productId: string, variantId?: string | null) => {
+      const key = variantId ? `${productId}::${variantId}` : productId;
+      const next = get().compareItems.filter((i) => {
+        const iKey = itemKeyFromItem(i);
+        // If removing by composite key, match exactly
+        if (variantId) return iKey !== key;
+        // If removing by productId only, remove first match with that productId
+        return true;
       });
+      // Fallback: if variantId not provided, remove first occurrence of productId
+      if (!variantId) {
+        const idx = get().compareItems.findIndex(i => i.productId === productId);
+        if (idx >= 0) {
+          const items = [...get().compareItems];
+          items.splice(idx, 1);
+          saveToStorage(items);
+          set(applyState(items));
+          return;
+        }
+      }
+      saveToStorage(next);
+      set(applyState(next));
+    },
+
+    removeByIndex: (index: number) => {
+      const items = [...get().compareItems];
+      if (index >= 0 && index < items.length) {
+        items.splice(index, 1);
+        saveToStorage(items);
+        set(applyState(items));
+      }
     },
 
     toggleCompare: (productId: string, variant?: CompareVariantInfo) => {
       const { compareItems } = get();
-      if (compareItems.some(i => i.productId === productId)) {
-        const next = compareItems.filter((i) => i.productId !== productId);
-        const nextIds = next.map(i => i.productId);
+      const key = itemKey(productId, variant);
+      const existingIdx = compareItems.findIndex(i => itemKeyFromItem(i) === key);
+      
+      if (existingIdx >= 0) {
+        const next = compareItems.filter((_, idx) => idx !== existingIdx);
         saveToStorage(next);
-        set({
-          compareItems: next,
-          compareIds: nextIds,
-          compareCount: next.length,
-          canAddMore: next.length < MAX_COMPARE_ITEMS,
-        });
+        set(applyState(next));
         return { added: false, isFull: false };
       }
       if (compareItems.length >= MAX_COMPARE_ITEMS) {
         return { added: false, isFull: true };
       }
       const next = [...compareItems, { productId, variant }];
-      const nextIds = next.map(i => i.productId);
       saveToStorage(next);
-      set({
-        compareItems: next,
-        compareIds: nextIds,
-        compareCount: next.length,
-        canAddMore: next.length < MAX_COMPARE_ITEMS,
-      });
+      set(applyState(next));
       return { added: true, isFull: false };
     },
 
-    isInCompare: (productId: string) => get().compareItems.some((i) => i.productId === productId),
+    isInCompare: (productId: string, variantId?: string | null) => {
+      const items = get().compareItems;
+      if (variantId) {
+        const key = `${productId}::${variantId}`;
+        return items.some(i => itemKeyFromItem(i) === key);
+      }
+      return items.some((i) => i.productId === productId);
+    },
 
     getCompareVariant: (productId: string) =>
       get().compareItems.find((i) => i.productId === productId)?.variant,
 
     clearCompare: () => {
       saveToStorage([]);
-      set({
-        compareItems: [],
-        compareIds: [],
-        compareCount: 0,
-        canAddMore: true,
-      });
+      set(applyState([]));
     },
   };
 });

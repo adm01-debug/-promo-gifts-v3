@@ -2,7 +2,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { useComparisonStore } from "@/stores/useComparisonStore";
+import { useComparisonStore, type CompareVariantInfo } from "@/stores/useComparisonStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -37,11 +37,29 @@ import { useComparisonHighlight, highlightClasses } from "@/components/compare/C
 
 export default function ComparePage() {
   const navigate = useNavigate();
-  const { compareIds, removeFromCompare, clearCompare, compareCount } =
+  const { compareItems, removeByIndex, clearCompare, compareCount } =
     useComparisonStore();
-  const { getProductsByIds } = useProductsContext();
+  const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
-  const products = useMemo(() => getProductsByIds(compareIds), [getProductsByIds, compareIds]);
+  // Build enriched list: product + variant info, keyed by index
+  const compareEntries = useMemo(() => {
+    const uniqueIds = [...new Set(compareItems.map(i => i.productId))];
+    const productMap = new Map<string, any>();
+    getProductsByIds(uniqueIds).forEach(p => productMap.set(p.id, p));
+    
+    return compareItems.map((item, index) => {
+      const product = productMap.get(item.productId);
+      if (!product) return null;
+      // Override image if variant has thumbnail
+      const displayProduct = item.variant?.thumbnail
+        ? { ...product, images: [item.variant.thumbnail, ...product.images] }
+        : product;
+      return { product: displayProduct, variant: item.variant, index };
+    }).filter(Boolean) as { product: any; variant?: CompareVariantInfo; index: number }[];
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [compareItems, getProductsByIds, _cacheSignal]);
+
+  const products = compareEntries.map(e => e.product);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -184,19 +202,33 @@ export default function ComparePage() {
               products.length === 3 && "grid-cols-3",
               products.length >= 4 && "grid-cols-2 lg:grid-cols-4"
             )}>
-              {products.map((product) => {
+              {compareEntries.map((entry) => {
+                const { product, variant, index } = entry;
                 const status = getStockStatusLabel(product.stockStatus);
                 return (
                   <div 
-                    key={product.id} 
+                    key={`card-${index}`} 
                     className="p-4 rounded-xl bg-card border border-border space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-primary">
-                        {formatCurrency(product.price)}
-                      </span>
-                      <button aria-label="Fechar"
-                        onClick={() => removeFromCompare(product.id)}
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-primary">
+                          {formatCurrency(product.price)}
+                        </span>
+                        {variant?.color_name && (
+                          <Badge variant="secondary" className="text-[10px] gap-1 px-1.5 py-0.5">
+                            {variant.color_hex && (
+                              <span
+                                className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                                style={{ backgroundColor: variant.color_hex }}
+                              />
+                            )}
+                            {variant.color_name}
+                          </Badge>
+                        )}
+                      </div>
+                      <button aria-label="Remover da comparação"
+                        onClick={() => removeByIndex(index)}
                         className="p-1 rounded-full hover:bg-destructive/20 transition-colors"
                       >
                         <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
@@ -215,7 +247,7 @@ export default function ComparePage() {
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Cores:</span>
                         <div className="flex gap-0.5">
-                          {product.colors.slice(0, 4).map((color, idx) => (
+                          {product.colors.slice(0, 4).map((color: any, idx: number) => (
                             <div
                               key={idx}
                               className="w-4 h-4 rounded-full border border-border"
@@ -254,28 +286,39 @@ export default function ComparePage() {
                       <TableHead className="w-[200px] bg-muted/50 sticky left-0 z-10">
                         Atributo
                       </TableHead>
-                      {products.map((product) => (
+                      {compareEntries.map((entry) => (
                         <TableHead
-                          key={product.id}
+                          key={`th-${entry.index}`}
                           className="min-w-[200px] text-center"
                         >
                           <div className="relative group">
-                            <button aria-label="Fechar"
-                              onClick={() => removeFromCompare(product.id)}
+                            <button aria-label="Remover da comparação"
+                              onClick={() => removeByIndex(entry.index)}
                               className="absolute -top-1 -right-1 p-1 rounded-full bg-background border border-border opacity-0 group-hover:opacity-100 transition-opacity hover:bg-destructive/20 z-10"
                             >
                               <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
                             </button>
                             <div className="flex flex-col items-center gap-2">
                               <img
-                                src={product.images[0]}
-                                alt={product.name}
+                                src={entry.product.images[0]}
+                                alt={entry.product.name}
                                 className="w-24 h-24 rounded-lg object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
-                                onClick={() => navigate(`/produto/${product.id}`)}
+                                onClick={() => navigate(`/produto/${entry.product.id}`)}
                               />
                               <span className="font-medium text-foreground text-sm line-clamp-2">
-                                {product.name}
+                                {entry.product.name}
                               </span>
+                              {entry.variant?.color_name && (
+                                <Badge variant="secondary" className="text-[10px] gap-1 px-1.5 py-0.5">
+                                  {entry.variant.color_hex && (
+                                    <span
+                                      className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                                      style={{ backgroundColor: entry.variant.color_hex }}
+                                    />
+                                  )}
+                                  {entry.variant.color_name}
+                                </Badge>
+                              )}
                             </div>
                           </div>
                         </TableHead>
@@ -299,8 +342,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         SKU
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center font-mono text-sm">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center font-mono text-sm">
                           {product.sku}
                         </TableCell>
                       ))}
@@ -311,8 +354,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Categoria
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <Badge variant="outline">
                             {product.category.icon} {product.category.name}
                           </Badge>
@@ -325,8 +368,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Fornecedor
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           {product.supplier.name}
                         </TableCell>
                       ))}
@@ -337,10 +380,10 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Estoque
                       </TableCell>
-                      {products.map((product) => {
+                      {products.map((product, idx) => {
                         const status = getStockStatusLabel(product.stockStatus);
                         return (
-                          <TableCell key={product.id} className="text-center">
+                          <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                             <div className="flex flex-col items-center gap-1">
                               <span className={cn("font-medium", status.color)}>
                                 {status.label}
@@ -359,8 +402,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         É Kit?
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           {product.isKit ? (
                             <Check className="h-5 w-5 text-success mx-auto" />
                           ) : (
@@ -375,8 +418,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Cores Disponíveis
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <div className="flex flex-wrap justify-center gap-1">
                             {product.colors.slice(0, 6).map((color, idx) => (
                               <div
@@ -401,8 +444,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Materiais
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <div className="flex flex-wrap justify-center gap-1">
                             {product.materials.map((material) => (
                               <Badge key={material} variant="secondary" className="text-xs">
@@ -419,8 +462,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Público-Alvo
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <div className="flex flex-wrap justify-center gap-1">
                             {product.tags.publicoAlvo.slice(0, 3).map((publico) => (
                               <Badge key={publico} variant="outline" className="text-xs">
@@ -437,8 +480,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Datas Comemorativas
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           {product.tags.datasComemorativas.length > 0 ? (
                             <div className="flex flex-wrap justify-center gap-1">
                               {product.tags.datasComemorativas.slice(0, 2).map((data) => (
@@ -459,8 +502,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Descrição
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <p className="text-sm text-muted-foreground line-clamp-3">
                             {product.description}
                           </p>
@@ -473,8 +516,8 @@ export default function ComparePage() {
                       <TableCell className="font-medium bg-muted/50 sticky left-0">
                         Ações
                       </TableCell>
-                      {products.map((product) => (
-                        <TableCell key={product.id} className="text-center">
+                      {products.map((product, idx) => (
+                        <TableCell key={`cell-${idx ?? product.id}`} className="text-center">
                           <Button
                             size="sm"
                             onClick={() => navigate(`/produto/${product.id}`)}
@@ -514,7 +557,7 @@ function HighlightedPriceRow({
       </TableCell>
       {products.map((product, idx) => (
         <TableCell 
-          key={product.id} 
+          key={`cell-${idx ?? product.id}`} 
           className={cn("text-center", highlightClasses[highlights[idx]])}
         >
           <div className="flex items-center justify-center gap-1">
@@ -550,7 +593,7 @@ function HighlightedMinQtyRow({ products }: { products: any[] }) {
       </TableCell>
       {products.map((product, idx) => (
         <TableCell 
-          key={product.id} 
+          key={`cell-${idx ?? product.id}`} 
           className={cn("text-center", highlightClasses[highlights[idx]])}
         >
           <div className="flex items-center justify-center gap-1">

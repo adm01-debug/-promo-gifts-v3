@@ -24,18 +24,22 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
   const [selectedImageIndices, setSelectedImageIndices] = useState<Record<string, number>>({});
   const panStartRef = useRef({ x: 0, y: 0 });
 
+  // Use index-based keys to support same product with different variants
+  const productKeys = products.map((_, i) => `slot-${i}`);
+
   // Initialize selected image indices
   useEffect(() => {
     const indices: Record<string, number> = {};
-    products.forEach(p => {
-      if (!(p.id in selectedImageIndices)) {
-        indices[p.id] = 0;
+    productKeys.forEach(key => {
+      if (!(key in selectedImageIndices)) {
+        indices[key] = 0;
       }
     });
     if (Object.keys(indices).length > 0) {
       setSelectedImageIndices(prev => ({ ...prev, ...indices }));
     }
-  }, [products]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [products.length]);
 
   const handleZoomIn = () => setZoom(prev => Math.min(prev + 0.25, 4));
   const handleZoomOut = () => {
@@ -89,8 +93,8 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
     if (value[0] === 1) setPan({ x: 0, y: 0 });
   };
 
-  const selectImage = (productId: string, index: number) => {
-    setSelectedImageIndices(prev => ({ ...prev, [productId]: index }));
+  const selectImage = (slotKey: string, index: number) => {
+    setSelectedImageIndices(prev => ({ ...prev, [slotKey]: index }));
   };
 
   const GalleryContent = ({ inDialog = false }: { inDialog?: boolean }) => (
@@ -172,12 +176,13 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
           products.length >= 4 && "grid-cols-2 lg:grid-cols-4"
         )}
       >
-        {products.map((product) => {
-          const currentIndex = selectedImageIndices[product.id] || 0;
+        {products.map((product, slotIdx) => {
+          const slotKey = productKeys[slotIdx];
+          const currentIndex = selectedImageIndices[slotKey] || 0;
           const currentImage = product.images[currentIndex];
           
           return (
-            <div key={product.id} className="space-y-3">
+            <div key={slotKey} className="space-y-3">
               {/* Product name */}
               <h3 
                 className="font-display text-sm font-medium text-center truncate cursor-pointer hover:text-primary transition-colors"
@@ -215,7 +220,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                   {product.images.slice(0, 5).map((img, idx) => (
                     <button
                       key={idx}
-                      onClick={() => selectImage(product.id, idx)}
+                      onClick={() => selectImage(slotKey, idx)}
                       className={cn(
                         "shrink-0 w-10 h-10 rounded-md overflow-hidden transition-all",
                         currentIndex === idx
