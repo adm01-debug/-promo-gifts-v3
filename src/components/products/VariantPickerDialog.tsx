@@ -58,7 +58,8 @@ export function VariantPickerDialog({
 
   const handleSelect = (variant: ExternalVariantStock | null) => {
     onComplete(variant);
-    onOpenChange(false);
+    // Delay close to let parent state update propagate first (avoids race condition)
+    setTimeout(() => onOpenChange(false), 0);
   };
 
   return (

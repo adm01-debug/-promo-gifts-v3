@@ -33,10 +33,11 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
 
   const fmt = (qty: number) => (qty >= 1000 ? `${(qty / 1000).toFixed(1)}k` : qty.toString());
 
-  // Auto-skip when no variants
+  // Auto-skip when no variants — use setTimeout to let dialog mount first
   useEffect(() => {
     if (!isLoading && !sortedVariants.length) {
-      onSelect(null);
+      const t = setTimeout(() => onSelect(null), 150);
+      return () => clearTimeout(t);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoading, sortedVariants.length]);

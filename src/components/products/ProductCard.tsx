@@ -69,6 +69,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const [imageLoaded, setImageLoaded] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const actionsRef = useRef<HTMLDivElement>(null);
+  const actionBusyRef = useRef(false);
 
   // Variant picker state for favorite/compare/collection
   const [variantPickerOpen, setVariantPickerOpen] = useState(false);
@@ -210,7 +211,14 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         setIsHovered(false);
         setActionsOpen(false);
       }}
-      onClick={onClick}
+      onClick={(e) => {
+        // Block card navigation when FAB actions are open or a dialog was just used
+        if (actionsOpen || actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen) {
+          e.stopPropagation();
+          return;
+        }
+        onClick?.();
+      }}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
       <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30" style={{ zIndex: 0 }}>
@@ -473,6 +481,9 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 className="h-9 w-9 md:h-11 md:w-11 rounded-full bg-card/95 backdrop-blur-md shadow-lg border border-border/50 hover:bg-card hover:scale-110 hover:shadow-xl transition-all duration-200 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]"
                 onClick={(e) => {
                   e.stopPropagation();
+                  e.preventDefault();
+                  actionBusyRef.current = true;
+                  setTimeout(() => { actionBusyRef.current = false; }, 500);
                   onShare?.(product);
                 }}
                 aria-label="Compartilhar produto"

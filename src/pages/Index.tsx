@@ -149,6 +149,7 @@ export default function Index() {
             if (!open) {
               catalog.setShareProduct(null);
               setVariantForShare(undefined);
+              variantSelectedRef.current = false;
             }
           }}
           product={catalog.shareProduct}
