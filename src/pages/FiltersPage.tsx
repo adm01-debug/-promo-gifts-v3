@@ -366,12 +366,33 @@ export default function FiltersPage() {
               )}
               {(state.isLoadingProducts || state.isLoadingMaterialFilter || state.isLoadingCategoryFilter) && state.realProducts.length === 0 ? (
                 <div className="rounded-xl border border-border/40 bg-gradient-to-b from-background/80 to-background/40 p-4 sm:p-6 shadow-inner">
-                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : "space-y-3"} animate-pulse`}>
+                  {/* Premium shimmer loading header */}
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-primary/20 to-primary/5 animate-pulse" />
+                    <div className="space-y-1.5 flex-1">
+                      <div className="h-4 w-48 rounded-md bg-gradient-to-r from-muted/80 via-muted/40 to-muted/80 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                      <div className="h-3 w-32 rounded-md bg-gradient-to-r from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite_0.3s] bg-[length:200%_100%]" />
+                    </div>
+                  </div>
+                  <div className={`${state.viewMode === "grid" ? "grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4 lg:gap-6" : "space-y-3"}`}>
                     {Array.from({ length: state.viewMode === "grid" ? 6 : 8 }).map((_, index) => (
                       state.viewMode === "grid" ? (
-                        <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card"><div className="aspect-[4/5] bg-muted/50" /><div className="space-y-3 p-4"><div className="h-3 w-24 rounded bg-muted" /><div className="h-5 w-full rounded bg-muted" /><div className="h-5 w-2/3 rounded bg-muted" /></div></div>
+                        <div key={index} className="overflow-hidden rounded-2xl border border-border/50 bg-card" style={{ animationDelay: `${index * 100}ms` }}>
+                          <div className="aspect-[4/5] bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" style={{ animationDelay: `${index * 150}ms` }} />
+                          <div className="space-y-3 p-4">
+                            <div className="h-3 w-24 rounded-md bg-gradient-to-r from-muted/70 via-muted/30 to-muted/70 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-5 w-full rounded-md bg-gradient-to-r from-muted/60 via-muted/25 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-5 w-2/3 rounded-md bg-gradient-to-r from-muted/50 via-muted/20 to-muted/50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                          </div>
+                        </div>
                       ) : (
-                        <div key={index} className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4"><div className="h-20 w-20 rounded-lg bg-muted shrink-0" /><div className="flex-1 space-y-3"><div className="h-4 w-1/3 rounded bg-muted" /><div className="h-5 w-2/3 rounded bg-muted" /></div></div>
+                        <div key={index} className="flex items-center gap-4 rounded-xl border border-border/50 bg-card p-4" style={{ animationDelay: `${index * 80}ms` }}>
+                          <div className="h-20 w-20 rounded-lg bg-gradient-to-br from-muted/60 via-muted/30 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%] shrink-0" />
+                          <div className="flex-1 space-y-3">
+                            <div className="h-4 w-1/3 rounded-md bg-gradient-to-r from-muted/70 via-muted/30 to-muted/70 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                            <div className="h-5 w-2/3 rounded-md bg-gradient-to-r from-muted/60 via-muted/25 to-muted/60 animate-[shimmer_2s_infinite] bg-[length:200%_100%]" />
+                          </div>
+                        </div>
                       )
                     ))}
                   </div>
