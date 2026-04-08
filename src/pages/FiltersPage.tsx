@@ -362,6 +362,7 @@ export default function FiltersPage() {
                         onToggleFavorite={toggleFavorite}
                         isInCompare={isInCompare}
                         onToggleCompare={toggleCompare}
+                        onShareProduct={(product) => setShareProduct(product)}
                         selectionMode={state.selectionMode}
                         selectedIds={selectedIds}
                         onToggleSelect={toggleSelect}
