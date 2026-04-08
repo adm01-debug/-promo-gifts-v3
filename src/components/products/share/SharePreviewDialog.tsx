@@ -17,13 +17,20 @@ import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
 import { WhatsAppPreview } from "./WhatsAppPreview";
 import { cn } from "@/lib/utils";
 
+interface SelectedVariantInfo {
+  variantName?: string | null;
+  colorHex?: string | null;
+  thumbnailUrl?: string | null;
+}
+
 interface SharePreviewDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product: Product;
+  selectedVariant?: SelectedVariantInfo | null;
 }
 
-export function SharePreviewDialog({ open, onOpenChange, product }: SharePreviewDialogProps) {
+export function SharePreviewDialog({ open, onOpenChange, product, selectedVariant }: SharePreviewDialogProps) {
   const { toast } = useToast();
   const [activeTemplate, setActiveTemplate] = useState<TemplateKey>("informal");
   const [customMessage, setCustomMessage] = useState<string | null>(null);
@@ -92,6 +99,16 @@ export function SharePreviewDialog({ open, onOpenChange, product }: SharePreview
           <DialogTitle className="flex items-center gap-2">
             <MessageCircle className="h-5 w-5 text-success" />
             Enviar Produto
+            {selectedVariant?.variantName && (
+              <span className="inline-flex items-center gap-1.5 ml-1">
+                {selectedVariant.colorHex && (
+                  <span className="w-3 h-3 rounded-full border border-border/50 shrink-0" style={{ backgroundColor: selectedVariant.colorHex }} />
+                )}
+                <span className="text-xs font-normal text-muted-foreground">
+                  — {selectedVariant.variantName}
+                </span>
+              </span>
+            )}
           </DialogTitle>
           <DialogDescription>
             Selecione fotos, modelo de mensagem e contato
