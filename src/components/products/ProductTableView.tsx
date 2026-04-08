@@ -90,6 +90,42 @@ export const ProductTableView = memo(function ProductTableView({
 }: ProductTableViewProps) {
   const [sortCol, setSortCol] = useState<SortCol>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  
+  // Shared variant picker state
+  const [variantPickerOpen, setVariantPickerOpen] = useState(false);
+  const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
+  const [variantPickerProduct, setVariantPickerProduct] = useState<Product | null>(null);
+  const favStore = useFavoritesStore();
+  const compStore = useComparisonStore();
+
+  const openVariantPicker = useCallback((product: Product, mode: VariantActionMode) => {
+    setVariantPickerProduct(product);
+    setVariantPickerMode(mode);
+    setVariantPickerOpen(true);
+  }, []);
+
+  const handleVariantComplete = useCallback((variant: ExternalVariantStock | null) => {
+    if (!variantPickerProduct) return;
+    const variantInfo = variant ? {
+      color_name: variant.color_name,
+      color_hex: variant.color_hex,
+      size_code: variant.size_code,
+      variant_id: variant.id,
+      thumbnail: variant.selected_thumbnail,
+    } : undefined;
+
+    if (variantPickerMode === 'favorite') {
+      favStore.addFavorite(variantPickerProduct.id, variantInfo);
+      toast.success(`"${variantPickerProduct.name}" favoritado${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
+    } else if (variantPickerMode === 'compare') {
+      const result = compStore.addToCompare(variantPickerProduct.id, variantInfo);
+      if (!result) {
+        showErrorToast({ title: "Limite de 4 produtos para comparação atingido" });
+      } else {
+        toast.success(`"${variantPickerProduct.name}" adicionado à comparação${variant?.color_name ? ` — ${variant.color_name}` : ''}`);
+      }
+    }
+  }, [variantPickerMode, variantPickerProduct, favStore, compStore]);
 
   const handleSort = useCallback((col: SortCol) => {
     if (sortCol === col) {
