@@ -15,6 +15,7 @@ import { PhotoSelector } from "./PhotoSelector";
 import { ShareContactSelector, type ShareContactSelection } from "./ShareContactSelector";
 import { MESSAGE_TEMPLATES, type TemplateKey } from "./MessageTemplates";
 import { WhatsAppPreview } from "./WhatsAppPreview";
+import { openWhatsAppShare } from "./whatsapp";
 import { cn } from "@/lib/utils";
 
 interface SelectedVariantInfo {
@@ -39,22 +40,45 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
 
   // Filter out color-specific images — keep only main product photos
   const mainImages = useMemo(() => {
-    if (!product.colors || product.colors.length === 0) return product.images;
+    const preferredImages: string[] = [];
+
+    if (selectedVariant?.thumbnailUrl) {
+      preferredImages.push(selectedVariant.thumbnailUrl);
+    }
+
+    if (!product.colors || product.colors.length === 0) {
+      preferredImages.push(...product.images);
+      return Array.from(new Set(preferredImages));
+    }
+
     const colorImageUrls = new Set<string>();
     product.colors.forEach((color) => {
       if (color.image) colorImageUrls.add(color.image);
       color.images?.forEach((img) => colorImageUrls.add(img));
     });
+
     const filtered = product.images.filter((img) => !colorImageUrls.has(img));
-    return filtered.length > 0 ? filtered : [product.images[0]]; // fallback to first
-  }, [product.images, product.colors]);
+    preferredImages.push(...(filtered.length > 0 ? filtered : product.images[0] ? [product.images[0]] : []));
+
+    return Array.from(new Set(preferredImages));
+  }, [product.images, product.colors, selectedVariant?.thumbnailUrl]);
 
   const [selectedImages, setSelectedImages] = useState<Set<number>>(
     () => new Set(mainImages.map((_, i) => i))
   );
 
   const currentTemplate = MESSAGE_TEMPLATES.find((t) => t.key === activeTemplate)!;
-  const message = customMessage ?? currentTemplate.generate(product);
+  const defaultMessage = useMemo(() => {
+    const baseMessage = currentTemplate.generate(product);
+
+    if (!selectedVariant?.variantName) {
+      return baseMessage;
+    }
+
+    return `${baseMessage}\n\n🎨 Cor/variação: ${selectedVariant.variantName}`;
+  }, [currentTemplate, product, selectedVariant?.variantName]);
+
+  const message = customMessage ?? defaultMessage;
 
   const handleToggleImage = useCallback((idx: number) => {
     setSelectedImages((prev) => {
@@ -82,12 +106,16 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
   };
 
   const handleSend = () => {
-    const photoCount = selectedImages.size;
     const target = contactSelection?.contactName || contactSelection?.companyName || "destinatário";
 
+    openWhatsAppShare({
+      message,
+      phone: contactSelection?.contactPhone,
+    });
+
     toast({
-      title: "Enviando via A-Ticket",
-      description: `${photoCount} foto(s) + mensagem para ${target}`,
+      title: "WhatsApp aberto",
+      description: `Mensagem preparada para ${target}`,
     });
     onOpenChange(false);
   };
