@@ -61,6 +61,7 @@ export function useFiltersPageState() {
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
   const realProducts = useMemo(() => catalogData?.pages ? catalogData.pages.flatMap(page => page.products) : [], [catalogData]);
+  const totalEstimate = catalogData?.pages?.[0]?.totalEstimate ?? null;
   const isFullyLoaded = !hasNextPage && !isFetchingNextPage;
 
   // Serialize filters to URL
@@ -228,7 +229,7 @@ export function useFiltersPageState() {
   };
 
   return {
-    filters, setFilters, searchParams, realProducts, isLoadingProducts, isFullyLoaded,
+    filters, setFilters, searchParams, realProducts, isLoadingProducts, isFullyLoaded, totalEstimate,
     isLoadingMaterialFilter, isLoadingCategoryFilter, isLoadingColorFilter,
     activePresetId, viewMode, setViewMode, gridColumns, setGridColumns,
     selectionMode, setSelectionMode,
