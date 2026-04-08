@@ -310,6 +310,15 @@ export const ProductListItem = memo(function ProductListItem({
         </div>
       </article>
 
+      <VariantPickerDialog
+        open={variantPickerOpen}
+        onOpenChange={setVariantPickerOpen}
+        productId={product.id}
+        productName={product.name}
+        mode={variantPickerMode}
+        onComplete={handleVariantComplete}
+      />
+
       <AddToCollectionModal
         open={collectionModalOpen}
         onOpenChange={setCollectionModalOpen}
