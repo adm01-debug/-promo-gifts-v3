@@ -10,6 +10,7 @@ import { useProductsByColor } from "@/hooks/useProductsByColor";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useColorEnrichment } from "@/hooks/useColorEnrichment";
 import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
+import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { sortProducts } from "@/utils/product-sorting";
 import { toast } from "sonner";
 
@@ -138,6 +139,7 @@ export function useFiltersPageState() {
 
   // Promo Brindes sales ranking (lazy — only fetched when needed)
   const { data: promoSalesMap } = usePromoSalesRanking();
+  const { data: supplierSalesMap } = useSupplierSalesRanking();
 
   const handleApplyPreset = (presetFilters: FilterState, presetId?: string) => { setFilters(presetFilters); setActivePresetId(presetId); };
   const handleFilterChange = (newFilters: FilterState) => { setFilters(newFilters); setActivePresetId(undefined); };
@@ -202,9 +204,9 @@ export function useFiltersPageState() {
     if (filters.hasCommercialPackaging) result = result.filter(product => product.hasCommercialPackaging === true);
     if (filters.isKit) result = result.filter(product => product.isKit === true);
     const skipSort = hasFuzzySearch && sortBy === 'name';
-    sortProducts(result, sortBy, { promoSalesMap, skipSort });
+    sortProducts(result, sortBy, { promoSalesMap, supplierSalesMap, skipSort });
     return result;
-  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, hasColorFilter, colorFilteredProductIds, isLoadingColorFilter, promoSalesMap]);
+  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, hasColorFilter, colorFilteredProductIds, isLoadingColorFilter, promoSalesMap, supplierSalesMap]);
 
   // Color enrichment: fetch variant images/stock for filtered products when color filter is active
   const filteredProductIds = useMemo(() => filteredProducts.map(p => p.id), [filteredProducts]);
