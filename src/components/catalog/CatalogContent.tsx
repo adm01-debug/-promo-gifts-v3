@@ -359,6 +359,7 @@ function VirtualList({
                       isInCompare={isInCompare(product.id)}
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
+                      activeColorFilter={activeColorFilter}
                     />
                   </div>
                 </div>
