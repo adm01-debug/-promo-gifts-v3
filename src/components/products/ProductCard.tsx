@@ -200,12 +200,25 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     }
   };
 
-  const hasHighlightedColor = highlightColors?.some(group =>
-    product.colors.some(color => color.group === group)
-  ) || !!activeColorFilter && (
-    (activeColorFilter.groups.length > 0 && product.colors.some(c => activeColorFilter.groups.includes(c.groupSlug || ''))) ||
-    (activeColorFilter.variations.length > 0 && product.colors.some(c => activeColorFilter.variations.includes(c.variationSlug || '')))
-  );
+  const matchedHighlightColor = (() => {
+    if (activeColorFilter) {
+      if (activeColorFilter.groups.length > 0) {
+        const match = product.colors.find(c => activeColorFilter.groups.includes(c.groupSlug || ''));
+        if (match) return match.hex || null;
+      }
+      if (activeColorFilter.variations.length > 0) {
+        const match = product.colors.find(c => activeColorFilter.variations.includes(c.variationSlug || ''));
+        if (match) return match.hex || null;
+      }
+    }
+    if (highlightColors?.length) {
+      const match = product.colors.find(color => highlightColors.includes(color.group));
+      if (match) return match.hex || null;
+    }
+    return null;
+  })();
+
+  const hasHighlightedColor = !!matchedHighlightColor;
 
   const colorSpecificImage = resolveColorImage(product, activeColorFilter);
   const rawImageUrl = colorSpecificImage || product.og_image_url || product.images[0] || null;
