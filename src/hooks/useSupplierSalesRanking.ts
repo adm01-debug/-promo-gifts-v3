@@ -37,7 +37,7 @@ export function useSupplierSalesRanking() {
         const result = await invokeExternalDb<ProductIntelligenceRanking>({
           table: 'mv_product_intelligence',
           operation: 'select',
-          select: 'product_id,turnover_score,avg_velocity_7d,avg_velocity_30d,abc_classification,total_depleted_30d',
+          select: '*',
           limit: 5000,
         });
 
@@ -58,7 +58,7 @@ export function useSupplierSalesRanking() {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : '';
         // Graceful fallback if MV not populated
-        if (msg.includes('not been populated') || msg.includes('não mapeada')) {
+        if (msg.includes('not been populated') || msg.includes('não mapeada') || msg.includes('does not exist')) {
           logger.warn('[SupplierSalesRanking] MV not populated yet, returning empty map');
           return new Map();
         }
@@ -68,7 +68,7 @@ export function useSupplierSalesRanking() {
     staleTime: 10 * 60 * 1000, // 10 min cache
     retry: (failureCount, error: unknown) => {
       const msg = error instanceof Error ? error.message : '';
-      if (msg.includes('not been populated')) return false;
+      if (msg.includes('not been populated') || msg.includes('does not exist')) return false;
       return failureCount < 2;
     },
   });
