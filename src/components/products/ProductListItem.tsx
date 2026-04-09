@@ -188,7 +188,14 @@ export const ProductListItem = memo(function ProductListItem({
     }
   };
 
-  const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+  // Multi-variant carousel
+  const allMatchingVariants = resolveAllMatchingColors(product.colors, activeColorFilter);
+  const hasMultipleVariants = allMatchingVariants.length > 1;
+  const safeVariantIdx = hasMultipleVariants ? Math.min(activeVariantIdx, allMatchingVariants.length - 1) : 0;
+  const currentVariant = hasMultipleVariants ? allMatchingVariants[safeVariantIdx] : null;
+
+  const variantImage = currentVariant?.image;
+  const colorSpecificImage = variantImage || resolveColorImage(product, activeColorFilter);
   const rawImageUrl = colorSpecificImage || product.og_image_url || product.images[0] || null;
   const thumbUrl = rawImageUrl ? getCdnUrl(rawImageUrl, "card") : "/placeholder.svg";
 
@@ -196,9 +203,9 @@ export const ProductListItem = memo(function ProductListItem({
   const displayStock = colorStock?.stock ?? product.stock;
   const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
 
-  const activeColorName = getActiveColorName(product, activeColorFilter);
+  const activeColorName = currentVariant?.name || getActiveColorName(product, activeColorFilter);
 
-  const matchedHighlightColor = resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
+  const matchedHighlightColor = currentVariant?.hex || resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
 
   const hasColorMatch = !!matchedHighlightColor || (highlightColors.length > 0 &&
     product.colors.some((c) => highlightColors.includes(c.group))) ||
