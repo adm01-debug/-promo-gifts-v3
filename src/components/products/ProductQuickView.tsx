@@ -217,13 +217,14 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
 
   const handleViewDetails = () => {
     onOpenChange(false);
-    // Pass selected color to product detail page
+    // Pass selected color to product detail page with full context (cor + hex + grupo)
     if (selectedColorId && product.colors?.length) {
       const selectedColor = product.colors.find(c => c.id === selectedColorId);
       if (selectedColor) {
         const params = new URLSearchParams();
         params.set('cor', selectedColor.name);
         if (selectedColor.hex) params.set('hex', selectedColor.hex);
+        if ((selectedColor as any).groupSlug) params.set('grupo', (selectedColor as any).groupSlug);
         navigate(`/produto/${product.id}?${params.toString()}`);
         return;
       }
