@@ -178,15 +178,17 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         }
       }
 
-      // Build image lookup maps
+      // Build image lookup maps — scoped per product to avoid cross-contamination
       const imagesByVariantId = new Map<string, string>();
-      const imagesBySupplierCode = new Map<string, string>();
-      const primaryImagesByProduct = new Set<string>();
+      // Key: "productId|SUPPLIER_CODE" to avoid one product's image leaking to another
+      const imagesByProductAndCode = new Map<string, string>();
+      const primaryImagesByProduct = new Map<string, Set<string>>();
 
       for (const img of allImages) {
         if (!img.url_cdn || img.image_type === 'box') continue;
         if ((img.is_primary || img.is_og_image) && img.url_cdn) {
-          primaryImagesByProduct.add(img.url_cdn);
+          if (!primaryImagesByProduct.has(img.product_id)) primaryImagesByProduct.set(img.product_id, new Set());
+          primaryImagesByProduct.get(img.product_id)!.add(img.url_cdn);
         }
         if (img.variant_id) {
           if (!imagesByVariantId.has(img.variant_id) || img.is_og_image) {
@@ -194,9 +196,9 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           }
         }
         if (img.supplier_code) {
-          const code = img.supplier_code.toUpperCase();
-          if (!imagesBySupplierCode.has(code) || img.is_og_image) {
-            imagesBySupplierCode.set(code, img.url_cdn);
+          const key = `${img.product_id}|${img.supplier_code.toUpperCase()}`;
+          if (!imagesByProductAndCode.has(key) || img.is_og_image) {
+            imagesByProductAndCode.set(key, img.url_cdn);
           }
         }
       }
