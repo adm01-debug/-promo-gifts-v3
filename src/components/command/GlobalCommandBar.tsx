@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState, useMemo, forwardRef, type ReactNode } from "react";
+import { useCallback, useEffect, useState, useMemo, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Command,
@@ -82,7 +82,7 @@ interface GlobalCommandBarProps {
   showTrigger?: boolean;
 }
 
-export const GlobalCommandBar = forwardRef<HTMLDivElement, GlobalCommandBarProps>(function GlobalCommandBar({ children, showTrigger = false }, _ref) {
+export function GlobalCommandBar({ children, showTrigger = false }: GlobalCommandBarProps) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [recentItems, setRecentItems] = useState<RecentItem[]>([]);
@@ -626,7 +626,7 @@ export const GlobalCommandBar = forwardRef<HTMLDivElement, GlobalCommandBarProps
       </CommandDialog>
     </>
   );
-});
+}
 
 // Hook to use the command bar programmatically
 export function useCommandBar() {
