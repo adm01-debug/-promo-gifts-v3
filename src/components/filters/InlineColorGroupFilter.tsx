@@ -73,9 +73,6 @@ function InlineColorSwatch({
                 strokeWidth={3}
               />
             )}
-            {isTransparent && !isSelected && (
-              <div className="w-full h-full rounded-full border border-dashed border-border" />
-            )}
           </button>
         </TooltipTrigger>
         <TooltipContent side="top" className="text-xs">
