@@ -58,7 +58,7 @@ export function useSupplierSalesRanking() {
       } catch (err: unknown) {
         const msg = err instanceof Error ? err.message : '';
         // Graceful fallback if MV not populated
-        if (msg.includes('not been populated') || msg.includes('não mapeada')) {
+        if (msg.includes('not been populated') || msg.includes('não mapeada') || msg.includes('does not exist')) {
           logger.warn('[SupplierSalesRanking] MV not populated yet, returning empty map');
           return new Map();
         }
