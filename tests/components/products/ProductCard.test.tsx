@@ -50,6 +50,34 @@ vi.mock("@/hooks/useProductBounds", () => ({
   useProductBounds: vi.fn().mockReturnValue({ width: 0, height: 0 }),
 }));
 
+vi.mock("@/components/products/share/SharePreviewDialog", () => ({
+  SharePreviewDialog: () => null,
+}));
+
+vi.mock("@/components/products/ProductSparkline", () => ({
+  ProductSparkline: () => null,
+}));
+
+vi.mock("@/components/products/VariantPickerDialog", () => ({
+  VariantPickerDialog: () => null,
+}));
+
+vi.mock("@/stores/useFavoritesStore", () => ({
+  useFavoritesStore: () => ({
+    addFavorite: vi.fn(),
+    removeFavorite: vi.fn(),
+    isFavorite: vi.fn().mockReturnValue(false),
+  }),
+}));
+
+vi.mock("@/stores/useComparisonStore", () => ({
+  useComparisonStore: () => ({
+    addToCompare: vi.fn(),
+    removeFromCompare: vi.fn(),
+    isInCompare: vi.fn().mockReturnValue(false),
+  }),
+}));
+
 const mockProduct = {
   id: "p1",
   name: "Caneta Premium",
