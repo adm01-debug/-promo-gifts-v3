@@ -75,6 +75,18 @@ export const ProductListItem = memo(function ProductListItem({
   const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
   const actionBusyRef = useRef(false);
   const [activeVariantIdx, setActiveVariantIdx] = useState(0);
+
+  // Reset variant index when color filter changes
+  const listFilterKey = activeColorFilter
+    ? `${(activeColorFilter.groups || []).join(',')}|${(activeColorFilter.variations || []).join(',')}`
+    : '';
+  const prevListFilterRef = useRef(listFilterKey);
+  useEffect(() => {
+    if (prevListFilterRef.current !== listFilterKey) {
+      setActiveVariantIdx(0);
+      prevListFilterRef.current = listFilterKey;
+    }
+  }, [listFilterKey]);
   const favStore = useFavoritesStore();
   const compStore = useComparisonStore();
 
