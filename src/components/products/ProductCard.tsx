@@ -457,6 +457,9 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 }}
               />
             ))}
+            <span className="text-[10px] font-medium text-muted-foreground ml-0.5 max-w-[60px] truncate hidden sm:inline" title={allMatchingVariants[safeVariantIdx]?.name}>
+              {allMatchingVariants[safeVariantIdx]?.name}
+            </span>
             <span className="text-[10px] font-medium text-muted-foreground ml-0.5" aria-live="polite">
               {safeVariantIdx + 1}/{allMatchingVariants.length}
             </span>
