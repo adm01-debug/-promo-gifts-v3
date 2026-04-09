@@ -23,7 +23,8 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
+import { sortProducts } from "@/utils/product-sorting";
 
 export type ViewMode = "grid" | "list" | "table";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
