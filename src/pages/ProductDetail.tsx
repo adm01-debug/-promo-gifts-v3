@@ -125,6 +125,22 @@ export default function ProductDetail() {
     }
   }, [product, trackProductView, addToRecentlyViewed]);
 
+  // Auto-select color variation from ?cor= query param (from catalog card click)
+  useEffect(() => {
+    if (!product || colorAutoSelected) return;
+    const corParam = searchParams.get('cor');
+    if (!corParam || !product.variations?.length) return;
+    
+    const normalizedParam = corParam.toLowerCase().trim();
+    const match = product.variations.find((v: any) => 
+      v.color?.name?.toLowerCase().trim() === normalizedParam
+    );
+    if (match) {
+      setSelectedVariation(match);
+      setColorAutoSelected(true);
+    }
+  }, [product, searchParams, colorAutoSelected]);
+
   if (isLoading) {
     return (
       <MainLayout>
