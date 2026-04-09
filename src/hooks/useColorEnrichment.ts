@@ -169,7 +169,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           operation: 'select' as const,
           select: 'product_id, variant_id, supplier_code, url_cdn, is_og_image, is_primary, image_type',
           filters: { product_id: pidChunk },
-          limit: 2000,
+          limit: 3000,
           offset: 0,
         }]);
 
