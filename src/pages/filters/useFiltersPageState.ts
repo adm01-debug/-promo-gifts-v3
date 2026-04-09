@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
