@@ -74,6 +74,7 @@ export const ProductListItem = memo(function ProductListItem({
   const [variantPickerOpen, setVariantPickerOpen] = useState(false);
   const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
   const actionBusyRef = useRef(false);
+  const [activeVariantIdx, setActiveVariantIdx] = useState(0);
   const favStore = useFavoritesStore();
   const compStore = useComparisonStore();
 
