@@ -8,8 +8,8 @@
  * Uses incremental enrichment: keeps a growing cache of results and only
  * fetches data for NEW product IDs that haven't been enriched yet.
  */
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useRef, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { useRef, useMemo, useEffect } from 'react';
 import { invokeBatchBridge } from '@/lib/external-db';
 import type { Product } from '@/types/product-catalog';
 import { logger } from '@/lib/logger';
@@ -45,14 +45,16 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
   // Accumulator: track which product IDs have already been enriched for this filter
   const enrichedIdsRef = useRef<Set<string>>(new Set());
   const accumulatedMapRef = useRef<Map<string, ColorEnrichmentData>>(new Map());
-  const lastFilterKeyRef = useRef<string>('');
+  const lastFilterKeyRef = useRef<string>(filterKey);
 
-  // Reset cache when filter changes
-  if (lastFilterKeyRef.current !== filterKey) {
-    enrichedIdsRef.current = new Set();
-    accumulatedMapRef.current = new Map();
-    lastFilterKeyRef.current = filterKey;
-  }
+  // Reset cache when filter changes — use useEffect to avoid mutating refs during render
+  useEffect(() => {
+    if (lastFilterKeyRef.current !== filterKey) {
+      enrichedIdsRef.current = new Set();
+      accumulatedMapRef.current = new Map();
+      lastFilterKeyRef.current = filterKey;
+    }
+  }, [filterKey]);
 
   // Find product IDs that haven't been enriched yet
   const newProductIds = useMemo(() => {
