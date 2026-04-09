@@ -287,17 +287,7 @@ export function useCatalogState() {
     //   8. Fuzzy (Fuse.js, threshold < 0.45)
     // Se o usuário escolher outro sort (preço, estoque, etc.), reordena normalmente.
     const skipSort = hasFuzzySearch && sortBy === 'name';
-    if (!skipSort) {
-      switch (sortBy) {
-        case "name": result.sort((a, b) => a.name.localeCompare(b.name)); break;
-        case "price-asc": result.sort((a, b) => a.price - b.price); break;
-        case "price-desc": result.sort((a, b) => b.price - a.price); break;
-        case "stock": result.sort((a, b) => (b.stock || 0) - (a.stock || 0)); break;
-        case "newest": result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()); break;
-        case "best-seller-supplier": result.sort((a, b) => { const aS = (a.featured ? 2 : 0); const bS = (b.featured ? 2 : 0); return bS !== aS ? bS - aS : (b.stock || 0) - (a.stock || 0); }); break;
-        case "best-seller-promo": result.sort((a, b) => { const aCount = promoSalesMap?.get(a.id) || 0; const bCount = promoSalesMap?.get(b.id) || 0; if (bCount !== aCount) return bCount - aCount; return a.name.localeCompare(b.name); }); break;
-      }
-    }
+    sortProducts(result, sortBy, { promoSalesMap, skipSort });
 
     return result;
   }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, promoSalesMap]);
