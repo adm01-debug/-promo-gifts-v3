@@ -156,6 +156,9 @@ export function useFiltersPageState() {
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
 
+  // Promo Brindes sales ranking (lazy — only fetched when needed)
+  const { data: promoSalesMap } = usePromoSalesRanking();
+
   const handleApplyPreset = (presetFilters: FilterState, presetId?: string) => { setFilters(presetFilters); setActivePresetId(presetId); };
   const handleFilterChange = (newFilters: FilterState) => { setFilters(newFilters); setActivePresetId(undefined); };
 
