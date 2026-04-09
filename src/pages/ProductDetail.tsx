@@ -172,10 +172,18 @@ export default function ProductDetail() {
   // Sync URL when user manually changes the selected variation (for browser back/forward)
   useEffect(() => {
     if (!product || !colorAutoSelected) return; // skip the initial auto-selection
+    const currentCor = searchParams.get('cor') || '';
+    const currentHex = searchParams.get('hex') || '';
+    const newCor = selectedVariation?.color?.name || '';
+    const newHex = selectedVariation?.color?.hex || '';
+    
+    // Only update if something actually changed to avoid unnecessary re-renders
+    if (currentCor === newCor && currentHex === newHex) return;
+    
     const newParams = new URLSearchParams(searchParams);
-    if (selectedVariation?.color?.name) {
-      newParams.set('cor', selectedVariation.color.name);
-      if (selectedVariation.color.hex) newParams.set('hex', selectedVariation.color.hex);
+    if (newCor) {
+      newParams.set('cor', newCor);
+      if (newHex) newParams.set('hex', newHex);
       else newParams.delete('hex');
       newParams.delete('grupo');
     } else {
@@ -183,11 +191,8 @@ export default function ProductDetail() {
       newParams.delete('hex');
       newParams.delete('grupo');
     }
-    const newSearch = newParams.toString();
-    const currentSearch = searchParams.toString();
-    if (newSearch !== currentSearch) {
-      setSearchParams(newParams, { replace: true });
-    }
+    setSearchParams(newParams, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedVariation, colorAutoSelected]);
 
   if (isLoading) {
