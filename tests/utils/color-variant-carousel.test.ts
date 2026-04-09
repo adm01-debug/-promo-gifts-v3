@@ -101,7 +101,7 @@ describe("resolveAllMatchingColors — múltiplos grupos", () => {
   });
 
   it("mistura match real + fallback quando produto só tem uma das cores", () => {
-    const partialColors = [makeColor({ groupSlug: "rosa", hex: "#E91E8C", name: "Rosa" })];
+    const partialColors = [makeColor({ groupSlug: "rosa", group: "Rosa", hex: "#E91E8C", name: "Rosa" })];
     const result = resolveAllMatchingColors(partialColors, { groups: ["rosa", "azul"], variations: [] });
     expect(result).toHaveLength(2);
     expect(result[0].hex).toBe("#E91E8C"); // match real
