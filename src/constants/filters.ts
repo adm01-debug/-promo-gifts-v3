@@ -43,5 +43,6 @@ export const SORT_OPTIONS = [
   { value: 'price-desc', label: 'Preço (Maior → Menor)' },
   { value: 'newest', label: 'Mais Recentes' },
   { value: 'stock', label: 'Maior Estoque' },
-  { value: 'popularity', label: 'Mais Populares' },
+  { value: 'best-seller-supplier', label: '+ Vendidos Fornecedores' },
+  { value: 'best-seller-promo', label: '+ Vendidos Promo Brindes' },
 ];
