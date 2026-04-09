@@ -193,8 +193,11 @@ export const ProductListItem = memo(function ProductListItem({
   const displayStock = colorStock?.stock ?? product.stock;
   const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
 
-  const hasColorMatch = highlightColors.length > 0 &&
-    product.colors.some((c) => highlightColors.includes(c.group));
+  const activeColorName = getActiveColorName(product, activeColorFilter);
+
+  const hasColorMatch = (highlightColors.length > 0 &&
+    product.colors.some((c) => highlightColors.includes(c.group))) ||
+    !!activeColorName;
 
   return (
     <>
@@ -259,19 +262,24 @@ export const ProductListItem = memo(function ProductListItem({
             {/* Inline color dots */}
             {product.colors.length > 0 && (
               <div className="hidden md:flex items-center gap-1 ml-1">
-                {product.colors.slice(0, 5).map((color, idx) => (
-                  <div
-                    key={idx}
-                    className={cn(
-                      "w-3 h-3 rounded-full border",
-                      highlightColors.includes(color.group)
-                        ? "border-success ring-1 ring-success/30 scale-110"
-                        : "border-border/50"
-                    )}
-                    style={{ backgroundColor: color.hex }}
-                    title={color.name}
-                  />
-                ))}
+                {product.colors.slice(0, 5).map((color, idx) => {
+                  const isHighlighted = highlightColors.includes(color.group) ||
+                    (activeColorFilter?.groups?.includes(color.groupSlug || '') ?? false) ||
+                    (activeColorFilter?.variations?.includes(color.variationSlug || '') ?? false);
+                  return (
+                    <div
+                      key={idx}
+                      className={cn(
+                        "w-3 h-3 rounded-full border",
+                        isHighlighted
+                          ? "border-success ring-1 ring-success/30 scale-110"
+                          : "border-border/50"
+                      )}
+                      style={{ backgroundColor: color.hex }}
+                      title={color.name}
+                    />
+                  );
+                })}
                 {product.colors.length > 5 && (
                   <span className="text-[9px] text-muted-foreground">+{product.colors.length - 5}</span>
                 )}
