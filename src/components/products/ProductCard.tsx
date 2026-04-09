@@ -273,7 +273,11 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         // When a specific color variant is active (from carousel/filter), navigate with color param
         // so the product detail page opens with that color pre-selected
         if (currentVariant?.name) {
-          navigate(`/produto/${product.id}?cor=${encodeURIComponent(currentVariant.name)}`);
+          const params = new URLSearchParams();
+          params.set('cor', currentVariant.name);
+          if (currentVariant.groupSlug) params.set('grupo', currentVariant.groupSlug);
+          if (currentVariant.hex) params.set('hex', currentVariant.hex);
+          navigate(`/produto/${product.id}?${params.toString()}`);
           return;
         }
         onClick?.();
