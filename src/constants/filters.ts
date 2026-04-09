@@ -39,8 +39,8 @@ export const STOCK_FILTER_OPTIONS: StockFilterOption[] = [
 
 export const SORT_OPTIONS = [
   { value: 'name', label: 'Nome (A-Z)' },
-  { value: 'price_asc', label: 'Preço (Menor → Maior)' },
-  { value: 'price_desc', label: 'Preço (Maior → Menor)' },
+  { value: 'price-asc', label: 'Preço (Menor → Maior)' },
+  { value: 'price-desc', label: 'Preço (Maior → Menor)' },
   { value: 'newest', label: 'Mais Recentes' },
   { value: 'stock', label: 'Maior Estoque' },
   { value: 'popularity', label: 'Mais Populares' },

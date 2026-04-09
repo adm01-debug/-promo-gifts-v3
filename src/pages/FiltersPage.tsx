@@ -70,7 +70,7 @@ export default function FiltersPage() {
       state.setFilters((prev: FilterState) => ({ ...prev, search: action.data!.query! }));
       toast.success(action.response);
     } else if (action.action === "sort" && action.data.sortBy) {
-      const sortMap: Record<string, string> = { "price-asc": "price-asc", "price-desc": "price-desc", name: "name", stock: "stock" };
+      const sortMap: Record<string, string> = { "price-asc": "price-asc", "price-desc": "price-desc", name: "name", stock: "stock", newest: "newest", popularity: "popularity" };
       const sortValue = sortMap[action.data.sortBy] || "name";
       state.setSortBy(sortValue);
       toast.success(action.response);

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { SORT_OPTIONS } from "@/constants/filters";
 import { Filter, ArrowUpDown, LayoutGrid, List, X, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -92,11 +93,9 @@ export function StickyFilterBar({
                     <SelectValue placeholder="Ordenar" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="name">Nome A-Z</SelectItem>
-                    <SelectItem value="price-asc">Menor Preço</SelectItem>
-                    <SelectItem value="price-desc">Maior Preço</SelectItem>
-                    <SelectItem value="stock">Maior Estoque</SelectItem>
-                    <SelectItem value="newest">Novidades</SelectItem>
+                    {SORT_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
