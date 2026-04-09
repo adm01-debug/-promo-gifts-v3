@@ -279,9 +279,10 @@ export const ProductTableView = memo(function ProductTableView({
                   isSelected && "bg-primary/5 ring-1 ring-primary/30",
                 )}
                 style={hasColorMatch && matchedColor ? {
-                  backgroundColor: `${matchedColor}08`,
-                  borderLeftWidth: '3px',
-                  borderLeftColor: `${matchedColor}60`,
+                  backgroundColor: `${matchedColor}10`,
+                  borderLeftWidth: '4px',
+                  borderLeftColor: `${matchedColor}80`,
+                  boxShadow: `inset 4px 0 12px -4px ${matchedColor}25`,
                 } as React.CSSProperties : undefined}
                 onClick={() => selectionMode ? onToggleSelect?.(product.id) : onProductClick?.(product.id)}
               >
