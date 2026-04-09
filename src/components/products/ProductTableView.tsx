@@ -8,7 +8,7 @@
  */
 import { memo, useState, useCallback } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Heart, GitCompare, ExternalLink, Share2, FolderPlus, Eye, FileText } from "lucide-react";
-import { resolveColorImage, resolveColorStock, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -242,6 +242,7 @@ export const ProductTableView = memo(function ProductTableView({
             const colorStock = resolveColorStock(product, activeColorFilter);
             const displayStock = colorStock?.stock ?? product.stock;
             const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
+            const activeColorName = getActiveColorName(product, activeColorFilter);
             const isSelected = selectionMode && selectedIds?.has(product.id);
             const fav = isFavorite?.(product.id) ?? false;
             const inComp = isInCompare?.(product.id) ?? false;
@@ -278,7 +279,14 @@ export const ProductTableView = memo(function ProductTableView({
                   <p className="font-medium text-foreground group-hover:text-primary transition-colors line-clamp-1 text-[13px]">
                     {product.name}
                   </p>
-                  <p className="text-[10px] text-muted-foreground md:hidden">{product.sku}</p>
+                  <div className="flex items-center gap-1">
+                    <p className="text-[10px] text-muted-foreground md:hidden">{product.sku}</p>
+                    {activeColorName && (
+                      <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-primary/30 text-primary/80">
+                        {activeColorName}
+                      </Badge>
+                    )}
+                  </div>
                 </td>
                 {/* SKU */}
                 <td className="px-3 py-1.5 hidden md:table-cell">
