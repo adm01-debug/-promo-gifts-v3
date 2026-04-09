@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { MessageCircle, Send, Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -66,6 +66,11 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
   const [selectedImages, setSelectedImages] = useState<Set<number>>(
     () => new Set(mainImages.map((_, i) => i))
   );
+
+  // Reset selected images when the available images change (e.g. different variant)
+  useEffect(() => {
+    setSelectedImages(new Set(mainImages.map((_, i) => i)));
+  }, [mainImages]);
 
   const currentTemplate = MESSAGE_TEMPLATES.find((t) => t.key === activeTemplate)!;
   const defaultMessage = useMemo(() => {

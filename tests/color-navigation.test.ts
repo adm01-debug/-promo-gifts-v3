@@ -5,7 +5,7 @@
 import { describe, it, expect } from 'vitest';
 
 // ============================================
-// URL building logic (mirrors ProductCard/ListItem/TableView)
+// URL building logic (mirrors ProductCard/ListItem/TableView/QuickView)
 // ============================================
 
 function buildColorNavParams(variant: {
@@ -51,6 +51,32 @@ function findVariationByParams(
   }
 
   return match?.id ?? null;
+}
+
+// ============================================
+// Share message variant injection (mirrors SharePreviewDialog)
+// ============================================
+
+function buildShareMessage(
+  baseMessage: string,
+  variantName?: string | null
+): string {
+  if (!variantName) return baseMessage;
+  return `${baseMessage}\n\n🎨 Cor/variação: ${variantName}`;
+}
+
+function filterMainImages(
+  images: string[],
+  colorImages: Set<string>,
+  variantThumbnail?: string | null
+): string[] {
+  const preferred: string[] = [];
+  if (variantThumbnail) preferred.push(variantThumbnail);
+
+  const filtered = images.filter(img => !colorImages.has(img));
+  preferred.push(...(filtered.length > 0 ? filtered : images[0] ? [images[0]] : []));
+
+  return Array.from(new Set(preferred));
 }
 
 // ============================================
@@ -166,6 +192,24 @@ describe('findVariationByParams — edge cases', () => {
     const params = new URLSearchParams({ cor: 'Azul' });
     expect(findVariationByParams([], [], params)).toBeNull();
   });
+
+  it('prefers exact match over partial', () => {
+    const variations = [
+      { id: 'v-azul', color: { name: 'Azul', hex: '#0000FF' } },
+      { id: 'v-azul-royal', color: { name: 'Azul Royal', hex: '#4169E1' } },
+    ];
+    const params = new URLSearchParams({ cor: 'Azul' });
+    expect(findVariationByParams(variations, [], params)).toBe('v-azul');
+  });
+
+  it('prefers name match over hex match', () => {
+    const variations = [
+      { id: 'v1', color: { name: 'Azul Claro', hex: '#ADD8E6' } },
+      { id: 'v2', color: { name: 'Outro', hex: '#ADD8E6' } },
+    ];
+    const params = new URLSearchParams({ cor: 'Azul Claro', hex: '#ADD8E6' });
+    expect(findVariationByParams(variations, [], params)).toBe('v1');
+  });
 });
 
 // ============================================
@@ -190,5 +234,114 @@ describe('URL roundtrip — build then match', () => {
       const params = buildColorNavParams(v);
       expect(findVariationByParams(mockVariations, mockColors, params)).toBe(v.expectedId);
     }
+  });
+});
+
+// ============================================
+// Tests: Share message generation
+// ============================================
+
+describe('buildShareMessage', () => {
+  const base = 'Confira este produto incrível!';
+
+  it('returns base message when no variant', () => {
+    expect(buildShareMessage(base)).toBe(base);
+    expect(buildShareMessage(base, null)).toBe(base);
+    expect(buildShareMessage(base, undefined)).toBe(base);
+  });
+
+  it('appends variant name', () => {
+    const result = buildShareMessage(base, 'Azul Royal');
+    expect(result).toContain('🎨 Cor/variação: Azul Royal');
+    expect(result.startsWith(base)).toBe(true);
+  });
+
+  it('includes line breaks before variant', () => {
+    const result = buildShareMessage(base, 'Preto');
+    expect(result).toBe(`${base}\n\n🎨 Cor/variação: Preto`);
+  });
+});
+
+// ============================================
+// Tests: Share image filtering
+// ============================================
+
+describe('filterMainImages', () => {
+  it('returns all images when no color images exist', () => {
+    const images = ['img1.jpg', 'img2.jpg', 'img3.jpg'];
+    const result = filterMainImages(images, new Set());
+    expect(result).toEqual(['img1.jpg', 'img2.jpg', 'img3.jpg']);
+  });
+
+  it('filters out color-specific images', () => {
+    const images = ['main.jpg', 'color-red.jpg', 'color-blue.jpg'];
+    const colorImages = new Set(['color-red.jpg', 'color-blue.jpg']);
+    const result = filterMainImages(images, colorImages);
+    expect(result).toEqual(['main.jpg']);
+  });
+
+  it('keeps at least the first image if all are color images', () => {
+    const images = ['color-red.jpg', 'color-blue.jpg'];
+    const colorImages = new Set(['color-red.jpg', 'color-blue.jpg']);
+    const result = filterMainImages(images, colorImages);
+    expect(result).toEqual(['color-red.jpg']);
+  });
+
+  it('prioritizes variant thumbnail', () => {
+    const images = ['main.jpg', 'other.jpg'];
+    const result = filterMainImages(images, new Set(), 'variant-thumb.jpg');
+    expect(result[0]).toBe('variant-thumb.jpg');
+    expect(result).toContain('main.jpg');
+  });
+
+  it('deduplicates when thumbnail is already in images', () => {
+    const images = ['main.jpg', 'thumb.jpg'];
+    const result = filterMainImages(images, new Set(), 'main.jpg');
+    expect(result).toEqual(['main.jpg', 'thumb.jpg']);
+  });
+
+  it('handles empty images array with thumbnail', () => {
+    const result = filterMainImages([], new Set(), 'thumb.jpg');
+    expect(result).toEqual(['thumb.jpg']);
+  });
+
+  it('handles empty images array without thumbnail', () => {
+    const result = filterMainImages([], new Set());
+    expect(result).toEqual([]);
+  });
+});
+
+// ============================================
+// Tests: WhatsApp URL building
+// ============================================
+
+describe('WhatsApp URL format', () => {
+  function buildWhatsAppUrl(message: string, phone?: string | null): string {
+    const encoded = encodeURIComponent(message);
+    const normalizedPhone = phone?.replace(/\D/g, '') || '';
+    return normalizedPhone
+      ? `https://wa.me/${normalizedPhone}?text=${encoded}`
+      : `https://wa.me/?text=${encoded}`;
+  }
+
+  it('builds URL without phone', () => {
+    const url = buildWhatsAppUrl('Olá!');
+    expect(url).toBe('https://wa.me/?text=Ol%C3%A1!');
+  });
+
+  it('builds URL with phone', () => {
+    const url = buildWhatsAppUrl('Olá!', '5511999998888');
+    expect(url).toBe('https://wa.me/5511999998888?text=Ol%C3%A1!');
+  });
+
+  it('strips non-digits from phone', () => {
+    const url = buildWhatsAppUrl('Oi', '+55 (11) 99999-8888');
+    expect(url).toContain('wa.me/5511999998888');
+  });
+
+  it('encodes special characters in message', () => {
+    const url = buildWhatsAppUrl('Preço: R$ 100,00 — 10% off');
+    expect(url).toContain('text=');
+    expect(decodeURIComponent(url.split('text=')[1])).toBe('Preço: R$ 100,00 — 10% off');
   });
 });
