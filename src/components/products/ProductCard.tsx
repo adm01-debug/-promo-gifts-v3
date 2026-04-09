@@ -203,15 +203,23 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     }
   };
 
-  const matchedHighlightColor = resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
+  // Multi-variant carousel: resolve ALL matching colors when multiple filters active
+  const allMatchingVariants = resolveAllMatchingColors(product.colors, activeColorFilter);
+  const hasMultipleVariants = allMatchingVariants.length > 1;
+  const safeVariantIdx = hasMultipleVariants ? Math.min(activeVariantIdx, allMatchingVariants.length - 1) : 0;
+  const currentVariant = hasMultipleVariants ? allMatchingVariants[safeVariantIdx] : null;
 
+  // Use current variant's data for highlight and image, or fall back to single-match logic
+  const matchedHighlightColor = currentVariant?.hex || resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
   const hasHighlightedColor = !!matchedHighlightColor;
 
-  const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+  // Image: use variant-specific image if cycling, otherwise default resolver
+  const variantImage = currentVariant?.image;
+  const colorSpecificImage = variantImage || resolveColorImage(product, activeColorFilter);
   const rawImageUrl = colorSpecificImage || product.og_image_url || product.images[0] || null;
   const cardImageUrl = rawImageUrl ? getCdnUrl(rawImageUrl, "card") : "/placeholder.svg";
   const cardSrcSet = colorSpecificImage ? undefined : (rawImageUrl ? getSrcSet(rawImageUrl) : undefined);
-  const activeColorName = getActiveColorName(product, activeColorFilter);
+  const activeColorName = currentVariant?.name || getActiveColorName(product, activeColorFilter);
 
   const imageBounds = useProductBounds(cardImageUrl !== "/placeholder.svg" ? cardImageUrl : null, {
     whiteThreshold: 230,
