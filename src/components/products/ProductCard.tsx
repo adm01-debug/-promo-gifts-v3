@@ -202,6 +202,9 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
   const hasHighlightedColor = highlightColors?.some(group =>
     product.colors.some(color => color.group === group)
+  ) || !!activeColorFilter && (
+    (activeColorFilter.groups.length > 0 && product.colors.some(c => activeColorFilter.groups.includes(c.groupSlug || ''))) ||
+    (activeColorFilter.variations.length > 0 && product.colors.some(c => activeColorFilter.variations.includes(c.variationSlug || '')))
   );
 
   const colorSpecificImage = resolveColorImage(product, activeColorFilter);
@@ -347,14 +350,18 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
             )}
           >
             <div className="flex items-center gap-1.5 bg-card/95 backdrop-blur-md rounded-full px-3 py-2 shadow-lg border border-border/50">
-              {product.colors.slice(0, 6).map((color, idx) => (
+              {product.colors.slice(0, 6).map((color, idx) => {
+                const isDotHighlighted = highlightColors?.includes(color.group) ||
+                  (activeColorFilter?.groups?.includes(color.groupSlug || '') ?? false) ||
+                  (activeColorFilter?.variations?.includes(color.variationSlug || '') ?? false);
+                return (
                 <Tooltip key={idx}>
                   <TooltipTrigger asChild>
                     <div
                       className={cn(
                         "w-5 h-5 rounded-full border-2 shadow-sm cursor-pointer",
                         "transition-all duration-200 hover:scale-125 hover:shadow-md",
-                        highlightColors?.includes(color.group) 
+                        isDotHighlighted
                           ? "border-success ring-2 ring-success/30 scale-110" 
                           : "border-border/50"
                       )}
@@ -366,7 +373,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                   </TooltipTrigger>
                   <TooltipContent>{color.name}</TooltipContent>
                 </Tooltip>
-              ))}
+                );
+              })}
               {product.colors.length > 6 && (
                 <span className="text-xs font-medium text-muted-foreground ml-1">
                   +{product.colors.length - 6}
