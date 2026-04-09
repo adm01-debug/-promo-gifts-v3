@@ -67,6 +67,11 @@ export function SharePreviewDialog({ open, onOpenChange, product, selectedVarian
     () => new Set(mainImages.map((_, i) => i))
   );
 
+  // Reset selected images when the available images change (e.g. different variant)
+  useEffect(() => {
+    setSelectedImages(new Set(mainImages.map((_, i) => i)));
+  }, [mainImages]);
+
   const currentTemplate = MESSAGE_TEMPLATES.find((t) => t.key === activeTemplate)!;
   const defaultMessage = useMemo(() => {
     const baseMessage = currentTemplate.generate(product);
