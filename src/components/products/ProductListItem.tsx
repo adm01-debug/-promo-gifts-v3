@@ -247,11 +247,15 @@ export const ProductListItem = memo(function ProductListItem({
           <h3 className="font-display font-semibold text-foreground text-sm sm:text-[15px] leading-snug line-clamp-1 group-hover:text-primary transition-colors">
             {product.name}
           </h3>
+
+          {/* Active color badge */}
           {activeColorName && (
-            <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-primary/30 text-primary/80 ml-1 shrink-0">
+            <Badge variant="outline" className="text-[9px] px-1.5 py-0 h-4 border-primary/30 text-primary/80 w-fit mt-0.5">
               {activeColorName}
             </Badge>
           )}
+
+          {/* Stock + SKU row */}
           <div className="flex items-center gap-2 mt-0.5">
             <span className={cn("flex items-center gap-1 text-[10px] sm:text-xs font-medium", getStockColor(displayStatus))}>
               <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
