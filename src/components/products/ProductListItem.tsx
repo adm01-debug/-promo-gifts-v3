@@ -163,6 +163,15 @@ export const ProductListItem = memo(function ProductListItem({
 
   const handleClick = () => {
     if (actionBusyRef.current || variantPickerOpen || collectionModalOpen || quickViewOpen || shareDialogOpen) return;
+    // When a specific color variant is active (from carousel/filter), navigate with color param
+    if (currentVariant?.name) {
+      const params = new URLSearchParams();
+      params.set('cor', currentVariant.name);
+      if (currentVariant.groupSlug) params.set('grupo', currentVariant.groupSlug);
+      if (currentVariant.hex) params.set('hex', currentVariant.hex);
+      navigate(`/produto/${product.id}?${params.toString()}`);
+      return;
+    }
     if (onClick) onClick();
     else if (onView) onView(product);
   };

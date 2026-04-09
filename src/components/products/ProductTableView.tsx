@@ -265,7 +265,17 @@ export const ProductTableView = memo(function ProductTableView({
                   borderLeftColor: `${matchedColor}80`,
                   boxShadow: `inset 4px 0 12px -4px ${matchedColor}25`,
                 } as React.CSSProperties : undefined}
-                onClick={() => selectionMode ? onToggleSelect?.(product.id) : onProductClick?.(product.id)}
+                onClick={() => {
+                  if (selectionMode) { onToggleSelect?.(product.id); return; }
+                  if (activeColorName && onProductClick) {
+                    const params = new URLSearchParams();
+                    params.set('cor', activeColorName);
+                    if (matchedColor) params.set('hex', matchedColor);
+                    navigate(`/produto/${product.id}?${params.toString()}`);
+                  } else {
+                    onProductClick?.(product.id);
+                  }
+                }}
               >
                 {/* Selection checkbox */}
                 {selectionMode && (

@@ -21,6 +21,7 @@ interface ProductQuickActionsProps {
   tags?: Record<string, string[]>;
   niches?: string[];
   product?: Product;
+  selectedVariant?: { variantName?: string | null; colorHex?: string | null; thumbnailUrl?: string | null } | null;
 }
 
 type ModalType = "precos" | "personalizacao" | "indicacao" | "nicho" | null;
@@ -48,6 +49,7 @@ export function ProductQuickActions({
   tags,
   niches,
   product,
+  selectedVariant,
 }: ProductQuickActionsProps) {
   const [activeModal, setActiveModal] = useState<ModalType>(null);
 
@@ -102,7 +104,7 @@ export function ProductQuickActions({
           })}
         </div>
 
-        {product && <ShareActions product={product} />}
+        {product && <ShareActions product={product} selectedVariant={selectedVariant} />}
       </div>
 
       <Dialog open={activeModal === "precos"} onOpenChange={(o) => !o && setActiveModal(null)}>

@@ -70,7 +70,7 @@ import { useFavoritesStore } from "@/stores/useFavoritesStore";
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
@@ -168,6 +168,27 @@ export default function ProductDetail() {
     }
     setColorAutoSelected(true);
   }, [product, searchParams, colorAutoSelected]);
+
+  // Sync URL when user manually changes the selected variation (for browser back/forward)
+  useEffect(() => {
+    if (!product || !colorAutoSelected) return; // skip the initial auto-selection
+    const newParams = new URLSearchParams(searchParams);
+    if (selectedVariation?.color?.name) {
+      newParams.set('cor', selectedVariation.color.name);
+      if (selectedVariation.color.hex) newParams.set('hex', selectedVariation.color.hex);
+      else newParams.delete('hex');
+      newParams.delete('grupo');
+    } else {
+      newParams.delete('cor');
+      newParams.delete('hex');
+      newParams.delete('grupo');
+    }
+    const newSearch = newParams.toString();
+    const currentSearch = searchParams.toString();
+    if (newSearch !== currentSearch) {
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [selectedVariation, colorAutoSelected]);
 
   if (isLoading) {
     return (
@@ -637,6 +658,11 @@ export default function ProductDetail() {
                 } : undefined}
                 niches={product.tags?.nicho || product.tags?.ramo || undefined}
                 product={product}
+                selectedVariant={selectedVariation ? {
+                  variantName: selectedVariation.color?.name,
+                  colorHex: selectedVariation.color?.hex,
+                  thumbnailUrl: selectedVariation.images?.[0] || selectedVariation.image,
+                } : null}
               />
             </div>
 
