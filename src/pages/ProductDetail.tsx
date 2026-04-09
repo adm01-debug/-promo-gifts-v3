@@ -70,7 +70,7 @@ import { useFavoritesStore } from "@/stores/useFavoritesStore";
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
