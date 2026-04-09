@@ -107,5 +107,5 @@ export const SECTION_GROUPS = [
   { label: "PRODUTO", sections: ["cores", "categorias", "estoque", "preco", "materiais", "genero", "tamanhos"], icon: Package },
   { label: "COMERCIAL", sections: ["fornecedores", "tecnicas"], icon: TrendingUp },
   { label: "MARKETING", sections: ["publico", "datas-comemorativas", "endomarketing", "ramos-atividade"], icon: Target },
-  { label: "ATALHOS", sections: ["tags", "opcoes-rapidas", "ordenacao"], icon: Zap },
+  { label: "ATALHOS", sections: ["tags", "opcoes-rapidas"], icon: Zap },
 ];

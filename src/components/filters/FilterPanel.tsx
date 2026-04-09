@@ -236,6 +236,30 @@ export function FilterPanel({
         setFilterSearch={state.setFilterSearch}
       />
 
+      {/* Ordenar por — fixo no topo, logo abaixo do campo de busca */}
+      <div className="px-1 pb-3">
+        <FilterSection
+          id="ordenacao"
+          title={SECTION_CONFIG["ordenacao"].title}
+          icon={SECTION_CONFIG["ordenacao"].icon}
+          openSections={state.openSections}
+          onToggle={state.toggleSection}
+          activeCount={state.sectionCounts["ordenacao"]}
+          activeSummary={state.sectionSummaries["ordenacao"]}
+        >
+          {state.openSections.includes("ordenacao") && (
+            <Select value={filters.sortBy || 'name'} onValueChange={(value) => onFilterChange({ ...filters, sortBy: value })}>
+              <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {SORT_OPTIONS.map(option => (
+                  <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+        </FilterSection>
+      </div>
+
       <div className="space-y-0">
         {SECTION_GROUPS.map((group) => {
           const visibleSections = group.sections.filter(sId => {
