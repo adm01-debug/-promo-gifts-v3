@@ -43,6 +43,25 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 
+// ─── Preset Colors & Emojis ───────────────────────────────
+const PRESET_COLORS = [
+  "#3b82f6", // blue
+  "#8b5cf6", // violet
+  "#ec4899", // pink
+  "#ef4444", // red
+  "#f97316", // orange
+  "#eab308", // yellow
+  "#22c55e", // green
+  "#06b6d4", // cyan
+  "#6366f1", // indigo
+  "#a855f7", // purple
+];
+
+const PRESET_EMOJIS = [
+  "📦", "🎯", "⭐", "🔥", "💎", "🏷️", "🎨", "🛒",
+  "📋", "🚀", "💡", "🎁", "🏆", "📌", "✨", "🔖",
+];
+
 interface PresetsBarProps {
   currentFilters: FilterState;
   onApplyPreset: (filters: FilterState, presetId?: string) => void;
@@ -58,6 +77,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
   const [selectedPreset, setSelectedPreset] = useState<FilterPreset | null>(null);
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetDescription, setNewPresetDescription] = useState("");
+  const [newPresetColor, setNewPresetColor] = useState(PRESET_COLORS[0]);
+  const [newPresetEmoji, setNewPresetEmoji] = useState(PRESET_EMOJIS[0]);
   const [isSaving, setIsSaving] = useState(false);
 
   const handleCreatePreset = async () => {
@@ -71,6 +92,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
       name: newPresetName.trim(),
       description: newPresetDescription.trim() || undefined,
       filters: currentFilters,
+      icon: newPresetEmoji,
+      color: newPresetColor,
     });
     setIsSaving(false);
 
@@ -78,6 +101,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
       toast.success("Preset criado com sucesso!");
       setNewPresetName("");
       setNewPresetDescription("");
+      setNewPresetColor(PRESET_COLORS[0]);
+      setNewPresetEmoji(PRESET_EMOJIS[0]);
       setIsCreateOpen(false);
     }
   };
@@ -89,6 +114,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
     const result = await updatePreset(selectedPreset.id, {
       name: newPresetName.trim(),
       description: newPresetDescription.trim() || undefined,
+      icon: newPresetEmoji,
+      color: newPresetColor,
     });
     setIsSaving(false);
 
@@ -121,6 +148,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
     setSelectedPreset(preset);
     setNewPresetName(preset.name);
     setNewPresetDescription(preset.description || "");
+    setNewPresetColor(preset.color || PRESET_COLORS[0]);
+    setNewPresetEmoji(preset.icon || PRESET_EMOJIS[0]);
     setIsEditOpen(true);
   };
 
@@ -130,6 +159,60 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
   };
 
   const hasActiveFilters = JSON.stringify(currentFilters) !== JSON.stringify(defaultFilters);
+
+  // ─── Shared Color & Emoji Picker ─────────────────────────
+  const ColorEmojiPicker = () => (
+    <div className="space-y-3">
+      {/* Emoji Picker */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Emoji</label>
+        <div className="flex flex-wrap gap-1.5">
+          {PRESET_EMOJIS.map((emoji) => (
+            <button
+              key={emoji}
+              type="button"
+              onClick={() => setNewPresetEmoji(emoji)}
+              className={cn(
+                "w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all",
+                "hover:bg-accent hover:scale-110",
+                newPresetEmoji === emoji
+                  ? "bg-primary/15 ring-2 ring-primary scale-110"
+                  : "bg-muted/50"
+              )}
+            >
+              {emoji}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Color Picker */}
+      <div className="space-y-1.5">
+        <label className="text-sm font-medium">Cor</label>
+        <div className="flex flex-wrap gap-2">
+          {PRESET_COLORS.map((color) => (
+            <button
+              key={color}
+              type="button"
+              onClick={() => setNewPresetColor(color)}
+              className={cn(
+                "w-7 h-7 rounded-full transition-all border-2",
+                "hover:scale-110",
+                newPresetColor === color
+                  ? "border-foreground scale-110 shadow-lg"
+                  : "border-transparent"
+              )}
+              style={{ backgroundColor: color }}
+            >
+              {newPresetColor === color && (
+                <Check className="h-3.5 w-3.5 text-white mx-auto" />
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
 
   return (
     <div ref={ref} className="contents">
@@ -209,10 +292,10 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                     onClick={() => handleApplyPreset(preset)}
                   >
                     <div
-                      className="w-5 h-5 rounded flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: preset.color || 'hsl(var(--primary))' }}
+                      className="w-6 h-6 rounded-md flex items-center justify-center shrink-0 text-sm"
+                      style={{ backgroundColor: (preset.color || PRESET_COLORS[0]) + '20' }}
                     >
-                      <Bookmark className="h-3 w-3 text-white" />
+                      {preset.icon || "🔖"}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium truncate">{preset.name}</p>
@@ -257,14 +340,32 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
 
       {/* Create Dialog */}
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Salvar Preset de Filtros</DialogTitle>
             <DialogDescription>
               Salve os filtros atuais como um preset para uso futuro.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2">
+            {/* Preview */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
+                style={{ backgroundColor: newPresetColor + '25' }}
+              >
+                {newPresetEmoji}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate">
+                  {newPresetName || "Nome do preset"}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {newPresetDescription || "Descrição..."}
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Nome do Preset</label>
               <Input
@@ -283,6 +384,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                 maxLength={100}
               />
             </div>
+
+            <ColorEmojiPicker />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
@@ -298,11 +401,29 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle>Editar Preset</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2">
+            {/* Preview */}
+            <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
+              <div
+                className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
+                style={{ backgroundColor: newPresetColor + '25' }}
+              >
+                {newPresetEmoji}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold truncate">
+                  {newPresetName || "Nome do preset"}
+                </p>
+                <p className="text-[10px] text-muted-foreground truncate">
+                  {newPresetDescription || "Descrição..."}
+                </p>
+              </div>
+            </div>
+
             <div className="space-y-2">
               <label className="text-sm font-medium">Nome</label>
               <Input
@@ -319,6 +440,8 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                 maxLength={100}
               />
             </div>
+
+            <ColorEmojiPicker />
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditOpen(false)}>
