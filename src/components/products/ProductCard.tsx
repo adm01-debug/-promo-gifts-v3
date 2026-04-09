@@ -308,10 +308,13 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
             alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
             title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
             className={cn(
-              "w-full h-full object-contain transition-all duration-700 ease-out",
+              "w-full h-full object-contain ease-out",
+              hasMultipleVariants
+                ? "transition-all duration-300"   // Fast crossfade for carousel
+                : "transition-all duration-700",  // Smooth initial load
               imageLoaded
                 ? "opacity-100 blur-0 scale-100"
-                : "opacity-40 blur-md scale-105"
+                : "opacity-40 blur-sm scale-[1.02]"
             )}
             style={imageLoaded ? { transform: `scale(${computedImageScale})` } : undefined}
             loading="lazy"
