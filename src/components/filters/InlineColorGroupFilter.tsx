@@ -68,10 +68,9 @@ function InlineColorSwatch({
           >
             {isSelected && (
               <Check
-                className={cn(
-                  'w-4 h-4',
-                  isLight ? 'text-foreground' : 'text-white'
-                )}
+                className="w-4 h-4"
+                style={{ color: isLight ? '#000000' : '#FFFFFF' }}
+                strokeWidth={3}
               />
             )}
             {isTransparent && !isSelected && (
