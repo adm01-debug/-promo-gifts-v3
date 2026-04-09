@@ -129,16 +129,44 @@ export default function ProductDetail() {
   useEffect(() => {
     if (!product || colorAutoSelected) return;
     const corParam = searchParams.get('cor');
-    if (!corParam || !product.variations?.length) return;
+    const grupoParam = searchParams.get('grupo');
+    const hexParam = searchParams.get('hex');
+    if ((!corParam && !grupoParam && !hexParam) || !product.variations?.length) return;
     
-    const normalizedParam = corParam.toLowerCase().trim();
-    const match = product.variations.find((v: any) => 
+    const normalizedParam = corParam?.toLowerCase().trim() || '';
+    
+    // 1) Exact name match
+    let match = product.variations.find((v: any) => 
       v.color?.name?.toLowerCase().trim() === normalizedParam
     );
+    // 2) Name contains match (e.g. "Vermelho" matches "Vermelho Escuro")
+    if (!match && normalizedParam) {
+      match = product.variations.find((v: any) => {
+        const name = v.color?.name?.toLowerCase().trim() || '';
+        return name.includes(normalizedParam) || normalizedParam.includes(name);
+      });
+    }
+    // 3) Hex match
+    if (!match && hexParam) {
+      const hexNorm = hexParam.toLowerCase();
+      match = product.variations.find((v: any) => 
+        v.color?.hex?.toLowerCase() === hexNorm
+      );
+    }
+    // 4) Group match via product.colors → find first color of that group → match variation
+    if (!match && grupoParam && product.colors?.length) {
+      const colorOfGroup = product.colors.find((c: any) => c.groupSlug === grupoParam);
+      if (colorOfGroup) {
+        match = product.variations.find((v: any) => 
+          v.color?.name?.toLowerCase() === colorOfGroup.name?.toLowerCase()
+        );
+      }
+    }
+    
     if (match) {
       setSelectedVariation(match);
-      setColorAutoSelected(true);
     }
+    setColorAutoSelected(true);
   }, [product, searchParams, colorAutoSelected]);
 
   if (isLoading) {
