@@ -316,9 +316,10 @@ export const ProductTableView = memo(function ProductTableView({
                               style={{ backgroundColor: c.hex }}
                             />
                           </TooltipTrigger>
-                        <TooltipContent side="top" className="text-xs">{c.name}</TooltipContent>
-                      </Tooltip>
-                    ))}
+                          <TooltipContent side="top" className="text-xs">{c.name}</TooltipContent>
+                        </Tooltip>
+                      );
+                    })}
                     {product.colors.length > 6 && (
                       <span className="text-[10px] text-muted-foreground ml-0.5">+{product.colors.length - 6}</span>
                     )}
