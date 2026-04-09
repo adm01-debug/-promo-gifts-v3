@@ -595,6 +595,7 @@ export function CatalogContent({
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
+            activeColorFilter={activeColorFilter}
           />
         </SparklineSalesProvider>
 
@@ -728,6 +729,7 @@ export function CatalogContent({
           selectionMode={selectionMode}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
+          activeColorFilter={activeColorFilter}
         />
       </SparklineSalesProvider>
 
