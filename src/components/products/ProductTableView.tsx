@@ -299,19 +299,23 @@ export const ProductTableView = memo(function ProductTableView({
                 {/* Colors */}
                 <td className="px-3 py-1.5 hidden sm:table-cell">
                   <div className="flex items-center gap-0.5">
-                    {product.colors.slice(0, 6).map((c, i) => (
-                      <Tooltip key={i}>
-                        <TooltipTrigger asChild>
-                          <div
-                            className={cn(
-                              "w-4 h-4 rounded-full border",
-                              highlightColors.includes(c.group)
-                                ? "border-success ring-1 ring-success/40 scale-110"
-                                : "border-border/50"
-                            )}
-                            style={{ backgroundColor: c.hex }}
-                          />
-                        </TooltipTrigger>
+                    {product.colors.slice(0, 6).map((c, i) => {
+                      const isHighlighted = highlightColors.includes(c.group) ||
+                        (activeColorFilter?.groups?.includes(c.groupSlug || '') ?? false) ||
+                        (activeColorFilter?.variations?.includes(c.variationSlug || '') ?? false);
+                      return (
+                        <Tooltip key={i}>
+                          <TooltipTrigger asChild>
+                            <div
+                              className={cn(
+                                "w-4 h-4 rounded-full border",
+                                isHighlighted
+                                  ? "border-success ring-1 ring-success/40 scale-110"
+                                  : "border-border/50"
+                              )}
+                              style={{ backgroundColor: c.hex }}
+                            />
+                          </TooltipTrigger>
                         <TooltipContent side="top" className="text-xs">{c.name}</TooltipContent>
                       </Tooltip>
                     ))}
