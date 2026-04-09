@@ -68,7 +68,7 @@ export function useSupplierSalesRanking() {
     staleTime: 10 * 60 * 1000, // 10 min cache
     retry: (failureCount, error: unknown) => {
       const msg = error instanceof Error ? error.message : '';
-      if (msg.includes('not been populated')) return false;
+      if (msg.includes('not been populated') || msg.includes('does not exist')) return false;
       return failureCount < 2;
     },
   });
