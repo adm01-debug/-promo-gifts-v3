@@ -273,7 +273,32 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       }}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30" style={{ zIndex: 0 }}>
+      <div
+        className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30"
+        style={{ zIndex: 0 }}
+        onTouchStart={hasMultipleVariants ? (e) => {
+          const touch = e.touches[0];
+          (e.currentTarget as any)._swipeX = touch.clientX;
+        } : undefined}
+        onTouchEnd={hasMultipleVariants ? (e) => {
+          const startX = (e.currentTarget as any)._swipeX;
+          if (startX == null) return;
+          const endX = e.changedTouches[0].clientX;
+          const diff = endX - startX;
+          if (Math.abs(diff) > 40) {
+            e.stopPropagation();
+            if (diff < 0) {
+              // Swipe left → next
+              setActiveVariantIdx((safeVariantIdx + 1) % allMatchingVariants.length);
+            } else {
+              // Swipe right → prev
+              setActiveVariantIdx((safeVariantIdx - 1 + allMatchingVariants.length) % allMatchingVariants.length);
+            }
+            setImageLoaded(false);
+          }
+          (e.currentTarget as any)._swipeX = null;
+        } : undefined}
+      >
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
