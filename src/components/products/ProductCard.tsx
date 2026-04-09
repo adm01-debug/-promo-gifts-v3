@@ -273,7 +273,32 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
       }}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
-      <div className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30" style={{ zIndex: 0 }}>
+      <div
+        className="relative aspect-[4/5] overflow-hidden product-img-container bg-muted/30"
+        style={{ zIndex: 0 }}
+        onTouchStart={hasMultipleVariants ? (e) => {
+          const touch = e.touches[0];
+          (e.currentTarget as any)._swipeX = touch.clientX;
+        } : undefined}
+        onTouchEnd={hasMultipleVariants ? (e) => {
+          const startX = (e.currentTarget as any)._swipeX;
+          if (startX == null) return;
+          const endX = e.changedTouches[0].clientX;
+          const diff = endX - startX;
+          if (Math.abs(diff) > 40) {
+            e.stopPropagation();
+            if (diff < 0) {
+              // Swipe left → next
+              setActiveVariantIdx((safeVariantIdx + 1) % allMatchingVariants.length);
+            } else {
+              // Swipe right → prev
+              setActiveVariantIdx((safeVariantIdx - 1 + allMatchingVariants.length) % allMatchingVariants.length);
+            }
+            setImageLoaded(false);
+          }
+          (e.currentTarget as any)._swipeX = null;
+        } : undefined}
+      >
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}
         <>
           <img
@@ -283,10 +308,13 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
             alt={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
             title={activeColorName ? `${product.name} - ${activeColorName}` : product.name}
             className={cn(
-              "w-full h-full object-contain transition-all duration-700 ease-out",
+              "w-full h-full object-contain ease-out",
+              hasMultipleVariants
+                ? "transition-all duration-300"   // Fast crossfade for carousel
+                : "transition-all duration-700",  // Smooth initial load
               imageLoaded
                 ? "opacity-100 blur-0 scale-100"
-                : "opacity-40 blur-md scale-105"
+                : "opacity-40 blur-sm scale-[1.02]"
             )}
             style={imageLoaded ? { transform: `scale(${computedImageScale})` } : undefined}
             loading="lazy"
@@ -412,7 +440,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           <div
             role="tablist"
             aria-label={`Variantes de cor: ${allMatchingVariants.map(v => v.name).join(', ')}`}
-            className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-border/50"
+            className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-card/95 backdrop-blur-lg rounded-full px-2.5 py-1.5 shadow-[0_2px_12px_rgba(0,0,0,0.15)] border border-border/40 dark:shadow-[0_2px_12px_rgba(0,0,0,0.4)]"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
@@ -457,6 +485,9 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 }}
               />
             ))}
+            <span className="text-[10px] font-medium text-muted-foreground ml-0.5 max-w-[60px] truncate hidden sm:inline" title={allMatchingVariants[safeVariantIdx]?.name}>
+              {allMatchingVariants[safeVariantIdx]?.name}
+            </span>
             <span className="text-[10px] font-medium text-muted-foreground ml-0.5" aria-live="polite">
               {safeVariantIdx + 1}/{allMatchingVariants.length}
             </span>
