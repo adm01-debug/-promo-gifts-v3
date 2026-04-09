@@ -121,7 +121,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
 
       // Step 2: Fetch variants for NEW products with these color_ids
       const colorIdArray = [...targetColorIds];
-      const CHUNK = 100;
+      const CHUNK = 80; // Smaller chunks to stay well within limits
       const allVariants: Array<{
         product_id: string;
         color_id: string | null;
@@ -141,7 +141,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           operation: 'select' as const,
           select: 'id, product_id, color_id, color_name, color_hex, color_code, stock_quantity, selected_thumbnail, images',
           filters: { is_active: true, product_id: pidChunk, color_id: colorIdArray },
-          limit: 2000,
+          limit: 3000,
           offset: 0,
         }]);
 
