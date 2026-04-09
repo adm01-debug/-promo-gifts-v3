@@ -1,4 +1,4 @@
-import { useState, useCallback, useMemo } from "react";
+import { useState, useCallback, useMemo, useEffect } from "react";
 import { MessageCircle, Send, Eye, Pencil } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
