@@ -232,6 +232,7 @@ function VirtualList({
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
   selectionMode, selectedIds, onToggleSelect,
+  activeColorFilter,
 }: {
   products: Product[];
   navigate: (path: string) => void;
