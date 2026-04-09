@@ -4,8 +4,12 @@
  * 
  * Without this, lightweight products have colors: [] and the card cannot
  * show the variant image/stock for the filtered color.
+ * 
+ * Uses incremental enrichment: keeps a growing cache of results and only
+ * fetches data for NEW product IDs that haven't been enriched yet.
  */
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useRef, useMemo } from 'react';
 import { invokeBatchBridge } from '@/lib/external-db';
 import type { Product } from '@/types/product-catalog';
 import { logger } from '@/lib/logger';
@@ -27,49 +31,72 @@ interface UseColorEnrichmentOptions {
   colorVariations: string[];
 }
 
+// Cached reference tables (shared across instances)
+let cachedColorGroups: Array<{ id: string; slug: string }> | null = null;
+let cachedColorVariations: Array<{ id: string; name: string; slug: string; group_id: string; hex_code?: string }> | null = null;
+
 /**
  * Returns a Map<productId, ColorEnrichmentData> for products matching the color filter.
  */
 export function useColorEnrichment({ productIds, colorGroups, colorVariations }: UseColorEnrichmentOptions) {
   const hasFilter = colorGroups.length > 0 || colorVariations.length > 0;
-  const idsKey = productIds.slice(0, 200).join(','); // cap key length
   const filterKey = [...colorGroups].sort().join(',') + '|' + [...colorVariations].sort().join(',');
 
-  return useQuery({
-    queryKey: ['color-enrichment', filterKey, idsKey, productIds.length],
+  // Accumulator: track which product IDs have already been enriched for this filter
+  const enrichedIdsRef = useRef<Set<string>>(new Set());
+  const accumulatedMapRef = useRef<Map<string, ColorEnrichmentData>>(new Map());
+  const lastFilterKeyRef = useRef<string>('');
+
+  // Reset cache when filter changes
+  if (lastFilterKeyRef.current !== filterKey) {
+    enrichedIdsRef.current = new Set();
+    accumulatedMapRef.current = new Map();
+    lastFilterKeyRef.current = filterKey;
+  }
+
+  // Find product IDs that haven't been enriched yet
+  const newProductIds = useMemo(() => {
+    if (!hasFilter) return [];
+    return productIds.filter(id => !enrichedIdsRef.current.has(id));
+  }, [productIds, hasFilter, filterKey]);
+
+  // Stable key: use count of new IDs + total count  
+  const queryEnabled = hasFilter && newProductIds.length > 0;
+
+  const query = useQuery({
+    queryKey: ['color-enrichment-batch', filterKey, newProductIds.length, productIds.length],
     queryFn: async (): Promise<Map<string, ColorEnrichmentData>> => {
-      if (!hasFilter || productIds.length === 0) return new Map();
+      if (newProductIds.length === 0) return accumulatedMapRef.current;
 
-      const enrichmentMap = new Map<string, ColorEnrichmentData>();
+      // Step 1: Load reference tables (cached after first call)
+      if (!cachedColorGroups || !cachedColorVariations) {
+        const refResults = await invokeBatchBridge([
+          {
+            table: 'color_groups',
+            operation: 'select' as const,
+            select: 'id, slug',
+            filters: { is_active: true },
+            limit: 200,
+            offset: 0,
+            cacheKey: 'ref:color_groups',
+          },
+          {
+            table: 'color_variations',
+            operation: 'select' as const,
+            select: 'id, name, slug, group_id, hex_code',
+            filters: { is_active: true },
+            limit: 500,
+            offset: 0,
+            cacheKey: 'ref:color_variations',
+          },
+        ]);
 
-      // Step 1: Resolve color_ids from slugs
-      const refResults = await invokeBatchBridge([
-        {
-          table: 'color_groups',
-          operation: 'select' as const,
-          select: 'id, slug',
-          filters: { is_active: true },
-          limit: 200,
-          offset: 0,
-          cacheKey: 'ref:color_groups',
-        },
-        {
-          table: 'color_variations',
-          operation: 'select' as const,
-          select: 'id, name, slug, group_id, hex_code',
-          filters: { is_active: true },
-          limit: 500,
-          offset: 0,
-          cacheKey: 'ref:color_variations',
-        },
-      ]);
+        cachedColorGroups = refResults[0]?.success ? (refResults[0].data?.records || []) as any[] : [];
+        cachedColorVariations = refResults[1]?.success ? (refResults[1].data?.records || []) as any[] : [];
+      }
 
-      const groupsData = refResults[0]?.success ? (refResults[0].data?.records || []) as Array<{ id: string; slug: string }> : [];
-      const variationsData = refResults[1]?.success ? (refResults[1].data?.records || []) as Array<{ id: string; name: string; slug: string; group_id: string; hex_code?: string }> : [];
-
-      const groupsBySlug = new Map(groupsData.map(g => [g.slug, g.id]));
-      const variationsBySlug = new Map(variationsData.map(v => [v.slug, v]));
-      const variationsById = new Map(variationsData.map(v => [v.id, v]));
+      const groupsBySlug = new Map(cachedColorGroups!.map(g => [g.slug, g.id]));
+      const variationsBySlug = new Map(cachedColorVariations!.map(v => [v.slug, v]));
 
       // Resolve target color_ids
       const targetColorIds = new Set<string>();
@@ -82,15 +109,15 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
       for (const slug of colorGroups) {
         const groupId = groupsBySlug.get(slug);
         if (groupId) {
-          for (const v of variationsData) {
+          for (const v of cachedColorVariations!) {
             if (v.group_id === groupId) targetColorIds.add(v.id);
           }
         }
       }
 
-      if (targetColorIds.size === 0) return enrichmentMap;
+      if (targetColorIds.size === 0) return accumulatedMapRef.current;
 
-      // Step 2: Fetch variants for these products with these color_ids
+      // Step 2: Fetch variants for NEW products with these color_ids
       const colorIdArray = [...targetColorIds];
       const CHUNK = 100;
       const allVariants: Array<{
@@ -105,9 +132,8 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         id: string;
       }> = [];
 
-      // Chunk product IDs
-      for (let i = 0; i < productIds.length; i += CHUNK) {
-        const pidChunk = productIds.slice(i, i + CHUNK);
+      for (let i = 0; i < newProductIds.length; i += CHUNK) {
+        const pidChunk = newProductIds.slice(i, i + CHUNK);
         const results = await invokeBatchBridge([{
           table: 'product_variants',
           operation: 'select' as const,
@@ -122,9 +148,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         }
       }
 
-      if (allVariants.length === 0) return enrichmentMap;
-
-      // Step 3: Fetch product_images for these products to resolve variant thumbnails
+      // Step 3: Fetch images for products with variants
       const productIdsWithVariants = [...new Set(allVariants.map(v => v.product_id))];
       const allImages: Array<{
         product_id: string;
@@ -159,17 +183,14 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
 
       for (const img of allImages) {
         if (!img.url_cdn || img.image_type === 'box') continue;
-
         if ((img.is_primary || img.is_og_image) && img.url_cdn) {
           primaryImagesByProduct.add(img.url_cdn);
         }
-
         if (img.variant_id) {
           if (!imagesByVariantId.has(img.variant_id) || img.is_og_image) {
             imagesByVariantId.set(img.variant_id, img.url_cdn);
           }
         }
-
         if (img.supplier_code) {
           const code = img.supplier_code.toUpperCase();
           if (!imagesBySupplierCode.has(code) || img.is_og_image) {
@@ -178,7 +199,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         }
       }
 
-      // Step 4: Build enrichment map — aggregate by product
+      // Step 4: Build enrichment for new products
       const variantsByProduct = new Map<string, typeof allVariants>();
       for (const v of allVariants) {
         if (!variantsByProduct.has(v.product_id)) variantsByProduct.set(v.product_id, []);
@@ -193,21 +214,18 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
 
         for (const v of variants) {
           totalStock += v.stock_quantity ?? 0;
-
           if (!bestImage) {
-            // Priority: variantImage > colorImage > selected_thumbnail (non-primary)
             const variantImage = imagesByVariantId.get(v.id) || null;
             const colorImage = v.color_code ? imagesBySupplierCode.get(v.color_code.toUpperCase()) || null : null;
             const isMainImage = v.selected_thumbnail ? primaryImagesByProduct.has(v.selected_thumbnail) : false;
             const validThumb = v.selected_thumbnail && !isMainImage ? v.selected_thumbnail : null;
-
             bestImage = variantImage || colorImage || validThumb || (v.images?.length ? v.images[0] : null);
             bestColorName = v.color_name;
             bestColorHex = v.color_hex;
           }
         }
 
-        enrichmentMap.set(productId, {
+        accumulatedMapRef.current.set(productId, {
           image: bestImage,
           stock: totalStock,
           stockStatus: totalStock <= 0 ? 'out-of-stock' : totalStock < 10 ? 'low-stock' : 'in-stock',
@@ -216,11 +234,21 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         });
       }
 
-      logger.log(`[useColorEnrichment] Enriched ${enrichmentMap.size} products with color data for ${colorIdArray.length} color IDs`);
-      return enrichmentMap;
+      // Mark all new product IDs as enriched (even those without variants)
+      for (const id of newProductIds) {
+        enrichedIdsRef.current.add(id);
+      }
+
+      logger.log(`[useColorEnrichment] Enriched ${newProductIds.length} new products (${accumulatedMapRef.current.size} total) for ${colorIdArray.length} color IDs`);
+      return new Map(accumulatedMapRef.current);
     },
-    enabled: hasFilter && productIds.length > 0,
-    staleTime: 5 * 60 * 1000,
+    enabled: queryEnabled,
+    staleTime: 30 * 1000, // Short stale time to allow incremental fetches
     gcTime: 10 * 60 * 1000,
   });
+
+  // Return accumulated map even when query isn't running (for already-enriched products)
+  const resultMap = query.data || (accumulatedMapRef.current.size > 0 ? accumulatedMapRef.current : undefined);
+
+  return { data: resultMap, isLoading: query.isLoading };
 }
