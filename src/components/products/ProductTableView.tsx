@@ -246,8 +246,9 @@ export const ProductTableView = memo(function ProductTableView({
             const isSelected = selectionMode && selectedIds?.has(product.id);
             const fav = isFavorite?.(product.id) ?? false;
             const inComp = isInCompare?.(product.id) ?? false;
-            const hasColorMatch = highlightColors.length > 0 &&
-              product.colors.some((c) => highlightColors.includes(c.group));
+            const hasColorMatch = (highlightColors.length > 0 &&
+              product.colors.some((c) => highlightColors.includes(c.group))) ||
+              !!activeColorName;
             return (
               <tr
                 key={product.id}
