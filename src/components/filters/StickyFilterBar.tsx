@@ -109,15 +109,14 @@ export function StickyFilterBar({
 
                 {/* Sort */}
                 <Select value={sortBy} onValueChange={onSortChange}>
-                  <SelectTrigger className="w-[140px] h-8 text-sm">
+                  <SelectTrigger className="w-[180px] h-8 text-sm">
                     <ArrowUpDown className="h-3.5 w-3.5 mr-1.5" />
                     <SelectValue placeholder="Ordenar" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="name">Nome A-Z</SelectItem>
-                    <SelectItem value="price-asc">Menor preço</SelectItem>
-                    <SelectItem value="price-desc">Maior preço</SelectItem>
-                    <SelectItem value="stock">Maior estoque</SelectItem>
+                    {SORT_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
 
