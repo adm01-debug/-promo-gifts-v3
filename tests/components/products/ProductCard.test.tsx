@@ -83,14 +83,29 @@ const mockProduct = {
   name: "Caneta Premium",
   sku: "CAN-001",
   price: 15.50,
-  images: { main: "https://example.com/caneta.jpg" },
+  images: ["https://example.com/caneta.jpg"],
+  og_image_url: "https://example.com/caneta.jpg",
   category_name: "Canetas",
   supplier: { name: "Supplier A", code: "SA" },
   supplier_name: "Supplier A",
   stock: 100,
+  stockStatus: "in-stock",
   colors: [],
   tags: {},
   min_quantity: 50,
+  featured: false,
+  newArrival: false,
+};
+
+const mockProductWithColors = {
+  ...mockProduct,
+  id: "p2",
+  name: "Garrafa Térmica",
+  colors: [
+    { name: "Rosa Pink", hex: "#E91E8C", group: "Rosa", groupSlug: "rosa", variationSlug: "rosa-pink", image: "rosa.jpg", images: [] },
+    { name: "Azul Royal", hex: "#1E40AF", group: "Azul", groupSlug: "azul", variationSlug: "azul-royal", image: "azul.jpg", images: [] },
+    { name: "Verde Limão", hex: "#22C55E", group: "Verde", groupSlug: "verde", variationSlug: "verde-limao", image: "verde.jpg", images: [] },
+  ],
 };
 
 describe("ProductCard", () => {
@@ -115,5 +130,92 @@ describe("ProductCard", () => {
     const { ProductCard } = await import("@/components/products/ProductCard");
     renderWithProviders(<ProductCard product={mockProduct as any} onClick={handleClick} />);
     expect(document.body).toBeTruthy();
+  });
+
+  it("does NOT show carousel dots when no color filter active", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(<ProductCard product={mockProductWithColors as any} />);
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+  });
+
+  it("does NOT show carousel dots when only 1 color filter matches", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(
+      <ProductCard
+        product={mockProductWithColors as any}
+        activeColorFilter={{ groups: ["rosa"], variations: [] }}
+      />
+    );
+    expect(screen.queryByRole("tablist")).not.toBeInTheDocument();
+  });
+
+  it("shows carousel dots when 2+ color filters match", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(
+      <ProductCard
+        product={mockProductWithColors as any}
+        activeColorFilter={{ groups: ["rosa", "azul"], variations: [] }}
+      />
+    );
+    const tablist = screen.getByRole("tablist");
+    expect(tablist).toBeInTheDocument();
+    // Should have 2 tab buttons
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs).toHaveLength(2);
+    // Counter shows "1/2"
+    expect(screen.getByText("1/2")).toBeInTheDocument();
+  });
+
+  it("shows 3 carousel dots when 3 colors match", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(
+      <ProductCard
+        product={mockProductWithColors as any}
+        activeColorFilter={{ groups: ["rosa", "azul", "verde"], variations: [] }}
+      />
+    );
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs).toHaveLength(3);
+    expect(screen.getByText("1/3")).toBeInTheDocument();
+  });
+
+  it("carousel dots have correct aria-labels", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(
+      <ProductCard
+        product={mockProductWithColors as any}
+        activeColorFilter={{ groups: ["rosa", "azul"], variations: [] }}
+      />
+    );
+    expect(screen.getByLabelText("Ver variante Rosa Pink")).toBeInTheDocument();
+    expect(screen.getByLabelText("Ver variante Azul Royal")).toBeInTheDocument();
+  });
+
+  it("first dot is selected by default (aria-selected)", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(
+      <ProductCard
+        product={mockProductWithColors as any}
+        activeColorFilter={{ groups: ["rosa", "azul"], variations: [] }}
+      />
+    );
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs[0]).toHaveAttribute("aria-selected", "true");
+    expect(tabs[1]).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("renders product without colors and no filter gracefully", async () => {
+    const { ProductCard } = await import("@/components/products/ProductCard");
+    renderWithProviders(
+      <ProductCard
+        product={mockProduct as any}
+        activeColorFilter={{ groups: ["rosa", "azul"], variations: [] }}
+      />
+    );
+    // Should render fallback dots from COLOR_GROUP_HEX
+    const tablist = screen.getByRole("tablist");
+    expect(tablist).toBeInTheDocument();
+    const tabs = screen.getAllByRole("tab");
+    expect(tabs).toHaveLength(2);
   });
 });
