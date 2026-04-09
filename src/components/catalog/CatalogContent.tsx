@@ -653,6 +653,7 @@ export function CatalogContent({
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
+            activeColorFilter={activeColorFilter}
           />
           {hasMoreProducts && (
             <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
