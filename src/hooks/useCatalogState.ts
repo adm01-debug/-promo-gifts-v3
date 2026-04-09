@@ -67,6 +67,7 @@ export function useCatalogState() {
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const { registerProducts } = useProductsContext();
+  const { data: promoSalesMap } = usePromoSalesRanking();
 
   const searchQueryFromUrl = searchParams.get("search") || "";
 
