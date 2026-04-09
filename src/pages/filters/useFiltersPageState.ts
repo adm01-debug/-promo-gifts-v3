@@ -8,6 +8,7 @@ import { useProductsByMaterial } from "@/hooks/useProductsByMaterial";
 import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { useProductsByColor } from "@/hooks/useProductsByColor";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
+import { useColorEnrichment } from "@/hooks/useColorEnrichment";
 import { toast } from "sonner";
 
 export function useFiltersPageState() {
