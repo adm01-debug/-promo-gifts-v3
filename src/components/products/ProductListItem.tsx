@@ -25,6 +25,7 @@ import { toast } from "sonner";
 import { GenderBadge } from "./GenderBadge";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { resolveHighlightHex } from "@/utils/color-group-hex";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
