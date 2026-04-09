@@ -70,12 +70,14 @@ import { useFavoritesStore } from "@/stores/useFavoritesStore";
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
   const { isFavorite: isFavoriteCheck, toggleFavorite, removeFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [favPickerOpen, setFavPickerOpen] = useState(false);
+  const [colorAutoSelected, setColorAutoSelected] = useState(false);
   
   
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
