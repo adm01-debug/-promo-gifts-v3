@@ -49,7 +49,7 @@ export function useProductsByColor({
 
   const fetchProductIds = useCallback(async () => {
     if (isFetchingRef.current) return;
-    if (lastFetchedKey.current === filterKey && productIds.size > 0) return;
+    if (lastFetchedKey.current === filterKey) return;
 
     if (!hasFilter) {
       setProductIds(new Set());
