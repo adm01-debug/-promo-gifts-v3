@@ -201,15 +201,53 @@ export function useFiltersPageState() {
     return result;
   }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, hasColorFilter, colorFilteredProductIds, isLoadingColorFilter]);
 
+  // Color enrichment: fetch variant images/stock for filtered products when color filter is active
+  const filteredProductIds = useMemo(() => filteredProducts.map(p => p.id), [filteredProducts]);
+  const { data: colorEnrichmentMap } = useColorEnrichment({
+    productIds: filteredProductIds,
+    colorGroups: filters.colorGroups || [],
+    colorVariations: filters.colorVariations || [],
+  });
+
+  // Merge color enrichment data into products
+  const enrichedFilteredProducts = useMemo(() => {
+    if (!colorEnrichmentMap || colorEnrichmentMap.size === 0) return filteredProducts;
+    return filteredProducts.map(product => {
+      const enrichment = colorEnrichmentMap.get(product.id);
+      if (!enrichment) return product;
+      return {
+        ...product,
+        // Override image with color-specific image
+        ...(enrichment.image ? {
+          og_image_url: enrichment.image,
+          images: [enrichment.image, ...product.images.filter(img => img !== enrichment.image)],
+        } : {}),
+        // Override stock with color-specific stock
+        stock: enrichment.stock,
+        stockStatus: enrichment.stockStatus,
+        // Inject color data so resolveColorImage/resolveColorStock work
+        colors: enrichment.colorName ? [{
+          name: enrichment.colorName,
+          hex: enrichment.colorHex || '#CCCCCC',
+          group: enrichment.colorName,
+          groupSlug: filters.colorGroups?.[0] || undefined,
+          variationSlug: filters.colorVariations?.[0] || undefined,
+          image: enrichment.image || undefined,
+          images: enrichment.image ? [enrichment.image] : undefined,
+        }] : product.colors,
+      };
+    });
+  }, [filteredProducts, colorEnrichmentMap, filters.colorGroups, filters.colorVariations]);
+
   // Search toast
   const prevSearchRef = useRef<string>('');
   useEffect(() => {
     const currentSearch = filters.search || '';
     if (currentSearch && currentSearch !== prevSearchRef.current) {
-      toast.info(`${filteredProducts.length.toLocaleString('pt-BR')} produto${filteredProducts.length !== 1 ? 's' : ''} encontrado${filteredProducts.length !== 1 ? 's' : ''}`, { description: `Busca: "${currentSearch}"`, duration: 3000 });
+      toast.info(`${enrichedFilteredProducts.length.toLocaleString('pt-BR')} produto${enrichedFilteredProducts.length !== 1 ? 's' : ''} encontrado${enrichedFilteredProducts.length !== 1 ? 's' : ''}`, { description: `Busca: "${currentSearch}"`, duration: 3000 });
     }
     prevSearchRef.current = currentSearch;
-  }, [filters.search, filteredProducts.length]);
+  }, [filters.search, enrichedFilteredProducts.length]);
 
   // Active filters summary
   const activeFiltersSummary = useMemo(() => {
@@ -248,7 +286,7 @@ export function useFiltersPageState() {
     selectionMode, setSelectionMode,
     voiceOverlayOpen, setVoiceOverlayOpen, commandAction, setCommandAction,
     appliedFilters, setAppliedFilters, mobileFiltersOpen, setMobileFiltersOpen,
-    isFiltering, sortBy, setSortBy, filteredProducts, activeFiltersCount,
+    isFiltering, sortBy, setSortBy, filteredProducts: enrichedFilteredProducts, activeFiltersCount,
     activeFiltersSummary, clearSingleFilter, handleReset, handleFilterChange, handleApplyPreset,
   };
 }
