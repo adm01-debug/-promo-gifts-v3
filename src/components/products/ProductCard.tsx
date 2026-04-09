@@ -277,7 +277,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           return;
         }
         onClick?.();
-      }
+      }}
     >
       {/* Image container with gradient overlay - isolated stacking context */}
       <div
