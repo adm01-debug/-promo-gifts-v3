@@ -60,7 +60,8 @@ interface CatalogContentProps {
 // Virtualized Grid (for grid mode)
 // ──────────────────────────────────────────────────────
 function VirtualGrid({
-  products, columns, navigate, isFavorite, toggleFavorite,
+  products, columns, navigate, handleViewProduct, handleShareProduct,
+  isFavorite, toggleFavorite,
   isInCompare, onToggleCompare, canAddToCompare,
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
@@ -70,6 +71,8 @@ function VirtualGrid({
   products: Product[];
   columns: ColumnCount;
   navigate: (path: string) => void;
+  handleViewProduct: (p: Product) => void;
+  handleShareProduct: (p: Product) => void;
   isFavorite: (id: string) => boolean;
   toggleFavorite: (id: string) => void;
   isInCompare: (id: string) => boolean;
@@ -195,6 +198,8 @@ function VirtualGrid({
                         <ProductCard
                           product={product}
                           onClick={() => selectionMode ? onToggleSelect?.(product.id) : navigate(`/produto/${product.id}`)}
+                          onView={handleViewProduct}
+                          onShare={handleShareProduct}
                           isFavorited={isFavorite(product.id)}
                           onToggleFavorite={toggleFavorite}
                           isInCompare={isInCompare(product.id)}
@@ -652,6 +657,7 @@ export function CatalogContent({
             isInCompare={isInCompare}
             onToggleCompare={onToggleCompare}
             canAddToCompare={canAddToCompare}
+            onShareProduct={handleShareProduct}
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
@@ -714,6 +720,8 @@ export function CatalogContent({
           products={paginatedProducts}
           columns={gridColumns}
           navigate={navigate}
+          handleViewProduct={handleViewProduct}
+          handleShareProduct={handleShareProduct}
           isFavorite={isFavorite}
           toggleFavorite={toggleFavorite}
           isInCompare={isInCompare}
