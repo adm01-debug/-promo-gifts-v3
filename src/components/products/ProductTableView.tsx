@@ -9,6 +9,7 @@
 import { memo, useState, useCallback } from "react";
 import { ArrowUpDown, ArrowUp, ArrowDown, Package, Heart, GitCompare, ExternalLink, Share2, FolderPlus, Eye, FileText } from "lucide-react";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
+import { resolveHighlightHex } from "@/utils/color-group-hex";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -246,28 +247,7 @@ export const ProductTableView = memo(function ProductTableView({
             const isSelected = selectionMode && selectedIds?.has(product.id);
             const fav = isFavorite?.(product.id) ?? false;
             const inComp = isInCompare?.(product.id) ?? false;
-            const COLOR_GROUP_HEX: Record<string, string> = {
-              rosa: '#E91E8C', roxo: '#8B5CF6', azul: '#3B82F6', verde: '#22C55E',
-              vermelho: '#EF4444', amarelo: '#EAB308', laranja: '#F97316', marrom: '#92400E',
-              preto: '#1a1a1a', branco: '#E5E7EB', cinza: '#6B7280', bege: '#D2B48C',
-              dourado: '#D4A017', prata: '#A8A9AD', nude: '#E8C4A0', lilás: '#C084FC',
-              vinho: '#722F37', coral: '#FF6B6B', turquesa: '#06B6D4', creme: '#FFFDD0',
-            };
-            const matchedColor = (() => {
-              if (activeColorFilter) {
-                if (activeColorFilter.groups.length > 0) {
-                  const m = product.colors.find(c => activeColorFilter.groups.includes(c.groupSlug || ''));
-                  if (m?.hex) return m.hex;
-                  const g = activeColorFilter.groups.find(g => COLOR_GROUP_HEX[g]);
-                  if (g) return COLOR_GROUP_HEX[g];
-                }
-                if (activeColorFilter.variations.length > 0) {
-                  const m = product.colors.find(c => activeColorFilter.variations.includes(c.variationSlug || ''));
-                  if (m?.hex) return m.hex;
-                }
-              }
-              return null;
-            })();
+            const matchedColor = resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
             const hasColorMatch = !!matchedColor || (highlightColors.length > 0 &&
               product.colors.some((c) => highlightColors.includes(c.group))) ||
               !!activeColorName;
