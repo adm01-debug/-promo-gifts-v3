@@ -233,7 +233,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         "hover:border-primary/30 hover:shadow-xl",
         "active:scale-[0.98] active:transition-transform active:duration-100 touch-manipulation",
         product.featured && "ring-2 ring-primary/20 shadow-lg",
-        hasHighlightedColor && "ring-2 ring-success/40 shadow-glow-success"
+        // Color highlight glow removed per design request
       )}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
