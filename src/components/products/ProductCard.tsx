@@ -200,20 +200,32 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     }
   };
 
+  const COLOR_GROUP_HEX: Record<string, string> = {
+    rosa: '#E91E8C', roxo: '#8B5CF6', azul: '#3B82F6', verde: '#22C55E',
+    vermelho: '#EF4444', amarelo: '#EAB308', laranja: '#F97316', marrom: '#92400E',
+    preto: '#1a1a1a', branco: '#E5E7EB', cinza: '#6B7280', bege: '#D2B48C',
+    dourado: '#D4A017', prata: '#A8A9AD', nude: '#E8C4A0', lilás: '#C084FC',
+    vinho: '#722F37', coral: '#FF6B6B', turquesa: '#06B6D4', creme: '#FFFDD0',
+  };
+
   const matchedHighlightColor = (() => {
     if (activeColorFilter) {
+      // Try to get hex from product color data first
       if (activeColorFilter.groups.length > 0) {
         const match = product.colors.find(c => activeColorFilter.groups.includes(c.groupSlug || ''));
-        if (match) return match.hex || null;
+        if (match?.hex) return match.hex;
+        // Fallback: use the group slug to get a representative color
+        const groupHex = activeColorFilter.groups.find(g => COLOR_GROUP_HEX[g]);
+        if (groupHex) return COLOR_GROUP_HEX[groupHex];
       }
       if (activeColorFilter.variations.length > 0) {
         const match = product.colors.find(c => activeColorFilter.variations.includes(c.variationSlug || ''));
-        if (match) return match.hex || null;
+        if (match?.hex) return match.hex;
       }
     }
     if (highlightColors?.length) {
       const match = product.colors.find(color => highlightColors.includes(color.group));
-      if (match) return match.hex || null;
+      if (match?.hex) return match.hex;
     }
     return null;
   })();
@@ -241,18 +253,15 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     <article
       ref={ref}
       className={cn(
-        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer card-lift",
+        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card cursor-pointer card-lift",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/30 hover:shadow-xl",
         "active:scale-[0.98] active:transition-transform active:duration-100 touch-manipulation",
         product.featured && "ring-2 ring-primary/20 shadow-lg",
-        hasHighlightedColor && "ring-1"
+        hasHighlightedColor ? "border-2" : "border border-border/50 hover:border-primary/30 hover:shadow-xl",
       )}
       style={hasHighlightedColor && matchedHighlightColor ? {
-        '--ring-color': matchedHighlightColor,
-        ringColor: matchedHighlightColor,
-        boxShadow: `0 0 12px -3px ${matchedHighlightColor}40`,
-        borderColor: `${matchedHighlightColor}30`,
+        borderColor: `${matchedHighlightColor}50`,
+        boxShadow: `inset 0 0 20px -8px ${matchedHighlightColor}25`,
       } as React.CSSProperties : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
