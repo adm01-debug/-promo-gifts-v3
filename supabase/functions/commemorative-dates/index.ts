@@ -43,7 +43,15 @@ Deno.serve(async (req) => {
     console.log(`Request from user: ${user.id}`);
 
     // Parse body
-    const body = await req.json();
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'Body JSON inválido' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     const { action, params } = body as {
       action: 'get_active_dates' | 'get_upcoming_dates' | 'get_products_by_date' | 'get_dates_with_colors';
       params?: Record<string, unknown>;

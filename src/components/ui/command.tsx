@@ -23,20 +23,24 @@ Command.displayName = CommandPrimitive.displayName;
 
 interface CommandDialogProps extends DialogProps {}
 
-const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
-  return (
-    <Dialog {...props}>
-      <DialogContent
-        className="overflow-hidden p-0 !rounded-2xl [border-color:hsl(var(--command-border))] bg-[hsl(var(--command-surface))] shadow-[0_24px_80px_hsl(var(--command-shadow))] max-w-[560px] [&>div]:overflow-hidden"
-        showCloseButton={false}
-      >
-        <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
-          {children}
-        </Command>
-      </DialogContent>
-    </Dialog>
-  );
-};
+const CommandDialog = React.forwardRef<HTMLDivElement, CommandDialogProps>(
+  ({ children, ...props }, ref) => {
+    return (
+      <Dialog {...props}>
+        <DialogContent
+          ref={ref}
+          className="overflow-hidden p-0 !rounded-2xl [border-color:hsl(var(--command-border))] bg-[hsl(var(--command-surface))] shadow-[0_24px_80px_hsl(var(--command-shadow))] max-w-[560px] [&>div]:overflow-hidden"
+          showCloseButton={false}
+        >
+          <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+            {children}
+          </Command>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+);
+CommandDialog.displayName = "CommandDialog";
 
 const CommandInput = React.forwardRef<
   React.ElementRef<typeof CommandPrimitive.Input>,
