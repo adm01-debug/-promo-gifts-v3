@@ -65,6 +65,7 @@ function VirtualGrid({
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
   selectionMode, selectedIds, onToggleSelect,
+  activeColorFilter,
 }: {
   products: Product[];
   columns: ColumnCount;
@@ -84,6 +85,7 @@ function VirtualGrid({
   selectionMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  activeColorFilter?: ActiveColorFilter | null;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -199,6 +201,7 @@ function VirtualGrid({
                           onToggleCompare={onToggleCompare}
                           canAddToCompare={canAddToCompare}
                           hideCategoryBadges
+                          activeColorFilter={activeColorFilter}
                         />
                       </div>
                     </div>
