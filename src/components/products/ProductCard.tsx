@@ -18,6 +18,7 @@ import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { resolveHighlightHex } from "@/utils/color-group-hex";
+import { isLightColor } from "@/hooks/useColorSystem";
 import { resolveAllMatchingColors, type MatchedColorVariant } from "@/utils/color-variant-carousel";
 import { useProductBounds } from "@/hooks/useProductBounds";
 import { ProductSparkline } from "./ProductSparkline";
@@ -475,13 +476,17 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                   "w-5 h-5 rounded-full border-2 transition-all duration-200",
                   "hover:scale-125 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                   i === safeVariantIdx
-                    ? "ring-2 ring-offset-1 ring-offset-card scale-110"
+                    ? "ring-2 ring-offset-2 ring-offset-card scale-110 shadow-[0_0_0_1px_hsl(var(--foreground)/0.3)]"
                     : "border-border/50 opacity-70 hover:opacity-100"
                 )}
                 style={{
                   backgroundColor: v.hex,
-                  borderColor: i === safeVariantIdx ? v.hex : undefined,
-                  ['--tw-ring-color' as string]: i === safeVariantIdx ? v.hex : undefined,
+                  borderColor: i === safeVariantIdx
+                    ? (isLightColor(v.hex) ? 'hsl(var(--foreground))' : v.hex)
+                    : undefined,
+                  ['--tw-ring-color' as string]: i === safeVariantIdx
+                    ? (isLightColor(v.hex) ? 'hsl(var(--foreground))' : v.hex)
+                    : undefined,
                 }}
               />
             ))}

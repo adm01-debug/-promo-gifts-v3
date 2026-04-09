@@ -26,6 +26,7 @@ import { GenderBadge } from "./GenderBadge";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { resolveHighlightHex } from "@/utils/color-group-hex";
+import { isLightColor } from "@/hooks/useColorSystem";
 import { resolveAllMatchingColors } from "@/utils/color-variant-carousel";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { QuickAddToQuote } from "./QuickAddToQuote";
@@ -282,9 +283,17 @@ export const ProductListItem = memo(function ProductListItem({
                   onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
                   className={cn(
                     "w-3 h-3 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50"
+                    i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110 shadow-[0_0_0_1px_hsl(var(--foreground)/0.3)]" : "opacity-60 border-border/50"
                   )}
-                  style={{ backgroundColor: v.hex, borderColor: i === safeVariantIdx ? v.hex : undefined, ['--tw-ring-color' as string]: v.hex }}
+                  style={{
+                    backgroundColor: v.hex,
+                    borderColor: i === safeVariantIdx
+                      ? (isLightColor(v.hex) ? 'hsl(var(--foreground))' : v.hex)
+                      : undefined,
+                    ['--tw-ring-color' as string]: i === safeVariantIdx
+                      ? (isLightColor(v.hex) ? 'hsl(var(--foreground))' : v.hex)
+                      : v.hex,
+                  }}
                   aria-label={`Ver ${v.name}`}
                   title={v.name}
                 />
