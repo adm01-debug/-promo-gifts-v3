@@ -55,9 +55,10 @@ export function resolveAllMatchingColors(
   const results: MatchedColorVariant[] = [];
 
   const addMatch = (color: typeof productColors[0], slug: string) => {
-    const key = slug + '|' + (color.name || color.hex || '');
-    if (seen.has(key)) return;
-    seen.add(key);
+    // Dedup by name+hex (not slug) to avoid duplicates when group and variation point to same color
+    const dedupKey = (color.name || '') + '|' + (color.hex || '');
+    if (seen.has(dedupKey)) return;
+    seen.add(dedupKey);
     results.push({
       name: color.name || slug,
       hex: color.hex || COLOR_GROUP_HEX[slug] || '#888',

@@ -78,9 +78,9 @@ describe("resolveAllMatchingColors — match por grupo único", () => {
 // ─── 3. Match por múltiplos grupos (cenário Rosa + Azul) ─────────────
 describe("resolveAllMatchingColors — múltiplos grupos", () => {
   const multiColors = [
-    makeColor({ groupSlug: "rosa", hex: "#E91E8C", name: "Rosa Pink", image: "rosa.jpg", images: [] }),
-    makeColor({ groupSlug: "azul", hex: "#3B82F6", name: "Azul Celeste", image: "azul.jpg", images: [] }),
-    makeColor({ groupSlug: "verde", hex: "#22C55E", name: "Verde Limão", image: "verde.jpg", images: [] }),
+    makeColor({ groupSlug: "rosa", group: "Rosa", hex: "#E91E8C", name: "Rosa Pink", image: "rosa.jpg", images: [] }),
+    makeColor({ groupSlug: "azul", group: "Azul", hex: "#3B82F6", name: "Azul Celeste", image: "azul.jpg", images: [] }),
+    makeColor({ groupSlug: "verde", group: "Verde", hex: "#22C55E", name: "Verde Limão", image: "verde.jpg", images: [] }),
   ];
 
   it("retorna 2 variantes quando 2 grupos estão filtrados (Rosa + Azul)", () => {
