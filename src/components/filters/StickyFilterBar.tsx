@@ -153,8 +153,6 @@ interface InlineFilterBarProps {
 export function InlineFilterBar({
   activeFiltersCount,
   totalProducts,
-  sortBy,
-  onSortChange,
   onOpenFilters,
   onClearFilters,
   viewMode,
@@ -200,7 +198,7 @@ export function InlineFilterBar({
           </span>
         </div>
 
-        {/* Right side - Sort & View */}
+        {/* Right side - View controls */}
         <div className="flex items-center gap-2">
           {/* Column selector */}
           {viewMode === "grid" && columnSelector}
@@ -223,20 +221,6 @@ export function InlineFilterBar({
               <List className="h-3 w-3" />
             </Button>
           </div>
-
-          {/* Sort */}
-          <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[120px] h-8 text-xs">
-              <ArrowUpDown className="h-3 w-3 mr-1" />
-              <SelectValue placeholder="Ordenar" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="name">Nome A-Z</SelectItem>
-              <SelectItem value="price-asc">Menor preço</SelectItem>
-              <SelectItem value="price-desc">Maior preço</SelectItem>
-              <SelectItem value="stock">Maior estoque</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
       </div>
   );
