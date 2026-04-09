@@ -280,9 +280,13 @@ describe("resolveAllMatchingColors — cenários de produção", () => {
 describe("Lógica do componente — safeVariantIdx", () => {
   it("clamp do índice quando activeVariantIdx > length - 1", () => {
     const variants = resolveAllMatchingColors(
-      [makeColor({ groupSlug: "rosa" }), makeColor({ groupSlug: "azul" })],
+      [
+        { name: "Rosa", hex: "#E91E8C", group: "Rosa", groupSlug: "rosa" },
+        { name: "Azul", hex: "#3B82F6", group: "Azul", groupSlug: "azul" },
+      ],
       { groups: ["rosa", "azul"], variations: [] },
     );
+    expect(variants).toHaveLength(2);
     const activeVariantIdx = 99;
     const safeIdx = Math.min(activeVariantIdx, variants.length - 1);
     expect(safeIdx).toBe(1);
