@@ -257,15 +257,36 @@ export const ProductListItem = memo(function ProductListItem({
           />
           {/* Multi-variant dots */}
           {hasMultipleVariants && (
-            <div className="absolute bottom-0.5 left-0 right-0 flex justify-center gap-1 z-10" onClick={(e) => e.stopPropagation()}>
+            <div
+              role="tablist"
+              aria-label="Variantes de cor"
+              className="absolute bottom-0.5 left-0 right-0 flex justify-center gap-1 z-10"
+              onClick={(e) => e.stopPropagation()}
+              onKeyDown={(e) => {
+                if (e.key === 'ArrowRight') {
+                  e.preventDefault();
+                  setActiveVariantIdx((safeVariantIdx + 1) % allMatchingVariants.length);
+                } else if (e.key === 'ArrowLeft') {
+                  e.preventDefault();
+                  setActiveVariantIdx((safeVariantIdx - 1 + allMatchingVariants.length) % allMatchingVariants.length);
+                }
+              }}
+            >
               {allMatchingVariants.map((v, i) => (
                 <button
-                  key={i}
+                  key={v.groupSlug || v.variationSlug || i}
+                  role="tab"
                   type="button"
+                  tabIndex={i === safeVariantIdx ? 0 : -1}
+                  aria-selected={i === safeVariantIdx}
                   onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
-                  className={cn("w-3 h-3 rounded-full border transition-all", i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50")}
+                  className={cn(
+                    "w-3 h-3 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                    i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50"
+                  )}
                   style={{ backgroundColor: v.hex, borderColor: i === safeVariantIdx ? v.hex : undefined, ['--tw-ring-color' as string]: v.hex }}
                   aria-label={`Ver ${v.name}`}
+                  title={v.name}
                 />
               ))}
             </div>
