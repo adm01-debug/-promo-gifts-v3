@@ -23,6 +23,7 @@ import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
 import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
+import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { sortProducts } from "@/utils/product-sorting";
 
 export type ViewMode = "grid" | "list" | "table";
@@ -50,6 +51,7 @@ export function useCatalogState() {
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const { registerProducts } = useProductsContext();
   const { data: promoSalesMap } = usePromoSalesRanking();
+  const { data: supplierSalesMap } = useSupplierSalesRanking();
 
   const searchQueryFromUrl = searchParams.get("search") || "";
 
@@ -286,10 +288,10 @@ export function useCatalogState() {
     //   8. Fuzzy (Fuse.js, threshold < 0.45)
     // Se o usuário escolher outro sort (preço, estoque, etc.), reordena normalmente.
     const skipSort = hasFuzzySearch && sortBy === 'name';
-    sortProducts(result, sortBy, { promoSalesMap, skipSort });
+    sortProducts(result, sortBy, { promoSalesMap, supplierSalesMap, skipSort });
 
     return result;
-  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, promoSalesMap]);
+  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, promoSalesMap, supplierSalesMap]);
 
   // Paginated products
   const rawPaginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);
