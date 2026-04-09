@@ -2,6 +2,7 @@
  * useCatalogState — all catalog page state & logic extracted from Index.tsx
  */
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import { useColorEnrichment } from "@/hooks/useColorEnrichment";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react";
 import React from "react";
