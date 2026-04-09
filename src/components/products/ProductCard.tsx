@@ -412,7 +412,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           <div
             role="tablist"
             aria-label={`Variantes de cor: ${allMatchingVariants.map(v => v.name).join(', ')}`}
-            className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-border/50"
+            className="absolute bottom-3 left-3 z-20 flex items-center gap-1.5 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-border/50"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
