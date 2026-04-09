@@ -52,6 +52,8 @@ interface CatalogContentProps {
   onResetFilters?: () => void;
   selectionMode?: boolean;
   onSelectedCountChange?: (count: number) => void;
+  /** Filtros de cor ativos para mostrar imagem específica da cor no card */
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 // ──────────────────────────────────────────────────────
