@@ -208,24 +208,61 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         variantsByProduct.get(v.product_id)!.push(v);
       }
 
+      let withImage = 0;
+      let withoutImage = 0;
+
       for (const [productId, variants] of variantsByProduct) {
         let totalStock = 0;
         let bestImage: string | null = null;
         let bestColorName: string | null = null;
         let bestColorHex: string | null = null;
 
+        // First pass: accumulate stock and find best image across ALL matching variants
         for (const v of variants) {
           totalStock += v.stock_quantity ?? 0;
-          if (!bestImage) {
-            const variantImage = imagesByVariantId.get(v.id) || null;
-            const colorImage = v.color_code ? imagesBySupplierCode.get(v.color_code.toUpperCase()) || null : null;
-            const isMainImage = v.selected_thumbnail ? primaryImagesByProduct.has(v.selected_thumbnail) : false;
-            const validThumb = v.selected_thumbnail && !isMainImage ? v.selected_thumbnail : null;
-            bestImage = variantImage || colorImage || validThumb || (v.images?.length ? v.images[0] : null);
-            bestColorName = v.color_name;
-            bestColorHex = v.color_hex;
+        }
+
+        // Second pass: try each variant for an image (prioritize variants WITH images)
+        for (const v of variants) {
+          if (bestImage) break;
+          // Priority 1: Direct variant_id link in product_images
+          const variantImage = imagesByVariantId.get(v.id) || null;
+          if (variantImage) { bestImage = variantImage; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+          // Priority 2: color_code → supplier_code match
+          const colorImage = v.color_code ? imagesBySupplierCode.get(v.color_code.toUpperCase()) || null : null;
+          if (colorImage) { bestImage = colorImage; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+        }
+
+        // Priority 3: selected_thumbnail (only if not the main product image)
+        if (!bestImage) {
+          for (const v of variants) {
+            if (v.selected_thumbnail) {
+              const isMainImage = primaryImagesByProduct.has(v.selected_thumbnail);
+              if (!isMainImage) { bestImage = v.selected_thumbnail; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+            }
           }
         }
+
+        // Priority 4: variant images[] array
+        if (!bestImage) {
+          for (const v of variants) {
+            if (v.images?.length) {
+              // Filter out main product images from variant images
+              const validImages = v.images.filter(img => !primaryImagesByProduct.has(img));
+              if (validImages.length > 0) { bestImage = validImages[0]; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+              // Last resort: use first image even if it's a main image
+              if (v.images.length > 0) { bestImage = v.images[0]; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
+            }
+          }
+        }
+
+        // Set color name/hex even without image
+        if (!bestColorName && variants.length > 0) {
+          bestColorName = variants[0].color_name;
+          bestColorHex = variants[0].color_hex;
+        }
+
+        if (bestImage) withImage++; else withoutImage++;
 
         accumulatedMapRef.current.set(productId, {
           image: bestImage,
@@ -241,7 +278,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         enrichedIdsRef.current.add(id);
       }
 
-      logger.log(`[useColorEnrichment] Enriched ${newProductIds.length} new products (${accumulatedMapRef.current.size} total) for ${colorIdArray.length} color IDs`);
+      logger.log(`[useColorEnrichment] Enriched ${newProductIds.length} new products (${accumulatedMapRef.current.size} total) for ${colorIdArray.length} color IDs | withImage: ${withImage}, withoutImage: ${withoutImage}, noVariant: ${newProductIds.length - variantsByProduct.size}`);
       return new Map(accumulatedMapRef.current);
     },
     enabled: queryEnabled,
