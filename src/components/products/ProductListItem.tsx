@@ -195,7 +195,35 @@ export const ProductListItem = memo(function ProductListItem({
 
   const activeColorName = getActiveColorName(product, activeColorFilter);
 
-  const hasColorMatch = (highlightColors.length > 0 &&
+  const COLOR_GROUP_HEX: Record<string, string> = {
+    rosa: '#E91E8C', roxo: '#8B5CF6', azul: '#3B82F6', verde: '#22C55E',
+    vermelho: '#EF4444', amarelo: '#EAB308', laranja: '#F97316', marrom: '#92400E',
+    preto: '#1a1a1a', branco: '#E5E7EB', cinza: '#6B7280', bege: '#D2B48C',
+    dourado: '#D4A017', prata: '#A8A9AD', nude: '#E8C4A0', lilás: '#C084FC',
+    vinho: '#722F37', coral: '#FF6B6B', turquesa: '#06B6D4', creme: '#FFFDD0',
+  };
+
+  const matchedHighlightColor = (() => {
+    if (activeColorFilter) {
+      if (activeColorFilter.groups.length > 0) {
+        const match = product.colors.find(c => activeColorFilter.groups.includes(c.groupSlug || ''));
+        if (match?.hex) return match.hex;
+        const groupHex = activeColorFilter.groups.find(g => COLOR_GROUP_HEX[g]);
+        if (groupHex) return COLOR_GROUP_HEX[groupHex];
+      }
+      if (activeColorFilter.variations.length > 0) {
+        const match = product.colors.find(c => activeColorFilter.variations.includes(c.variationSlug || ''));
+        if (match?.hex) return match.hex;
+      }
+    }
+    if (highlightColors.length > 0) {
+      const match = product.colors.find(color => highlightColors.includes(color.group));
+      if (match?.hex) return match.hex;
+    }
+    return null;
+  })();
+
+  const hasColorMatch = !!matchedHighlightColor || (highlightColors.length > 0 &&
     product.colors.some((c) => highlightColors.includes(c.group))) ||
     !!activeColorName;
 
@@ -205,12 +233,15 @@ export const ProductListItem = memo(function ProductListItem({
         
         className={cn(
           "group relative flex items-center gap-3 sm:gap-4 px-3 sm:px-4 py-2 sm:py-2.5",
-          "rounded-xl bg-card border border-border/50 cursor-pointer",
+          "rounded-xl bg-card cursor-pointer",
           "transition-all duration-200 ease-out",
-          "hover:border-primary/30 hover:bg-accent/30 hover:shadow-md",
           "active:scale-[0.997] touch-manipulation",
-          hasColorMatch && "ring-2 ring-primary/20 border-primary/30"
+          hasColorMatch && matchedHighlightColor ? "border-2" : "border border-border/50 hover:border-primary/30 hover:bg-accent/30 hover:shadow-md",
         )}
+        style={hasColorMatch && matchedHighlightColor ? {
+          borderColor: `${matchedHighlightColor}50`,
+          boxShadow: `inset 0 0 20px -8px ${matchedHighlightColor}25`,
+        } as React.CSSProperties : undefined}
         onClick={handleClick}
       >
         {/* Thumbnail — compact square */}
