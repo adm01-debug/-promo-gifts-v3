@@ -253,15 +253,15 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     <article
       ref={ref}
       className={cn(
-        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card border border-border/50 cursor-pointer card-lift",
+        "group relative overflow-hidden rounded-xl sm:rounded-2xl bg-card cursor-pointer card-lift",
         "transition-all duration-300 ease-out",
-        "hover:border-primary/30 hover:shadow-xl",
         "active:scale-[0.98] active:transition-transform active:duration-100 touch-manipulation",
         product.featured && "ring-2 ring-primary/20 shadow-lg",
+        hasHighlightedColor ? "border-2" : "border border-border/50 hover:border-primary/30 hover:shadow-xl",
       )}
       style={hasHighlightedColor && matchedHighlightColor ? {
-        boxShadow: `0 0 16px -2px ${matchedHighlightColor}35, inset 0 0 0 1px ${matchedHighlightColor}30`,
-        borderColor: `${matchedHighlightColor}40`,
+        borderColor: `${matchedHighlightColor}50`,
+        boxShadow: `inset 0 0 20px -8px ${matchedHighlightColor}25`,
       } as React.CSSProperties : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
