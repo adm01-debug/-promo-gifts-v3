@@ -37,7 +37,7 @@ export function useSupplierSalesRanking() {
         const result = await invokeExternalDb<ProductIntelligenceRanking>({
           table: 'mv_product_intelligence',
           operation: 'select',
-          select: 'product_id,turnover_score,avg_velocity_7d,avg_velocity_30d,abc_classification,total_depleted_30d',
+          select: '*',
           limit: 5000,
         });
 
