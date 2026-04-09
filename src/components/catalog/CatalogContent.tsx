@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState, useMemo } from "react";
+import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2, ArrowUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
