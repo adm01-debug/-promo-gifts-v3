@@ -1,4 +1,5 @@
 import { useRef, useCallback, useEffect, useState, useMemo } from "react";
+import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Loader2, ArrowUp } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -51,6 +52,8 @@ interface CatalogContentProps {
   onResetFilters?: () => void;
   selectionMode?: boolean;
   onSelectedCountChange?: (count: number) => void;
+  /** Filtros de cor ativos para mostrar imagem específica da cor no card */
+  activeColorFilter?: ActiveColorFilter | null;
 }
 
 // ──────────────────────────────────────────────────────
@@ -62,6 +65,7 @@ function VirtualGrid({
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
   selectionMode, selectedIds, onToggleSelect,
+  activeColorFilter,
 }: {
   products: Product[];
   columns: ColumnCount;
@@ -81,6 +85,7 @@ function VirtualGrid({
   selectionMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  activeColorFilter?: ActiveColorFilter | null;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -196,6 +201,7 @@ function VirtualGrid({
                           onToggleCompare={onToggleCompare}
                           canAddToCompare={canAddToCompare}
                           hideCategoryBadges
+                          activeColorFilter={activeColorFilter}
                         />
                       </div>
                     </div>
@@ -226,6 +232,7 @@ function VirtualList({
   hasMore, isLoadingMore, totalEstimate, filteredCount,
   loadMoreRef, itemsPerPage, onLoadMore,
   selectionMode, selectedIds, onToggleSelect,
+  activeColorFilter,
 }: {
   products: Product[];
   navigate: (path: string) => void;
@@ -246,6 +253,7 @@ function VirtualList({
   selectionMode?: boolean;
   selectedIds?: Set<string>;
   onToggleSelect?: (id: string) => void;
+  activeColorFilter?: ActiveColorFilter | null;
 }) {
   const parentRef = useRef<HTMLDivElement>(null);
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -351,6 +359,7 @@ function VirtualList({
                       isInCompare={isInCompare(product.id)}
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
+                      activeColorFilter={activeColorFilter}
                     />
                   </div>
                 </div>
@@ -401,6 +410,7 @@ export function CatalogContent({
   onResetFilters,
   selectionMode,
   onSelectedCountChange,
+  activeColorFilter,
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
 
@@ -585,6 +595,7 @@ export function CatalogContent({
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
+            activeColorFilter={activeColorFilter}
           />
         </SparklineSalesProvider>
 
@@ -644,6 +655,7 @@ export function CatalogContent({
             selectionMode={selectionMode}
             selectedIds={selectedIds}
             onToggleSelect={toggleSelect}
+            activeColorFilter={activeColorFilter}
           />
           {hasMoreProducts && (
             <div ref={loadMoreRef} className="flex flex-col items-center gap-3 pt-8 pb-4 px-4" style={{ minHeight: "60px" }}>
@@ -717,6 +729,7 @@ export function CatalogContent({
           selectionMode={selectionMode}
           selectedIds={selectedIds}
           onToggleSelect={toggleSelect}
+          activeColorFilter={activeColorFilter}
         />
       </SparklineSalesProvider>
 

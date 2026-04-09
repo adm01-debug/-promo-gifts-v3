@@ -114,6 +114,11 @@ export default function Index() {
               onResetFilters={catalog.resetFilters}
               selectionMode={catalog.selectionMode}
               onSelectedCountChange={catalog.setSelectedCount}
+              activeColorFilter={
+                (catalog.filters.colorGroups?.length > 0 || catalog.filters.colorVariations?.length > 0)
+                  ? { groups: catalog.filters.colorGroups || [], variations: catalog.filters.colorVariations || [] }
+                  : null
+              }
             />
           </div>
         </div>
