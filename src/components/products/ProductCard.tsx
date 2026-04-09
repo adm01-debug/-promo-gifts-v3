@@ -74,6 +74,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const [shareVariant, setShareVariant] = useState<{ variantName?: string | null; colorHex?: string | null; thumbnailUrl?: string | null } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [activeVariantIdx, setActiveVariantIdx] = useState(0);
   const actionsRef = useRef<HTMLDivElement>(null);
   const actionBusyRef = useRef(false);
 
