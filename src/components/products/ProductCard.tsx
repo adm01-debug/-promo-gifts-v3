@@ -270,8 +270,14 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           e.stopPropagation();
           return;
         }
+        // When a specific color variant is active (from carousel/filter), navigate with color param
+        // so the product detail page opens with that color pre-selected
+        if (currentVariant?.name) {
+          navigate(`/produto/${product.id}?cor=${encodeURIComponent(currentVariant.name)}`);
+          return;
+        }
         onClick?.();
-      }}
+      }
     >
       {/* Image container with gradient overlay - isolated stacking context */}
       <div
