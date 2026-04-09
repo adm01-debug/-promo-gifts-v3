@@ -12,7 +12,7 @@
  *    estão implementadas aqui com a mesma arquitetura de variante/cor:
  *    Favoritar, Comparar, Coleção, Share, Orçamento, Carrinho, QuickView
  */
-import { memo, useState, useCallback, useRef } from "react";
+import { memo, useState, useCallback, useRef, useEffect } from "react";
 import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl } from "@/utils/image-utils";
