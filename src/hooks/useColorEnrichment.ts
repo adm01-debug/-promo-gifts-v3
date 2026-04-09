@@ -231,7 +231,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           const variantImage = imagesByVariantId.get(v.id) || null;
           if (variantImage) { bestImage = variantImage; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
           // Priority 2: color_code → supplier_code match
-          const colorImage = v.color_code ? imagesBySupplierCode.get(v.color_code.toUpperCase()) || null : null;
+          const colorImage = v.color_code ? imagesByProductAndCode.get(`${productId}|${v.color_code.toUpperCase()}`) || null : null;
           if (colorImage) { bestImage = colorImage; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
         }
 
@@ -239,7 +239,8 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         if (!bestImage) {
           for (const v of variants) {
             if (v.selected_thumbnail) {
-              const isMainImage = primaryImagesByProduct.has(v.selected_thumbnail);
+              const productPrimaries = primaryImagesByProduct.get(productId);
+              const isMainImage = productPrimaries?.has(v.selected_thumbnail) || false;
               if (!isMainImage) { bestImage = v.selected_thumbnail; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
             }
           }
@@ -250,7 +251,8 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           for (const v of variants) {
             if (v.images?.length) {
               // Filter out main product images from variant images
-              const validImages = v.images.filter(img => !primaryImagesByProduct.has(img));
+              const productPrimaries = primaryImagesByProduct.get(productId);
+              const validImages = v.images.filter(img => !productPrimaries?.has(img));
               if (validImages.length > 0) { bestImage = validImages[0]; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
               // Last resort: use first image even if it's a main image
               if (v.images.length > 0) { bestImage = v.images[0]; bestColorName = v.color_name; bestColorHex = v.color_hex; break; }
