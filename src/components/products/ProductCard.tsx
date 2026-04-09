@@ -75,6 +75,18 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const [imageLoaded, setImageLoaded] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
   const [activeVariantIdx, setActiveVariantIdx] = useState(0);
+
+  // Reset variant index when color filter changes to prevent stale selection
+  const filterKey = activeColorFilter
+    ? `${(activeColorFilter.groups || []).join(',')}|${(activeColorFilter.variations || []).join(',')}`
+    : '';
+  const prevFilterKeyRef = useRef(filterKey);
+  useEffect(() => {
+    if (prevFilterKeyRef.current !== filterKey) {
+      setActiveVariantIdx(0);
+      prevFilterKeyRef.current = filterKey;
+    }
+  }, [filterKey]);
   const actionsRef = useRef<HTMLDivElement>(null);
   const actionBusyRef = useRef(false);
 
