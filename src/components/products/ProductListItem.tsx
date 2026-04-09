@@ -243,6 +243,21 @@ export const ProductListItem = memo(function ProductListItem({
               }
             }}
           />
+          {/* Multi-variant dots */}
+          {hasMultipleVariants && (
+            <div className="absolute bottom-0.5 left-0 right-0 flex justify-center gap-1 z-10" onClick={(e) => e.stopPropagation()}>
+              {allMatchingVariants.map((v, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
+                  className={cn("w-3 h-3 rounded-full border transition-all", i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50")}
+                  style={{ backgroundColor: v.hex, borderColor: i === safeVariantIdx ? v.hex : undefined, ['--tw-ring-color' as string]: v.hex }}
+                  aria-label={`Ver ${v.name}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Info — main content block */}
