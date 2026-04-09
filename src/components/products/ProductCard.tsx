@@ -395,6 +395,42 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
           </div>
         )}
 
+        {/* Multi-variant carousel dots */}
+        {hasMultipleVariants && (
+          <div
+            className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-border/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {allMatchingVariants.map((v, i) => (
+              <button
+                key={v.groupSlug || v.variationSlug || i}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveVariantIdx(i);
+                  setImageLoaded(false); // trigger blur-to-sharp transition
+                }}
+                aria-label={`Ver variante ${v.name}`}
+                className={cn(
+                  "w-5 h-5 rounded-full border-2 transition-all duration-200",
+                  "hover:scale-125 hover:shadow-md",
+                  i === safeVariantIdx
+                    ? "ring-2 ring-offset-1 ring-offset-card scale-110"
+                    : "border-border/50 opacity-70 hover:opacity-100"
+                )}
+                style={{
+                  backgroundColor: v.hex,
+                  borderColor: i === safeVariantIdx ? v.hex : undefined,
+                  ['--tw-ring-color' as string]: i === safeVariantIdx ? v.hex : undefined,
+                }}
+              />
+            ))}
+            <span className="text-[10px] font-medium text-muted-foreground ml-0.5">
+              {safeVariantIdx + 1}/{allMatchingVariants.length}
+            </span>
+          </div>
+        )}
+
       </div>
 
       {/* Quick actions FAB - OUTSIDE overflow-hidden container */}
