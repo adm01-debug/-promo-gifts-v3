@@ -2,7 +2,6 @@
  * useCatalogState — all catalog page state & logic extracted from Index.tsx
  */
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useColorEnrichment } from "@/hooks/useColorEnrichment";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Package, Heart, Users, Layers, Palette, FolderTree } from "lucide-react";
@@ -23,30 +22,13 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { useExternalCategoriesQuery } from "@/hooks/useExternalCategoriesQuery";
 import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
+import { sortProducts } from "@/utils/product-sorting";
 
 export type ViewMode = "grid" | "list" | "table";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
 
-/** Fetch product_id counts from quote_items to rank "best sellers" internally */
-function usePromoSalesRanking() {
-  return useQuery({
-    queryKey: ['promo-sales-ranking'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('quote_items')
-        .select('product_id, quantity');
-      if (error) throw error;
-      const map = new Map<string, number>();
-      for (const row of data || []) {
-        if (!row.product_id) continue;
-        map.set(row.product_id, (map.get(row.product_id) || 0) + (row.quantity || 1));
-      }
-      return map;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
+
 
 const VIEW_MODE_KEY = "catalog-view-mode";
 
@@ -304,17 +286,7 @@ export function useCatalogState() {
     //   8. Fuzzy (Fuse.js, threshold < 0.45)
     // Se o usuário escolher outro sort (preço, estoque, etc.), reordena normalmente.
     const skipSort = hasFuzzySearch && sortBy === 'name';
-    if (!skipSort) {
-      switch (sortBy) {
-        case "name": result.sort((a, b) => a.name.localeCompare(b.name)); break;
-        case "price-asc": result.sort((a, b) => a.price - b.price); break;
-        case "price-desc": result.sort((a, b) => b.price - a.price); break;
-        case "stock": result.sort((a, b) => (b.stock || 0) - (a.stock || 0)); break;
-        case "newest": result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()); break;
-        case "best-seller-supplier": result.sort((a, b) => { const aS = (a.featured ? 2 : 0); const bS = (b.featured ? 2 : 0); return bS !== aS ? bS - aS : (b.stock || 0) - (a.stock || 0); }); break;
-        case "best-seller-promo": result.sort((a, b) => { const aCount = promoSalesMap?.get(a.id) || 0; const bCount = promoSalesMap?.get(b.id) || 0; if (bCount !== aCount) return bCount - aCount; return a.name.localeCompare(b.name); }); break;
-      }
-    }
+    sortProducts(result, sortBy, { promoSalesMap, skipSort });
 
     return result;
   }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, promoSalesMap]);

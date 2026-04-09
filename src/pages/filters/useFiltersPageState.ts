@@ -1,5 +1,4 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useSearchParams } from "react-router-dom";
 import { FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
@@ -10,28 +9,9 @@ import { useProductsByCategory } from "@/hooks/useProductsByCategory";
 import { useProductsByColor } from "@/hooks/useProductsByColor";
 import { useProductFuzzySearch } from "@/hooks/useProductFuzzySearch";
 import { useColorEnrichment } from "@/hooks/useColorEnrichment";
+import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
+import { sortProducts } from "@/utils/product-sorting";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
-
-/** Fetch product_id counts from quote_items to rank "best sellers" internally */
-function usePromoSalesRanking() {
-  return useQuery({
-    queryKey: ['promo-sales-ranking'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('quote_items')
-        .select('product_id, quantity');
-      if (error) throw error;
-      const map = new Map<string, number>();
-      for (const row of data || []) {
-        if (!row.product_id) continue;
-        map.set(row.product_id, (map.get(row.product_id) || 0) + (row.quantity || 1));
-      }
-      return map;
-    },
-    staleTime: 5 * 60 * 1000,
-  });
-}
 
 export function useFiltersPageState() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -222,7 +202,7 @@ export function useFiltersPageState() {
     if (filters.hasCommercialPackaging) result = result.filter(product => product.hasCommercialPackaging === true);
     if (filters.isKit) result = result.filter(product => product.isKit === true);
     const skipSort = hasFuzzySearch && sortBy === 'name';
-    if (!skipSort) { switch (sortBy) { case "name": result.sort((a, b) => a.name.localeCompare(b.name)); break; case "price-asc": result.sort((a, b) => a.price - b.price); break; case "price-desc": result.sort((a, b) => b.price - a.price); break; case "stock": result.sort((a, b) => (b.stock || 0) - (a.stock || 0)); break; case "newest": result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()); break; case "best-seller-supplier": result.sort((a, b) => { const aScore = (a.featured ? 2 : 0) + (a.newArrival ? 1 : 0); const bScore = (b.featured ? 2 : 0) + (b.newArrival ? 1 : 0); if (bScore !== aScore) return bScore - aScore; return (b.stock || 0) - (a.stock || 0); }); break; case "best-seller-promo": result.sort((a, b) => { const aCount = promoSalesMap?.get(a.id) || 0; const bCount = promoSalesMap?.get(b.id) || 0; if (bCount !== aCount) return bCount - aCount; return a.name.localeCompare(b.name); }); break; } }
+    sortProducts(result, sortBy, { promoSalesMap, skipSort });
     return result;
   }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, hasColorFilter, colorFilteredProductIds, isLoadingColorFilter, promoSalesMap]);
 
