@@ -658,6 +658,11 @@ export default function ProductDetail() {
                 } : undefined}
                 niches={product.tags?.nicho || product.tags?.ramo || undefined}
                 product={product}
+                selectedVariant={selectedVariation ? {
+                  variantName: selectedVariation.color?.name,
+                  colorHex: selectedVariation.color?.hex,
+                  thumbnailUrl: selectedVariation.images?.[0] || selectedVariation.image,
+                } : null}
               />
             </div>
 
