@@ -167,7 +167,7 @@ export function useProductsByColor({
       setIsLoading(false);
       isFetchingRef.current = false;
     }
-  }, [filterKey, hasFilter, colorGroups, colorVariations, colorNuances, colors]);
+  }, [filterKey, hasFilter]);
 
   useEffect(() => {
     if (filterKey !== lastFetchedKey.current || !hasFilter) {
