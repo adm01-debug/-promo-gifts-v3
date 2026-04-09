@@ -56,9 +56,12 @@ function InlineColorSwatch({
               isSelected
                 ? 'ring-2 ring-offset-1'
                 : 'border-border hover:border-muted-foreground/50',
-              isTransparent && 'bg-gradient-to-br from-gray-100 to-gray-200'
+              isTransparent && ''
             )}
             style={{
+              background: isTransparent 
+                ? 'conic-gradient(from 0deg, #FF0000, #FF8000, #FFFF00, #00FF00, #0000FF, #8000FF, #FF0000)' 
+                : undefined,
               backgroundColor: isTransparent ? undefined : (hexCode || '#ccc'),
               ...(isSelected ? {
                 borderColor: hexCode || '#ccc',
