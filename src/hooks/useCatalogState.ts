@@ -288,6 +288,7 @@ export function useCatalogState() {
         case "price-desc": result.sort((a, b) => b.price - a.price); break;
         case "stock": result.sort((a, b) => (b.stock || 0) - (a.stock || 0)); break;
         case "newest": result.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime()); break;
+        case "best-seller-supplier": result.sort((a, b) => { const aS = (a.featured ? 2 : 0); const bS = (b.featured ? 2 : 0); return bS !== aS ? bS - aS : (b.stock || 0) - (a.stock || 0); }); break;
       }
     }
 
