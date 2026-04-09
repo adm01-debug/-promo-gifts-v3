@@ -260,8 +260,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         hasHighlightedColor ? "border-2" : "border border-border/50 hover:border-primary/30 hover:shadow-xl",
       )}
       style={hasHighlightedColor && matchedHighlightColor ? {
-        borderColor: `${matchedHighlightColor}50`,
-        boxShadow: `inset 0 0 20px -8px ${matchedHighlightColor}25`,
+        borderColor: `${matchedHighlightColor}70`,
+        boxShadow: `inset 0 0 30px -6px ${matchedHighlightColor}40, 0 0 8px -2px ${matchedHighlightColor}20`,
       } as React.CSSProperties : undefined}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => {
