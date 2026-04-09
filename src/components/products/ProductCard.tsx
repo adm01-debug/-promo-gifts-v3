@@ -202,6 +202,9 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
 
   const hasHighlightedColor = highlightColors?.some(group =>
     product.colors.some(color => color.group === group)
+  ) || !!activeColorFilter && (
+    (activeColorFilter.groups.length > 0 && product.colors.some(c => activeColorFilter.groups.includes(c.groupSlug || ''))) ||
+    (activeColorFilter.variations.length > 0 && product.colors.some(c => activeColorFilter.variations.includes(c.variationSlug || '')))
   );
 
   const colorSpecificImage = resolveColorImage(product, activeColorFilter);
