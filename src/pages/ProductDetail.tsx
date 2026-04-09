@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { getCdnUrl } from "@/utils/image-utils";
 import {
@@ -70,12 +70,14 @@ import { useFavoritesStore } from "@/stores/useFavoritesStore";
 export default function ProductDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { trackProductView } = useProductAnalytics();
 
   const { isFavorite: isFavoriteCheck, toggleFavorite, removeFavorite } = useFavoritesStore();
   const [selectedVariation, setSelectedVariation] = useState<ProductVariation | null>(null);
   const [favPickerOpen, setFavPickerOpen] = useState(false);
+  const [colorAutoSelected, setColorAutoSelected] = useState(false);
   
   
   const [supplierCompareOpen, setSupplierCompareOpen] = useState(false);
@@ -122,6 +124,22 @@ export default function ProductDetail() {
       addToRecentlyViewed(product.id);
     }
   }, [product, trackProductView, addToRecentlyViewed]);
+
+  // Auto-select color variation from ?cor= query param (from catalog card click)
+  useEffect(() => {
+    if (!product || colorAutoSelected) return;
+    const corParam = searchParams.get('cor');
+    if (!corParam || !product.variations?.length) return;
+    
+    const normalizedParam = corParam.toLowerCase().trim();
+    const match = product.variations.find((v: any) => 
+      v.color?.name?.toLowerCase().trim() === normalizedParam
+    );
+    if (match) {
+      setSelectedVariation(match);
+      setColorAutoSelected(true);
+    }
+  }, [product, searchParams, colorAutoSelected]);
 
   if (isLoading) {
     return (
