@@ -9,6 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { SORT_OPTIONS } from "@/constants/filters";
 
 interface StickyFilterBarProps {
   isVisible: boolean;
@@ -228,15 +229,14 @@ export function InlineFilterBar({
 
           {/* Sort */}
           <Select value={sortBy} onValueChange={onSortChange}>
-            <SelectTrigger className="w-[120px] h-8 text-xs">
+            <SelectTrigger className="w-[180px] h-8 text-xs">
               <ArrowUpDown className="h-3 w-3 mr-1" />
               <SelectValue placeholder="Ordenar" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name">Nome A-Z</SelectItem>
-              <SelectItem value="price-asc">Menor Preço</SelectItem>
-              <SelectItem value="price-desc">Maior Preço</SelectItem>
-              <SelectItem value="stock">Maior Estoque</SelectItem>
+              {SORT_OPTIONS.map(option => (
+                <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
