@@ -169,6 +169,27 @@ export default function ProductDetail() {
     setColorAutoSelected(true);
   }, [product, searchParams, colorAutoSelected]);
 
+  // Sync URL when user manually changes the selected variation (for browser back/forward)
+  useEffect(() => {
+    if (!product || !colorAutoSelected) return; // skip the initial auto-selection
+    const newParams = new URLSearchParams(searchParams);
+    if (selectedVariation?.color?.name) {
+      newParams.set('cor', selectedVariation.color.name);
+      if (selectedVariation.color.hex) newParams.set('hex', selectedVariation.color.hex);
+      else newParams.delete('hex');
+      newParams.delete('grupo');
+    } else {
+      newParams.delete('cor');
+      newParams.delete('hex');
+      newParams.delete('grupo');
+    }
+    const newSearch = newParams.toString();
+    const currentSearch = searchParams.toString();
+    if (newSearch !== currentSearch) {
+      setSearchParams(newParams, { replace: true });
+    }
+  }, [selectedVariation, colorAutoSelected]);
+
   if (isLoading) {
     return (
       <MainLayout>
