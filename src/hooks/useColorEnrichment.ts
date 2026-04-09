@@ -9,7 +9,7 @@
  * fetches data for NEW product IDs that haven't been enriched yet.
  */
 import { useQuery } from '@tanstack/react-query';
-import { useRef, useMemo } from 'react';
+import { useRef, useMemo, useEffect } from 'react';
 import { invokeBatchBridge } from '@/lib/external-db';
 import type { Product } from '@/types/product-catalog';
 import { logger } from '@/lib/logger';
