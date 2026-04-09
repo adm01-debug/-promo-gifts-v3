@@ -295,7 +295,43 @@ export function useCatalogState() {
   }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter]);
 
   // Paginated products
-  const paginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);
+  const rawPaginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);
+
+  // Color enrichment: fetch variant images/stock for visible products when color filter is active
+  const hasColorFilterActive = (filters.colorGroups?.length || 0) > 0 || (filters.colorVariations?.length || 0) > 0;
+  const paginatedProductIds = useMemo(() => rawPaginatedProducts.map(p => p.id), [rawPaginatedProducts]);
+  const { data: catalogColorEnrichmentMap } = useColorEnrichment({
+    productIds: paginatedProductIds,
+    colorGroups: filters.colorGroups || [],
+    colorVariations: filters.colorVariations || [],
+  });
+
+  // Merge color enrichment into paginated products
+  const paginatedProducts = useMemo(() => {
+    if (!catalogColorEnrichmentMap || catalogColorEnrichmentMap.size === 0 || !hasColorFilterActive) return rawPaginatedProducts;
+    return rawPaginatedProducts.map(product => {
+      const enrichment = catalogColorEnrichmentMap.get(product.id);
+      if (!enrichment) return product;
+      return {
+        ...product,
+        ...(enrichment.image ? {
+          og_image_url: enrichment.image,
+          images: [enrichment.image, ...product.images.filter((img: string) => img !== enrichment.image)],
+        } : {}),
+        stock: enrichment.stock,
+        stockStatus: enrichment.stockStatus,
+        colors: enrichment.colorName ? [{
+          name: enrichment.colorName,
+          hex: enrichment.colorHex || '#CCCCCC',
+          group: enrichment.colorName,
+          groupSlug: filters.colorGroups?.[0] || undefined,
+          variationSlug: filters.colorVariations?.[0] || undefined,
+          image: enrichment.image || undefined,
+          images: enrichment.image ? [enrichment.image] : undefined,
+        }] : product.colors,
+      };
+    });
+  }, [rawPaginatedProducts, catalogColorEnrichmentMap, hasColorFilterActive, filters.colorGroups, filters.colorVariations]);
 
   const shouldShowCatalogSkeleton = isInitialCatalogLoad || (isLoading && paginatedProducts.length === 0);
   const hasActiveCatalogConstraints = activeFiltersCount > 0 || searchQuery.trim().length > 0;
