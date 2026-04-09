@@ -164,6 +164,8 @@ export function VirtualizedProductGrid({
              <InlineFilterBar
               activeFiltersCount={activeFiltersCount}
               totalProducts={products.length}
+              sortBy={sortBy}
+              onSortChange={onSortChange}
               onOpenFilters={onOpenFilters}
               onClearFilters={onClearFilters}
               viewMode={viewMode}
