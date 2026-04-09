@@ -26,6 +26,7 @@ import { GenderBadge } from "./GenderBadge";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { resolveHighlightHex } from "@/utils/color-group-hex";
+import { resolveAllMatchingColors } from "@/utils/color-variant-carousel";
 import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
@@ -73,6 +74,7 @@ export const ProductListItem = memo(function ProductListItem({
   const [variantPickerOpen, setVariantPickerOpen] = useState(false);
   const [variantPickerMode, setVariantPickerMode] = useState<VariantActionMode>('favorite');
   const actionBusyRef = useRef(false);
+  const [activeVariantIdx, setActiveVariantIdx] = useState(0);
   const favStore = useFavoritesStore();
   const compStore = useComparisonStore();
 
@@ -186,7 +188,14 @@ export const ProductListItem = memo(function ProductListItem({
     }
   };
 
-  const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+  // Multi-variant carousel
+  const allMatchingVariants = resolveAllMatchingColors(product.colors, activeColorFilter);
+  const hasMultipleVariants = allMatchingVariants.length > 1;
+  const safeVariantIdx = hasMultipleVariants ? Math.min(activeVariantIdx, allMatchingVariants.length - 1) : 0;
+  const currentVariant = hasMultipleVariants ? allMatchingVariants[safeVariantIdx] : null;
+
+  const variantImage = currentVariant?.image;
+  const colorSpecificImage = variantImage || resolveColorImage(product, activeColorFilter);
   const rawImageUrl = colorSpecificImage || product.og_image_url || product.images[0] || null;
   const thumbUrl = rawImageUrl ? getCdnUrl(rawImageUrl, "card") : "/placeholder.svg";
 
@@ -194,9 +203,9 @@ export const ProductListItem = memo(function ProductListItem({
   const displayStock = colorStock?.stock ?? product.stock;
   const displayStatus = colorStock?.stockStatus ?? product.stockStatus;
 
-  const activeColorName = getActiveColorName(product, activeColorFilter);
+  const activeColorName = currentVariant?.name || getActiveColorName(product, activeColorFilter);
 
-  const matchedHighlightColor = resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
+  const matchedHighlightColor = currentVariant?.hex || resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
 
   const hasColorMatch = !!matchedHighlightColor || (highlightColors.length > 0 &&
     product.colors.some((c) => highlightColors.includes(c.group))) ||
@@ -234,6 +243,21 @@ export const ProductListItem = memo(function ProductListItem({
               }
             }}
           />
+          {/* Multi-variant dots */}
+          {hasMultipleVariants && (
+            <div className="absolute bottom-0.5 left-0 right-0 flex justify-center gap-1 z-10" onClick={(e) => e.stopPropagation()}>
+              {allMatchingVariants.map((v, i) => (
+                <button
+                  key={i}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
+                  className={cn("w-3 h-3 rounded-full border transition-all", i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50")}
+                  style={{ backgroundColor: v.hex, borderColor: i === safeVariantIdx ? v.hex : undefined, ['--tw-ring-color' as string]: v.hex }}
+                  aria-label={`Ver ${v.name}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         {/* Info — main content block */}

@@ -18,6 +18,7 @@ import { showUndoToast, showErrorToast } from "@/utils/undoToast";
 import { getSupplierColors } from "@/lib/supplier-colors";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { resolveHighlightHex } from "@/utils/color-group-hex";
+import { resolveAllMatchingColors, type MatchedColorVariant } from "@/utils/color-variant-carousel";
 import { useProductBounds } from "@/hooks/useProductBounds";
 import { ProductSparkline } from "./ProductSparkline";
 import { VariantPickerDialog, type VariantActionMode } from "./VariantPickerDialog";
@@ -73,6 +74,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
   const [shareVariant, setShareVariant] = useState<{ variantName?: string | null; colorHex?: string | null; thumbnailUrl?: string | null } | null>(null);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [actionsOpen, setActionsOpen] = useState(false);
+  const [activeVariantIdx, setActiveVariantIdx] = useState(0);
   const actionsRef = useRef<HTMLDivElement>(null);
   const actionBusyRef = useRef(false);
 
@@ -201,15 +203,23 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
     }
   };
 
-  const matchedHighlightColor = resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
+  // Multi-variant carousel: resolve ALL matching colors when multiple filters active
+  const allMatchingVariants = resolveAllMatchingColors(product.colors, activeColorFilter);
+  const hasMultipleVariants = allMatchingVariants.length > 1;
+  const safeVariantIdx = hasMultipleVariants ? Math.min(activeVariantIdx, allMatchingVariants.length - 1) : 0;
+  const currentVariant = hasMultipleVariants ? allMatchingVariants[safeVariantIdx] : null;
 
+  // Use current variant's data for highlight and image, or fall back to single-match logic
+  const matchedHighlightColor = currentVariant?.hex || resolveHighlightHex(product.colors, activeColorFilter, highlightColors);
   const hasHighlightedColor = !!matchedHighlightColor;
 
-  const colorSpecificImage = resolveColorImage(product, activeColorFilter);
+  // Image: use variant-specific image if cycling, otherwise default resolver
+  const variantImage = currentVariant?.image;
+  const colorSpecificImage = variantImage || resolveColorImage(product, activeColorFilter);
   const rawImageUrl = colorSpecificImage || product.og_image_url || product.images[0] || null;
   const cardImageUrl = rawImageUrl ? getCdnUrl(rawImageUrl, "card") : "/placeholder.svg";
   const cardSrcSet = colorSpecificImage ? undefined : (rawImageUrl ? getSrcSet(rawImageUrl) : undefined);
-  const activeColorName = getActiveColorName(product, activeColorFilter);
+  const activeColorName = currentVariant?.name || getActiveColorName(product, activeColorFilter);
 
   const imageBounds = useProductBounds(cardImageUrl !== "/placeholder.svg" ? cardImageUrl : null, {
     whiteThreshold: 230,
@@ -382,6 +392,42 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 </span>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Multi-variant carousel dots */}
+        {hasMultipleVariants && (
+          <div
+            className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-border/50"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {allMatchingVariants.map((v, i) => (
+              <button
+                key={v.groupSlug || v.variationSlug || i}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setActiveVariantIdx(i);
+                  setImageLoaded(false); // trigger blur-to-sharp transition
+                }}
+                aria-label={`Ver variante ${v.name}`}
+                className={cn(
+                  "w-5 h-5 rounded-full border-2 transition-all duration-200",
+                  "hover:scale-125 hover:shadow-md",
+                  i === safeVariantIdx
+                    ? "ring-2 ring-offset-1 ring-offset-card scale-110"
+                    : "border-border/50 opacity-70 hover:opacity-100"
+                )}
+                style={{
+                  backgroundColor: v.hex,
+                  borderColor: i === safeVariantIdx ? v.hex : undefined,
+                  ['--tw-ring-color' as string]: i === safeVariantIdx ? v.hex : undefined,
+                }}
+              />
+            ))}
+            <span className="text-[10px] font-medium text-muted-foreground ml-0.5">
+              {safeVariantIdx + 1}/{allMatchingVariants.length}
+            </span>
           </div>
         )}
 
