@@ -410,22 +410,42 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         {/* Multi-variant carousel dots */}
         {hasMultipleVariants && (
           <div
+            role="tablist"
+            aria-label={`Variantes de cor: ${allMatchingVariants.map(v => v.name).join(', ')}`}
             className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-card/90 backdrop-blur-md rounded-full px-2.5 py-1.5 shadow-lg border border-border/50"
             onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                e.preventDefault();
+                const next = (safeVariantIdx + 1) % allMatchingVariants.length;
+                setActiveVariantIdx(next);
+                setImageLoaded(false);
+              } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                e.preventDefault();
+                const prev = (safeVariantIdx - 1 + allMatchingVariants.length) % allMatchingVariants.length;
+                setActiveVariantIdx(prev);
+                setImageLoaded(false);
+              }
+            }}
           >
             {allMatchingVariants.map((v, i) => (
               <button
                 key={v.groupSlug || v.variationSlug || i}
+                role="tab"
                 type="button"
+                tabIndex={i === safeVariantIdx ? 0 : -1}
+                aria-selected={i === safeVariantIdx}
+                aria-current={i === safeVariantIdx ? 'true' : undefined}
                 onClick={(e) => {
                   e.stopPropagation();
                   setActiveVariantIdx(i);
-                  setImageLoaded(false); // trigger blur-to-sharp transition
+                  setImageLoaded(false);
                 }}
                 aria-label={`Ver variante ${v.name}`}
+                title={v.name}
                 className={cn(
                   "w-5 h-5 rounded-full border-2 transition-all duration-200",
-                  "hover:scale-125 hover:shadow-md",
+                  "hover:scale-125 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
                   i === safeVariantIdx
                     ? "ring-2 ring-offset-1 ring-offset-card scale-110"
                     : "border-border/50 opacity-70 hover:opacity-100"
@@ -437,7 +457,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                 }}
               />
             ))}
-            <span className="text-[10px] font-medium text-muted-foreground ml-0.5">
+            <span className="text-[10px] font-medium text-muted-foreground ml-0.5" aria-live="polite">
               {safeVariantIdx + 1}/{allMatchingVariants.length}
             </span>
           </div>
