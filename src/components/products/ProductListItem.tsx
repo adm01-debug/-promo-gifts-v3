@@ -283,15 +283,15 @@ export const ProductListItem = memo(function ProductListItem({
                   onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
                   className={cn(
                     "w-3 h-3 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110 shadow-[0_0_0_1px_hsl(var(--foreground)/0.3)]" : "opacity-60 border-border/50"
+                    i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50"
                   )}
                   style={{
                     backgroundColor: v.hex,
                     borderColor: i === safeVariantIdx
-                      ? (isLightColor(v.hex) ? 'hsl(var(--foreground))' : v.hex)
+                      ? (isLightColor(v.hex) ? 'hsl(var(--muted-foreground))' : v.hex)
                       : undefined,
                     ['--tw-ring-color' as string]: i === safeVariantIdx
-                      ? (isLightColor(v.hex) ? 'hsl(var(--foreground))' : v.hex)
+                      ? (isLightColor(v.hex) ? 'hsl(var(--muted-foreground) / 0.6)' : v.hex)
                       : v.hex,
                   }}
                   aria-label={`Ver ${v.name}`}
