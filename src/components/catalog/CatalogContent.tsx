@@ -410,6 +410,7 @@ export function CatalogContent({
   onResetFilters,
   selectionMode,
   onSelectedCountChange,
+  activeColorFilter,
 }: CatalogContentProps) {
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
 
