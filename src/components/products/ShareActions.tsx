@@ -27,9 +27,10 @@ import { MESSAGE_TEMPLATES } from "./share/MessageTemplates";
 interface ShareActionsProps {
   product: Product;
   selectedPhotosCount?: number;
+  selectedVariant?: { variantName?: string | null; colorHex?: string | null; thumbnailUrl?: string | null } | null;
 }
 
-export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsProps) {
+export function ShareActions({ product, selectedPhotosCount = 0, selectedVariant }: ShareActionsProps) {
   const { toast } = useToast();
   const [showPreview, setShowPreview] = useState(false);
   const [showAllColors, setShowAllColors] = useState(false);
@@ -160,6 +161,7 @@ export function ShareActions({ product, selectedPhotosCount = 0 }: ShareActionsP
         open={showPreview}
         onOpenChange={setShowPreview}
         product={product}
+        selectedVariant={selectedVariant}
       />
 
       {hasColors && (
