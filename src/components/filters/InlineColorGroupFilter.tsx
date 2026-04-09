@@ -182,7 +182,7 @@ export function InlineColorGroupFilter({
       <div className="space-y-3">
         {/* Swatches grid */}
         <div 
-          className="flex flex-wrap gap-2.5 max-h-28 overflow-y-auto overscroll-contain pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
+          className="flex flex-wrap gap-2.5 max-h-[8.4rem] overflow-y-auto overscroll-contain pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
           style={{ scrollbarWidth: 'thin', scrollbarGutter: 'stable' }}
         >
           {colorData.groups.map(group => (
