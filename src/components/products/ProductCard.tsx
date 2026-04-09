@@ -373,7 +373,8 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
                   </TooltipTrigger>
                   <TooltipContent>{color.name}</TooltipContent>
                 </Tooltip>
-              ))}
+                );
+              })}
               {product.colors.length > 6 && (
                 <span className="text-xs font-medium text-muted-foreground ml-1">
                   +{product.colors.length - 6}
