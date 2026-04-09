@@ -7,6 +7,7 @@ import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
+import { SORT_OPTIONS } from "@/constants/filters";
 import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";
 import { ProductList } from "@/components/products/ProductList";
@@ -186,13 +187,11 @@ export default function FiltersPage() {
                   </SheetContent>
                 </Sheet>
                 <Select value={state.sortBy} onValueChange={state.setSortBy}>
-                  <SelectTrigger className="w-32 sm:w-44 shrink-0"><ArrowUpDown className="h-4 w-4 mr-2" /><SelectValue placeholder="Ordenar" /></SelectTrigger>
+                  <SelectTrigger className="w-44 sm:w-52 shrink-0"><ArrowUpDown className="h-4 w-4 mr-2" /><SelectValue placeholder="Ordenar" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="name">Nome A-Z</SelectItem>
-                    <SelectItem value="price_asc">Menor Preço</SelectItem>
-                    <SelectItem value="price_desc">Maior Preço</SelectItem>
-                    <SelectItem value="stock">Maior Estoque</SelectItem>
-                    <SelectItem value="newest">Novidades</SelectItem>
+                    {SORT_OPTIONS.map(option => (
+                      <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <PresetsBar currentFilters={state.filters} onApplyPreset={(f, id) => state.handleApplyPreset(f, id)} activePresetId={state.activePresetId} />
