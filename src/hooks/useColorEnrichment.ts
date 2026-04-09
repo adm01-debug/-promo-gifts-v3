@@ -8,7 +8,7 @@
  * Uses incremental enrichment: keeps a growing cache of results and only
  * fetches data for NEW product IDs that haven't been enriched yet.
  */
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRef, useMemo } from 'react';
 import { invokeBatchBridge } from '@/lib/external-db';
 import type { Product } from '@/types/product-catalog';
