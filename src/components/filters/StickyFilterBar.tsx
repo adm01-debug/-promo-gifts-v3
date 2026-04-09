@@ -143,8 +143,6 @@ export function StickyFilterBar({
 interface InlineFilterBarProps {
   activeFiltersCount: number;
   totalProducts: number;
-  sortBy: string;
-  onSortChange: (value: string) => void;
   onOpenFilters: () => void;
   onClearFilters: () => void;
   viewMode: "grid" | "list" | "table";
