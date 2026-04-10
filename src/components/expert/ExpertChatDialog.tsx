@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText, CalendarDays } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,7 +12,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { preprocessProductLinks, ProductAwareLink } from "./ProductLinkRenderer";
 import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertConversations";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isToday, isThisWeek, isThisMonth, startOfDay, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
@@ -78,6 +78,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [priceMax, setPriceMax] = useState("");
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [historyDateFilter, setHistoryDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [autoPlayTts, setAutoPlayTts] = useState(() => {
     try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
   });
@@ -551,9 +552,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const hasPriceFilter = !!(priceMin || priceMax);
   const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial].filter(Boolean).length;
 
-  const filteredConversations = conversations.filter(c =>
-    !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())
-  );
+  const filteredConversations = conversations.filter(c => {
+    if (historySearch && !c.title.toLowerCase().includes(historySearch.toLowerCase())) return false;
+    if (historyDateFilter !== "all") {
+      const date = new Date(c.updated_at);
+      if (historyDateFilter === "today" && !isToday(date)) return false;
+      if (historyDateFilter === "week" && !isThisWeek(date, { locale: ptBR })) return false;
+      if (historyDateFilter === "month" && !isThisMonth(date)) return false;
+    }
+    return true;
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -732,6 +740,30 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   placeholder="Buscar conversas…"
                   className="w-full h-8 pl-8 pr-3 rounded-xl border border-border/30 bg-muted/20 text-xs placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all"
                 />
+              </div>
+
+              {/* Date filter chips */}
+              <div className="flex items-center gap-1.5 mb-3 px-0.5">
+                <CalendarDays className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                {([
+                  { key: "all", label: "Todas" },
+                  { key: "today", label: "Hoje" },
+                  { key: "week", label: "Semana" },
+                  { key: "month", label: "Mês" },
+                ] as const).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setHistoryDateFilter(key)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all",
+                      historyDateFilter === key
+                        ? "bg-primary/15 text-primary border-primary/30"
+                        : "bg-muted/20 text-muted-foreground/60 border-transparent hover:bg-muted/40"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
               </div>
 
               <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3">
