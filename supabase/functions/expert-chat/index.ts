@@ -429,7 +429,7 @@ ${topProducts.length > 0
     // Also fetch general products for broader context
     let productsQuery = supabase
       .from("products")
-      .select("id, name, sku, category_name, subcategory, description, price, colors, materials, tags")
+      .select("id, name, sku, category_name, subcategory, description, price, colors, materials, tags, og_image_url, images")
       .eq("is_active", true);
     
     // Apply category filter if set
