@@ -580,27 +580,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             </div>
             <div className="flex items-center gap-1">
               {/* Filters dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "h-8 w-8 p-0 rounded-xl relative",
-                      activeFiltersCount > 0 && "text-primary bg-primary/10"
-                    )}
-                    onClick={() => setShowFilters(true)}
-                    title="Filtros"
-                  >
-                    <Filter className="h-4 w-4" />
-                    {activeFiltersCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
-                        {activeFiltersCount}
-                      </span>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-xl relative",
+                  activeFiltersCount > 0 && "text-primary bg-primary/10"
+                )}
+                onClick={() => setShowFilters(true)}
+                title="Filtros"
+              >
+                <Filter className="h-4 w-4" />
+                {activeFiltersCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </Button>
 
               <Button
                 variant="ghost"
