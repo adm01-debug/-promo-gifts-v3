@@ -40,7 +40,7 @@ export function playTtsAudio(
             apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
             Authorization: `Bearer ${authToken}`,
           },
-          body: JSON.stringify({ text }),
+          body: JSON.stringify({ text: ttsText }),
           signal: controller.signal,
         }
       );
