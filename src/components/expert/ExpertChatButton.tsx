@@ -1,7 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, lazy, Suspense } from "react";
 import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { ExpertChatDialog } from "./ExpertChatDialog";
+
+// Lazy-load the heavy dialog (666 lines + dependencies) — only loads when opened
+const ExpertChatDialog = lazy(() =>
+  import("./ExpertChatDialog").then(m => ({ default: m.ExpertChatDialog }))
+);
 
 interface ExpertChatButtonProps {
   clientId?: string;
@@ -24,12 +28,16 @@ export const ExpertChatButton = React.forwardRef<HTMLButtonElement, ExpertChatBu
           <Bot className="h-5 w-5 sm:h-6 sm:w-6" />
         </Button>
         
-        <ExpertChatDialog 
-          isOpen={isOpen} 
-          onClose={() => setIsOpen(false)}
-          clientId={clientId}
-          clientName={clientName}
-        />
+        {isOpen && (
+          <Suspense fallback={null}>
+            <ExpertChatDialog 
+              isOpen={isOpen} 
+              onClose={() => setIsOpen(false)}
+              clientId={clientId}
+              clientName={clientName}
+            />
+          </Suspense>
+        )}
       </>
     );
   }

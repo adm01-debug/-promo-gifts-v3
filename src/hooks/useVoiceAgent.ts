@@ -1,8 +1,9 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useScribe } from "@elevenlabs/react";
-import { supabase } from "@/integrations/supabase/client";
+
 import { playTtsAudio } from "./voice/playTtsAudio";
 import { processVoiceTranscript } from "./voice/processTranscript";
+import { getScribeToken, invalidateScribeTokenCache } from "./voice/scribeTokenCache";
 import { withRetry, friendlyErrorMessage } from "./voice/retry";
 import { logVoiceCommand } from "./voice/logVoiceCommand";
 import {
@@ -230,7 +231,8 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
   // === Handle Scribe errors — try fallback ===
   const handleScribeError = useCallback((err: unknown) => {
-    const errMsg = err instanceof Error ? err.message : String(err);
+    // Invalidate cached token since connection failed
+    invalidateScribeTokenCache();
     // Only log at debug level — this is expected when ElevenLabs is unavailable
     logger.log("[Voice] Scribe unavailable, switching to browser speech recognition...");
     isStartingRef.current = false;
@@ -312,11 +314,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
     // 2. Try ElevenLabs Scribe first
     try {
-      const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
-      if (tokenError || !data?.token) {
-        throw new Error("Token error");
-      }
-
+      const token = await getScribeToken();
       logger.log("[Voice] Token obtained, connecting to Scribe...");
 
       sessionStartTimerRef.current = setTimeout(() => {
@@ -326,7 +324,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       }, SESSION_START_TIMEOUT_MS);
 
       await scribe.connect({
-        token: data.token,
+        token: token,
         microphone: {
           echoCancellation: true,
           noiseSuppression: true,
