@@ -44,6 +44,24 @@ interface DealData {
   created_at_bitrix?: string;
 }
 
+interface OrderData {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+  client_name?: string;
+  fulfillment_status?: string;
+}
+
+interface FollowUpData {
+  id: string;
+  quote_id: string;
+  reminder_type: string;
+  scheduled_for: string;
+  is_sent: boolean;
+}
+
 // Extract search terms from the last user message
 function extractSearchTerms(messages: Message[]): string[] {
   const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
