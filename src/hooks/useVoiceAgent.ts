@@ -313,11 +313,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
     // 2. Try ElevenLabs Scribe first
     try {
-      const { data, error: tokenError } = await supabase.functions.invoke("elevenlabs-scribe-token");
-      if (tokenError || !data?.token) {
-        throw new Error("Token error");
-      }
-
+      const token = await getScribeToken();
       logger.log("[Voice] Token obtained, connecting to Scribe...");
 
       sessionStartTimerRef.current = setTimeout(() => {
