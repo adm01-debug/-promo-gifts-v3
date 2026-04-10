@@ -826,7 +826,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           "rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
                           message.role === "user"
                             ? "bg-primary text-primary-foreground rounded-br-lg"
-                            : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
+                            : message.isError
+                              ? "bg-destructive/10 text-destructive border border-destructive/20 rounded-bl-lg"
+                              : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
                         )}
                       >
                         {message.role === "assistant" ? (
@@ -839,6 +841,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           <p className="whitespace-pre-wrap">{message.content}</p>
                         )}
                       </div>
+                      {/* Timestamp on hover */}
+                      {message.timestamp && (
+                        <span className="text-[10px] text-muted-foreground/30 mt-0.5 ml-1 opacity-0 group-hover/msg:opacity-100 transition-opacity select-none">
+                          {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
                       {/* Action bar: Copy + TTS */}
                       {message.role === "assistant" && message.content && !isLoading && (() => {
                         const msgId = message.id || `msg-${index}`;
