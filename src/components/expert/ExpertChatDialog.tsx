@@ -634,14 +634,14 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           {/* Active filters badges */}
           {activeFiltersCount > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2.5">
-              {selectedPriceRange && (
+              {hasPriceFilter && (
                 <Badge
                   variant="secondary"
                   className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedPriceRange(null)}
+                  onClick={() => { setPriceMin(""); setPriceMax(""); }}
                 >
                   <DollarSign className="h-2.5 w-2.5" />
-                  {selectedPriceRange.label}
+                  {priceMin && priceMax ? `R$${priceMin} – R$${priceMax}` : priceMin ? `A partir de R$${priceMin}` : `Até R$${priceMax}`}
                   <X className="h-2.5 w-2.5" />
                 </Badge>
               )}
