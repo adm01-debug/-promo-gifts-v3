@@ -8,9 +8,10 @@ import { supabase } from "@/integrations/supabase/client";
 export function playTtsAudio(
   text: string,
   options?: { onStart?: () => void }
-): { promise: Promise<void>; stop: () => void } {
+): { promise: Promise<void>; stop: () => void; pause: () => void; resume: () => void; isPaused: () => boolean } {
   let audio: HTMLAudioElement | null = null;
   let objectUrl: string | null = null;
+  let paused = false;
 
   const promise = (async () => {
     // Get current session token for authenticated requests
@@ -88,6 +89,7 @@ export function playTtsAudio(
       objectUrl = null;
     }
     audio = null;
+    paused = false;
   }
 
   function stop() {
@@ -99,5 +101,23 @@ export function playTtsAudio(
     }
   }
 
-  return { promise, stop };
+  function pause() {
+    if (audio && !audio.paused) {
+      audio.pause();
+      paused = true;
+    }
+  }
+
+  function resume() {
+    if (audio && audio.paused && paused) {
+      audio.play().catch(() => {});
+      paused = false;
+    }
+  }
+
+  function isPaused() {
+    return paused;
+  }
+
+  return { promise, stop, pause, resume, isPaused };
 }
