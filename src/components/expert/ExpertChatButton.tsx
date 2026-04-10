@@ -39,7 +39,7 @@ export const ExpertChatButton = React.forwardRef<HTMLButtonElement, ExpertChatBu
           className="fixed bottom-20 right-4 sm:bottom-[6rem] sm:right-6 h-13 w-13 sm:h-14 sm:w-14 rounded-2xl shadow-2xl z-40 flex items-center justify-center border border-primary/20 bg-gradient-to-br from-primary via-primary/80 to-primary/50 backdrop-blur-sm text-primary-foreground"
           whileHover={{ scale: 1.08, rotate: 2 }}
           whileTap={{ scale: 0.92 }}
-          aria-label="Abrir chat com Oráculo IA"
+          aria-label="Abrir chat com Oráculo - Assistente Pessoal"
         >
           {/* Outer pulsing glow ring */}
           <motion.div

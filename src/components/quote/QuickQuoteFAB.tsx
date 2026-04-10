@@ -62,8 +62,8 @@ const quickActions: QuickAction[] = [
   },
   {
     id: "expert",
-    label: "Oráculo IA",
-    description: "Consultar assistente",
+    label: "Oráculo",
+    description: "Assistente pessoal",
     icon: Bot,
     href: "__open_expert__",
     color: "bg-accent text-accent-foreground",

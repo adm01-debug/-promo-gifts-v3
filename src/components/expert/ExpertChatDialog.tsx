@@ -1024,7 +1024,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground/30 text-center mt-1.5 select-none">
-                Shift+Enter para nova linha · Oráculo IA
+                Shift+Enter para nova linha · Oráculo - Assistente Pessoal
               </p>
             </div>
           </>
