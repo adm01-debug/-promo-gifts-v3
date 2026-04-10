@@ -229,7 +229,16 @@ function applyProductFilters(products: any[], filters: {
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
+  // Declare corsHeaders outside try so catch block can always access it
+  let corsHeaders: Record<string, string>;
+  try {
+    corsHeaders = getCorsHeaders(req);
+  } catch {
+    corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    };
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -647,6 +656,12 @@ ${topProducts.length > 0
     }
     if (normalizedFilters.onlyFeatured) {
       productsQuery = productsQuery.eq("featured", true);
+    }
+    if (normalizedFilters.onlyBestseller) {
+      productsQuery = productsQuery.eq("best_seller", true);
+    }
+    if (normalizedFilters.hasPersonalization) {
+      productsQuery = productsQuery.eq("is_personalizable", true);
     }
 
     const { data: products, error: productsError } = await productsQuery.limit(120);
