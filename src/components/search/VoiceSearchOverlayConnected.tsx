@@ -31,6 +31,10 @@ function VoiceSearchOverlayConnected({ isOpen, onClose, onAction, onError }: Pro
 
   const voice = useVoiceAgent({ onAction: handleAction, onError });
 
+  const handleCommandSelect = useCallback((command: string) => {
+    voice.simulateCommand(command);
+  }, [voice.simulateCommand]);
+
   return (
     <VoiceSearchOverlay
       isOpen={isOpen}
@@ -45,6 +49,8 @@ function VoiceSearchOverlayConnected({ isOpen, onClose, onAction, onError }: Pro
       onStartListening={voice.startListening}
       onStopListening={voice.stopListening}
       onStopSpeaking={voice.stopSpeaking}
+      onCommandSelect={handleCommandSelect}
+      onSimulateCommand={voice.simulateCommand}
     />
   );
 }
