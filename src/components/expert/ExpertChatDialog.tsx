@@ -194,6 +194,49 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setSelectedMaterial(null);
   }, [clientId]);
 
+  // Auto-send initial message from voice bridge
+  const initialMessageSentRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
+      initialMessageSentRef.current = true;
+      setInput(initialMessage);
+      // Trigger send after state update
+      setTimeout(() => {
+        const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
+        sendBtn?.click();
+      }, 200);
+    }
+    if (!isOpen) {
+      initialMessageSentRef.current = false;
+    }
+  }, [isOpen, initialMessage, isLoading]);
+
+  // TTS playback for assistant messages
+  const handlePlayTts = useCallback(async (messageId: string, text: string) => {
+    // Stop current playback if any
+    if (ttsStopRef.current) {
+      ttsStopRef.current();
+      ttsStopRef.current = null;
+      if (playingTtsId === messageId) {
+        setPlayingTtsId(null);
+        return; // Toggle off
+      }
+    }
+
+    setPlayingTtsId(messageId);
+    try {
+      const { playTtsAudio } = await import("@/hooks/voice/playTtsAudio");
+      const { promise, stop } = playTtsAudio(text);
+      ttsStopRef.current = stop;
+      await promise;
+    } catch (err) {
+      console.warn("[Oracle TTS] Playback failed:", err);
+    } finally {
+      setPlayingTtsId(null);
+      ttsStopRef.current = null;
+    }
+  }, [playingTtsId]);
+
   const startNewConversation = () => {
     setMessages([]);
     setCurrentConversationId(null);
