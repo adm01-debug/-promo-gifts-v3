@@ -332,8 +332,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       ttsPauseRef.current = pause;
       ttsResumeRef.current = resume;
       await promise;
-    } catch (err) {
-      
+    } catch {
       setTtsErrorId(messageId);
       toast.error("Não foi possível reproduzir o áudio", {
         description: "O navegador bloqueou a reprodução. Toque novamente para tentar.",
@@ -520,8 +519,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           }
         } catch (err) {
           if ((err as Error).name === 'AbortError') {
-            // User stopped generation - keep what we have
-            
+            // Usuário interrompeu a geração
           } else {
             throw err;
           }
