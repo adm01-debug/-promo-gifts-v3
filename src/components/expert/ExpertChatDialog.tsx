@@ -376,7 +376,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       const decoder = new TextDecoder();
       let assistantMessage = "";
 
-      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "" }]);
+      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "", timestamp: Date.now() }]);
 
       if (reader) {
         let buffer = "";
@@ -431,7 +431,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         ? `Desculpe, ocorreu um erro: ${error.message}` 
         : "Desculpe, ocorreu um erro ao processar sua mensagem.";
       
-      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: errorMessage }]);
+      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: errorMessage, timestamp: Date.now(), isError: true }]);
       
       if (convId) {
         await saveMessage(convId, "assistant", errorMessage);
