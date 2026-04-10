@@ -1,6 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -68,6 +70,8 @@ interface ExpertChatDialogProps {
 }
 
 export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
+  const navigate = useNavigate();
+  const [savingQuoteId, setSavingQuoteId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -175,6 +179,50 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setCopiedId(msgId);
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
+
+  // Save proposal as quote draft
+  const handleSaveAsQuote = useCallback(async (msgId: string, proposalContent: string) => {
+    try {
+      setSavingQuoteId(msgId);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para salvar orçamentos");
+        return;
+      }
+
+      // Insert a draft quote with proposal content as notes
+      const { data: quote, error } = await supabase
+        .from("quotes")
+        .insert({
+          seller_id: user.id,
+          status: "draft",
+          client_id: clientId || null,
+          client_name: clientName || null,
+          notes: proposalContent.slice(0, 2000),
+          internal_notes: "Gerado pelo Oráculo - Assistente Pessoal",
+        })
+        .select("id, quote_number")
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`Rascunho ${quote.quote_number} criado!`, {
+        description: "Redirecionando para o editor…",
+        duration: 2000,
+      });
+
+      // Close dialog and navigate to quote editor
+      setTimeout(() => {
+        onClose();
+        navigate(`/orcamentos/novo?edit=${quote.id}`);
+      }, 800);
+    } catch (err) {
+      console.error("Error saving quote draft:", err);
+      toast.error("Erro ao criar rascunho de orçamento");
+    } finally {
+      setSavingQuoteId(null);
+    }
+  }, [clientId, clientName, navigate, onClose]);
 
   useEffect(() => {
     if (isOpen && inputRef.current && !showHistory) {
@@ -943,6 +991,25 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                 aria-label="Copiar mensagem"
                               >
                                 {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                              </button>
+                              {/* Save as quote draft */}
+                              <button
+                                onClick={() => handleSaveAsQuote(msgId, message.content)}
+                                disabled={savingQuoteId === msgId}
+                                className={cn(
+                                  "p-1 rounded-lg transition-all duration-150",
+                                  savingQuoteId === msgId
+                                    ? "text-primary/50 cursor-wait"
+                                    : "text-muted-foreground/40 hover:text-primary hover:bg-primary/5"
+                                )}
+                                title="Salvar como rascunho de orçamento"
+                                aria-label="Salvar como rascunho de orçamento"
+                              >
+                                {savingQuoteId === msgId ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <FileText className="h-3 w-3" />
+                                )}
                               </button>
                               <button
                                 onClick={() => {
