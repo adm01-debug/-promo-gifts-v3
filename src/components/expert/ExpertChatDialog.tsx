@@ -381,17 +381,18 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 gap-0">
-        <DialogHeader className="p-4 pb-3 border-b bg-gradient-to-r from-primary/10 to-primary/5">
+      <DialogContent className="sm:max-w-[520px] h-[620px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden border-primary/10">
+        <DialogHeader className="p-4 pb-3 border-b bg-gradient-to-r from-primary/15 via-primary/8 to-transparent">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
                 <Bot className="h-5 w-5 text-primary-foreground" />
+                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
               </div>
               <div>
-                <DialogTitle className="text-lg flex items-center gap-2">
+                <DialogTitle className="text-lg font-display flex items-center gap-2">
                   Oráculo
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
                   Consultor de Produtos IA
