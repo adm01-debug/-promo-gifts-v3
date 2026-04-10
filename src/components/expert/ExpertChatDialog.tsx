@@ -117,57 +117,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     return () => { cancelled = true; };
   }, [isOpen]);
 
-  // Parse product links from message content
-  const parseProductLinks = (content: string): (string | ProductLink)[] => {
-    const regex = /\[\[PRODUTO:([^:]+):([^\]]+)\]\]/g;
-    const parts: (string | ProductLink)[] = [];
-    let lastIndex = 0;
-    let match;
 
-    while ((match = regex.exec(content)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(content.slice(lastIndex, match.index));
-      }
-      parts.push({
-        id: match[1],
-        name: match[2],
-        fullMatch: match[0]
-      });
-      lastIndex = match.index + match[0].length;
-    }
-    
-    if (lastIndex < content.length) {
-      parts.push(content.slice(lastIndex));
-    }
-    
-    return parts.length > 0 ? parts : [content];
-  };
 
-  const handleProductClick = (productId: string) => {
-    onClose();
-    navigate(`/produto/${productId}`);
-  };
-
-  const renderMessageContent = (content: string) => {
-    const parts = parseProductLinks(content);
-    
-    return parts.map((part, index) => {
-      if (typeof part === "string") {
-        return <span key={`text-${index}`}>{part}</span>;
-      }
-      
-      return (
-        <button
-          key={`product-${part.id}-${index}`}
-          onClick={() => handleProductClick(part.id)}
-          className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors"
-        >
-          {part.name}
-          <ExternalLink className="h-3 w-3" />
-        </button>
-      );
-    });
-  };
 
   // Smooth auto-scroll
   useEffect(() => {
