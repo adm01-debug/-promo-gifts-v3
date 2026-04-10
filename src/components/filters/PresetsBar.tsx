@@ -6,74 +6,27 @@ import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
+  Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle,
 } from "@/components/ui/dialog";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
+  AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import {
-  Bookmark,
-  Plus,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  Check,
-  Loader2,
-  Copy,
-  RefreshCw,
-  SlidersHorizontal,
-  Sparkles,
+  Bookmark, Plus, MoreHorizontal, Pencil, Trash2, Check, Loader2,
+  Copy, RefreshCw, SlidersHorizontal, Sparkles, X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
+import { PRESET_COLORS, countFilters, summarizeFilters } from "./preset-utils";
+import { ColorEmojiPicker, PresetPreviewHeader } from "./PresetFormParts";
 
-// ─── Preset Colors & Emojis ───────────────────────────────
-const PRESET_COLORS = [
-  "#3b82f6", "#8b5cf6", "#ec4899", "#ef4444", "#f97316",
-  "#eab308", "#22c55e", "#06b6d4", "#6366f1", "#a855f7",
-];
-
-const PRESET_EMOJIS = [
-  "📦", "🎯", "⭐", "🔥", "💎", "🏷️", "🎨", "🛒",
-  "📋", "🚀", "💡", "🎁", "🏆", "📌", "✨", "🔖",
-];
-
-// ─── Helper: count active filters in a preset ─────────────
-function countFilters(filters: FilterState): number {
-  let count = 0;
-  if (filters.categories?.length) count += filters.categories.length;
-  if (filters.suppliers?.length) count += filters.suppliers.length;
-  if (filters.colorGroups?.length) count += filters.colorGroups.length;
-  if (filters.colorVariations?.length) count += filters.colorVariations.length;
-  if (filters.genders?.length) count += filters.genders.length;
-  if (filters.sizes?.length) count += filters.sizes.length;
-  if (filters.priceRange?.[0] > 0 || filters.priceRange?.[1] < 500) count++;
-  if (filters.stockRange?.[0] > 0) count++;
-  if (filters.onlyInStock) count++;
-  if (filters.onlyFeatured) count++;
-  if (filters.onlyNew) count++;
-  return count;
-}
+// Re-export for external consumers
+export { PRESET_COLORS } from "./preset-utils";
 
 interface PresetsBarProps {
   currentFilters: FilterState;
@@ -81,104 +34,9 @@ interface PresetsBarProps {
   activePresetId?: string;
 }
 
-// ─── Color & Emoji Picker (shared between create/edit) ────
-function ColorEmojiPicker({
-  emoji,
-  color,
-  onEmojiChange,
-  onColorChange,
-}: {
-  emoji: string;
-  color: string;
-  onEmojiChange: (e: string) => void;
-  onColorChange: (c: string) => void;
-}) {
-  return (
-    <div className="space-y-3">
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium">Emoji</label>
-        <div className="flex flex-wrap gap-1.5">
-          {PRESET_EMOJIS.map((e) => (
-            <button
-              key={e}
-              type="button"
-              onClick={() => onEmojiChange(e)}
-              className={cn(
-                "w-8 h-8 rounded-lg text-base flex items-center justify-center transition-all",
-                "hover:bg-accent hover:scale-110",
-                emoji === e
-                  ? "bg-primary/15 ring-2 ring-primary scale-110"
-                  : "bg-muted/50"
-              )}
-            >
-              {e}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="space-y-1.5">
-        <label className="text-sm font-medium">Cor</label>
-        <div className="flex flex-wrap gap-2">
-          {PRESET_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              onClick={() => onColorChange(c)}
-              className={cn(
-                "w-7 h-7 rounded-full transition-all border-2 hover:scale-110",
-                color === c
-                  ? "border-foreground scale-110 shadow-lg"
-                  : "border-transparent"
-              )}
-              style={{ backgroundColor: c }}
-            >
-              {color === c && (
-                <Check className="h-3.5 w-3.5 text-white mx-auto" />
-              )}
-            </button>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Preview Header (shared between create/edit) ──────────
-function PresetPreviewHeader({
-  emoji,
-  color,
-  name,
-  description,
-}: {
-  emoji: string;
-  color: string;
-  name: string;
-  description: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 border border-border/50">
-      <div
-        className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0 transition-colors"
-        style={{ backgroundColor: color + "25" }}
-      >
-        {emoji}
-      </div>
-      <div className="min-w-0">
-        <p className="text-sm font-semibold truncate">
-          {name || "Nome do preset"}
-        </p>
-        <p className="text-[10px] text-muted-foreground truncate">
-          {description || "Descrição..."}
-        </p>
-      </div>
-    </div>
-  );
-}
-
 export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
   function PresetsBar({ currentFilters, onApplyPreset, activePresetId }, ref) {
-    const { presets, isLoading, savePreset, updatePreset, deletePreset } =
-      useFilterPresets();
+    const { presets, isLoading, savePreset, updatePreset, deletePreset } = useFilterPresets();
 
     const [isCreateOpen, setIsCreateOpen] = useState(false);
     const [isEditOpen, setIsEditOpen] = useState(false);
@@ -187,7 +45,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
     const [newPresetName, setNewPresetName] = useState("");
     const [newPresetDescription, setNewPresetDescription] = useState("");
     const [newPresetColor, setNewPresetColor] = useState(PRESET_COLORS[0]);
-    const [newPresetEmoji, setNewPresetEmoji] = useState(PRESET_EMOJIS[0]);
+    const [newPresetEmoji, setNewPresetEmoji] = useState("📦");
     const [isSaving, setIsSaving] = useState(false);
 
     const hasActiveFilters = useMemo(
@@ -195,19 +53,15 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
       [currentFilters]
     );
 
-    // ─── Handlers ─────────────────────────────────────────
     const resetForm = useCallback(() => {
       setNewPresetName("");
       setNewPresetDescription("");
       setNewPresetColor(PRESET_COLORS[0]);
-      setNewPresetEmoji(PRESET_EMOJIS[0]);
+      setNewPresetEmoji("📦");
     }, []);
 
     const handleCreatePreset = useCallback(async () => {
-      if (!newPresetName.trim()) {
-        toast.error("Digite um nome para o preset");
-        return;
-      }
+      if (!newPresetName.trim()) { toast.error("Digite um nome para o preset"); return; }
       setIsSaving(true);
       const result = await savePreset({
         name: newPresetName.trim(),
@@ -217,11 +71,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
         color: newPresetColor,
       });
       setIsSaving(false);
-      if (result) {
-        toast.success("Preset criado com sucesso!");
-        resetForm();
-        setIsCreateOpen(false);
-      }
+      if (result) { toast.success("Preset criado com sucesso!"); resetForm(); setIsCreateOpen(false); }
     }, [newPresetName, newPresetDescription, currentFilters, newPresetEmoji, newPresetColor, savePreset, resetForm]);
 
     const handleUpdatePreset = useCallback(async () => {
@@ -234,12 +84,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
         color: newPresetColor,
       });
       setIsSaving(false);
-      if (result) {
-        toast.success("Preset atualizado!");
-        resetForm();
-        setIsEditOpen(false);
-        setSelectedPreset(null);
-      }
+      if (result) { toast.success("Preset atualizado!"); resetForm(); setIsEditOpen(false); setSelectedPreset(null); }
     }, [selectedPreset, newPresetName, newPresetDescription, newPresetEmoji, newPresetColor, updatePreset, resetForm]);
 
     const handleDeletePreset = useCallback(async () => {
@@ -250,54 +95,43 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
       setSelectedPreset(null);
     }, [selectedPreset, deletePreset]);
 
-    const handleApplyPreset = useCallback(
-      (preset: FilterPreset) => {
-        onApplyPreset(preset.filters, preset.id);
-        toast.success(`Preset "${preset.name}" aplicado`);
-      },
-      [onApplyPreset]
-    );
+    const handleApplyPreset = useCallback((preset: FilterPreset) => {
+      onApplyPreset(preset.filters, preset.id);
+      toast.success(`Preset "${preset.name}" aplicado`);
+    }, [onApplyPreset]);
 
-    const handleDuplicatePreset = useCallback(
-      async (preset: FilterPreset) => {
-        setIsSaving(true);
-        const result = await savePreset({
-          name: `${preset.name} (cópia)`,
-          description: preset.description,
-          filters: preset.filters,
-          icon: preset.icon,
-          color: preset.color,
-        });
-        setIsSaving(false);
-        if (result) toast.success(`Preset "${preset.name}" duplicado!`);
-      },
-      [savePreset]
-    );
+    const handleClearPreset = useCallback(() => {
+      onApplyPreset(defaultFilters, undefined);
+      toast.info("Preset desativado");
+    }, [onApplyPreset]);
 
-    const handleUpdateFilters = useCallback(
-      async (preset: FilterPreset) => {
-        if (!hasActiveFilters) {
-          toast.info("Aplique filtros antes de atualizar o preset");
-          return;
-        }
-        setIsSaving(true);
-        const result = await updatePreset(preset.id, {
-          filters: currentFilters,
-        });
-        setIsSaving(false);
-        if (result) {
-          toast.success(`Filtros do preset "${preset.name}" atualizados!`);
-        }
-      },
-      [currentFilters, hasActiveFilters, updatePreset]
-    );
+    const handleDuplicatePreset = useCallback(async (preset: FilterPreset) => {
+      setIsSaving(true);
+      const result = await savePreset({
+        name: `${preset.name} (cópia)`,
+        description: preset.description,
+        filters: preset.filters,
+        icon: preset.icon,
+        color: preset.color,
+      });
+      setIsSaving(false);
+      if (result) toast.success(`Preset "${preset.name}" duplicado!`);
+    }, [savePreset]);
+
+    const handleUpdateFilters = useCallback(async (preset: FilterPreset) => {
+      if (!hasActiveFilters) { toast.info("Aplique filtros antes de atualizar o preset"); return; }
+      setIsSaving(true);
+      const result = await updatePreset(preset.id, { filters: currentFilters });
+      setIsSaving(false);
+      if (result) toast.success(`Filtros do preset "${preset.name}" atualizados!`);
+    }, [currentFilters, hasActiveFilters, updatePreset]);
 
     const openEditDialog = useCallback((preset: FilterPreset) => {
       setSelectedPreset(preset);
       setNewPresetName(preset.name);
       setNewPresetDescription(preset.description || "");
       setNewPresetColor(preset.color || PRESET_COLORS[0]);
-      setNewPresetEmoji(preset.icon || PRESET_EMOJIS[0]);
+      setNewPresetEmoji(preset.icon || "📦");
       setIsEditOpen(true);
     }, []);
 
@@ -306,15 +140,9 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
       setIsDeleteOpen(true);
     }, []);
 
-    const handleKeyDown = useCallback(
-      (e: React.KeyboardEvent, action: () => void) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-          e.preventDefault();
-          action();
-        }
-      },
-      []
-    );
+    const handleKeyDown = useCallback((e: React.KeyboardEvent, action: () => void) => {
+      if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); action(); }
+    }, []);
 
     return (
       <div ref={ref} className="contents">
@@ -326,17 +154,12 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
               aria-label="Presets de filtros salvos"
               className={cn(
                 "relative h-10 w-10 rounded-full border-border/50 transition-colors",
-                presets.length > 0
-                  ? "hover:border-primary/50"
-                  : "opacity-60 hover:opacity-100"
+                presets.length > 0 ? "hover:border-primary/50" : "opacity-60 hover:opacity-100"
               )}
             >
               <Bookmark className="h-4 w-4" />
               {presets.length > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="absolute -top-1.5 -right-1.5 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] font-bold bg-primary text-primary-foreground rounded-full"
-                >
+                <Badge variant="secondary" className="absolute -top-1.5 -right-1.5 h-5 min-w-5 p-0 flex items-center justify-center text-[10px] font-bold bg-primary text-primary-foreground rounded-full">
                   {presets.length}
                 </Badge>
               )}
@@ -349,26 +172,16 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <Bookmark className="h-4 w-4 text-primary" />
                   <span>Meus Presets</span>
-                  {presets.length > 0 && (
-                    <span className="text-muted-foreground text-xs">
-                      ({presets.length})
-                    </span>
-                  )}
+                  {presets.length > 0 && <span className="text-muted-foreground text-xs">({presets.length})</span>}
                 </div>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <Button
-                      variant="ghost"
-                      size="icon"
+                      variant="ghost" size="icon"
                       aria-label="Salvar preset com filtros atuais"
                       className="h-7 w-7 text-muted-foreground hover:text-primary"
                       onClick={() => {
-                        if (!hasActiveFilters) {
-                          toast.info(
-                            "Selecione pelo menos um filtro para salvar um preset"
-                          );
-                          return;
-                        }
+                        if (!hasActiveFilters) { toast.info("Selecione pelo menos um filtro para salvar um preset"); return; }
                         setIsCreateOpen(true);
                       }}
                     >
@@ -378,6 +191,23 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                   <TooltipContent>Salvar preset</TooltipContent>
                 </Tooltip>
               </div>
+
+              {/* Active preset indicator with clear */}
+              {activePresetId && presets.find(p => p.id === activePresetId) && (
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-xs">
+                  <Check className="h-3 w-3 text-primary shrink-0" />
+                  <span className="text-primary font-medium truncate flex-1">
+                    {presets.find(p => p.id === activePresetId)?.name}
+                  </span>
+                  <button
+                    onClick={handleClearPreset}
+                    className="p-0.5 hover:bg-primary/20 rounded transition-colors shrink-0"
+                    aria-label="Desativar preset"
+                  >
+                    <X className="h-3 w-3 text-primary" />
+                  </button>
+                </div>
+              )}
 
               {/* List */}
               {isLoading ? (
@@ -390,17 +220,10 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                     <Sparkles className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <p className="text-xs text-muted-foreground text-center">
-                    Salve combinações de filtros
-                    <br />
-                    para reaplicar com um clique
+                    Salve combinações de filtros<br />para reaplicar com um clique
                   </p>
                   {hasActiveFilters && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-1 text-xs h-7 gap-1.5"
-                      onClick={() => setIsCreateOpen(true)}
-                    >
+                    <Button variant="outline" size="sm" className="mt-1 text-xs h-7 gap-1.5" onClick={() => setIsCreateOpen(true)}>
                       <Plus className="h-3 w-3" />
                       Salvar filtros atuais
                     </Button>
@@ -412,120 +235,88 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                     const filterCount = countFilters(preset.filters);
                     const presetColor = preset.color || PRESET_COLORS[0];
                     const isActive = activePresetId === preset.id;
+                    const summary = summarizeFilters(preset.filters);
 
                     return (
-                      <div
-                        key={preset.id}
-                        role="button"
-                        tabIndex={0}
-                        aria-label={`Aplicar preset ${preset.name}`}
-                        aria-pressed={isActive}
-                        className={cn(
-                          "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-lg transition-all cursor-pointer",
-                          "hover:bg-accent",
-                          isActive
-                            ? "bg-primary/10 border border-primary/30"
-                            : "border border-transparent"
-                        )}
-                        onClick={() => handleApplyPreset(preset)}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            e.preventDefault();
-                            handleApplyPreset(preset);
-                          }
-                        }}
-                      >
-                        {/* Colored left accent */}
-                        <div
-                          className="w-1 self-stretch rounded-full shrink-0 transition-opacity"
-                          style={{
-                            backgroundColor: presetColor,
-                            opacity: isActive ? 1 : 0.5,
-                          }}
-                        />
-
-                        {/* Icon */}
-                        <div
-                          className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
-                          style={{ backgroundColor: presetColor + "20" }}
-                        >
-                          {preset.icon || "🔖"}
-                        </div>
-
-                        {/* Text */}
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {preset.name}
-                          </p>
-                          {preset.description ? (
-                            <p className="text-[10px] text-muted-foreground truncate">
-                              {preset.description}
-                            </p>
-                          ) : (
-                            <p className="text-[10px] text-muted-foreground">
-                              {filterCount} filtro{filterCount !== 1 ? "s" : ""}
-                            </p>
-                          )}
-                        </div>
-
-                        {/* Active check */}
-                        {isActive && (
-                          <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                        )}
-
-                        {/* Filter count badge */}
-                        {!isActive && filterCount > 0 && (
-                          <span
-                            className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
-                            style={{
-                              backgroundColor: presetColor + "20",
-                              color: presetColor,
-                            }}
+                      <Tooltip key={preset.id}>
+                        <TooltipTrigger asChild>
+                          <div
+                            role="button"
+                            tabIndex={0}
+                            aria-label={`Aplicar preset ${preset.name}`}
+                            aria-pressed={isActive}
+                            className={cn(
+                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-lg transition-all cursor-pointer hover:bg-accent",
+                              isActive ? "bg-primary/10 border border-primary/30" : "border border-transparent"
+                            )}
+                            onClick={() => isActive ? handleClearPreset() : handleApplyPreset(preset)}
+                            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleApplyPreset(preset); } }}
                           >
-                            {filterCount}
-                          </span>
-                        )}
-
-                        {/* Actions menu */}
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <button
-                              aria-label={`Opções do preset ${preset.name}`}
-                              className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded shrink-0"
-                              onClick={(e) => e.stopPropagation()}
+                            {/* Colored left accent */}
+                            <div
+                              className="w-1 self-stretch rounded-full shrink-0 transition-opacity"
+                              style={{ backgroundColor: presetColor, opacity: isActive ? 1 : 0.5 }}
+                            />
+                            {/* Icon */}
+                            <div
+                              className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
+                              style={{ backgroundColor: presetColor + "20" }}
                             >
-                              <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
-                            </button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-44">
-                            <DropdownMenuItem onClick={() => openEditDialog(preset)}>
-                              <Pencil className="h-3.5 w-3.5 mr-2" />
-                              Editar
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleUpdateFilters(preset)}
-                              disabled={!hasActiveFilters}
-                            >
-                              <RefreshCw className="h-3.5 w-3.5 mr-2" />
-                              Atualizar filtros
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={() => handleDuplicatePreset(preset)}
-                            >
-                              <Copy className="h-3.5 w-3.5 mr-2" />
-                              Duplicar
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem
-                              onClick={() => openDeleteDialog(preset)}
-                              className="text-destructive focus:text-destructive"
-                            >
-                              <Trash2 className="h-3.5 w-3.5 mr-2" />
-                              Excluir
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </div>
+                              {preset.icon || "🔖"}
+                            </div>
+                            {/* Text */}
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium truncate">{preset.name}</p>
+                              {preset.description ? (
+                                <p className="text-[10px] text-muted-foreground truncate">{preset.description}</p>
+                              ) : (
+                                <p className="text-[10px] text-muted-foreground">{filterCount} filtro{filterCount !== 1 ? "s" : ""}</p>
+                              )}
+                            </div>
+                            {/* Active check */}
+                            {isActive && <Check className="h-3.5 w-3.5 text-primary shrink-0" />}
+                            {/* Filter count badge */}
+                            {!isActive && filterCount > 0 && (
+                              <span
+                                className="text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0"
+                                style={{ backgroundColor: presetColor + "20", color: presetColor }}
+                              >
+                                {filterCount}
+                              </span>
+                            )}
+                            {/* Actions menu */}
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <button
+                                  aria-label={`Opções do preset ${preset.name}`}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-muted rounded shrink-0"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <MoreHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
+                                </button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-44">
+                                <DropdownMenuItem onClick={() => openEditDialog(preset)}>
+                                  <Pencil className="h-3.5 w-3.5 mr-2" />Editar
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleUpdateFilters(preset)} disabled={!hasActiveFilters}>
+                                  <RefreshCw className="h-3.5 w-3.5 mr-2" />Atualizar filtros
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleDuplicatePreset(preset)}>
+                                  <Copy className="h-3.5 w-3.5 mr-2" />Duplicar
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => openDeleteDialog(preset)} className="text-destructive focus:text-destructive">
+                                  <Trash2 className="h-3.5 w-3.5 mr-2" />Excluir
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent side="left" className="max-w-52 text-xs">
+                          {summary}
+                        </TooltipContent>
+                      </Tooltip>
                     );
                   })}
                 </div>
@@ -542,50 +333,24 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                 <SlidersHorizontal className="h-4 w-4 text-primary" />
                 Salvar Preset de Filtros
               </DialogTitle>
-              <DialogDescription>
-                Salve os filtros atuais como um preset para uso futuro.
-              </DialogDescription>
+              <DialogDescription>Salve os filtros atuais como um preset para uso futuro.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <PresetPreviewHeader
-                emoji={newPresetEmoji}
-                color={newPresetColor}
-                name={newPresetName}
-                description={newPresetDescription}
-              />
+              <PresetPreviewHeader emoji={newPresetEmoji} color={newPresetColor} name={newPresetName} description={newPresetDescription} />
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome do Preset</label>
-                <Input
-                  placeholder="Ex: Campanha de Verão"
-                  value={newPresetName}
-                  onChange={(e) => setNewPresetName(e.target.value)}
-                  maxLength={50}
-                  autoFocus
-                />
+                <Input placeholder="Ex: Campanha de Verão" value={newPresetName} onChange={(e) => setNewPresetName(e.target.value)} maxLength={50} autoFocus />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Descrição (opcional)</label>
-                <Input
-                  placeholder="Descreva o preset..."
-                  value={newPresetDescription}
-                  onChange={(e) => setNewPresetDescription(e.target.value)}
-                  maxLength={100}
-                />
+                <Input placeholder="Descreva o preset..." value={newPresetDescription} onChange={(e) => setNewPresetDescription(e.target.value)} maxLength={100} />
               </div>
-              <ColorEmojiPicker
-                emoji={newPresetEmoji}
-                color={newPresetColor}
-                onEmojiChange={setNewPresetEmoji}
-                onColorChange={setNewPresetColor}
-              />
+              <ColorEmojiPicker emoji={newPresetEmoji} color={newPresetColor} onEmojiChange={setNewPresetEmoji} onColorChange={setNewPresetColor} />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>
-                Cancelar
-              </Button>
+              <Button variant="outline" onClick={() => setIsCreateOpen(false)}>Cancelar</Button>
               <Button onClick={handleCreatePreset} disabled={isSaving || !newPresetName.trim()}>
-                {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                Salvar Preset
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Salvar Preset
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -596,48 +361,25 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
           <DialogContent className="max-w-md" onKeyDown={(e) => handleKeyDown(e, handleUpdatePreset)}>
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
-                <Pencil className="h-4 w-4 text-primary" />
-                Editar Preset
+                <Pencil className="h-4 w-4 text-primary" />Editar Preset
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <PresetPreviewHeader
-                emoji={newPresetEmoji}
-                color={newPresetColor}
-                name={newPresetName}
-                description={newPresetDescription}
-              />
+              <PresetPreviewHeader emoji={newPresetEmoji} color={newPresetColor} name={newPresetName} description={newPresetDescription} />
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome</label>
-                <Input
-                  value={newPresetName}
-                  onChange={(e) => setNewPresetName(e.target.value)}
-                  maxLength={50}
-                  autoFocus
-                />
+                <Input value={newPresetName} onChange={(e) => setNewPresetName(e.target.value)} maxLength={50} autoFocus />
               </div>
               <div className="space-y-2">
                 <label className="text-sm font-medium">Descrição</label>
-                <Input
-                  value={newPresetDescription}
-                  onChange={(e) => setNewPresetDescription(e.target.value)}
-                  maxLength={100}
-                />
+                <Input value={newPresetDescription} onChange={(e) => setNewPresetDescription(e.target.value)} maxLength={100} />
               </div>
-              <ColorEmojiPicker
-                emoji={newPresetEmoji}
-                color={newPresetColor}
-                onEmojiChange={setNewPresetEmoji}
-                onColorChange={setNewPresetColor}
-              />
+              <ColorEmojiPicker emoji={newPresetEmoji} color={newPresetColor} onEmojiChange={setNewPresetEmoji} onColorChange={setNewPresetColor} />
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEditOpen(false)}>
-                Cancelar
-              </Button>
+              <Button variant="outline" onClick={() => setIsEditOpen(false)}>Cancelar</Button>
               <Button onClick={handleUpdatePreset} disabled={isSaving || !newPresetName.trim()}>
-                {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}
-                Salvar
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin mr-2" />}Salvar
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -649,16 +391,12 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir Preset</AlertDialogTitle>
               <AlertDialogDescription>
-                Tem certeza que deseja excluir o preset "
-                {selectedPreset?.name}"? Esta ação não pode ser desfeita.
+                Tem certeza que deseja excluir o preset "{selectedPreset?.name}"? Esta ação não pode ser desfeita.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancelar</AlertDialogCancel>
-              <AlertDialogAction
-                onClick={handleDeletePreset}
-                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-              >
+              <AlertDialogAction onClick={handleDeletePreset} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                 Excluir
               </AlertDialogAction>
             </AlertDialogFooter>
