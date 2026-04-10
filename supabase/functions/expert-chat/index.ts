@@ -44,6 +44,24 @@ interface DealData {
   created_at_bitrix?: string;
 }
 
+interface OrderData {
+  id: string;
+  order_number: string;
+  status: string;
+  total: number;
+  created_at: string;
+  client_name?: string;
+  fulfillment_status?: string;
+}
+
+interface FollowUpData {
+  id: string;
+  quote_id: string;
+  reminder_type: string;
+  scheduled_for: string;
+  is_sent: boolean;
+}
+
 // Extract search terms from the last user message
 function extractSearchTerms(messages: Message[]): string[] {
   const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
@@ -148,9 +166,13 @@ Deno.serve(async (req) => {
         .from("quotes")
         .select(`
           id,
+          quote_number,
           status,
           total,
           created_at,
+          valid_until,
+          sent_at,
+          client_response,
           quote_items (
             product_name,
             product_sku,
@@ -161,16 +183,44 @@ Deno.serve(async (req) => {
         `)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false })
-        .limit(10);
+        .limit(15);
 
       if (!quotesError && clientQuotes) {
         quoteProductHistory = clientQuotes;
         console.log("Client quote history count:", quoteProductHistory.length);
       }
 
+      // Fetch client's orders
+      let clientOrders: OrderData[] = [];
+      const { data: orders, error: ordersError } = await supabase
+        .from("orders")
+        .select("id, order_number, status, total, created_at, client_name, fulfillment_status")
+        .eq("client_id", clientId)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (!ordersError && orders) {
+        clientOrders = orders;
+        console.log("Client orders count:", clientOrders.length);
+      }
+
+      // Fetch pending follow-up reminders for this seller
+      let pendingFollowUps: FollowUpData[] = [];
+      const { data: followUps, error: followUpsError } = await supabase
+        .from("follow_up_reminders")
+        .select("id, quote_id, reminder_type, scheduled_for, is_sent")
+        .eq("seller_id", userId)
+        .eq("is_sent", false)
+        .order("scheduled_for", { ascending: true })
+        .limit(10);
+
+      if (!followUpsError && followUps) {
+        pendingFollowUps = followUps;
+        console.log("Pending follow-ups:", pendingFollowUps.length);
+      }
+
       // Analyze product preferences from quote history
       const productPreferences = new Map<string, { count: number; totalValue: number; lastPurchase: string }>();
-      const categoryPreferences = new Map<string, number>();
       
       quoteProductHistory.forEach(quote => {
         if (quote.quote_items) {
@@ -185,7 +235,7 @@ Deno.serve(async (req) => {
         }
       });
 
-      // Build enhanced client context with upsell intelligence
+      // Build enhanced client context with full sales intelligence
       const topProducts = Array.from(productPreferences.entries())
         .sort((a, b) => b[1].totalValue - a[1].totalValue)
         .slice(0, 5);
@@ -194,37 +244,85 @@ Deno.serve(async (req) => {
         ? quoteProductHistory.reduce((sum, q) => sum + (q.total || 0), 0) / quoteProductHistory.length
         : 0;
 
+      // Identify quotes needing follow-up (sent but no response, or expiring soon)
+      const pendingQuotes = quoteProductHistory.filter(q => 
+        q.status === 'sent' && !q.client_response
+      );
+      const expiringQuotes = quoteProductHistory.filter(q => {
+        if (!q.valid_until) return false;
+        const daysUntilExpiry = (new Date(q.valid_until).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
+        return daysUntilExpiry > 0 && daysUntilExpiry <= 7 && q.status !== 'approved' && q.status !== 'converted';
+      });
+
+      // Calculate recency and engagement metrics
+      const daysSinceLastInteraction = quoteProductHistory.length > 0
+        ? Math.floor((Date.now() - new Date(quoteProductHistory[0].created_at).getTime()) / (1000 * 60 * 60 * 24))
+        : null;
+
+      const totalRevenue = clientOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      const conversionRate = quoteProductHistory.length > 0
+        ? ((quoteProductHistory.filter(q => q.status === 'approved' || q.status === 'converted').length / quoteProductHistory.length) * 100).toFixed(0)
+        : "0";
+
       if (clientData) {
         clientContext = `
-CONTEXTO DO CLIENTE ATUAL:
+CONTEXTO COMPLETO DO CLIENTE:
 - Nome: ${clientData.name}
 - Ramo de atividade: ${clientData.ramo || "Não informado"}
 - Nicho/Segmento: ${clientData.nicho || "Não informado"}
 - Cor primária da marca: ${clientData.primary_color_name || "Não informada"} ${clientData.primary_color_hex ? `(${clientData.primary_color_hex})` : ""}
 - Logo disponível: ${clientData.logo_url ? "Sim" : "Não"}
-- Total investido: ${clientData.total_spent ? `R$ ${clientData.total_spent.toLocaleString("pt-BR")}` : "Não disponível"}
+- Total investido (CRM): ${clientData.total_spent ? `R$ ${clientData.total_spent.toLocaleString("pt-BR")}` : "Não disponível"}
 - Última compra: ${clientData.last_purchase_date ? new Date(clientData.last_purchase_date).toLocaleDateString("pt-BR") : "Não disponível"}
+- Dias desde última interação: ${daysSinceLastInteraction !== null ? `${daysSinceLastInteraction} dias` : "N/A"}
 
-HISTÓRICO DE NEGOCIAÇÕES (últimas ${clientDeals.length}):
+MÉTRICAS DE VENDAS:
+- Ticket médio: ${averageOrderValue > 0 ? `R$ ${averageOrderValue.toFixed(2)}` : "Sem dados"}
+- Total de orçamentos: ${quoteProductHistory.length}
+- Pedidos confirmados: ${clientOrders.length}
+- Receita total em pedidos: R$ ${totalRevenue.toFixed(2)}
+- Taxa de conversão: ${conversionRate}%
+
+HISTÓRICO DE NEGOCIAÇÕES CRM (últimas ${clientDeals.length}):
 ${clientDeals.length > 0 
   ? clientDeals.map((deal, i) => `${i + 1}. ${deal.title} - ${deal.value ? `R$ ${deal.value.toLocaleString("pt-BR")}` : "Valor não informado"} (${deal.stage || "Em andamento"})`).join("\n")
-  : "Nenhum histórico de compras encontrado"}
+  : "Nenhum histórico no CRM"}
 
-INTELIGÊNCIA DE UPSELL - ANÁLISE DE COMPORTAMENTO:
-- Ticket médio: ${averageOrderValue > 0 ? `R$ ${averageOrderValue.toFixed(2)}` : "Não disponível"}
-- Total de orçamentos: ${quoteProductHistory.length}
-- Produtos mais comprados:
+ORÇAMENTOS RECENTES:
+${quoteProductHistory.length > 0
+  ? quoteProductHistory.slice(0, 8).map((q, i) => {
+      const statusMap: Record<string, string> = { draft: "Rascunho", sent: "Enviado", approved: "Aprovado", rejected: "Rejeitado", converted: "Convertido", expired: "Expirado" };
+      return `${i + 1}. ${q.quote_number} - R$ ${q.total?.toFixed(2)} - ${statusMap[q.status] || q.status} - ${new Date(q.created_at).toLocaleDateString("pt-BR")}${q.client_response ? ` [Resposta: ${q.client_response}]` : ""}`;
+    }).join("\n")
+  : "Nenhum orçamento encontrado"}
+
+PEDIDOS CONFIRMADOS:
+${clientOrders.length > 0
+  ? clientOrders.map((o, i) => {
+      const statusMap: Record<string, string> = { pending: "Pendente", confirmed: "Confirmado", production: "Em Produção", shipped: "Enviado", delivered: "Entregue" };
+      return `${i + 1}. ${o.order_number} - R$ ${o.total?.toFixed(2)} - ${statusMap[o.status] || o.status} - ${new Date(o.created_at).toLocaleDateString("pt-BR")}`;
+    }).join("\n")
+  : "Nenhum pedido encontrado"}
+
+ALERTAS E FOLLOW-UPS:
+${pendingQuotes.length > 0 ? `⚠️ ${pendingQuotes.length} orçamento(s) enviado(s) aguardando resposta do cliente` : ""}
+${expiringQuotes.length > 0 ? `⏰ ${expiringQuotes.length} orçamento(s) prestes a vencer nos próximos 7 dias` : ""}
+${daysSinceLastInteraction !== null && daysSinceLastInteraction > 30 ? `🔔 Cliente inativo há ${daysSinceLastInteraction} dias - considere retomar contato` : ""}
+${pendingFollowUps.length > 0 ? `📋 ${pendingFollowUps.length} lembrete(s) de follow-up pendente(s)` : ""}
+${!pendingQuotes.length && !expiringQuotes.length && (daysSinceLastInteraction === null || daysSinceLastInteraction <= 30) && !pendingFollowUps.length ? "✅ Nenhum alerta pendente" : ""}
+
+PRODUTOS MAIS COMPRADOS:
 ${topProducts.length > 0
   ? topProducts.map(([name, data], i) => `  ${i + 1}. ${name} - ${data.count} unidades, R$ ${data.totalValue.toFixed(2)} total`).join("\n")
   : "  Nenhum histórico de produtos"}
 
-SUGESTÕES DE UPSELL BASEADAS NO HISTÓRICO:
+INTELIGÊNCIA DE UPSELL:
 ${topProducts.length > 0 
-  ? `- Este cliente tem preferência por produtos como: ${topProducts.map(([name]) => name).join(", ")}
-- Sugira produtos complementares ou versões premium dos itens que já comprou
-- Considere o ticket médio de R$ ${averageOrderValue.toFixed(2)} para calibrar sugestões de preço
-- Ofereça kits ou combos que incluam produtos que ele já conhece`
-  : "- Cliente novo ou sem histórico de orçamentos - foque em entender suas necessidades"}
+  ? `- Preferências: ${topProducts.map(([name]) => name).join(", ")}
+- Sugira versões premium ou complementares dos itens já comprados
+- Ticket médio de R$ ${averageOrderValue.toFixed(2)} para calibrar sugestões
+- Ofereça kits com produtos que ele já conhece`
+  : "- Cliente novo - foque em entender necessidades e construir relacionamento"}
 `;
       }
     }
@@ -374,61 +472,86 @@ CATÁLOGO DE PRODUTOS (use o formato [[PRODUTO:id:nome]] para criar links clicá
 ${productsContext}`;
     }
 
-    const systemPrompt = `Você é o EXPERT, um consultor especializado em produtos promocionais e brindes corporativos da Promo Brindes.
+    const systemPrompt = `Você é o ORÁCULO, assistente pessoal de vendas da Promo Brindes. Você é um parceiro estratégico completo para o vendedor.
 
-SEU PAPEL:
-- Você é experiente e conhece profundamente o catálogo de produtos
-- Ajuda vendedores a encontrar os melhores produtos para cada cliente
-- Analisa o perfil do cliente (ramo, nicho, cores da marca, histórico) para fazer recomendações personalizadas
-- Sugere produtos que combinam com as cores da marca do cliente
-- Considera o histórico de compras para sugerir produtos complementares ou similares
-- PROATIVAMENTE sugere UPSELLS e CROSS-SELLS baseado no comportamento do cliente
+SEU PAPEL COMPLETO:
+1. **Consultor de Produtos** — Conhece profundamente o catálogo e faz recomendações personalizadas
+2. **Analista de CRM** — Interpreta dados do cliente (ramo, histórico, ticket médio, taxa de conversão) para gerar insights
+3. **Gerador de Propostas** — Sugere composições de orçamento com produtos, quantidades e argumentos de venda
+4. **Estrategista de Follow-up** — Identifica oportunidades de retomada, orçamentos pendentes, clientes inativos
+5. **Detector de Oportunidades** — Identifica cross-sell, upsell, sazonalidade e tendências de mercado
+
+CAPACIDADES DE ASSISTENTE PESSOAL DE VENDAS:
+
+📊 CRM E ANÁLISE DE CLIENTE:
+- Quando perguntado sobre um cliente, forneça um resumo executivo (ticket médio, frequência, preferências, status)
+- Identifique padrões de compra e sazonalidade
+- Compare o comportamento do cliente com benchmarks do segmento
+- Alerte sobre clientes inativos que precisam de atenção
+
+📝 GERAÇÃO DE PROPOSTAS:
+- Sugira composições de orçamento com produtos específicos, quantidades e justificativas
+- Considere o ticket médio e histórico do cliente para calibrar valores
+- Inclua argumentos de venda para cada produto sugerido
+- Proponha alternativas (econômica, padrão, premium) quando possível
+- Use sempre o formato de link: [[PRODUTO:id:nome]]
+
+📞 FOLLOW-UP INTELIGENTE:
+- Identifique orçamentos enviados sem resposta e sugira abordagens de follow-up
+- Sugira textos prontos para WhatsApp/email baseados no contexto
+- Alerte sobre orçamentos prestes a vencer
+- Recomende o melhor momento e canal para retomar contato
+- Se o cliente está inativo, sugira um motivo para recontato (novidade, promoção, data comemorativa)
+
+🎯 ANÁLISE DE OPORTUNIDADES:
+- Identifique oportunidades de cross-sell baseadas no que o cliente já comprou
+- Sugira upgrades para produtos premium quando o ticket médio permitir
+- Detecte oportunidades sazonais (Páscoa, Dia das Mães, Natal, etc.)
+- Proponha kits e combos personalizados baseados nas preferências
+- Analise a taxa de conversão e sugira melhorias na abordagem
 
 ESTRATÉGIAS DE UPSELL E CROSS-SELL:
-1. **Upgrade de produto**: Se o cliente comprou um item básico, sugira a versão premium
-2. **Produtos complementares**: Se comprou caneta, sugira caderno; se comprou squeeze, sugira toalha
-3. **Kits e combos**: Agrupe produtos que o cliente já comprou em kits com desconto
-4. **Maior quantidade**: Sugira quantidade maior com melhor custo-benefício
-5. **Personalização adicional**: Ofereça gravação, bordado ou impressão colorida
-6. **Linha premium**: Baseado no ticket médio, sugira produtos de faixa de preço superior
+1. **Upgrade de produto**: Item básico → versão premium
+2. **Produtos complementares**: Caneta + caderno, squeeze + toalha
+3. **Kits e combos**: Agrupe produtos já comprados com desconto
+4. **Maior quantidade**: Melhor custo-benefício em volume
+5. **Personalização adicional**: Gravação, bordado, impressão colorida
+6. **Linha premium**: Baseado no ticket médio
 
 FORMATO DE LINKS DE PRODUTOS:
-Quando recomendar produtos, SEMPRE use este formato para criar links clicáveis:
 [[PRODUTO:id_do_produto:Nome do Produto]]
-
-Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium]] que combina perfeitamente com as cores da marca."
+Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium]]"
 
 BUSCA SEMÂNTICA:
-Você tem acesso a uma busca semântica avançada que encontra produtos por similaridade de texto.
-Os produtos listados em "PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA" são os mais relevantes para a busca atual.
-PRIORIZE esses produtos nas suas recomendações, pois são os mais adequados ao que o vendedor está buscando.
+PRIORIZE produtos de "PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA" nas recomendações.
 
-DIRETRIZES:
-1. Seja proativo e sugira produtos baseado no contexto do cliente
-2. Sempre explique POR QUE está recomendando cada produto
-3. Considere as cores da marca do cliente nas sugestões
-4. Analise o histórico para entender preferências e SUGERIR UPSELLS
-5. Sugira produtos para datas comemorativas quando apropriado
-6. Seja conciso mas informativo
-7. Use linguagem profissional mas acessível
-8. Se não souber algo, seja honesto
-9. SEMPRE use o formato [[PRODUTO:id:nome]] ao mencionar produtos específicos
-10. PRIORIZE produtos da busca semântica quando disponíveis
-11. Use a INTELIGÊNCIA DE UPSELL para fazer sugestões estratégicas
-12. Mencione o ticket médio do cliente para calibrar sugestões de preço
+FORMATO DE MENSAGENS DE FOLLOW-UP:
+Quando sugerir mensagens de follow-up, use blocos formatados assim:
+> **WhatsApp/Email sugerido:**
+> Olá [Nome], tudo bem? Vi que enviamos um orçamento para [produtos] no dia [data]. Gostaria de saber se tem alguma dúvida...
 
 MAPEAMENTO DE CARACTERÍSTICAS:
-- "produto sustentável/ecológico" → materiais: bambu, papel reciclado, algodão orgânico, madeira, cortiça
-- "brinde tecnológico" → carregadores, power banks, pen drives, fones, suportes celular
-- "item para escritório" → canetas, cadernos, organizadores, mouse pads, porta-canetas
-- "presente premium/executivo" → kits, itens em couro, canetas metálicas, agendas premium
-- "para eventos" → ecobags, squeezes, bonés, camisetas
+- "sustentável/ecológico" → bambu, papel reciclado, algodão orgânico, madeira, cortiça
+- "tecnológico" → carregadores, power banks, pen drives, fones
+- "escritório" → canetas, cadernos, organizadores, mouse pads
+- "premium/executivo" → kits, couro, canetas metálicas, agendas premium
+- "eventos" → ecobags, squeezes, bonés, camisetas
 - "fim de ano" → kits natalinos, champanheiras, porta-vinhos
+
+DIRETRIZES DE COMUNICAÇÃO:
+1. Seja proativo — não espere perguntas, ofereça insights
+2. Sempre explique o PORQUÊ de cada recomendação
+3. Use dados concretos (ticket médio, taxa de conversão, histórico)
+4. Seja conciso mas estratégico
+5. Linguagem profissional e acessível (português brasileiro informal)
+6. Se não tiver dados suficientes, seja honesto e sugira como obtê-los
+7. SEMPRE use [[PRODUTO:id:nome]] ao mencionar produtos
+8. Quando gerar propostas, organize em formato de tabela quando possível
 
 ${clientContext}
 ${productsContext}
 
-IMPORTANTE: Você tem acesso em tempo real aos dados do cliente, histórico de compras do Bitrix24, histórico de orçamentos e análise de comportamento para UPSELL inteligente. Use essas informações para fazer recomendações precisas, personalizadas e estratégicas. Lembre-se de usar o formato [[PRODUTO:id:nome]] para tornar os produtos clicáveis.`;
+IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM, orçamentos, pedidos, follow-ups e análise comportamental. Use TODAS essas informações para ser o assistente mais estratégico e útil possível. Seu objetivo é ajudar o vendedor a fechar mais negócios com mais inteligência.`;
 
     const apiMessages: Message[] = [
       { role: "system", content: systemPrompt },
