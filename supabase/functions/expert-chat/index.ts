@@ -618,6 +618,12 @@ ${topProducts.length > 0
       productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
     }
 
+    if (normalizedFilters.colorFilters.length === 1) {
+      productsQuery = productsQuery.contains("colors", [normalizedFilters.colorFilters[0]]);
+    } else if (normalizedFilters.colorFilters.length > 1) {
+      productsQuery = productsQuery.overlaps("colors", normalizedFilters.colorFilters);
+    }
+
     if (normalizedFilters.supplierFilters.length === 1) {
       productsQuery = productsQuery.eq("supplier_name", normalizedFilters.supplierFilters[0]);
     } else if (normalizedFilters.supplierFilters.length > 1) {
