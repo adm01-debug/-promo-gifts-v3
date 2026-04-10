@@ -557,7 +557,49 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden">
+      <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden relative">
+        {/* Flow Filter Panel */}
+        <FlowFilterPanel
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          priceMin={priceMin}
+          priceMax={priceMax}
+          onPriceMinChange={setPriceMin}
+          onPriceMaxChange={setPriceMax}
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          materials={materials}
+          selectedMaterial={selectedMaterial}
+          onMaterialChange={setSelectedMaterial}
+          autoPlayTts={autoPlayTts}
+          onAutoPlayTtsChange={async (next) => {
+            setAutoPlayTts(next);
+            try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: profile } = await supabase
+                  .from("profiles")
+                  .select("preferences")
+                  .eq("user_id", user.id)
+                  .single();
+                const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
+                await supabase
+                  .from("profiles")
+                  .update({ preferences: { ...currentPrefs, flow_autoplay_tts: next } })
+                  .eq("user_id", user.id);
+              }
+            } catch { /* ignore */ }
+          }}
+          activeFiltersCount={activeFiltersCount}
+          onReset={() => {
+            setSelectedCategory(null);
+            setPriceMin("");
+            setPriceMax("");
+            setSelectedMaterial(null);
+          }}
+        />
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
           <div className="flex items-center justify-between">
