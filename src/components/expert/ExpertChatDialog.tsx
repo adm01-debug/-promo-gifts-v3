@@ -514,6 +514,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         await saveMessage(convId, "assistant", assistantMessage);
       }
 
+      // Auto-play TTS when response came from a voice command
+      if (isFromVoice && assistantMessage) {
+        const lastMsg = messages.length; // index will be current length (after user + assistant added)
+        const autoMsgId = `msg-${lastMsg}`;
+        // Small delay to let the UI render the message first
+        setTimeout(() => {
+          handlePlayTts(autoMsgId, assistantMessage);
+        }, 300);
+      }
+
     } catch (error) {
       if ((error as Error).name === 'AbortError') {
         // Already handled above
