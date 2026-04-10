@@ -11,11 +11,11 @@ const MessageSchema = z.object({
 
 const ExpertChatBodySchema = z.object({
   messages: z.array(MessageSchema).min(1).max(50),
-  clientId: z.string().uuid().optional(),
-  categoryFilter: z.string().max(200).optional(),
-  priceMin: z.number().nonnegative().optional(),
-  priceMax: z.number().nonnegative().optional(),
-  materialFilter: z.string().max(200).optional(),
+  clientId: z.string().uuid().optional().nullable(),
+  categoryFilter: z.string().max(200).optional().nullable(),
+  priceMin: z.number().nonnegative().optional().nullable(),
+  priceMax: z.number().nonnegative().optional().nullable(),
+  materialFilter: z.string().max(200).optional().nullable(),
 });
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
