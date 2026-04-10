@@ -15,6 +15,7 @@ import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertCon
 import { formatDistanceToNow, isToday, isThisWeek, isThisMonth, startOfDay, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { invokeExternalDb } from "@/lib/external-db";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import { FlowFilterPanel, FlowFilterState, FlowFilterOptions, defaultFlowFilters, countActiveFilters, getActiveFilterLabels } from "./FlowFilterPanel";
 
@@ -137,34 +138,107 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     fetchProfile();
   }, [isOpen]);
 
-  // Fetch filter options from Promobrind
+  // Fetch filter options from the same sources used by catálogo / Super Filtro
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
 
+    const normalizeList = (value: unknown): string[] => {
+      if (!value) return [];
+      if (Array.isArray(value)) {
+        return value.flatMap((item) => {
+          if (typeof item === "string") return item.trim() ? [item.trim()] : [];
+          if (item && typeof item === "object") {
+            const record = item as Record<string, unknown>;
+            const candidate = typeof record.name === "string"
+              ? record.name
+              : typeof record.label === "string"
+                ? record.label
+                : typeof record.value === "string"
+                  ? record.value
+                  : null;
+            return candidate?.trim() ? [candidate.trim()] : [];
+          }
+          return [];
+        });
+      }
+      if (typeof value === "string") {
+        return value.split(/[,;|]/).map((part) => part.trim()).filter(Boolean);
+      }
+      return [];
+    };
+
+    const getTagValues = (tags: unknown, keys: string[]) => {
+      if (!tags || typeof tags !== "object") return [];
+      const record = tags as Record<string, unknown>;
+      return keys.flatMap((key) => normalizeList(record[key]));
+    };
+
+    const uniq = (values: string[]) =>
+      [...new Set(values.map((value) => value.trim()).filter(Boolean))].sort((a, b) =>
+        a.localeCompare(b, "pt-BR", { sensitivity: "base" })
+      );
+
     const fetchFilters = async () => {
       try {
-        const { fetchPromobrindProducts } = await import('@/lib/external-db');
-        if (cancelled) return;
-        const productsData = await fetchPromobrindProducts({ limit: 500 });
+        const [productsResult, suppliersResult, techniquesResult, tagsResult] = await Promise.all([
+          supabase
+            .from("products")
+            .select("category_name, materials, colors, tags, gender")
+            .eq("is_active", true)
+            .range(0, 1999),
+          invokeExternalDb<{ name: string }>({
+            table: "suppliers",
+            operation: "select",
+            select: "name",
+            orderBy: { column: "name", ascending: true },
+            limit: 200,
+          }),
+          invokeExternalDb<{ name: string }>({
+            table: "personalization_techniques",
+            operation: "select",
+            select: "name",
+            filters: { is_active: true },
+            orderBy: { column: "name", ascending: true },
+            limit: 200,
+          }),
+          invokeExternalDb<{ name: string }>({
+            table: "tags",
+            operation: "select",
+            select: "name",
+            orderBy: { column: "name", ascending: true },
+            limit: 200,
+          }),
+        ]);
+
+        if (productsResult.error) throw productsResult.error;
         if (cancelled) return;
 
-        const extract = (arr: unknown[]) => [...new Set(arr.filter(Boolean))] as string[];
+        const productsData = (productsResult.data ?? []) as Array<{
+          category_name: string | null;
+          materials: unknown;
+          colors: unknown;
+          tags: unknown;
+          gender: string | null;
+        }>;
 
         setFilterOptions({
-          categories: extract(productsData.map(p => p.category_name)).sort(),
-          materials: extract(productsData.flatMap(p => (p as any).materials || [])).sort(),
-          colors: extract(productsData.flatMap(p => ((p as any).variants || []).map((v: any) => v.color_name))).sort(),
-          suppliers: extract(productsData.map(p => p.supplier_name)).sort(),
-          techniques: extract(productsData.flatMap(p => ((p as any).techniques || []).map((t: any) => t.name || t.technique_name))).sort(),
-          publicoAlvo: extract(productsData.flatMap(p => (p as any).tags?.publicoAlvo || (p as any).tags?.publico_alvo || [])).sort(),
-          datasComemorativas: extract(productsData.flatMap(p => (p as any).tags?.datasComemorativas || (p as any).tags?.datas_comemorativas || [])).sort(),
-          endomarketing: extract(productsData.flatMap(p => (p as any).tags?.endomarketing || [])).sort(),
-          nichos: extract(productsData.flatMap(p => (p as any).tags?.nicho || (p as any).tags?.ramo || [])).sort(),
-          tags: extract(productsData.flatMap(p => (p as any).tags?.tags || [])).sort(),
+          categories: uniq(productsData.map((product) => product.category_name ?? "")),
+          materials: uniq(productsData.flatMap((product) => normalizeList(product.materials))),
+          colors: uniq(productsData.flatMap((product) => normalizeList(product.colors))),
+          suppliers: uniq((suppliersResult.records ?? []).map((item) => item.name)),
+          techniques: uniq((techniquesResult.records ?? []).map((item) => item.name)),
+          publicoAlvo: uniq(productsData.flatMap((product) => getTagValues(product.tags, ["publicoAlvo", "publico_alvo"]))),
+          datasComemorativas: uniq(productsData.flatMap((product) => getTagValues(product.tags, ["datasComemorativas", "datas_comemorativas"]))),
+          endomarketing: uniq(productsData.flatMap((product) => getTagValues(product.tags, ["endomarketing"]))),
+          nichos: uniq(productsData.flatMap((product) => [
+            ...getTagValues(product.tags, ["nicho", "segmentosAtividade", "segmentos_atividade"]),
+            ...getTagValues(product.tags, ["ramo", "ramosAtividade", "ramos_atividade"]),
+          ])),
+          tags: uniq((tagsResult.records ?? []).map((item) => item.name)),
         });
       } catch (error) {
-        console.error("Error fetching filters:", error);
+        console.error("Error fetching Flow filters:", error);
       }
     };
 
