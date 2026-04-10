@@ -675,60 +675,41 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
           {/* Active filters badges */}
           {activeFiltersCount > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
-              {hasPriceFilter && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => { setPriceMin(""); setPriceMax(""); }}
-                >
-                  <DollarSign className="h-2.5 w-2.5" />
-                  {priceMin && priceMax ? `R$${priceMin} – R$${priceMax}` : priceMin ? `A partir de R$${priceMin}` : `Até R$${priceMax}`}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {selectedCategory && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  {selectedCategory}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {selectedMaterial && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedMaterial(null)}
-                >
-                  <Layers className="h-2.5 w-2.5" />
-                  {selectedMaterial}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {selectedColor && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedColor(null)}
-                >
-                  <Palette className="h-2.5 w-2.5" />
-                  {selectedColor}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {onlyInStock && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setOnlyInStock(false)}
-                >
-                  Em estoque
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
+            <div className="flex flex-wrap gap-1 mt-2">
+              {(() => {
+                const f = flowFilters;
+                const badgeCls = "text-[9px] rounded-md px-1.5 py-0.5 gap-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors";
+                const clear = (key: keyof FlowFilterState, val: any = null) => setFlowFilters(prev => ({ ...prev, [key]: val }));
+                const entries: { label: string; key: keyof FlowFilterState; resetVal?: any }[] = [
+                  ...(f.priceMin || f.priceMax ? [{ label: f.priceMin && f.priceMax ? `R$${f.priceMin}–${f.priceMax}` : f.priceMin ? `R$${f.priceMin}+` : `Até R$${f.priceMax}`, key: "priceMin" as const }] : []),
+                  ...(f.selectedCategory ? [{ label: f.selectedCategory, key: "selectedCategory" as const }] : []),
+                  ...(f.selectedColor ? [{ label: f.selectedColor, key: "selectedColor" as const }] : []),
+                  ...(f.selectedMaterial ? [{ label: f.selectedMaterial, key: "selectedMaterial" as const }] : []),
+                  ...(f.selectedGender ? [{ label: f.selectedGender, key: "selectedGender" as const }] : []),
+                  ...(f.selectedSupplier ? [{ label: f.selectedSupplier, key: "selectedSupplier" as const }] : []),
+                  ...(f.selectedTechnique ? [{ label: f.selectedTechnique, key: "selectedTechnique" as const }] : []),
+                  ...(f.selectedPublico ? [{ label: f.selectedPublico, key: "selectedPublico" as const }] : []),
+                  ...(f.selectedDataComemorativa ? [{ label: f.selectedDataComemorativa, key: "selectedDataComemorativa" as const }] : []),
+                  ...(f.selectedEndomarketing ? [{ label: f.selectedEndomarketing, key: "selectedEndomarketing" as const }] : []),
+                  ...(f.selectedNicho ? [{ label: f.selectedNicho, key: "selectedNicho" as const }] : []),
+                  ...(f.selectedTag ? [{ label: f.selectedTag, key: "selectedTag" as const }] : []),
+                  ...(f.onlyInStock ? [{ label: "Em estoque", key: "onlyInStock" as const, resetVal: false }] : []),
+                  ...(f.onlyNew ? [{ label: "Novidades", key: "onlyNew" as const, resetVal: false }] : []),
+                  ...(f.onlyKit ? [{ label: "Kits", key: "onlyKit" as const, resetVal: false }] : []),
+                  ...(f.onlyBestseller ? [{ label: "Mais vendidos", key: "onlyBestseller" as const, resetVal: false }] : []),
+                ];
+                return entries.map(({ label, key, resetVal }) => (
+                  <Badge key={key} variant="secondary" className={badgeCls}
+                    onClick={() => {
+                      if (key === "priceMin") clear("priceMin", ""); clear("priceMax" as any, "");
+                      else clear(key, resetVal ?? null);
+                    }}
+                  >
+                    {label}
+                    <X className="h-2 w-2" />
+                  </Badge>
+                ));
+              })()}
             </div>
           )}
 
