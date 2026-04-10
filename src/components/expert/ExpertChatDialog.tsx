@@ -257,7 +257,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setCurrentConversationId(null);
     setShowHistory(false);
     setSelectedCategory(null);
-    setSelectedPriceRange(null);
+    setPriceMin("");
+    setPriceMax("");
     setSelectedMaterial(null);
   }, [clientId]);
 
