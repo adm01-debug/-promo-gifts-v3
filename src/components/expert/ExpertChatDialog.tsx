@@ -180,6 +180,50 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setTimeout(() => setCopiedId(null), 2000);
   }, []);
 
+  // Save proposal as quote draft
+  const handleSaveAsQuote = useCallback(async (msgId: string, proposalContent: string) => {
+    try {
+      setSavingQuoteId(msgId);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error("Faça login para salvar orçamentos");
+        return;
+      }
+
+      // Insert a draft quote with proposal content as notes
+      const { data: quote, error } = await supabase
+        .from("quotes")
+        .insert({
+          seller_id: user.id,
+          status: "draft",
+          client_id: clientId || null,
+          client_name: clientName || null,
+          notes: proposalContent.slice(0, 2000),
+          internal_notes: "Gerado pelo Oráculo - Assistente Pessoal",
+        })
+        .select("id, quote_number")
+        .single();
+
+      if (error) throw error;
+
+      toast.success(`Rascunho ${quote.quote_number} criado!`, {
+        description: "Redirecionando para o editor…",
+        duration: 2000,
+      });
+
+      // Close dialog and navigate to quote editor
+      setTimeout(() => {
+        onClose();
+        navigate(`/orcamentos/novo?edit=${quote.id}`);
+      }, 800);
+    } catch (err) {
+      console.error("Error saving quote draft:", err);
+      toast.error("Erro ao criar rascunho de orçamento");
+    } finally {
+      setSavingQuoteId(null);
+    }
+  }, [clientId, clientName, navigate, onClose]);
+
   useEffect(() => {
     if (isOpen && inputRef.current && !showHistory) {
       setTimeout(() => inputRef.current?.focus(), 100);
