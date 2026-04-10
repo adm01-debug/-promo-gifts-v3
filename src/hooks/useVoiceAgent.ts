@@ -3,6 +3,7 @@ import { useScribe } from "@elevenlabs/react";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "./voice/playTtsAudio";
 import { processVoiceTranscript } from "./voice/processTranscript";
+import { getScribeToken, invalidateScribeTokenCache } from "./voice/scribeTokenCache";
 import { withRetry, friendlyErrorMessage } from "./voice/retry";
 import { logVoiceCommand } from "./voice/logVoiceCommand";
 import {
