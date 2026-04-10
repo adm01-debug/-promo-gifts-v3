@@ -707,7 +707,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               </div>
             </ScrollArea>
 
-            <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
+            <div className="p-4 border-t border-border/30 bg-background/90 backdrop-blur-md">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
@@ -716,7 +716,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   onKeyDown={handleKeyDown}
                   placeholder="Pergunte ao Oráculo…"
                   disabled={isLoading}
-                  className="flex-1 rounded-xl border-border/50 focus-visible:ring-primary/30"
+                  className="flex-1 rounded-2xl border-border/40 bg-muted/30 focus-visible:ring-primary/25 focus-visible:border-primary/30 transition-all duration-200 placeholder:text-muted-foreground/50"
                 />
                 <Button
                   data-oracle-send
@@ -724,7 +724,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   disabled={!input.trim() || isLoading}
                   size="icon"
                   aria-label="Enviar mensagem"
-                  className="rounded-xl shadow-sm shadow-primary/20"
+                  className="rounded-2xl shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
