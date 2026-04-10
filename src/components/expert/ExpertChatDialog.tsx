@@ -61,10 +61,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [isLoading, setIsLoading] = useState(false);
   const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
   const ttsStopRef = useRef<(() => void) | null>(null);
-  const navigate = useNavigate();
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
