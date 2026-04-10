@@ -81,6 +81,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
   const isFromVoiceRef = useRef(false);
+  const [autoPlayTts, setAutoPlayTts] = useState(() => {
+    try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
+  });
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [lastUserInput, setLastUserInput] = useState("");
@@ -518,8 +521,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         await saveMessage(convId, "assistant", assistantMessage);
       }
 
-      // Auto-play TTS when response came from a voice command
-      if (isFromVoiceRef.current && assistantMessage) {
+      // Auto-play TTS when response came from a voice command (if enabled)
+      if (isFromVoiceRef.current && autoPlayTts && assistantMessage) {
         setTimeout(() => {
           handlePlayTts(assistantMsgId, assistantMessage);
         }, 300);
@@ -666,6 +669,27 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       ))}
                     </>
                   )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Áudio</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const next = !autoPlayTts;
+                      setAutoPlayTts(next);
+                      try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
+                    }}
+                    className="text-xs"
+                  >
+                    <Volume2 className="h-3 w-3 mr-1.5 opacity-50" />
+                    Auto-play por voz
+                    <span className={cn(
+                      "ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded",
+                      autoPlayTts ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                    )}>
+                      {autoPlayTts ? "ON" : "OFF"}
+                    </span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
