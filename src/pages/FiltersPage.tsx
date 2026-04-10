@@ -27,6 +27,7 @@ import { SmartSearchInput } from "@/components/search";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
+import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
 import { useFiltersSelectionMode } from "./filters/useFiltersSelectionMode";
