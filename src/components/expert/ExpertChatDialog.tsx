@@ -521,8 +521,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         await saveMessage(convId, "assistant", assistantMessage);
       }
 
-      // Auto-play TTS when response came from a voice command
-      if (isFromVoiceRef.current && assistantMessage) {
+      // Auto-play TTS when response came from a voice command (if enabled)
+      if (isFromVoiceRef.current && autoPlayTts && assistantMessage) {
         setTimeout(() => {
           handlePlayTts(assistantMsgId, assistantMessage);
         }, 300);
