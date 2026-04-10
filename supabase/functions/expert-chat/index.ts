@@ -585,8 +585,8 @@ ${topProducts.length > 0
     } else {
       const extClient = createClient(EXT_URL, EXT_KEY);
 
-      // External DB schema — only use columns that definitely exist
-      const PRODUCT_COLS = "id, name, sku, sale_price, primary_image_url, category_id, supplier_id, description, brand, gender, is_kit, stock_quantity, min_quantity, tags, is_personalizable, best_seller, new_arrival, featured, active";
+      // External DB schema — only columns confirmed to exist (from PRODUCT_SELECT_LIGHTWEIGHT + extras)
+      const PRODUCT_COLS = "id, name, sku, sale_price, primary_image_url, category_id, supplier_id, description, brand, gender, is_kit, stock_quantity, min_quantity, tags, active";
 
       // --- Text search ---
       if (searchTerms.length > 0) {
