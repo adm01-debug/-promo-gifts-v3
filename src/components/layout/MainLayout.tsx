@@ -1,6 +1,7 @@
 import { useState, Suspense, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
+import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
 import { SkipToContent } from "@/components/common/SkipToContent";
 import { BackButton } from "@/components/common/BackButton";
 import { PersistentBreadcrumbs } from "@/components/common/PersistentBreadcrumbs";
@@ -37,6 +38,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMockupGenerator = location.pathname === "/mockup-generator";
   
   useScrollLockFix();
+  useGlobalShortcuts();
 
   // Focus management: move focus to main content on route changes for screen readers
   const mainRef = useRef<HTMLElement>(null);
@@ -110,7 +112,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </div>
             
             <Suspense fallback={<div>{children}</div>}>
-              <PageTransition variant="fade-slide" duration={0.25}>
+              <PageTransition variant="fade-slide" duration={0.2}>
                 {children}
               </PageTransition>
             </Suspense>

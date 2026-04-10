@@ -832,12 +832,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
                       className="relative mb-5"
                     >
-                      <div className="h-16 w-16 rounded-2xl bg-primary/8 flex items-center justify-center border border-primary/10">
-                        <Bot className="h-8 w-8 text-primary/70" />
+                      <div className="h-16 w-16 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center border border-primary/15 shadow-lg shadow-primary/5">
+                        <Bot className="h-8 w-8 text-primary" />
                       </div>
-                      <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-lg bg-background border border-border/50 flex items-center justify-center shadow-sm">
-                        <Sparkles className="h-3 w-3 text-primary/60" />
-                      </div>
+                      <motion.div
+                        className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-lg bg-background border border-border/50 flex items-center justify-center shadow-sm"
+                        animate={{ rotate: [0, 15, -15, 0], scale: [1, 1.1, 1] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+                      >
+                        <Sparkles className="h-3 w-3 text-primary/70" />
+                      </motion.div>
                     </motion.div>
 
                     <motion.h3
