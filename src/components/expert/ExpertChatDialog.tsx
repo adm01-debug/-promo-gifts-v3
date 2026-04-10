@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText, CalendarDays, Palette } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText, CalendarDays } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -16,7 +16,7 @@ import { formatDistanceToNow, isToday, isThisWeek, isThisMonth, startOfDay, star
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
-import { FlowFilterPanel } from "./FlowFilterPanel";
+import { FlowFilterPanel, FlowFilterState, FlowFilterOptions, defaultFlowFilters, countActiveFilters } from "./FlowFilterPanel";
 
 interface Message {
   id?: string;
@@ -73,20 +73,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [flowFilters, setFlowFilters] = useState<FlowFilterState>(defaultFlowFilters);
+  const [filterOptions, setFilterOptions] = useState<FlowFilterOptions>({
+    categories: [], materials: [], colors: [], suppliers: [], techniques: [],
+    publicoAlvo: [], datasComemorativas: [], endomarketing: [], nichos: [], tags: [],
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [historyDateFilter, setHistoryDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [autoPlayTts, setAutoPlayTts] = useState(() => {
     try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
   });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [materials, setMaterials] = useState<string[]>([]);
-  const [colors, setColors] = useState<string[]>([]);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [onlyInStock, setOnlyInStock] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -141,7 +137,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     fetchProfile();
   }, [isOpen]);
 
-  // Fetch categories and materials from Promobrind
+  // Fetch filter options from Promobrind
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -153,20 +149,20 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         const productsData = await fetchPromobrindProducts({ limit: 500 });
         if (cancelled) return;
 
-        const uniqueCategories = [...new Set(
-          productsData.map(p => p.category_name).filter(Boolean)
-        )] as string[];
-        setCategories(uniqueCategories.sort());
+        const extract = (arr: unknown[]) => [...new Set(arr.filter(Boolean))] as string[];
 
-        const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
-        const uniqueMaterials = [...new Set(allMaterials)] as string[];
-        setMaterials(uniqueMaterials.sort());
-
-        const allColors = productsData.flatMap(p =>
-          (p.variants || []).map((v: any) => v.color_name).filter(Boolean)
-        );
-        const uniqueColors = [...new Set(allColors)] as string[];
-        setColors(uniqueColors.sort());
+        setFilterOptions({
+          categories: extract(productsData.map(p => p.category_name)).sort(),
+          materials: extract(productsData.flatMap(p => (p as any).materials || [])).sort(),
+          colors: extract(productsData.flatMap(p => ((p as any).variants || []).map((v: any) => v.color_name))).sort(),
+          suppliers: extract(productsData.map(p => p.supplier_name)).sort(),
+          techniques: extract(productsData.flatMap(p => ((p as any).techniques || []).map((t: any) => t.name || t.technique_name))).sort(),
+          publicoAlvo: extract(productsData.flatMap(p => (p as any).tags?.publicoAlvo || (p as any).tags?.publico_alvo || [])).sort(),
+          datasComemorativas: extract(productsData.flatMap(p => (p as any).tags?.datasComemorativas || (p as any).tags?.datas_comemorativas || [])).sort(),
+          endomarketing: extract(productsData.flatMap(p => (p as any).tags?.endomarketing || [])).sort(),
+          nichos: extract(productsData.flatMap(p => (p as any).tags?.nicho || (p as any).tags?.ramo || [])).sort(),
+          tags: extract(productsData.flatMap(p => (p as any).tags?.tags || [])).sort(),
+        });
       } catch (error) {
         console.error("Error fetching filters:", error);
       }
@@ -266,10 +262,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setMessages([]);
     setCurrentConversationId(null);
     setShowHistory(false);
-    setSelectedCategory(null);
-    setPriceMin("");
-    setPriceMax("");
-    setSelectedMaterial(null);
+    setFlowFilters(defaultFlowFilters);
   }, [clientId]);
 
   // Auto-send initial message from voice bridge
@@ -447,10 +440,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               .map(m => ({ role: m.role, content: m.content }))
               .filter(m => m.content && m.content.length > 0),
             clientId: clientId || undefined,
-            categoryFilter: selectedCategory || undefined,
-            priceMin: priceMin ? Number(priceMin) : undefined,
-            priceMax: priceMax ? Number(priceMax) : undefined,
-            materialFilter: selectedMaterial || undefined,
+            categoryFilter: flowFilters.selectedCategory || undefined,
+            priceMin: flowFilters.priceMin ? Number(flowFilters.priceMin) : undefined,
+            priceMax: flowFilters.priceMax ? Number(flowFilters.priceMax) : undefined,
+            materialFilter: flowFilters.selectedMaterial || undefined,
+            colorFilter: flowFilters.selectedColor || undefined,
+            genderFilter: flowFilters.selectedGender || undefined,
+            supplierFilter: flowFilters.selectedSupplier || undefined,
+            techniqueFilter: flowFilters.selectedTechnique || undefined,
+            publicoFilter: flowFilters.selectedPublico || undefined,
+            dataComemorativaFilter: flowFilters.selectedDataComemorativa || undefined,
+            endomarketingFilter: flowFilters.selectedEndomarketing || undefined,
+            nichoFilter: flowFilters.selectedNicho || undefined,
+            tagFilter: flowFilters.selectedTag || undefined,
+            onlyInStock: flowFilters.onlyInStock || undefined,
+            onlyNew: flowFilters.onlyNew || undefined,
+            onlyKit: flowFilters.onlyKit || undefined,
+            onlyBestseller: flowFilters.onlyBestseller || undefined,
           }),
           signal: abortController.signal,
         }
@@ -558,8 +564,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
   };
 
-  const hasPriceFilter = !!(priceMin || priceMax);
-  const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial, selectedColor, onlyInStock ? true : null].filter(Boolean).length;
+  const activeFiltersCount = countActiveFilters(flowFilters);
 
   const filteredConversations = conversations.filter(c => {
     if (historySearch && !c.title.toLowerCase().includes(historySearch.toLowerCase())) return false;
@@ -579,21 +584,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         <FlowFilterPanel
           isOpen={showFilters}
           onClose={() => setShowFilters(false)}
-          priceMin={priceMin}
-          priceMax={priceMax}
-          onPriceMinChange={setPriceMin}
-          onPriceMaxChange={setPriceMax}
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          materials={materials}
-          selectedMaterial={selectedMaterial}
-          onMaterialChange={setSelectedMaterial}
-          colors={colors}
-          selectedColor={selectedColor}
-          onColorChange={setSelectedColor}
-          onlyInStock={onlyInStock}
-          onOnlyInStockChange={setOnlyInStock}
+          filters={flowFilters}
+          onFiltersChange={setFlowFilters}
+          options={filterOptions}
           autoPlayTts={autoPlayTts}
           onAutoPlayTtsChange={async (next) => {
             setAutoPlayTts(next);
@@ -615,14 +608,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             } catch { /* ignore */ }
           }}
           activeFiltersCount={activeFiltersCount}
-          onReset={() => {
-            setSelectedCategory(null);
-            setPriceMin("");
-            setPriceMax("");
-            setSelectedMaterial(null);
-            setSelectedColor(null);
-            setOnlyInStock(false);
-          }}
+          onReset={() => setFlowFilters(defaultFlowFilters)}
         />
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
@@ -699,60 +685,44 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
           {/* Active filters badges */}
           {activeFiltersCount > 0 && (
-            <div className="flex flex-wrap gap-1.5 mt-2.5">
-              {hasPriceFilter && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => { setPriceMin(""); setPriceMax(""); }}
-                >
-                  <DollarSign className="h-2.5 w-2.5" />
-                  {priceMin && priceMax ? `R$${priceMin} – R$${priceMax}` : priceMin ? `A partir de R$${priceMin}` : `Até R$${priceMax}`}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {selectedCategory && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedCategory(null)}
-                >
-                  {selectedCategory}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {selectedMaterial && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedMaterial(null)}
-                >
-                  <Layers className="h-2.5 w-2.5" />
-                  {selectedMaterial}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {selectedColor && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedColor(null)}
-                >
-                  <Palette className="h-2.5 w-2.5" />
-                  {selectedColor}
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
-              {onlyInStock && (
-                <Badge
-                  variant="secondary"
-                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setOnlyInStock(false)}
-                >
-                  Em estoque
-                  <X className="h-2.5 w-2.5" />
-                </Badge>
-              )}
+            <div className="flex flex-wrap gap-1 mt-2">
+              {(() => {
+                const f = flowFilters;
+                const badgeCls = "text-[9px] rounded-md px-1.5 py-0.5 gap-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors";
+                const clear = (key: keyof FlowFilterState, val: any = null) => setFlowFilters(prev => ({ ...prev, [key]: val }));
+                const entries: { label: string; key: keyof FlowFilterState; resetVal?: any }[] = [
+                  ...(f.priceMin || f.priceMax ? [{ label: f.priceMin && f.priceMax ? `R$${f.priceMin}–${f.priceMax}` : f.priceMin ? `R$${f.priceMin}+` : `Até R$${f.priceMax}`, key: "priceMin" as const }] : []),
+                  ...(f.selectedCategory ? [{ label: f.selectedCategory, key: "selectedCategory" as const }] : []),
+                  ...(f.selectedColor ? [{ label: f.selectedColor, key: "selectedColor" as const }] : []),
+                  ...(f.selectedMaterial ? [{ label: f.selectedMaterial, key: "selectedMaterial" as const }] : []),
+                  ...(f.selectedGender ? [{ label: f.selectedGender, key: "selectedGender" as const }] : []),
+                  ...(f.selectedSupplier ? [{ label: f.selectedSupplier, key: "selectedSupplier" as const }] : []),
+                  ...(f.selectedTechnique ? [{ label: f.selectedTechnique, key: "selectedTechnique" as const }] : []),
+                  ...(f.selectedPublico ? [{ label: f.selectedPublico, key: "selectedPublico" as const }] : []),
+                  ...(f.selectedDataComemorativa ? [{ label: f.selectedDataComemorativa, key: "selectedDataComemorativa" as const }] : []),
+                  ...(f.selectedEndomarketing ? [{ label: f.selectedEndomarketing, key: "selectedEndomarketing" as const }] : []),
+                  ...(f.selectedNicho ? [{ label: f.selectedNicho, key: "selectedNicho" as const }] : []),
+                  ...(f.selectedTag ? [{ label: f.selectedTag, key: "selectedTag" as const }] : []),
+                  ...(f.onlyInStock ? [{ label: "Em estoque", key: "onlyInStock" as const, resetVal: false }] : []),
+                  ...(f.onlyNew ? [{ label: "Novidades", key: "onlyNew" as const, resetVal: false }] : []),
+                  ...(f.onlyKit ? [{ label: "Kits", key: "onlyKit" as const, resetVal: false }] : []),
+                  ...(f.onlyBestseller ? [{ label: "Mais vendidos", key: "onlyBestseller" as const, resetVal: false }] : []),
+                ];
+                return entries.map(({ label, key, resetVal }) => (
+                  <Badge key={key} variant="secondary" className={badgeCls}
+                    onClick={() => {
+                      if (key === "priceMin") {
+                        setFlowFilters(prev => ({ ...prev, priceMin: "", priceMax: "" }));
+                      } else {
+                        setFlowFilters(prev => ({ ...prev, [key]: resetVal ?? null }));
+                      }
+                    }}
+                  >
+                    {label}
+                    <X className="h-2 w-2" />
+                  </Badge>
+                ));
+              })()}
             </div>
           )}
 
