@@ -66,6 +66,17 @@ export function useWorkspaceNotifications() {
           const newNotif = payload.new as WorkspaceNotification;
           setNotifications((prev) => [newNotif, ...prev].slice(0, 50));
           setUnreadCount((prev) => prev + 1);
+
+          // Show push toast for real-time notifications
+          const icon = newNotif.type === "success" ? "✅" : newNotif.type === "warning" ? "⚠️" : "ℹ️";
+          toast(newNotif.title, {
+            description: newNotif.message,
+            icon,
+            action: newNotif.action_url
+              ? { label: "Ver", onClick: () => window.location.assign(newNotif.action_url!) }
+              : undefined,
+            duration: 8000,
+          });
         }
       )
       .subscribe();
