@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText, CalendarDays } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square, FileText, CalendarDays, Palette } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -84,6 +84,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   });
   const [categories, setCategories] = useState<string[]>([]);
   const [materials, setMaterials] = useState<string[]>([]);
+  const [colors, setColors] = useState<string[]>([]);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [onlyInStock, setOnlyInStock] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -158,6 +161,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
         const uniqueMaterials = [...new Set(allMaterials)] as string[];
         setMaterials(uniqueMaterials.sort());
+
+        const allColors = productsData.flatMap(p =>
+          (p.variants || []).map((v: any) => v.color_name).filter(Boolean)
+        );
+        const uniqueColors = [...new Set(allColors)] as string[];
+        setColors(uniqueColors.sort());
       } catch (error) {
         console.error("Error fetching filters:", error);
       }
@@ -550,7 +559,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   };
 
   const hasPriceFilter = !!(priceMin || priceMax);
-  const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial].filter(Boolean).length;
+  const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial, selectedColor, onlyInStock ? true : null].filter(Boolean).length;
 
   const filteredConversations = conversations.filter(c => {
     if (historySearch && !c.title.toLowerCase().includes(historySearch.toLowerCase())) return false;
@@ -580,6 +589,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           materials={materials}
           selectedMaterial={selectedMaterial}
           onMaterialChange={setSelectedMaterial}
+          colors={colors}
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
+          onlyInStock={onlyInStock}
+          onOnlyInStockChange={setOnlyInStock}
           autoPlayTts={autoPlayTts}
           onAutoPlayTtsChange={async (next) => {
             setAutoPlayTts(next);
@@ -606,6 +620,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             setPriceMin("");
             setPriceMax("");
             setSelectedMaterial(null);
+            setSelectedColor(null);
+            setOnlyInStock(false);
           }}
         />
         {/* ─── HEADER ─── */}
@@ -713,6 +729,27 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 >
                   <Layers className="h-2.5 w-2.5" />
                   {selectedMaterial}
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
+              {selectedColor && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setSelectedColor(null)}
+                >
+                  <Palette className="h-2.5 w-2.5" />
+                  {selectedColor}
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
+              {onlyInStock && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setOnlyInStock(false)}
+                >
+                  Em estoque
                   <X className="h-2.5 w-2.5" />
                 </Badge>
               )}
