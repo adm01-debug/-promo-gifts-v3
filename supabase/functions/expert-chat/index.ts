@@ -4,6 +4,10 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 
+// ============================================
+// SCHEMAS
+// ============================================
+
 const MessageSchema = z.object({
   role: z.enum(["user", "assistant", "system"]),
   content: z.string().min(1).max(10000),
@@ -37,8 +41,10 @@ const ExpertChatBodySchema = z.object({
   onlyFeatured: z.boolean().optional().nullable(),
   hasPersonalization: z.boolean().optional().nullable(),
 });
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+
+// ============================================
+// TYPES
+// ============================================
 
 interface Message {
   role: "user" | "assistant" | "system";
@@ -91,13 +97,123 @@ interface FollowUpData {
   is_sent: boolean;
 }
 
-// Extract search terms from the last user message
-function extractSearchTerms(messages: Message[]): string[] {
+interface SemanticExpansion {
+  searchTerms: string[];
+  categories: string[];
+  materials: string[];
+  useCases: string[];
+  synonyms: string[];
+  intent: "product_search" | "client_analysis" | "proposal" | "followup" | "general";
+}
+
+// ============================================
+// SEMANTIC QUERY EXPANSION (AI-POWERED)
+// ============================================
+
+async function expandQuerySemantically(
+  userMessage: string,
+  apiKey: string,
+  conversationContext: string = ""
+): Promise<SemanticExpansion> {
+  const defaultResult: SemanticExpansion = {
+    searchTerms: [],
+    categories: [],
+    materials: [],
+    useCases: [],
+    synonyms: [],
+    intent: "general",
+  };
+
+  try {
+    const expansionPrompt = `Analise a mensagem do vendedor e extraia informações para busca de produtos no catálogo de brindes corporativos/promocionais.
+
+MENSAGEM: "${userMessage}"
+${conversationContext ? `CONTEXTO DA CONVERSA: ${conversationContext}` : ""}
+
+Retorne APENAS um JSON válido (sem markdown, sem \`\`\`) com esta estrutura:
+{
+  "searchTerms": ["termo1", "termo2"],
+  "categories": ["categoria1"],
+  "materials": ["material1"],
+  "useCases": ["caso_de_uso1"],
+  "synonyms": ["sinonimo1", "variacao1"],
+  "intent": "product_search|client_analysis|proposal|followup|general"
+}
+
+REGRAS:
+- searchTerms: palavras-chave DIRETAS para buscar no nome/descrição do produto (ex: "caneta", "squeeze", "mochila")
+- categories: categorias prováveis (ex: "Escritório", "Tecnologia", "Esporte", "Cozinha", "Bolsas e Mochilas")
+- materials: materiais mencionados ou implícitos (ex: "bambu", "metal", "plástico", "algodão", "couro", "silicone")
+- useCases: contextos de uso (ex: "brinde corporativo", "evento", "onboarding", "fim de ano", "dia das mães")
+- synonyms: sinônimos e variações dos termos (ex: "garrafa" para "squeeze", "bolsa" para "sacola", "caderno" para "bloco")
+- intent: classifique a intenção principal
+
+MAPEAMENTO SEMÂNTICO (use para gerar synonyms):
+- "sustentável/ecológico/eco" → bambu, cortiça, papel reciclado, algodão orgânico, madeira, fibra de coco
+- "tecnológico/tech" → carregador, power bank, pen drive, fone, cabo, suporte notebook, mouse pad
+- "escritório/office" → caneta, caderno, bloco, agenda, organizador, porta-canetas, mouse pad
+- "premium/executivo/luxo" → couro, metal, kit, caixa especial, gravação laser
+- "esportivo/fitness" → squeeze, toalha, mochila, pochete, viseira, camiseta dry-fit
+- "cozinha/gastronomia" → caneca, copo, talheres, avental, tábua de corte, kit churrasco
+- "infantil/criança" → brinquedo, jogo, mochila infantil, lápis de cor, estojo
+- "viagem/travel" → mala, necessaire, tag de mala, travesseiro, adaptador
+
+Seja GENEROSO nos sinônimos — quanto mais variações, melhor a busca.`;
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash-lite",
+        messages: [
+          { role: "system", content: "Você é um motor de expansão de queries para busca semântica em catálogo de brindes. Responda APENAS com JSON válido, sem markdown." },
+          { role: "user", content: expansionPrompt },
+        ],
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      console.warn("Query expansion failed:", response.status);
+      return defaultResult;
+    }
+
+    const data = await response.json();
+    const content = data.choices?.[0]?.message?.content?.trim();
+    if (!content) return defaultResult;
+
+    // Clean potential markdown wrapping
+    const cleaned = content.replace(/```json\s*/gi, "").replace(/```\s*/gi, "").trim();
+    const parsed = JSON.parse(cleaned);
+
+    return {
+      searchTerms: Array.isArray(parsed.searchTerms) ? parsed.searchTerms.filter((t: any) => typeof t === "string") : [],
+      categories: Array.isArray(parsed.categories) ? parsed.categories.filter((t: any) => typeof t === "string") : [],
+      materials: Array.isArray(parsed.materials) ? parsed.materials.filter((t: any) => typeof t === "string") : [],
+      useCases: Array.isArray(parsed.useCases) ? parsed.useCases.filter((t: any) => typeof t === "string") : [],
+      synonyms: Array.isArray(parsed.synonyms) ? parsed.synonyms.filter((t: any) => typeof t === "string") : [],
+      intent: ["product_search", "client_analysis", "proposal", "followup", "general"].includes(parsed.intent)
+        ? parsed.intent
+        : "general",
+    };
+  } catch (err) {
+    console.warn("Query expansion parse error:", err);
+    return defaultResult;
+  }
+}
+
+// ============================================
+// LEGACY SEARCH TERM EXTRACTION (FALLBACK)
+// ============================================
+
+function extractSearchTermsFallback(messages: Message[]): string[] {
   const lastUserMessage = [...messages].reverse().find(m => m.role === "user");
   if (!lastUserMessage) return [];
-  
+
   const content = lastUserMessage.content.toLowerCase();
-  
   const stopWords = new Set([
     "o", "a", "os", "as", "um", "uma", "uns", "umas", "de", "da", "do", "das", "dos",
     "em", "na", "no", "nas", "nos", "por", "para", "com", "sem", "que", "qual", "quais",
@@ -113,14 +229,18 @@ function extractSearchTerms(messages: Message[]): string[] {
     "cliente", "produto", "produtos", "brinde", "brindes", "recomenda", "recomende", "sugira", "sugere",
     "melhor", "melhores", "bom", "boa", "bons", "boas", "ótimo", "ótima", "excelente",
   ]);
-  
+
   const words = content
     .replace(/[^\w\sàáâãéêíóôõúç]/g, " ")
     .split(/\s+/)
     .filter(word => word.length > 2 && !stopWords.has(word));
-  
+
   return [...new Set(words)];
 }
+
+// ============================================
+// FILTER HELPERS
+// ============================================
 
 function normalizeFilterValues(value: string | string[] | null | undefined): string[] {
   if (!value) return [];
@@ -195,27 +315,19 @@ function applyProductFilters(products: any[], filters: {
   hasPersonalization: boolean;
 }) {
   return products.filter((product: any) => {
-    // Category filter: skip at this level (category_id needs name lookup, done post-fetch)
-    // Material filter
     if (!matchesListFilter(product.materials, filters.materialFilters)) return false;
-    // Color filter
     if (!matchesListFilter(product.colors, filters.colorFilters)) return false;
-    // Gender filter
     if (!matchesTextFilter(product.gender, filters.genderFilters)) return false;
-    // Supplier filter: skip at this level (supplier_id needs name lookup)
-    // Publico-alvo from tags
     if (!matchesTagFilter(product.tags, ["publicoAlvo", "publico_alvo"], filters.publicoFilters)) return false;
     if (!matchesTagFilter(product.tags, ["datasComemorativas", "datas_comemorativas"], filters.dataComemorativaFilters)) return false;
     if (!matchesTagFilter(product.tags, ["endomarketing"], filters.endomarketingFilters)) return false;
     if (!matchesTagFilter(product.tags, ["nicho", "segmentosAtividade", "segmentos_atividade", "ramo", "ramosAtividade", "ramos_atividade"], filters.nichoFilters)) return false;
-    // Tags: check both top-level tags array and nested tags.tags
     if (filters.tagFilters.length > 0) {
       const topLevelTags = normalizeValueList(product.tags);
       const nestedTags = readTagValues(product.tags, ["tags"]);
       const allTags = [...topLevelTags, ...nestedTags].map(t => t.toLowerCase());
       if (!filters.tagFilters.some(f => allTags.some(t => t === f.toLowerCase() || t.includes(f.toLowerCase())))) return false;
     }
-    // Techniques: check tags.tecnicas or product.techniques
     if (filters.techniqueFilters.length > 0) {
       const techFromTags = readTagValues(product.tags, ["tecnicas", "techniques", "tecnica"]);
       const techDirect = normalizeValueList(product.techniques);
@@ -232,8 +344,172 @@ function applyProductFilters(products: any[], filters: {
   });
 }
 
+// ============================================
+// SEMANTIC RELEVANCE SCORING
+// ============================================
+
+function scoreProductRelevance(product: any, expansion: SemanticExpansion, categoryMap: Record<string, string>): number {
+  let score = 0;
+  const name = (product.name || "").toLowerCase();
+  const description = (product.description || "").toLowerCase();
+  const catName = (categoryMap[product.category_id] || "").toLowerCase();
+  const materials = normalizeValueList(product.materials).map(m => m.toLowerCase()).join(" ");
+  const tagsText = JSON.stringify(product.tags || {}).toLowerCase();
+  const allText = `${name} ${description} ${materials} ${tagsText} ${catName}`;
+
+  // Direct search terms — highest weight
+  for (const term of expansion.searchTerms) {
+    const t = term.toLowerCase();
+    if (name.includes(t)) score += 10;
+    else if (description.includes(t)) score += 5;
+    else if (allText.includes(t)) score += 3;
+  }
+
+  // Synonyms — high weight (semantic match)
+  for (const syn of expansion.synonyms) {
+    const s = syn.toLowerCase();
+    if (name.includes(s)) score += 8;
+    else if (description.includes(s)) score += 4;
+    else if (allText.includes(s)) score += 2;
+  }
+
+  // Category match — medium weight
+  for (const cat of expansion.categories) {
+    if (catName.includes(cat.toLowerCase())) score += 6;
+  }
+
+  // Material match — medium weight
+  for (const mat of expansion.materials) {
+    if (materials.includes(mat.toLowerCase())) score += 5;
+    else if (allText.includes(mat.toLowerCase())) score += 2;
+  }
+
+  // Use case match — lower weight (contextual)
+  for (const uc of expansion.useCases) {
+    if (allText.includes(uc.toLowerCase())) score += 3;
+  }
+
+  return score;
+}
+
+// ============================================
+// MULTI-STRATEGY SEARCH
+// ============================================
+
+async function semanticProductSearch(
+  extClient: any,
+  expansion: SemanticExpansion,
+  fallbackTerms: string[],
+  productCols: string,
+  limit: number = 60
+): Promise<{ products: any[]; searchMethod: string }> {
+  // Combine all search terms: AI-expanded + fallback
+  const allTerms = [
+    ...expansion.searchTerms,
+    ...expansion.synonyms,
+    ...expansion.materials,
+    ...expansion.useCases,
+  ];
+
+  // Deduplicate and limit
+  const uniqueTerms = [...new Set([...allTerms, ...fallbackTerms].map(t => t.toLowerCase()))].slice(0, 15);
+
+  if (uniqueTerms.length === 0) {
+    return { products: [], searchMethod: "none" };
+  }
+
+  console.log("🔍 Semantic search terms:", uniqueTerms);
+
+  // Strategy 1: Exact phrase match on name (highest precision)
+  const exactResults: any[] = [];
+  for (const term of expansion.searchTerms.slice(0, 3)) {
+    if (term.length < 3) continue;
+    const { data } = await extClient
+      .from("products")
+      .select(productCols)
+      .eq("active", true)
+      .ilike("name", `%${term}%`)
+      .limit(15);
+    if (data) exactResults.push(...data);
+  }
+
+  // Strategy 2: Broad OR search across name + description with all expanded terms
+  const orParts: string[] = [];
+  for (const term of uniqueTerms.slice(0, 8)) {
+    if (term.length < 3) continue;
+    orParts.push(`name.ilike.%${term}%`);
+    orParts.push(`description.ilike.%${term}%`);
+  }
+
+  let broadResults: any[] = [];
+  if (orParts.length > 0) {
+    const { data, error } = await extClient
+      .from("products")
+      .select(productCols)
+      .eq("active", true)
+      .or(orParts.join(","))
+      .limit(limit);
+
+    if (error) {
+      console.error("Broad search error:", error);
+    } else {
+      broadResults = data || [];
+    }
+  }
+
+  // Strategy 3: Category-based search (if AI identified categories)
+  let categoryResults: any[] = [];
+  if (expansion.categories.length > 0) {
+    // Fetch category IDs that match
+    const catOrFilter = expansion.categories
+      .map(c => `name.ilike.%${c}%`)
+      .join(",");
+
+    const { data: cats } = await extClient
+      .from("categories")
+      .select("id")
+      .or(catOrFilter)
+      .limit(10);
+
+    if (cats?.length) {
+      const catIds = cats.map((c: any) => c.id);
+      const { data } = await extClient
+        .from("products")
+        .select(productCols)
+        .eq("active", true)
+        .in("category_id", catIds)
+        .limit(30);
+      if (data) categoryResults = data;
+    }
+  }
+
+  // Merge and deduplicate
+  const seen = new Set<string>();
+  const merged: any[] = [];
+
+  // Priority order: exact → broad → category
+  for (const p of [...exactResults, ...broadResults, ...categoryResults]) {
+    if (!p?.id || seen.has(p.id)) continue;
+    seen.add(p.id);
+    merged.push(p);
+  }
+
+  const method = [
+    exactResults.length > 0 ? `exact(${exactResults.length})` : null,
+    broadResults.length > 0 ? `broad(${broadResults.length})` : null,
+    categoryResults.length > 0 ? `category(${categoryResults.length})` : null,
+  ].filter(Boolean).join("+");
+
+  console.log(`🔍 Semantic search results: ${merged.length} unique products via ${method}`);
+
+  return { products: merged, searchMethod: method || "fallback" };
+}
+
+// ============================================
+// MAIN HANDLER
+// ============================================
+
 Deno.serve(async (req) => {
-  // Declare corsHeaders outside try so catch block can always access it
   let corsHeaders: Record<string, string>;
   try {
     corsHeaders = getCorsHeaders(req);
@@ -262,27 +538,11 @@ Deno.serve(async (req) => {
       );
     }
     const {
-      messages,
-      clientId,
-      categoryFilter,
-      priceMin,
-      priceMax,
-      materialFilter,
-      colorFilter,
-      genderFilter,
-      supplierFilter,
-      techniqueFilter,
-      publicoFilter,
-      dataComemorativaFilter,
-      endomarketingFilter,
-      nichoFilter,
-      tagFilter,
-      onlyInStock,
-      onlyNew,
-      onlyKit,
-      onlyBestseller,
-      onlyFeatured,
-      hasPersonalization,
+      messages, clientId,
+      categoryFilter, priceMin, priceMax,
+      materialFilter, colorFilter, genderFilter, supplierFilter, techniqueFilter,
+      publicoFilter, dataComemorativaFilter, endomarketingFilter, nichoFilter, tagFilter,
+      onlyInStock, onlyNew, onlyKit, onlyBestseller, onlyFeatured, hasPersonalization,
     } = parsed.data;
 
     const normalizedFilters = {
@@ -304,16 +564,13 @@ Deno.serve(async (req) => {
       onlyFeatured: Boolean(onlyFeatured),
       hasPersonalization: Boolean(hasPersonalization),
     };
-    
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY não está configurada");
-    }
 
-    // Use service role client from auth (bypasses RLS for cross-table queries)
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY não está configurada");
+
     const supabase = auth.localServiceClient;
 
-    // Fetch seller profile (for personalized greeting)
+    // ── Seller profile ──
     let sellerFirstName = "";
     const { data: sellerProfile } = await supabase
       .from("profiles")
@@ -324,22 +581,30 @@ Deno.serve(async (req) => {
       sellerFirstName = sellerProfile.full_name.split(" ")[0];
     }
 
-    // Fetch client data if clientId is provided
+    // ── AI Query Expansion (runs in parallel with client data fetch) ──
+    const lastUserMsg = [...messages].reverse().find(m => m.role === "user")?.content || "";
+    const conversationSummary = messages
+      .slice(-4)
+      .map(m => `${m.role}: ${m.content.substring(0, 100)}`)
+      .join("\n");
+
+    const expansionPromise = expandQuerySemantically(lastUserMsg, LOVABLE_API_KEY, conversationSummary);
+    const fallbackTerms = extractSearchTermsFallback(messages);
+
+    // ── Client data fetch ──
     let clientContext = "";
     let clientData: ClientData | null = null;
     let customerData: CustomerData | null = null;
 
     if (clientId) {
       console.log("Fetching client data from CRM for:", clientId);
-      
-      // Connect to external CRM database
+
       const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
       const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
-      
+
       if (CRM_URL && CRM_KEY) {
         const crmClient = createClient(CRM_URL, CRM_KEY);
-        
-        // Fetch company data from CRM
+
         const { data: company, error: companyError } = await crmClient
           .from("companies")
           .select("id, razao_social, nome_fantasia, title, ramo_atividade, cnpj, logo_url, cidade, estado, website, instagram, is_customer, is_supplier")
@@ -365,7 +630,6 @@ Deno.serve(async (req) => {
           console.log("CRM company data loaded:", clientData.name);
         }
 
-        // Fetch customer-specific data
         const { data: customer, error: customerError } = await crmClient
           .from("customers")
           .select("cliente_ativado, data_primeira_compra, data_ultima_compra, total_pedidos, valor_total_compras, ticket_medio, poder_compra, perfil_preco, vendedor_nome, sobre, observacoes")
@@ -377,7 +641,6 @@ Deno.serve(async (req) => {
           console.log("CRM customer data loaded, total_pedidos:", customerData?.total_pedidos);
         }
 
-        // Fetch contacts for this company
         const { data: contacts } = await crmClient
           .from("contacts")
           .select("first_name, last_name, cargo, departamento")
@@ -385,34 +648,17 @@ Deno.serve(async (req) => {
           .is("deleted_at", null)
           .limit(5);
 
-        if (contacts?.length) {
-          console.log("CRM contacts loaded:", contacts.length);
-        }
+        if (contacts?.length) console.log("CRM contacts loaded:", contacts.length);
       } else {
         console.warn("CRM env vars not set, skipping CRM data");
       }
 
-      // Fetch client's quote history for product preferences
+      // Quote history
       let quoteProductHistory: any[] = [];
       const { data: clientQuotes, error: quotesError } = await supabase
         .from("quotes")
-        .select(`
-          id,
-          quote_number,
-          status,
-          total,
-          created_at,
-          valid_until,
-          sent_at,
-          client_response,
-          quote_items (
-            product_name,
-            product_sku,
-            quantity,
-            unit_price,
-            subtotal
-          )
-        `)
+        .select(`id, quote_number, status, total, created_at, valid_until, sent_at, client_response,
+          quote_items (product_name, product_sku, quantity, unit_price, subtotal)`)
         .eq("client_id", clientId)
         .order("created_at", { ascending: false })
         .limit(15);
@@ -422,7 +668,6 @@ Deno.serve(async (req) => {
         console.log("Client quote history count:", quoteProductHistory.length);
       }
 
-      // Fetch client's orders
       let clientOrders: OrderData[] = [];
       const { data: orders, error: ordersError } = await supabase
         .from("orders")
@@ -436,7 +681,6 @@ Deno.serve(async (req) => {
         console.log("Client orders count:", clientOrders.length);
       }
 
-      // Fetch pending follow-up reminders for this seller
       let pendingFollowUps: FollowUpData[] = [];
       const { data: followUps, error: followUpsError } = await supabase
         .from("follow_up_reminders")
@@ -451,9 +695,8 @@ Deno.serve(async (req) => {
         console.log("Pending follow-ups:", pendingFollowUps.length);
       }
 
-      // Analyze product preferences from quote history
+      // Build client context
       const productPreferences = new Map<string, { count: number; totalValue: number; lastPurchase: string }>();
-      
       quoteProductHistory.forEach(quote => {
         if (quote.quote_items) {
           quote.quote_items.forEach((item: any) => {
@@ -467,7 +710,6 @@ Deno.serve(async (req) => {
         }
       });
 
-      // Build enhanced client context with full sales intelligence
       const topProducts = Array.from(productPreferences.entries())
         .sort((a, b) => b[1].totalValue - a[1].totalValue)
         .slice(0, 5);
@@ -476,17 +718,13 @@ Deno.serve(async (req) => {
         ? quoteProductHistory.reduce((sum, q) => sum + (q.total || 0), 0) / quoteProductHistory.length
         : 0;
 
-      // Identify quotes needing follow-up (sent but no response, or expiring soon)
-      const pendingQuotes = quoteProductHistory.filter(q => 
-        q.status === 'sent' && !q.client_response
-      );
+      const pendingQuotes = quoteProductHistory.filter(q => q.status === 'sent' && !q.client_response);
       const expiringQuotes = quoteProductHistory.filter(q => {
         if (!q.valid_until) return false;
         const daysUntilExpiry = (new Date(q.valid_until).getTime() - Date.now()) / (1000 * 60 * 60 * 24);
         return daysUntilExpiry > 0 && daysUntilExpiry <= 7 && q.status !== 'approved' && q.status !== 'converted';
       });
 
-      // Calculate recency and engagement metrics
       const daysSinceLastInteraction = quoteProductHistory.length > 0
         ? Math.floor((Date.now() - new Date(quoteProductHistory[0].created_at).getTime()) / (1000 * 60 * 60 * 24))
         : null;
@@ -559,7 +797,7 @@ ${topProducts.length > 0
   : "  Nenhum histórico de produtos"}
 
 INTELIGÊNCIA DE UPSELL:
-${topProducts.length > 0 
+${topProducts.length > 0
   ? `- Preferências: ${topProducts.map(([name]) => name).join(", ")}
 - Sugira versões premium ou complementares dos itens já comprados
 - Ticket médio de R$ ${averageOrderValue.toFixed(2)} para calibrar sugestões
@@ -569,62 +807,44 @@ ${topProducts.length > 0
       }
     }
 
-    // Extract search terms from conversation
-    const searchTerms = extractSearchTerms(messages);
-    console.log("Extracted search terms:", searchTerms);
+    // ── Wait for semantic expansion ──
+    const expansion = await expansionPromise;
+    console.log("🧠 Semantic expansion:", JSON.stringify({
+      intent: expansion.intent,
+      searchTerms: expansion.searchTerms.length,
+      synonyms: expansion.synonyms.length,
+      categories: expansion.categories,
+      materials: expansion.materials,
+    }));
 
+    // ── Product search ──
     let productsContext = "";
     let semanticResults: any[] = [];
 
-    // Connect to external product database
     const EXT_URL = Deno.env.get("EXTERNAL_SUPABASE_URL");
     const EXT_KEY = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
 
     if (!EXT_URL || !EXT_KEY) {
       console.error("External DB env vars not set — cannot fetch products");
-    } else {
+    } else if (expansion.intent === "product_search" || expansion.intent === "proposal" || expansion.searchTerms.length > 0 || fallbackTerms.length > 0) {
       const extClient = createClient(EXT_URL, EXT_KEY);
-
-      // External DB schema — only columns confirmed to exist (from PRODUCT_SELECT_LIGHTWEIGHT + extras)
       const PRODUCT_COLS = "id, name, sku, sale_price, primary_image_url, category_id, supplier_id, description, brand, gender, is_kit, stock_quantity, min_quantity, tags, active";
 
-      // --- Text search ---
-      if (searchTerms.length > 0) {
-        const searchQuery = searchTerms.join(" ");
-        console.log("Performing text search for:", searchQuery);
-        
-        const orFilter = searchTerms
-          .slice(0, 5) // limit to avoid overly complex queries
-          .map(t => `name.ilike.%${t}%,description.ilike.%${t}%`)
-          .join(",");
-        
-        const { data: searchProducts, error: searchError } = await extClient
-          .from("products")
-          .select(PRODUCT_COLS)
-          .eq("active", true)
-          .or(orFilter)
-          .limit(40);
+      // ── Semantic multi-strategy search ──
+      const { products: searchProducts, searchMethod } = await semanticProductSearch(
+        extClient, expansion, fallbackTerms, PRODUCT_COLS, 60
+      );
+      semanticResults = searchProducts;
+      console.log("Semantic search method:", searchMethod);
 
-        if (searchError) {
-          console.error("Text search error:", searchError);
-        } else {
-          semanticResults = (searchProducts || []);
-          console.log("Text search found:", semanticResults.length, "products");
-        }
-      }
-
-      // --- General product query with all filters ---
+      // ── General filtered query ──
       let productsQuery = extClient
         .from("products")
         .select(PRODUCT_COLS)
         .eq("active", true);
 
-      if (priceMin !== null && priceMin !== undefined) {
-        productsQuery = productsQuery.gte("sale_price", priceMin);
-      }
-      if (priceMax !== null && priceMax !== undefined) {
-        productsQuery = productsQuery.lte("sale_price", priceMax);
-      }
+      if (priceMin !== null && priceMin !== undefined) productsQuery = productsQuery.gte("sale_price", priceMin);
+      if (priceMax !== null && priceMax !== undefined) productsQuery = productsQuery.lte("sale_price", priceMax);
 
       if (normalizedFilters.genderFilters.length === 1) {
         productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
@@ -632,22 +852,13 @@ ${topProducts.length > 0
         productsQuery = productsQuery.in("gender", normalizedFilters.genderFilters);
       }
 
-      if (normalizedFilters.onlyInStock) {
-        productsQuery = productsQuery.gt("stock_quantity", 0);
-      }
-      if (normalizedFilters.onlyKit) {
-        productsQuery = productsQuery.eq("is_kit", true);
-      }
-      // Note: new_arrival, featured, best_seller, is_personalizable may not exist as DB columns
-      // They are stored in tags JSON — filtering happens post-fetch in applyProductFilters
+      if (normalizedFilters.onlyInStock) productsQuery = productsQuery.gt("stock_quantity", 0);
+      if (normalizedFilters.onlyKit) productsQuery = productsQuery.eq("is_kit", true);
 
       const { data: products, error: productsError } = await productsQuery.limit(120);
+      if (productsError) console.error("Error fetching products:", productsError);
 
-      if (productsError) {
-        console.error("Error fetching products:", productsError);
-      }
-
-      // Post-fetch filtering for array-based fields (colors, materials, tags, techniques, suppliers, categories)
+      // Merge search + general, deduplicate
       const allRawProducts = [
         ...(semanticResults || []),
         ...(products || []).filter((p: any) => !semanticResults.some((s: any) => s.id === p.id)),
@@ -655,7 +866,7 @@ ${topProducts.length > 0
 
       const filteredProducts = applyProductFilters(allRawProducts, normalizedFilters);
 
-      // Apply price filter on sale_price for text-search results that bypassed DB price filter
+      // Apply price filter on text-search results
       let finalProducts = filteredProducts;
       if (priceMin !== null && priceMin !== undefined) {
         finalProducts = finalProducts.filter((p: any) => (p.sale_price ?? 0) >= priceMin);
@@ -666,7 +877,7 @@ ${topProducts.length > 0
 
       console.log("Total products after all filters:", finalProducts.length);
 
-      // Fetch category and supplier names for context enrichment
+      // ── Enrich with category/supplier names ──
       const categoryIds = [...new Set(finalProducts.map((p: any) => p.category_id).filter(Boolean))];
       const supplierIds = [...new Set(finalProducts.map((p: any) => p.supplier_id).filter(Boolean))];
 
@@ -674,11 +885,10 @@ ${topProducts.length > 0
       let supplierMap: Record<string, string> = {};
 
       const enrichPromises: Promise<void>[] = [];
-
       if (categoryIds.length > 0) {
         enrichPromises.push(
           extClient.from("categories").select("id, name").in("id", categoryIds.slice(0, 50))
-            .then(({ data }) => {
+            .then(({ data }: any) => {
               if (data) categoryMap = Object.fromEntries(data.map((c: any) => [c.id, c.name]));
             })
         );
@@ -686,17 +896,23 @@ ${topProducts.length > 0
       if (supplierIds.length > 0) {
         enrichPromises.push(
           extClient.from("suppliers").select("id, name").in("id", supplierIds.slice(0, 50))
-            .then(({ data }) => {
+            .then(({ data }: any) => {
               if (data) supplierMap = Object.fromEntries(data.map((s: any) => [s.id, s.name]));
             })
         );
       }
-
       await Promise.all(enrichPromises);
 
-      // Build product description helper
+      // ── Relevance scoring and ranking ──
+      const scoredProducts = finalProducts.map((p: any) => ({
+        ...p,
+        _relevanceScore: scoreProductRelevance(p, expansion, categoryMap),
+      }));
+
+      // Sort by relevance score (highest first)
+      scoredProducts.sort((a: any, b: any) => b._relevanceScore - a._relevanceScore);
+
       const buildProductDescription = (p: any): string => {
-        const imageUrl = p.primary_image_url || null;
         const catName = categoryMap[p.category_id] || null;
         const supName = supplierMap[p.supplier_id] || null;
         const price = p.sale_price;
@@ -711,35 +927,57 @@ ${topProducts.length > 0
           p.brand ? `Marca: ${p.brand}` : null,
           supName ? `Fornecedor: ${supName}` : null,
           p.stock_quantity ? `Estoque: ${p.stock_quantity}` : null,
-          imageUrl ? `Imagem: ${imageUrl}` : null,
+          p.primary_image_url ? `Imagem: ${p.primary_image_url}` : null,
+          `Relevância: ${p._relevanceScore}`,
         ].filter(Boolean);
         return parts.join(" | ");
       };
 
-      // Split into search results vs general
-      const searchResultIds = new Set(semanticResults.map((p: any) => p.id));
-      const searchFiltered = finalProducts.filter((p: any) => searchResultIds.has(p.id));
-      const generalFiltered = finalProducts.filter((p: any) => !searchResultIds.has(p.id)).slice(0, 20);
+      // Top semantic results (score > 0)
+      const semanticTop = scoredProducts.filter((p: any) => p._relevanceScore > 0).slice(0, 15);
+      const generalPool = scoredProducts.filter((p: any) => p._relevanceScore === 0).slice(0, 15);
 
-      if (searchFiltered.length > 0) {
+      if (semanticTop.length > 0) {
         productsContext = `
-PRODUTOS ENCONTRADOS POR BUSCA (ordenados por relevância):
-Estes produtos são os mais relevantes para a busca "${searchTerms.join(" ")}":
+PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA (ordenados por relevância — PRIORIZE estes):
+Busca expandida: termos=${expansion.searchTerms.join(", ")} | sinônimos=${expansion.synonyms.join(", ")} | categorias=${expansion.categories.join(", ")} | materiais=${expansion.materials.join(", ")}
 
-${searchFiltered.map(p => buildProductDescription(p)).join("\n\n")}
+${semanticTop.map(p => buildProductDescription(p)).join("\n\n")}
 `;
       }
 
-      if (generalFiltered.length > 0) {
+      if (generalPool.length > 0) {
         productsContext += `
 
 OUTROS PRODUTOS DO CATÁLOGO (para contexto adicional):
-${generalFiltered.map(p => buildProductDescription(p)).join("\n\n")}
+${generalPool.map(p => buildProductDescription(p)).join("\n\n")}
 `;
+      }
+    } else {
+      // Non-product intent — still load some general products
+      const EXT_URL2 = Deno.env.get("EXTERNAL_SUPABASE_URL");
+      const EXT_KEY2 = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
+      if (EXT_URL2 && EXT_KEY2) {
+        const extClient = createClient(EXT_URL2, EXT_KEY2);
+        let q = extClient
+          .from("products")
+          .select("id, name, sku, sale_price, primary_image_url, category_id, description, brand, stock_quantity")
+          .eq("active", true);
+
+        if (priceMin !== null && priceMin !== undefined) q = q.gte("sale_price", priceMin);
+        if (priceMax !== null && priceMax !== undefined) q = q.lte("sale_price", priceMax);
+
+        const { data: bgProducts } = await q.limit(30);
+        if (bgProducts?.length) {
+          productsContext = `
+PRODUTOS DO CATÁLOGO (amostra geral):
+${bgProducts.map((p: any) => `ID: ${p.id} | Nome: ${p.name} | SKU: ${p.sku} | Preço: R$ ${Number(p.sale_price || 0).toFixed(2)} | ${p.primary_image_url ? `Imagem: ${p.primary_image_url}` : ""}`).join("\n")}
+`;
+        }
       }
     }
 
-    // Build filter info for the AI
+    // ── Build filter info for the AI ──
     const filterParts: string[] = [];
     const pushValues = (label: string, values: string[]) => {
       if (values.length > 0) filterParts.push(`${label}: ${values.join(", ")}`);
@@ -773,15 +1011,16 @@ ${generalFiltered.map(p => buildProductDescription(p)).join("\n\n")}
     if (normalizedFilters.hasPersonalization) filterParts.push("Com personalização");
 
     const filterInfo = filterParts.length > 0
-      ? `\nFILTROS ATIVOS: ${filterParts.join(", ")}\nAPENAS mostre produtos que atendam a TODOS os filtros. NÃO sugira produtos fora dos critérios definidos.`
+      ? `\nFILTROS ATIVOS DO VENDEDOR: ${filterParts.join(", ")}\nIMPORTANTE: APENAS mostre produtos que atendam a TODOS os filtros. NÃO sugira produtos fora dos critérios. O vendedor já definiu esses filtros — NÃO pergunte novamente sobre faixa de preço ou critérios que já estão filtrados.`
       : "";
 
     if (productsContext) {
       productsContext = `
-CATÁLOGO DE PRODUTOS (use o formato [[PRODUTO:id:nome]] para criar links clicáveis):${filterInfo}
+CATÁLOGO DE PRODUTOS (use o formato [[PRODUTO:id:nome:imageUrl]] para criar links clicáveis):${filterInfo}
 ${productsContext}`;
     }
 
+    // ── System prompt ──
     const sellerGreeting = sellerFirstName || "parceiro";
 
     const systemPrompt = `Você é o FLOW, assistente pessoal de vendas da Promo Brindes. Você é um parceiro estratégico humano e próximo do vendedor.
@@ -800,84 +1039,65 @@ PERSONALIDADE E TOM:
 
 SEU PAPEL COMPLETO:
 1. **Consultor de Produtos** — Conhece profundamente o catálogo e faz recomendações personalizadas
-2. **Analista de CRM** — Interpreta dados do cliente (ramo, histórico, ticket médio, taxa de conversão) para gerar insights
+2. **Analista de CRM** — Interpreta dados do cliente para gerar insights
 3. **Gerador de Propostas** — Sugere composições de orçamento com produtos, quantidades e argumentos de venda
-4. **Estrategista de Follow-up** — Identifica oportunidades de retomada, orçamentos pendentes, clientes inativos
-5. **Detector de Oportunidades** — Identifica cross-sell, upsell, sazonalidade e tendências de mercado
+4. **Estrategista de Follow-up** — Identifica oportunidades de retomada
+5. **Detector de Oportunidades** — Identifica cross-sell, upsell, sazonalidade
+
+BUSCA SEMÂNTICA INTELIGENTE:
+Os produtos listados abaixo foram encontrados usando busca semântica com expansão de query por IA.
+Os produtos no topo (maior relevância) são os que MELHOR correspondem à intenção do vendedor.
+PRIORIZE FORTEMENTE os produtos com maior score de relevância.
+${expansion.intent !== "general" ? `INTENÇÃO DETECTADA: ${expansion.intent}` : ""}
+${expansion.searchTerms.length > 0 ? `CONCEITOS SEMÂNTICOS IDENTIFICADOS: ${[...expansion.searchTerms, ...expansion.synonyms].join(", ")}` : ""}
 
 CAPACIDADES DE ASSISTENTE PESSOAL DE VENDAS:
 
 📊 CRM E ANÁLISE DE CLIENTE:
-- Quando perguntado sobre um cliente, forneça um resumo executivo (ticket médio, frequência, preferências, status)
+- Quando perguntado sobre um cliente, forneça um resumo executivo
 - Identifique padrões de compra e sazonalidade
-- Compare o comportamento do cliente com benchmarks do segmento
-- Alerte sobre clientes inativos que precisam de atenção
+- Alerte sobre clientes inativos
 
 📝 GERAÇÃO DE PROPOSTAS:
-- Sugira composições de orçamento com produtos específicos, quantidades e justificativas
-- Considere o ticket médio e histórico do cliente para calibrar valores
-- Inclua argumentos de venda para cada produto sugerido
-- Proponha alternativas (econômica, padrão, premium) quando possível
-- Use sempre o formato de link: [[PRODUTO:id:nome]]
+- Sugira composições de orçamento com produtos específicos
+- Considere o ticket médio e histórico do cliente
+- Inclua argumentos de venda para cada produto
+- Use sempre o formato: [[PRODUTO:id:nome:imageUrl]]
 
 📞 FOLLOW-UP INTELIGENTE:
-- Identifique orçamentos enviados sem resposta e sugira abordagens de follow-up
-- Sugira textos prontos para WhatsApp/email baseados no contexto
+- Identifique orçamentos enviados sem resposta
+- Sugira textos prontos para WhatsApp/email
 - Alerte sobre orçamentos prestes a vencer
-- Recomende o melhor momento e canal para retomar contato
-- Se o cliente está inativo, sugira um motivo para recontato (novidade, promoção, data comemorativa)
 
 🎯 ANÁLISE DE OPORTUNIDADES:
-- Identifique oportunidades de cross-sell baseadas no que o cliente já comprou
-- Sugira upgrades para produtos premium quando o ticket médio permitir
-- Detecte oportunidades sazonais (Páscoa, Dia das Mães, Natal, etc.)
-- Proponha kits e combos personalizados baseados nas preferências
-- Analise a taxa de conversão e sugira melhorias na abordagem
+- Cross-sell baseado no histórico
+- Upgrades para produtos premium
+- Oportunidades sazonais
+- Kits e combos personalizados
 
-ESTRATÉGIAS DE UPSELL E CROSS-SELL:
-1. **Upgrade de produto**: Item básico → versão premium
-2. **Produtos complementares**: Caneta + caderno, squeeze + toalha
-3. **Kits e combos**: Agrupe produtos já comprados com desconto
-4. **Maior quantidade**: Melhor custo-benefício em volume
-5. **Personalização adicional**: Gravação, bordado, impressão colorida
-6. **Linha premium**: Baseado no ticket médio
-
-FORMATO DE LINKS DE PRODUTOS (com imagem quando disponível):
+FORMATO DE LINKS DE PRODUTOS:
 [[PRODUTO:id_do_produto:Nome do Produto:url_da_imagem]]
 Se não houver imagem: [[PRODUTO:id_do_produto:Nome do Produto]]
-Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium:https://example.com/img.jpg]]"
-IMPORTANTE: SEMPRE inclua a URL da imagem quando disponível nos dados do produto (campo "Imagem").
-
-BUSCA SEMÂNTICA:
-PRIORIZE produtos de "PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA" nas recomendações.
+IMPORTANTE: SEMPRE inclua a URL da imagem quando disponível (campo "Imagem").
 
 FORMATO DE MENSAGENS DE FOLLOW-UP:
-Quando sugerir mensagens de follow-up, use blocos formatados assim:
 > **WhatsApp/Email sugerido:**
-> Olá [Nome], tudo bem? Vi que enviamos um orçamento para [produtos] no dia [data]. Gostaria de saber se tem alguma dúvida...
+> Olá [Nome], tudo bem? Vi que enviamos um orçamento para [produtos] no dia [data]...
 
-MAPEAMENTO DE CARACTERÍSTICAS:
-- "sustentável/ecológico" → bambu, papel reciclado, algodão orgânico, madeira, cortiça
-- "tecnológico" → carregadores, power banks, pen drives, fones
-- "escritório" → canetas, cadernos, organizadores, mouse pads
-- "premium/executivo" → kits, couro, canetas metálicas, agendas premium
-- "eventos" → ecobags, squeezes, bonés, camisetas
-- "fim de ano" → kits natalinos, champanheiras, porta-vinhos
-
-DIRETRIZES DE COMUNICAÇÃO:
+DIRETRIZES:
 1. Seja proativo — não espere perguntas, ofereça insights
 2. Sempre explique o PORQUÊ de cada recomendação
 3. Use dados concretos (ticket médio, taxa de conversão, histórico)
 4. Seja conciso mas estratégico
 5. Linguagem profissional e acessível (português brasileiro informal)
-6. Se não tiver dados suficientes, seja honesto e sugira como obtê-los
-7. SEMPRE use [[PRODUTO:id:nome]] ao mencionar produtos
-8. Quando gerar propostas, organize em formato de tabela quando possível
+6. SEMPRE use [[PRODUTO:id:nome]] ao mencionar produtos
+7. Quando gerar propostas, organize em formato de tabela quando possível
+8. Se filtros de preço já estão ativos, NÃO pergunte "qual faixa de preço?" — use os filtros já definidos
 
 ${clientContext}
 ${productsContext}
 
-IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM, orçamentos, pedidos, follow-ups e análise comportamental. Use TODAS essas informações para ser o assistente mais estratégico e útil possível. Seu objetivo é ajudar o vendedor ${sellerGreeting} a fechar mais negócios com mais inteligência.`;
+IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM, orçamentos, pedidos, follow-ups e análise comportamental. Use TODAS essas informações para ser o assistente mais estratégico possível. Seu objetivo é ajudar o vendedor ${sellerGreeting} a fechar mais negócios com mais inteligência.`;
 
     const apiMessages: Message[] = [
       { role: "system", content: systemPrompt },
@@ -893,15 +1113,13 @@ IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM
       model: "google/gemini-2.5-flash",
       apiKey: LOVABLE_API_KEY,
       stream: true,
-      requestBody: {
-        messages: apiMessages,
-      },
+      requestBody: { messages: apiMessages },
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error("AI Gateway error:", response.status, errorText);
-      
+
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: "Limite de requisições excedido. Aguarde alguns minutos." }),
@@ -917,7 +1135,6 @@ IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM
       throw new Error(`AI Gateway error: ${response.status}`);
     }
 
-    // Return streaming response
     return new Response(response.body, {
       headers: { ...corsHeaders, "Content-Type": "text/event-stream" },
     });
