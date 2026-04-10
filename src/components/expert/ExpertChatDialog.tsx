@@ -995,15 +995,21 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
             {/* ─── INPUT ─── */}
             <div className="px-4 py-3 border-t border-border/20 flex-shrink-0">
-              <div className="flex gap-2 items-center">
-                <Input
+              <div className="flex gap-2 items-end">
+                <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    // Auto-grow
+                    e.target.style.height = "auto";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
                   onKeyDown={handleKeyDown}
                   placeholder="Pergunte ao Oráculo…"
                   disabled={isLoading}
-                  className="flex-1 h-10 rounded-xl border-border/30 bg-muted/20 text-sm focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40"
+                  rows={1}
+                  className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-border/30 bg-muted/20 text-sm px-3 py-2.5 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40 disabled:opacity-50"
                 />
                 <Button
                   data-oracle-send
