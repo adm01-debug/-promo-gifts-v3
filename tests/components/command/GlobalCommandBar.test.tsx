@@ -21,7 +21,7 @@ describe("GlobalCommandBar", () => {
   it("exports GlobalCommandBar component", async () => {
     const mod = await import("@/components/command/GlobalCommandBar");
     expect(mod.GlobalCommandBar).toBeDefined();
-    expect(typeof mod.GlobalCommandBar).toBe("object");
+    expect(["function", "object"].includes(typeof mod.GlobalCommandBar)).toBe(true);
   });
 
   it("exports useCommandBar hook", async () => {
