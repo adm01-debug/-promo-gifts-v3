@@ -280,22 +280,16 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
           toast.info("Aplique filtros antes de atualizar o preset");
           return;
         }
-        // We need to delete and re-create since updatePreset doesn't support filters update
         setIsSaving(true);
-        const result = await savePreset({
-          name: preset.name,
-          description: preset.description,
+        const result = await updatePreset(preset.id, {
           filters: currentFilters,
-          icon: preset.icon,
-          color: preset.color,
         });
+        setIsSaving(false);
         if (result) {
-          await deletePreset(preset.id);
           toast.success(`Filtros do preset "${preset.name}" atualizados!`);
         }
-        setIsSaving(false);
       },
-      [currentFilters, hasActiveFilters, savePreset, deletePreset]
+      [currentFilters, hasActiveFilters, updatePreset]
     );
 
     const openEditDialog = useCallback((preset: FilterPreset) => {
