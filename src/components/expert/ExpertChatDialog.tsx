@@ -337,7 +337,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
     }
 
-    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: "user", content: userMessage }]);
+    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: "user", content: userMessage, timestamp: Date.now() }]);
     setIsLoading(true);
 
     // Save user message
