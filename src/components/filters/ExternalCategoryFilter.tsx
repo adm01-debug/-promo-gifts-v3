@@ -119,11 +119,18 @@ export function ExternalCategoryFilter({
   };
 
   // Renderizar nó da categoria
+  // Calcular contagem total (própria + descendentes)
+  const getTotalCount = (node: CategoryNode): number => {
+    const own = node.products_count ?? 0;
+    return own + node.children.reduce((sum, child) => sum + getTotalCount(child), 0);
+  };
+
   const renderCategoryNode = (node: CategoryNode, level: number = 0): React.ReactNode => {
     const hasChildren = node.children.length > 0;
     const isExpanded = expandedIds.has(node.id);
     const isSelected = selectedCategories.includes(node.id);
     const icon = getCategoryIcon(node.name, categoryIcons);
+    const totalCount = getTotalCount(node);
 
     return (
       <div key={node.id} className="select-none">
@@ -167,16 +174,26 @@ export function ExternalCategoryFilter({
           {/* Label */}
           <Label
             htmlFor={`ext-cat-${node.id}`}
-            className="flex-1 text-sm cursor-pointer flex items-center gap-1.5 truncate"
+            className="flex-1 text-sm cursor-pointer flex items-center gap-1.5 min-w-0"
           >
             <span className="flex-shrink-0">{icon}</span>
             <span className="truncate">{toTitleCase(node.name)}</span>
-            {hasChildren && (
-              <span className="text-xs text-muted-foreground" title={`${node.children.length} subcategorias`}>
-                ▾{node.children.length}
-              </span>
-            )}
           </Label>
+
+          {/* Badge de contagem */}
+          {totalCount > 0 && (
+            <span
+              className={cn(
+                "flex-shrink-0 text-[10px] font-medium tabular-nums px-1.5 py-0.5 rounded-full",
+                isSelected
+                  ? "bg-orange/20 text-orange"
+                  : "bg-muted text-muted-foreground"
+              )}
+              title={`${totalCount} produtos${hasChildren ? ` (${node.products_count ?? 0} diretos)` : ''}`}
+            >
+              {totalCount >= 1000 ? `${(totalCount / 1000).toFixed(1)}k` : totalCount}
+            </span>
+          )}
         </div>
 
         {/* Filhos */}
