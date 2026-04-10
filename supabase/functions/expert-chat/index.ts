@@ -830,6 +830,78 @@ ${topProducts.length > 0
       const extClient = createClient(EXT_URL, EXT_KEY);
       const PRODUCT_COLS = "id, name, sku, sale_price, primary_image_url, category_id, supplier_id, description, brand, gender, is_kit, stock_quantity, min_quantity, tags, active";
 
+      // ── Resolve category IDs from names (DB-level join) ──
+      let resolvedCategoryIds: string[] = [];
+      if (normalizedFilters.categoryFilters.length > 0) {
+        const catOrFilter = normalizedFilters.categoryFilters
+          .map(c => `name.ilike.%${c}%`)
+          .join(",");
+        const { data: matchedCats } = await extClient
+          .from("categories")
+          .select("id")
+          .or(catOrFilter)
+          .limit(50);
+
+        if (matchedCats?.length) {
+          const parentIds = matchedCats.map((c: any) => c.id);
+          // Also fetch descendant categories for hierarchical filtering
+          const { data: allCats } = await extClient
+            .from("categories")
+            .select("id, parent_id")
+            .limit(1000);
+
+          if (allCats) {
+            // BFS to find all descendants
+            const childMap = new Map<string, string[]>();
+            for (const cat of allCats) {
+              if (cat.parent_id) {
+                const children = childMap.get(cat.parent_id) || [];
+                children.push(cat.id);
+                childMap.set(cat.parent_id, children);
+              }
+            }
+            const queue = [...parentIds];
+            const visited = new Set<string>(parentIds);
+            while (queue.length > 0) {
+              const current = queue.shift()!;
+              const children = childMap.get(current) || [];
+              for (const childId of children) {
+                if (!visited.has(childId)) {
+                  visited.add(childId);
+                  queue.push(childId);
+                }
+              }
+            }
+            resolvedCategoryIds = [...visited];
+          } else {
+            resolvedCategoryIds = parentIds;
+          }
+          console.log(`🏷️ Category filter: ${normalizedFilters.categoryFilters.join(", ")} → ${resolvedCategoryIds.length} category IDs (incl. descendants)`);
+        } else {
+          console.warn("⚠️ No categories matched filter:", normalizedFilters.categoryFilters);
+        }
+      }
+
+      // ── Resolve supplier IDs from names (DB-level join) ──
+      let resolvedSupplierIds: string[] = [];
+      if (normalizedFilters.supplierFilters.length > 0) {
+        const supOrFilter = normalizedFilters.supplierFilters
+          .map(s => `name.ilike.%${s}%`)
+          .join(",");
+        const { data: matchedSups } = await extClient
+          .from("suppliers")
+          .select("id")
+          .or(supOrFilter)
+          .limit(50);
+
+        if (matchedSups?.length) {
+          resolvedSupplierIds = matchedSups.map((s: any) => s.id);
+          console.log(`🏢 Supplier filter: ${normalizedFilters.supplierFilters.join(", ")} → ${resolvedSupplierIds.length} supplier IDs`);
+        } else {
+          console.warn("⚠️ No suppliers matched filter:", normalizedFilters.supplierFilters);
+        }
+      }
+
       // ── Semantic multi-strategy search ──
       const { products: searchProducts, searchMethod } = await semanticProductSearch(
         extClient, expansion, fallbackTerms, PRODUCT_COLS, 60
@@ -846,6 +918,21 @@ ${topProducts.length > 0
       if (priceMin !== null && priceMin !== undefined) productsQuery = productsQuery.gte("sale_price", priceMin);
       if (priceMax !== null && priceMax !== undefined) productsQuery = productsQuery.lte("sale_price", priceMax);
 
+      // Apply resolved category IDs at DB level
+      if (resolvedCategoryIds.length > 0) {
+        productsQuery = productsQuery.in("category_id", resolvedCategoryIds);
+      } else if (normalizedFilters.categoryFilters.length > 0) {
+        // Filter was set but no matches — force empty result
+        productsQuery = productsQuery.eq("category_id", "00000000-0000-0000-0000-000000000000");
+      }
+
+      // Apply resolved supplier IDs at DB level
+      if (resolvedSupplierIds.length > 0) {
+        productsQuery = productsQuery.in("supplier_id", resolvedSupplierIds);
+      } else if (normalizedFilters.supplierFilters.length > 0) {
+        productsQuery = productsQuery.eq("supplier_id", "00000000-0000-0000-0000-000000000000");
+      }
+
       if (normalizedFilters.genderFilters.length === 1) {
         productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
       } else if (normalizedFilters.genderFilters.length > 1) {
@@ -858,13 +945,52 @@ ${topProducts.length > 0
       const { data: products, error: productsError } = await productsQuery.limit(120);
       if (productsError) console.error("Error fetching products:", productsError);
 
-      // Merge search + general, deduplicate
+      // Also fetch products via N:N category assignments if category filter is active
+      let categoryAssignProducts: any[] = [];
+      if (resolvedCategoryIds.length > 0) {
+        const { data: assignments } = await extClient
+          .from("product_category_assignments")
+          .select("product_id")
+          .in("category_id", resolvedCategoryIds.slice(0, 100))
+          .limit(200);
+
+        if (assignments?.length) {
+          const assignedIds = [...new Set(assignments.map((a: any) => a.product_id))];
+          const existingIds = new Set((products || []).map((p: any) => p.id));
+          const missingIds = assignedIds.filter(id => !existingIds.has(id)).slice(0, 50);
+
+          if (missingIds.length > 0) {
+            const { data: extraProducts } = await extClient
+              .from("products")
+              .select(PRODUCT_COLS)
+              .eq("active", true)
+              .in("id", missingIds);
+            if (extraProducts) categoryAssignProducts = extraProducts;
+            console.log(`🏷️ N:N category assignments added ${categoryAssignProducts.length} extra products`);
+          }
+        }
+      }
+
+      // Merge search + general + N:N category, deduplicate
       const allRawProducts = [
         ...(semanticResults || []),
         ...(products || []).filter((p: any) => !semanticResults.some((s: any) => s.id === p.id)),
+        ...categoryAssignProducts.filter((p: any) => !semanticResults.some((s: any) => s.id === p.id) && !(products || []).some((q: any) => q.id === p.id)),
       ];
 
-      const filteredProducts = applyProductFilters(allRawProducts, normalizedFilters);
+      // Also filter semantic results by category/supplier if filters are active
+      let preFiltered = allRawProducts;
+      if (resolvedCategoryIds.length > 0) {
+        const catSet = new Set(resolvedCategoryIds);
+        const assignedProductIds = new Set(categoryAssignProducts.map((p: any) => p.id));
+        preFiltered = preFiltered.filter((p: any) => catSet.has(p.category_id) || assignedProductIds.has(p.id));
+      }
+      if (resolvedSupplierIds.length > 0) {
+        const supSet = new Set(resolvedSupplierIds);
+        preFiltered = preFiltered.filter((p: any) => supSet.has(p.supplier_id));
+      }
+
+      const filteredProducts = applyProductFilters(preFiltered, normalizedFilters);
 
       // Apply price filter on text-search results
       let finalProducts = filteredProducts;
