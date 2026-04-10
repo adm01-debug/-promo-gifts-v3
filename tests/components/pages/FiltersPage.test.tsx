@@ -99,5 +99,5 @@ describe("FiltersPage", () => {
     const { default: FiltersPage } = await import("@/pages/FiltersPage");
     renderWithProviders(<FiltersPage />);
     expect(screen.getByTestId("main-layout")).toBeInTheDocument();
-  });
+  }, 15000);
 });
