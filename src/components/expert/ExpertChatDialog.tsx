@@ -648,20 +648,36 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         <Bot className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}
-                    <div
-                      className={cn(
-                        "rounded-2xl px-4 py-2.5 max-w-[80%] text-sm",
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                    <div className="flex flex-col max-w-[80%]">
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-2.5 text-sm",
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap">
+                          {message.role === "assistant" 
+                            ? renderMessageContent(message.content)
+                            : message.content
+                          }
+                        </p>
+                      </div>
+                      {message.role === "assistant" && message.content && !isLoading && (
+                        <button
+                          onClick={() => handlePlayTts(message.id || `msg-${index}`, message.content)}
+                          className="self-start mt-1 ml-1 p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
+                          aria-label={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
+                        >
+                          {playingTtsId === (message.id || `msg-${index}`) ? (
+                            <VolumeX className="h-3.5 w-3.5" />
+                          ) : (
+                            <Volume2 className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       )}
-                    >
-                      <p className="whitespace-pre-wrap">
-                        {message.role === "assistant" 
-                          ? renderMessageContent(message.content)
-                          : message.content
-                        }
-                      </p>
                     </div>
                     {message.role === "user" && (
                       <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
