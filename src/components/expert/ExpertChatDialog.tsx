@@ -223,16 +223,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
     }
 
-    setPlayingTtsId(messageId);
+    setLoadingTtsId(messageId);
     try {
       const { playTtsAudio } = await import("@/hooks/voice/playTtsAudio");
-      const { promise, stop } = playTtsAudio(text);
+      const { promise, stop } = playTtsAudio(text, {
+        onStart: () => {
+          setLoadingTtsId(null);
+          setPlayingTtsId(messageId);
+        },
+      });
       ttsStopRef.current = stop;
       await promise;
     } catch (err) {
       console.warn("[Oracle TTS] Playback failed:", err);
     } finally {
       setPlayingTtsId(null);
+      setLoadingTtsId(null);
       ttsStopRef.current = null;
     }
   }, [playingTtsId]);
@@ -686,25 +692,35 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           }
                         </p>
                       </div>
-                      {message.role === "assistant" && message.content && !isLoading && (
-                        <button
-                          onClick={() => handlePlayTts(message.id || `msg-${index}`, message.content)}
-                          className={cn(
-                            "self-start mt-1 ml-1 p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
-                            playingTtsId === (message.id || `msg-${index}`)
-                              ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
-                              : "hover:text-primary hover:bg-primary/8"
-                          )}
-                          title={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
-                          aria-label={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
-                        >
-                          {playingTtsId === (message.id || `msg-${index}`) ? (
-                            <VolumeX className="h-3.5 w-3.5" />
-                          ) : (
-                            <Volume2 className="h-3.5 w-3.5" />
-                          )}
-                        </button>
-                      )}
+                      {message.role === "assistant" && message.content && !isLoading && (() => {
+                        const msgId = message.id || `msg-${index}`;
+                        const isPlaying = playingTtsId === msgId;
+                        const isLoadingTts = loadingTtsId === msgId;
+                        return (
+                          <button
+                            onClick={() => handlePlayTts(msgId, message.content)}
+                            disabled={isLoadingTts}
+                            className={cn(
+                              "self-start mt-1 ml-1 p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
+                              isPlaying
+                                ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                                : isLoadingTts
+                                  ? "bg-primary/10 text-primary/60 cursor-wait"
+                                  : "hover:text-primary hover:bg-primary/8"
+                            )}
+                            title={isPlaying ? "Parar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                            aria-label={isPlaying ? "Parar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                          >
+                            {isLoadingTts ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : isPlaying ? (
+                              <VolumeX className="h-3.5 w-3.5" />
+                            ) : (
+                              <Volume2 className="h-3.5 w-3.5" />
+                            )}
+                          </button>
+                        );
+                      })()}
                     </div>
                     {message.role === "user" && (
                       <div className="h-8 w-8 rounded-2xl bg-secondary/80 flex items-center justify-center flex-shrink-0 ring-1 ring-border/30">
