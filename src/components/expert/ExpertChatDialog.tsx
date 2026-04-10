@@ -143,37 +143,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     if (!isOpen) return;
     let cancelled = false;
 
-    const normalizeList = (value: unknown): string[] => {
-      if (!value) return [];
-      if (Array.isArray(value)) {
-        return value.flatMap((item) => {
-          if (typeof item === "string") return item.trim() ? [item.trim()] : [];
-          if (item && typeof item === "object") {
-            const record = item as Record<string, unknown>;
-            const candidate = typeof record.name === "string"
-              ? record.name
-              : typeof record.label === "string"
-                ? record.label
-                : typeof record.value === "string"
-                  ? record.value
-                  : null;
-            return candidate?.trim() ? [candidate.trim()] : [];
-          }
-          return [];
-        });
-      }
-      if (typeof value === "string") {
-        return value.split(/[,;|]/).map((part) => part.trim()).filter(Boolean);
-      }
-      return [];
-    };
-
-    const getTagValues = (tags: unknown, keys: string[]) => {
-      if (!tags || typeof tags !== "object") return [];
-      const record = tags as Record<string, unknown>;
-      return keys.flatMap((key) => normalizeList(record[key]));
-    };
-
     const uniq = (values: string[]) =>
       [...new Set(values.map((value) => value.trim()).filter(Boolean))].sort((a, b) =>
         a.localeCompare(b, "pt-BR", { sensitivity: "base" })
