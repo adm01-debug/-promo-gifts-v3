@@ -143,37 +143,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     if (!isOpen) return;
     let cancelled = false;
 
-    const normalizeList = (value: unknown): string[] => {
-      if (!value) return [];
-      if (Array.isArray(value)) {
-        return value.flatMap((item) => {
-          if (typeof item === "string") return item.trim() ? [item.trim()] : [];
-          if (item && typeof item === "object") {
-            const record = item as Record<string, unknown>;
-            const candidate = typeof record.name === "string"
-              ? record.name
-              : typeof record.label === "string"
-                ? record.label
-                : typeof record.value === "string"
-                  ? record.value
-                  : null;
-            return candidate?.trim() ? [candidate.trim()] : [];
-          }
-          return [];
-        });
-      }
-      if (typeof value === "string") {
-        return value.split(/[,;|]/).map((part) => part.trim()).filter(Boolean);
-      }
-      return [];
-    };
-
-    const getTagValues = (tags: unknown, keys: string[]) => {
-      if (!tags || typeof tags !== "object") return [];
-      const record = tags as Record<string, unknown>;
-      return keys.flatMap((key) => normalizeList(record[key]));
-    };
-
     const uniq = (values: string[]) =>
       [...new Set(values.map((value) => value.trim()).filter(Boolean))].sort((a, b) =>
         a.localeCompare(b, "pt-BR", { sensitivity: "base" })
@@ -181,12 +150,15 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
     const fetchFilters = async () => {
       try {
-        const [productsResult, suppliersResult, techniquesResult, tagsResult] = await Promise.all([
-          supabase
-            .from("products")
-            .select("category_name, materials, colors, tags, gender")
-            .eq("is_active", true)
-            .range(0, 1999),
+        const [categoriesResult, suppliersResult, techniquesResult, tagsResult, colorsResult, materialsResult] = await Promise.all([
+          invokeExternalDb<{ name: string }>({
+            table: "categories",
+            operation: "select",
+            select: "name",
+            filters: { is_active: true },
+            orderBy: { column: "name", ascending: true },
+            limit: 500,
+          }),
           invokeExternalDb<{ name: string }>({
             table: "suppliers",
             operation: "select",
@@ -195,12 +167,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             limit: 200,
           }),
           invokeExternalDb<{ name: string }>({
-            table: "personalization_techniques",
+            table: "tecnicas_gravacao",
             operation: "select",
             select: "name",
             filters: { is_active: true },
             orderBy: { column: "name", ascending: true },
-            limit: 200,
+            limit: 100,
           }),
           invokeExternalDb<{ name: string }>({
             table: "tags",
@@ -209,34 +181,55 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             orderBy: { column: "name", ascending: true },
             limit: 200,
           }),
+          invokeExternalDb<{ name: string }>({
+            table: "color_groups",
+            operation: "select",
+            select: "name",
+            orderBy: { column: "name", ascending: true },
+            limit: 200,
+          }),
+          invokeExternalDb<{ name: string }>({
+            table: "material_groups",
+            operation: "select",
+            select: "name",
+            orderBy: { column: "name", ascending: true },
+            limit: 200,
+          }),
         ]);
 
-        if (productsResult.error) throw productsResult.error;
         if (cancelled) return;
 
-        const productsData = (productsResult.data ?? []) as Array<{
-          category_name: string | null;
-          materials: unknown;
-          colors: unknown;
-          tags: unknown;
-          gender: string | null;
-        }>;
-
         setFilterOptions({
-          categories: uniq(productsData.map((product) => product.category_name ?? "")),
-          materials: uniq(productsData.flatMap((product) => normalizeList(product.materials))),
-          colors: uniq(productsData.flatMap((product) => normalizeList(product.colors))),
+          categories: uniq((categoriesResult.records ?? []).map((item) => item.name)),
+          materials: uniq((materialsResult.records ?? []).map((item) => item.name)),
+          colors: uniq((colorsResult.records ?? []).map((item) => item.name)),
           suppliers: uniq((suppliersResult.records ?? []).map((item) => item.name)),
           techniques: uniq((techniquesResult.records ?? []).map((item) => item.name)),
-          publicoAlvo: uniq(productsData.flatMap((product) => getTagValues(product.tags, ["publicoAlvo", "publico_alvo"]))),
-          datasComemorativas: uniq(productsData.flatMap((product) => getTagValues(product.tags, ["datasComemorativas", "datas_comemorativas"]))),
-          endomarketing: uniq(productsData.flatMap((product) => getTagValues(product.tags, ["endomarketing"]))),
-          nichos: uniq(productsData.flatMap((product) => [
-            ...getTagValues(product.tags, ["nicho", "segmentosAtividade", "segmentos_atividade"]),
-            ...getTagValues(product.tags, ["ramo", "ramosAtividade", "ramos_atividade"]),
-          ])),
+          publicoAlvo: [],
+          datasComemorativas: [],
+          endomarketing: [],
+          nichos: [],
           tags: uniq((tagsResult.records ?? []).map((item) => item.name)),
         });
+
+        // Fetch tag-based options from products (ramo_atividade table)
+        try {
+          const [ramosResult] = await Promise.all([
+            invokeExternalDb<{ nome: string }>({
+              table: "ramo_atividade",
+              operation: "select",
+              select: "nome",
+              orderBy: { column: "nome", ascending: true },
+              limit: 200,
+            }),
+          ]);
+          if (!cancelled && ramosResult.records?.length) {
+            setFilterOptions(prev => ({
+              ...prev,
+              nichos: uniq((ramosResult.records ?? []).map((item) => item.nome)),
+            }));
+          }
+        } catch { /* optional enrichment */ }
       } catch (error) {
         console.error("Error fetching Flow filters:", error);
       }
