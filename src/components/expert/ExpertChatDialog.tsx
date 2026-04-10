@@ -723,30 +723,61 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       {message.role === "assistant" && message.content && !isLoading && (() => {
                         const msgId = message.id || `msg-${index}`;
                         const isPlaying = playingTtsId === msgId;
+                        const isPaused = pausedTtsId === msgId;
                         const isLoadingTts = loadingTtsId === msgId;
+                        const isActive = isPlaying || isPaused;
                         return (
-                          <button
-                            onClick={() => handlePlayTts(msgId, message.content)}
-                            disabled={isLoadingTts}
-                            className={cn(
-                              "self-start mt-1 ml-1 p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
-                              isPlaying
-                                ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
-                                : isLoadingTts
-                                  ? "bg-primary/10 text-primary/60 cursor-wait"
-                                  : "hover:text-primary hover:bg-primary/8"
+                          <div className="flex items-center gap-0.5 self-start mt-1 ml-1">
+                            <button
+                              onClick={() => {
+                                if (isPlaying) {
+                                  handlePauseTts(msgId);
+                                } else {
+                                  handlePlayTts(msgId, message.content);
+                                }
+                              }}
+                              disabled={isLoadingTts}
+                              className={cn(
+                                "p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
+                                isActive
+                                  ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                                  : isLoadingTts
+                                    ? "bg-primary/10 text-primary/60 cursor-wait"
+                                    : "hover:text-primary hover:bg-primary/8"
+                              )}
+                              title={isPlaying ? "Pausar áudio" : isPaused ? "Retomar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                              aria-label={isPlaying ? "Pausar áudio" : isPaused ? "Retomar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                            >
+                              {isLoadingTts ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : isPlaying ? (
+                                <Pause className="h-3.5 w-3.5" />
+                              ) : isPaused ? (
+                                <Play className="h-3.5 w-3.5" />
+                              ) : (
+                                <Volume2 className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                            {isActive && (
+                              <button
+                                onClick={() => {
+                                  if (ttsStopRef.current) {
+                                    ttsStopRef.current();
+                                    ttsStopRef.current = null;
+                                    ttsPauseRef.current = null;
+                                    ttsResumeRef.current = null;
+                                  }
+                                  setPlayingTtsId(null);
+                                  setPausedTtsId(null);
+                                }}
+                                className="p-1.5 rounded-xl text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-105"
+                                title="Parar áudio"
+                                aria-label="Parar áudio"
+                              >
+                                <VolumeX className="h-3.5 w-3.5" />
+                              </button>
                             )}
-                            title={isPlaying ? "Parar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
-                            aria-label={isPlaying ? "Parar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
-                          >
-                            {isLoadingTts ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : isPlaying ? (
-                              <VolumeX className="h-3.5 w-3.5" />
-                            ) : (
-                              <Volume2 className="h-3.5 w-3.5" />
-                            )}
-                          </button>
+                          </div>
                         );
                       })()}
                     </div>
