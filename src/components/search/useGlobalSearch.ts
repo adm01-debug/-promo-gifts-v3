@@ -3,6 +3,7 @@
  * Extracted to reduce the component from 1033 to ~300 lines (UI only).
  */
 import { useEffect, useState, useCallback } from "react";
+import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -125,6 +126,18 @@ export function useGlobalSearch() {
         break;
       case "answer":
         // Just spoke the answer, no navigation needed
+        break;
+      case "open_oracle":
+        setTimeout(() => {
+          setVoiceOverlayOpen(false);
+          useOracleVoiceBridge.getState().openOracle(action.data?.oracleMessage || undefined);
+        }, 500);
+        break;
+      case "open_cart":
+        setTimeout(() => {
+          setVoiceOverlayOpen(false);
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: "o", altKey: true }));
+        }, 500);
         break;
     }
   }, [navigate, addVoiceCommand]);

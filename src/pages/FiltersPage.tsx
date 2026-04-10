@@ -27,6 +27,7 @@ import { SmartSearchInput } from "@/components/search";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
+import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import { toast } from "sonner";
 import { useFiltersPageState } from "./filters/useFiltersPageState";
 import { useFiltersSelectionMode } from "./filters/useFiltersSelectionMode";
@@ -42,6 +43,7 @@ export default function FiltersPage() {
 
   const state = useFiltersPageState();
   const sel = useFiltersSelectionMode({ selectionMode: state.selectionMode, filteredProducts: state.filteredProducts });
+  const openOracle = useOracleVoiceBridge((s) => s.openOracle);
 
   // ========== SHARE STATE ==========
   const [shareProduct, setShareProduct] = useState<Product | null>(null);
@@ -50,6 +52,18 @@ export default function FiltersPage() {
 
   // ========== VOICE ==========
   const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
+    if (action.action === "open_oracle") {
+      openOracle(action.data?.oracleMessage || undefined);
+      toast.success(action.response);
+      return;
+    }
+    if (action.action === "open_cart") {
+      // Trigger cart sidebar via keyboard shortcut event
+      window.dispatchEvent(new KeyboardEvent("keydown", { key: "o", altKey: true }));
+      toast.success(action.response);
+      return;
+    }
+
     if (!action.data) return;
 
     if (action.action === "filter" && action.data.filters) {
@@ -81,7 +95,7 @@ export default function FiltersPage() {
       navigate(action.data.route);
       toast.success(action.response);
     }
-  }, [state, navigate]);
+  }, [state, navigate, openOracle]);
 
   const toggleSelectionMode = useCallback(() => {
     state.setSelectionMode((prev: boolean) => !prev);

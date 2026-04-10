@@ -1,6 +1,7 @@
-import React, { useState, lazy, Suspense } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { Bot } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 
 // Lazy-load the heavy dialog (666 lines + dependencies) — only loads when opened
 const ExpertChatDialog = lazy(() =>
@@ -15,6 +16,21 @@ interface ExpertChatButtonProps {
 export const ExpertChatButton = React.forwardRef<HTMLButtonElement, ExpertChatButtonProps>(
   function ExpertChatButton({ clientId, clientName }, ref) {
     const [isOpen, setIsOpen] = useState(false);
+    const bridgeOpen = useOracleVoiceBridge((s) => s.isOracleOpen);
+    const pendingMessage = useOracleVoiceBridge((s) => s.pendingMessage);
+    const closeOracle = useOracleVoiceBridge((s) => s.closeOracle);
+
+    // Sync bridge state → local state
+    useEffect(() => {
+      if (bridgeOpen && !isOpen) {
+        setIsOpen(true);
+      }
+    }, [bridgeOpen, isOpen]);
+
+    const handleClose = () => {
+      setIsOpen(false);
+      closeOracle();
+    };
 
     return (
       <>
@@ -32,9 +48,10 @@ export const ExpertChatButton = React.forwardRef<HTMLButtonElement, ExpertChatBu
           <Suspense fallback={null}>
             <ExpertChatDialog 
               isOpen={isOpen} 
-              onClose={() => setIsOpen(false)}
+              onClose={handleClose}
               clientId={clientId}
               clientName={clientName}
+              initialMessage={pendingMessage}
             />
           </Suspense>
         )}

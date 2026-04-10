@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,9 +51,16 @@ interface ExpertChatDialogProps {
   onClose: () => void;
   clientId?: string;
   clientName?: string;
+  initialMessage?: string | null;
 }
 
-export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: ExpertChatDialogProps) {
+export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
+  const ttsStopRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -186,6 +193,49 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
     setSelectedPriceRange(null);
     setSelectedMaterial(null);
   }, [clientId]);
+
+  // Auto-send initial message from voice bridge
+  const initialMessageSentRef = useRef(false);
+  useEffect(() => {
+    if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
+      initialMessageSentRef.current = true;
+      setInput(initialMessage);
+      // Trigger send after state update
+      setTimeout(() => {
+        const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
+        sendBtn?.click();
+      }, 200);
+    }
+    if (!isOpen) {
+      initialMessageSentRef.current = false;
+    }
+  }, [isOpen, initialMessage, isLoading]);
+
+  // TTS playback for assistant messages
+  const handlePlayTts = useCallback(async (messageId: string, text: string) => {
+    // Stop current playback if any
+    if (ttsStopRef.current) {
+      ttsStopRef.current();
+      ttsStopRef.current = null;
+      if (playingTtsId === messageId) {
+        setPlayingTtsId(null);
+        return; // Toggle off
+      }
+    }
+
+    setPlayingTtsId(messageId);
+    try {
+      const { playTtsAudio } = await import("@/hooks/voice/playTtsAudio");
+      const { promise, stop } = playTtsAudio(text);
+      ttsStopRef.current = stop;
+      await promise;
+    } catch (err) {
+      console.warn("[Oracle TTS] Playback failed:", err);
+    } finally {
+      setPlayingTtsId(null);
+      ttsStopRef.current = null;
+    }
+  }, [playingTtsId]);
 
   const startNewConversation = () => {
     setMessages([]);
@@ -598,20 +648,36 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                         <Bot className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}
-                    <div
-                      className={cn(
-                        "rounded-2xl px-4 py-2.5 max-w-[80%] text-sm",
-                        message.role === "user"
-                          ? "bg-primary text-primary-foreground"
-                          : "bg-muted"
+                    <div className="flex flex-col max-w-[80%]">
+                      <div
+                        className={cn(
+                          "rounded-2xl px-4 py-2.5 text-sm",
+                          message.role === "user"
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-muted"
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap">
+                          {message.role === "assistant" 
+                            ? renderMessageContent(message.content)
+                            : message.content
+                          }
+                        </p>
+                      </div>
+                      {message.role === "assistant" && message.content && !isLoading && (
+                        <button
+                          onClick={() => handlePlayTts(message.id || `msg-${index}`, message.content)}
+                          className="self-start mt-1 ml-1 p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          title={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
+                          aria-label={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
+                        >
+                          {playingTtsId === (message.id || `msg-${index}`) ? (
+                            <VolumeX className="h-3.5 w-3.5" />
+                          ) : (
+                            <Volume2 className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       )}
-                    >
-                      <p className="whitespace-pre-wrap">
-                        {message.role === "assistant" 
-                          ? renderMessageContent(message.content)
-                          : message.content
-                        }
-                      </p>
                     </div>
                     {message.role === "user" && (
                       <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
@@ -646,9 +712,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: Expe
                   className="flex-1"
                 />
                 <Button
+                  data-oracle-send
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
-                  size="icon" aria-label="Carregando"
+                  size="icon" aria-label="Enviar mensagem"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
