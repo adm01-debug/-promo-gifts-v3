@@ -136,37 +136,69 @@ Deno.serve(async (req) => {
     // Fetch client data if clientId is provided
     let clientContext = "";
     let clientData: ClientData | null = null;
-    let clientDeals: DealData[] = [];
+    let customerData: CustomerData | null = null;
 
     if (clientId) {
-      console.log("Fetching client data for:", clientId);
+      console.log("Fetching client data from CRM for:", clientId);
       
-      const { data: client, error: clientError } = await supabase
-        .from("bitrix_clients")
-        .select("*")
-        .eq("id", clientId)
-        .single();
+      // Connect to external CRM database
+      const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
+      const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
+      
+      if (CRM_URL && CRM_KEY) {
+        const crmClient = createClient(CRM_URL, CRM_KEY);
+        
+        // Fetch company data from CRM
+        const { data: company, error: companyError } = await crmClient
+          .from("companies")
+          .select("id, razao_social, nome_fantasia, title, ramo_atividade, cnpj, logo_url, cidade, estado, website, instagram, is_customer, is_supplier")
+          .eq("id", clientId)
+          .single();
 
-      if (clientError) {
-        console.error("Error fetching client:", clientError);
+        if (companyError) {
+          console.error("Error fetching CRM company:", companyError);
+        } else if (company) {
+          clientData = {
+            id: company.id,
+            name: company.title || company.nome_fantasia || company.razao_social,
+            razao_social: company.razao_social,
+            nome_fantasia: company.nome_fantasia,
+            ramo_atividade: company.ramo_atividade,
+            cnpj: company.cnpj,
+            logo_url: company.logo_url,
+            cidade: company.cidade,
+            estado: company.estado,
+            website: company.website,
+            instagram: company.instagram,
+          };
+          console.log("CRM company data loaded:", clientData.name);
+        }
+
+        // Fetch customer-specific data
+        const { data: customer, error: customerError } = await crmClient
+          .from("customers")
+          .select("cliente_ativado, data_primeira_compra, data_ultima_compra, total_pedidos, valor_total_compras, ticket_medio, poder_compra, perfil_preco, vendedor_nome, sobre, observacoes")
+          .eq("company_id", clientId)
+          .single();
+
+        if (!customerError && customer) {
+          customerData = customer;
+          console.log("CRM customer data loaded, total_pedidos:", customerData?.total_pedidos);
+        }
+
+        // Fetch contacts for this company
+        const { data: contacts } = await crmClient
+          .from("contacts")
+          .select("first_name, last_name, cargo, departamento")
+          .eq("company_id", clientId)
+          .is("deleted_at", null)
+          .limit(5);
+
+        if (contacts?.length) {
+          console.log("CRM contacts loaded:", contacts.length);
+        }
       } else {
-        clientData = client;
-        console.log("Client data:", clientData);
-      }
-
-      // Fetch client deals/purchase history
-      const { data: deals, error: dealsError } = await supabase
-        .from("bitrix_deals")
-        .select("*")
-        .eq("bitrix_client_id", clientId)
-        .order("created_at_bitrix", { ascending: false })
-        .limit(20);
-
-      if (dealsError) {
-        console.error("Error fetching deals:", dealsError);
-      } else {
-        clientDeals = deals || [];
-        console.log("Client deals count:", clientDeals.length);
+        console.warn("CRM env vars not set, skipping CRM data");
       }
 
       // Fetch client's quote history for product preferences
