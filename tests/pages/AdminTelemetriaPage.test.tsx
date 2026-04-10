@@ -156,6 +156,7 @@ let AdminTelemetriaPage: any;
 
 beforeEach(async () => {
   vi.clearAllMocks();
+  _rowCounter = 0;
   // Dynamic import to ensure fresh mocks
   const mod = await import('@/pages/admin/AdminTelemetriaPage');
   AdminTelemetriaPage = mod.default;
