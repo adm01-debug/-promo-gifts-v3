@@ -38,6 +38,7 @@ export function MainLayout({ children }: MainLayoutProps) {
   const isMockupGenerator = location.pathname === "/mockup-generator";
   
   useScrollLockFix();
+  useGlobalShortcuts();
 
   // Focus management: move focus to main content on route changes for screen readers
   const mainRef = useRef<HTMLElement>(null);
