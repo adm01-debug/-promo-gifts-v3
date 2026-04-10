@@ -137,7 +137,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     fetchProfile();
   }, [isOpen]);
 
-  // Fetch categories and materials from Promobrind
+  // Fetch filter options from Promobrind
   useEffect(() => {
     if (!isOpen) return;
     let cancelled = false;
@@ -149,20 +149,20 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         const productsData = await fetchPromobrindProducts({ limit: 500 });
         if (cancelled) return;
 
-        const uniqueCategories = [...new Set(
-          productsData.map(p => p.category_name).filter(Boolean)
-        )] as string[];
-        setCategories(uniqueCategories.sort());
+        const extract = (arr: unknown[]) => [...new Set(arr.filter(Boolean))] as string[];
 
-        const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
-        const uniqueMaterials = [...new Set(allMaterials)] as string[];
-        setMaterials(uniqueMaterials.sort());
-
-        const allColors = productsData.flatMap(p =>
-          (p.variants || []).map((v: any) => v.color_name).filter(Boolean)
-        );
-        const uniqueColors = [...new Set(allColors)] as string[];
-        setColors(uniqueColors.sort());
+        setFilterOptions({
+          categories: extract(productsData.map(p => p.category_name)).sort(),
+          materials: extract(productsData.flatMap(p => (p as any).materials || [])).sort(),
+          colors: extract(productsData.flatMap(p => ((p as any).variants || []).map((v: any) => v.color_name))).sort(),
+          suppliers: extract(productsData.map(p => p.supplier_name)).sort(),
+          techniques: extract(productsData.flatMap(p => ((p as any).techniques || []).map((t: any) => t.name || t.technique_name))).sort(),
+          publicoAlvo: extract(productsData.flatMap(p => (p as any).tags?.publicoAlvo || (p as any).tags?.publico_alvo || [])).sort(),
+          datasComemorativas: extract(productsData.flatMap(p => (p as any).tags?.datasComemorativas || (p as any).tags?.datas_comemorativas || [])).sort(),
+          endomarketing: extract(productsData.flatMap(p => (p as any).tags?.endomarketing || [])).sort(),
+          nichos: extract(productsData.flatMap(p => (p as any).tags?.nicho || (p as any).tags?.ramo || [])).sort(),
+          tags: extract(productsData.flatMap(p => (p as any).tags?.tags || [])).sort(),
+        });
       } catch (error) {
         console.error("Error fetching filters:", error);
       }
