@@ -630,7 +630,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   </p>
                 </motion.div>
               ) : (
-                conversations.map((conv) => (
+                conversations.filter(c => !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())).map((conv) => (
                   <motion.div
                     key={conv.id}
                     variants={{ hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0 } }}
