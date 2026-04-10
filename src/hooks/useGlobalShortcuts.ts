@@ -1,10 +1,13 @@
 /**
  * Global keyboard shortcuts for power users.
- * Ctrl/Cmd + K → Search focus
- * Ctrl/Cmd + B → Open Flow (AI assistant)
- * Ctrl/Cmd + N → New quote
+ * 
+ * Registry (complementa os atalhos Alt+* da sidebar):
+ * Ctrl/Cmd + K → Focus search (busca inteligente)
+ * Ctrl/Cmd + J → Open Flow (assistente IA)
+ * Ctrl/Cmd + Shift + N → New quote
  * Ctrl/Cmd + Shift + C → Open cart
- * Escape → Close overlays
+ * 
+ * Existing Alt shortcuts (sidebar): Alt+O cart, Alt+F favorites, Alt+C compare, Alt+T theme
  */
 import { useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
@@ -30,7 +33,7 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
 
       if (!isMod) return;
 
-      // Ctrl/Cmd + K → Focus search
+      // Ctrl/Cmd + K → Focus search (works even inside inputs)
       if (e.key === "k") {
         e.preventDefault();
         const searchInput = document.querySelector<HTMLInputElement>(
@@ -44,22 +47,22 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         return;
       }
 
-      // Ctrl/Cmd + B → Open Flow
-      if (e.key === "b" && !isInput) {
+      // Ctrl/Cmd + J → Open Flow (no conflict with browser shortcuts)
+      if (e.key === "j" && !isInput) {
         e.preventDefault();
         openOracle();
         return;
       }
 
-      // Ctrl/Cmd + N → New quote (only outside inputs)
-      if (e.key === "n" && !isInput && !e.shiftKey) {
+      // Ctrl/Cmd + Shift + N → New quote (Shift avoids browser new-window)
+      if (e.key === "N" && e.shiftKey && !isInput) {
         e.preventDefault();
         navigate("/orcamentos/novo");
         return;
       }
 
       // Ctrl/Cmd + Shift + C → Open cart
-      if (e.key === "c" && e.shiftKey && !isInput) {
+      if ((e.key === "C" || e.key === "c") && e.shiftKey && !isInput) {
         e.preventDefault();
         handlers?.onToggleCart?.();
         return;
