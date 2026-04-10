@@ -415,6 +415,7 @@ export function FlowFilterPanel({
       case "cores": return options.colors.length;
       case "categorias": return options.categories.length;
       case "materiais": return options.materials.length;
+      case "genero": return GENDER_OPTIONS.length;
       case "fornecedores": return options.suppliers.length;
       case "tecnicas": return options.techniques.length;
       case "publico": return options.publicoAlvo.length;
@@ -422,6 +423,9 @@ export function FlowFilterPanel({
       case "endomarketing": return options.endomarketing.length;
       case "nichos": return options.nichos.length;
       case "tags": return options.tags.length;
+      case "estoque": return 1;
+      case "rapidas": return 5;
+      case "preco": return PRICE_PRESETS.length;
       default: return 0;
     }
   };

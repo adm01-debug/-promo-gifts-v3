@@ -195,11 +195,15 @@ function applyProductFilters(products: any[], filters: {
   hasPersonalization: boolean;
 }) {
   return products.filter((product: any) => {
-    if (!matchesTextFilter(product.category_name, filters.categoryFilters)) return false;
+    // Category filter: skip at this level (category_id needs name lookup, done post-fetch)
+    // Material filter
     if (!matchesListFilter(product.materials, filters.materialFilters)) return false;
+    // Color filter
     if (!matchesListFilter(product.colors, filters.colorFilters)) return false;
+    // Gender filter
     if (!matchesTextFilter(product.gender, filters.genderFilters)) return false;
-    if (!matchesTextFilter(product.supplier_name, filters.supplierFilters)) return false;
+    // Supplier filter: skip at this level (supplier_id needs name lookup)
+    // Publico-alvo from tags
     if (!matchesTagFilter(product.tags, ["publicoAlvo", "publico_alvo"], filters.publicoFilters)) return false;
     if (!matchesTagFilter(product.tags, ["datasComemorativas", "datas_comemorativas"], filters.dataComemorativaFilters)) return false;
     if (!matchesTagFilter(product.tags, ["endomarketing"], filters.endomarketingFilters)) return false;
@@ -218,7 +222,7 @@ function applyProductFilters(products: any[], filters: {
       const allTech = [...techFromTags, ...techDirect].map(t => t.toLowerCase());
       if (!filters.techniqueFilters.some(f => allTech.some(t => t === f.toLowerCase() || t.includes(f.toLowerCase())))) return false;
     }
-    if (filters.onlyInStock && Number(product.stock ?? product.stock_quantity ?? 0) <= 0) return false;
+    if (filters.onlyInStock && Number(product.stock_quantity ?? product.stock ?? 0) <= 0) return false;
     if (filters.onlyNew && !Boolean(product.new_arrival ?? product.is_new)) return false;
     if (filters.onlyKit && !Boolean(product.is_kit)) return false;
     if (filters.onlyFeatured && !Boolean(product.featured ?? product.is_featured)) return false;
@@ -229,7 +233,16 @@ function applyProductFilters(products: any[], filters: {
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
+  // Declare corsHeaders outside try so catch block can always access it
+  let corsHeaders: Record<string, string>;
+  try {
+    corsHeaders = getCorsHeaders(req);
+  } catch {
+    corsHeaders = {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+    };
+  }
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
@@ -563,137 +576,165 @@ ${topProducts.length > 0
     let productsContext = "";
     let semanticResults: any[] = [];
 
-    // If we have search terms, use semantic search
-    if (searchTerms.length > 0) {
-      const searchQuery = searchTerms.join(" ");
-      console.log("Performing semantic search for:", searchQuery);
-      
-      const { data: semanticProducts, error: semanticError } = await supabase
-        .rpc("search_products_semantic", { 
-          search_query: searchQuery,
-          max_results: 30
-        });
+    // Connect to external product database
+    const EXT_URL = Deno.env.get("EXTERNAL_SUPABASE_URL");
+    const EXT_KEY = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
 
-      if (semanticError) {
-        console.error("Semantic search error:", semanticError);
-      } else {
-        let filtered = applyProductFilters(semanticProducts || [], normalizedFilters);
+    if (!EXT_URL || !EXT_KEY) {
+      console.error("External DB env vars not set — cannot fetch products");
+    } else {
+      const extClient = createClient(EXT_URL, EXT_KEY);
 
-        if (priceMin !== null && priceMin !== undefined) {
-          filtered = filtered.filter((p: any) => p.price >= priceMin);
+      // External DB schema — only columns confirmed to exist (from PRODUCT_SELECT_LIGHTWEIGHT + extras)
+      const PRODUCT_COLS = "id, name, sku, sale_price, primary_image_url, category_id, supplier_id, description, brand, gender, is_kit, stock_quantity, min_quantity, tags, active";
+
+      // --- Text search ---
+      if (searchTerms.length > 0) {
+        const searchQuery = searchTerms.join(" ");
+        console.log("Performing text search for:", searchQuery);
+        
+        const orFilter = searchTerms
+          .slice(0, 5) // limit to avoid overly complex queries
+          .map(t => `name.ilike.%${t}%,description.ilike.%${t}%`)
+          .join(",");
+        
+        const { data: searchProducts, error: searchError } = await extClient
+          .from("products")
+          .select(PRODUCT_COLS)
+          .eq("active", true)
+          .or(orFilter)
+          .limit(40);
+
+        if (searchError) {
+          console.error("Text search error:", searchError);
+        } else {
+          semanticResults = (searchProducts || []);
+          console.log("Text search found:", semanticResults.length, "products");
         }
-
-        if (priceMax !== null && priceMax !== undefined) {
-          filtered = filtered.filter((p: any) => p.price <= priceMax);
-        }
-
-        semanticResults = filtered;
-        console.log("Semantic search found:", semanticResults.length, "products (after filters)");
       }
-    }
 
-    // Also fetch general products for broader context
-    let productsQuery = supabase
-      .from("products")
-      .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, colors, materials, tags, og_image_url, images")
-      .eq("is_active", true);
+      // --- General product query with all filters ---
+      let productsQuery = extClient
+        .from("products")
+        .select(PRODUCT_COLS)
+        .eq("active", true);
 
-    if (normalizedFilters.categoryFilters.length === 1) {
-      productsQuery = productsQuery.eq("category_name", normalizedFilters.categoryFilters[0]);
-    } else if (normalizedFilters.categoryFilters.length > 1) {
-      productsQuery = productsQuery.in("category_name", normalizedFilters.categoryFilters);
-    }
+      if (priceMin !== null && priceMin !== undefined) {
+        productsQuery = productsQuery.gte("sale_price", priceMin);
+      }
+      if (priceMax !== null && priceMax !== undefined) {
+        productsQuery = productsQuery.lte("sale_price", priceMax);
+      }
 
-    if (priceMin !== null && priceMin !== undefined) {
-      productsQuery = productsQuery.gte("price", priceMin);
-    }
+      if (normalizedFilters.genderFilters.length === 1) {
+        productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
+      } else if (normalizedFilters.genderFilters.length > 1) {
+        productsQuery = productsQuery.in("gender", normalizedFilters.genderFilters);
+      }
 
-    if (priceMax !== null && priceMax !== undefined) {
-      productsQuery = productsQuery.lte("price", priceMax);
-    }
+      if (normalizedFilters.onlyInStock) {
+        productsQuery = productsQuery.gt("stock_quantity", 0);
+      }
+      if (normalizedFilters.onlyKit) {
+        productsQuery = productsQuery.eq("is_kit", true);
+      }
+      // Note: new_arrival, featured, best_seller, is_personalizable may not exist as DB columns
+      // They are stored in tags JSON — filtering happens post-fetch in applyProductFilters
 
-    if (normalizedFilters.materialFilters.length === 1) {
-      productsQuery = productsQuery.contains("materials", [normalizedFilters.materialFilters[0]]);
-    } else if (normalizedFilters.materialFilters.length > 1) {
-      productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
-    }
+      const { data: products, error: productsError } = await productsQuery.limit(120);
 
-    if (normalizedFilters.colorFilters.length === 1) {
-      productsQuery = productsQuery.contains("colors", [normalizedFilters.colorFilters[0]]);
-    } else if (normalizedFilters.colorFilters.length > 1) {
-      productsQuery = productsQuery.overlaps("colors", normalizedFilters.colorFilters);
-    }
+      if (productsError) {
+        console.error("Error fetching products:", productsError);
+      }
 
-    if (normalizedFilters.supplierFilters.length === 1) {
-      productsQuery = productsQuery.eq("supplier_name", normalizedFilters.supplierFilters[0]);
-    } else if (normalizedFilters.supplierFilters.length > 1) {
-      productsQuery = productsQuery.in("supplier_name", normalizedFilters.supplierFilters);
-    }
+      // Post-fetch filtering for array-based fields (colors, materials, tags, techniques, suppliers, categories)
+      const allRawProducts = [
+        ...(semanticResults || []),
+        ...(products || []).filter((p: any) => !semanticResults.some((s: any) => s.id === p.id)),
+      ];
 
-    if (normalizedFilters.genderFilters.length === 1) {
-      productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
-    } else if (normalizedFilters.genderFilters.length > 1) {
-      productsQuery = productsQuery.in("gender", normalizedFilters.genderFilters);
-    }
+      const filteredProducts = applyProductFilters(allRawProducts, normalizedFilters);
 
-    if (normalizedFilters.onlyInStock) {
-      productsQuery = productsQuery.gt("stock", 0);
-    }
-    if (normalizedFilters.onlyNew) {
-      productsQuery = productsQuery.eq("new_arrival", true);
-    }
-    if (normalizedFilters.onlyKit) {
-      productsQuery = productsQuery.eq("is_kit", true);
-    }
-    if (normalizedFilters.onlyFeatured) {
-      productsQuery = productsQuery.eq("featured", true);
-    }
+      // Apply price filter on sale_price for text-search results that bypassed DB price filter
+      let finalProducts = filteredProducts;
+      if (priceMin !== null && priceMin !== undefined) {
+        finalProducts = finalProducts.filter((p: any) => (p.sale_price ?? 0) >= priceMin);
+      }
+      if (priceMax !== null && priceMax !== undefined) {
+        finalProducts = finalProducts.filter((p: any) => (p.sale_price ?? 0) <= priceMax);
+      }
 
-    const { data: products, error: productsError } = await productsQuery.limit(120);
+      console.log("Total products after all filters:", finalProducts.length);
 
-    if (productsError) {
-      console.error("Error fetching products:", productsError);
-    }
+      // Fetch category and supplier names for context enrichment
+      const categoryIds = [...new Set(finalProducts.map((p: any) => p.category_id).filter(Boolean))];
+      const supplierIds = [...new Set(finalProducts.map((p: any) => p.supplier_id).filter(Boolean))];
 
-    // Build product description helper
-    const buildProductDescription = (p: any, relevance?: number): string => {
-      const imageUrl = p.og_image_url || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null);
-      const parts = [
-        `ID: ${p.id}`,
-        `Nome: ${p.name}`,
-        p.sku ? `SKU: ${p.sku}` : null,
-        p.category_name ? `Categoria: ${p.category_name}` : null,
-        p.subcategory ? `Subcategoria: ${p.subcategory}` : null,
-        `Preço: R$ ${p.price?.toFixed(2) || "N/A"}`,
-        p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
-        p.materials?.length ? `Materiais: ${p.materials.join(", ")}` : null,
-        imageUrl ? `Imagem: ${imageUrl}` : null,
-        relevance !== undefined ? `[Relevância: ${(relevance * 100).toFixed(0)}%]` : null,
-      ].filter(Boolean);
-      return parts.join(" | ");
-    };
+      let categoryMap: Record<string, string> = {};
+      let supplierMap: Record<string, string> = {};
 
-    // Build context with semantic results prioritized
-    if (semanticResults.length > 0) {
-      productsContext = `
-PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA (ordenados por relevância):
+      const enrichPromises: Promise<void>[] = [];
+
+      if (categoryIds.length > 0) {
+        enrichPromises.push(
+          extClient.from("categories").select("id, name").in("id", categoryIds.slice(0, 50))
+            .then(({ data }) => {
+              if (data) categoryMap = Object.fromEntries(data.map((c: any) => [c.id, c.name]));
+            })
+        );
+      }
+      if (supplierIds.length > 0) {
+        enrichPromises.push(
+          extClient.from("suppliers").select("id, name").in("id", supplierIds.slice(0, 50))
+            .then(({ data }) => {
+              if (data) supplierMap = Object.fromEntries(data.map((s: any) => [s.id, s.name]));
+            })
+        );
+      }
+
+      await Promise.all(enrichPromises);
+
+      // Build product description helper
+      const buildProductDescription = (p: any): string => {
+        const imageUrl = p.primary_image_url || null;
+        const catName = categoryMap[p.category_id] || null;
+        const supName = supplierMap[p.supplier_id] || null;
+        const price = p.sale_price;
+        const parts = [
+          `ID: ${p.id}`,
+          `Nome: ${p.name}`,
+          p.sku ? `SKU: ${p.sku}` : null,
+          catName ? `Categoria: ${catName}` : null,
+          price ? `Preço: R$ ${Number(price).toFixed(2)}` : null,
+          p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
+          p.materials?.length ? `Materiais: ${Array.isArray(p.materials) ? p.materials.join(", ") : p.materials}` : null,
+          p.brand ? `Marca: ${p.brand}` : null,
+          supName ? `Fornecedor: ${supName}` : null,
+          p.stock_quantity ? `Estoque: ${p.stock_quantity}` : null,
+          imageUrl ? `Imagem: ${imageUrl}` : null,
+        ].filter(Boolean);
+        return parts.join(" | ");
+      };
+
+      // Split into search results vs general
+      const searchResultIds = new Set(semanticResults.map((p: any) => p.id));
+      const searchFiltered = finalProducts.filter((p: any) => searchResultIds.has(p.id));
+      const generalFiltered = finalProducts.filter((p: any) => !searchResultIds.has(p.id)).slice(0, 20);
+
+      if (searchFiltered.length > 0) {
+        productsContext = `
+PRODUTOS ENCONTRADOS POR BUSCA (ordenados por relevância):
 Estes produtos são os mais relevantes para a busca "${searchTerms.join(" ")}":
 
-${semanticResults.map(p => buildProductDescription(p, p.relevance)).join("\n\n")}
+${searchFiltered.map(p => buildProductDescription(p)).join("\n\n")}
 `;
-    }
+      }
 
-    // Add general catalog context
-    if (products && products.length > 0) {
-      const generalProducts = applyProductFilters(products, normalizedFilters)
-        .filter((product: any) => !semanticResults.some((semantic: any) => semantic.id === product.id))
-        .slice(0, 20);
-
-      if (generalProducts.length > 0) {
+      if (generalFiltered.length > 0) {
         productsContext += `
 
 OUTROS PRODUTOS DO CATÁLOGO (para contexto adicional):
-${generalProducts.map(p => buildProductDescription(p)).join("\n\n")}
+${generalFiltered.map(p => buildProductDescription(p)).join("\n\n")}
 `;
       }
     }
