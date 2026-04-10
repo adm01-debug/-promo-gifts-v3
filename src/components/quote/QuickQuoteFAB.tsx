@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { lazyWithRetry } from "@/lib/lazyWithRetry";
 import { Suspense } from "react";
+import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 
 const ExpertChatDialog = lazyWithRetry(() => import("@/components/expert/ExpertChatDialog").then(m => ({ default: m.ExpertChatDialog })));
 
