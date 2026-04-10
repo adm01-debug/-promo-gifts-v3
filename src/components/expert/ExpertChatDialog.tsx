@@ -599,17 +599,25 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }}
               className="space-y-1.5"
             >
-              <motion.p
+              <motion.div
                 variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-                className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3"
+                className="mb-3"
               >
-                Conversas anteriores
-              </motion.p>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
+                  <input
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                    placeholder="Buscar conversas…"
+                    className="w-full h-8 pl-8 pr-3 rounded-lg border border-border/30 bg-muted/20 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 transition-all placeholder:text-muted-foreground/40"
+                  />
+                </div>
+              </motion.div>
               {isLoadingConversations ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
                 </div>
-              ) : conversations.length === 0 ? (
+              ) : conversations.filter(c => !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())).length === 0 ? (
                 <motion.div
                   variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                   className="text-center py-12"
@@ -617,7 +625,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
                     <MessageSquare className="h-5 w-5 text-muted-foreground/40" />
                   </div>
-                  <p className="text-sm text-muted-foreground/60">Nenhuma conversa ainda</p>
+                  <p className="text-sm text-muted-foreground/60">
+                    {historySearch ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}
+                  </p>
                 </motion.div>
               ) : (
                 conversations.map((conv) => (
