@@ -384,19 +384,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[520px] h-[620px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden border-primary/10">
-        <DialogHeader className="p-4 pb-3 border-b bg-gradient-to-r from-primary/15 via-primary/8 to-transparent">
+        <DialogHeader className="p-4 pb-3 border-b border-border/40 bg-gradient-to-r from-primary/12 via-primary/5 to-transparent backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
-                <Bot className="h-5 w-5 text-primary-foreground" />
-                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
+              <div className="relative group">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center shadow-lg shadow-primary/25 transition-transform duration-200 group-hover:scale-105">
+                  <Bot className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background shadow-sm shadow-emerald-500/30">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
+                </div>
               </div>
               <div>
-                <DialogTitle className="text-lg font-display flex items-center gap-2">
+                <DialogTitle className="text-lg font-display font-semibold flex items-center gap-2 tracking-tight">
                   Oráculo
                   <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
+                <DialogDescription className="text-[11px] text-muted-foreground/80 tracking-wide">
                   Consultor de Produtos IA
                 </DialogDescription>
               </div>
