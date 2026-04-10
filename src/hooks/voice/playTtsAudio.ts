@@ -5,28 +5,98 @@
  */
 import { supabase } from "@/integrations/supabase/client";
 
+function createSilentWavUrl(durationMs = 120) {
+  const sampleRate = 8000;
+  const channelCount = 1;
+  const bitsPerSample = 16;
+  const bytesPerSample = bitsPerSample / 8;
+  const sampleCount = Math.max(1, Math.floor((sampleRate * durationMs) / 1000));
+  const dataSize = sampleCount * channelCount * bytesPerSample;
+  const buffer = new ArrayBuffer(44 + dataSize);
+  const view = new DataView(buffer);
+
+  const writeString = (offset: number, value: string) => {
+    for (let i = 0; i < value.length; i += 1) {
+      view.setUint8(offset + i, value.charCodeAt(i));
+    }
+  };
+
+  writeString(0, "RIFF");
+  view.setUint32(4, 36 + dataSize, true);
+  writeString(8, "WAVE");
+  writeString(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, channelCount, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * channelCount * bytesPerSample, true);
+  view.setUint16(32, channelCount * bytesPerSample, true);
+  view.setUint16(34, bitsPerSample, true);
+  writeString(36, "data");
+  view.setUint32(40, dataSize, true);
+
+  return URL.createObjectURL(new Blob([buffer], { type: "audio/wav" }));
+}
+
 export function playTtsAudio(
   text: string,
   options?: { onStart?: () => void }
 ): { promise: Promise<void>; stop: () => void; pause: () => void; resume: () => void; isPaused: () => boolean } {
-  let audio: HTMLAudioElement | null = null;
+  let audio: HTMLAudioElement | null = new Audio();
   let objectUrl: string | null = null;
+  let primingUrl: string | null = null;
   let paused = false;
+  let stopped = false;
+
+  audio.preload = "auto";
+  audio.setAttribute("playsinline", "true");
+
+  const clearPrimingUrl = () => {
+    if (!primingUrl) return;
+    if (audio && audio.src === primingUrl) {
+      audio.removeAttribute("src");
+      audio.load();
+    }
+    URL.revokeObjectURL(primingUrl);
+    primingUrl = null;
+  };
+
+  const primingPromise = (() => {
+    if (!audio) return Promise.resolve();
+
+    try {
+      primingUrl = createSilentWavUrl();
+      audio.src = primingUrl;
+
+      return Promise.resolve(audio.play())
+        .then(() => {
+          if (!audio) return;
+          audio.pause();
+          audio.currentTime = 0;
+          clearPrimingUrl();
+        })
+        .catch(() => {
+          clearPrimingUrl();
+        });
+    } catch {
+      clearPrimingUrl();
+      return Promise.resolve();
+    }
+  })();
 
   const promise = (async () => {
-    // Get current session token for authenticated requests
     const { data: { session } } = await supabase.auth.getSession();
+    if (stopped) return;
+
     const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-    console.log('[TTS] Starting fetch for text:', text.substring(0, 40));
+    console.log("[TTS] Starting fetch for text:", text.substring(0, 40));
 
-    // Truncate very long texts to avoid TTS timeout (max ~800 chars)
     const maxLen = 800;
     const ttsText = text.length > maxLen
-      ? text.substring(0, maxLen).replace(/\s+\S*$/, '') + '...'
+      ? text.substring(0, maxLen).replace(/\s+\S*$/, "") + "..."
       : text;
 
-    // Timeout after 60s for longer TTS generation
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60000);
 
@@ -49,41 +119,66 @@ export function playTtsAudio(
       clearTimeout(timeout);
     }
 
-    console.log('[TTS] Response status:', ttsResponse.status);
+    console.log("[TTS] Response status:", ttsResponse.status);
 
     if (!ttsResponse.ok) {
-      const errBody = await ttsResponse.text().catch(() => '');
-      console.error('[TTS] Error body:', errBody);
+      const errBody = await ttsResponse.text().catch(() => "");
+      console.error("[TTS] Error body:", errBody);
       throw new Error(`TTS failed: ${ttsResponse.status} - ${errBody}`);
     }
 
     const blob = await ttsResponse.blob();
-    console.log('[TTS] Blob size:', blob.size, 'type:', blob.type);
+    console.log("[TTS] Blob size:", blob.size, "type:", blob.type);
     if (blob.size === 0) {
       throw new Error("Empty audio response");
     }
 
+    await primingPromise;
+    if (stopped) return;
+
     objectUrl = URL.createObjectURL(blob);
-    audio = new Audio(objectUrl);
-    options?.onStart?.();
+
+    if (!audio) {
+      audio = new Audio();
+      audio.preload = "auto";
+      audio.setAttribute("playsinline", "true");
+    }
+
+    audio.src = objectUrl;
+    audio.currentTime = 0;
+    audio.load();
 
     return new Promise<void>((resolve, reject) => {
-      audio!.onended = () => {
+      const activeAudio = audio;
+      if (!activeAudio) {
+        cleanup();
+        resolve();
+        return;
+      }
+
+      activeAudio.onended = () => {
         cleanup();
         resolve();
       };
-      audio!.onerror = () => {
+
+      activeAudio.onerror = () => {
         cleanup();
         reject(new Error("Audio playback error"));
       };
-      audio!.play().catch((err) => {
-        cleanup();
-        reject(err);
-      });
+
+      Promise.resolve(activeAudio.play())
+        .then(() => {
+          options?.onStart?.();
+        })
+        .catch((err) => {
+          cleanup();
+          reject(err);
+        });
     });
   })();
 
   function cleanup() {
+    clearPrimingUrl();
     if (objectUrl) {
       URL.revokeObjectURL(objectUrl);
       objectUrl = null;
@@ -93,12 +188,13 @@ export function playTtsAudio(
   }
 
   function stop() {
+    stopped = true;
     if (audio) {
       audio.pause();
       audio.onended = null;
       audio.onerror = null;
-      cleanup();
     }
+    cleanup();
   }
 
   function pause() {

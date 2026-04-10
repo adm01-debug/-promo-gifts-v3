@@ -15,6 +15,7 @@ import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertCon
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
+import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -319,7 +320,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setPausedTtsId(null);
     setLoadingTtsId(messageId);
     try {
-      const { playTtsAudio } = await import("@/hooks/voice/playTtsAudio");
       const { promise, stop, pause, resume } = playTtsAudio(text, {
         onStart: () => {
           setLoadingTtsId(null);
