@@ -5,7 +5,7 @@
  */
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Package, ExternalLink } from "lucide-react";
+import { Package, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getCdnUrl } from "@/utils/image-utils";
 
