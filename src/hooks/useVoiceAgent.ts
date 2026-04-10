@@ -231,7 +231,8 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
 
   // === Handle Scribe errors — try fallback ===
   const handleScribeError = useCallback((err: unknown) => {
-    const errMsg = err instanceof Error ? err.message : String(err);
+    // Invalidate cached token since connection failed
+    invalidateScribeTokenCache();
     // Only log at debug level — this is expected when ElevenLabs is unavailable
     logger.log("[Voice] Scribe unavailable, switching to browser speech recognition...");
     isStartingRef.current = false;
