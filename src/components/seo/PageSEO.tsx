@@ -52,4 +52,4 @@ export const PageSEO = React.forwardRef<HTMLElement, PageSEOProps>(function Page
       )}
     </Helmet>
   );
-}
+});

@@ -28,7 +28,7 @@ interface RocketData {
   duration: number;
 }
 
-function ContinuousRockets() {
+const ContinuousRockets = React.forwardRef<HTMLDivElement>(function ContinuousRockets(_props, _ref) {
   const [rockets, setRockets] = useState<RocketData[]>([]);
   const nextId = React.useRef(0);
 
