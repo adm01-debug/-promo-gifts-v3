@@ -53,7 +53,7 @@ function renderWithProviders(ui: React.ReactElement) {
   return render(
     <HelmetProvider>
       <QueryClientProvider client={qc}>
-        <BrowserRouter>{ui}</BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>{ui}</BrowserRouter>
       </QueryClientProvider>
     </HelmetProvider>
   );

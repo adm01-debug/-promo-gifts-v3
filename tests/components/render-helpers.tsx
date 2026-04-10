@@ -104,7 +104,7 @@ export function renderWithProviders(
     return (
       <HelmetProvider>
         <QueryClientProvider client={queryClient}>
-          <MemoryRouter initialEntries={[route]}>
+          <MemoryRouter initialEntries={[route]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
             <TooltipProvider>
               {children}
             </TooltipProvider>
