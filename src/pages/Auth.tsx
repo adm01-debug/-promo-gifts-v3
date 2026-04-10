@@ -91,7 +91,7 @@ const ContinuousRockets = React.forwardRef<HTMLDivElement>(function ContinuousRo
       ))}
     </>
   );
-}
+});
 
 export default function Auth() {
   const navigate = useNavigate();
