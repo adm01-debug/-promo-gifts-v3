@@ -94,24 +94,12 @@ function createManyRows(count: number, template: Partial<any> = {}): any[] {
 }
 
 function createMixedRows(): any[] {
-  let offset = 0;
-  const group = (count: number, template: Partial<any> = {}) => {
-    const rows = Array.from({ length: count }, (_, i) =>
-      createTelemetryRow({
-        id: `row-${offset + i}`,
-        created_at: new Date(Date.now() - (offset + i) * 60000).toISOString(),
-        ...template,
-      })
-    );
-    offset += count;
-    return rows;
-  };
   return [
-    ...group(50, { severity: 'slow', duration_ms: 4000, table_name: 'products' }),
-    ...group(20, { severity: 'very_slow', duration_ms: 10000, table_name: 'product_images' }),
-    ...group(10, { severity: 'error', duration_ms: 15000, table_name: 'categories', error_message: 'statement timeout' }),
-    ...group(5, { severity: 'slow', duration_ms: 3500, rpc_name: 'get_price', table_name: null }),
-    ...group(15, { severity: 'very_slow', duration_ms: 9000, table_name: 'product_variants' }),
+    ...createManyRows(50, { severity: 'slow', duration_ms: 4000, table_name: 'products' }),
+    ...createManyRows(20, { severity: 'very_slow', duration_ms: 10000, table_name: 'product_images' }),
+    ...createManyRows(10, { severity: 'error', duration_ms: 15000, table_name: 'categories', error_message: 'statement timeout' }),
+    ...createManyRows(5, { severity: 'slow', duration_ms: 3500, rpc_name: 'get_price', table_name: null }),
+    ...createManyRows(15, { severity: 'very_slow', duration_ms: 9000, table_name: 'product_variants' }),
   ];
 }
 
