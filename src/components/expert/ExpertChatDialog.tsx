@@ -798,7 +798,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         <User className="h-4 w-4 text-secondary-foreground/70" />
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
 
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
