@@ -692,7 +692,7 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
     }
 
     // On statement timeout for products, retry with even smaller limit and no count
-    if (selectError.message?.includes('statement timeout') && isVeryHeavy && safeLimit > 50) {
+    if (selectError.message?.includes('statement timeout') && safeLimit > 50) {
       console.warn(`[retry] ${table} timed out with limit=${safeLimit}, retrying with limit=50 and no count`);
       const retryStart = performance.now();
       let retryQuery = externalSupabase.from(table).select(effectiveSelect);
