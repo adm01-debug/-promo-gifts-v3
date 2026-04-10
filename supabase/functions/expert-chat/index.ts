@@ -635,21 +635,11 @@ ${topProducts.length > 0
       if (normalizedFilters.onlyInStock) {
         productsQuery = productsQuery.gt("stock_quantity", 0);
       }
-      if (normalizedFilters.onlyNew) {
-        productsQuery = productsQuery.eq("new_arrival", true);
-      }
       if (normalizedFilters.onlyKit) {
         productsQuery = productsQuery.eq("is_kit", true);
       }
-      if (normalizedFilters.onlyFeatured) {
-        productsQuery = productsQuery.eq("featured", true);
-      }
-      if (normalizedFilters.onlyBestseller) {
-        productsQuery = productsQuery.eq("best_seller", true);
-      }
-      if (normalizedFilters.hasPersonalization) {
-        productsQuery = productsQuery.eq("is_personalizable", true);
-      }
+      // Note: new_arrival, featured, best_seller, is_personalizable may not exist as DB columns
+      // They are stored in tags JSON — filtering happens post-fetch in applyProductFilters
 
       const { data: products, error: productsError } = await productsQuery.limit(120);
 
