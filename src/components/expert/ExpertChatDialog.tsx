@@ -992,6 +992,25 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                               >
                                 {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
                               </button>
+                              {/* Save as quote draft */}
+                              <button
+                                onClick={() => handleSaveAsQuote(msgId, message.content)}
+                                disabled={savingQuoteId === msgId}
+                                className={cn(
+                                  "p-1 rounded-lg transition-all duration-150",
+                                  savingQuoteId === msgId
+                                    ? "text-primary/50 cursor-wait"
+                                    : "text-muted-foreground/40 hover:text-primary hover:bg-primary/5"
+                                )}
+                                title="Salvar como rascunho de orçamento"
+                                aria-label="Salvar como rascunho de orçamento"
+                              >
+                                {savingQuoteId === msgId ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : (
+                                  <FileText className="h-3 w-3" />
+                                )}
+                              </button>
                               <button
                                 onClick={() => {
                                   if (isPlaying) {
