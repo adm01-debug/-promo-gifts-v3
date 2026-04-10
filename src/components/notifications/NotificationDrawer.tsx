@@ -78,6 +78,18 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, clearAll } =
     useWorkspaceNotifications();
   const navigate = useNavigate();
+  const [shouldShake, setShouldShake] = useState(false);
+  const prevCountRef = React.useRef(unreadCount);
+
+  // Trigger shake animation when unread count increases
+  useEffect(() => {
+    if (unreadCount > prevCountRef.current) {
+      setShouldShake(true);
+      const timer = setTimeout(() => setShouldShake(false), 1000);
+      return () => clearTimeout(timer);
+    }
+    prevCountRef.current = unreadCount;
+  }, [unreadCount]);
 
   const handleNavigate = (url: string) => {
     if (url.startsWith("/")) {
@@ -97,12 +109,34 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 variant="ghost"
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-               aria-label="Notificações"><Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                {unreadCount > 0 && (
-                  <Badge className="absolute -top-0.5 -right-0.5 h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground animate-in zoom-in-50">
-                    {unreadCount > 9 ? "9+" : unreadCount}
-                  </Badge>
-                )}
+                aria-label="Notificações"
+              >
+                <motion.div
+                  animate={shouldShake ? {
+                    rotate: [0, -15, 15, -10, 10, -5, 5, 0],
+                    transition: { duration: 0.6 }
+                  } : {}}
+                >
+                  <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
+                </motion.div>
+                <AnimatePresence>
+                  {unreadCount > 0 && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 20 }}
+                      className="absolute -top-0.5 -right-0.5"
+                    >
+                      <span className="relative flex h-4 min-w-4 items-center justify-center">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-40" />
+                        <Badge className="relative h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground rounded-full">
+                          {unreadCount > 9 ? "9+" : unreadCount}
+                        </Badge>
+                      </span>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-card border-border text-xs">
