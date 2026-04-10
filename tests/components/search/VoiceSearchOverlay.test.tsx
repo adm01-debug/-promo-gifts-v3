@@ -35,7 +35,7 @@ vi.mock("framer-motion", () => {
       };
       const tag = tagMap[prop] || "div";
       return React.forwardRef(({ children, ...rest }: any, ref: any) =>
-        React.createElement(tag, { ...rest, ref }, children)
+        React.createElement(tag, { ...filterMotionProps(rest), ref }, children)
       );
     },
   };
