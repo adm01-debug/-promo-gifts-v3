@@ -581,41 +581,45 @@ ${topProducts.length > 0
     } else {
       const extClient = createClient(EXT_URL, EXT_KEY);
 
-      // Build product query with filters applied at DB level
+      // External DB uses: sale_price, primary_image_url, category_id, supplier_id, stock_quantity, active
+      const PRODUCT_COLS = "id, name, sku, sale_price, primary_image_url, category_id, supplier_id, description, brand, gender, is_kit, stock_quantity, min_quantity, tags, materials, colors, techniques, is_personalizable, best_seller, new_arrival, featured, active";
+
+      // --- Text search ---
+      if (searchTerms.length > 0) {
+        const searchQuery = searchTerms.join(" ");
+        console.log("Performing text search for:", searchQuery);
+        
+        const orFilter = searchTerms
+          .slice(0, 5) // limit to avoid overly complex queries
+          .map(t => `name.ilike.%${t}%,description.ilike.%${t}%`)
+          .join(",");
+        
+        const { data: searchProducts, error: searchError } = await extClient
+          .from("products")
+          .select(PRODUCT_COLS)
+          .eq("active", true)
+          .or(orFilter)
+          .limit(40);
+
+        if (searchError) {
+          console.error("Text search error:", searchError);
+        } else {
+          semanticResults = (searchProducts || []);
+          console.log("Text search found:", semanticResults.length, "products");
+        }
+      }
+
+      // --- General product query with all filters ---
       let productsQuery = extClient
         .from("products")
-        .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, best_seller, is_personalizable, colors, materials, tags, techniques, has_personalization, og_image_url, images")
-        .eq("is_active", true);
-
-      if (normalizedFilters.categoryFilters.length === 1) {
-        productsQuery = productsQuery.eq("category_name", normalizedFilters.categoryFilters[0]);
-      } else if (normalizedFilters.categoryFilters.length > 1) {
-        productsQuery = productsQuery.in("category_name", normalizedFilters.categoryFilters);
-      }
+        .select(PRODUCT_COLS)
+        .eq("active", true);
 
       if (priceMin !== null && priceMin !== undefined) {
-        productsQuery = productsQuery.gte("price", priceMin);
+        productsQuery = productsQuery.gte("sale_price", priceMin);
       }
       if (priceMax !== null && priceMax !== undefined) {
-        productsQuery = productsQuery.lte("price", priceMax);
-      }
-
-      if (normalizedFilters.materialFilters.length === 1) {
-        productsQuery = productsQuery.contains("materials", [normalizedFilters.materialFilters[0]]);
-      } else if (normalizedFilters.materialFilters.length > 1) {
-        productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
-      }
-
-      if (normalizedFilters.colorFilters.length === 1) {
-        productsQuery = productsQuery.contains("colors", [normalizedFilters.colorFilters[0]]);
-      } else if (normalizedFilters.colorFilters.length > 1) {
-        productsQuery = productsQuery.overlaps("colors", normalizedFilters.colorFilters);
-      }
-
-      if (normalizedFilters.supplierFilters.length === 1) {
-        productsQuery = productsQuery.eq("supplier_name", normalizedFilters.supplierFilters[0]);
-      } else if (normalizedFilters.supplierFilters.length > 1) {
-        productsQuery = productsQuery.in("supplier_name", normalizedFilters.supplierFilters);
+        productsQuery = productsQuery.lte("sale_price", priceMax);
       }
 
       if (normalizedFilters.genderFilters.length === 1) {
@@ -625,7 +629,7 @@ ${topProducts.length > 0
       }
 
       if (normalizedFilters.onlyInStock) {
-        productsQuery = productsQuery.gt("stock", 0);
+        productsQuery = productsQuery.gt("stock_quantity", 0);
       }
       if (normalizedFilters.onlyNew) {
         productsQuery = productsQuery.eq("new_arrival", true);
@@ -643,87 +647,101 @@ ${topProducts.length > 0
         productsQuery = productsQuery.eq("is_personalizable", true);
       }
 
-      // If we have search terms, try text search first
-      if (searchTerms.length > 0) {
-        const searchQuery = searchTerms.join(" ");
-        console.log("Performing text search for:", searchQuery);
-        
-        // Use ilike on name/description for text search
-        const searchFilter = searchTerms.map(t => `name.ilike.%${t}%,description.ilike.%${t}%,category_name.ilike.%${t}%`).join(",");
-        
-        const { data: searchProducts, error: searchError } = await extClient
-          .from("products")
-          .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, best_seller, is_personalizable, colors, materials, tags, techniques, has_personalization, og_image_url, images")
-          .eq("is_active", true)
-          .or(searchTerms.map(t => `name.ilike.%${t}%,description.ilike.%${t}%,category_name.ilike.%${t}%`).join(","))
-          .limit(30);
-
-        if (searchError) {
-          console.error("Text search error:", searchError);
-        } else {
-          let filtered = applyProductFilters(searchProducts || [], normalizedFilters);
-
-          if (priceMin !== null && priceMin !== undefined) {
-            filtered = filtered.filter((p: any) => p.price >= priceMin);
-          }
-          if (priceMax !== null && priceMax !== undefined) {
-            filtered = filtered.filter((p: any) => p.price <= priceMax);
-          }
-
-          semanticResults = filtered;
-          console.log("Text search found:", semanticResults.length, "products (after filters)");
-        }
-      }
-
-      // Also fetch general products for broader context
       const { data: products, error: productsError } = await productsQuery.limit(120);
 
       if (productsError) {
         console.error("Error fetching products:", productsError);
       }
 
+      // Post-fetch filtering for array-based fields (colors, materials, tags, techniques, suppliers, categories)
+      const allRawProducts = [
+        ...(semanticResults || []),
+        ...(products || []).filter((p: any) => !semanticResults.some((s: any) => s.id === p.id)),
+      ];
+
+      const filteredProducts = applyProductFilters(allRawProducts, normalizedFilters);
+
+      // Apply price filter on sale_price for text-search results that bypassed DB price filter
+      let finalProducts = filteredProducts;
+      if (priceMin !== null && priceMin !== undefined) {
+        finalProducts = finalProducts.filter((p: any) => (p.sale_price ?? 0) >= priceMin);
+      }
+      if (priceMax !== null && priceMax !== undefined) {
+        finalProducts = finalProducts.filter((p: any) => (p.sale_price ?? 0) <= priceMax);
+      }
+
+      console.log("Total products after all filters:", finalProducts.length);
+
+      // Fetch category and supplier names for context enrichment
+      const categoryIds = [...new Set(finalProducts.map((p: any) => p.category_id).filter(Boolean))];
+      const supplierIds = [...new Set(finalProducts.map((p: any) => p.supplier_id).filter(Boolean))];
+
+      let categoryMap: Record<string, string> = {};
+      let supplierMap: Record<string, string> = {};
+
+      const enrichPromises: Promise<void>[] = [];
+
+      if (categoryIds.length > 0) {
+        enrichPromises.push(
+          extClient.from("categories").select("id, name").in("id", categoryIds.slice(0, 50))
+            .then(({ data }) => {
+              if (data) categoryMap = Object.fromEntries(data.map((c: any) => [c.id, c.name]));
+            })
+        );
+      }
+      if (supplierIds.length > 0) {
+        enrichPromises.push(
+          extClient.from("suppliers").select("id, name").in("id", supplierIds.slice(0, 50))
+            .then(({ data }) => {
+              if (data) supplierMap = Object.fromEntries(data.map((s: any) => [s.id, s.name]));
+            })
+        );
+      }
+
+      await Promise.all(enrichPromises);
+
       // Build product description helper
-      const buildProductDescription = (p: any, relevance?: number): string => {
-        const imageUrl = p.og_image_url || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null);
+      const buildProductDescription = (p: any): string => {
+        const imageUrl = p.primary_image_url || null;
+        const catName = categoryMap[p.category_id] || null;
+        const supName = supplierMap[p.supplier_id] || null;
+        const price = p.sale_price;
         const parts = [
           `ID: ${p.id}`,
           `Nome: ${p.name}`,
           p.sku ? `SKU: ${p.sku}` : null,
-          p.category_name ? `Categoria: ${p.category_name}` : null,
-          p.subcategory ? `Subcategoria: ${p.subcategory}` : null,
-          `Preço: R$ ${p.price?.toFixed(2) || "N/A"}`,
+          catName ? `Categoria: ${catName}` : null,
+          price ? `Preço: R$ ${Number(price).toFixed(2)}` : null,
           p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
           p.materials?.length ? `Materiais: ${Array.isArray(p.materials) ? p.materials.join(", ") : p.materials}` : null,
-          p.supplier_name ? `Fornecedor: ${p.supplier_name}` : null,
+          p.brand ? `Marca: ${p.brand}` : null,
+          supName ? `Fornecedor: ${supName}` : null,
+          p.stock_quantity ? `Estoque: ${p.stock_quantity}` : null,
           imageUrl ? `Imagem: ${imageUrl}` : null,
-          relevance !== undefined ? `[Relevância: ${(relevance * 100).toFixed(0)}%]` : null,
         ].filter(Boolean);
         return parts.join(" | ");
       };
 
-      // Build context with search results prioritized
-      if (semanticResults.length > 0) {
+      // Split into search results vs general
+      const searchResultIds = new Set(semanticResults.map((p: any) => p.id));
+      const searchFiltered = finalProducts.filter((p: any) => searchResultIds.has(p.id));
+      const generalFiltered = finalProducts.filter((p: any) => !searchResultIds.has(p.id)).slice(0, 20);
+
+      if (searchFiltered.length > 0) {
         productsContext = `
 PRODUTOS ENCONTRADOS POR BUSCA (ordenados por relevância):
 Estes produtos são os mais relevantes para a busca "${searchTerms.join(" ")}":
 
-${semanticResults.map(p => buildProductDescription(p)).join("\n\n")}
+${searchFiltered.map(p => buildProductDescription(p)).join("\n\n")}
 `;
       }
 
-      // Add general catalog context
-      if (products && products.length > 0) {
-        const generalProducts = applyProductFilters(products, normalizedFilters)
-          .filter((product: any) => !semanticResults.some((s: any) => s.id === product.id))
-          .slice(0, 20);
-
-        if (generalProducts.length > 0) {
-          productsContext += `
+      if (generalFiltered.length > 0) {
+        productsContext += `
 
 OUTROS PRODUTOS DO CATÁLOGO (para contexto adicional):
-${generalProducts.map(p => buildProductDescription(p)).join("\n\n")}
+${generalFiltered.map(p => buildProductDescription(p)).join("\n\n")}
 `;
-        }
       }
     }
 
