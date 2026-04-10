@@ -90,6 +90,7 @@ Deno.serve(async (req) => {
     const rawBody = await req.json();
     const parsed = ExpertChatBodySchema.safeParse(rawBody);
     if (!parsed.success) {
+      console.error("Validation errors:", JSON.stringify(parsed.error.flatten()));
       return new Response(
         JSON.stringify({ error: "Dados inválidos", details: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
