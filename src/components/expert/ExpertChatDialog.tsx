@@ -66,6 +66,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [pausedTtsId, setPausedTtsId] = useState<string | null>(null);
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [showScrollDown, setShowScrollDown] = useState(false);
   const ttsStopRef = useRef<(() => void) | null>(null);
   const ttsPauseRef = useRef<(() => void) | null>(null);
   const ttsResumeRef = useRef<(() => void) | null>(null);
