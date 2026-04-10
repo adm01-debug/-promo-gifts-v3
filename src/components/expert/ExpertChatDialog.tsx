@@ -81,6 +81,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
   const isFromVoiceRef = useRef(false);
+  const [autoPlayTts, setAutoPlayTts] = useState(() => {
+    try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
+  });
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [lastUserInput, setLastUserInput] = useState("");
