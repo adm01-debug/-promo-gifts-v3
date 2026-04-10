@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search, Square } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -44,6 +44,21 @@ const PRICE_RANGES: PriceRange[] = [
   { label: "Acima de R$ 200", min: 200, max: null },
 ];
 
+// Thinking status messages that rotate during loading
+const THINKING_MESSAGES = [
+  "Analisando sua pergunta…",
+  "Consultando catálogo…",
+  "Buscando produtos relevantes…",
+  "Preparando recomendações…",
+];
+
+const THINKING_MESSAGES_CRM = [
+  "Consultando dados do cliente…",
+  "Analisando histórico de compras…",
+  "Verificando orçamentos pendentes…",
+  "Gerando insights personalizados…",
+];
+
 interface ExpertChatDialogProps {
   isOpen: boolean;
   onClose: () => void;
@@ -63,9 +78,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [lastUserInput, setLastUserInput] = useState("");
+  const [thinkingMessage, setThinkingMessage] = useState("");
   const ttsStopRef = useRef<(() => void) | null>(null);
   const ttsPauseRef = useRef<(() => void) | null>(null);
   const ttsResumeRef = useRef<(() => void) | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -85,6 +102,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     fetchMessages,
     saveMessage,
   } = useExpertConversations(clientId);
+
+  // Rotate thinking messages during loading
+  useEffect(() => {
+    if (!isLoading) {
+      setThinkingMessage("");
+      return;
+    }
+    const msgs = clientId ? THINKING_MESSAGES_CRM : THINKING_MESSAGES;
+    let idx = 0;
+    setThinkingMessage(msgs[0]);
+    const interval = setInterval(() => {
+      idx = (idx + 1) % msgs.length;
+      setThinkingMessage(msgs[idx]);
+    }, 2500);
+    return () => clearInterval(interval);
+  }, [isLoading, clientId]);
 
   // Fetch categories and materials from Promobrind
   useEffect(() => {
@@ -172,11 +205,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
       initialMessageSentRef.current = true;
       setIsFromVoice(true);
-      setInput(initialMessage);
-      setTimeout(() => {
-        const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
-        sendBtn?.click();
-      }, 200);
+      // Auto-send directly
+      handleAutoSend(initialMessage);
     }
     if (!isOpen) {
       initialMessageSentRef.current = false;
@@ -265,18 +295,31 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     if (!lastUserInput) return;
     setMessages(prev => {
       const filtered = prev.filter(m => !m.isError);
-      // Also remove the last user message that triggered the error
       if (filtered.length > 0 && filtered[filtered.length - 1]?.role === "user") {
         return filtered.slice(0, -1);
       }
       return filtered;
     });
-    setInput(lastUserInput);
+    handleAutoSend(lastUserInput);
+  }, [lastUserInput]);
+
+  // Stop generating - abort the current stream
+  const handleStopGenerating = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+  }, []);
+
+  // Auto-send: directly send a message string (used by chips, voice, retry)
+  const handleAutoSend = useCallback((text: string) => {
+    setInput(text);
+    // Use a microtask to ensure input is set before triggering send
     setTimeout(() => {
       const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
       sendBtn?.click();
-    }, 100);
-  }, [lastUserInput]);
+    }, 50);
+  }, []);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -303,6 +346,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: "user", content: userMessage, timestamp: Date.now() }]);
     setIsLoading(true);
 
+    // Create abort controller for this request
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     // Save user message
     if (convId) {
       await saveMessage(convId, "user", userMessage);
@@ -327,6 +374,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             priceMax: selectedPriceRange?.max ?? undefined,
             materialFilter: selectedMaterial || undefined,
           }),
+          signal: abortController.signal,
         }
       );
 
@@ -344,41 +392,50 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       if (reader) {
         let buffer = "";
         
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
-          
-          let newlineIndex: number;
-          while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
-            let line = buffer.slice(0, newlineIndex);
-            buffer = buffer.slice(newlineIndex + 1);
+            buffer += decoder.decode(value, { stream: true });
+            
+            let newlineIndex: number;
+            while ((newlineIndex = buffer.indexOf("\n")) !== -1) {
+              let line = buffer.slice(0, newlineIndex);
+              buffer = buffer.slice(newlineIndex + 1);
 
-            if (line.endsWith("\r")) line = line.slice(0, -1);
-            if (line.startsWith(":") || line.trim() === "") continue;
-            if (!line.startsWith("data: ")) continue;
+              if (line.endsWith("\r")) line = line.slice(0, -1);
+              if (line.startsWith(":") || line.trim() === "") continue;
+              if (!line.startsWith("data: ")) continue;
 
-            const jsonStr = line.slice(6).trim();
-            if (jsonStr === "[DONE]") continue;
+              const jsonStr = line.slice(6).trim();
+              if (jsonStr === "[DONE]") continue;
 
-            try {
-              const parsed = JSON.parse(jsonStr);
-              const content = parsed.choices?.[0]?.delta?.content;
-              if (content) {
-                assistantMessage += content;
-                setMessages(prev => {
-                  const newMessages = [...prev];
-                  if (newMessages[newMessages.length - 1]?.role === "assistant") {
-                    newMessages[newMessages.length - 1].content = assistantMessage;
-                  }
-                  return newMessages;
-                });
+              try {
+                const parsed = JSON.parse(jsonStr);
+                const content = parsed.choices?.[0]?.delta?.content;
+                if (content) {
+                  assistantMessage += content;
+                  setMessages(prev => {
+                    const newMessages = [...prev];
+                    if (newMessages[newMessages.length - 1]?.role === "assistant") {
+                      newMessages[newMessages.length - 1].content = assistantMessage;
+                    }
+                    return newMessages;
+                  });
+                }
+              } catch {
+                buffer = line + "\n" + buffer;
+                break;
               }
-            } catch {
-              buffer = line + "\n" + buffer;
-              break;
             }
+          }
+        } catch (err) {
+          if ((err as Error).name === 'AbortError') {
+            // User stopped generation - keep what we have
+            console.log("[Oracle] Generation stopped by user");
+          } else {
+            throw err;
           }
         }
       }
@@ -389,6 +446,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
 
     } catch (error) {
+      if ((error as Error).name === 'AbortError') {
+        // Already handled above
+        return;
+      }
       console.error("Expert chat error:", error);
       const errorMessage = error instanceof Error 
         ? `Desculpe, ocorreu um erro: ${error.message}` 
@@ -401,6 +462,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
     } finally {
       setIsLoading(false);
+      abortControllerRef.current = null;
     }
   };
 
@@ -725,7 +787,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       }
                     </motion.p>
 
-                    {/* Suggestion chips */}
+                    {/* Suggestion chips - now auto-send on click */}
                     <motion.div
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                       className="mt-5 flex flex-wrap gap-2 justify-center"
@@ -745,7 +807,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       ]).map((item) => (
                         <button
                           key={item.label}
-                          onClick={() => setInput(item.prompt)}
+                          onClick={() => handleAutoSend(item.prompt)}
                           className="group/chip flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium border border-border/50 bg-background hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
                         >
                           <span>{item.emoji}</span>
@@ -828,7 +890,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           )}
                         >
                           {message.role === "assistant" ? (
-                            <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>p]:text-[13px] [&>p]:leading-relaxed [&_li]:text-[13px] [&_li]:leading-relaxed [&>pre]:text-xs [&>pre]:bg-background/50 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border/20 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_a]:text-primary [&_a]:no-underline [&_a]:font-medium hover:[&_a]:underline [&_strong]:font-semibold [&_table]:text-xs">
+                            <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>p]:text-[13px] [&>p]:leading-relaxed [&_li]:text-[13px] [&_li]:leading-relaxed [&>pre]:text-xs [&>pre]:bg-background/50 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border/20 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_a]:text-primary [&_a]:no-underline [&_a]:font-medium hover:[&_a]:underline [&_strong]:font-semibold [&_table]:text-xs [&_table]:w-full [&_table]:border-collapse [&_th]:bg-muted/80 [&_th]:px-2 [&_th]:py-1.5 [&_th]:text-left [&_th]:font-semibold [&_th]:border [&_th]:border-border/30 [&_th]:text-[11px] [&_th]:uppercase [&_th]:tracking-wider [&_td]:px-2 [&_td]:py-1.5 [&_td]:border [&_td]:border-border/20 [&_td]:text-[12px] [&_tr:hover]:bg-muted/30 [&_blockquote]:border-l-2 [&_blockquote]:border-primary/30 [&_blockquote]:pl-3 [&_blockquote]:italic [&_blockquote]:text-muted-foreground [&_blockquote]:my-2">
                               <ReactMarkdown 
                                 remarkPlugins={[remarkGfm]}
                                 components={{ a: ProductAwareLink }}
@@ -962,7 +1024,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     ].map((action) => (
                       <button
                         key={action.label}
-                        onClick={() => setInput(action.prompt)}
+                        onClick={() => handleAutoSend(action.prompt)}
                         className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium border border-border/40 bg-background/80 hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all duration-150"
                       >
                         <span className="text-[10px]">{action.emoji}</span>
@@ -972,7 +1034,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   </motion.div>
                 )}
 
-                {/* Typing indicator — smooth wave */}
+                {/* Typing indicator with thinking status */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
                   <motion.div
                     initial={{ opacity: 0, y: 6 }}
@@ -983,31 +1045,46 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       <Bot className="h-3.5 w-3.5 text-primary" />
                     </div>
                     <div className="bg-muted/50 rounded-2xl rounded-bl-lg border border-border/20 px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1">
-                          {[0, 1, 2].map((i) => (
-                            <motion.div
-                              key={i}
-                              className="h-1.5 w-1.5 rounded-full bg-primary/60"
-                              animate={{
-                                scale: [1, 1.4, 1],
-                                opacity: [0.4, 1, 0.4],
-                              }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                                delay: i * 0.2,
-                                ease: "easeInOut",
-                              }}
-                            />
-                          ))}
+                      <div className="flex flex-col gap-1.5">
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1">
+                            {[0, 1, 2].map((i) => (
+                              <motion.div
+                                key={i}
+                                className="h-1.5 w-1.5 rounded-full bg-primary/60"
+                                animate={{
+                                  scale: [1, 1.4, 1],
+                                  opacity: [0.4, 1, 0.4],
+                                }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  delay: i * 0.2,
+                                  ease: "easeInOut",
+                                }}
+                              />
+                            ))}
+                          </div>
+                          {isFromVoice && (
+                            <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
+                              <Mic className="h-2.5 w-2.5" />
+                              via voz
+                            </span>
+                          )}
                         </div>
-                        {isFromVoice && (
-                          <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
-                            <Mic className="h-2.5 w-2.5" />
-                            via voz
-                          </span>
-                        )}
+                        {/* Thinking status text */}
+                        <AnimatePresence mode="wait">
+                          <motion.p
+                            key={thinkingMessage}
+                            initial={{ opacity: 0, y: 4 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -4 }}
+                            transition={{ duration: 0.3 }}
+                            className="text-[10px] text-muted-foreground/50 leading-none"
+                          >
+                            {thinkingMessage}
+                          </motion.p>
+                        </AnimatePresence>
                       </div>
                     </div>
                   </motion.div>
@@ -1033,6 +1110,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
             {/* ─── INPUT ─── */}
             <div className="px-4 py-3 border-t border-border/20 flex-shrink-0">
+              {/* Stop generating button */}
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="flex justify-center mb-2"
+                >
+                  <button
+                    onClick={handleStopGenerating}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[11px] font-medium border border-border/50 bg-background hover:bg-muted/50 text-muted-foreground hover:text-foreground transition-all"
+                  >
+                    <Square className="h-3 w-3 fill-current" />
+                    Parar de gerar
+                  </button>
+                </motion.div>
+              )}
               <div className="flex gap-2 items-end">
                 <textarea
                   ref={inputRef}
