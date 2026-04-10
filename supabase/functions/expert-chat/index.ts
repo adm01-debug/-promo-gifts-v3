@@ -458,6 +458,7 @@ ${topProducts.length > 0
 
     // Build product description helper
     const buildProductDescription = (p: any, relevance?: number): string => {
+      const imageUrl = p.og_image_url || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null);
       const parts = [
         `ID: ${p.id}`,
         `Nome: ${p.name}`,
@@ -467,6 +468,7 @@ ${topProducts.length > 0
         `Preço: R$ ${p.price?.toFixed(2) || "N/A"}`,
         p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
         p.materials?.length ? `Materiais: ${p.materials.join(", ")}` : null,
+        imageUrl ? `Imagem: ${imageUrl}` : null,
         relevance !== undefined ? `[Relevância: ${(relevance * 100).toFixed(0)}%]` : null,
       ].filter(Boolean);
       return parts.join(" | ");
