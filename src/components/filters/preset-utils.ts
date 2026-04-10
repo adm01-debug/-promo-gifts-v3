@@ -9,6 +9,7 @@ export const PRESET_COLORS = [
 export const PRESET_EMOJIS = [
   "📦", "🎯", "⭐", "🔥", "💎", "🏷️", "🎨", "🛒",
   "📋", "🚀", "💡", "🎁", "🏆", "📌", "✨", "🔖",
+  "🎪", "🧲", "💼", "🎒", "🏅", "🔔", "💫", "🧩",
 ];
 
 /** Count the number of active filter dimensions in a FilterState */
