@@ -72,6 +72,7 @@ interface ExpertChatDialogProps {
 export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
   const navigate = useNavigate();
   const [savingQuoteId, setSavingQuoteId] = useState<string | null>(null);
+  const [sellerFirstName, setSellerFirstName] = useState<string>("");
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -122,6 +123,26 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }, 2500);
     return () => clearInterval(interval);
   }, [isLoading, clientId]);
+
+  // Fetch seller first name for personalized greeting
+  useEffect(() => {
+    if (!isOpen) return;
+    const fetchName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .single();
+        if (profile?.full_name) {
+          setSellerFirstName(profile.full_name.split(" ")[0]);
+        }
+      } catch { /* ignore */ }
+    };
+    fetchName();
+  }, [isOpen]);
 
   // Fetch categories and materials from Promobrind
   useEffect(() => {
@@ -823,7 +844,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                       className="font-display text-lg font-semibold tracking-tight mb-1"
                     >
-                      Olá! Sou o Oráculo
+                      {sellerFirstName ? `E aí, ${sellerFirstName}! 👋` : "Olá! Sou o Oráculo"}
                     </motion.h3>
                     <motion.p
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}

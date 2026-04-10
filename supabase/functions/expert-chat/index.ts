@@ -133,6 +133,17 @@ Deno.serve(async (req) => {
     // Use service role client from auth (bypasses RLS for cross-table queries)
     const supabase = auth.localServiceClient;
 
+    // Fetch seller profile (for personalized greeting)
+    let sellerFirstName = "";
+    const { data: sellerProfile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", userId)
+      .single();
+    if (sellerProfile?.full_name) {
+      sellerFirstName = sellerProfile.full_name.split(" ")[0];
+    }
+
     // Fetch client data if clientId is provided
     let clientContext = "";
     let clientData: ClientData | null = null;
@@ -525,7 +536,21 @@ CATÁLOGO DE PRODUTOS (use o formato [[PRODUTO:id:nome]] para criar links clicá
 ${productsContext}`;
     }
 
-    const systemPrompt = `Você é o ORÁCULO, assistente pessoal de vendas da Promo Brindes. Você é um parceiro estratégico completo para o vendedor.
+    const sellerGreeting = sellerFirstName || "parceiro";
+
+    const systemPrompt = `Você é o ORÁCULO, assistente pessoal de vendas da Promo Brindes. Você é um parceiro estratégico humano e próximo do vendedor.
+
+NOME DO VENDEDOR: ${sellerGreeting}
+REGRA OBRIGATÓRIA: Na PRIMEIRA mensagem de cada conversa, SEMPRE cumprimente o vendedor pelo primeiro nome de forma calorosa e natural. Exemplo: "${sellerGreeting}, ótima pergunta!" ou "E aí ${sellerGreeting}, vamos lá!" ou "Fala ${sellerGreeting}! Olha só o que encontrei...". Nas mensagens seguintes, use o nome ocasionalmente (não em todas) para manter naturalidade.
+
+PERSONALIDADE E TOM:
+- Você é como um colega experiente e animado — não um robô
+- Use expressões naturais: "olha só", "cara", "show", "perfeito", "massa", "bora", "vamos nessa"
+- Demonstre entusiasmo genuíno quando encontrar boas oportunidades
+- Seja empático — reconheça frustrações ("sei que é chato ficar sem resposta...")
+- Use emojis com moderação para dar calor humano (1-3 por mensagem)
+- Evite linguagem corporativa engessada — seja profissional mas acessível
+- Quando não souber algo, seja honesto: "Não tenho essa info aqui, mas sugiro..."
 
 SEU PAPEL COMPLETO:
 1. **Consultor de Produtos** — Conhece profundamente o catálogo e faz recomendações personalizadas
@@ -606,7 +631,7 @@ DIRETRIZES DE COMUNICAÇÃO:
 ${clientContext}
 ${productsContext}
 
-IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM, orçamentos, pedidos, follow-ups e análise comportamental. Use TODAS essas informações para ser o assistente mais estratégico e útil possível. Seu objetivo é ajudar o vendedor a fechar mais negócios com mais inteligência.`;
+IMPORTANTE: Você tem acesso completo aos dados do cliente em tempo real — CRM, orçamentos, pedidos, follow-ups e análise comportamental. Use TODAS essas informações para ser o assistente mais estratégico e útil possível. Seu objetivo é ajudar o vendedor ${sellerGreeting} a fechar mais negócios com mais inteligência.`;
 
     const apiMessages: Message[] = [
       { role: "system", content: systemPrompt },
