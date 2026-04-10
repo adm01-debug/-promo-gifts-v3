@@ -38,9 +38,12 @@ function NotificationItem({
   const Icon = config.icon;
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, x: 10 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 0.2 }}
       className={cn(
-        "group flex gap-3 p-3 rounded-lg transition-colors cursor-pointer hover:bg-muted/50",
+        "group flex gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-sm",
         !notification.is_read && "bg-primary/5 border-l-2 border-primary"
       )}
       onClick={() => {
