@@ -716,11 +716,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     </motion.h3>
                     <motion.p
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
-                      className="text-[13px] text-muted-foreground/70 text-center max-w-[240px] leading-relaxed"
+                      className="text-[13px] text-muted-foreground/70 text-center max-w-[260px] leading-relaxed"
                     >
                       {clientId 
-                        ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
-                        : "Posso ajudar a encontrar os melhores produtos para seus clientes."
+                        ? `Seu assistente pessoal para vender mais para ${clientName || "este cliente"}.`
+                        : "Seu assistente pessoal de vendas. Produtos, propostas, follow-ups e oportunidades."
                       }
                     </motion.p>
 
@@ -729,11 +729,19 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                       className="mt-5 flex flex-wrap gap-2 justify-center"
                     >
-                      {[
-                        { emoji: "✨", label: "Recomendações", prompt: "Quais produtos você recomenda para este cliente?" },
-                        { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para datas comemorativas" },
-                        { emoji: "🎨", label: "Cores da marca", prompt: "Produtos que combinam com as cores da marca" },
-                      ].map((item) => (
+                      {(clientId ? [
+                        { emoji: "📊", label: "Resumo do cliente", prompt: `Me dê um resumo executivo completo deste cliente: histórico, ticket médio, preferências e oportunidades.` },
+                        { emoji: "📝", label: "Montar proposta", prompt: "Monte uma proposta personalizada com produtos ideais para este cliente, considerando seu perfil e histórico." },
+                        { emoji: "📞", label: "Follow-up", prompt: "Quais orçamentos estão pendentes? Sugira mensagens de follow-up para retomar contato com este cliente." },
+                        { emoji: "🎯", label: "Oportunidades", prompt: "Analise oportunidades de upsell e cross-sell para este cliente baseado no histórico de compras." },
+                        { emoji: "🎨", label: "Cores da marca", prompt: "Produtos que combinam com as cores da marca deste cliente" },
+                        { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para as próximas datas comemorativas para este cliente" },
+                      ] : [
+                        { emoji: "✨", label: "Recomendações", prompt: "Quais produtos estão em alta e você recomenda para prospecção?" },
+                        { emoji: "📝", label: "Montar proposta", prompt: "Me ajude a montar uma proposta comercial. Qual é o perfil do cliente?" },
+                        { emoji: "📞", label: "Dicas de follow-up", prompt: "Me dê dicas de como fazer follow-up eficiente em orçamentos pendentes." },
+                        { emoji: "🎯", label: "Oportunidades sazonais", prompt: "Quais são as melhores oportunidades de venda para este período do ano?" },
+                      ]).map((item) => (
                         <button
                           key={item.label}
                           onClick={() => setInput(item.prompt)}
