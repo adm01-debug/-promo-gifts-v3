@@ -572,144 +572,158 @@ ${topProducts.length > 0
     let productsContext = "";
     let semanticResults: any[] = [];
 
-    // If we have search terms, use semantic search
-    if (searchTerms.length > 0) {
-      const searchQuery = searchTerms.join(" ");
-      console.log("Performing semantic search for:", searchQuery);
-      
-      const { data: semanticProducts, error: semanticError } = await supabase
-        .rpc("search_products_semantic", { 
-          search_query: searchQuery,
-          max_results: 30
-        });
+    // Connect to external product database
+    const EXT_URL = Deno.env.get("EXTERNAL_SUPABASE_URL");
+    const EXT_KEY = Deno.env.get("EXTERNAL_SUPABASE_SERVICE_KEY");
 
-      if (semanticError) {
-        console.error("Semantic search error:", semanticError);
-      } else {
-        let filtered = applyProductFilters(semanticProducts || [], normalizedFilters);
+    if (!EXT_URL || !EXT_KEY) {
+      console.error("External DB env vars not set — cannot fetch products");
+    } else {
+      const extClient = createClient(EXT_URL, EXT_KEY);
 
-        if (priceMin !== null && priceMin !== undefined) {
-          filtered = filtered.filter((p: any) => p.price >= priceMin);
-        }
+      // Build product query with filters applied at DB level
+      let productsQuery = extClient
+        .from("products")
+        .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, best_seller, is_personalizable, colors, materials, tags, techniques, has_personalization, og_image_url, images")
+        .eq("is_active", true);
 
-        if (priceMax !== null && priceMax !== undefined) {
-          filtered = filtered.filter((p: any) => p.price <= priceMax);
-        }
-
-        semanticResults = filtered;
-        console.log("Semantic search found:", semanticResults.length, "products (after filters)");
+      if (normalizedFilters.categoryFilters.length === 1) {
+        productsQuery = productsQuery.eq("category_name", normalizedFilters.categoryFilters[0]);
+      } else if (normalizedFilters.categoryFilters.length > 1) {
+        productsQuery = productsQuery.in("category_name", normalizedFilters.categoryFilters);
       }
-    }
 
-    // Also fetch general products for broader context
-    let productsQuery = supabase
-      .from("products")
-      .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, colors, materials, tags, og_image_url, images")
-      .eq("is_active", true);
+      if (priceMin !== null && priceMin !== undefined) {
+        productsQuery = productsQuery.gte("price", priceMin);
+      }
+      if (priceMax !== null && priceMax !== undefined) {
+        productsQuery = productsQuery.lte("price", priceMax);
+      }
 
-    if (normalizedFilters.categoryFilters.length === 1) {
-      productsQuery = productsQuery.eq("category_name", normalizedFilters.categoryFilters[0]);
-    } else if (normalizedFilters.categoryFilters.length > 1) {
-      productsQuery = productsQuery.in("category_name", normalizedFilters.categoryFilters);
-    }
+      if (normalizedFilters.materialFilters.length === 1) {
+        productsQuery = productsQuery.contains("materials", [normalizedFilters.materialFilters[0]]);
+      } else if (normalizedFilters.materialFilters.length > 1) {
+        productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
+      }
 
-    if (priceMin !== null && priceMin !== undefined) {
-      productsQuery = productsQuery.gte("price", priceMin);
-    }
+      if (normalizedFilters.colorFilters.length === 1) {
+        productsQuery = productsQuery.contains("colors", [normalizedFilters.colorFilters[0]]);
+      } else if (normalizedFilters.colorFilters.length > 1) {
+        productsQuery = productsQuery.overlaps("colors", normalizedFilters.colorFilters);
+      }
 
-    if (priceMax !== null && priceMax !== undefined) {
-      productsQuery = productsQuery.lte("price", priceMax);
-    }
+      if (normalizedFilters.supplierFilters.length === 1) {
+        productsQuery = productsQuery.eq("supplier_name", normalizedFilters.supplierFilters[0]);
+      } else if (normalizedFilters.supplierFilters.length > 1) {
+        productsQuery = productsQuery.in("supplier_name", normalizedFilters.supplierFilters);
+      }
 
-    if (normalizedFilters.materialFilters.length === 1) {
-      productsQuery = productsQuery.contains("materials", [normalizedFilters.materialFilters[0]]);
-    } else if (normalizedFilters.materialFilters.length > 1) {
-      productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
-    }
+      if (normalizedFilters.genderFilters.length === 1) {
+        productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
+      } else if (normalizedFilters.genderFilters.length > 1) {
+        productsQuery = productsQuery.in("gender", normalizedFilters.genderFilters);
+      }
 
-    if (normalizedFilters.colorFilters.length === 1) {
-      productsQuery = productsQuery.contains("colors", [normalizedFilters.colorFilters[0]]);
-    } else if (normalizedFilters.colorFilters.length > 1) {
-      productsQuery = productsQuery.overlaps("colors", normalizedFilters.colorFilters);
-    }
+      if (normalizedFilters.onlyInStock) {
+        productsQuery = productsQuery.gt("stock", 0);
+      }
+      if (normalizedFilters.onlyNew) {
+        productsQuery = productsQuery.eq("new_arrival", true);
+      }
+      if (normalizedFilters.onlyKit) {
+        productsQuery = productsQuery.eq("is_kit", true);
+      }
+      if (normalizedFilters.onlyFeatured) {
+        productsQuery = productsQuery.eq("featured", true);
+      }
+      if (normalizedFilters.onlyBestseller) {
+        productsQuery = productsQuery.eq("best_seller", true);
+      }
+      if (normalizedFilters.hasPersonalization) {
+        productsQuery = productsQuery.eq("is_personalizable", true);
+      }
 
-    if (normalizedFilters.supplierFilters.length === 1) {
-      productsQuery = productsQuery.eq("supplier_name", normalizedFilters.supplierFilters[0]);
-    } else if (normalizedFilters.supplierFilters.length > 1) {
-      productsQuery = productsQuery.in("supplier_name", normalizedFilters.supplierFilters);
-    }
+      // If we have search terms, try text search first
+      if (searchTerms.length > 0) {
+        const searchQuery = searchTerms.join(" ");
+        console.log("Performing text search for:", searchQuery);
+        
+        // Use ilike on name/description for text search
+        const searchFilter = searchTerms.map(t => `name.ilike.%${t}%,description.ilike.%${t}%,category_name.ilike.%${t}%`).join(",");
+        
+        const { data: searchProducts, error: searchError } = await extClient
+          .from("products")
+          .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, best_seller, is_personalizable, colors, materials, tags, techniques, has_personalization, og_image_url, images")
+          .eq("is_active", true)
+          .or(searchTerms.map(t => `name.ilike.%${t}%,description.ilike.%${t}%,category_name.ilike.%${t}%`).join(","))
+          .limit(30);
 
-    if (normalizedFilters.genderFilters.length === 1) {
-      productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
-    } else if (normalizedFilters.genderFilters.length > 1) {
-      productsQuery = productsQuery.in("gender", normalizedFilters.genderFilters);
-    }
+        if (searchError) {
+          console.error("Text search error:", searchError);
+        } else {
+          let filtered = applyProductFilters(searchProducts || [], normalizedFilters);
 
-    if (normalizedFilters.onlyInStock) {
-      productsQuery = productsQuery.gt("stock", 0);
-    }
-    if (normalizedFilters.onlyNew) {
-      productsQuery = productsQuery.eq("new_arrival", true);
-    }
-    if (normalizedFilters.onlyKit) {
-      productsQuery = productsQuery.eq("is_kit", true);
-    }
-    if (normalizedFilters.onlyFeatured) {
-      productsQuery = productsQuery.eq("featured", true);
-    }
-    if (normalizedFilters.onlyBestseller) {
-      productsQuery = productsQuery.eq("best_seller", true);
-    }
-    if (normalizedFilters.hasPersonalization) {
-      productsQuery = productsQuery.eq("is_personalizable", true);
-    }
+          if (priceMin !== null && priceMin !== undefined) {
+            filtered = filtered.filter((p: any) => p.price >= priceMin);
+          }
+          if (priceMax !== null && priceMax !== undefined) {
+            filtered = filtered.filter((p: any) => p.price <= priceMax);
+          }
 
-    const { data: products, error: productsError } = await productsQuery.limit(120);
+          semanticResults = filtered;
+          console.log("Text search found:", semanticResults.length, "products (after filters)");
+        }
+      }
 
-    if (productsError) {
-      console.error("Error fetching products:", productsError);
-    }
+      // Also fetch general products for broader context
+      const { data: products, error: productsError } = await productsQuery.limit(120);
 
-    // Build product description helper
-    const buildProductDescription = (p: any, relevance?: number): string => {
-      const imageUrl = p.og_image_url || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null);
-      const parts = [
-        `ID: ${p.id}`,
-        `Nome: ${p.name}`,
-        p.sku ? `SKU: ${p.sku}` : null,
-        p.category_name ? `Categoria: ${p.category_name}` : null,
-        p.subcategory ? `Subcategoria: ${p.subcategory}` : null,
-        `Preço: R$ ${p.price?.toFixed(2) || "N/A"}`,
-        p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
-        p.materials?.length ? `Materiais: ${p.materials.join(", ")}` : null,
-        imageUrl ? `Imagem: ${imageUrl}` : null,
-        relevance !== undefined ? `[Relevância: ${(relevance * 100).toFixed(0)}%]` : null,
-      ].filter(Boolean);
-      return parts.join(" | ");
-    };
+      if (productsError) {
+        console.error("Error fetching products:", productsError);
+      }
 
-    // Build context with semantic results prioritized
-    if (semanticResults.length > 0) {
-      productsContext = `
-PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA (ordenados por relevância):
+      // Build product description helper
+      const buildProductDescription = (p: any, relevance?: number): string => {
+        const imageUrl = p.og_image_url || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null);
+        const parts = [
+          `ID: ${p.id}`,
+          `Nome: ${p.name}`,
+          p.sku ? `SKU: ${p.sku}` : null,
+          p.category_name ? `Categoria: ${p.category_name}` : null,
+          p.subcategory ? `Subcategoria: ${p.subcategory}` : null,
+          `Preço: R$ ${p.price?.toFixed(2) || "N/A"}`,
+          p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
+          p.materials?.length ? `Materiais: ${Array.isArray(p.materials) ? p.materials.join(", ") : p.materials}` : null,
+          p.supplier_name ? `Fornecedor: ${p.supplier_name}` : null,
+          imageUrl ? `Imagem: ${imageUrl}` : null,
+          relevance !== undefined ? `[Relevância: ${(relevance * 100).toFixed(0)}%]` : null,
+        ].filter(Boolean);
+        return parts.join(" | ");
+      };
+
+      // Build context with search results prioritized
+      if (semanticResults.length > 0) {
+        productsContext = `
+PRODUTOS ENCONTRADOS POR BUSCA (ordenados por relevância):
 Estes produtos são os mais relevantes para a busca "${searchTerms.join(" ")}":
 
-${semanticResults.map(p => buildProductDescription(p, p.relevance)).join("\n\n")}
+${semanticResults.map(p => buildProductDescription(p)).join("\n\n")}
 `;
-    }
+      }
 
-    // Add general catalog context
-    if (products && products.length > 0) {
-      const generalProducts = applyProductFilters(products, normalizedFilters)
-        .filter((product: any) => !semanticResults.some((semantic: any) => semantic.id === product.id))
-        .slice(0, 20);
+      // Add general catalog context
+      if (products && products.length > 0) {
+        const generalProducts = applyProductFilters(products, normalizedFilters)
+          .filter((product: any) => !semanticResults.some((s: any) => s.id === product.id))
+          .slice(0, 20);
 
-      if (generalProducts.length > 0) {
-        productsContext += `
+        if (generalProducts.length > 0) {
+          productsContext += `
 
 OUTROS PRODUTOS DO CATÁLOGO (para contexto adicional):
 ${generalProducts.map(p => buildProductDescription(p)).join("\n\n")}
 `;
+        }
       }
     }
 
