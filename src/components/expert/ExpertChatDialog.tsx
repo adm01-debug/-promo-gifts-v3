@@ -435,7 +435,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <Sparkles className="h-3.5 w-3.5 text-primary/60" />
                 </DialogTitle>
                 <DialogDescription className="text-[11px] text-muted-foreground/70 leading-none mt-0.5">
-                  Consultor de Produtos IA
+                  Assistente pessoal de vendas
                 </DialogDescription>
               </div>
             </div>
