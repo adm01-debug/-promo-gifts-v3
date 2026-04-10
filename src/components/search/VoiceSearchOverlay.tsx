@@ -32,12 +32,12 @@ interface VoiceSearchOverlayProps {
   onCommandSelect?: (command: string) => void;
 }
 
-const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string }> = {
-  idle: { title: "Assistente de Voz", subtitle: "Toque no orbe para começar" },
-  listening: { title: "Ouvindo...", subtitle: "Diga o que você precisa" },
-  processing: { title: "Processando...", subtitle: "IA interpretando seu comando" },
-  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta" },
-  error: { title: "Erro", subtitle: "Toque para tentar novamente" },
+const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string; emoji: string }> = {
+  idle: { title: "Assistente de Voz", subtitle: "Toque no orbe para começar", emoji: "✨" },
+  listening: { title: "Ouvindo…", subtitle: "Diga o que você precisa", emoji: "🎙️" },
+  processing: { title: "Processando…", subtitle: "IA interpretando seu comando", emoji: "⚡" },
+  speaking: { title: "Respondendo…", subtitle: "Ouvindo a resposta", emoji: "💬" },
+  error: { title: "Erro", subtitle: "Toque para tentar novamente", emoji: "⚠️" },
 };
 
 const SUGGESTION_COMMANDS = [
