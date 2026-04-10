@@ -333,7 +333,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       ttsResumeRef.current = resume;
       await promise;
     } catch (err) {
-      console.warn("[Oracle TTS] Playback failed:", err);
+      
       setTtsErrorId(messageId);
       toast.error("Não foi possível reproduzir o áudio", {
         description: "O navegador bloqueou a reprodução. Toque novamente para tentar.",
@@ -521,7 +521,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         } catch (err) {
           if ((err as Error).name === 'AbortError') {
             // User stopped generation - keep what we have
-            console.log("[Oracle] Generation stopped by user");
+            
           } else {
             throw err;
           }

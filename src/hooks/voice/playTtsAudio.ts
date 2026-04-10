@@ -90,8 +90,6 @@ export function playTtsAudio(
 
     const authToken = session?.access_token || import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
-    console.log("[TTS] Starting fetch for text:", text.substring(0, 40));
-
     const maxLen = 800;
     const ttsText = text.length > maxLen
       ? text.substring(0, maxLen).replace(/\s+\S*$/, "") + "..."
@@ -119,16 +117,16 @@ export function playTtsAudio(
       clearTimeout(timeout);
     }
 
-    console.log("[TTS] Response status:", ttsResponse.status);
+    
 
     if (!ttsResponse.ok) {
       const errBody = await ttsResponse.text().catch(() => "");
-      console.error("[TTS] Error body:", errBody);
+      
       throw new Error(`TTS failed: ${ttsResponse.status} - ${errBody}`);
     }
 
     const blob = await ttsResponse.blob();
-    console.log("[TTS] Blob size:", blob.size, "type:", blob.type);
+    
     if (blob.size === 0) {
       throw new Error("Empty audio response");
     }
