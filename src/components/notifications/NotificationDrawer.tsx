@@ -73,7 +73,7 @@ function NotificationItem({
           </Badge>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
