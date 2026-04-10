@@ -1001,39 +1001,38 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           const isCopied = copiedId === msgId;
                           return (
                             <div className={cn(
-                              "flex items-center gap-0.5 self-start mt-1 ml-0.5 transition-opacity duration-150",
+                              "flex items-center gap-1 self-start mt-1.5 ml-0.5 transition-opacity duration-150",
                               isActive ? "opacity-100" : "opacity-0 group-hover/msg:opacity-100"
                             )}>
                               <button
                                 onClick={() => handleCopy(msgId, message.content)}
                                 className={cn(
-                                  "p-1 rounded-lg transition-all duration-150",
+                                  "p-1.5 rounded-lg transition-all duration-150",
                                   isCopied
                                     ? "text-emerald-500"
-                                    : "text-muted-foreground/40 hover:text-foreground hover:bg-muted/50"
+                                    : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50"
                                 )}
                                 title={isCopied ? "Copiado!" : "Copiar"}
                                 aria-label="Copiar mensagem"
                               >
-                                {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                                {isCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                               </button>
-                              {/* Save as quote draft */}
                               <button
                                 onClick={() => handleSaveAsQuote(msgId, message.content)}
                                 disabled={savingQuoteId === msgId}
                                 className={cn(
-                                  "p-1 rounded-lg transition-all duration-150",
+                                  "p-1.5 rounded-lg transition-all duration-150",
                                   savingQuoteId === msgId
                                     ? "text-primary/50 cursor-wait"
-                                    : "text-muted-foreground/40 hover:text-primary hover:bg-primary/5"
+                                    : "text-muted-foreground/50 hover:text-primary hover:bg-primary/5"
                                 )}
                                 title="Salvar como rascunho de orçamento"
                                 aria-label="Salvar como rascunho de orçamento"
                               >
                                 {savingQuoteId === msgId ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                 ) : (
-                                  <FileText className="h-3 w-3" />
+                                  <FileText className="h-3.5 w-3.5" />
                                 )}
                               </button>
                               <button
@@ -1046,24 +1045,24 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                 }}
                                 disabled={isLoadingTts}
                                 className={cn(
-                                  "p-1 rounded-lg text-muted-foreground/40 transition-all duration-150",
+                                  "p-2 rounded-xl transition-all duration-150",
                                   isActive
-                                    ? "text-primary bg-primary/8"
+                                    ? "text-primary bg-primary/15 shadow-sm"
                                     : isLoadingTts
-                                      ? "text-primary/50 cursor-wait"
-                                      : "hover:text-primary hover:bg-primary/5"
+                                      ? "text-primary/50 cursor-wait bg-primary/5"
+                                      : "text-muted-foreground/60 hover:text-primary hover:bg-primary/10"
                                 )}
                                 title={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
                                 aria-label={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
                               >
                                 {isLoadingTts ? (
-                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                  <Loader2 className="h-4 w-4 animate-spin" />
                                 ) : isPlaying ? (
-                                  <Pause className="h-3 w-3" />
+                                  <Pause className="h-4 w-4" />
                                 ) : isPaused ? (
-                                  <Play className="h-3 w-3" />
+                                  <Play className="h-4 w-4" />
                                 ) : (
-                                  <Volume2 className="h-3 w-3" />
+                                  <Volume2 className="h-4 w-4" />
                                 )}
                               </button>
                               {isActive && (
@@ -1078,11 +1077,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                     setPlayingTtsId(null);
                                     setPausedTtsId(null);
                                   }}
-                                  className="p-1 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/8 transition-all duration-150"
+                                  className="p-1.5 rounded-lg text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-all duration-150"
                                   title="Parar"
                                   aria-label="Parar áudio"
                                 >
-                                  <VolumeX className="h-3 w-3" />
+                                  <VolumeX className="h-3.5 w-3.5" />
                                 </button>
                               )}
                             </div>
