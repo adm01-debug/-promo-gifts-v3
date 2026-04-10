@@ -124,6 +124,26 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     return () => clearInterval(interval);
   }, [isLoading, clientId]);
 
+  // Fetch seller first name for personalized greeting
+  useEffect(() => {
+    if (!isOpen) return;
+    const fetchName = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .single();
+        if (profile?.full_name) {
+          setSellerFirstName(profile.full_name.split(" ")[0]);
+        }
+      } catch { /* ignore */ }
+    };
+    fetchName();
+  }, [isOpen]);
+
   // Fetch categories and materials from Promobrind
   useEffect(() => {
     if (!isOpen) return;
