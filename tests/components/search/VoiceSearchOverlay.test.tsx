@@ -45,6 +45,11 @@ vi.mock("framer-motion", () => {
   };
 });
 
+// Mock FloatingParticles to avoid HTMLCanvasElement.getContext errors in jsdom
+vi.mock("@/components/search/voice/FloatingParticles", () => ({
+  FloatingParticles: () => null,
+}));
+
 // Mock createPortal so it renders inline
 vi.mock("react-dom", async () => {
   const actual = await vi.importActual("react-dom");
