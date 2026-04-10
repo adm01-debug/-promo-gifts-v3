@@ -586,9 +586,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     variant="ghost"
                     size="sm"
                     className={cn(
-                      "h-8 w-8 p-0 rounded-xl",
+                      "h-8 w-8 p-0 rounded-xl relative",
                       activeFiltersCount > 0 && "text-primary bg-primary/10"
                     )}
+                    onClick={() => setShowFilters(true)}
                     title="Filtros"
                   >
                     <Filter className="h-4 w-4" />
@@ -599,103 +600,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">Filtros</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Preço</DropdownMenuLabel>
-                  {selectedPriceRange && (
-                    <DropdownMenuItem onClick={() => setSelectedPriceRange(null)} className="text-xs">
-                      <span className="text-muted-foreground">✕ Limpar preço</span>
-                    </DropdownMenuItem>
-                  )}
-                  {PRICE_RANGES.map((range) => (
-                    <DropdownMenuItem
-                      key={range.label}
-                      onClick={() => setSelectedPriceRange(range)}
-                      className={cn("text-xs", selectedPriceRange?.label === range.label && "bg-primary/10 text-primary")}
-                    >
-                      <DollarSign className="h-3 w-3 mr-1.5 opacity-50" />
-                      {range.label}
-                    </DropdownMenuItem>
-                  ))}
-
-                  {categories.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Categoria</DropdownMenuLabel>
-                      {selectedCategory && (
-                        <DropdownMenuItem onClick={() => setSelectedCategory(null)} className="text-xs">
-                          <span className="text-muted-foreground">✕ Limpar categoria</span>
-                        </DropdownMenuItem>
-                      )}
-                      {categories.slice(0, 10).map((category) => (
-                        <DropdownMenuItem
-                          key={category}
-                          onClick={() => setSelectedCategory(category)}
-                          className={cn("text-xs", selectedCategory === category && "bg-primary/10 text-primary")}
-                        >
-                          {category}
-                        </DropdownMenuItem>
-                      ))}
-                    </>
-                  )}
-
-                  {materials.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Material</DropdownMenuLabel>
-                      {selectedMaterial && (
-                        <DropdownMenuItem onClick={() => setSelectedMaterial(null)} className="text-xs">
-                          <span className="text-muted-foreground">✕ Limpar material</span>
-                        </DropdownMenuItem>
-                      )}
-                      {materials.slice(0, 10).map((material) => (
-                        <DropdownMenuItem
-                          key={material}
-                          onClick={() => setSelectedMaterial(material)}
-                          className={cn("text-xs", selectedMaterial === material && "bg-primary/10 text-primary")}
-                        >
-                          <Layers className="h-3 w-3 mr-1.5 opacity-50" />
-                          {material}
-                        </DropdownMenuItem>
-                      ))}
-                    </>
-                  )}
-
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Áudio</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      const next = !autoPlayTts;
-                      setAutoPlayTts(next);
-                      try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
-                      // Persist to DB
-                      try {
-                        const { data: { user } } = await supabase.auth.getUser();
-                        if (user) {
-                          const { data: profile } = await supabase
-                            .from("profiles")
-                            .select("preferences")
-                            .eq("user_id", user.id)
-                            .single();
-                          const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
-                          await supabase
-                            .from("profiles")
-                            .update({ preferences: { ...currentPrefs, flow_autoplay_tts: next } })
-                            .eq("user_id", user.id);
-                        }
-                      } catch { /* ignore */ }
-                    }}
-                    className="text-xs"
-                  >
-                    <Volume2 className="h-3 w-3 mr-1.5 opacity-50" />
-                    Auto-play por voz
-                    <span className={cn("ml-auto text-[10px] font-medium", autoPlayTts ? "text-primary" : "text-muted-foreground/50")}>
-                      {autoPlayTts ? "ON" : "OFF"}
-                    </span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
               </DropdownMenu>
 
               <Button
