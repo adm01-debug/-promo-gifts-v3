@@ -701,29 +701,50 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               <div className="space-y-3">
                 {/* ─── EMPTY STATE ─── */}
                 {messages.length === 0 && !isFromVoice && (
-                  <div className="flex flex-col items-center justify-center py-10 px-2">
+                  <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: { transition: { staggerChildren: 0.08 } },
+                    }}
+                    className="flex flex-col items-center justify-center py-10 px-2"
+                  >
                     {/* Avatar */}
-                    <div className="relative mb-5">
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1 } }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className="relative mb-5"
+                    >
                       <div className="h-16 w-16 rounded-2xl bg-primary/8 flex items-center justify-center border border-primary/10">
                         <Bot className="h-8 w-8 text-primary/70" />
                       </div>
                       <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-lg bg-background border border-border/50 flex items-center justify-center shadow-sm">
                         <Sparkles className="h-3 w-3 text-primary/60" />
                       </div>
-                    </div>
+                    </motion.div>
 
-                    <h3 className="font-display text-lg font-semibold tracking-tight mb-1">
+                    <motion.h3
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                      className="font-display text-lg font-semibold tracking-tight mb-1"
+                    >
                       Olá! Sou o Oráculo
-                    </h3>
-                    <p className="text-[13px] text-muted-foreground/70 text-center max-w-[240px] leading-relaxed">
+                    </motion.h3>
+                    <motion.p
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                      className="text-[13px] text-muted-foreground/70 text-center max-w-[240px] leading-relaxed"
+                    >
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
                         : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
-                    </p>
+                    </motion.p>
 
                     {/* Suggestion chips */}
-                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                      className="mt-5 flex flex-wrap gap-2 justify-center"
+                    >
                       {[
                         { emoji: "✨", label: "Recomendações", prompt: "Quais produtos você recomenda para este cliente?" },
                         { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para datas comemorativas" },
@@ -738,18 +759,19 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           <span className="text-foreground/80 group-hover/chip:text-foreground">{item.label}</span>
                         </button>
                       ))}
-                    </div>
+                    </motion.div>
 
                     {conversations.length > 0 && (
-                      <button
+                      <motion.button
+                        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
                         onClick={() => setShowHistory(true)}
                         className="mt-5 flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
                       >
                         <History className="h-3 w-3" />
                         Ver conversas anteriores ({conversations.length})
-                      </button>
+                      </motion.button>
                     )}
-                  </div>
+                  </motion.div>
                 )}
 
                 {/* Voice command loading → messages crossfade */}
