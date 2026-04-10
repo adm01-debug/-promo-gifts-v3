@@ -711,8 +711,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 return entries.map(({ label, key, resetVal }) => (
                   <Badge key={key} variant="secondary" className={badgeCls}
                     onClick={() => {
-                      if (key === "priceMin") clear("priceMin", ""); clear("priceMax" as any, "");
-                      else clear(key, resetVal ?? null);
+                      if (key === "priceMin") {
+                        setFlowFilters(prev => ({ ...prev, priceMin: "", priceMax: "" }));
+                      } else {
+                        setFlowFilters(prev => ({ ...prev, [key]: resetVal ?? null }));
+                      }
                     }}
                   >
                     {label}
