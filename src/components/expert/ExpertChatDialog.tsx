@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Mic } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,9 +60,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
+  const [pausedTtsId, setPausedTtsId] = useState<string | null>(null);
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
   const ttsStopRef = useRef<(() => void) | null>(null);
+  const ttsPauseRef = useRef<(() => void) | null>(null);
+  const ttsResumeRef = useRef<(() => void) | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -213,33 +216,58 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   // TTS playback for assistant messages
   const handlePlayTts = useCallback(async (messageId: string, text: string) => {
+    // If paused on same message, resume
+    if (pausedTtsId === messageId && ttsResumeRef.current) {
+      ttsResumeRef.current();
+      setPausedTtsId(null);
+      setPlayingTtsId(messageId);
+      return;
+    }
+
     // Stop current playback if any
     if (ttsStopRef.current) {
       ttsStopRef.current();
       ttsStopRef.current = null;
+      ttsPauseRef.current = null;
+      ttsResumeRef.current = null;
       if (playingTtsId === messageId) {
         setPlayingTtsId(null);
+        setPausedTtsId(null);
         return; // Toggle off
       }
     }
 
+    setPausedTtsId(null);
     setLoadingTtsId(messageId);
     try {
       const { playTtsAudio } = await import("@/hooks/voice/playTtsAudio");
-      const { promise, stop } = playTtsAudio(text, {
+      const { promise, stop, pause, resume } = playTtsAudio(text, {
         onStart: () => {
           setLoadingTtsId(null);
           setPlayingTtsId(messageId);
         },
       });
       ttsStopRef.current = stop;
+      ttsPauseRef.current = pause;
+      ttsResumeRef.current = resume;
       await promise;
     } catch (err) {
       console.warn("[Oracle TTS] Playback failed:", err);
     } finally {
       setPlayingTtsId(null);
+      setPausedTtsId(null);
       setLoadingTtsId(null);
       ttsStopRef.current = null;
+      ttsPauseRef.current = null;
+      ttsResumeRef.current = null;
+    }
+  }, [playingTtsId, pausedTtsId]);
+
+  const handlePauseTts = useCallback((messageId: string) => {
+    if (ttsPauseRef.current && playingTtsId === messageId) {
+      ttsPauseRef.current();
+      setPlayingTtsId(null);
+      setPausedTtsId(messageId);
     }
   }, [playingTtsId]);
 
@@ -695,30 +723,61 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       {message.role === "assistant" && message.content && !isLoading && (() => {
                         const msgId = message.id || `msg-${index}`;
                         const isPlaying = playingTtsId === msgId;
+                        const isPaused = pausedTtsId === msgId;
                         const isLoadingTts = loadingTtsId === msgId;
+                        const isActive = isPlaying || isPaused;
                         return (
-                          <button
-                            onClick={() => handlePlayTts(msgId, message.content)}
-                            disabled={isLoadingTts}
-                            className={cn(
-                              "self-start mt-1 ml-1 p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
-                              isPlaying
-                                ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
-                                : isLoadingTts
-                                  ? "bg-primary/10 text-primary/60 cursor-wait"
-                                  : "hover:text-primary hover:bg-primary/8"
+                          <div className="flex items-center gap-0.5 self-start mt-1 ml-1">
+                            <button
+                              onClick={() => {
+                                if (isPlaying) {
+                                  handlePauseTts(msgId);
+                                } else {
+                                  handlePlayTts(msgId, message.content);
+                                }
+                              }}
+                              disabled={isLoadingTts}
+                              className={cn(
+                                "p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
+                                isActive
+                                  ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                                  : isLoadingTts
+                                    ? "bg-primary/10 text-primary/60 cursor-wait"
+                                    : "hover:text-primary hover:bg-primary/8"
+                              )}
+                              title={isPlaying ? "Pausar áudio" : isPaused ? "Retomar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                              aria-label={isPlaying ? "Pausar áudio" : isPaused ? "Retomar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                            >
+                              {isLoadingTts ? (
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                              ) : isPlaying ? (
+                                <Pause className="h-3.5 w-3.5" />
+                              ) : isPaused ? (
+                                <Play className="h-3.5 w-3.5" />
+                              ) : (
+                                <Volume2 className="h-3.5 w-3.5" />
+                              )}
+                            </button>
+                            {isActive && (
+                              <button
+                                onClick={() => {
+                                  if (ttsStopRef.current) {
+                                    ttsStopRef.current();
+                                    ttsStopRef.current = null;
+                                    ttsPauseRef.current = null;
+                                    ttsResumeRef.current = null;
+                                  }
+                                  setPlayingTtsId(null);
+                                  setPausedTtsId(null);
+                                }}
+                                className="p-1.5 rounded-xl text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-105"
+                                title="Parar áudio"
+                                aria-label="Parar áudio"
+                              >
+                                <VolumeX className="h-3.5 w-3.5" />
+                              </button>
                             )}
-                            title={isPlaying ? "Parar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
-                            aria-label={isPlaying ? "Parar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
-                          >
-                            {isLoadingTts ? (
-                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                            ) : isPlaying ? (
-                              <VolumeX className="h-3.5 w-3.5" />
-                            ) : (
-                              <Volume2 className="h-3.5 w-3.5" />
-                            )}
-                          </button>
+                          </div>
                         );
                       })()}
                     </div>
