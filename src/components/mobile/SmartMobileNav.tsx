@@ -183,21 +183,24 @@ export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav
             if (isFab) {
               return (
                 <div key="fab" className="relative -mt-4">
-                  <button
+                  <motion.button
                     onClick={handleFabClick}
+                    whileTap={{ scale: 0.9 }}
+                    animate={{ rotate: fabOpen ? 45 : 0 }}
+                    transition={{ type: "spring", stiffness: 400, damping: 20 }}
                     className={cn(
                       "flex items-center justify-center w-14 h-14 rounded-full shadow-lg",
-                      "transition-all duration-200 active:scale-95",
+                      "transition-colors duration-200",
                       "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2",
                       fabOpen
-                        ? "bg-muted text-muted-foreground rotate-45"
-                        : "bg-primary text-primary-foreground"
+                        ? "bg-muted text-muted-foreground"
+                        : "bg-primary text-primary-foreground shadow-primary/30"
                     )}
                     aria-label={fabOpen ? "Fechar menu de ações" : "Abrir menu de ações"}
                     aria-expanded={fabOpen}
                   >
-                    <Plus className="h-6 w-6 transition-transform duration-200" />
-                  </button>
+                    <Plus className="h-6 w-6" />
+                  </motion.button>
                 </div>
               );
             }
