@@ -73,20 +73,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [priceMin, setPriceMin] = useState("");
-  const [priceMax, setPriceMax] = useState("");
-  const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [flowFilters, setFlowFilters] = useState<FlowFilterState>(defaultFlowFilters);
+  const [filterOptions, setFilterOptions] = useState<FlowFilterOptions>({
+    categories: [], materials: [], colors: [], suppliers: [], techniques: [],
+    publicoAlvo: [], datasComemorativas: [], endomarketing: [], nichos: [], tags: [],
+  });
   const [showFilters, setShowFilters] = useState(false);
   const [historyDateFilter, setHistoryDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [autoPlayTts, setAutoPlayTts] = useState(() => {
     try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
   });
-  const [categories, setCategories] = useState<string[]>([]);
-  const [materials, setMaterials] = useState<string[]>([]);
-  const [colors, setColors] = useState<string[]>([]);
-  const [selectedColor, setSelectedColor] = useState<string | null>(null);
-  const [onlyInStock, setOnlyInStock] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
