@@ -161,6 +161,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         const allMaterials = productsData.flatMap(p => p.materials || []).filter(Boolean);
         const uniqueMaterials = [...new Set(allMaterials)] as string[];
         setMaterials(uniqueMaterials.sort());
+
+        const allColors = productsData.flatMap(p =>
+          (p.variants || []).map((v: any) => v.color_name).filter(Boolean)
+        );
+        const uniqueColors = [...new Set(allColors)] as string[];
+        setColors(uniqueColors.sort());
       } catch (error) {
         console.error("Error fetching filters:", error);
       }
