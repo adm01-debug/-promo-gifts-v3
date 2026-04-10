@@ -25,8 +25,8 @@ PÁGINAS DO SISTEMA:
 - /tendencias (tendências)
 
 AÇÕES ESPECIAIS:
-- Se o usuário disser "pergunte ao oráculo", "consultar oráculo", "abrir oráculo", "falar com o oráculo", "oráculo", "consultor IA", ou algo similar, use action="open_oracle" e coloque a pergunta em data.oracleMessage.
-  Exemplo: "pergunte ao oráculo quais canetas são boas para eventos" → action="open_oracle", data.oracleMessage="quais canetas são boas para eventos"
+- Se o usuário disser "pergunte ao flow", "consultar flow", "abrir flow", "falar com o flow", "flow", "consultor IA", ou algo similar, use action="open_oracle" e coloque a pergunta em data.oracleMessage.
+  Exemplo: "pergunte ao flow quais canetas são boas para eventos" → action="open_oracle", data.oracleMessage="quais canetas são boas para eventos"
 - Se o usuário disser "criar orçamento" ou "novo orçamento", use action="navigate" com route="/orcamentos/novo"
 - Se o usuário disser "ver carrinho" ou "abrir carrinho", use action="open_cart"
 
@@ -38,7 +38,7 @@ Responda SEMPRE em JSON com esta estrutura:
     "query": "termo de busca (se action=search)",
     "route": "rota para navegar (se action=navigate)",
     "sortBy": "price-asc|price-desc|name|stock (se action=sort)",
-    "oracleMessage": "mensagem para enviar ao oráculo (se action=open_oracle)",
+    "oracleMessage": "mensagem para enviar ao Flow (se action=open_oracle)",
     "filters": {
       "category": "categoria (se detectada)",
       "color": "cor (se detectada)",

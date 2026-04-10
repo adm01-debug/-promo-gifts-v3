@@ -1,11 +1,11 @@
 /**
- * Shared state between Voice Agent and Oráculo IA.
- * Allows voice commands to open the oracle chat and send messages.
+ * Shared state between Voice Agent and Flow IA.
+ * Allows voice commands to open the Flow chat and send messages.
  */
 import { create } from "zustand";
 
 interface OracleVoiceBridge {
-  /** Whether the Oráculo dialog should be open */
+  /** Whether the Flow dialog should be open */
   isOracleOpen: boolean;
   /** Pending message to send when oracle opens */
   pendingMessage: string | null;

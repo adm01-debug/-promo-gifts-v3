@@ -44,7 +44,7 @@ const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string; emo
 const SUGGESTION_COMMANDS = [
   "Quero canetas azuis baratas",
   "Mostra mochilas ecológicas",
-  "Pergunte ao oráculo qual o melhor brinde",
+  "Pergunte ao Flow qual o melhor brinde",
   "Abre os orçamentos",
 ];
 const ACTION_META: Record<string, { icon: React.ElementType; label: string; color: string }> = {
