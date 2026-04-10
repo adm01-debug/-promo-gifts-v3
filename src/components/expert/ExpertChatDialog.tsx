@@ -172,11 +172,33 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     });
   };
 
+  // Smooth auto-scroll
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    if (scrollRef.current && !showScrollDown) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
     }
-  }, [messages]);
+  }, [messages, showScrollDown]);
+
+  // Track scroll position to show/hide scroll-down button
+  const handleScroll = useCallback(() => {
+    if (!scrollRef.current) return;
+    const { scrollTop, scrollHeight, clientHeight } = scrollRef.current;
+    setShowScrollDown(scrollHeight - scrollTop - clientHeight > 80);
+  }, []);
+
+  const scrollToBottom = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      setShowScrollDown(false);
+    }
+  }, []);
+
+  // Copy message to clipboard
+  const handleCopy = useCallback(async (msgId: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopiedId(msgId);
+    setTimeout(() => setCopiedId(null), 2000);
+  }, []);
 
   useEffect(() => {
     if (isOpen && inputRef.current && !showHistory) {
