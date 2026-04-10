@@ -337,7 +337,7 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
       logger.log("[Voice] Scribe connection initiated");
       // If Scribe fails, onError → handleScribeError → fallback kicks in automatically
     } catch (err) {
-      logger.warn("[Voice] Scribe connection failed, trying fallback...", err);
+      logger.log("[Voice] Scribe connection failed, trying fallback...");
       clearSessionStartTimer();
       forceDisconnectScribe();
 
