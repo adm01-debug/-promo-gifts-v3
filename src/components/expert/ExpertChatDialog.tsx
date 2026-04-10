@@ -742,6 +742,30 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 />
               </div>
 
+              {/* Date filter chips */}
+              <div className="flex items-center gap-1.5 mb-3 px-0.5">
+                <CalendarDays className="h-3 w-3 text-muted-foreground/40 shrink-0" />
+                {([
+                  { key: "all", label: "Todas" },
+                  { key: "today", label: "Hoje" },
+                  { key: "week", label: "Semana" },
+                  { key: "month", label: "Mês" },
+                ] as const).map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => setHistoryDateFilter(key)}
+                    className={cn(
+                      "px-2.5 py-1 rounded-lg text-[11px] font-medium border transition-all",
+                      historyDateFilter === key
+                        ? "bg-primary/15 text-primary border-primary/30"
+                        : "bg-muted/20 text-muted-foreground/60 border-transparent hover:bg-muted/40"
+                    )}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+
               <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3">
                 Conversas anteriores
               </p>
