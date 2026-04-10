@@ -220,7 +220,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           client_id: clientId || null,
           client_name: clientName || null,
           notes: proposalContent.slice(0, 2000),
-          internal_notes: "Gerado pelo Oráculo - Assistente Pessoal",
+          internal_notes: "Gerado pelo Flow - Assistente Pessoal",
         })
         .select("id, quote_number")
         .single();
@@ -449,7 +449,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || "Erro ao conectar com o Oráculo");
+        throw new Error(errorData.error || "Erro ao conectar com o Flow");
       }
 
       const reader = response.body?.getReader();
@@ -563,7 +563,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               </div>
               <div>
                 <DialogTitle className="text-base font-display font-semibold tracking-tight flex items-center gap-1.5">
-                  Oráculo
+                  Flow
                   <Sparkles className="h-3.5 w-3.5 text-primary/60" />
                 </DialogTitle>
                 <DialogDescription className="text-[11px] text-muted-foreground/70 leading-none mt-0.5">
@@ -844,7 +844,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                       className="font-display text-lg font-semibold tracking-tight mb-1"
                     >
-                      {sellerFirstName ? `E aí, ${sellerFirstName}! 👋` : "Olá! Sou o Oráculo"}
+                      {sellerFirstName ? `E aí, ${sellerFirstName}! 👋` : "Olá! Sou o Flow"}
                     </motion.h3>
                     <motion.p
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
@@ -1224,7 +1224,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
                   }}
                   onKeyDown={handleKeyDown}
-                  placeholder="Pergunte ao Oráculo…"
+                  placeholder="Pergunte ao Flow…"
                   disabled={isLoading}
                   rows={1}
                   className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-border/30 bg-muted/20 text-sm px-3 py-2.5 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40 disabled:opacity-50"
@@ -1245,7 +1245,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 </Button>
               </div>
               <p className="text-[10px] text-muted-foreground/30 text-center mt-1.5 select-none">
-                Shift+Enter para nova linha · Oráculo - Assistente Pessoal
+                Shift+Enter para nova linha · Flow - Assistente Pessoal
               </p>
             </div>
           </>
