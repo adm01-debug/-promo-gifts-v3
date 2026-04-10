@@ -81,14 +81,16 @@ function createTelemetryRow(overrides: Partial<any> = {}): any {
   };
 }
 
+let _rowCounter = 0;
 function createManyRows(count: number, template: Partial<any> = {}): any[] {
-  return Array.from({ length: count }, (_, i) =>
-    createTelemetryRow({
-      id: `row-${i}`,
-      created_at: new Date(Date.now() - i * 60000).toISOString(),
+  return Array.from({ length: count }, (_, i) => {
+    const idx = _rowCounter++;
+    return createTelemetryRow({
+      id: `row-${idx}`,
+      created_at: new Date(Date.now() - idx * 60000).toISOString(),
       ...template,
-    })
-  );
+    });
+  });
 }
 
 function createMixedRows(): any[] {
