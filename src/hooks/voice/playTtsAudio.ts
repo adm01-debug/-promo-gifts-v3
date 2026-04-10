@@ -19,9 +19,9 @@ export function playTtsAudio(
 
     console.log('[TTS] Starting fetch for text:', text.substring(0, 40));
 
-    // Timeout after 10s to avoid hanging on slow TTS
+    // Timeout after 30s to allow for longer TTS generation
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 10000);
+    const timeout = setTimeout(() => controller.abort(), 30000);
 
     let ttsResponse: Response;
     try {
