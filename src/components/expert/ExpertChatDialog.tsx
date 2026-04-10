@@ -589,6 +589,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           materials={materials}
           selectedMaterial={selectedMaterial}
           onMaterialChange={setSelectedMaterial}
+          colors={colors}
+          selectedColor={selectedColor}
+          onColorChange={setSelectedColor}
+          onlyInStock={onlyInStock}
+          onOnlyInStockChange={setOnlyInStock}
           autoPlayTts={autoPlayTts}
           onAutoPlayTtsChange={async (next) => {
             setAutoPlayTts(next);
@@ -615,6 +620,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             setPriceMin("");
             setPriceMax("");
             setSelectedMaterial(null);
+            setSelectedColor(null);
+            setOnlyInStock(false);
           }}
         />
         {/* ─── HEADER ─── */}
