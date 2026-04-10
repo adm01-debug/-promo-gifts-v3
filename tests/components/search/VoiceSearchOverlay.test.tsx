@@ -6,11 +6,22 @@ import React from "react";
 import { render, screen, fireEvent, act } from "@testing-library/react";
 import { VoiceSearchOverlay } from "@/components/search/VoiceSearchOverlay";
 
-// Helper to create a forwarded-ref mock for any HTML/SVG element
-const makeMock = (Tag: string) =>
-  React.forwardRef(({ children, ...props }: any, ref: any) => (
-    <Tag ref={ref} {...props}>{children}</Tag>
-  ));
+// Framer-motion props that should NOT be forwarded to DOM elements
+const MOTION_PROPS = new Set([
+  'initial', 'animate', 'exit', 'transition', 'variants',
+  'whileHover', 'whileTap', 'whileFocus', 'whileDrag', 'whileInView',
+  'drag', 'dragConstraints', 'dragElastic', 'dragMomentum',
+  'layout', 'layoutId', 'onAnimationStart', 'onAnimationComplete',
+  'style', // handled separately if needed
+]);
+
+const filterMotionProps = (props: Record<string, any>) => {
+  const filtered: Record<string, any> = {};
+  for (const key of Object.keys(props)) {
+    if (!MOTION_PROPS.has(key)) filtered[key] = props[key];
+  }
+  return filtered;
+};
 
 // Mock framer-motion with all element types used in VoiceSearchOverlay
 vi.mock("framer-motion", () => {
