@@ -552,9 +552,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const hasPriceFilter = !!(priceMin || priceMax);
   const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial].filter(Boolean).length;
 
-  const filteredConversations = conversations.filter(c =>
-    !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())
-  );
+  const filteredConversations = conversations.filter(c => {
+    if (historySearch && !c.title.toLowerCase().includes(historySearch.toLowerCase())) return false;
+    if (historyDateFilter !== "all") {
+      const date = new Date(c.updated_at);
+      if (historyDateFilter === "today" && !isToday(date)) return false;
+      if (historyDateFilter === "week" && !isThisWeek(date, { locale: ptBR })) return false;
+      if (historyDateFilter === "month" && !isThisMonth(date)) return false;
+    }
+    return true;
+  });
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
