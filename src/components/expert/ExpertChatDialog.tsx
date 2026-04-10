@@ -78,6 +78,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [priceMax, setPriceMax] = useState("");
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
   const [showFilters, setShowFilters] = useState(false);
+  const [historyDateFilter, setHistoryDateFilter] = useState<"all" | "today" | "week" | "month">("all");
   const [autoPlayTts, setAutoPlayTts] = useState(() => {
     try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
   });
