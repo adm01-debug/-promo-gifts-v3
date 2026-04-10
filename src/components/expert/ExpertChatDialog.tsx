@@ -16,14 +16,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
+import { FlowFilterPanel } from "./FlowFilterPanel";
 
 interface Message {
   id?: string;
@@ -32,20 +25,6 @@ interface Message {
   timestamp?: number;
   isError?: boolean;
 }
-
-interface PriceRange {
-  label: string;
-  min: number | null;
-  max: number | null;
-}
-
-const PRICE_RANGES: PriceRange[] = [
-  { label: "Até R$ 20", min: null, max: 20 },
-  { label: "R$ 20 - R$ 50", min: 20, max: 50 },
-  { label: "R$ 50 - R$ 100", min: 50, max: 100 },
-  { label: "R$ 100 - R$ 200", min: 100, max: 200 },
-  { label: "Acima de R$ 200", min: 200, max: null },
-];
 
 // Thinking status messages that rotate during loading
 const THINKING_MESSAGES = [
@@ -95,8 +74,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(null);
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [autoPlayTts, setAutoPlayTts] = useState(() => {
     try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
   });
@@ -276,7 +257,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setCurrentConversationId(null);
     setShowHistory(false);
     setSelectedCategory(null);
-    setSelectedPriceRange(null);
+    setPriceMin("");
+    setPriceMax("");
     setSelectedMaterial(null);
   }, [clientId]);
 
@@ -456,8 +438,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               .filter(m => m.content && m.content.length > 0),
             clientId: clientId || undefined,
             categoryFilter: selectedCategory || undefined,
-            priceMin: selectedPriceRange?.min ?? undefined,
-            priceMax: selectedPriceRange?.max ?? undefined,
+            priceMin: priceMin ? Number(priceMin) : undefined,
+            priceMax: priceMax ? Number(priceMax) : undefined,
             materialFilter: selectedMaterial || undefined,
           }),
           signal: abortController.signal,
@@ -566,7 +548,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
   };
 
-  const activeFiltersCount = [selectedCategory, selectedPriceRange, selectedMaterial].filter(Boolean).length;
+  const hasPriceFilter = !!(priceMin || priceMax);
+  const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial].filter(Boolean).length;
 
   const filteredConversations = conversations.filter(c =>
     !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())
@@ -574,7 +557,49 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden">
+      <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden relative">
+        {/* Flow Filter Panel */}
+        <FlowFilterPanel
+          isOpen={showFilters}
+          onClose={() => setShowFilters(false)}
+          priceMin={priceMin}
+          priceMax={priceMax}
+          onPriceMinChange={setPriceMin}
+          onPriceMaxChange={setPriceMax}
+          categories={categories}
+          selectedCategory={selectedCategory}
+          onCategoryChange={setSelectedCategory}
+          materials={materials}
+          selectedMaterial={selectedMaterial}
+          onMaterialChange={setSelectedMaterial}
+          autoPlayTts={autoPlayTts}
+          onAutoPlayTtsChange={async (next) => {
+            setAutoPlayTts(next);
+            try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
+            try {
+              const { data: { user } } = await supabase.auth.getUser();
+              if (user) {
+                const { data: profile } = await supabase
+                  .from("profiles")
+                  .select("preferences")
+                  .eq("user_id", user.id)
+                  .single();
+                const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
+                await supabase
+                  .from("profiles")
+                  .update({ preferences: { ...currentPrefs, flow_autoplay_tts: next } })
+                  .eq("user_id", user.id);
+              }
+            } catch { /* ignore */ }
+          }}
+          activeFiltersCount={activeFiltersCount}
+          onReset={() => {
+            setSelectedCategory(null);
+            setPriceMin("");
+            setPriceMax("");
+            setSelectedMaterial(null);
+          }}
+        />
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
           <div className="flex items-center justify-between">
@@ -597,123 +622,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             </div>
             <div className="flex items-center gap-1">
               {/* Filters dropdown */}
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={cn(
-                      "h-8 w-8 p-0 rounded-xl",
-                      activeFiltersCount > 0 && "text-primary bg-primary/10"
-                    )}
-                    title="Filtros"
-                  >
-                    <Filter className="h-4 w-4" />
-                    {activeFiltersCount > 0 && (
-                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
-                        {activeFiltersCount}
-                      </span>
-                    )}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel className="text-xs text-muted-foreground">Filtros</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Preço</DropdownMenuLabel>
-                  {selectedPriceRange && (
-                    <DropdownMenuItem onClick={() => setSelectedPriceRange(null)} className="text-xs">
-                      <span className="text-muted-foreground">✕ Limpar preço</span>
-                    </DropdownMenuItem>
-                  )}
-                  {PRICE_RANGES.map((range) => (
-                    <DropdownMenuItem
-                      key={range.label}
-                      onClick={() => setSelectedPriceRange(range)}
-                      className={cn("text-xs", selectedPriceRange?.label === range.label && "bg-primary/10 text-primary")}
-                    >
-                      <DollarSign className="h-3 w-3 mr-1.5 opacity-50" />
-                      {range.label}
-                    </DropdownMenuItem>
-                  ))}
-
-                  {categories.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Categoria</DropdownMenuLabel>
-                      {selectedCategory && (
-                        <DropdownMenuItem onClick={() => setSelectedCategory(null)} className="text-xs">
-                          <span className="text-muted-foreground">✕ Limpar categoria</span>
-                        </DropdownMenuItem>
-                      )}
-                      {categories.slice(0, 10).map((category) => (
-                        <DropdownMenuItem
-                          key={category}
-                          onClick={() => setSelectedCategory(category)}
-                          className={cn("text-xs", selectedCategory === category && "bg-primary/10 text-primary")}
-                        >
-                          {category}
-                        </DropdownMenuItem>
-                      ))}
-                    </>
-                  )}
-
-                  {materials.length > 0 && (
-                    <>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Material</DropdownMenuLabel>
-                      {selectedMaterial && (
-                        <DropdownMenuItem onClick={() => setSelectedMaterial(null)} className="text-xs">
-                          <span className="text-muted-foreground">✕ Limpar material</span>
-                        </DropdownMenuItem>
-                      )}
-                      {materials.slice(0, 10).map((material) => (
-                        <DropdownMenuItem
-                          key={material}
-                          onClick={() => setSelectedMaterial(material)}
-                          className={cn("text-xs", selectedMaterial === material && "bg-primary/10 text-primary")}
-                        >
-                          <Layers className="h-3 w-3 mr-1.5 opacity-50" />
-                          {material}
-                        </DropdownMenuItem>
-                      ))}
-                    </>
-                  )}
-
-                  <DropdownMenuSeparator />
-                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Áudio</DropdownMenuLabel>
-                  <DropdownMenuItem
-                    onClick={async () => {
-                      const next = !autoPlayTts;
-                      setAutoPlayTts(next);
-                      try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
-                      // Persist to DB
-                      try {
-                        const { data: { user } } = await supabase.auth.getUser();
-                        if (user) {
-                          const { data: profile } = await supabase
-                            .from("profiles")
-                            .select("preferences")
-                            .eq("user_id", user.id)
-                            .single();
-                          const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
-                          await supabase
-                            .from("profiles")
-                            .update({ preferences: { ...currentPrefs, flow_autoplay_tts: next } })
-                            .eq("user_id", user.id);
-                        }
-                      } catch { /* ignore */ }
-                    }}
-                    className="text-xs"
-                  >
-                    <Volume2 className="h-3 w-3 mr-1.5 opacity-50" />
-                    Auto-play por voz
-                    <span className={cn("ml-auto text-[10px] font-medium", autoPlayTts ? "text-primary" : "text-muted-foreground/50")}>
-                      {autoPlayTts ? "ON" : "OFF"}
-                    </span>
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn(
+                  "h-8 w-8 p-0 rounded-xl relative",
+                  activeFiltersCount > 0 && "text-primary bg-primary/10"
+                )}
+                onClick={() => setShowFilters(true)}
+                title="Filtros"
+              >
+                <Filter className="h-4 w-4" />
+                {activeFiltersCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
+                    {activeFiltersCount}
+                  </span>
+                )}
+              </Button>
 
               <Button
                 variant="ghost"
@@ -751,14 +676,14 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           {/* Active filters badges */}
           {activeFiltersCount > 0 && (
             <div className="flex flex-wrap gap-1.5 mt-2.5">
-              {selectedPriceRange && (
+              {hasPriceFilter && (
                 <Badge
                   variant="secondary"
                   className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
-                  onClick={() => setSelectedPriceRange(null)}
+                  onClick={() => { setPriceMin(""); setPriceMax(""); }}
                 >
                   <DollarSign className="h-2.5 w-2.5" />
-                  {selectedPriceRange.label}
+                  {priceMin && priceMax ? `R$${priceMin} – R$${priceMax}` : priceMin ? `A partir de R$${priceMin}` : `Até R$${priceMax}`}
                   <X className="h-2.5 w-2.5" />
                 </Badge>
               )}
