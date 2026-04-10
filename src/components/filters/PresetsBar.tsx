@@ -23,7 +23,7 @@ import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { PRESET_COLORS, countFilters, summarizeFilters } from "./preset-utils";
-import { ColorEmojiPicker, PresetPreviewHeader } from "./PresetFormParts";
+import { ColorEmojiPicker } from "./PresetFormParts";
 
 // Re-export for external consumers
 export { PRESET_COLORS } from "./preset-utils";
@@ -336,7 +336,6 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
               <DialogDescription>Salve os filtros atuais como um preset para uso futuro.</DialogDescription>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <PresetPreviewHeader emoji={newPresetEmoji} color={newPresetColor} name={newPresetName} description={newPresetDescription} />
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome do Preset</label>
                 <Input placeholder="Ex: Campanha de Verão" value={newPresetName} onChange={(e) => setNewPresetName(e.target.value)} maxLength={50} autoFocus />
@@ -365,7 +364,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
               </DialogTitle>
             </DialogHeader>
             <div className="space-y-4 py-2">
-              <PresetPreviewHeader emoji={newPresetEmoji} color={newPresetColor} name={newPresetName} description={newPresetDescription} />
+              
               <div className="space-y-2">
                 <label className="text-sm font-medium">Nome</label>
                 <Input value={newPresetName} onChange={(e) => setNewPresetName(e.target.value)} maxLength={50} autoFocus />
