@@ -46,7 +46,7 @@ const quickActions: NavItem[] = [
   { icon: Heart, label: "Favoritos", href: "/favoritos" },
   { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
   { icon: Calculator, label: "Simulador", href: "/simulador" },
-  { icon: Heart, label: "Favoritos", href: "/favoritos" },
+  { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
   { icon: BarChart3, label: "Dashboard", href: "/bi" },
 ];
 
