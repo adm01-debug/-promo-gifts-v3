@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
