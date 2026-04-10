@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw } from "lucide-react";
+
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -31,11 +31,6 @@ interface Message {
   isError?: boolean;
 }
 
-interface ProductLink {
-  id: string;
-  name: string;
-  fullMatch: string;
-}
 
 interface PriceRange {
   label: string;
@@ -60,7 +55,7 @@ interface ExpertChatDialogProps {
 }
 
 export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
-  const navigate = useNavigate();
+  
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -74,6 +69,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const ttsPauseRef = useRef<(() => void) | null>(null);
   const ttsResumeRef = useRef<(() => void) | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(null);
@@ -122,57 +118,8 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     return () => { cancelled = true; };
   }, [isOpen]);
 
-  // Parse product links from message content
-  const parseProductLinks = (content: string): (string | ProductLink)[] => {
-    const regex = /\[\[PRODUTO:([^:]+):([^\]]+)\]\]/g;
-    const parts: (string | ProductLink)[] = [];
-    let lastIndex = 0;
-    let match;
 
-    while ((match = regex.exec(content)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(content.slice(lastIndex, match.index));
-      }
-      parts.push({
-        id: match[1],
-        name: match[2],
-        fullMatch: match[0]
-      });
-      lastIndex = match.index + match[0].length;
-    }
-    
-    if (lastIndex < content.length) {
-      parts.push(content.slice(lastIndex));
-    }
-    
-    return parts.length > 0 ? parts : [content];
-  };
 
-  const handleProductClick = (productId: string) => {
-    onClose();
-    navigate(`/produto/${productId}`);
-  };
-
-  const renderMessageContent = (content: string) => {
-    const parts = parseProductLinks(content);
-    
-    return parts.map((part, index) => {
-      if (typeof part === "string") {
-        return <span key={`text-${index}`}>{part}</span>;
-      }
-      
-      return (
-        <button
-          key={`product-${part.id}-${index}`}
-          onClick={() => handleProductClick(part.id)}
-          className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors"
-        >
-          {part.name}
-          <ExternalLink className="h-3 w-3" />
-        </button>
-      );
-    });
-  };
 
   // Smooth auto-scroll
   useEffect(() => {
@@ -326,7 +273,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
     const userMessage = input.trim();
     setInput("");
-    
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
     // Create new conversation if needed
     let convId = currentConversationId;
     if (!convId) {
@@ -649,17 +599,25 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }}
               className="space-y-1.5"
             >
-              <motion.p
+              <motion.div
                 variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
-                className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3"
+                className="mb-3"
               >
-                Conversas anteriores
-              </motion.p>
+                <div className="relative">
+                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
+                  <input
+                    value={historySearch}
+                    onChange={(e) => setHistorySearch(e.target.value)}
+                    placeholder="Buscar conversas…"
+                    className="w-full h-8 pl-8 pr-3 rounded-lg border border-border/30 bg-muted/20 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 transition-all placeholder:text-muted-foreground/40"
+                  />
+                </div>
+              </motion.div>
               {isLoadingConversations ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
                 </div>
-              ) : conversations.length === 0 ? (
+              ) : conversations.filter(c => !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())).length === 0 ? (
                 <motion.div
                   variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                   className="text-center py-12"
@@ -667,10 +625,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
                     <MessageSquare className="h-5 w-5 text-muted-foreground/40" />
                   </div>
-                  <p className="text-sm text-muted-foreground/60">Nenhuma conversa ainda</p>
+                  <p className="text-sm text-muted-foreground/60">
+                    {historySearch ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}
+                  </p>
                 </motion.div>
               ) : (
-                conversations.map((conv) => (
+                conversations.filter(c => !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())).map((conv) => (
                   <motion.div
                     key={conv.id}
                     variants={{ hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0 } }}
@@ -816,11 +776,13 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 </AnimatePresence>
 
                 {/* ─── MESSAGES ─── */}
+                <AnimatePresence initial={false}>
                 {messages.map((message, index) => (
                   <motion.div
                     key={message.id || `msg-${message.role}-${index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                     transition={{ duration: 0.25, delay: index === 0 && isFromVoice ? 0.15 : 0 }}
                     className={cn(
                       "flex gap-2",
@@ -967,6 +929,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     )}
                   </motion.div>
                 ))}
+                </AnimatePresence>
 
                 {/* Typing indicator — smooth wave */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
