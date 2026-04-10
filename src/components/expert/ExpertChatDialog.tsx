@@ -455,8 +455,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       const reader = response.body?.getReader();
       const decoder = new TextDecoder();
       let assistantMessage = "";
+      const assistantMsgId = `assistant-${Date.now()}`;
 
-      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "", timestamp: Date.now() }]);
+      setMessages(prev => [...prev, { id: assistantMsgId, role: "assistant", content: "", timestamp: Date.now() }]);
 
       if (reader) {
         let buffer = "";
@@ -512,6 +513,13 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       // Save assistant message
       if (convId && assistantMessage) {
         await saveMessage(convId, "assistant", assistantMessage);
+      }
+
+      // Auto-play TTS when response came from a voice command
+      if (isFromVoice && assistantMessage) {
+        setTimeout(() => {
+          handlePlayTts(assistantMsgId, assistantMessage);
+        }, 300);
       }
 
     } catch (error) {
