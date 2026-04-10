@@ -232,11 +232,47 @@ Deno.serve(async (req) => {
         );
       }
 
+      case 'diagnose': {
+        // Diagnóstico: verificar formato do category_id nos produtos
+        const { data: sampleProducts, error: sampleErr } = await externalClient
+          .from('products')
+          .select('id,name,category_id,is_active')
+          .not('category_id', 'is', null)
+          .limit(5);
+
+        const { data: nullCatProducts, error: nullErr } = await externalClient
+          .from('products')
+          .select('id,name,category_id')
+          .is('category_id', null)
+          .limit(5);
+
+        const { data: totalProducts } = await externalClient
+          .from('products')
+          .select('id', { count: 'exact', head: true });
+
+        const { data: assignSample } = await externalClient
+          .from('product_category_assignments')
+          .select('product_id,category_id')
+          .limit(5);
+
+        return new Response(
+          JSON.stringify({
+            success: true,
+            sampleProducts,
+            nullCategoryProducts: nullCatProducts,
+            assignmentsSample: assignSample,
+            sampleErr: sampleErr?.message,
+            nullErr: nullErr?.message
+          }),
+          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
       default:
         return new Response(
           JSON.stringify({ 
             success: false, 
-            error: 'Invalid action. Valid: tree, all, descendants, products_by_categories' 
+            error: 'Invalid action. Valid: tree, all, descendants, products_by_categories, diagnose' 
           }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
