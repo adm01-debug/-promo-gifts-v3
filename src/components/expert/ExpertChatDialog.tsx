@@ -639,22 +639,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <div
                     key={message.id || `msg-${message.role}-${index}`}
                     className={cn(
-                      "flex gap-3",
+                      "flex gap-3 animate-fade-in",
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
                     {message.role === "assistant" && (
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+                      <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/10">
                         <Bot className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}
                     <div className="flex flex-col max-w-[80%]">
                       <div
                         className={cn(
-                          "rounded-2xl px-4 py-2.5 text-sm",
+                          "rounded-2xl px-4 py-3 text-sm leading-relaxed",
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            ? "bg-primary text-primary-foreground rounded-br-md shadow-sm shadow-primary/20"
+                            : "bg-muted/80 rounded-bl-md border border-border/40"
                         )}
                       >
                         <p className="whitespace-pre-wrap">
@@ -667,7 +667,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       {message.role === "assistant" && message.content && !isLoading && (
                         <button
                           onClick={() => handlePlayTts(message.id || `msg-${index}`, message.content)}
-                          className="self-start mt-1 ml-1 p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          className={cn(
+                            "self-start mt-1.5 ml-1 p-1.5 rounded-lg text-muted-foreground transition-all duration-200",
+                            playingTtsId === (message.id || `msg-${index}`)
+                              ? "bg-primary/15 text-primary"
+                              : "hover:text-primary hover:bg-primary/10"
+                          )}
                           title={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
                           aria-label={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
                         >
@@ -680,7 +685,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       )}
                     </div>
                     {message.role === "user" && (
-                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                      <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                         <User className="h-4 w-4" />
                       </div>
                     )}
@@ -688,12 +693,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 ))}
 
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+                  <div className="flex gap-3 justify-start animate-fade-in">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/10">
                       <Bot className="h-4 w-4 text-primary-foreground" />
                     </div>
-                    <div className="bg-muted rounded-2xl px-4 py-2.5">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="bg-muted/80 rounded-2xl rounded-bl-md border border-border/40 px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-primary/60 animate-pulse" />
+                        <div className="h-2 w-2 rounded-full bg-primary/40 animate-pulse [animation-delay:0.15s]" />
+                        <div className="h-2 w-2 rounded-full bg-primary/20 animate-pulse [animation-delay:0.3s]" />
+                      </div>
                     </div>
                   </div>
                 )}
