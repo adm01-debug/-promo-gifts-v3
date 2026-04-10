@@ -16,7 +16,7 @@ import { formatDistanceToNow, isToday, isThisWeek, isThisMonth, startOfDay, star
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
-import { FlowFilterPanel, FlowFilterState, FlowFilterOptions, defaultFlowFilters, countActiveFilters } from "./FlowFilterPanel";
+import { FlowFilterPanel, FlowFilterState, FlowFilterOptions, defaultFlowFilters, countActiveFilters, getActiveFilterLabels } from "./FlowFilterPanel";
 
 interface Message {
   id?: string;
