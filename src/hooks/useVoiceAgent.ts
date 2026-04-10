@@ -231,26 +231,26 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
   // === Handle Scribe errors — try fallback ===
   const handleScribeError = useCallback((err: unknown) => {
     const errMsg = err instanceof Error ? err.message : String(err);
-    console.error("[Voice] Scribe runtime error:", err);
-    logger.warn("[Voice] Scribe error details:", errMsg || "(empty message - likely WebSocket handshake rejection)");
+    // Only log at debug level — this is expected when ElevenLabs is unavailable
+    logger.log("[Voice] Scribe unavailable, switching to browser speech recognition...");
     isStartingRef.current = false;
     clearResetPhaseTimer();
     clearSessionStartTimer();
     forceDisconnectScribe();
     setPartialTranscript("");
 
-    // Try Web Speech API fallback instead of showing error
-    logger.log("[Voice] Attempting Web Speech API fallback after Scribe failure...");
+    // Immediately try Web Speech API fallback — no error state shown to user
     const fallbackStarted = startFallbackSTT();
     if (fallbackStarted) {
       isStartingRef.current = true;
+      // Don't set error — the user doesn't need to know about the internal switch
       setError(null);
       setPhase("idle"); // Will transition to listening when fallback starts
       return;
     }
 
     // No fallback available — show error
-    const message = friendlyErrorMessage(err);
+    const message = "Reconhecimento de voz não disponível neste navegador.";
     setError(message);
     setPhase("error");
     onErrorRef.current?.(message);
