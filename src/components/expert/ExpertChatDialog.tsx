@@ -216,33 +216,58 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   // TTS playback for assistant messages
   const handlePlayTts = useCallback(async (messageId: string, text: string) => {
+    // If paused on same message, resume
+    if (pausedTtsId === messageId && ttsResumeRef.current) {
+      ttsResumeRef.current();
+      setPausedTtsId(null);
+      setPlayingTtsId(messageId);
+      return;
+    }
+
     // Stop current playback if any
     if (ttsStopRef.current) {
       ttsStopRef.current();
       ttsStopRef.current = null;
+      ttsPauseRef.current = null;
+      ttsResumeRef.current = null;
       if (playingTtsId === messageId) {
         setPlayingTtsId(null);
+        setPausedTtsId(null);
         return; // Toggle off
       }
     }
 
+    setPausedTtsId(null);
     setLoadingTtsId(messageId);
     try {
       const { playTtsAudio } = await import("@/hooks/voice/playTtsAudio");
-      const { promise, stop } = playTtsAudio(text, {
+      const { promise, stop, pause, resume } = playTtsAudio(text, {
         onStart: () => {
           setLoadingTtsId(null);
           setPlayingTtsId(messageId);
         },
       });
       ttsStopRef.current = stop;
+      ttsPauseRef.current = pause;
+      ttsResumeRef.current = resume;
       await promise;
     } catch (err) {
       console.warn("[Oracle TTS] Playback failed:", err);
     } finally {
       setPlayingTtsId(null);
+      setPausedTtsId(null);
       setLoadingTtsId(null);
       ttsStopRef.current = null;
+      ttsPauseRef.current = null;
+      ttsResumeRef.current = null;
+    }
+  }, [playingTtsId, pausedTtsId]);
+
+  const handlePauseTts = useCallback((messageId: string) => {
+    if (ttsPauseRef.current && playingTtsId === messageId) {
+      ttsPauseRef.current();
+      setPlayingTtsId(null);
+      setPausedTtsId(messageId);
     }
   }, [playingTtsId]);
 
