@@ -19,9 +19,15 @@ export function playTtsAudio(
 
     console.log('[TTS] Starting fetch for text:', text.substring(0, 40));
 
-    // Timeout after 30s to allow for longer TTS generation
+    // Truncate very long texts to avoid TTS timeout (max ~800 chars)
+    const maxLen = 800;
+    const ttsText = text.length > maxLen
+      ? text.substring(0, maxLen).replace(/\s+\S*$/, '') + '...'
+      : text;
+
+    // Timeout after 60s for longer TTS generation
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
 
     let ttsResponse: Response;
     try {
