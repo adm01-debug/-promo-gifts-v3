@@ -1285,6 +1285,47 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   rows={1}
                   className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-border/30 bg-muted/20 text-sm px-3 py-2.5 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40 disabled:opacity-50"
                 />
+                {/* Mic button — visible when input is empty */}
+                {!input.trim() && !isLoading && (
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => {
+                      // Use Web Speech API for voice input
+                      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                      if (!SpeechRecognition) {
+                        toast.error("Seu navegador não suporta reconhecimento de voz");
+                        return;
+                      }
+                      const recognition = new SpeechRecognition();
+                      recognition.lang = "pt-BR";
+                      recognition.interimResults = false;
+                      recognition.maxAlternatives = 1;
+                      toast.info("🎙️ Ouvindo… fale agora", { duration: 3000 });
+                      recognition.onresult = (event: any) => {
+                        const transcript = event.results[0][0].transcript;
+                        if (transcript) {
+                          setInput(transcript);
+                          isFromVoiceRef.current = true;
+                          setIsFromVoice(true);
+                          // Auto-send after capturing voice
+                          setTimeout(() => {
+                            const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
+                            if (sendBtn) sendBtn.click();
+                          }, 100);
+                        }
+                      };
+                      recognition.onerror = () => {
+                        toast.error("Não foi possível captar o áudio");
+                      };
+                      recognition.start();
+                    }}
+                    aria-label="Entrada por voz"
+                    className="h-10 w-10 rounded-xl shrink-0 text-muted-foreground hover:text-primary hover:bg-primary/10"
+                  >
+                    <Mic className="h-5 w-5" />
+                  </Button>
+                )}
                 <Button
                   data-oracle-send
                   onClick={sendMessage}
