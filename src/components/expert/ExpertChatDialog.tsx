@@ -1,16 +1,14 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, History, Plus, Trash2, MessageSquare, Filter, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw, Search } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { useExpertConversations, ExpertMessage, ExpertConversation } from "@/hooks/useExpertConversations";
+import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertConversations";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
@@ -29,12 +27,6 @@ interface Message {
   content: string;
   timestamp?: number;
   isError?: boolean;
-}
-
-interface ProductLink {
-  id: string;
-  name: string;
-  fullMatch: string;
 }
 
 interface PriceRange {
@@ -60,7 +52,6 @@ interface ExpertChatDialogProps {
 }
 
 export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
-  const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -70,10 +61,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [isFromVoice, setIsFromVoice] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
+  const [lastUserInput, setLastUserInput] = useState("");
   const ttsStopRef = useRef<(() => void) | null>(null);
   const ttsPauseRef = useRef<(() => void) | null>(null);
   const ttsResumeRef = useRef<(() => void) | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(null);
@@ -87,7 +80,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     conversations,
     isLoading: isLoadingConversations,
     createConversation,
-    updateConversationTitle,
     deleteConversation,
     fetchMessages,
     saveMessage,
@@ -121,58 +113,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     fetchFilters();
     return () => { cancelled = true; };
   }, [isOpen]);
-
-  // Parse product links from message content
-  const parseProductLinks = (content: string): (string | ProductLink)[] => {
-    const regex = /\[\[PRODUTO:([^:]+):([^\]]+)\]\]/g;
-    const parts: (string | ProductLink)[] = [];
-    let lastIndex = 0;
-    let match;
-
-    while ((match = regex.exec(content)) !== null) {
-      if (match.index > lastIndex) {
-        parts.push(content.slice(lastIndex, match.index));
-      }
-      parts.push({
-        id: match[1],
-        name: match[2],
-        fullMatch: match[0]
-      });
-      lastIndex = match.index + match[0].length;
-    }
-    
-    if (lastIndex < content.length) {
-      parts.push(content.slice(lastIndex));
-    }
-    
-    return parts.length > 0 ? parts : [content];
-  };
-
-  const handleProductClick = (productId: string) => {
-    onClose();
-    navigate(`/produto/${productId}`);
-  };
-
-  const renderMessageContent = (content: string) => {
-    const parts = parseProductLinks(content);
-    
-    return parts.map((part, index) => {
-      if (typeof part === "string") {
-        return <span key={`text-${index}`}>{part}</span>;
-      }
-      
-      return (
-        <button
-          key={`product-${part.id}-${index}`}
-          onClick={() => handleProductClick(part.id)}
-          className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium underline underline-offset-2 transition-colors"
-        >
-          {part.name}
-          <ExternalLink className="h-3 w-3" />
-        </button>
-      );
-    });
-  };
 
   // Smooth auto-scroll
   useEffect(() => {
@@ -212,6 +152,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   useEffect(() => {
     if (!isOpen) {
       setShowHistory(false);
+      setHistorySearch("");
     }
   }, [isOpen]);
 
@@ -231,7 +172,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       initialMessageSentRef.current = true;
       setIsFromVoice(true);
       setInput(initialMessage);
-      // Trigger send after state update
       setTimeout(() => {
         const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
         sendBtn?.click();
@@ -245,7 +185,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   // TTS playback for assistant messages
   const handlePlayTts = useCallback(async (messageId: string, text: string) => {
-    // If paused on same message, resume
     if (pausedTtsId === messageId && ttsResumeRef.current) {
       ttsResumeRef.current();
       setPausedTtsId(null);
@@ -253,7 +192,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       return;
     }
 
-    // Stop current playback if any
     if (ttsStopRef.current) {
       ttsStopRef.current();
       ttsStopRef.current = null;
@@ -262,7 +200,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       if (playingTtsId === messageId) {
         setPlayingTtsId(null);
         setPausedTtsId(null);
-        return; // Toggle off
+        return;
       }
     }
 
@@ -321,12 +259,36 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
   };
 
+  // Retry: remove error message and re-send last user input
+  const handleRetry = useCallback(() => {
+    if (!lastUserInput) return;
+    setMessages(prev => {
+      const filtered = prev.filter(m => !m.isError);
+      // Also remove the last user message that triggered the error
+      if (filtered.length > 0 && filtered[filtered.length - 1]?.role === "user") {
+        return filtered.slice(0, -1);
+      }
+      return filtered;
+    });
+    setInput(lastUserInput);
+    setTimeout(() => {
+      const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
+      sendBtn?.click();
+    }, 100);
+  }, [lastUserInput]);
+
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
 
     const userMessage = input.trim();
     setInput("");
-    
+    setLastUserInput(userMessage);
+
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
+
     // Create new conversation if needed
     let convId = currentConversationId;
     if (!convId) {
@@ -450,11 +412,15 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   const activeFiltersCount = [selectedCategory, selectedPriceRange, selectedMaterial].filter(Boolean).length;
 
+  const filteredConversations = conversations.filter(c =>
+    !historySearch || c.title.toLowerCase().includes(historySearch.toLowerCase())
+  );
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden">
         {/* ─── HEADER ─── */}
-        <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0">
+        <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -474,7 +440,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               </div>
             </div>
             <div className="flex items-center gap-1">
-              {/* Filters dropdown - collapsed into single button */}
+              {/* Filters dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -498,7 +464,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <DropdownMenuLabel className="text-xs text-muted-foreground">Filtros</DropdownMenuLabel>
                   <DropdownMenuSeparator />
                   
-                  {/* Price ranges */}
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Preço</DropdownMenuLabel>
                   {selectedPriceRange && (
                     <DropdownMenuItem onClick={() => setSelectedPriceRange(null)} className="text-xs">
@@ -564,7 +529,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => setShowHistory(!showHistory)}
+                onClick={() => { setShowHistory(!showHistory); setHistorySearch(""); }}
                 className="h-8 w-8 p-0 rounded-xl"
                 title={showHistory ? "Voltar ao chat" : "Histórico"}
                 aria-label="Histórico"
@@ -644,6 +609,17 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         {showHistory ? (
           <ScrollArea className="flex-1 p-4">
             <div className="space-y-1.5">
+              {/* Search bar */}
+              <div className="relative mb-3">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground/40" />
+                <input
+                  value={historySearch}
+                  onChange={(e) => setHistorySearch(e.target.value)}
+                  placeholder="Buscar conversas…"
+                  className="w-full h-8 pl-8 pr-3 rounded-xl border border-border/30 bg-muted/20 text-xs placeholder:text-muted-foreground/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all"
+                />
+              </div>
+
               <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3">
                 Conversas anteriores
               </p>
@@ -651,47 +627,56 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
                 </div>
-              ) : conversations.length === 0 ? (
+              ) : filteredConversations.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
                     <MessageSquare className="h-5 w-5 text-muted-foreground/40" />
                   </div>
-                  <p className="text-sm text-muted-foreground/60">Nenhuma conversa ainda</p>
+                  <p className="text-sm text-muted-foreground/60">
+                    {historySearch ? "Nenhuma conversa encontrada" : "Nenhuma conversa ainda"}
+                  </p>
                 </div>
               ) : (
-                conversations.map((conv) => (
-                  <div
-                    key={conv.id}
-                    onClick={() => loadConversation(conv)}
-                    className={cn(
-                      "group px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150",
-                      currentConversationId === conv.id
-                        ? "bg-primary/8 border border-primary/15"
-                        : "hover:bg-muted/50 border border-transparent"
-                    )}
-                  >
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium truncate">{conv.title}</p>
-                        <p className="text-[11px] text-muted-foreground/50 mt-0.5">
-                          {formatDistanceToNow(new Date(conv.updated_at), {
-                            addSuffix: true,
-                            locale: ptBR,
-                          })}
-                        </p>
+                <motion.div
+                  initial="hidden"
+                  animate="visible"
+                  variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }}
+                >
+                  {filteredConversations.map((conv) => (
+                    <motion.div
+                      key={conv.id}
+                      variants={{ hidden: { opacity: 0, y: 6 }, visible: { opacity: 1, y: 0 } }}
+                      onClick={() => loadConversation(conv)}
+                      className={cn(
+                        "group px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150",
+                        currentConversationId === conv.id
+                          ? "bg-primary/8 border border-primary/15"
+                          : "hover:bg-muted/50 border border-transparent"
+                      )}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{conv.title}</p>
+                          <p className="text-[11px] text-muted-foreground/50 mt-0.5">
+                            {formatDistanceToNow(new Date(conv.updated_at), {
+                              addSuffix: true,
+                              locale: ptBR,
+                            })}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Excluir"
+                          className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
+                          onClick={(e) => handleDeleteConversation(e, conv.id)}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Excluir"
-                        className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
-                        onClick={(e) => handleDeleteConversation(e, conv.id)}
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
+                    </motion.div>
+                  ))}
+                </motion.div>
               )}
             </div>
           </ScrollArea>
@@ -710,7 +695,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     }}
                     className="flex flex-col items-center justify-center py-10 px-2"
                   >
-                    {/* Avatar */}
                     <motion.div
                       variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1 } }}
                       transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -804,135 +788,149 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 </AnimatePresence>
 
                 {/* ─── MESSAGES ─── */}
-                {messages.map((message, index) => (
-                  <motion.div
-                    key={message.id || `msg-${message.role}-${index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.25, delay: index === 0 && isFromVoice ? 0.15 : 0 }}
-                    className={cn(
-                      "flex gap-2",
-                      message.role === "user" ? "justify-end" : "justify-start"
-                    )}
-                  >
-                    {message.role === "assistant" && (
-                      <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <Bot className="h-3.5 w-3.5 text-primary" />
-                      </div>
-                    )}
-                    <div className="flex flex-col max-w-[80%] group/msg">
-                      <div
-                        className={cn(
-                          "rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
-                          message.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-br-lg"
-                            : message.isError
-                              ? "bg-destructive/10 text-destructive border border-destructive/20 rounded-bl-lg"
-                              : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
-                        )}
-                      >
-                        {message.role === "assistant" ? (
-                          <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>p]:text-[13px] [&>p]:leading-relaxed [&_li]:text-[13px] [&_li]:leading-relaxed [&>pre]:text-xs [&>pre]:bg-background/50 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border/20 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_a]:text-primary [&_a]:no-underline [&_a]:font-medium hover:[&_a]:underline [&_strong]:font-semibold [&_table]:text-xs">
-                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                              {message.content}
-                            </ReactMarkdown>
-                          </div>
-                        ) : (
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                        )}
-                      </div>
-                      {/* Timestamp on hover */}
-                      {message.timestamp && (
-                        <span className="text-[10px] text-muted-foreground/30 mt-0.5 ml-1 opacity-0 group-hover/msg:opacity-100 transition-opacity select-none">
-                          {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
-                        </span>
+                <AnimatePresence mode="popLayout">
+                  {messages.map((message, index) => (
+                    <motion.div
+                      key={message.id || `msg-${message.role}-${index}`}
+                      initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      transition={{ duration: 0.25, delay: index === 0 && isFromVoice ? 0.15 : 0 }}
+                      layout
+                      className={cn(
+                        "flex gap-2",
+                        message.role === "user" ? "justify-end" : "justify-start"
                       )}
-                      {/* Action bar: Copy + TTS */}
-                      {message.role === "assistant" && message.content && !isLoading && (() => {
-                        const msgId = message.id || `msg-${index}`;
-                        const isPlaying = playingTtsId === msgId;
-                        const isPaused = pausedTtsId === msgId;
-                        const isLoadingTts = loadingTtsId === msgId;
-                        const isActive = isPlaying || isPaused;
-                        const isCopied = copiedId === msgId;
-                        return (
-                          <div className={cn(
-                            "flex items-center gap-0.5 self-start mt-1 ml-0.5 transition-opacity duration-150",
-                            isActive ? "opacity-100" : "opacity-0 group-hover/msg:opacity-100"
-                          )}>
-                            <button
-                              onClick={() => handleCopy(msgId, message.content)}
-                              className={cn(
-                                "p-1 rounded-lg transition-all duration-150",
-                                isCopied
-                                  ? "text-emerald-500"
-                                  : "text-muted-foreground/40 hover:text-foreground hover:bg-muted/50"
-                              )}
-                              title={isCopied ? "Copiado!" : "Copiar"}
-                              aria-label="Copiar mensagem"
-                            >
-                              {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                            </button>
-                            <button
-                              onClick={() => {
-                                if (isPlaying) {
-                                  handlePauseTts(msgId);
-                                } else {
-                                  handlePlayTts(msgId, message.content);
-                                }
-                              }}
-                              disabled={isLoadingTts}
-                              className={cn(
-                                "p-1 rounded-lg text-muted-foreground/40 transition-all duration-150",
-                                isActive
-                                  ? "text-primary bg-primary/8"
-                                  : isLoadingTts
-                                    ? "text-primary/50 cursor-wait"
-                                    : "hover:text-primary hover:bg-primary/5"
-                              )}
-                              title={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
-                              aria-label={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
-                            >
-                              {isLoadingTts ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
-                              ) : isPlaying ? (
-                                <Pause className="h-3 w-3" />
-                              ) : isPaused ? (
-                                <Play className="h-3 w-3" />
-                              ) : (
-                                <Volume2 className="h-3 w-3" />
-                              )}
-                            </button>
-                            {isActive && (
+                    >
+                      {message.role === "assistant" && (
+                        <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <Bot className="h-3.5 w-3.5 text-primary" />
+                        </div>
+                      )}
+                      <div className="flex flex-col max-w-[80%] group/msg">
+                        <div
+                          className={cn(
+                            "rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
+                            message.role === "user"
+                              ? "bg-primary text-primary-foreground rounded-br-lg"
+                              : message.isError
+                                ? "bg-destructive/10 text-destructive border border-destructive/20 rounded-bl-lg"
+                                : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
+                          )}
+                        >
+                          {message.role === "assistant" ? (
+                            <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>p]:text-[13px] [&>p]:leading-relaxed [&_li]:text-[13px] [&_li]:leading-relaxed [&>pre]:text-xs [&>pre]:bg-background/50 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border/20 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_a]:text-primary [&_a]:no-underline [&_a]:font-medium hover:[&_a]:underline [&_strong]:font-semibold [&_table]:text-xs">
+                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                                {message.content}
+                              </ReactMarkdown>
+                            </div>
+                          ) : (
+                            <p className="whitespace-pre-wrap">{message.content}</p>
+                          )}
+                        </div>
+                        {/* Timestamp on hover */}
+                        {message.timestamp && (
+                          <span className="text-[10px] text-muted-foreground/30 mt-0.5 ml-1 opacity-0 group-hover/msg:opacity-100 transition-opacity select-none">
+                            {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                          </span>
+                        )}
+                        {/* Retry button for error messages */}
+                        {message.isError && !isLoading && (
+                          <button
+                            onClick={handleRetry}
+                            className="flex items-center gap-1.5 self-start mt-1.5 ml-0.5 px-2.5 py-1 rounded-lg text-[11px] font-medium text-destructive hover:bg-destructive/10 transition-colors"
+                          >
+                            <RotateCcw className="h-3 w-3" />
+                            Tentar novamente
+                          </button>
+                        )}
+                        {/* Action bar: Copy + TTS */}
+                        {message.role === "assistant" && message.content && !message.isError && !isLoading && (() => {
+                          const msgId = message.id || `msg-${index}`;
+                          const isPlaying = playingTtsId === msgId;
+                          const isPaused = pausedTtsId === msgId;
+                          const isLoadingTts = loadingTtsId === msgId;
+                          const isActive = isPlaying || isPaused;
+                          const isCopied = copiedId === msgId;
+                          return (
+                            <div className={cn(
+                              "flex items-center gap-0.5 self-start mt-1 ml-0.5 transition-opacity duration-150",
+                              isActive ? "opacity-100" : "opacity-0 group-hover/msg:opacity-100"
+                            )}>
+                              <button
+                                onClick={() => handleCopy(msgId, message.content)}
+                                className={cn(
+                                  "p-1 rounded-lg transition-all duration-150",
+                                  isCopied
+                                    ? "text-emerald-500"
+                                    : "text-muted-foreground/40 hover:text-foreground hover:bg-muted/50"
+                                )}
+                                title={isCopied ? "Copiado!" : "Copiar"}
+                                aria-label="Copiar mensagem"
+                              >
+                                {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                              </button>
                               <button
                                 onClick={() => {
-                                  if (ttsStopRef.current) {
-                                    ttsStopRef.current();
-                                    ttsStopRef.current = null;
-                                    ttsPauseRef.current = null;
-                                    ttsResumeRef.current = null;
+                                  if (isPlaying) {
+                                    handlePauseTts(msgId);
+                                  } else {
+                                    handlePlayTts(msgId, message.content);
                                   }
-                                  setPlayingTtsId(null);
-                                  setPausedTtsId(null);
                                 }}
-                                className="p-1 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/8 transition-all duration-150"
-                                title="Parar"
-                                aria-label="Parar áudio"
+                                disabled={isLoadingTts}
+                                className={cn(
+                                  "p-1 rounded-lg text-muted-foreground/40 transition-all duration-150",
+                                  isActive
+                                    ? "text-primary bg-primary/8"
+                                    : isLoadingTts
+                                      ? "text-primary/50 cursor-wait"
+                                      : "hover:text-primary hover:bg-primary/5"
+                                )}
+                                title={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
+                                aria-label={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
                               >
-                                <VolumeX className="h-3 w-3" />
+                                {isLoadingTts ? (
+                                  <Loader2 className="h-3 w-3 animate-spin" />
+                                ) : isPlaying ? (
+                                  <Pause className="h-3 w-3" />
+                                ) : isPaused ? (
+                                  <Play className="h-3 w-3" />
+                                ) : (
+                                  <Volume2 className="h-3 w-3" />
+                                )}
                               </button>
-                            )}
-                          </div>
-                        );
-                      })()}
-                    </div>
-                    {message.role === "user" && (
-                      <div className="h-7 w-7 rounded-xl bg-secondary/60 flex items-center justify-center flex-shrink-0 mt-0.5">
-                        <User className="h-3.5 w-3.5 text-secondary-foreground/60" />
+                              {isActive && (
+                                <button
+                                  onClick={() => {
+                                    if (ttsStopRef.current) {
+                                      ttsStopRef.current();
+                                      ttsStopRef.current = null;
+                                      ttsPauseRef.current = null;
+                                      ttsResumeRef.current = null;
+                                    }
+                                    setPlayingTtsId(null);
+                                    setPausedTtsId(null);
+                                  }}
+                                  className="p-1 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/8 transition-all duration-150"
+                                  title="Parar"
+                                  aria-label="Parar áudio"
+                                >
+                                  <VolumeX className="h-3 w-3" />
+                                </button>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
-                    )}
-                  </motion.div>
-                ))}
+                      {message.role === "user" && (
+                        <div className="h-7 w-7 rounded-xl bg-secondary/60 flex items-center justify-center flex-shrink-0 mt-0.5">
+                          <User className="h-3.5 w-3.5 text-secondary-foreground/60" />
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
 
                 {/* Typing indicator — smooth wave */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
@@ -1001,7 +999,6 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   value={input}
                   onChange={(e) => {
                     setInput(e.target.value);
-                    // Auto-grow
                     e.target.style.height = "auto";
                     e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
                   }}
@@ -1026,6 +1023,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   )}
                 </Button>
               </div>
+              <p className="text-[10px] text-muted-foreground/30 text-center mt-1.5 select-none">
+                Shift+Enter para nova linha · Oráculo IA
+              </p>
             </div>
           </>
         )}
