@@ -74,8 +74,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(null);
+  const [priceMin, setPriceMin] = useState("");
+  const [priceMax, setPriceMax] = useState("");
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [showFilters, setShowFilters] = useState(false);
   const [autoPlayTts, setAutoPlayTts] = useState(() => {
     try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
   });
