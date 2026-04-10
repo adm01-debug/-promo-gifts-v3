@@ -127,6 +127,18 @@ export function useGlobalSearch() {
       case "answer":
         // Just spoke the answer, no navigation needed
         break;
+      case "open_oracle":
+        setTimeout(() => {
+          setVoiceOverlayOpen(false);
+          useOracleVoiceBridge.getState().openOracle(action.data?.oracleMessage || undefined);
+        }, 500);
+        break;
+      case "open_cart":
+        setTimeout(() => {
+          setVoiceOverlayOpen(false);
+          window.dispatchEvent(new KeyboardEvent("keydown", { key: "o", altKey: true }));
+        }, 500);
+        break;
     }
   }, [navigate, addVoiceCommand]);
 
