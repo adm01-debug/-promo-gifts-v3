@@ -133,6 +133,17 @@ Deno.serve(async (req) => {
     // Use service role client from auth (bypasses RLS for cross-table queries)
     const supabase = auth.localServiceClient;
 
+    // Fetch seller profile (for personalized greeting)
+    let sellerFirstName = "";
+    const { data: sellerProfile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("user_id", userId)
+      .single();
+    if (sellerProfile?.full_name) {
+      sellerFirstName = sellerProfile.full_name.split(" ")[0];
+    }
+
     // Fetch client data if clientId is provided
     let clientContext = "";
     let clientData: ClientData | null = null;
