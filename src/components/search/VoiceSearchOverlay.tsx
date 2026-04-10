@@ -256,15 +256,23 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     border: { duration: 0.8, ease: "easeInOut" },
                   }}
                 >
-                {/* Title */}
+                {/* Title — refined typography */}
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="text-center"
+                  className="text-center space-y-1"
                 >
-                  <h2 className="font-display text-xs font-medium text-white/50 mb-0.5">{title}</h2>
-                  <p className="text-white/25 text-[10px]">{subtitle}</p>
+                  <h2 className="font-display text-sm font-semibold text-white/70 tracking-wide">
+                    {showBooting
+                      ? (bootingTimedOut ? "Microfone indisponível" : "Ativando microfone…")
+                      : meta.title}
+                  </h2>
+                  <p className="text-white/30 text-[11px] tracking-wider">
+                    {showBooting
+                      ? (bootingTimedOut ? "Verifique as permissões do navegador" : "Preparando sua conversa por voz")
+                      : meta.subtitle}
+                  </p>
                 </motion.div>
 
                 {/* Clickable Orb */}
