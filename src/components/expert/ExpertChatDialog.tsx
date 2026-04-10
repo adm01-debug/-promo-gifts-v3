@@ -196,6 +196,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   useEffect(() => {
     if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
       initialMessageSentRef.current = true;
+      setIsFromVoice(true);
       setInput(initialMessage);
       // Trigger send after state update
       setTimeout(() => {
@@ -205,6 +206,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
     if (!isOpen) {
       initialMessageSentRef.current = false;
+      setIsFromVoice(false);
     }
   }, [isOpen, initialMessage, isLoading]);
 
