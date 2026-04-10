@@ -195,11 +195,15 @@ function applyProductFilters(products: any[], filters: {
   hasPersonalization: boolean;
 }) {
   return products.filter((product: any) => {
-    if (!matchesTextFilter(product.category_name, filters.categoryFilters)) return false;
+    // Category filter: skip at this level (category_id needs name lookup, done post-fetch)
+    // Material filter
     if (!matchesListFilter(product.materials, filters.materialFilters)) return false;
+    // Color filter
     if (!matchesListFilter(product.colors, filters.colorFilters)) return false;
+    // Gender filter
     if (!matchesTextFilter(product.gender, filters.genderFilters)) return false;
-    if (!matchesTextFilter(product.supplier_name, filters.supplierFilters)) return false;
+    // Supplier filter: skip at this level (supplier_id needs name lookup)
+    // Publico-alvo from tags
     if (!matchesTagFilter(product.tags, ["publicoAlvo", "publico_alvo"], filters.publicoFilters)) return false;
     if (!matchesTagFilter(product.tags, ["datasComemorativas", "datas_comemorativas"], filters.dataComemorativaFilters)) return false;
     if (!matchesTagFilter(product.tags, ["endomarketing"], filters.endomarketingFilters)) return false;
@@ -218,7 +222,7 @@ function applyProductFilters(products: any[], filters: {
       const allTech = [...techFromTags, ...techDirect].map(t => t.toLowerCase());
       if (!filters.techniqueFilters.some(f => allTech.some(t => t === f.toLowerCase() || t.includes(f.toLowerCase())))) return false;
     }
-    if (filters.onlyInStock && Number(product.stock ?? product.stock_quantity ?? 0) <= 0) return false;
+    if (filters.onlyInStock && Number(product.stock_quantity ?? product.stock ?? 0) <= 0) return false;
     if (filters.onlyNew && !Boolean(product.new_arrival ?? product.is_new)) return false;
     if (filters.onlyKit && !Boolean(product.is_kit)) return false;
     if (filters.onlyFeatured && !Boolean(product.featured ?? product.is_featured)) return false;
