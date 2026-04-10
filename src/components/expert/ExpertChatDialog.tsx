@@ -587,52 +587,44 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
                 {messages.length === 0 && (
-                  <div className="text-center py-10">
-                    <div className="relative h-18 w-18 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/10">
-                      <Bot className="h-9 w-9 text-primary" />
-                      <div className="absolute -bottom-1 -right-1">
-                        <Sparkles className="h-4 w-4 text-primary/60" />
+                  <div className="text-center py-8">
+                    <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/15 shadow-xl shadow-primary/5">
+                      <Bot className="h-10 w-10 text-primary/80" />
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border border-primary/10">
+                        <Sparkles className="h-3.5 w-3.5 text-primary/70" />
                       </div>
                     </div>
-                    <h3 className="font-display text-lg font-semibold mb-1.5">Olá! Sou o Oráculo</h3>
-                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
+                    <h3 className="font-display text-xl font-bold mb-2 tracking-tight">Olá! Sou o Oráculo</h3>
+                    <p className="text-sm text-muted-foreground/80 max-w-[260px] mx-auto leading-relaxed">
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
                         : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
                     </p>
-                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInput("Quais produtos você recomenda para este cliente?")}
-                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      >
-                        ✨ Recomendações
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInput("Sugira produtos para datas comemorativas")}
-                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      >
-                        🎁 Datas comemorativas
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInput("Produtos que combinam com as cores da marca")}
-                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      >
-                        🎨 Cores da marca
-                      </Button>
+                    <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                      {[
+                        { emoji: "✨", label: "Recomendações", prompt: "Quais produtos você recomenda para este cliente?" },
+                        { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para datas comemorativas" },
+                        { emoji: "🎨", label: "Cores da marca", prompt: "Produtos que combinam com as cores da marca" },
+                      ].map((item) => (
+                        <Button
+                          key={item.label}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setInput(item.prompt)}
+                          className="text-xs rounded-2xl hover:bg-primary/5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 gap-1.5 px-4 py-2"
+                        >
+                          <span>{item.emoji}</span>
+                          {item.label}
+                        </Button>
+                      ))}
                     </div>
                     {conversations.length > 0 && (
                       <Button
                         variant="link"
                         size="sm"
                         onClick={() => setShowHistory(true)}
-                        className="mt-4 text-xs"
+                        className="mt-4 text-xs text-muted-foreground/60 hover:text-primary"
                       >
                         <History className="h-3 w-3 mr-1" />
                         Ver conversas anteriores ({conversations.length})
