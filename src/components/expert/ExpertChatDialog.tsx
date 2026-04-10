@@ -95,6 +95,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(null);
   const [selectedMaterial, setSelectedMaterial] = useState<string | null>(null);
+  const [autoPlayTts, setAutoPlayTts] = useState(() => {
+    try { return localStorage.getItem("flow_autoplay_tts") !== "false"; } catch { return true; }
+  });
   const [categories, setCategories] = useState<string[]>([]);
   const [materials, setMaterials] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -519,7 +522,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
 
       // Auto-play TTS when response came from a voice command
-      if (isFromVoiceRef.current && assistantMessage) {
+      if (isFromVoiceRef.current && autoPlayTts && assistantMessage) {
         setTimeout(() => {
           handlePlayTts(assistantMsgId, assistantMessage);
         }, 300);
@@ -666,6 +669,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       ))}
                     </>
                   )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Áudio</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      const next = !autoPlayTts;
+                      setAutoPlayTts(next);
+                      try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
+                    }}
+                    className="text-xs"
+                  >
+                    <Volume2 className="h-3 w-3 mr-1.5 opacity-50" />
+                    Auto-play por voz
+                    <span className={cn("ml-auto text-[10px] font-medium", autoPlayTts ? "text-primary" : "text-muted-foreground/50")}>
+                      {autoPlayTts ? "ON" : "OFF"}
+                    </span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
