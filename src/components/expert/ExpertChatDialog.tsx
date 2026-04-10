@@ -51,9 +51,16 @@ interface ExpertChatDialogProps {
   onClose: () => void;
   clientId?: string;
   clientName?: string;
+  initialMessage?: string | null;
 }
 
-export function ExpertChatDialog({ isOpen, onClose, clientId, clientName }: ExpertChatDialogProps) {
+export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
+  const navigate = useNavigate();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
+  const ttsStopRef = useRef<(() => void) | null>(null);
   const navigate = useNavigate();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
