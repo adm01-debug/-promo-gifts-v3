@@ -796,7 +796,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         <Bot className="h-3.5 w-3.5 text-primary" />
                       </div>
                     )}
-                    <div className="flex flex-col max-w-[80%]">
+                    <div className="flex flex-col max-w-[80%] group/msg">
                       <div
                         className={cn(
                           "rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
@@ -805,22 +805,42 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                             : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
                         )}
                       >
-                        <p className="whitespace-pre-wrap">
-                          {message.role === "assistant" 
-                            ? renderMessageContent(message.content)
-                            : message.content
-                          }
-                        </p>
+                        {message.role === "assistant" ? (
+                          <div className="prose prose-sm prose-neutral dark:prose-invert max-w-none [&>p]:my-1 [&>ul]:my-1 [&>ol]:my-1 [&>h1]:text-sm [&>h2]:text-sm [&>h3]:text-xs [&>p]:text-[13px] [&>p]:leading-relaxed [&_li]:text-[13px] [&_li]:leading-relaxed [&>pre]:text-xs [&>pre]:bg-background/50 [&>pre]:rounded-lg [&>pre]:border [&>pre]:border-border/20 [&_code]:text-xs [&_code]:bg-background/50 [&_code]:px-1 [&_code]:py-0.5 [&_code]:rounded [&_a]:text-primary [&_a]:no-underline [&_a]:font-medium hover:[&_a]:underline [&_strong]:font-semibold [&_table]:text-xs">
+                            <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                              {message.content}
+                            </ReactMarkdown>
+                          </div>
+                        ) : (
+                          <p className="whitespace-pre-wrap">{message.content}</p>
+                        )}
                       </div>
-                      {/* TTS controls */}
+                      {/* Action bar: Copy + TTS */}
                       {message.role === "assistant" && message.content && !isLoading && (() => {
                         const msgId = message.id || `msg-${index}`;
                         const isPlaying = playingTtsId === msgId;
                         const isPaused = pausedTtsId === msgId;
                         const isLoadingTts = loadingTtsId === msgId;
                         const isActive = isPlaying || isPaused;
+                        const isCopied = copiedId === msgId;
                         return (
-                          <div className="flex items-center gap-0.5 self-start mt-1 ml-0.5">
+                          <div className={cn(
+                            "flex items-center gap-0.5 self-start mt-1 ml-0.5 transition-opacity duration-150",
+                            isActive ? "opacity-100" : "opacity-0 group-hover/msg:opacity-100"
+                          )}>
+                            <button
+                              onClick={() => handleCopy(msgId, message.content)}
+                              className={cn(
+                                "p-1 rounded-lg transition-all duration-150",
+                                isCopied
+                                  ? "text-emerald-500"
+                                  : "text-muted-foreground/40 hover:text-foreground hover:bg-muted/50"
+                              )}
+                              title={isCopied ? "Copiado!" : "Copiar"}
+                              aria-label="Copiar mensagem"
+                            >
+                              {isCopied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
+                            </button>
                             <button
                               onClick={() => {
                                 if (isPlaying) {
@@ -882,7 +902,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   </motion.div>
                 ))}
 
-                {/* Typing indicator */}
+                {/* Typing indicator — smooth wave */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
                   <motion.div
                     initial={{ opacity: 0, y: 6 }}
@@ -894,10 +914,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     </div>
                     <div className="bg-muted/50 rounded-2xl rounded-bl-lg border border-border/20 px-4 py-3">
                       <div className="flex items-center gap-2">
-                        <div className="flex items-center gap-1.5">
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s]" />
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
-                          <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                        <div className="flex items-center gap-1">
+                          {[0, 1, 2].map((i) => (
+                            <motion.div
+                              key={i}
+                              className="h-1.5 w-1.5 rounded-full bg-primary/60"
+                              animate={{
+                                scale: [1, 1.4, 1],
+                                opacity: [0.4, 1, 0.4],
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                                delay: i * 0.2,
+                                ease: "easeInOut",
+                              }}
+                            />
+                          ))}
                         </div>
                         {isFromVoice && (
                           <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
@@ -910,6 +943,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   </motion.div>
                 )}
               </div>
+
+              {/* Scroll to bottom FAB */}
+              <AnimatePresence>
+                {showScrollDown && (
+                  <motion.button
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    onClick={scrollToBottom}
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 h-8 w-8 rounded-full bg-background border border-border/50 shadow-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:shadow-lg transition-all z-10"
+                    aria-label="Rolar para baixo"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                  </motion.button>
+                )}
+              </AnimatePresence>
             </ScrollArea>
 
             {/* ─── INPUT ─── */}
