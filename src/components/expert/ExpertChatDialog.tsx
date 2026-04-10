@@ -589,7 +589,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           <>
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
-                {messages.length === 0 && (
+                {messages.length === 0 && !isFromVoice && (
                   <div className="text-center py-8">
                     <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/15 shadow-xl shadow-primary/5">
                       <Bot className="h-10 w-10 text-primary/80" />
@@ -633,6 +633,26 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         Ver conversas anteriores ({conversations.length})
                       </Button>
                     )}
+                  </div>
+                )}
+
+                {/* Voice command loading state */}
+                {messages.length === 0 && isFromVoice && (
+                  <div className="text-center py-12 animate-fade-in">
+                    <div className="relative h-24 w-24 mx-auto mb-6">
+                      <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s]" />
+                      <div className="absolute inset-2 rounded-full bg-primary/15 animate-ping [animation-duration:1.5s] [animation-delay:0.3s]" />
+                      <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/10">
+                        <Mic className="h-10 w-10 text-primary animate-pulse" />
+                      </div>
+                    </div>
+                    <h3 className="font-display text-lg font-semibold mb-1.5 tracking-tight">Processando comando de voz</h3>
+                    <p className="text-sm text-muted-foreground/70">Preparando sua consulta ao Oráculo...</p>
+                    <div className="flex items-center justify-center gap-1.5 mt-4">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                    </div>
                   </div>
                 )}
 
