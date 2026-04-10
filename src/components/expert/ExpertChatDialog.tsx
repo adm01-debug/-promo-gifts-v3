@@ -1056,6 +1056,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           const isPlaying = playingTtsId === msgId;
                           const isPaused = pausedTtsId === msgId;
                           const isLoadingTts = loadingTtsId === msgId;
+                          const isTtsError = ttsErrorId === msgId;
                           const isActive = isPlaying || isPaused;
                           const isCopied = copiedId === msgId;
                           return (
