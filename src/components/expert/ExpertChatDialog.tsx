@@ -288,12 +288,14 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
           },
           body: JSON.stringify({
-            messages: [...messages, { role: "user", content: userMessage }],
-            clientId,
-            categoryFilter: selectedCategory,
-            priceMin: selectedPriceRange?.min ?? null,
-            priceMax: selectedPriceRange?.max ?? null,
-            materialFilter: selectedMaterial,
+            messages: [...messages, { role: "user", content: userMessage }]
+              .map(m => ({ role: m.role, content: m.content }))
+              .filter(m => m.content && m.content.length > 0),
+            clientId: clientId || undefined,
+            categoryFilter: selectedCategory || undefined,
+            priceMin: selectedPriceRange?.min ?? undefined,
+            priceMax: selectedPriceRange?.max ?? undefined,
+            materialFilter: selectedMaterial || undefined,
           }),
         }
       );
