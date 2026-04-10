@@ -28,20 +28,29 @@ interface Message {
 interface ClientData {
   id: string;
   name: string;
-  ramo?: string;
-  nicho?: string;
-  primary_color_name?: string;
-  primary_color_hex?: string;
-  logo_url?: string;
-  total_spent?: number;
-  last_purchase_date?: string;
+  razao_social: string;
+  nome_fantasia?: string | null;
+  ramo_atividade?: string | null;
+  cnpj?: string | null;
+  logo_url?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  website?: string | null;
+  instagram?: string | null;
 }
 
-interface DealData {
-  title: string;
-  value?: number;
-  stage?: string;
-  created_at_bitrix?: string;
+interface CustomerData {
+  cliente_ativado?: boolean;
+  data_primeira_compra?: string | null;
+  data_ultima_compra?: string | null;
+  total_pedidos?: number;
+  valor_total_compras?: number;
+  ticket_medio?: number | null;
+  poder_compra?: string | null;
+  perfil_preco?: string | null;
+  vendedor_nome?: string | null;
+  sobre?: string | null;
+  observacoes?: string | null;
 }
 
 interface OrderData {
@@ -127,37 +136,69 @@ Deno.serve(async (req) => {
     // Fetch client data if clientId is provided
     let clientContext = "";
     let clientData: ClientData | null = null;
-    let clientDeals: DealData[] = [];
+    let customerData: CustomerData | null = null;
 
     if (clientId) {
-      console.log("Fetching client data for:", clientId);
+      console.log("Fetching client data from CRM for:", clientId);
       
-      const { data: client, error: clientError } = await supabase
-        .from("bitrix_clients")
-        .select("*")
-        .eq("id", clientId)
-        .single();
+      // Connect to external CRM database
+      const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
+      const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
+      
+      if (CRM_URL && CRM_KEY) {
+        const crmClient = createClient(CRM_URL, CRM_KEY);
+        
+        // Fetch company data from CRM
+        const { data: company, error: companyError } = await crmClient
+          .from("companies")
+          .select("id, razao_social, nome_fantasia, title, ramo_atividade, cnpj, logo_url, cidade, estado, website, instagram, is_customer, is_supplier")
+          .eq("id", clientId)
+          .single();
 
-      if (clientError) {
-        console.error("Error fetching client:", clientError);
+        if (companyError) {
+          console.error("Error fetching CRM company:", companyError);
+        } else if (company) {
+          clientData = {
+            id: company.id,
+            name: company.title || company.nome_fantasia || company.razao_social,
+            razao_social: company.razao_social,
+            nome_fantasia: company.nome_fantasia,
+            ramo_atividade: company.ramo_atividade,
+            cnpj: company.cnpj,
+            logo_url: company.logo_url,
+            cidade: company.cidade,
+            estado: company.estado,
+            website: company.website,
+            instagram: company.instagram,
+          };
+          console.log("CRM company data loaded:", clientData.name);
+        }
+
+        // Fetch customer-specific data
+        const { data: customer, error: customerError } = await crmClient
+          .from("customers")
+          .select("cliente_ativado, data_primeira_compra, data_ultima_compra, total_pedidos, valor_total_compras, ticket_medio, poder_compra, perfil_preco, vendedor_nome, sobre, observacoes")
+          .eq("company_id", clientId)
+          .single();
+
+        if (!customerError && customer) {
+          customerData = customer;
+          console.log("CRM customer data loaded, total_pedidos:", customerData?.total_pedidos);
+        }
+
+        // Fetch contacts for this company
+        const { data: contacts } = await crmClient
+          .from("contacts")
+          .select("first_name, last_name, cargo, departamento")
+          .eq("company_id", clientId)
+          .is("deleted_at", null)
+          .limit(5);
+
+        if (contacts?.length) {
+          console.log("CRM contacts loaded:", contacts.length);
+        }
       } else {
-        clientData = client;
-        console.log("Client data:", clientData);
-      }
-
-      // Fetch client deals/purchase history
-      const { data: deals, error: dealsError } = await supabase
-        .from("bitrix_deals")
-        .select("*")
-        .eq("bitrix_client_id", clientId)
-        .order("created_at_bitrix", { ascending: false })
-        .limit(20);
-
-      if (dealsError) {
-        console.error("Error fetching deals:", dealsError);
-      } else {
-        clientDeals = deals || [];
-        console.log("Client deals count:", clientDeals.length);
+        console.warn("CRM env vars not set, skipping CRM data");
       }
 
       // Fetch client's quote history for product preferences
@@ -266,27 +307,37 @@ Deno.serve(async (req) => {
 
       if (clientData) {
         clientContext = `
-CONTEXTO COMPLETO DO CLIENTE:
+CONTEXTO COMPLETO DO CLIENTE (CRM):
 - Nome: ${clientData.name}
-- Ramo de atividade: ${clientData.ramo || "Não informado"}
-- Nicho/Segmento: ${clientData.nicho || "Não informado"}
-- Cor primária da marca: ${clientData.primary_color_name || "Não informada"} ${clientData.primary_color_hex ? `(${clientData.primary_color_hex})` : ""}
+- Razão Social: ${clientData.razao_social}
+${clientData.nome_fantasia ? `- Nome Fantasia: ${clientData.nome_fantasia}` : ""}
+- Ramo de atividade: ${clientData.ramo_atividade || "Não informado"}
+${clientData.cnpj ? `- CNPJ: ${clientData.cnpj}` : ""}
+- Localização: ${[clientData.cidade, clientData.estado].filter(Boolean).join(", ") || "Não informada"}
 - Logo disponível: ${clientData.logo_url ? "Sim" : "Não"}
-- Total investido (CRM): ${clientData.total_spent ? `R$ ${clientData.total_spent.toLocaleString("pt-BR")}` : "Não disponível"}
-- Última compra: ${clientData.last_purchase_date ? new Date(clientData.last_purchase_date).toLocaleDateString("pt-BR") : "Não disponível"}
+${clientData.website ? `- Website: ${clientData.website}` : ""}
+${clientData.instagram ? `- Instagram: ${clientData.instagram}` : ""}
 - Dias desde última interação: ${daysSinceLastInteraction !== null ? `${daysSinceLastInteraction} dias` : "N/A"}
 
-MÉTRICAS DE VENDAS:
-- Ticket médio: ${averageOrderValue > 0 ? `R$ ${averageOrderValue.toFixed(2)}` : "Sem dados"}
+DADOS COMERCIAIS (CRM):
+${customerData ? `- Status: ${customerData.cliente_ativado ? "Ativo" : "Inativo"}
+- Total de pedidos (CRM): ${customerData.total_pedidos || 0}
+- Valor total compras: ${customerData.valor_total_compras ? `R$ ${customerData.valor_total_compras.toLocaleString("pt-BR")}` : "N/A"}
+- Ticket médio (CRM): ${customerData.ticket_medio ? `R$ ${customerData.ticket_medio.toFixed(2)}` : "N/A"}
+- Poder de compra: ${customerData.poder_compra || "N/A"}
+- Perfil de preço: ${customerData.perfil_preco || "N/A"}
+- Primeira compra: ${customerData.data_primeira_compra ? new Date(customerData.data_primeira_compra).toLocaleDateString("pt-BR") : "N/A"}
+- Última compra: ${customerData.data_ultima_compra ? new Date(customerData.data_ultima_compra).toLocaleDateString("pt-BR") : "N/A"}
+- Vendedor responsável: ${customerData.vendedor_nome || "N/A"}
+${customerData.sobre ? `- Sobre: ${customerData.sobre}` : ""}
+${customerData.observacoes ? `- Observações: ${customerData.observacoes}` : ""}` : "- Sem dados comerciais no CRM"}
+
+MÉTRICAS DE VENDAS (PLATAFORMA):
+- Ticket médio orçamentos: ${averageOrderValue > 0 ? `R$ ${averageOrderValue.toFixed(2)}` : "Sem dados"}
 - Total de orçamentos: ${quoteProductHistory.length}
 - Pedidos confirmados: ${clientOrders.length}
 - Receita total em pedidos: R$ ${totalRevenue.toFixed(2)}
 - Taxa de conversão: ${conversionRate}%
-
-HISTÓRICO DE NEGOCIAÇÕES CRM (últimas ${clientDeals.length}):
-${clientDeals.length > 0 
-  ? clientDeals.map((deal, i) => `${i + 1}. ${deal.title} - ${deal.value ? `R$ ${deal.value.toLocaleString("pt-BR")}` : "Valor não informado"} (${deal.stage || "Em andamento"})`).join("\n")
-  : "Nenhum histórico no CRM"}
 
 ORÇAMENTOS RECENTES:
 ${quoteProductHistory.length > 0
