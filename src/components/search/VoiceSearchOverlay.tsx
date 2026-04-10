@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle } from "lucide-react";
+import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle, Send, Keyboard } from "lucide-react";
 import type { VoiceAgentAction, VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import {
@@ -30,6 +30,7 @@ interface VoiceSearchOverlayProps {
   onStopListening: () => void;
   onStopSpeaking: () => void;
   onCommandSelect?: (command: string) => void;
+  onSimulateCommand?: (command: string) => void;
 }
 
 const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string; emoji: string }> = {
@@ -58,11 +59,14 @@ const ACTION_META: Record<string, { icon: React.ElementType; label: string; colo
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen, phase, partialTranscript, finalTranscript, agentResponse, error,
-    recentCommands, currentAction, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
+    recentCommands, currentAction, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect, onSimulateCommand,
   }, ref) {
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [bootingTimedOut, setBootingTimedOut] = useState(false);
+    const [showTextInput, setShowTextInput] = useState(false);
+    const [textCommand, setTextCommand] = useState("");
+    const textInputRef = useRef<HTMLInputElement>(null);
     const wasOpenRef = useRef(false);
 
     // Closing transition guard
