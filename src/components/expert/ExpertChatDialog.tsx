@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -671,31 +672,43 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   </div>
                 )}
 
-                {/* Voice command loading state */}
-                {messages.length === 0 && isFromVoice && (
-                  <div className="text-center py-12 animate-fade-in">
-                    <div className="relative h-24 w-24 mx-auto mb-6">
-                      <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s]" />
-                      <div className="absolute inset-2 rounded-full bg-primary/15 animate-ping [animation-duration:1.5s] [animation-delay:0.3s]" />
-                      <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/10">
-                        <Mic className="h-10 w-10 text-primary animate-pulse" />
+                {/* Voice command loading → messages crossfade */}
+                <AnimatePresence mode="wait">
+                  {messages.length === 0 && isFromVoice && (
+                    <motion.div
+                      key="voice-loading"
+                      initial={{ opacity: 0, scale: 0.95, y: 12 }}
+                      animate={{ opacity: 1, scale: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.92, y: -16, filter: "blur(4px)" }}
+                      transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                      className="text-center py-12"
+                    >
+                      <div className="relative h-24 w-24 mx-auto mb-6">
+                        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s]" />
+                        <div className="absolute inset-2 rounded-full bg-primary/15 animate-ping [animation-duration:1.5s] [animation-delay:0.3s]" />
+                        <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/10">
+                          <Mic className="h-10 w-10 text-primary animate-pulse" />
+                        </div>
                       </div>
-                    </div>
-                    <h3 className="font-display text-lg font-semibold mb-1.5 tracking-tight">Processando comando de voz</h3>
-                    <p className="text-sm text-muted-foreground/70">Preparando sua consulta ao Oráculo...</p>
-                    <div className="flex items-center justify-center gap-1.5 mt-4">
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
-                      <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
-                    </div>
-                  </div>
-                )}
+                      <h3 className="font-display text-lg font-semibold mb-1.5 tracking-tight">Processando comando de voz</h3>
+                      <p className="text-sm text-muted-foreground/70">Preparando sua consulta ao Oráculo...</p>
+                      <div className="flex items-center justify-center gap-1.5 mt-4">
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                        <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
 
                 {messages.map((message, index) => (
-                  <div
+                  <motion.div
                     key={message.id || `msg-${message.role}-${index}`}
+                    initial={{ opacity: 0, y: 16, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.35, delay: index === 0 && isFromVoice ? 0.15 : 0, ease: [0.4, 0, 0.2, 1] }}
                     className={cn(
-                      "flex gap-2.5 animate-fade-in",
+                      "flex gap-2.5",
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
@@ -786,7 +799,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         <User className="h-4 w-4 text-secondary-foreground/70" />
                       </div>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
 
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
