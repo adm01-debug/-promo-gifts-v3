@@ -12,7 +12,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { preprocessProductLinks, ProductAwareLink } from "./ProductLinkRenderer";
 import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertConversations";
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, isToday, isThisWeek, isThisMonth, startOfDay, startOfWeek, startOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { supabase } from "@/integrations/supabase/client";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
