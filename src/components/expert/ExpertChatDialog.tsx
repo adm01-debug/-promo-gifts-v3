@@ -262,10 +262,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setMessages([]);
     setCurrentConversationId(null);
     setShowHistory(false);
-    setSelectedCategory(null);
-    setPriceMin("");
-    setPriceMax("");
-    setSelectedMaterial(null);
+    setFlowFilters(defaultFlowFilters);
   }, [clientId]);
 
   // Auto-send initial message from voice bridge
