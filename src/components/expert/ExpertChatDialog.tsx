@@ -80,6 +80,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
   const [pausedTtsId, setPausedTtsId] = useState<string | null>(null);
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
+  const [ttsErrorId, setTtsErrorId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
   const isFromVoiceRef = useRef(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -319,6 +320,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
     setPausedTtsId(null);
     setLoadingTtsId(messageId);
+    setTtsErrorId(null);
     try {
       const { promise, stop, pause, resume } = playTtsAudio(text, {
         onStart: () => {
@@ -332,6 +334,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       await promise;
     } catch (err) {
       console.warn("[Oracle TTS] Playback failed:", err);
+      setTtsErrorId(messageId);
+      toast.error("Não foi possível reproduzir o áudio", {
+        description: "O navegador bloqueou a reprodução. Toque novamente para tentar.",
+      });
     } finally {
       setPlayingTtsId(null);
       setPausedTtsId(null);
@@ -1050,6 +1056,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           const isPlaying = playingTtsId === msgId;
                           const isPaused = pausedTtsId === msgId;
                           const isLoadingTts = loadingTtsId === msgId;
+                          const isTtsError = ttsErrorId === msgId;
                           const isActive = isPlaying || isPaused;
                           const isCopied = copiedId === msgId;
                           return (
@@ -1099,17 +1106,21 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                 disabled={isLoadingTts}
                                 className={cn(
                                   "p-2 rounded-xl transition-all duration-150",
-                                  isActive
-                                    ? "text-primary bg-primary/15 shadow-sm"
-                                    : isLoadingTts
-                                      ? "text-primary/50 cursor-wait bg-primary/5"
-                                      : "text-muted-foreground/60 hover:text-primary hover:bg-primary/10"
+                                  isTtsError
+                                    ? "text-destructive bg-destructive/10 hover:bg-destructive/15"
+                                    : isActive
+                                      ? "text-primary bg-primary/15 shadow-sm"
+                                      : isLoadingTts
+                                        ? "text-primary/50 cursor-wait bg-primary/5"
+                                        : "text-muted-foreground/60 hover:text-primary hover:bg-primary/10"
                                 )}
-                                title={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
-                                aria-label={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
+                                title={isTtsError ? "Áudio bloqueado — toque para tentar novamente" : isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
+                                aria-label={isTtsError ? "Tentar reproduzir áudio novamente" : isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
                               >
                                 {isLoadingTts ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : isTtsError ? (
+                                  <RotateCcw className="h-4 w-4" />
                                 ) : isPlaying ? (
                                   <Pause className="h-4 w-4" />
                                 ) : isPaused ? (
@@ -1118,6 +1129,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                   <Volume2 className="h-4 w-4" />
                                 )}
                               </button>
+                              {isTtsError && (
+                                <span className="text-[10px] text-destructive font-medium">
+                                  Bloqueado
+                                </span>
+                              )}
                               {isActive && (
                                 <button
                                   onClick={() => {
