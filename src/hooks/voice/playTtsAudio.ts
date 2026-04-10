@@ -116,17 +116,13 @@ export function playTtsAudio(
     } finally {
       clearTimeout(timeout);
     }
-
     
-
     if (!ttsResponse.ok) {
       const errBody = await ttsResponse.text().catch(() => "");
-      
       throw new Error(`TTS failed: ${ttsResponse.status} - ${errBody}`);
     }
 
     const blob = await ttsResponse.blob();
-    
     if (blob.size === 0) {
       throw new Error("Empty audio response");
     }
