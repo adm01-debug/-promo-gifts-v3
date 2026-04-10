@@ -7,7 +7,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Package, ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getCdnUrl } from "@/lib/image-proxy";
+import { getCdnUrl } from "@/utils/image-utils";
 
 // Matches [[PRODUTO:id:name]] and [[PRODUTO:id:name:imageUrl]]
 const PRODUCT_LINK_REGEX = /\[\[PRODUTO:([^:\]]+):([^:\]]+)(?::([^\]]+))?\]\]/g;
