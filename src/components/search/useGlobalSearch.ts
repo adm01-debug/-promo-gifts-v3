@@ -3,6 +3,7 @@
  * Extracted to reduce the component from 1033 to ~300 lines (UI only).
  */
 import { useEffect, useState, useCallback } from "react";
+import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
