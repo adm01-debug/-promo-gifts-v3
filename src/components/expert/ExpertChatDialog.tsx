@@ -275,12 +275,14 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
       initialMessageSentRef.current = true;
       setIsFromVoice(true);
+      isFromVoiceRef.current = true;
       // Auto-send directly
       handleAutoSend(initialMessage);
     }
     if (!isOpen) {
       initialMessageSentRef.current = false;
       setIsFromVoice(false);
+      isFromVoiceRef.current = false;
     }
   }, [isOpen, initialMessage, isLoading]);
 
