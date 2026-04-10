@@ -429,7 +429,7 @@ ${topProducts.length > 0
     // Also fetch general products for broader context
     let productsQuery = supabase
       .from("products")
-      .select("id, name, sku, category_name, subcategory, description, price, colors, materials, tags")
+      .select("id, name, sku, category_name, subcategory, description, price, colors, materials, tags, og_image_url, images")
       .eq("is_active", true);
     
     // Apply category filter if set
@@ -458,6 +458,7 @@ ${topProducts.length > 0
 
     // Build product description helper
     const buildProductDescription = (p: any, relevance?: number): string => {
+      const imageUrl = p.og_image_url || (Array.isArray(p.images) && p.images.length > 0 ? p.images[0] : null);
       const parts = [
         `ID: ${p.id}`,
         `Nome: ${p.name}`,
@@ -467,6 +468,7 @@ ${topProducts.length > 0
         `Preço: R$ ${p.price?.toFixed(2) || "N/A"}`,
         p.description ? `Descrição: ${p.description.substring(0, 150)}` : null,
         p.materials?.length ? `Materiais: ${p.materials.join(", ")}` : null,
+        imageUrl ? `Imagem: ${imageUrl}` : null,
         relevance !== undefined ? `[Relevância: ${(relevance * 100).toFixed(0)}%]` : null,
       ].filter(Boolean);
       return parts.join(" | ");
@@ -569,9 +571,11 @@ ESTRATÉGIAS DE UPSELL E CROSS-SELL:
 5. **Personalização adicional**: Gravação, bordado, impressão colorida
 6. **Linha premium**: Baseado no ticket médio
 
-FORMATO DE LINKS DE PRODUTOS:
-[[PRODUTO:id_do_produto:Nome do Produto]]
-Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium]]"
+FORMATO DE LINKS DE PRODUTOS (com imagem quando disponível):
+[[PRODUTO:id_do_produto:Nome do Produto:url_da_imagem]]
+Se não houver imagem: [[PRODUTO:id_do_produto:Nome do Produto]]
+Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium:https://example.com/img.jpg]]"
+IMPORTANTE: SEMPRE inclua a URL da imagem quando disponível nos dados do produto (campo "Imagem").
 
 BUSCA SEMÂNTICA:
 PRIORIZE produtos de "PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA" nas recomendações.
