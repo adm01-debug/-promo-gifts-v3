@@ -919,6 +919,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     )}
                   </motion.div>
                 ))}
+                </AnimatePresence>
 
                 {/* Typing indicator — smooth wave */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
