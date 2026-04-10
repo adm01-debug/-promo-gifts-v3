@@ -695,7 +695,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           </ScrollArea>
         ) : (
           <>
-            <ScrollArea className="flex-1 px-4 py-3" ref={scrollRef}>
+            <ScrollArea className="flex-1 px-4 py-3 relative" ref={scrollRef} onScrollCapture={handleScroll}>
               <div className="space-y-3">
                 {/* ─── EMPTY STATE ─── */}
                 {messages.length === 0 && !isFromVoice && (
