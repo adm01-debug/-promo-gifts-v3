@@ -844,7 +844,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
                       className="font-display text-lg font-semibold tracking-tight mb-1"
                     >
-                      Olá! Sou o Oráculo
+                      {sellerFirstName ? `E aí, ${sellerFirstName}! 👋` : "Olá! Sou o Oráculo"}
                     </motion.h3>
                     <motion.p
                       variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
