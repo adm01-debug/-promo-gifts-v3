@@ -581,41 +581,44 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
                 {messages.length === 0 && (
-                  <div className="text-center py-8">
-                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <Bot className="h-8 w-8 text-primary" />
+                  <div className="text-center py-10">
+                    <div className="relative h-18 w-18 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/10">
+                      <Bot className="h-9 w-9 text-primary" />
+                      <div className="absolute -bottom-1 -right-1">
+                        <Sparkles className="h-4 w-4 text-primary/60" />
+                      </div>
                     </div>
-                    <h3 className="font-display font-medium mb-2">Olá! Sou o Oráculo</h3>
-                    <p className="text-sm text-muted-foreground max-w-[300px] mx-auto">
+                    <h3 className="font-display text-lg font-semibold mb-1.5">Olá! Sou o Oráculo</h3>
+                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
                       {clientId 
-                        ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"} com base no perfil e histórico de compras.`
-                        : "Posso ajudar a encontrar os melhores produtos para seus clientes. Selecione um cliente para recomendações personalizadas."
+                        ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
+                        : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
                     </p>
-                    <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setInput("Quais produtos você recomenda para este cliente?")}
-                        className="text-xs"
+                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
                       >
-                        Recomendações
+                        ✨ Recomendações
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setInput("Sugira produtos para datas comemorativas")}
-                        className="text-xs"
+                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
                       >
-                        Datas comemorativas
+                        🎁 Datas comemorativas
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setInput("Produtos que combinam com as cores da marca")}
-                        className="text-xs"
+                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
                       >
-                        Cores da marca
+                        🎨 Cores da marca
                       </Button>
                     </div>
                     {conversations.length > 0 && (
