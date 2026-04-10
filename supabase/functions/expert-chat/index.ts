@@ -28,20 +28,29 @@ interface Message {
 interface ClientData {
   id: string;
   name: string;
-  ramo?: string;
-  nicho?: string;
-  primary_color_name?: string;
-  primary_color_hex?: string;
-  logo_url?: string;
-  total_spent?: number;
-  last_purchase_date?: string;
+  razao_social: string;
+  nome_fantasia?: string | null;
+  ramo_atividade?: string | null;
+  cnpj?: string | null;
+  logo_url?: string | null;
+  cidade?: string | null;
+  estado?: string | null;
+  website?: string | null;
+  instagram?: string | null;
 }
 
-interface DealData {
-  title: string;
-  value?: number;
-  stage?: string;
-  created_at_bitrix?: string;
+interface CustomerData {
+  cliente_ativado?: boolean;
+  data_primeira_compra?: string | null;
+  data_ultima_compra?: string | null;
+  total_pedidos?: number;
+  valor_total_compras?: number;
+  ticket_medio?: number | null;
+  poder_compra?: string | null;
+  perfil_preco?: string | null;
+  vendedor_nome?: string | null;
+  sobre?: string | null;
+  observacoes?: string | null;
 }
 
 interface OrderData {
