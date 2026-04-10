@@ -944,6 +944,34 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   ))}
                 </AnimatePresence>
 
+                {/* Quick follow-up actions after assistant response */}
+                {messages.length > 0 && messages[messages.length - 1]?.role === "assistant" && !messages[messages.length - 1]?.isError && !isLoading && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="flex flex-wrap gap-1.5 ml-9 mt-1"
+                  >
+                    {[
+                      { emoji: "🔍", label: "Aprofundar", prompt: "Pode detalhar mais essa última resposta? Quero mais informações." },
+                      ...(clientId ? [
+                        { emoji: "📝", label: "Montar proposta", prompt: "Com base nessa análise, monte uma proposta comercial detalhada com produtos, quantidades e valores sugeridos." },
+                        { emoji: "💬", label: "Msg follow-up", prompt: "Crie uma mensagem de follow-up para enviar a este cliente por WhatsApp." },
+                      ] : []),
+                      { emoji: "📊", label: "Comparar", prompt: "Compare as opções mencionadas em uma tabela com prós e contras." },
+                    ].map((action) => (
+                      <button
+                        key={action.label}
+                        onClick={() => setInput(action.prompt)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-medium border border-border/40 bg-background/80 hover:border-primary/30 hover:bg-primary/5 text-muted-foreground hover:text-foreground transition-all duration-150"
+                      >
+                        <span className="text-[10px]">{action.emoji}</span>
+                        {action.label}
+                      </button>
+                    ))}
+                  </motion.div>
+                )}
+
                 {/* Typing indicator — smooth wave */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
                   <motion.div
