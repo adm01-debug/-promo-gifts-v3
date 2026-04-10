@@ -384,19 +384,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[520px] h-[620px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden border-primary/10">
-        <DialogHeader className="p-4 pb-3 border-b bg-gradient-to-r from-primary/15 via-primary/8 to-transparent">
+        <DialogHeader className="p-4 pb-3 border-b border-border/40 bg-gradient-to-r from-primary/12 via-primary/5 to-transparent backdrop-blur-sm">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
-                <Bot className="h-5 w-5 text-primary-foreground" />
-                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
+              <div className="relative group">
+                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center shadow-lg shadow-primary/25 transition-transform duration-200 group-hover:scale-105">
+                  <Bot className="h-5 w-5 text-primary-foreground" />
+                </div>
+                <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background shadow-sm shadow-emerald-500/30">
+                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
+                </div>
               </div>
               <div>
-                <DialogTitle className="text-lg font-display flex items-center gap-2">
+                <DialogTitle className="text-lg font-display font-semibold flex items-center gap-2 tracking-tight">
                   Oráculo
                   <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                 </DialogTitle>
-                <DialogDescription className="text-xs text-muted-foreground">
+                <DialogDescription className="text-[11px] text-muted-foreground/80 tracking-wide">
                   Consultor de Produtos IA
                 </DialogDescription>
               </div>
@@ -583,52 +587,44 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
                 {messages.length === 0 && (
-                  <div className="text-center py-10">
-                    <div className="relative h-18 w-18 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/10">
-                      <Bot className="h-9 w-9 text-primary" />
-                      <div className="absolute -bottom-1 -right-1">
-                        <Sparkles className="h-4 w-4 text-primary/60" />
+                  <div className="text-center py-8">
+                    <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/15 shadow-xl shadow-primary/5">
+                      <Bot className="h-10 w-10 text-primary/80" />
+                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border border-primary/10">
+                        <Sparkles className="h-3.5 w-3.5 text-primary/70" />
                       </div>
                     </div>
-                    <h3 className="font-display text-lg font-semibold mb-1.5">Olá! Sou o Oráculo</h3>
-                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
+                    <h3 className="font-display text-xl font-bold mb-2 tracking-tight">Olá! Sou o Oráculo</h3>
+                    <p className="text-sm text-muted-foreground/80 max-w-[260px] mx-auto leading-relaxed">
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
                         : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
                     </p>
-                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInput("Quais produtos você recomenda para este cliente?")}
-                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      >
-                        ✨ Recomendações
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInput("Sugira produtos para datas comemorativas")}
-                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      >
-                        🎁 Datas comemorativas
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setInput("Produtos que combinam com as cores da marca")}
-                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
-                      >
-                        🎨 Cores da marca
-                      </Button>
+                    <div className="mt-6 flex flex-wrap gap-2 justify-center">
+                      {[
+                        { emoji: "✨", label: "Recomendações", prompt: "Quais produtos você recomenda para este cliente?" },
+                        { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para datas comemorativas" },
+                        { emoji: "🎨", label: "Cores da marca", prompt: "Produtos que combinam com as cores da marca" },
+                      ].map((item) => (
+                        <Button
+                          key={item.label}
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setInput(item.prompt)}
+                          className="text-xs rounded-2xl hover:bg-primary/5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 gap-1.5 px-4 py-2"
+                        >
+                          <span>{item.emoji}</span>
+                          {item.label}
+                        </Button>
+                      ))}
                     </div>
                     {conversations.length > 0 && (
                       <Button
                         variant="link"
                         size="sm"
                         onClick={() => setShowHistory(true)}
-                        className="mt-4 text-xs"
+                        className="mt-4 text-xs text-muted-foreground/60 hover:text-primary"
                       >
                         <History className="h-3 w-3 mr-1" />
                         Ver conversas anteriores ({conversations.length})
@@ -641,22 +637,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <div
                     key={message.id || `msg-${message.role}-${index}`}
                     className={cn(
-                      "flex gap-3 animate-fade-in",
+                      "flex gap-2.5 animate-fade-in",
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
                     {message.role === "assistant" && (
-                      <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/10">
+                      <div className="h-8 w-8 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/15 ring-1 ring-primary/10">
                         <Bot className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}
-                    <div className="flex flex-col max-w-[80%]">
+                    <div className="flex flex-col max-w-[78%]">
                       <div
                         className={cn(
-                          "rounded-2xl px-4 py-3 text-sm leading-relaxed",
+                          "rounded-2xl px-4 py-3 text-sm leading-relaxed transition-shadow duration-200",
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-br-md shadow-sm shadow-primary/20"
-                            : "bg-muted/80 rounded-bl-md border border-border/40"
+                            ? "bg-primary text-primary-foreground rounded-br-sm shadow-md shadow-primary/20"
+                            : "bg-muted/60 rounded-bl-sm border border-border/30 shadow-sm hover:shadow-md hover:shadow-primary/5"
                         )}
                       >
                         <p className="whitespace-pre-wrap">
@@ -670,10 +666,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         <button
                           onClick={() => handlePlayTts(message.id || `msg-${index}`, message.content)}
                           className={cn(
-                            "self-start mt-1.5 ml-1 p-1.5 rounded-lg text-muted-foreground transition-all duration-200",
+                            "self-start mt-1 ml-1 p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
                             playingTtsId === (message.id || `msg-${index}`)
-                              ? "bg-primary/15 text-primary"
-                              : "hover:text-primary hover:bg-primary/10"
+                              ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                              : "hover:text-primary hover:bg-primary/8"
                           )}
                           title={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
                           aria-label={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
@@ -687,23 +683,23 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       )}
                     </div>
                     {message.role === "user" && (
-                      <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
-                        <User className="h-4 w-4" />
+                      <div className="h-8 w-8 rounded-2xl bg-secondary/80 flex items-center justify-center flex-shrink-0 ring-1 ring-border/30">
+                        <User className="h-4 w-4 text-secondary-foreground/70" />
                       </div>
                     )}
                   </div>
                 ))}
 
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
-                  <div className="flex gap-3 justify-start animate-fade-in">
-                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/10">
+                  <div className="flex gap-2.5 justify-start animate-fade-in">
+                    <div className="h-8 w-8 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/15 ring-1 ring-primary/10">
                       <Bot className="h-4 w-4 text-primary-foreground" />
                     </div>
-                    <div className="bg-muted/80 rounded-2xl rounded-bl-md border border-border/40 px-4 py-3">
-                      <div className="flex items-center gap-1.5">
-                        <div className="h-2 w-2 rounded-full bg-primary/60 animate-pulse" />
-                        <div className="h-2 w-2 rounded-full bg-primary/40 animate-pulse [animation-delay:0.15s]" />
-                        <div className="h-2 w-2 rounded-full bg-primary/20 animate-pulse [animation-delay:0.3s]" />
+                    <div className="bg-muted/60 rounded-2xl rounded-bl-sm border border-border/30 px-5 py-3.5 shadow-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="h-2 w-2 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
+                        <div className="h-2 w-2 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                        <div className="h-2 w-2 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
                       </div>
                     </div>
                   </div>
@@ -711,7 +707,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               </div>
             </ScrollArea>
 
-            <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
+            <div className="p-4 border-t border-border/30 bg-background/90 backdrop-blur-md">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
@@ -720,7 +716,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   onKeyDown={handleKeyDown}
                   placeholder="Pergunte ao Oráculo…"
                   disabled={isLoading}
-                  className="flex-1 rounded-xl border-border/50 focus-visible:ring-primary/30"
+                  className="flex-1 rounded-2xl border-border/40 bg-muted/30 focus-visible:ring-primary/25 focus-visible:border-primary/30 transition-all duration-200 placeholder:text-muted-foreground/50"
                 />
                 <Button
                   data-oracle-send
@@ -728,7 +724,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   disabled={!input.trim() || isLoading}
                   size="icon"
                   aria-label="Enviar mensagem"
-                  className="rounded-xl shadow-sm shadow-primary/20"
+                  className="rounded-2xl shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
