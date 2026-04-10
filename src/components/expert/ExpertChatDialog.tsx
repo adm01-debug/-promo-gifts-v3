@@ -69,6 +69,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const ttsPauseRef = useRef<(() => void) | null>(null);
   const ttsResumeRef = useRef<(() => void) | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [historySearch, setHistorySearch] = useState("");
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedPriceRange, setSelectedPriceRange] = useState<PriceRange | null>(null);
@@ -272,7 +273,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
     const userMessage = input.trim();
     setInput("");
-    
+    // Reset textarea height
+    if (inputRef.current) {
+      inputRef.current.style.height = "auto";
+    }
     // Create new conversation if needed
     let convId = currentConversationId;
     if (!convId) {
@@ -762,11 +766,13 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 </AnimatePresence>
 
                 {/* ─── MESSAGES ─── */}
+                <AnimatePresence initial={false}>
                 {messages.map((message, index) => (
                   <motion.div
                     key={message.id || `msg-${message.role}-${index}`}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
+                    initial={{ opacity: 0, y: 10, scale: 0.97 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.15 } }}
                     transition={{ duration: 0.25, delay: index === 0 && isFromVoice ? 0.15 : 0 }}
                     className={cn(
                       "flex gap-2",
