@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown, RotateCcw } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
@@ -454,7 +454,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden">
         {/* ─── HEADER ─── */}
-        <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0">
+        <DialogHeader className="relative px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -643,25 +643,37 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
         {showHistory ? (
           <ScrollArea className="flex-1 p-4">
-            <div className="space-y-1.5">
-              <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3">
+            <motion.div
+              initial="hidden"
+              animate="visible"
+              variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.04 } } }}
+              className="space-y-1.5"
+            >
+              <motion.p
+                variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
+                className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3"
+              >
                 Conversas anteriores
-              </p>
+              </motion.p>
               {isLoadingConversations ? (
                 <div className="flex justify-center py-8">
                   <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
                 </div>
               ) : conversations.length === 0 ? (
-                <div className="text-center py-12">
+                <motion.div
+                  variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                  className="text-center py-12"
+                >
                   <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
                     <MessageSquare className="h-5 w-5 text-muted-foreground/40" />
                   </div>
                   <p className="text-sm text-muted-foreground/60">Nenhuma conversa ainda</p>
-                </div>
+                </motion.div>
               ) : (
                 conversations.map((conv) => (
-                  <div
+                  <motion.div
                     key={conv.id}
+                    variants={{ hidden: { opacity: 0, x: -8 }, visible: { opacity: 1, x: 0 } }}
                     onClick={() => loadConversation(conv)}
                     className={cn(
                       "group px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150",
@@ -690,10 +702,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))
               )}
-            </div>
+            </motion.div>
           </ScrollArea>
         ) : (
           <>
@@ -841,8 +853,30 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           <p className="whitespace-pre-wrap">{message.content}</p>
                         )}
                       </div>
+                      {/* Error retry */}
+                      {message.isError && (
+                        <button
+                          onClick={() => {
+                            // Find last user message and resend
+                            const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+                            if (lastUserMsg) {
+                              // Remove error message and resend
+                              setMessages(prev => prev.filter(m => m.id !== message.id));
+                              setInput(lastUserMsg.content);
+                              setTimeout(() => {
+                                const sendBtn = document.querySelector('[data-oracle-send]') as HTMLButtonElement;
+                                sendBtn?.click();
+                              }, 100);
+                            }
+                          }}
+                          className="flex items-center gap-1 mt-1 ml-1 text-[11px] text-destructive/70 hover:text-destructive transition-colors"
+                        >
+                          <RotateCcw className="h-3 w-3" />
+                          Tentar novamente
+                        </button>
+                      )}
                       {/* Timestamp on hover */}
-                      {message.timestamp && (
+                      {message.timestamp && !message.isError && (
                         <span className="text-[10px] text-muted-foreground/30 mt-0.5 ml-1 opacity-0 group-hover/msg:opacity-100 transition-opacity select-none">
                           {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
                         </span>
@@ -994,7 +1028,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             </ScrollArea>
 
             {/* ─── INPUT ─── */}
-            <div className="px-4 py-3 border-t border-border/20 flex-shrink-0">
+            <div className="px-4 py-2.5 border-t border-border/20 flex-shrink-0 bg-gradient-to-t from-primary/[0.02] to-transparent">
               <div className="flex gap-2 items-end">
                 <textarea
                   ref={inputRef}
@@ -1026,6 +1060,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   )}
                 </Button>
               </div>
+              <p className="text-center text-[9px] text-muted-foreground/30 mt-1.5 select-none">
+                Shift+Enter para nova linha · Oráculo IA
+              </p>
             </div>
           </>
         )}
