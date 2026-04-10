@@ -328,6 +328,30 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
             return { success: true, data: result };
           }
 
+          // Retry on statement timeout with reduced limit and no count
+          if (selectError.message?.includes('statement timeout') && qLimit > 50) {
+            const retryLimit = Math.min(qLimit, 50);
+            console.warn(`[batch] Query ${idx} (${qTable}) timed out with limit=${qLimit}, retrying with limit=${retryLimit} and no count`);
+            const retryStart = performance.now();
+            let retryQuery = externalSupabase.from(qTable).select(effectiveBatchSelect);
+            if (qFilters) retryQuery = applyFilters(retryQuery, qFilters, null);
+            if (qOrderBy) retryQuery = retryQuery.order(qOrderBy.column, { ascending: qOrderBy.ascending ?? false });
+            retryQuery = retryQuery.range(qOffset, qOffset + retryLimit - 1);
+
+            const { data: retryData, error: retryError } = await retryQuery;
+            const retryDuration = Math.round(performance.now() - retryStart);
+
+            if (retryError) {
+              console.warn(`[batch] Query ${idx} (${qTable}) retry also failed in ${retryDuration}ms: ${retryError.message}`);
+              return { success: false, error: retryError.message };
+            }
+
+            const retryResult = { records: retryData || [], count: null };
+            if (qCacheKey) setCache(qCacheKey, retryResult);
+            console.log(`[batch] ♻️ Query ${idx} (${qTable}) retry OK in ${retryDuration}ms, ${retryData?.length ?? 0} records`);
+            return { success: true, data: retryResult };
+          }
+
           console.warn(`[batch] Query ${idx} (${qTable}) failed in ${duration}ms: ${selectError.message}`);
           return { success: false, error: selectError.message };
         }
