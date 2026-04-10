@@ -249,7 +249,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   // Smooth auto-scroll
   useEffect(() => {
     if (scrollRef.current && !showScrollDown) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      if (typeof scrollRef.current.scrollTo === "function") {
+        scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      } else {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
     }
   }, [messages, showScrollDown]);
 
@@ -262,7 +266,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
-      scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      if (typeof scrollRef.current.scrollTo === "function") {
+        scrollRef.current.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+      } else {
+        scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+      }
       setShowScrollDown(false);
     }
   }, []);

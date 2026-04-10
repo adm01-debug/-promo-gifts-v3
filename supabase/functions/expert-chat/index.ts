@@ -181,6 +181,7 @@ function applyProductFilters(products: any[], filters: {
   colorFilters: string[];
   genderFilters: string[];
   supplierFilters: string[];
+  techniqueFilters: string[];
   publicoFilters: string[];
   dataComemorativaFilters: string[];
   endomarketingFilters: string[];
@@ -189,7 +190,9 @@ function applyProductFilters(products: any[], filters: {
   onlyInStock: boolean;
   onlyNew: boolean;
   onlyKit: boolean;
+  onlyBestseller: boolean;
   onlyFeatured: boolean;
+  hasPersonalization: boolean;
 }) {
   return products.filter((product: any) => {
     if (!matchesTextFilter(product.category_name, filters.categoryFilters)) return false;
@@ -201,11 +204,26 @@ function applyProductFilters(products: any[], filters: {
     if (!matchesTagFilter(product.tags, ["datasComemorativas", "datas_comemorativas"], filters.dataComemorativaFilters)) return false;
     if (!matchesTagFilter(product.tags, ["endomarketing"], filters.endomarketingFilters)) return false;
     if (!matchesTagFilter(product.tags, ["nicho", "segmentosAtividade", "segmentos_atividade", "ramo", "ramosAtividade", "ramos_atividade"], filters.nichoFilters)) return false;
-    if (!matchesTagFilter(product.tags, ["tags"], filters.tagFilters)) return false;
+    // Tags: check both top-level tags array and nested tags.tags
+    if (filters.tagFilters.length > 0) {
+      const topLevelTags = normalizeValueList(product.tags);
+      const nestedTags = readTagValues(product.tags, ["tags"]);
+      const allTags = [...topLevelTags, ...nestedTags].map(t => t.toLowerCase());
+      if (!filters.tagFilters.some(f => allTags.some(t => t === f.toLowerCase() || t.includes(f.toLowerCase())))) return false;
+    }
+    // Techniques: check tags.tecnicas or product.techniques
+    if (filters.techniqueFilters.length > 0) {
+      const techFromTags = readTagValues(product.tags, ["tecnicas", "techniques", "tecnica"]);
+      const techDirect = normalizeValueList(product.techniques);
+      const allTech = [...techFromTags, ...techDirect].map(t => t.toLowerCase());
+      if (!filters.techniqueFilters.some(f => allTech.some(t => t === f.toLowerCase() || t.includes(f.toLowerCase())))) return false;
+    }
     if (filters.onlyInStock && Number(product.stock ?? product.stock_quantity ?? 0) <= 0) return false;
     if (filters.onlyNew && !Boolean(product.new_arrival ?? product.is_new)) return false;
     if (filters.onlyKit && !Boolean(product.is_kit)) return false;
     if (filters.onlyFeatured && !Boolean(product.featured ?? product.is_featured)) return false;
+    if (filters.onlyBestseller && !Boolean(product.best_seller ?? product.is_bestseller)) return false;
+    if (filters.hasPersonalization && !Boolean(product.has_personalization ?? product.personalizable ?? product.is_personalizable)) return false;
     return true;
   });
 }
@@ -598,6 +616,12 @@ ${topProducts.length > 0
       productsQuery = productsQuery.contains("materials", [normalizedFilters.materialFilters[0]]);
     } else if (normalizedFilters.materialFilters.length > 1) {
       productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
+    }
+
+    if (normalizedFilters.colorFilters.length === 1) {
+      productsQuery = productsQuery.contains("colors", [normalizedFilters.colorFilters[0]]);
+    } else if (normalizedFilters.colorFilters.length > 1) {
+      productsQuery = productsQuery.overlaps("colors", normalizedFilters.colorFilters);
     }
 
     if (normalizedFilters.supplierFilters.length === 1) {
