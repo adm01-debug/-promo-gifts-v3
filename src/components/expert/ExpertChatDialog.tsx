@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, Copy, Check, ArrowDown } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -27,6 +27,8 @@ interface Message {
   id?: string;
   role: "user" | "assistant";
   content: string;
+  timestamp?: number;
+  isError?: boolean;
 }
 
 interface ProductLink {
@@ -79,7 +81,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [categories, setCategories] = useState<string[]>([]);
   const [materials, setMaterials] = useState<string[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const {
     conversations,
@@ -335,7 +337,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
     }
 
-    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: "user", content: userMessage }]);
+    setMessages(prev => [...prev, { id: `user-${Date.now()}`, role: "user", content: userMessage, timestamp: Date.now() }]);
     setIsLoading(true);
 
     // Save user message
@@ -374,7 +376,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       const decoder = new TextDecoder();
       let assistantMessage = "";
 
-      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "" }]);
+      setMessages(prev => [...prev, { id: `assistant-${Date.now()}`, role: "assistant", content: "", timestamp: Date.now() }]);
 
       if (reader) {
         let buffer = "";
@@ -429,7 +431,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         ? `Desculpe, ocorreu um erro: ${error.message}` 
         : "Desculpe, ocorreu um erro ao processar sua mensagem.";
       
-      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: errorMessage }]);
+      setMessages(prev => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: errorMessage, timestamp: Date.now(), isError: true }]);
       
       if (convId) {
         await saveMessage(convId, "assistant", errorMessage);
@@ -450,7 +452,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[480px] h-[640px] flex flex-col p-0 gap-0 rounded-3xl overflow-hidden border-border/50 shadow-xl [&>button.absolute]:hidden">
+      <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden">
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0">
           <div className="flex items-center justify-between">
@@ -699,29 +701,50 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
               <div className="space-y-3">
                 {/* ─── EMPTY STATE ─── */}
                 {messages.length === 0 && !isFromVoice && (
-                  <div className="flex flex-col items-center justify-center py-10 px-2">
+                  <motion.div
+                    initial="hidden"
+                    animate="visible"
+                    variants={{
+                      hidden: {},
+                      visible: { transition: { staggerChildren: 0.08 } },
+                    }}
+                    className="flex flex-col items-center justify-center py-10 px-2"
+                  >
                     {/* Avatar */}
-                    <div className="relative mb-5">
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, scale: 0.8 }, visible: { opacity: 1, scale: 1 } }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                      className="relative mb-5"
+                    >
                       <div className="h-16 w-16 rounded-2xl bg-primary/8 flex items-center justify-center border border-primary/10">
                         <Bot className="h-8 w-8 text-primary/70" />
                       </div>
                       <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-lg bg-background border border-border/50 flex items-center justify-center shadow-sm">
                         <Sparkles className="h-3 w-3 text-primary/60" />
                       </div>
-                    </div>
+                    </motion.div>
 
-                    <h3 className="font-display text-lg font-semibold tracking-tight mb-1">
+                    <motion.h3
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                      className="font-display text-lg font-semibold tracking-tight mb-1"
+                    >
                       Olá! Sou o Oráculo
-                    </h3>
-                    <p className="text-[13px] text-muted-foreground/70 text-center max-w-[240px] leading-relaxed">
+                    </motion.h3>
+                    <motion.p
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                      className="text-[13px] text-muted-foreground/70 text-center max-w-[240px] leading-relaxed"
+                    >
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
                         : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
-                    </p>
+                    </motion.p>
 
                     {/* Suggestion chips */}
-                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
+                    <motion.div
+                      variants={{ hidden: { opacity: 0, y: 8 }, visible: { opacity: 1, y: 0 } }}
+                      className="mt-5 flex flex-wrap gap-2 justify-center"
+                    >
                       {[
                         { emoji: "✨", label: "Recomendações", prompt: "Quais produtos você recomenda para este cliente?" },
                         { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para datas comemorativas" },
@@ -736,18 +759,19 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           <span className="text-foreground/80 group-hover/chip:text-foreground">{item.label}</span>
                         </button>
                       ))}
-                    </div>
+                    </motion.div>
 
                     {conversations.length > 0 && (
-                      <button
+                      <motion.button
+                        variants={{ hidden: { opacity: 0 }, visible: { opacity: 1 } }}
                         onClick={() => setShowHistory(true)}
                         className="mt-5 flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
                       >
                         <History className="h-3 w-3" />
                         Ver conversas anteriores ({conversations.length})
-                      </button>
+                      </motion.button>
                     )}
-                  </div>
+                  </motion.div>
                 )}
 
                 {/* Voice command loading → messages crossfade */}
@@ -802,7 +826,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           "rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
                           message.role === "user"
                             ? "bg-primary text-primary-foreground rounded-br-lg"
-                            : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
+                            : message.isError
+                              ? "bg-destructive/10 text-destructive border border-destructive/20 rounded-bl-lg"
+                              : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
                         )}
                       >
                         {message.role === "assistant" ? (
@@ -815,6 +841,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           <p className="whitespace-pre-wrap">{message.content}</p>
                         )}
                       </div>
+                      {/* Timestamp on hover */}
+                      {message.timestamp && (
+                        <span className="text-[10px] text-muted-foreground/30 mt-0.5 ml-1 opacity-0 group-hover/msg:opacity-100 transition-opacity select-none">
+                          {new Date(message.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                        </span>
+                      )}
                       {/* Action bar: Copy + TTS */}
                       {message.role === "assistant" && message.content && !isLoading && (() => {
                         const msgId = message.id || `msg-${index}`;
@@ -963,15 +995,21 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
             {/* ─── INPUT ─── */}
             <div className="px-4 py-3 border-t border-border/20 flex-shrink-0">
-              <div className="flex gap-2 items-center">
-                <Input
+              <div className="flex gap-2 items-end">
+                <textarea
                   ref={inputRef}
                   value={input}
-                  onChange={(e) => setInput(e.target.value)}
+                  onChange={(e) => {
+                    setInput(e.target.value);
+                    // Auto-grow
+                    e.target.style.height = "auto";
+                    e.target.style.height = Math.min(e.target.scrollHeight, 120) + "px";
+                  }}
                   onKeyDown={handleKeyDown}
                   placeholder="Pergunte ao Oráculo…"
                   disabled={isLoading}
-                  className="flex-1 h-10 rounded-xl border-border/30 bg-muted/20 text-sm focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40"
+                  rows={1}
+                  className="flex-1 min-h-[40px] max-h-[120px] rounded-xl border border-border/30 bg-muted/20 text-sm px-3 py-2.5 resize-none focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40 disabled:opacity-50"
                 />
                 <Button
                   data-oracle-send
