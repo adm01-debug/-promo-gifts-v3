@@ -732,6 +732,27 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <X className="h-2.5 w-2.5" />
                 </Badge>
               )}
+              {selectedColor && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setSelectedColor(null)}
+                >
+                  <Palette className="h-2.5 w-2.5" />
+                  {selectedColor}
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
+              {onlyInStock && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setOnlyInStock(false)}
+                >
+                  Em estoque
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
             </div>
           )}
 
