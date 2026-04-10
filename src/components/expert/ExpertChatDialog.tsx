@@ -70,6 +70,8 @@ interface ExpertChatDialogProps {
 }
 
 export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initialMessage }: ExpertChatDialogProps) {
+  const navigate = useNavigate();
+  const [savingQuoteId, setSavingQuoteId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
