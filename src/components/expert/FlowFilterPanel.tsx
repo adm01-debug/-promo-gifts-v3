@@ -454,8 +454,8 @@ export function FlowFilterPanel({
             <div className="flex items-center gap-2">
               <div className="flex-1 relative">
                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground/35 font-medium">R$</span>
-                <input type="number" min={0} value={filters.priceMin}
-                  onChange={(e) => update({ priceMin: e.target.value })}
+                <input type="number" min={0} step="0.01" value={filters.priceMin}
+                  onChange={(e) => { const v = e.target.value; if (v === "" || Number(v) >= 0) update({ priceMin: v }); }}
                   placeholder="Mín"
                   className={cn("w-full h-7 pl-6 pr-2 rounded-lg text-[11px] bg-background/30 border transition-all focus:outline-none focus:ring-1 focus:ring-primary/25",
                     filters.priceMin ? "border-primary/30 text-primary font-medium" : "border-border/15 text-foreground/70"
@@ -465,8 +465,8 @@ export function FlowFilterPanel({
               <div className="h-px w-3 bg-border/25" />
               <div className="flex-1 relative">
                 <span className="absolute left-2 top-1/2 -translate-y-1/2 text-[9px] text-muted-foreground/35 font-medium">R$</span>
-                <input type="number" min={0} value={filters.priceMax}
-                  onChange={(e) => update({ priceMax: e.target.value })}
+                <input type="number" min={0} step="0.01" value={filters.priceMax}
+                  onChange={(e) => { const v = e.target.value; if (v === "" || Number(v) >= 0) update({ priceMax: v }); }}
                   placeholder="Máx"
                   className={cn("w-full h-7 pl-6 pr-2 rounded-lg text-[11px] bg-background/30 border transition-all focus:outline-none focus:ring-1 focus:ring-primary/25",
                     filters.priceMax ? "border-primary/30 text-primary font-medium" : "border-border/15 text-foreground/70"
