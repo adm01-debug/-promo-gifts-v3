@@ -413,6 +413,12 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     };
   }, [clearResetPhaseTimer, clearSessionStartTimer]);
 
+  /** Simulate a voice command from text input (no mic needed) */
+  const simulateCommand = useCallback((text: string) => {
+    if (!text.trim() || isProcessingRef.current) return;
+    processTranscriptRef.current(text.trim());
+  }, []);
+
   return {
     phase,
     partialTranscript,
@@ -425,5 +431,6 @@ export function useVoiceAgent({ onAction, onError }: UseVoiceAgentOptions = {}) 
     stopListening,
     stopSpeaking,
     reset,
+    simulateCommand,
   };
 }

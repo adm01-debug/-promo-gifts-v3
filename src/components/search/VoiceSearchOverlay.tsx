@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle } from "lucide-react";
+import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle, Send, Keyboard } from "lucide-react";
 import type { VoiceAgentAction, VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import {
@@ -30,6 +30,7 @@ interface VoiceSearchOverlayProps {
   onStopListening: () => void;
   onStopSpeaking: () => void;
   onCommandSelect?: (command: string) => void;
+  onSimulateCommand?: (command: string) => void;
 }
 
 const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string; emoji: string }> = {
@@ -58,11 +59,14 @@ const ACTION_META: Record<string, { icon: React.ElementType; label: string; colo
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen, phase, partialTranscript, finalTranscript, agentResponse, error,
-    recentCommands, currentAction, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect,
+    recentCommands, currentAction, onClose, onStartListening, onStopListening, onStopSpeaking, onCommandSelect, onSimulateCommand,
   }, ref) {
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [bootingTimedOut, setBootingTimedOut] = useState(false);
+    const [showTextInput, setShowTextInput] = useState(false);
+    const [textCommand, setTextCommand] = useState("");
+    const textInputRef = useRef<HTMLInputElement>(null);
     const wasOpenRef = useRef(false);
 
     // Closing transition guard
@@ -456,7 +460,49 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                   </motion.div>
                 )}
 
-                {/* Footer: ESC hint + close button */}
+                {/* Text input toggle & field */}
+                <AnimatePresence>
+                  {showTextInput && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="w-full overflow-hidden"
+                    >
+                      <form
+                        onSubmit={(e) => {
+                          e.preventDefault();
+                          if (textCommand.trim() && onSimulateCommand) {
+                            onSimulateCommand(textCommand.trim());
+                            setTextCommand("");
+                            setShowTextInput(false);
+                          }
+                        }}
+                        className="flex gap-2"
+                      >
+                        <input
+                          ref={textInputRef}
+                          type="text"
+                          value={textCommand}
+                          onChange={(e) => setTextCommand(e.target.value)}
+                          placeholder="Digite um comando..."
+                          className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/25 focus:ring-1 focus:ring-white/10"
+                          autoFocus
+                          disabled={phase === "processing" || phase === "speaking"}
+                        />
+                        <button
+                          type="submit"
+                          disabled={!textCommand.trim() || phase === "processing" || phase === "speaking"}
+                          className="h-9 w-9 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/30 flex items-center justify-center text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+                        >
+                          <Send className="h-3.5 w-3.5" />
+                        </button>
+                      </form>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Footer: ESC hint + text toggle + close button */}
                 <div className="w-full flex items-center justify-between mt-1">
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -468,13 +514,26 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     <span className="mx-1.5 text-white/10">·</span>
                     <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">SPACE</kbd> ativar
                   </motion.p>
-                  <button
-                    onClick={onClose}
-                    className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
-                    aria-label="Fechar assistente de voz"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => {
+                        setShowTextInput((v) => !v);
+                        if (!showTextInput) setTimeout(() => textInputRef.current?.focus(), 100);
+                      }}
+                      className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
+                      aria-label="Digitar comando"
+                      title="Digitar comando (sem microfone)"
+                    >
+                      <Keyboard className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={onClose}
+                      className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
+                      aria-label="Fechar assistente de voz"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
                 </div>
                 </motion.div>
               </motion.div>
