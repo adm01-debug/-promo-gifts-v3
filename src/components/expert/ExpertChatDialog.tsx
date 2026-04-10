@@ -26,20 +26,6 @@ interface Message {
   isError?: boolean;
 }
 
-interface PriceRange {
-  label: string;
-  min: number | null;
-  max: number | null;
-}
-
-const PRICE_RANGES: PriceRange[] = [
-  { label: "Até R$ 20", min: null, max: 20 },
-  { label: "R$ 20 - R$ 50", min: 20, max: 50 },
-  { label: "R$ 50 - R$ 100", min: 50, max: 100 },
-  { label: "R$ 100 - R$ 200", min: 100, max: 200 },
-  { label: "Acima de R$ 200", min: 200, max: null },
-];
-
 // Thinking status messages that rotate during loading
 const THINKING_MESSAGES = [
   "Analisando sua pergunta…",
