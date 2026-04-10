@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Mic } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -60,6 +60,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
+  const [isFromVoice, setIsFromVoice] = useState(false);
   const ttsStopRef = useRef<(() => void) | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
@@ -195,6 +196,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   useEffect(() => {
     if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
       initialMessageSentRef.current = true;
+      setIsFromVoice(true);
       setInput(initialMessage);
       // Trigger send after state update
       setTimeout(() => {
@@ -204,6 +206,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
     if (!isOpen) {
       initialMessageSentRef.current = false;
+      setIsFromVoice(false);
     }
   }, [isOpen, initialMessage, isLoading]);
 
@@ -586,7 +589,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           <>
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
-                {messages.length === 0 && (
+                {messages.length === 0 && !isFromVoice && (
                   <div className="text-center py-8">
                     <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/15 shadow-xl shadow-primary/5">
                       <Bot className="h-10 w-10 text-primary/80" />
@@ -630,6 +633,26 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         Ver conversas anteriores ({conversations.length})
                       </Button>
                     )}
+                  </div>
+                )}
+
+                {/* Voice command loading state */}
+                {messages.length === 0 && isFromVoice && (
+                  <div className="text-center py-12 animate-fade-in">
+                    <div className="relative h-24 w-24 mx-auto mb-6">
+                      <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s]" />
+                      <div className="absolute inset-2 rounded-full bg-primary/15 animate-ping [animation-duration:1.5s] [animation-delay:0.3s]" />
+                      <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/10">
+                        <Mic className="h-10 w-10 text-primary animate-pulse" />
+                      </div>
+                    </div>
+                    <h3 className="font-display text-lg font-semibold mb-1.5 tracking-tight">Processando comando de voz</h3>
+                    <p className="text-sm text-muted-foreground/70">Preparando sua consulta ao Oráculo...</p>
+                    <div className="flex items-center justify-center gap-1.5 mt-4">
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                      <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                    </div>
                   </div>
                 )}
 
@@ -696,10 +719,18 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       <Bot className="h-4 w-4 text-primary-foreground" />
                     </div>
                     <div className="bg-muted/60 rounded-2xl rounded-bl-sm border border-border/30 px-5 py-3.5 shadow-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="h-2 w-2 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
-                        <div className="h-2 w-2 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
-                        <div className="h-2 w-2 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
+                          <div className="h-2 w-2 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
+                          <div className="h-2 w-2 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                          <div className="h-2 w-2 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                        </div>
+                        {isFromVoice && (
+                          <span className="text-xs text-muted-foreground/50 flex items-center gap-1">
+                            <Mic className="h-3 w-3" />
+                            via voz
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>
