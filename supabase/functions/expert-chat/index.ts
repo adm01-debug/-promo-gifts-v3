@@ -571,9 +571,11 @@ ESTRATÉGIAS DE UPSELL E CROSS-SELL:
 5. **Personalização adicional**: Gravação, bordado, impressão colorida
 6. **Linha premium**: Baseado no ticket médio
 
-FORMATO DE LINKS DE PRODUTOS:
-[[PRODUTO:id_do_produto:Nome do Produto]]
-Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium]]"
+FORMATO DE LINKS DE PRODUTOS (com imagem quando disponível):
+[[PRODUTO:id_do_produto:Nome do Produto:url_da_imagem]]
+Se não houver imagem: [[PRODUTO:id_do_produto:Nome do Produto]]
+Exemplo: "Recomendo o [[PRODUTO:abc123:Caderno Executivo Premium:https://example.com/img.jpg]]"
+IMPORTANTE: SEMPRE inclua a URL da imagem quando disponível nos dados do produto (campo "Imagem").
 
 BUSCA SEMÂNTICA:
 PRIORIZE produtos de "PRODUTOS ENCONTRADOS POR BUSCA SEMÂNTICA" nas recomendações.
