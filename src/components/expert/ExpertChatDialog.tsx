@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic } from "lucide-react";
+import { Bot, X, Send, Loader2, User, Sparkles, ExternalLink, History, Plus, Trash2, MessageSquare, Filter, ChevronDown, DollarSign, Layers, Volume2, VolumeX, Pause, Play, Mic, ArrowRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -420,172 +420,215 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
   };
 
+  const activeFiltersCount = [selectedCategory, selectedPriceRange, selectedMaterial].filter(Boolean).length;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[520px] h-[620px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden border-primary/10">
-        <DialogHeader className="p-4 pb-3 border-b border-border/40 bg-gradient-to-r from-primary/12 via-primary/5 to-transparent backdrop-blur-sm">
+      <DialogContent className="sm:max-w-[480px] h-[640px] flex flex-col p-0 gap-0 rounded-3xl overflow-hidden border-border/50 shadow-xl [&>button.absolute]:hidden">
+        {/* ─── HEADER ─── */}
+        <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="relative group">
-                <div className="h-11 w-11 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center shadow-lg shadow-primary/25 transition-transform duration-200 group-hover:scale-105">
-                  <Bot className="h-5 w-5 text-primary-foreground" />
+              <div className="relative">
+                <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
+                  <Bot className="h-5 w-5 text-primary" />
                 </div>
-                <div className="absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-500 border-2 border-background shadow-sm shadow-emerald-500/30">
-                  <span className="absolute inset-0 rounded-full bg-emerald-400 animate-ping opacity-40" />
-                </div>
+                <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-[1.5px] border-background" />
               </div>
               <div>
-                <DialogTitle className="text-lg font-display font-semibold flex items-center gap-2 tracking-tight">
+                <DialogTitle className="text-base font-display font-semibold tracking-tight flex items-center gap-1.5">
                   Oráculo
-                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                  <Sparkles className="h-3.5 w-3.5 text-primary/60" />
                 </DialogTitle>
-                <DialogDescription className="text-[11px] text-muted-foreground/80 tracking-wide">
+                <DialogDescription className="text-[11px] text-muted-foreground/70 leading-none mt-0.5">
                   Consultor de Produtos IA
                 </DialogDescription>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              {categories.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant={selectedCategory ? "secondary" : "ghost"}
-                      size="sm"
-                      className="h-8 text-xs gap-1"
-                    >
-                      <Filter className="h-3.5 w-3.5" />
-                      {selectedCategory || "Categoria"}
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
-                    {selectedCategory && (
-                      <>
-                        <DropdownMenuItem onClick={() => setSelectedCategory(null)}>
-                          <span className="text-muted-foreground">Todas as categorias</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    {categories.map((category) => (
-                      <DropdownMenuItem
-                        key={category}
-                        onClick={() => setSelectedCategory(category)}
-                        className={cn(selectedCategory === category && "bg-primary/10")}
-                      >
-                        {category}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+            <div className="flex items-center gap-1">
+              {/* Filters dropdown - collapsed into single button */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
-                    variant={selectedPriceRange ? "secondary" : "ghost"}
+                    variant="ghost"
                     size="sm"
-                    className="h-8 text-xs gap-1"
+                    className={cn(
+                      "h-8 w-8 p-0 rounded-xl",
+                      activeFiltersCount > 0 && "text-primary bg-primary/10"
+                    )}
+                    title="Filtros"
                   >
-                    <DollarSign className="h-3.5 w-3.5" />
-                    {selectedPriceRange?.label || "Preço"}
-                    <ChevronDown className="h-3 w-3" />
+                    <Filter className="h-4 w-4" />
+                    {activeFiltersCount > 0 && (
+                      <span className="absolute -top-0.5 -right-0.5 h-4 w-4 rounded-full bg-primary text-[9px] font-bold text-primary-foreground flex items-center justify-center">
+                        {activeFiltersCount}
+                      </span>
+                    )}
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">Filtros</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  
+                  {/* Price ranges */}
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Preço</DropdownMenuLabel>
                   {selectedPriceRange && (
-                    <>
-                      <DropdownMenuItem onClick={() => setSelectedPriceRange(null)}>
-                        <span className="text-muted-foreground">Qualquer preço</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                    </>
+                    <DropdownMenuItem onClick={() => setSelectedPriceRange(null)} className="text-xs">
+                      <span className="text-muted-foreground">✕ Limpar preço</span>
+                    </DropdownMenuItem>
                   )}
                   {PRICE_RANGES.map((range) => (
                     <DropdownMenuItem
                       key={range.label}
                       onClick={() => setSelectedPriceRange(range)}
-                      className={cn(selectedPriceRange?.label === range.label && "bg-primary/10")}
+                      className={cn("text-xs", selectedPriceRange?.label === range.label && "bg-primary/10 text-primary")}
                     >
+                      <DollarSign className="h-3 w-3 mr-1.5 opacity-50" />
                       {range.label}
                     </DropdownMenuItem>
                   ))}
+
+                  {categories.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Categoria</DropdownMenuLabel>
+                      {selectedCategory && (
+                        <DropdownMenuItem onClick={() => setSelectedCategory(null)} className="text-xs">
+                          <span className="text-muted-foreground">✕ Limpar categoria</span>
+                        </DropdownMenuItem>
+                      )}
+                      {categories.slice(0, 10).map((category) => (
+                        <DropdownMenuItem
+                          key={category}
+                          onClick={() => setSelectedCategory(category)}
+                          className={cn("text-xs", selectedCategory === category && "bg-primary/10 text-primary")}
+                        >
+                          {category}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
+
+                  {materials.length > 0 && (
+                    <>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Material</DropdownMenuLabel>
+                      {selectedMaterial && (
+                        <DropdownMenuItem onClick={() => setSelectedMaterial(null)} className="text-xs">
+                          <span className="text-muted-foreground">✕ Limpar material</span>
+                        </DropdownMenuItem>
+                      )}
+                      {materials.slice(0, 10).map((material) => (
+                        <DropdownMenuItem
+                          key={material}
+                          onClick={() => setSelectedMaterial(material)}
+                          className={cn("text-xs", selectedMaterial === material && "bg-primary/10 text-primary")}
+                        >
+                          <Layers className="h-3 w-3 mr-1.5 opacity-50" />
+                          {material}
+                        </DropdownMenuItem>
+                      ))}
+                    </>
+                  )}
                 </DropdownMenuContent>
               </DropdownMenu>
-              {materials.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant={selectedMaterial ? "secondary" : "ghost"}
-                      size="sm"
-                      className="h-8 text-xs gap-1"
-                    >
-                      <Layers className="h-3.5 w-3.5" />
-                      {selectedMaterial || "Material"}
-                      <ChevronDown className="h-3 w-3" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="max-h-[300px] overflow-y-auto">
-                    {selectedMaterial && (
-                      <>
-                        <DropdownMenuItem onClick={() => setSelectedMaterial(null)}>
-                          <span className="text-muted-foreground">Todos os materiais</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
-                    {materials.map((material) => (
-                      <DropdownMenuItem
-                        key={material}
-                        onClick={() => setSelectedMaterial(material)}
-                        className={cn(selectedMaterial === material && "bg-primary/10")}
-                      >
-                        {material}
-                      </DropdownMenuItem>
-                    ))}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-              {clientName && (
-                <Badge variant="secondary" className="text-xs">
-                  {clientName}
-                </Badge>
-              )}
+
               <Button
                 variant="ghost"
-                size="icon" aria-label="History"
+                size="sm"
                 onClick={() => setShowHistory(!showHistory)}
-                className="h-8 w-8"
-                title={showHistory ? "Voltar ao chat" : "Ver histórico"}
+                className="h-8 w-8 p-0 rounded-xl"
+                title={showHistory ? "Voltar ao chat" : "Histórico"}
+                aria-label="Histórico"
               >
                 <History className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"
-                size="icon" aria-label="Adicionar"
+                size="sm"
                 onClick={startNewConversation}
-                className="h-8 w-8"
+                className="h-8 w-8 p-0 rounded-xl"
                 title="Nova conversa"
+                aria-label="Nova conversa"
               >
                 <Plus className="h-4 w-4" />
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-8 w-8 p-0 rounded-xl"
+                title="Fechar"
+                aria-label="Fechar"
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </div>
+
+          {/* Active filters badges */}
+          {activeFiltersCount > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2.5">
+              {selectedPriceRange && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setSelectedPriceRange(null)}
+                >
+                  <DollarSign className="h-2.5 w-2.5" />
+                  {selectedPriceRange.label}
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
+              {selectedCategory && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setSelectedCategory(null)}
+                >
+                  {selectedCategory}
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
+              {selectedMaterial && (
+                <Badge
+                  variant="secondary"
+                  className="text-[10px] rounded-lg px-2 py-0.5 gap-1 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => setSelectedMaterial(null)}
+                >
+                  <Layers className="h-2.5 w-2.5" />
+                  {selectedMaterial}
+                  <X className="h-2.5 w-2.5" />
+                </Badge>
+              )}
+            </div>
+          )}
+
+          {clientName && (
+            <div className="mt-2">
+              <Badge variant="outline" className="text-[10px] rounded-lg font-normal text-muted-foreground">
+                Cliente: {clientName}
+              </Badge>
+            </div>
+          )}
         </DialogHeader>
 
         {showHistory ? (
           <ScrollArea className="flex-1 p-4">
-            <div className="space-y-2">
-              <h3 className="font-display font-medium text-sm text-muted-foreground mb-3">
+            <div className="space-y-1.5">
+              <p className="text-xs font-medium text-muted-foreground/60 uppercase tracking-wider px-1 mb-3">
                 Conversas anteriores
-              </h3>
+              </p>
               {isLoadingConversations ? (
                 <div className="flex justify-center py-8">
-                  <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+                  <Loader2 className="h-5 w-5 animate-spin text-muted-foreground/40" />
                 </div>
               ) : conversations.length === 0 ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Nenhuma conversa anterior</p>
+                <div className="text-center py-12">
+                  <div className="h-12 w-12 rounded-2xl bg-muted/50 flex items-center justify-center mx-auto mb-3">
+                    <MessageSquare className="h-5 w-5 text-muted-foreground/40" />
+                  </div>
+                  <p className="text-sm text-muted-foreground/60">Nenhuma conversa ainda</p>
                 </div>
               ) : (
                 conversations.map((conv) => (
@@ -593,14 +636,16 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     key={conv.id}
                     onClick={() => loadConversation(conv)}
                     className={cn(
-                      "p-3 rounded-lg border cursor-pointer transition-colors hover:bg-muted/50",
-                      currentConversationId === conv.id && "border-primary bg-primary/5"
+                      "group px-3 py-2.5 rounded-xl cursor-pointer transition-all duration-150",
+                      currentConversationId === conv.id
+                        ? "bg-primary/8 border border-primary/15"
+                        : "hover:bg-muted/50 border border-transparent"
                     )}
                   >
-                    <div className="flex items-start justify-between gap-2">
+                    <div className="flex items-center justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <p className="font-medium text-sm truncate">{conv.title}</p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-sm font-medium truncate">{conv.title}</p>
+                        <p className="text-[11px] text-muted-foreground/50 mt-0.5">
                           {formatDistanceToNow(new Date(conv.updated_at), {
                             addSuffix: true,
                             locale: ptBR,
@@ -609,8 +654,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       </div>
                       <Button
                         variant="ghost"
-                        size="icon" aria-label="Excluir"
-                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        size="icon"
+                        aria-label="Excluir"
+                        className="h-7 w-7 rounded-lg opacity-0 group-hover:opacity-100 text-muted-foreground/40 hover:text-destructive hover:bg-destructive/10 transition-all"
                         onClick={(e) => handleDeleteConversation(e, conv.id)}
                       >
                         <Trash2 className="h-3.5 w-3.5" />
@@ -623,51 +669,57 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           </ScrollArea>
         ) : (
           <>
-            <ScrollArea className="flex-1 p-4" ref={scrollRef}>
-              <div className="space-y-4">
+            <ScrollArea className="flex-1 px-4 py-3" ref={scrollRef}>
+              <div className="space-y-3">
+                {/* ─── EMPTY STATE ─── */}
                 {messages.length === 0 && !isFromVoice && (
-                  <div className="text-center py-8">
-                    <div className="relative h-20 w-20 rounded-3xl bg-gradient-to-br from-primary/20 via-primary/10 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/15 shadow-xl shadow-primary/5">
-                      <Bot className="h-10 w-10 text-primary/80" />
-                      <div className="absolute -bottom-1 -right-1 h-7 w-7 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 flex items-center justify-center border border-primary/10">
-                        <Sparkles className="h-3.5 w-3.5 text-primary/70" />
+                  <div className="flex flex-col items-center justify-center py-10 px-2">
+                    {/* Avatar */}
+                    <div className="relative mb-5">
+                      <div className="h-16 w-16 rounded-2xl bg-primary/8 flex items-center justify-center border border-primary/10">
+                        <Bot className="h-8 w-8 text-primary/70" />
+                      </div>
+                      <div className="absolute -bottom-1.5 -right-1.5 h-6 w-6 rounded-lg bg-background border border-border/50 flex items-center justify-center shadow-sm">
+                        <Sparkles className="h-3 w-3 text-primary/60" />
                       </div>
                     </div>
-                    <h3 className="font-display text-xl font-bold mb-2 tracking-tight">Olá! Sou o Oráculo</h3>
-                    <p className="text-sm text-muted-foreground/80 max-w-[260px] mx-auto leading-relaxed">
+
+                    <h3 className="font-display text-lg font-semibold tracking-tight mb-1">
+                      Olá! Sou o Oráculo
+                    </h3>
+                    <p className="text-[13px] text-muted-foreground/70 text-center max-w-[240px] leading-relaxed">
                       {clientId 
                         ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
                         : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
                     </p>
-                    <div className="mt-6 flex flex-wrap gap-2 justify-center">
+
+                    {/* Suggestion chips */}
+                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
                       {[
                         { emoji: "✨", label: "Recomendações", prompt: "Quais produtos você recomenda para este cliente?" },
                         { emoji: "🎁", label: "Datas comemorativas", prompt: "Sugira produtos para datas comemorativas" },
                         { emoji: "🎨", label: "Cores da marca", prompt: "Produtos que combinam com as cores da marca" },
                       ].map((item) => (
-                        <Button
+                        <button
                           key={item.label}
-                          variant="outline"
-                          size="sm"
                           onClick={() => setInput(item.prompt)}
-                          className="text-xs rounded-2xl hover:bg-primary/5 hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 gap-1.5 px-4 py-2"
+                          className="group/chip flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-medium border border-border/50 bg-background hover:border-primary/30 hover:bg-primary/5 transition-all duration-200"
                         >
                           <span>{item.emoji}</span>
-                          {item.label}
-                        </Button>
+                          <span className="text-foreground/80 group-hover/chip:text-foreground">{item.label}</span>
+                        </button>
                       ))}
                     </div>
+
                     {conversations.length > 0 && (
-                      <Button
-                        variant="link"
-                        size="sm"
+                      <button
                         onClick={() => setShowHistory(true)}
-                        className="mt-4 text-xs text-muted-foreground/60 hover:text-primary"
+                        className="mt-5 flex items-center gap-1.5 text-xs text-muted-foreground/50 hover:text-primary transition-colors"
                       >
-                        <History className="h-3 w-3 mr-1" />
+                        <History className="h-3 w-3" />
                         Ver conversas anteriores ({conversations.length})
-                      </Button>
+                      </button>
                     )}
                   </div>
                 )}
@@ -681,49 +733,50 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       animate={{ opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.92, y: -16, filter: "blur(4px)" }}
                       transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
-                      className="text-center py-12"
+                      className="flex flex-col items-center justify-center py-16"
                     >
-                      <div className="relative h-24 w-24 mx-auto mb-6">
-                        <div className="absolute inset-0 rounded-full bg-primary/10 animate-ping [animation-duration:2s]" />
-                        <div className="absolute inset-2 rounded-full bg-primary/15 animate-ping [animation-duration:1.5s] [animation-delay:0.3s]" />
-                        <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-primary/25 via-primary/15 to-primary/5 flex items-center justify-center border border-primary/20 shadow-xl shadow-primary/10">
-                          <Mic className="h-10 w-10 text-primary animate-pulse" />
+                      <div className="relative h-20 w-20 mb-5">
+                        <div className="absolute inset-0 rounded-full bg-primary/8 animate-ping [animation-duration:2s]" />
+                        <div className="absolute inset-2 rounded-full bg-primary/10 animate-ping [animation-duration:1.5s] [animation-delay:0.3s]" />
+                        <div className="relative h-20 w-20 rounded-full bg-primary/8 flex items-center justify-center border border-primary/15">
+                          <Mic className="h-8 w-8 text-primary/70 animate-pulse" />
                         </div>
                       </div>
-                      <h3 className="font-display text-lg font-semibold mb-1.5 tracking-tight">Processando comando de voz</h3>
-                      <p className="text-sm text-muted-foreground/70">Preparando sua consulta ao Oráculo...</p>
-                      <div className="flex items-center justify-center gap-1.5 mt-4">
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
-                        <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                      <p className="font-display text-sm font-medium text-foreground/80 mb-1">Processando comando de voz</p>
+                      <p className="text-xs text-muted-foreground/50">Preparando sua consulta…</p>
+                      <div className="flex items-center gap-1 mt-3">
+                        <div className="h-1 w-1 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s]" />
+                        <div className="h-1 w-1 rounded-full bg-primary/40 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                        <div className="h-1 w-1 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
+                {/* ─── MESSAGES ─── */}
                 {messages.map((message, index) => (
                   <motion.div
                     key={message.id || `msg-${message.role}-${index}`}
-                    initial={{ opacity: 0, y: 16, scale: 0.97 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 0.35, delay: index === 0 && isFromVoice ? 0.15 : 0, ease: [0.4, 0, 0.2, 1] }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: index === 0 && isFromVoice ? 0.15 : 0 }}
                     className={cn(
-                      "flex gap-2.5",
+                      "flex gap-2",
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
                     {message.role === "assistant" && (
-                      <div className="h-8 w-8 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/15 ring-1 ring-primary/10">
-                        <Bot className="h-4 w-4 text-primary-foreground" />
+                      <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Bot className="h-3.5 w-3.5 text-primary" />
                       </div>
                     )}
-                    <div className="flex flex-col max-w-[78%]">
+                    <div className="flex flex-col max-w-[80%]">
                       <div
                         className={cn(
-                          "rounded-2xl px-4 py-3 text-sm leading-relaxed transition-shadow duration-200",
+                          "rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed",
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground rounded-br-sm shadow-md shadow-primary/20"
-                            : "bg-muted/60 rounded-bl-sm border border-border/30 shadow-sm hover:shadow-md hover:shadow-primary/5"
+                            ? "bg-primary text-primary-foreground rounded-br-lg"
+                            : "bg-muted/50 text-foreground rounded-bl-lg border border-border/20"
                         )}
                       >
                         <p className="whitespace-pre-wrap">
@@ -733,6 +786,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                           }
                         </p>
                       </div>
+                      {/* TTS controls */}
                       {message.role === "assistant" && message.content && !isLoading && (() => {
                         const msgId = message.id || `msg-${index}`;
                         const isPlaying = playingTtsId === msgId;
@@ -740,7 +794,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                         const isLoadingTts = loadingTtsId === msgId;
                         const isActive = isPlaying || isPaused;
                         return (
-                          <div className="flex items-center gap-0.5 self-start mt-1 ml-1">
+                          <div className="flex items-center gap-0.5 self-start mt-1 ml-0.5">
                             <button
                               onClick={() => {
                                 if (isPlaying) {
@@ -751,24 +805,24 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                               }}
                               disabled={isLoadingTts}
                               className={cn(
-                                "p-1.5 rounded-xl text-muted-foreground/60 transition-all duration-200 hover:scale-105",
+                                "p-1 rounded-lg text-muted-foreground/40 transition-all duration-150",
                                 isActive
-                                  ? "bg-primary/15 text-primary shadow-sm shadow-primary/10"
+                                  ? "text-primary bg-primary/8"
                                   : isLoadingTts
-                                    ? "bg-primary/10 text-primary/60 cursor-wait"
-                                    : "hover:text-primary hover:bg-primary/8"
+                                    ? "text-primary/50 cursor-wait"
+                                    : "hover:text-primary hover:bg-primary/5"
                               )}
-                              title={isPlaying ? "Pausar áudio" : isPaused ? "Retomar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
-                              aria-label={isPlaying ? "Pausar áudio" : isPaused ? "Retomar áudio" : isLoadingTts ? "Gerando áudio..." : "Ouvir resposta"}
+                              title={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
+                              aria-label={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
                             >
                               {isLoadingTts ? (
-                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                <Loader2 className="h-3 w-3 animate-spin" />
                               ) : isPlaying ? (
-                                <Pause className="h-3.5 w-3.5" />
+                                <Pause className="h-3 w-3" />
                               ) : isPaused ? (
-                                <Play className="h-3.5 w-3.5" />
+                                <Play className="h-3 w-3" />
                               ) : (
-                                <Volume2 className="h-3.5 w-3.5" />
+                                <Volume2 className="h-3 w-3" />
                               )}
                             </button>
                             {isActive && (
@@ -783,11 +837,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                   setPlayingTtsId(null);
                                   setPausedTtsId(null);
                                 }}
-                                className="p-1.5 rounded-xl text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 transition-all duration-200 hover:scale-105"
-                                title="Parar áudio"
+                                className="p-1 rounded-lg text-muted-foreground/40 hover:text-destructive hover:bg-destructive/8 transition-all duration-150"
+                                title="Parar"
                                 aria-label="Parar áudio"
                               >
-                                <VolumeX className="h-3.5 w-3.5" />
+                                <VolumeX className="h-3 w-3" />
                               </button>
                             )}
                           </div>
@@ -795,40 +849,46 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       })()}
                     </div>
                     {message.role === "user" && (
-                      <div className="h-8 w-8 rounded-2xl bg-secondary/80 flex items-center justify-center flex-shrink-0 ring-1 ring-border/30">
-                        <User className="h-4 w-4 text-secondary-foreground/70" />
+                      <div className="h-7 w-7 rounded-xl bg-secondary/60 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <User className="h-3.5 w-3.5 text-secondary-foreground/60" />
                       </div>
                     )}
                   </motion.div>
                 ))}
 
+                {/* Typing indicator */}
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
-                  <div className="flex gap-2.5 justify-start animate-fade-in">
-                    <div className="h-8 w-8 rounded-2xl bg-gradient-to-br from-primary via-primary/80 to-primary/50 flex items-center justify-center flex-shrink-0 shadow-md shadow-primary/15 ring-1 ring-primary/10">
-                      <Bot className="h-4 w-4 text-primary-foreground" />
+                  <motion.div
+                    initial={{ opacity: 0, y: 6 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-2 justify-start"
+                  >
+                    <div className="h-7 w-7 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                      <Bot className="h-3.5 w-3.5 text-primary" />
                     </div>
-                    <div className="bg-muted/60 rounded-2xl rounded-bl-sm border border-border/30 px-5 py-3.5 shadow-sm">
-                      <div className="flex items-center gap-2.5">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-primary/70 animate-bounce [animation-duration:0.6s]" />
-                          <div className="h-2 w-2 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
-                          <div className="h-2 w-2 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
+                    <div className="bg-muted/50 rounded-2xl rounded-bl-lg border border-border/20 px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5">
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary/50 animate-bounce [animation-duration:0.6s]" />
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary/40 animate-bounce [animation-duration:0.6s] [animation-delay:0.15s]" />
+                          <div className="h-1.5 w-1.5 rounded-full bg-primary/30 animate-bounce [animation-duration:0.6s] [animation-delay:0.3s]" />
                         </div>
                         {isFromVoice && (
-                          <span className="text-xs text-muted-foreground/50 flex items-center gap-1">
-                            <Mic className="h-3 w-3" />
+                          <span className="text-[10px] text-muted-foreground/40 flex items-center gap-1">
+                            <Mic className="h-2.5 w-2.5" />
                             via voz
                           </span>
                         )}
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 )}
               </div>
             </ScrollArea>
 
-            <div className="p-4 border-t border-border/30 bg-background/90 backdrop-blur-md">
-              <div className="flex gap-2">
+            {/* ─── INPUT ─── */}
+            <div className="px-4 py-3 border-t border-border/20 flex-shrink-0">
+              <div className="flex gap-2 items-center">
                 <Input
                   ref={inputRef}
                   value={input}
@@ -836,7 +896,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   onKeyDown={handleKeyDown}
                   placeholder="Pergunte ao Oráculo…"
                   disabled={isLoading}
-                  className="flex-1 rounded-2xl border-border/40 bg-muted/30 focus-visible:ring-primary/25 focus-visible:border-primary/30 transition-all duration-200 placeholder:text-muted-foreground/50"
+                  className="flex-1 h-10 rounded-xl border-border/30 bg-muted/20 text-sm focus-visible:ring-primary/20 focus-visible:border-primary/25 transition-all placeholder:text-muted-foreground/40"
                 />
                 <Button
                   data-oracle-send
@@ -844,7 +904,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   disabled={!input.trim() || isLoading}
                   size="icon"
                   aria-label="Enviar mensagem"
-                  className="rounded-2xl shadow-md shadow-primary/15 hover:shadow-lg hover:shadow-primary/25 transition-all duration-200"
+                  className="h-10 w-10 rounded-xl shrink-0"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
