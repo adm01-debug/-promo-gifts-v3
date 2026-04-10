@@ -1106,17 +1106,21 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                 disabled={isLoadingTts}
                                 className={cn(
                                   "p-2 rounded-xl transition-all duration-150",
-                                  isActive
-                                    ? "text-primary bg-primary/15 shadow-sm"
-                                    : isLoadingTts
-                                      ? "text-primary/50 cursor-wait bg-primary/5"
-                                      : "text-muted-foreground/60 hover:text-primary hover:bg-primary/10"
+                                  isTtsError
+                                    ? "text-destructive bg-destructive/10 hover:bg-destructive/15"
+                                    : isActive
+                                      ? "text-primary bg-primary/15 shadow-sm"
+                                      : isLoadingTts
+                                        ? "text-primary/50 cursor-wait bg-primary/5"
+                                        : "text-muted-foreground/60 hover:text-primary hover:bg-primary/10"
                                 )}
-                                title={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
-                                aria-label={isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
+                                title={isTtsError ? "Áudio bloqueado — toque para tentar novamente" : isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
+                                aria-label={isTtsError ? "Tentar reproduzir áudio novamente" : isPlaying ? "Pausar" : isPaused ? "Retomar" : isLoadingTts ? "Gerando áudio..." : "Ouvir"}
                               >
                                 {isLoadingTts ? (
                                   <Loader2 className="h-4 w-4 animate-spin" />
+                                ) : isTtsError ? (
+                                  <RotateCcw className="h-4 w-4" />
                                 ) : isPlaying ? (
                                   <Pause className="h-4 w-4" />
                                 ) : isPaused ? (
@@ -1125,6 +1129,11 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                                   <Volume2 className="h-4 w-4" />
                                 )}
                               </button>
+                              {isTtsError && (
+                                <span className="text-[10px] text-destructive font-medium">
+                                  Bloqueado
+                                </span>
+                              )}
                               {isActive && (
                                 <button
                                   onClick={() => {
