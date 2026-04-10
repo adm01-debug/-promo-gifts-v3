@@ -80,6 +80,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [pausedTtsId, setPausedTtsId] = useState<string | null>(null);
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
+  const isFromVoiceRef = useRef(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [lastUserInput, setLastUserInput] = useState("");
@@ -274,12 +275,14 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     if (isOpen && initialMessage && !initialMessageSentRef.current && !isLoading) {
       initialMessageSentRef.current = true;
       setIsFromVoice(true);
+      isFromVoiceRef.current = true;
       // Auto-send directly
       handleAutoSend(initialMessage);
     }
     if (!isOpen) {
       initialMessageSentRef.current = false;
       setIsFromVoice(false);
+      isFromVoiceRef.current = false;
     }
   }, [isOpen, initialMessage, isLoading]);
 
@@ -516,7 +519,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       }
 
       // Auto-play TTS when response came from a voice command
-      if (isFromVoice && assistantMessage) {
+      if (isFromVoiceRef.current && assistantMessage) {
         setTimeout(() => {
           handlePlayTts(assistantMsgId, assistantMessage);
         }, 300);
