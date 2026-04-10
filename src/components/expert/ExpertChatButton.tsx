@@ -36,25 +36,33 @@ export const ExpertChatButton = React.forwardRef<HTMLButtonElement, ExpertChatBu
         <motion.button
           ref={ref}
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-20 right-4 sm:bottom-[6rem] sm:right-6 h-12 w-12 sm:h-14 sm:w-14 rounded-full shadow-2xl z-40 flex items-center justify-center border border-primary/20 bg-gradient-to-br from-primary/70 to-primary/50 backdrop-blur-sm text-primary-foreground"
-          whileHover={{ scale: 1.08 }}
+          className="fixed bottom-20 right-4 sm:bottom-[6rem] sm:right-6 h-13 w-13 sm:h-14 sm:w-14 rounded-2xl shadow-2xl z-40 flex items-center justify-center border border-primary/20 bg-gradient-to-br from-primary via-primary/80 to-primary/50 backdrop-blur-sm text-primary-foreground"
+          whileHover={{ scale: 1.08, rotate: 2 }}
           whileTap={{ scale: 0.92 }}
           aria-label="Abrir chat com Oráculo IA"
         >
-          {/* Pulsing glow ring */}
+          {/* Outer pulsing glow ring */}
           <motion.div
-            className="absolute inset-0 rounded-full bg-primary/30"
-            animate={{ scale: [1, 1.35, 1], opacity: [0.4, 0, 0.4] }}
+            className="absolute inset-0 rounded-2xl bg-primary/25"
+            animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
             transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut" }}
           />
-          <Bot className="h-5 w-5 sm:h-6 sm:w-6 relative z-10" />
+          {/* Inner subtle ring */}
+          <motion.div
+            className="absolute inset-1 rounded-xl border border-primary-foreground/10"
+            animate={{ opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+          />
+          <Bot className="h-5 w-5 sm:h-6 sm:w-6 relative z-10 drop-shadow-md" />
           {/* Sparkle accent */}
           <motion.div
-            className="absolute -top-0.5 -right-0.5"
-            animate={{ rotate: [0, 15, -15, 0], scale: [0.8, 1.1, 0.8] }}
+            className="absolute -top-1 -right-1"
+            animate={{ rotate: [0, 20, -20, 0], scale: [0.7, 1.15, 0.7] }}
             transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
           >
-            <Sparkles className="h-3 w-3 text-primary-foreground/80" />
+            <div className="h-5 w-5 rounded-full bg-primary/30 flex items-center justify-center backdrop-blur-sm">
+              <Sparkles className="h-3 w-3 text-primary-foreground/90" />
+            </div>
           </motion.div>
         </motion.button>
         
