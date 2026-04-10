@@ -87,7 +87,7 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
           </div>
         )}
         <span className="truncate max-w-[200px] text-foreground/90">{name}</span>
-        <ExternalLink className="h-2.5 w-2.5 text-muted-foreground/40 flex-shrink-0" />
+        <ChevronRight className="h-3 w-3 text-primary/50 flex-shrink-0" />
       </button>
     );
   }
