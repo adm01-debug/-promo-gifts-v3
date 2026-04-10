@@ -144,8 +144,11 @@ Deno.serve(async (req) => {
 
         console.log('Querying products for categories:', targetCategoryIds.length, 'categories');
 
-        // ESTRATÉGIA 1: Usar products.category_id diretamente (fonte principal)
-        // Este é o campo mais confiável no banco Promobrind
+        // Coletar IDs de todas as estratégias em paralelo
+        const allProductIds = new Set<string>();
+        let primarySource = 'none';
+
+        // ESTRATÉGIA 1: Usar products.category_id diretamente
         console.log('Strategy 1: Using products.category_id directly...');
         const { data: directProducts, error: directError } = await externalClient
           .from('products')
@@ -154,26 +157,14 @@ Deno.serve(async (req) => {
           .eq('is_active', true);
 
         if (!directError && directProducts && directProducts.length > 0) {
-          const productIds = directProducts.map((p: any) => p.id);
-          console.log(`Found ${productIds.length} products via products.category_id`);
-          
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              productIds,
-              source: 'products.category_id',
-              categoriesUsed: targetCategoryIds.length
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          directProducts.forEach((p: any) => allProductIds.add(p.id));
+          primarySource = 'products.category_id';
+          console.log(`Strategy 1: Found ${directProducts.length} products`);
+        } else {
+          console.log('Strategy 1: No results', directError?.message || '');
         }
 
-        if (directError) {
-          console.log('products.category_id query error:', directError.message);
-        }
-
-        // ESTRATÉGIA 2: Tentar product_category_assignments (tabela N:N)
-        // Nota: Esta tabela pode ter UUIDs de categoria inválidos/placeholders
+        // ESTRATÉGIA 2: product_category_assignments (tabela N:N)
         console.log('Strategy 2: Trying product_category_assignments...');
         const { data: assignments, error: assignError } = await externalClient
           .from('product_category_assignments')
@@ -181,21 +172,15 @@ Deno.serve(async (req) => {
           .in('category_id', targetCategoryIds);
 
         if (!assignError && assignments && assignments.length > 0) {
-          const productIds = [...new Set(assignments.map((a: any) => a.product_id))];
-          console.log(`Found ${productIds.length} products via product_category_assignments`);
-          
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              productIds,
-              source: 'product_category_assignments',
-              categoriesUsed: targetCategoryIds.length
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          assignments.forEach((a: any) => allProductIds.add(a.product_id));
+          if (primarySource === 'none') primarySource = 'product_category_assignments';
+          else primarySource += '+product_category_assignments';
+          console.log(`Strategy 2: Found ${assignments.length} assignments`);
+        } else {
+          console.log('Strategy 2: No results', assignError?.message || '');
         }
 
-        // ESTRATÉGIA 3: Tentar product_categories (outra tabela N:N)
+        // ESTRATÉGIA 3: product_categories (fallback legacy)
         console.log('Strategy 3: Trying product_categories table...');
         const { data: fallbackData, error: fallbackError } = await externalClient
           .from('product_categories')
@@ -203,30 +188,23 @@ Deno.serve(async (req) => {
           .in('category_id', targetCategoryIds);
 
         if (!fallbackError && fallbackData && fallbackData.length > 0) {
-          const productIds = [...new Set(fallbackData.map((a: any) => a.product_id))];
-          console.log(`Found ${productIds.length} products via product_categories`);
-          
-          return new Response(
-            JSON.stringify({ 
-              success: true, 
-              productIds,
-              source: 'product_categories',
-              categoriesUsed: targetCategoryIds.length
-            }),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+          fallbackData.forEach((a: any) => allProductIds.add(a.product_id));
+          if (primarySource === 'none') primarySource = 'product_categories';
+          else primarySource += '+product_categories';
+          console.log(`Strategy 3: Found ${fallbackData.length} entries`);
+        } else {
+          console.log('Strategy 3: No results', fallbackError?.message || '');
         }
 
-        // Se nenhuma estratégia funcionou, retornar vazio
-        console.log('No products found for selected categories');
-        
+        const productIds = [...allProductIds];
+        console.log(`Total unique products: ${productIds.length} from: ${primarySource}`);
+
         return new Response(
           JSON.stringify({ 
             success: true, 
-            productIds: [],
-            source: 'none',
-            categoriesUsed: targetCategoryIds.length,
-            message: 'No products found for selected categories'
+            productIds,
+            source: primarySource,
+            categoriesUsed: targetCategoryIds.length
           }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
