@@ -84,6 +84,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   });
   const [categories, setCategories] = useState<string[]>([]);
   const [materials, setMaterials] = useState<string[]>([]);
+  const [colors, setColors] = useState<string[]>([]);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [onlyInStock, setOnlyInStock] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
