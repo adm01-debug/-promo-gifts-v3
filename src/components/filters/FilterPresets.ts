@@ -123,14 +123,20 @@ export function useFilterPresets(context: string = "catalog") {
   );
 
   const updatePreset = useCallback(
-    async (id: string, updates: Partial<Pick<FilterPreset, "name" | "description" | "icon" | "color">>): Promise<FilterPreset | null> => {
+    async (id: string, updates: Partial<Pick<FilterPreset, "name" | "description" | "icon" | "color" | "filters">>): Promise<FilterPreset | null> => {
       try {
+        const payload: Record<string, unknown> = {
+          ...updates,
+          updated_at: new Date().toISOString(),
+        };
+        // Cast filters to Json-compatible type for Supabase
+        if (updates.filters) {
+          payload.filters = updates.filters as unknown as Record<string, unknown>;
+        }
+
         const { data, error } = await supabase
           .from("saved_filters")
-          .update({
-            ...updates,
-            updated_at: new Date().toISOString(),
-          })
+          .update(payload)
           .eq("id", id)
           .select()
           .single();
