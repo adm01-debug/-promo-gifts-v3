@@ -80,6 +80,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
   const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
   const [pausedTtsId, setPausedTtsId] = useState<string | null>(null);
   const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
+  const [ttsErrorId, setTtsErrorId] = useState<string | null>(null);
   const [isFromVoice, setIsFromVoice] = useState(false);
   const isFromVoiceRef = useRef(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
