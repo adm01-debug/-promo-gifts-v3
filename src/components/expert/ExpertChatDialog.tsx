@@ -320,6 +320,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
     setPausedTtsId(null);
     setLoadingTtsId(messageId);
+    setTtsErrorId(null);
     try {
       const { promise, stop, pause, resume } = playTtsAudio(text, {
         onStart: () => {
@@ -333,6 +334,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
       await promise;
     } catch (err) {
       console.warn("[Oracle TTS] Playback failed:", err);
+      setTtsErrorId(messageId);
+      toast.error("Não foi possível reproduzir o áudio", {
+        description: "O navegador bloqueou a reprodução. Toque novamente para tentar.",
+      });
     } finally {
       setPlayingTtsId(null);
       setPausedTtsId(null);
