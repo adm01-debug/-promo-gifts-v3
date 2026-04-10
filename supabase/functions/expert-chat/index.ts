@@ -9,13 +9,33 @@ const MessageSchema = z.object({
   content: z.string().min(1).max(10000),
 });
 
+const TextFilterSchema = z.union([
+  z.string().min(1).max(200),
+  z.array(z.string().min(1).max(200)).max(25),
+]).optional().nullable();
+
 const ExpertChatBodySchema = z.object({
   messages: z.array(MessageSchema).min(1).max(50),
   clientId: z.string().uuid().optional().nullable(),
-  categoryFilter: z.string().max(200).optional().nullable(),
+  categoryFilter: TextFilterSchema,
   priceMin: z.number().nonnegative().optional().nullable(),
   priceMax: z.number().nonnegative().optional().nullable(),
-  materialFilter: z.string().max(200).optional().nullable(),
+  materialFilter: TextFilterSchema,
+  colorFilter: TextFilterSchema,
+  genderFilter: TextFilterSchema,
+  supplierFilter: TextFilterSchema,
+  techniqueFilter: TextFilterSchema,
+  publicoFilter: TextFilterSchema,
+  dataComemorativaFilter: TextFilterSchema,
+  endomarketingFilter: TextFilterSchema,
+  nichoFilter: TextFilterSchema,
+  tagFilter: TextFilterSchema,
+  onlyInStock: z.boolean().optional().nullable(),
+  onlyNew: z.boolean().optional().nullable(),
+  onlyKit: z.boolean().optional().nullable(),
+  onlyBestseller: z.boolean().optional().nullable(),
+  onlyFeatured: z.boolean().optional().nullable(),
+  hasPersonalization: z.boolean().optional().nullable(),
 });
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
 // See _shared/cors.ts for the centralized configuration
@@ -78,7 +98,6 @@ function extractSearchTerms(messages: Message[]): string[] {
   
   const content = lastUserMessage.content.toLowerCase();
   
-  // Remove common words and extract meaningful terms
   const stopWords = new Set([
     "o", "a", "os", "as", "um", "uma", "uns", "umas", "de", "da", "do", "das", "dos",
     "em", "na", "no", "nas", "nos", "por", "para", "com", "sem", "que", "qual", "quais",
@@ -103,6 +122,94 @@ function extractSearchTerms(messages: Message[]): string[] {
   return [...new Set(words)];
 }
 
+function normalizeFilterValues(value: string | string[] | null | undefined): string[] {
+  if (!value) return [];
+  return (Array.isArray(value) ? value : [value]).map((item) => item.trim()).filter(Boolean);
+}
+
+function normalizeValueList(value: unknown): string[] {
+  if (!value) return [];
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => {
+      if (typeof item === "string") return item.trim() ? [item.trim()] : [];
+      if (item && typeof item === "object") {
+        const record = item as Record<string, unknown>;
+        const candidate = typeof record.name === "string"
+          ? record.name
+          : typeof record.label === "string"
+            ? record.label
+            : typeof record.value === "string"
+              ? record.value
+              : null;
+        return candidate?.trim() ? [candidate.trim()] : [];
+      }
+      return [];
+    });
+  }
+  if (typeof value === "string") {
+    return value.split(/[,;|]/).map((item) => item.trim()).filter(Boolean);
+  }
+  return [];
+}
+
+function readTagValues(tags: unknown, keys: string[]): string[] {
+  if (!tags || typeof tags !== "object") return [];
+  const record = tags as Record<string, unknown>;
+  return keys.flatMap((key) => normalizeValueList(record[key]));
+}
+
+function matchesTextFilter(value: unknown, filters: string[]): boolean {
+  if (!filters.length) return true;
+  const normalized = typeof value === "string" ? value.toLowerCase() : "";
+  return filters.some((filter) => normalized === filter.toLowerCase() || normalized.includes(filter.toLowerCase()));
+}
+
+function matchesListFilter(value: unknown, filters: string[]): boolean {
+  if (!filters.length) return true;
+  const normalizedValues = normalizeValueList(value).map((item) => item.toLowerCase());
+  return filters.some((filter) => normalizedValues.some((item) => item === filter.toLowerCase() || item.includes(filter.toLowerCase())));
+}
+
+function matchesTagFilter(tags: unknown, keys: string[], filters: string[]): boolean {
+  if (!filters.length) return true;
+  return matchesListFilter(readTagValues(tags, keys), filters);
+}
+
+function applyProductFilters(products: any[], filters: {
+  categoryFilters: string[];
+  materialFilters: string[];
+  colorFilters: string[];
+  genderFilters: string[];
+  supplierFilters: string[];
+  publicoFilters: string[];
+  dataComemorativaFilters: string[];
+  endomarketingFilters: string[];
+  nichoFilters: string[];
+  tagFilters: string[];
+  onlyInStock: boolean;
+  onlyNew: boolean;
+  onlyKit: boolean;
+  onlyFeatured: boolean;
+}) {
+  return products.filter((product: any) => {
+    if (!matchesTextFilter(product.category_name, filters.categoryFilters)) return false;
+    if (!matchesListFilter(product.materials, filters.materialFilters)) return false;
+    if (!matchesListFilter(product.colors, filters.colorFilters)) return false;
+    if (!matchesTextFilter(product.gender, filters.genderFilters)) return false;
+    if (!matchesTextFilter(product.supplier_name, filters.supplierFilters)) return false;
+    if (!matchesTagFilter(product.tags, ["publicoAlvo", "publico_alvo"], filters.publicoFilters)) return false;
+    if (!matchesTagFilter(product.tags, ["datasComemorativas", "datas_comemorativas"], filters.dataComemorativaFilters)) return false;
+    if (!matchesTagFilter(product.tags, ["endomarketing"], filters.endomarketingFilters)) return false;
+    if (!matchesTagFilter(product.tags, ["nicho", "segmentosAtividade", "segmentos_atividade", "ramo", "ramosAtividade", "ramos_atividade"], filters.nichoFilters)) return false;
+    if (!matchesTagFilter(product.tags, ["tags"], filters.tagFilters)) return false;
+    if (filters.onlyInStock && Number(product.stock ?? product.stock_quantity ?? 0) <= 0) return false;
+    if (filters.onlyNew && !Boolean(product.new_arrival ?? product.is_new)) return false;
+    if (filters.onlyKit && !Boolean(product.is_kit)) return false;
+    if (filters.onlyFeatured && !Boolean(product.featured ?? product.is_featured)) return false;
+    return true;
+  });
+}
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   if (req.method === "OPTIONS") {
@@ -123,7 +230,49 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
-    const { messages, clientId, categoryFilter, priceMin, priceMax, materialFilter } = parsed.data;
+    const {
+      messages,
+      clientId,
+      categoryFilter,
+      priceMin,
+      priceMax,
+      materialFilter,
+      colorFilter,
+      genderFilter,
+      supplierFilter,
+      techniqueFilter,
+      publicoFilter,
+      dataComemorativaFilter,
+      endomarketingFilter,
+      nichoFilter,
+      tagFilter,
+      onlyInStock,
+      onlyNew,
+      onlyKit,
+      onlyBestseller,
+      onlyFeatured,
+      hasPersonalization,
+    } = parsed.data;
+
+    const normalizedFilters = {
+      categoryFilters: normalizeFilterValues(categoryFilter),
+      materialFilters: normalizeFilterValues(materialFilter),
+      colorFilters: normalizeFilterValues(colorFilter),
+      genderFilters: normalizeFilterValues(genderFilter),
+      supplierFilters: normalizeFilterValues(supplierFilter),
+      techniqueFilters: normalizeFilterValues(techniqueFilter),
+      publicoFilters: normalizeFilterValues(publicoFilter),
+      dataComemorativaFilters: normalizeFilterValues(dataComemorativaFilter),
+      endomarketingFilters: normalizeFilterValues(endomarketingFilter),
+      nichoFilters: normalizeFilterValues(nichoFilter),
+      tagFilters: normalizeFilterValues(tagFilter),
+      onlyInStock: Boolean(onlyInStock),
+      onlyNew: Boolean(onlyNew),
+      onlyKit: Boolean(onlyKit),
+      onlyBestseller: Boolean(onlyBestseller),
+      onlyFeatured: Boolean(onlyFeatured),
+      hasPersonalization: Boolean(hasPersonalization),
+    };
     
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
@@ -410,28 +559,16 @@ ${topProducts.length > 0
       if (semanticError) {
         console.error("Semantic search error:", semanticError);
       } else {
-        // Apply filters
-        let filtered = semanticProducts || [];
-        
-        if (categoryFilter) {
-          filtered = filtered.filter((p: any) => p.category_name === categoryFilter);
-        }
-        
+        let filtered = applyProductFilters(semanticProducts || [], normalizedFilters);
+
         if (priceMin !== null && priceMin !== undefined) {
           filtered = filtered.filter((p: any) => p.price >= priceMin);
         }
-        
+
         if (priceMax !== null && priceMax !== undefined) {
           filtered = filtered.filter((p: any) => p.price <= priceMax);
         }
-        
-        if (materialFilter) {
-          filtered = filtered.filter((p: any) => 
-            p.materials && Array.isArray(p.materials) && 
-            p.materials.some((m: string) => m.toLowerCase() === materialFilter.toLowerCase())
-          );
-        }
-        
+
         semanticResults = filtered;
         console.log("Semantic search found:", semanticResults.length, "products (after filters)");
       }
@@ -440,28 +577,55 @@ ${topProducts.length > 0
     // Also fetch general products for broader context
     let productsQuery = supabase
       .from("products")
-      .select("id, name, sku, category_name, subcategory, description, price, colors, materials, tags, og_image_url, images")
+      .select("id, name, sku, category_name, subcategory, description, price, stock, supplier_name, gender, featured, new_arrival, is_kit, colors, materials, tags, og_image_url, images")
       .eq("is_active", true);
-    
-    // Apply category filter if set
-    if (categoryFilter) {
-      productsQuery = productsQuery.eq("category_name", categoryFilter);
+
+    if (normalizedFilters.categoryFilters.length === 1) {
+      productsQuery = productsQuery.eq("category_name", normalizedFilters.categoryFilters[0]);
+    } else if (normalizedFilters.categoryFilters.length > 1) {
+      productsQuery = productsQuery.in("category_name", normalizedFilters.categoryFilters);
     }
-    
-    // Apply price filters
+
     if (priceMin !== null && priceMin !== undefined) {
       productsQuery = productsQuery.gte("price", priceMin);
     }
-    
+
     if (priceMax !== null && priceMax !== undefined) {
       productsQuery = productsQuery.lte("price", priceMax);
     }
-    
-    if (materialFilter) {
-      productsQuery = productsQuery.contains("materials", [materialFilter]);
+
+    if (normalizedFilters.materialFilters.length === 1) {
+      productsQuery = productsQuery.contains("materials", [normalizedFilters.materialFilters[0]]);
+    } else if (normalizedFilters.materialFilters.length > 1) {
+      productsQuery = productsQuery.overlaps("materials", normalizedFilters.materialFilters);
     }
-    
-    const { data: products, error: productsError } = await productsQuery.limit(50);
+
+    if (normalizedFilters.supplierFilters.length === 1) {
+      productsQuery = productsQuery.eq("supplier_name", normalizedFilters.supplierFilters[0]);
+    } else if (normalizedFilters.supplierFilters.length > 1) {
+      productsQuery = productsQuery.in("supplier_name", normalizedFilters.supplierFilters);
+    }
+
+    if (normalizedFilters.genderFilters.length === 1) {
+      productsQuery = productsQuery.eq("gender", normalizedFilters.genderFilters[0]);
+    } else if (normalizedFilters.genderFilters.length > 1) {
+      productsQuery = productsQuery.in("gender", normalizedFilters.genderFilters);
+    }
+
+    if (normalizedFilters.onlyInStock) {
+      productsQuery = productsQuery.gt("stock", 0);
+    }
+    if (normalizedFilters.onlyNew) {
+      productsQuery = productsQuery.eq("new_arrival", true);
+    }
+    if (normalizedFilters.onlyKit) {
+      productsQuery = productsQuery.eq("is_kit", true);
+    }
+    if (normalizedFilters.onlyFeatured) {
+      productsQuery = productsQuery.eq("featured", true);
+    }
+
+    const { data: products, error: productsError } = await productsQuery.limit(120);
 
     if (productsError) {
       console.error("Error fetching products:", productsError);
@@ -497,9 +661,9 @@ ${semanticResults.map(p => buildProductDescription(p, p.relevance)).join("\n\n")
 
     // Add general catalog context
     if (products && products.length > 0) {
-      const generalProducts = products.filter(
-        p => !semanticResults.some(sr => sr.id === p.id)
-      ).slice(0, 20);
+      const generalProducts = applyProductFilters(products, normalizedFilters)
+        .filter((product: any) => !semanticResults.some((semantic: any) => semantic.id === product.id))
+        .slice(0, 20);
 
       if (generalProducts.length > 0) {
         productsContext += `
@@ -512,9 +676,22 @@ ${generalProducts.map(p => buildProductDescription(p)).join("\n\n")}
 
     // Build filter info for the AI
     const filterParts: string[] = [];
-    if (categoryFilter) {
-      filterParts.push(`Categoria: "${categoryFilter}"`);
-    }
+    const pushValues = (label: string, values: string[]) => {
+      if (values.length > 0) filterParts.push(`${label}: ${values.join(", ")}`);
+    };
+
+    pushValues("Categorias", normalizedFilters.categoryFilters);
+    pushValues("Materiais", normalizedFilters.materialFilters);
+    pushValues("Cores", normalizedFilters.colorFilters);
+    pushValues("Gêneros", normalizedFilters.genderFilters);
+    pushValues("Fornecedores", normalizedFilters.supplierFilters);
+    pushValues("Técnicas", normalizedFilters.techniqueFilters);
+    pushValues("Público-alvo", normalizedFilters.publicoFilters);
+    pushValues("Datas comemorativas", normalizedFilters.dataComemorativaFilters);
+    pushValues("Endomarketing", normalizedFilters.endomarketingFilters);
+    pushValues("Nichos/segmentos", normalizedFilters.nichoFilters);
+    pushValues("Tags", normalizedFilters.tagFilters);
+
     if (priceMin !== null && priceMin !== undefined && priceMax !== null && priceMax !== undefined) {
       filterParts.push(`Preço: R$ ${priceMin} - R$ ${priceMax}`);
     } else if (priceMin !== null && priceMin !== undefined) {
@@ -522,12 +699,16 @@ ${generalProducts.map(p => buildProductDescription(p)).join("\n\n")}
     } else if (priceMax !== null && priceMax !== undefined) {
       filterParts.push(`Preço: até R$ ${priceMax}`);
     }
-    if (materialFilter) {
-      filterParts.push(`Material: "${materialFilter}"`);
-    }
-    
-    const filterInfo = filterParts.length > 0 
-      ? `\nFILTROS ATIVOS: ${filterParts.join(", ")}\nAPENAS mostre produtos que atendam a TODOS os filtros. NÃO sugira produtos fora dos critérios definidos.` 
+
+    if (normalizedFilters.onlyInStock) filterParts.push("Apenas em estoque");
+    if (normalizedFilters.onlyNew) filterParts.push("Apenas novidades");
+    if (normalizedFilters.onlyKit) filterParts.push("Apenas kits");
+    if (normalizedFilters.onlyBestseller) filterParts.push("Priorizar mais vendidos");
+    if (normalizedFilters.onlyFeatured) filterParts.push("Apenas destaques");
+    if (normalizedFilters.hasPersonalization) filterParts.push("Com personalização");
+
+    const filterInfo = filterParts.length > 0
+      ? `\nFILTROS ATIVOS: ${filterParts.join(", ")}\nAPENAS mostre produtos que atendam a TODOS os filtros. NÃO sugira produtos fora dos critérios definidos.`
       : "";
 
     if (productsContext) {
