@@ -112,7 +112,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             </div>
             
             <Suspense fallback={<div>{children}</div>}>
-              <PageTransition variant="fade-slide" duration={0.25}>
+              <PageTransition variant="fade-slide" duration={0.2}>
                 {children}
               </PageTransition>
             </Suspense>
