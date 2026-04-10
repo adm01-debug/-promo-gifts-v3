@@ -158,6 +158,7 @@ export function GlobalSearchPalette() {
           <kbd className="hidden sm:inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-md border border-border/50 bg-muted/50 text-[10px] font-medium text-muted-foreground/60 group-hover:border-primary/20 group-hover:text-primary/50 transition-colors shrink-0">
             ⌘K
           </kbd>
+        </button>
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="outline" size="icon" onClick={s.handleOpenVoiceOverlay} className="shrink-0 h-10 w-10 rounded-xl border-border/50 hover:bg-primary/10 hover:text-primary hover:border-primary/40 transition-all" aria-label="Microfone"><Mic className="h-4 w-4" />
