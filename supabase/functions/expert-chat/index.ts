@@ -307,27 +307,37 @@ Deno.serve(async (req) => {
 
       if (clientData) {
         clientContext = `
-CONTEXTO COMPLETO DO CLIENTE:
+CONTEXTO COMPLETO DO CLIENTE (CRM):
 - Nome: ${clientData.name}
-- Ramo de atividade: ${clientData.ramo || "Não informado"}
-- Nicho/Segmento: ${clientData.nicho || "Não informado"}
-- Cor primária da marca: ${clientData.primary_color_name || "Não informada"} ${clientData.primary_color_hex ? `(${clientData.primary_color_hex})` : ""}
+- Razão Social: ${clientData.razao_social}
+${clientData.nome_fantasia ? `- Nome Fantasia: ${clientData.nome_fantasia}` : ""}
+- Ramo de atividade: ${clientData.ramo_atividade || "Não informado"}
+${clientData.cnpj ? `- CNPJ: ${clientData.cnpj}` : ""}
+- Localização: ${[clientData.cidade, clientData.estado].filter(Boolean).join(", ") || "Não informada"}
 - Logo disponível: ${clientData.logo_url ? "Sim" : "Não"}
-- Total investido (CRM): ${clientData.total_spent ? `R$ ${clientData.total_spent.toLocaleString("pt-BR")}` : "Não disponível"}
-- Última compra: ${clientData.last_purchase_date ? new Date(clientData.last_purchase_date).toLocaleDateString("pt-BR") : "Não disponível"}
+${clientData.website ? `- Website: ${clientData.website}` : ""}
+${clientData.instagram ? `- Instagram: ${clientData.instagram}` : ""}
 - Dias desde última interação: ${daysSinceLastInteraction !== null ? `${daysSinceLastInteraction} dias` : "N/A"}
 
-MÉTRICAS DE VENDAS:
-- Ticket médio: ${averageOrderValue > 0 ? `R$ ${averageOrderValue.toFixed(2)}` : "Sem dados"}
+DADOS COMERCIAIS (CRM):
+${customerData ? `- Status: ${customerData.cliente_ativado ? "Ativo" : "Inativo"}
+- Total de pedidos (CRM): ${customerData.total_pedidos || 0}
+- Valor total compras: ${customerData.valor_total_compras ? `R$ ${customerData.valor_total_compras.toLocaleString("pt-BR")}` : "N/A"}
+- Ticket médio (CRM): ${customerData.ticket_medio ? `R$ ${customerData.ticket_medio.toFixed(2)}` : "N/A"}
+- Poder de compra: ${customerData.poder_compra || "N/A"}
+- Perfil de preço: ${customerData.perfil_preco || "N/A"}
+- Primeira compra: ${customerData.data_primeira_compra ? new Date(customerData.data_primeira_compra).toLocaleDateString("pt-BR") : "N/A"}
+- Última compra: ${customerData.data_ultima_compra ? new Date(customerData.data_ultima_compra).toLocaleDateString("pt-BR") : "N/A"}
+- Vendedor responsável: ${customerData.vendedor_nome || "N/A"}
+${customerData.sobre ? `- Sobre: ${customerData.sobre}` : ""}
+${customerData.observacoes ? `- Observações: ${customerData.observacoes}` : ""}` : "- Sem dados comerciais no CRM"}
+
+MÉTRICAS DE VENDAS (PLATAFORMA):
+- Ticket médio orçamentos: ${averageOrderValue > 0 ? `R$ ${averageOrderValue.toFixed(2)}` : "Sem dados"}
 - Total de orçamentos: ${quoteProductHistory.length}
 - Pedidos confirmados: ${clientOrders.length}
 - Receita total em pedidos: R$ ${totalRevenue.toFixed(2)}
 - Taxa de conversão: ${conversionRate}%
-
-HISTÓRICO DE NEGOCIAÇÕES CRM (últimas ${clientDeals.length}):
-${clientDeals.length > 0 
-  ? clientDeals.map((deal, i) => `${i + 1}. ${deal.title} - ${deal.value ? `R$ ${deal.value.toLocaleString("pt-BR")}` : "Valor não informado"} (${deal.stage || "Em andamento"})`).join("\n")
-  : "Nenhum histórico no CRM"}
 
 ORÇAMENTOS RECENTES:
 ${quoteProductHistory.length > 0
