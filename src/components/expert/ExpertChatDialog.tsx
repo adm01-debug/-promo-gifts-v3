@@ -387,7 +387,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             <div className="flex items-center gap-3">
               <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
                 <Bot className="h-5 w-5 text-primary-foreground" />
-                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-green-500 border-2 border-background" />
+                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
               </div>
               <div>
                 <DialogTitle className="text-lg font-display flex items-center gap-2">
