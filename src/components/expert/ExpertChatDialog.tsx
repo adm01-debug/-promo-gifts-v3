@@ -381,17 +381,18 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col p-0 gap-0">
-        <DialogHeader className="p-4 pb-3 border-b bg-gradient-to-r from-primary/10 to-primary/5">
+      <DialogContent className="sm:max-w-[520px] h-[620px] flex flex-col p-0 gap-0 rounded-2xl overflow-hidden border-primary/10">
+        <DialogHeader className="p-4 pb-3 border-b bg-gradient-to-r from-primary/15 via-primary/8 to-transparent">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center">
+              <div className="relative h-10 w-10 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center shadow-lg shadow-primary/20">
                 <Bot className="h-5 w-5 text-primary-foreground" />
+                <div className="absolute -top-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-2 border-background" />
               </div>
               <div>
-                <DialogTitle className="text-lg flex items-center gap-2">
+                <DialogTitle className="text-lg font-display flex items-center gap-2">
                   Oráculo
-                  <Sparkles className="h-4 w-4 text-primary" />
+                  <Sparkles className="h-4 w-4 text-primary animate-pulse" />
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
                   Consultor de Produtos IA
@@ -580,41 +581,44 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             <ScrollArea className="flex-1 p-4" ref={scrollRef}>
               <div className="space-y-4">
                 {messages.length === 0 && (
-                  <div className="text-center py-8">
-                    <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
-                      <Bot className="h-8 w-8 text-primary" />
+                  <div className="text-center py-10">
+                    <div className="relative h-18 w-18 rounded-2xl bg-gradient-to-br from-primary/15 to-primary/5 flex items-center justify-center mx-auto mb-5 border border-primary/10">
+                      <Bot className="h-9 w-9 text-primary" />
+                      <div className="absolute -bottom-1 -right-1">
+                        <Sparkles className="h-4 w-4 text-primary/60" />
+                      </div>
                     </div>
-                    <h3 className="font-display font-medium mb-2">Olá! Sou o Oráculo</h3>
-                    <p className="text-sm text-muted-foreground max-w-[300px] mx-auto">
+                    <h3 className="font-display text-lg font-semibold mb-1.5">Olá! Sou o Oráculo</h3>
+                    <p className="text-sm text-muted-foreground max-w-[280px] mx-auto leading-relaxed">
                       {clientId 
-                        ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"} com base no perfil e histórico de compras.`
-                        : "Posso ajudar a encontrar os melhores produtos para seus clientes. Selecione um cliente para recomendações personalizadas."
+                        ? `Posso ajudar a encontrar os melhores produtos para ${clientName || "este cliente"}.`
+                        : "Posso ajudar a encontrar os melhores produtos para seus clientes."
                       }
                     </p>
-                    <div className="mt-4 flex flex-wrap gap-2 justify-center">
+                    <div className="mt-5 flex flex-wrap gap-2 justify-center">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setInput("Quais produtos você recomenda para este cliente?")}
-                        className="text-xs"
+                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
                       >
-                        Recomendações
+                        ✨ Recomendações
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setInput("Sugira produtos para datas comemorativas")}
-                        className="text-xs"
+                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
                       >
-                        Datas comemorativas
+                        🎁 Datas comemorativas
                       </Button>
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setInput("Produtos que combinam com as cores da marca")}
-                        className="text-xs"
+                        className="text-xs rounded-xl hover:bg-primary/5 hover:border-primary/30 transition-all"
                       >
-                        Cores da marca
+                        🎨 Cores da marca
                       </Button>
                     </div>
                     {conversations.length > 0 && (
@@ -635,22 +639,22 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <div
                     key={message.id || `msg-${message.role}-${index}`}
                     className={cn(
-                      "flex gap-3",
+                      "flex gap-3 animate-fade-in",
                       message.role === "user" ? "justify-end" : "justify-start"
                     )}
                   >
                     {message.role === "assistant" && (
-                      <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+                      <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/10">
                         <Bot className="h-4 w-4 text-primary-foreground" />
                       </div>
                     )}
                     <div className="flex flex-col max-w-[80%]">
                       <div
                         className={cn(
-                          "rounded-2xl px-4 py-2.5 text-sm",
+                          "rounded-2xl px-4 py-3 text-sm leading-relaxed",
                           message.role === "user"
-                            ? "bg-primary text-primary-foreground"
-                            : "bg-muted"
+                            ? "bg-primary text-primary-foreground rounded-br-md shadow-sm shadow-primary/20"
+                            : "bg-muted/80 rounded-bl-md border border-border/40"
                         )}
                       >
                         <p className="whitespace-pre-wrap">
@@ -663,7 +667,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       {message.role === "assistant" && message.content && !isLoading && (
                         <button
                           onClick={() => handlePlayTts(message.id || `msg-${index}`, message.content)}
-                          className="self-start mt-1 ml-1 p-1 rounded-full text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                          className={cn(
+                            "self-start mt-1.5 ml-1 p-1.5 rounded-lg text-muted-foreground transition-all duration-200",
+                            playingTtsId === (message.id || `msg-${index}`)
+                              ? "bg-primary/15 text-primary"
+                              : "hover:text-primary hover:bg-primary/10"
+                          )}
                           title={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
                           aria-label={playingTtsId === (message.id || `msg-${index}`) ? "Parar áudio" : "Ouvir resposta"}
                         >
@@ -676,7 +685,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       )}
                     </div>
                     {message.role === "user" && (
-                      <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center flex-shrink-0">
+                      <div className="h-8 w-8 rounded-xl bg-secondary flex items-center justify-center flex-shrink-0">
                         <User className="h-4 w-4" />
                       </div>
                     )}
@@ -684,34 +693,40 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                 ))}
 
                 {isLoading && messages[messages.length - 1]?.role === "user" && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="h-8 w-8 rounded-full bg-gradient-to-br from-primary to-primary/60 flex items-center justify-center flex-shrink-0">
+                  <div className="flex gap-3 justify-start animate-fade-in">
+                    <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary/50 flex items-center justify-center flex-shrink-0 shadow-sm shadow-primary/10">
                       <Bot className="h-4 w-4 text-primary-foreground" />
                     </div>
-                    <div className="bg-muted rounded-2xl px-4 py-2.5">
-                      <Loader2 className="h-4 w-4 animate-spin" />
+                    <div className="bg-muted/80 rounded-2xl rounded-bl-md border border-border/40 px-4 py-3">
+                      <div className="flex items-center gap-1.5">
+                        <div className="h-2 w-2 rounded-full bg-primary/60 animate-pulse" />
+                        <div className="h-2 w-2 rounded-full bg-primary/40 animate-pulse [animation-delay:0.15s]" />
+                        <div className="h-2 w-2 rounded-full bg-primary/20 animate-pulse [animation-delay:0.3s]" />
+                      </div>
                     </div>
                   </div>
                 )}
               </div>
             </ScrollArea>
 
-            <div className="p-4 border-t bg-background">
+            <div className="p-4 border-t border-border/50 bg-background/80 backdrop-blur-sm">
               <div className="flex gap-2">
                 <Input
                   ref={inputRef}
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  placeholder="Pergunte ao Oráculo..."
+                  placeholder="Pergunte ao Oráculo…"
                   disabled={isLoading}
-                  className="flex-1"
+                  className="flex-1 rounded-xl border-border/50 focus-visible:ring-primary/30"
                 />
                 <Button
                   data-oracle-send
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
-                  size="icon" aria-label="Enviar mensagem"
+                  size="icon"
+                  aria-label="Enviar mensagem"
+                  className="rounded-xl shadow-sm shadow-primary/20"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />

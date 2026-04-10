@@ -32,19 +32,19 @@ interface VoiceSearchOverlayProps {
   onCommandSelect?: (command: string) => void;
 }
 
-const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string }> = {
-  idle: { title: "Assistente de Voz", subtitle: "Toque no orbe para começar" },
-  listening: { title: "Ouvindo...", subtitle: "Diga o que você precisa" },
-  processing: { title: "Processando...", subtitle: "IA interpretando seu comando" },
-  speaking: { title: "Respondendo...", subtitle: "Ouvindo a resposta" },
-  error: { title: "Erro", subtitle: "Toque para tentar novamente" },
+const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string; emoji: string }> = {
+  idle: { title: "Assistente de Voz", subtitle: "Toque no orbe para começar", emoji: "✨" },
+  listening: { title: "Ouvindo…", subtitle: "Diga o que você precisa", emoji: "🎙️" },
+  processing: { title: "Processando…", subtitle: "IA interpretando seu comando", emoji: "⚡" },
+  speaking: { title: "Respondendo…", subtitle: "Ouvindo a resposta", emoji: "💬" },
+  error: { title: "Erro", subtitle: "Toque para tentar novamente", emoji: "⚠️" },
 };
 
 const SUGGESTION_COMMANDS = [
   "Quero canetas azuis baratas",
   "Mostra mochilas ecológicas",
+  "Pergunte ao oráculo qual o melhor brinde",
   "Abre os orçamentos",
-  "Qual o produto mais vendido?",
 ];
 const ACTION_META: Record<string, { icon: React.ElementType; label: string; color: string }> = {
   search: { icon: Search, label: "Busca", color: "text-blue-400" },
@@ -256,15 +256,23 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     border: { duration: 0.8, ease: "easeInOut" },
                   }}
                 >
-                {/* Title */}
+                {/* Title — refined typography */}
                 <motion.div
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.15 }}
-                  className="text-center"
+                  className="text-center space-y-1"
                 >
-                  <h2 className="font-display text-xs font-medium text-white/50 mb-0.5">{title}</h2>
-                  <p className="text-white/25 text-[10px]">{subtitle}</p>
+                  <h2 className="font-display text-sm font-semibold text-white/70 tracking-wide">
+                    {showBooting
+                      ? (bootingTimedOut ? "Microfone indisponível" : "Ativando microfone…")
+                      : meta.title}
+                  </h2>
+                  <p className="text-white/30 text-[11px] tracking-wider">
+                    {showBooting
+                      ? (bootingTimedOut ? "Verifique as permissões do navegador" : "Preparando sua conversa por voz")
+                      : meta.subtitle}
+                  </p>
                 </motion.div>
 
                 {/* Clickable Orb */}
@@ -311,17 +319,17 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       exit={{ opacity: 0, y: -10 }}
                       className="w-full"
                     >
-                      <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
-                        <p className="text-[10px] text-white/30 uppercase tracking-widest mb-1">
-                          {phase === "listening" ? "Você está dizendo:" : "Você disse:"}
+                      <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-5 py-4 backdrop-blur-sm">
+                        <p className="text-[10px] text-white/35 uppercase tracking-[0.15em] font-medium mb-1.5">
+                          {phase === "listening" ? "🎙️ Você está dizendo:" : "✅ Você disse:"}
                         </p>
-                        <p className="text-base font-medium text-white/90">
+                        <p className="text-[15px] font-display font-medium text-white/90 leading-relaxed">
                           "{partialTranscript || finalTranscript}"
                           {phase === "listening" && partialTranscript && (
                             <motion.span
                               animate={{ opacity: [1, 0] }}
                               transition={{ duration: 0.5, repeat: Infinity }}
-                              className="text-primary"
+                              className="text-primary ml-0.5"
                             >
                               |
                             </motion.span>
@@ -342,32 +350,37 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                       exit={{ opacity: 0, scale: 0.95, y: -10 }}
                       className="w-full"
                     >
-                      <div className="bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
+                      <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-5 py-4 backdrop-blur-sm">
                         <div className="flex items-start gap-3">
                           {(() => {
                             const actionType = currentAction?.action || "answer";
-                            const meta = ACTION_META[actionType] || ACTION_META.answer;
-                            const Icon = meta.icon;
+                            const actionMeta = ACTION_META[actionType] || ACTION_META.answer;
+                            const Icon = actionMeta.icon;
                             return (
-                              <div className={`h-7 w-7 rounded-full bg-white/10 flex items-center justify-center shrink-0 mt-0.5`}>
-                                <Icon className={`h-3.5 w-3.5 ${meta.color}`} />
-                              </div>
+                              <motion.div
+                                initial={{ scale: 0 }}
+                                animate={{ scale: 1 }}
+                                transition={{ type: "spring", damping: 10, stiffness: 200 }}
+                                className="h-8 w-8 rounded-xl bg-white/[0.08] border border-white/[0.1] flex items-center justify-center shrink-0 mt-0.5"
+                              >
+                                <Icon className={`h-4 w-4 ${actionMeta.color}`} />
+                              </motion.div>
                             );
                           })()}
                           <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1">
-                              <p className="text-[10px] text-white/30 uppercase tracking-widest">Assistente</p>
+                            <div className="flex items-center gap-2 mb-1.5">
+                              <p className="text-[10px] text-white/35 uppercase tracking-[0.15em] font-medium">Assistente</p>
                               {currentAction && currentAction.action !== "answer" && (
                                 <motion.span
                                   initial={{ scale: 0, opacity: 0 }}
                                   animate={{ scale: 1, opacity: 1 }}
-                                  className={`text-[9px] px-1.5 py-0.5 rounded-full bg-white/5 border border-white/10 ${ACTION_META[currentAction.action]?.color || "text-white/50"}`}
+                                  className={`text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.1] font-medium ${ACTION_META[currentAction.action]?.color || "text-white/50"}`}
                                 >
                                   {ACTION_META[currentAction.action]?.label}
                                 </motion.span>
                               )}
                             </div>
-                            <p className="text-sm font-medium text-white/90">{agentResponse}</p>
+                            <p className="text-sm font-display text-white/90 leading-relaxed">{agentResponse}</p>
                           </div>
                         </div>
                       </div>
