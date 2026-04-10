@@ -712,9 +712,10 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   className="flex-1"
                 />
                 <Button
+                  data-oracle-send
                   onClick={sendMessage}
                   disabled={!input.trim() || isLoading}
-                  size="icon" aria-label="Carregando"
+                  size="icon" aria-label="Enviar mensagem"
                 >
                   {isLoading ? (
                     <Loader2 className="h-4 w-4 animate-spin" />
