@@ -688,43 +688,26 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           {/* Active filters badges */}
           {activeFiltersCount > 0 && (
             <div className="flex flex-wrap gap-1 mt-2">
-              {(() => {
-                const f = flowFilters;
-                const badgeCls = "text-[9px] rounded-md px-1.5 py-0.5 gap-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors";
-                const clear = (key: keyof FlowFilterState, val: any = null) => setFlowFilters(prev => ({ ...prev, [key]: val }));
-                const entries: { label: string; key: keyof FlowFilterState; resetVal?: any }[] = [
-                  ...(f.priceMin || f.priceMax ? [{ label: f.priceMin && f.priceMax ? `R$${f.priceMin}–${f.priceMax}` : f.priceMin ? `R$${f.priceMin}+` : `Até R$${f.priceMax}`, key: "priceMin" as const }] : []),
-                  ...(f.selectedCategory ? [{ label: f.selectedCategory, key: "selectedCategory" as const }] : []),
-                  ...(f.selectedColor ? [{ label: f.selectedColor, key: "selectedColor" as const }] : []),
-                  ...(f.selectedMaterial ? [{ label: f.selectedMaterial, key: "selectedMaterial" as const }] : []),
-                  ...(f.selectedGender ? [{ label: f.selectedGender, key: "selectedGender" as const }] : []),
-                  ...(f.selectedSupplier ? [{ label: f.selectedSupplier, key: "selectedSupplier" as const }] : []),
-                  ...(f.selectedTechnique ? [{ label: f.selectedTechnique, key: "selectedTechnique" as const }] : []),
-                  ...(f.selectedPublico ? [{ label: f.selectedPublico, key: "selectedPublico" as const }] : []),
-                  ...(f.selectedDataComemorativa ? [{ label: f.selectedDataComemorativa, key: "selectedDataComemorativa" as const }] : []),
-                  ...(f.selectedEndomarketing ? [{ label: f.selectedEndomarketing, key: "selectedEndomarketing" as const }] : []),
-                  ...(f.selectedNicho ? [{ label: f.selectedNicho, key: "selectedNicho" as const }] : []),
-                  ...(f.selectedTag ? [{ label: f.selectedTag, key: "selectedTag" as const }] : []),
-                  ...(f.onlyInStock ? [{ label: "Em estoque", key: "onlyInStock" as const, resetVal: false }] : []),
-                  ...(f.onlyNew ? [{ label: "Novidades", key: "onlyNew" as const, resetVal: false }] : []),
-                  ...(f.onlyKit ? [{ label: "Kits", key: "onlyKit" as const, resetVal: false }] : []),
-                  ...(f.onlyBestseller ? [{ label: "Mais vendidos", key: "onlyBestseller" as const, resetVal: false }] : []),
-                ];
-                return entries.map(({ label, key, resetVal }) => (
-                  <Badge key={key} variant="secondary" className={badgeCls}
-                    onClick={() => {
-                      if (key === "priceMin") {
-                        setFlowFilters(prev => ({ ...prev, priceMin: "", priceMax: "" }));
-                      } else {
-                        setFlowFilters(prev => ({ ...prev, [key]: resetVal ?? null }));
-                      }
-                    }}
-                  >
-                    {label}
-                    <X className="h-2 w-2" />
-                  </Badge>
-                ));
-              })()}
+              {getActiveFilterLabels(flowFilters).map(({ label, key, value }) => (
+                <Badge key={`${key}-${value || label}`} variant="secondary"
+                  className="text-[9px] rounded-md px-1.5 py-0.5 gap-0.5 cursor-pointer hover:bg-destructive/10 hover:text-destructive transition-colors"
+                  onClick={() => {
+                    if (key === "price") {
+                      setFlowFilters(prev => ({ ...prev, priceMin: "", priceMax: "" }));
+                    } else if (value && Array.isArray(flowFilters[key as keyof FlowFilterState])) {
+                      setFlowFilters(prev => ({
+                        ...prev,
+                        [key]: (prev[key as keyof FlowFilterState] as string[]).filter(v => v !== value),
+                      }));
+                    } else {
+                      setFlowFilters(prev => ({ ...prev, [key]: false }));
+                    }
+                  }}
+                >
+                  {label}
+                  <X className="h-2 w-2" />
+                </Badge>
+              ))}
             </div>
           )}
 
