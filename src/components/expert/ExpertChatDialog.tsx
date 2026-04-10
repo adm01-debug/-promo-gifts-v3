@@ -574,21 +574,9 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
         <FlowFilterPanel
           isOpen={showFilters}
           onClose={() => setShowFilters(false)}
-          priceMin={priceMin}
-          priceMax={priceMax}
-          onPriceMinChange={setPriceMin}
-          onPriceMaxChange={setPriceMax}
-          categories={categories}
-          selectedCategory={selectedCategory}
-          onCategoryChange={setSelectedCategory}
-          materials={materials}
-          selectedMaterial={selectedMaterial}
-          onMaterialChange={setSelectedMaterial}
-          colors={colors}
-          selectedColor={selectedColor}
-          onColorChange={setSelectedColor}
-          onlyInStock={onlyInStock}
-          onOnlyInStockChange={setOnlyInStock}
+          filters={flowFilters}
+          onFiltersChange={setFlowFilters}
+          options={filterOptions}
           autoPlayTts={autoPlayTts}
           onAutoPlayTtsChange={async (next) => {
             setAutoPlayTts(next);
@@ -610,14 +598,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             } catch { /* ignore */ }
           }}
           activeFiltersCount={activeFiltersCount}
-          onReset={() => {
-            setSelectedCategory(null);
-            setPriceMin("");
-            setPriceMax("");
-            setSelectedMaterial(null);
-            setSelectedColor(null);
-            setOnlyInStock(false);
-          }}
+          onReset={() => setFlowFilters(defaultFlowFilters)}
         />
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
