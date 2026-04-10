@@ -454,7 +454,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="max-w-full sm:max-w-[480px] h-[100dvh] sm:h-[640px] flex flex-col p-0 gap-0 rounded-none sm:rounded-3xl overflow-hidden border-0 sm:border sm:border-border/50 shadow-xl [&>button.absolute]:hidden">
         {/* ─── HEADER ─── */}
-        <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0">
+        <DialogHeader className="relative px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="relative">
