@@ -128,24 +128,30 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     return () => clearInterval(interval);
   }, [isLoading, clientId]);
 
-  // Fetch seller first name for personalized greeting
+  // Fetch seller first name and preferences
   useEffect(() => {
     if (!isOpen) return;
-    const fetchName = async () => {
+    const fetchProfile = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
         const { data: profile } = await supabase
           .from("profiles")
-          .select("full_name")
+          .select("full_name, preferences")
           .eq("user_id", user.id)
           .single();
         if (profile?.full_name) {
           setSellerFirstName(profile.full_name.split(" ")[0]);
         }
+        // Sync auto-play preference from DB (DB takes precedence over localStorage)
+        const prefs = profile?.preferences as Record<string, unknown> | null;
+        if (prefs && typeof prefs.flow_autoplay_tts === "boolean") {
+          setAutoPlayTts(prefs.flow_autoplay_tts);
+          try { localStorage.setItem("flow_autoplay_tts", String(prefs.flow_autoplay_tts)); } catch {}
+        }
       } catch { /* ignore */ }
     };
-    fetchName();
+    fetchProfile();
   }, [isOpen]);
 
   // Fetch categories and materials from Promobrind
@@ -673,10 +679,26 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                   <DropdownMenuSeparator />
                   <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Áudio</DropdownMenuLabel>
                   <DropdownMenuItem
-                    onClick={() => {
+                    onClick={async () => {
                       const next = !autoPlayTts;
                       setAutoPlayTts(next);
                       try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
+                      // Persist to DB
+                      try {
+                        const { data: { user } } = await supabase.auth.getUser();
+                        if (user) {
+                          const { data: profile } = await supabase
+                            .from("profiles")
+                            .select("preferences")
+                            .eq("user_id", user.id)
+                            .single();
+                          const currentPrefs = (profile?.preferences as Record<string, unknown>) || {};
+                          await supabase
+                            .from("profiles")
+                            .update({ preferences: { ...currentPrefs, flow_autoplay_tts: next } })
+                            .eq("user_id", user.id);
+                        }
+                      } catch { /* ignore */ }
                     }}
                     className="text-xs"
                   >
