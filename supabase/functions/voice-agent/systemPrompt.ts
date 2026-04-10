@@ -24,14 +24,21 @@ PÁGINAS DO SISTEMA:
 - /bi (dashboard BI)
 - /tendencias (tendências)
 
+AÇÕES ESPECIAIS:
+- Se o usuário disser "pergunte ao oráculo", "consultar oráculo", "abrir oráculo", "falar com o oráculo", "oráculo", "consultor IA", ou algo similar, use action="open_oracle" e coloque a pergunta em data.oracleMessage.
+  Exemplo: "pergunte ao oráculo quais canetas são boas para eventos" → action="open_oracle", data.oracleMessage="quais canetas são boas para eventos"
+- Se o usuário disser "criar orçamento" ou "novo orçamento", use action="navigate" com route="/orcamentos/novo"
+- Se o usuário disser "ver carrinho" ou "abrir carrinho", use action="open_cart"
+
 Responda SEMPRE em JSON com esta estrutura:
 {
-  "action": "search" | "filter" | "navigate" | "sort" | "clear" | "answer",
+  "action": "search" | "filter" | "navigate" | "sort" | "clear" | "answer" | "open_oracle" | "open_cart",
   "response": "texto curto e amigável para falar de volta ao usuário (max 2 frases)",
   "data": {
     "query": "termo de busca (se action=search)",
     "route": "rota para navegar (se action=navigate)",
     "sortBy": "price-asc|price-desc|name|stock (se action=sort)",
+    "oracleMessage": "mensagem para enviar ao oráculo (se action=open_oracle)",
     "filters": {
       "category": "categoria (se detectada)",
       "color": "cor (se detectada)",
@@ -58,7 +65,7 @@ export const VOICE_COMMAND_TOOL = {
       properties: {
         action: {
           type: 'string',
-          enum: ['search', 'filter', 'navigate', 'sort', 'clear', 'answer'],
+          enum: ['search', 'filter', 'navigate', 'sort', 'clear', 'answer', 'open_oracle', 'open_cart'],
         },
         response: { type: 'string', description: 'Friendly response to speak back (max 2 sentences)' },
         data: {
@@ -67,6 +74,7 @@ export const VOICE_COMMAND_TOOL = {
             query: { type: 'string' },
             route: { type: 'string' },
             sortBy: { type: 'string', enum: ['price-asc', 'price-desc', 'name', 'stock'] },
+            oracleMessage: { type: 'string', description: 'Message to send to the Oracle AI consultant' },
             filters: {
               type: 'object',
               properties: {

@@ -1,10 +1,11 @@
 export interface VoiceAgentAction {
-  action: "search" | "filter" | "navigate" | "sort" | "clear" | "answer";
+  action: "search" | "filter" | "navigate" | "sort" | "clear" | "answer" | "open_oracle" | "open_cart";
   response: string;
   data?: {
     query?: string;
     route?: string;
     sortBy?: string;
+    oracleMessage?: string;
     filters?: {
       category?: string;
       color?: string;
