@@ -554,8 +554,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     }
   };
 
-  const hasPriceFilter = !!(priceMin || priceMax);
-  const activeFiltersCount = [selectedCategory, hasPriceFilter ? true : null, selectedMaterial, selectedColor, onlyInStock ? true : null].filter(Boolean).length;
+  const activeFiltersCount = countActiveFilters(flowFilters);
 
   const filteredConversations = conversations.filter(c => {
     if (historySearch && !c.title.toLowerCase().includes(historySearch.toLowerCase())) return false;
