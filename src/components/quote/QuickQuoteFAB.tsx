@@ -78,8 +78,20 @@ interface QuickQuoteFABProps {
 export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [expertOpen, setExpertOpen] = useState(false);
+  const [voiceInitialMessage, setVoiceInitialMessage] = useState<string | undefined>();
   const navigate = useNavigate();
   const location = useLocation();
+  const bridgeOpen = useOracleVoiceBridge((s) => s.isOracleOpen);
+  const pendingMessage = useOracleVoiceBridge((s) => s.pendingMessage);
+  const closeOracle = useOracleVoiceBridge((s) => s.closeOracle);
+
+  // React to voice bridge opening the oracle
+  useEffect(() => {
+    if (bridgeOpen && !expertOpen) {
+      setVoiceInitialMessage(pendingMessage || undefined);
+      setExpertOpen(true);
+    }
+  }, [bridgeOpen, expertOpen, pendingMessage]);
 
   // Don't show on certain pages
   const hiddenPaths = ["/orcamentos/novo", "/auth", "/mockup-generator"];
