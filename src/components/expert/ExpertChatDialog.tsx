@@ -669,6 +669,27 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                       ))}
                     </>
                   )}
+
+                  <DropdownMenuSeparator />
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground/60 font-normal">Áudio</DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.preventDefault();
+                      const next = !autoPlayTts;
+                      setAutoPlayTts(next);
+                      try { localStorage.setItem("flow_autoplay_tts", String(next)); } catch {}
+                    }}
+                    className="text-xs"
+                  >
+                    <Volume2 className="h-3 w-3 mr-1.5 opacity-50" />
+                    Auto-play por voz
+                    <span className={cn(
+                      "ml-auto text-[10px] font-medium px-1.5 py-0.5 rounded",
+                      autoPlayTts ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
+                    )}>
+                      {autoPlayTts ? "ON" : "OFF"}
+                    </span>
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
 
