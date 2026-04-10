@@ -108,6 +108,7 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
     }
 
     if (href === "__open_expert__") {
+      setVoiceInitialMessage(undefined);
       setExpertOpen(true);
       return;
     }
