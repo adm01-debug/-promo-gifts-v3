@@ -222,7 +222,12 @@ export function QuickQuoteFAB({ productId, productName }: QuickQuoteFABProps) {
       <Suspense fallback={null}>
         <ExpertChatDialog
           isOpen={expertOpen}
-          onClose={() => setExpertOpen(false)}
+          onClose={() => {
+            setExpertOpen(false);
+            setVoiceInitialMessage(undefined);
+            closeOracle();
+          }}
+          initialMessage={voiceInitialMessage}
         />
       </Suspense>
     </>
