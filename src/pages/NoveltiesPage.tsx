@@ -8,20 +8,20 @@ export default function NoveltiesPage() {
   return (
     <MainLayout>
       <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-5 sm:space-y-6 pb-24 md:pb-6">
+      <div className="container mx-auto px-3 sm:px-4 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6">
 
         {/* KPIs focados em chegadas */}
         <NoveltyStatsCards />
 
-        {/* Layout principal */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
+        {/* Layout principal — grid ocupa mais espaço */}
+        <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-3 sm:gap-4">
           {/* Grid de produtos */}
-          <div className="lg:col-span-3 order-2 lg:order-1">
+          <div className="order-2 xl:order-1 min-w-0">
             <NoveltyProductGrid />
           </div>
 
-          {/* Widget + Recentes */}
-          <div className="lg:col-span-1 order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
+          {/* Widget sidebar — compacto */}
+          <div className="order-1 xl:order-2 xl:sticky xl:top-4 xl:self-start">
             <ExpiringNoveltiesWidget />
           </div>
         </div>
