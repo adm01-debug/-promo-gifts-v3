@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Sparkles, CalendarPlus, CalendarRange, Building2 } from "lucide-react";
+import { Sparkles, CalendarPlus, CalendarRange, CalendarDays, Building2 } from "lucide-react";
 import { useNoveltyStats } from "@/hooks/useNovelties";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -96,8 +96,8 @@ export function NoveltyStatsCards() {
 
   if (isLoading) {
     return (
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-        {Array.from({ length: 4 }).map((_, i) => (
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
+        {Array.from({ length: 5 }).map((_, i) => (
           <StatCardSkeleton key={i} />
         ))}
       </div>
@@ -109,7 +109,7 @@ export function NoveltyStatsCards() {
   }
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4">
       <StatCard
         label="Chegaram Hoje"
         value={stats?.arrivedToday || 0}
@@ -123,6 +123,13 @@ export function NoveltyStatsCards() {
         icon={<CalendarRange className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="success"
         delay={100}
+      />
+      <StatCard
+        label="Últimos 15 Dias"
+        value={stats?.arrivedLast15Days || 0}
+        icon={<CalendarDays className="h-4 w-4 sm:h-5 sm:w-5" />}
+        variant="warning"
+        delay={150}
       />
       <StatCard
         label="Top Fornecedor"
