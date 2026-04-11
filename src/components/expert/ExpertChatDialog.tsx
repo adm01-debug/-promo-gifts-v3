@@ -239,6 +239,32 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     return () => { cancelled = true; };
   }, [isOpen]);
 
+  // Proactive filter feedback: when filters change, auto-send context to Flow
+  const prevFilterKeyRef = useRef("");
+  const filterDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const currentCount = countActiveFilters(flowFilters);
+    if (currentCount === 0 || isLoading || !isOpen) return;
+
+    // Build a stable key to detect actual changes (not just re-renders)
+    const labels = getActiveFilterLabels(flowFilters);
+    const filterKey = labels.map(l => `${l.key}:${l.value || l.label}`).sort().join("|");
+    if (filterKey === prevFilterKeyRef.current) return;
+    prevFilterKeyRef.current = filterKey;
+
+    // Debounce: wait 1s after last filter change to batch rapid selections
+    if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    filterDebounceRef.current = setTimeout(() => {
+      const summary = labels.map(l => l.label).join(", ");
+      const autoPrompt = `Filtros aplicados: ${summary}. Me mostre os melhores produtos para esses filtros, com recomendações e insights de vendas.`;
+      handleAutoSend(autoPrompt);
+    }, 1000);
+
+    return () => {
+      if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    };
+  }, [flowFilters, isLoading, isOpen]);
+
   // Smooth auto-scroll
   useEffect(() => {
     if (scrollRef.current && !showScrollDown) {
@@ -338,6 +364,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setCurrentConversationId(null);
     setShowHistory(false);
     setFlowFilters(defaultFlowFilters);
+    prevFilterKeyRef.current = "";
   }, [clientId]);
 
   // Auto-send initial message from voice bridge
@@ -685,7 +712,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             } catch { /* ignore */ }
           }}
           activeFiltersCount={activeFiltersCount}
-          onReset={() => setFlowFilters(defaultFlowFilters)}
+          onReset={() => { setFlowFilters(defaultFlowFilters); prevFilterKeyRef.current = ""; }}
         />
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
