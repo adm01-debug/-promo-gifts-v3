@@ -17,7 +17,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { path = "", action = "list" } = await req.json();
+    const { path = "", action = "list" } = await req.json().catch(() => ({ path: "", action: "list" }));
 
     const accessToken = Deno.env.get("DROPBOX_ACCESS_TOKEN");
 
