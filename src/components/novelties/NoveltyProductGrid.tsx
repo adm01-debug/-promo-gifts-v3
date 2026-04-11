@@ -1,11 +1,11 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Clock, Grid3X3, List, Filter } from "lucide-react";
+import { Package, Clock, Grid3X3, List, Filter, Building2, FolderTree, X } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { cn } from "@/lib/utils";
@@ -29,46 +29,44 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
         onClick={onClick}
       >
         <CardContent className="p-3 flex items-center gap-3">
-          {/* Imagem pequena */}
           <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden">
             {product.product_image ? (
-              <img src={product.product_image} 
-                alt={product.product_name}
-                className="w-full h-full object-cover"
-                loading="lazy"
-              />
+              <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
               <div className="w-full h-full flex items-center justify-center">
                 <Package className="h-6 w-6 text-muted-foreground/30" />
               </div>
             )}
           </div>
-
-          {/* Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
               <NoveltyBadge daysRemaining={daysRemaining} size="sm" />
               {daysRemaining <= 7 && (
                 <Badge variant="outline" className="text-[10px] text-warning border-warning/50">
-                  <Clock className="h-2.5 w-2.5 mr-0.5" />
-                  {daysRemaining}d
+                  <Clock className="h-2.5 w-2.5 mr-0.5" />{daysRemaining}d
                 </Badge>
               )}
             </div>
             <h4 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
               {product.product_name}
             </h4>
-            {product.product_sku && (
-              <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>
-            )}
+            <div className="flex items-center gap-2 mt-0.5">
+              {product.product_sku && <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>}
+              {product.supplier_name && (
+                <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-600 dark:text-blue-400">
+                  <Building2 className="h-2.5 w-2.5 mr-0.5" />{product.supplier_name}
+                </Badge>
+              )}
+              {product.category_name && (
+                <Badge variant="outline" className="text-[10px]">
+                  <FolderTree className="h-2.5 w-2.5 mr-0.5" />{product.category_name}
+                </Badge>
+              )}
+            </div>
           </div>
-
-          {/* Preço */}
           {product.base_price && (
             <div className="shrink-0 text-right">
-              <p className="text-sm font-semibold">
-                R$ {product.base_price.toFixed(2)}
-              </p>
+              <p className="text-sm font-semibold">R$ {product.base_price.toFixed(2)}</p>
             </div>
           )}
         </CardContent>
@@ -76,69 +74,50 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
     );
   }
 
-  // Grid view
   return (
     <Card 
       className="group cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-border/50 hover:border-primary/30 overflow-hidden"
       onClick={onClick}
     >
       <CardContent className="p-0">
-        {/* Imagem */}
         <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30">
           {product.product_image ? (
-            <img src={product.product_image} 
-              alt={product.product_name}
-              className="w-full h-full object-cover"
-              loading="lazy"
-            />
+            <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Package className="h-12 w-12 text-muted-foreground/20" />
             </div>
           )}
-          
-          {/* Badge overlay */}
           <div className="absolute top-2 left-2">
             <NoveltyBadge daysRemaining={daysRemaining} size="sm" />
           </div>
-
-          {/* Dias restantes (se expirando) */}
           {daysRemaining <= 7 && (
             <div className="absolute top-2 right-2">
-              <Badge 
-                variant="secondary" 
-                className="bg-warning text-warning-foreground text-[10px] px-1.5"
-              >
-                <Clock className="h-2.5 w-2.5 mr-0.5" />
-                {daysRemaining}d
+              <Badge variant="secondary" className="bg-warning text-warning-foreground text-[10px] px-1.5">
+                <Clock className="h-2.5 w-2.5 mr-0.5" />{daysRemaining}d
               </Badge>
             </div>
           )}
         </div>
-
-        {/* Info */}
         <div className="p-3 space-y-1.5">
           <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem]">
             {product.product_name}
           </h4>
-          
           <div className="flex items-center justify-between gap-2">
             {product.product_sku && (
-              <p className="text-[11px] text-muted-foreground truncate">
-                {product.product_sku}
-              </p>
+              <p className="text-[11px] text-muted-foreground truncate">{product.product_sku}</p>
             )}
             {product.category_name && (
-              <Badge variant="outline" className="text-[10px] shrink-0">
-                {product.category_name}
-              </Badge>
+              <Badge variant="outline" className="text-[10px] shrink-0">{product.category_name}</Badge>
             )}
           </div>
-
-          {product.base_price && (
-            <p className="text-sm font-semibold text-primary">
-              R$ {product.base_price.toFixed(2)}
+          {product.supplier_name && (
+            <p className="text-[11px] text-muted-foreground/70 truncate flex items-center gap-1">
+              <Building2 className="h-3 w-3 shrink-0" />{product.supplier_name}
             </p>
+          )}
+          {product.base_price && (
+            <p className="text-sm font-semibold text-primary">R$ {product.base_price.toFixed(2)}</p>
           )}
         </div>
       </CardContent>
@@ -161,7 +140,6 @@ function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
       </Card>
     );
   }
-
   return (
     <Card>
       <CardContent className="p-0">
@@ -183,27 +161,71 @@ export function NoveltyProductGrid() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
-  // Usar hook com detalhes para ter days_remaining
-  const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 100 });
-
+  const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 200 });
   const products = novelties || [];
 
-  // Ordenar produtos
-  const sortedProducts = [...products].sort((a, b) => {
-    switch (sortMode) {
-      case "expiring":
-        return (a.days_remaining || 30) - (b.days_remaining || 30);
-      case "name":
-        return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
-      case "recent":
-      default:
-        return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+  // Extrair fornecedores e categorias únicos dos dados
+  const { suppliers, categories } = useMemo(() => {
+    const supMap = new Map<string, { id: string; name: string; count: number }>();
+    const catMap = new Map<string, { id: string; name: string; count: number }>();
+
+    products.forEach(p => {
+      if (p.supplier_id && p.supplier_name) {
+        const existing = supMap.get(p.supplier_id);
+        if (existing) existing.count++;
+        else supMap.set(p.supplier_id, { id: p.supplier_id, name: p.supplier_name, count: 1 });
+      }
+      if (p.category_id && p.category_name) {
+        const existing = catMap.get(p.category_id);
+        if (existing) existing.count++;
+        else catMap.set(p.category_id, { id: p.category_id, name: p.category_name, count: 1 });
+      }
+    });
+
+    return {
+      suppliers: [...supMap.values()].sort((a, b) => b.count - a.count),
+      categories: [...catMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
+    };
+  }, [products]);
+
+  // Filtrar e ordenar
+  const filteredProducts = useMemo(() => {
+    let filtered = [...products];
+
+    if (selectedSupplier !== "all") {
+      filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
     }
-  });
+    if (selectedCategory !== "all") {
+      filtered = filtered.filter(p => p.category_id === selectedCategory);
+    }
+
+    filtered.sort((a, b) => {
+      switch (sortMode) {
+        case "expiring":
+          return (a.days_remaining || 30) - (b.days_remaining || 30);
+        case "name":
+          return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
+        case "recent":
+        default:
+          return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+      }
+    });
+
+    return filtered;
+  }, [products, selectedSupplier, selectedCategory, sortMode]);
+
+  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all";
 
   const handleProductClick = (productId: string) => {
     navigate(`/produto/${productId}`);
+  };
+
+  const clearFilters = () => {
+    setSelectedSupplier("all");
+    setSelectedCategory("all");
   };
 
   if (error) {
@@ -213,16 +235,60 @@ export function NoveltyProductGrid() {
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3 sm:pb-4">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-            Produtos Novidade
-            <Badge variant="secondary" className="text-xs">
-              {products.length}
-            </Badge>
-          </CardTitle>
+        <div className="flex flex-col gap-3">
+          {/* Título + View Toggle */}
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              Produtos Novidade
+              <Badge variant="secondary" className="text-xs">
+                {filteredProducts.length}
+                {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
+              </Badge>
+            </CardTitle>
+            <div className="flex border rounded-lg overflow-hidden">
+              <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" aria-label="Grid" className="h-8 w-8 rounded-none" onClick={() => setViewMode("grid")}>
+                <Grid3X3 className="h-4 w-4" />
+              </Button>
+              <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" aria-label="Lista" className="h-8 w-8 rounded-none" onClick={() => setViewMode("list")}>
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
 
-          {/* Controles */}
-          <div className="flex items-center gap-2">
+          {/* Filtros */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Fornecedor */}
+            <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+              <SelectTrigger className="w-[180px] h-8 text-xs">
+                <Building2 className="h-3 w-3 mr-1 shrink-0" />
+                <SelectValue placeholder="Fornecedor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos fornecedores</SelectItem>
+                {suppliers.map(s => (
+                  <SelectItem key={s.id} value={s.id}>
+                    {s.name} ({s.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {/* Categoria */}
+            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+              <SelectTrigger className="w-[180px] h-8 text-xs">
+                <FolderTree className="h-3 w-3 mr-1 shrink-0" />
+                <SelectValue placeholder="Categoria" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas categorias</SelectItem>
+                {categories.map(c => (
+                  <SelectItem key={c.id} value={c.id}>
+                    {c.name} ({c.count})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             {/* Ordenação */}
             <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
               <SelectTrigger className="w-[130px] h-8 text-xs">
@@ -236,26 +302,34 @@ export function NoveltyProductGrid() {
               </SelectContent>
             </Select>
 
-            {/* Toggle view mode */}
-            <div className="flex border rounded-lg overflow-hidden">
-              <Button
-                variant={viewMode === "grid" ? "secondary" : "ghost"}
-                size="icon" aria-label="Grid3X3"
-                className="h-8 w-8 rounded-none"
-                onClick={() => setViewMode("grid")}
-              >
-                <Grid3X3 className="h-4 w-4" />
+            {/* Limpar filtros */}
+            {hasActiveFilters && (
+              <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground" onClick={clearFilters}>
+                <X className="h-3 w-3 mr-1" />
+                Limpar
               </Button>
-              <Button
-                variant={viewMode === "list" ? "secondary" : "ghost"}
-                size="icon" aria-label="Lista"
-                className="h-8 w-8 rounded-none"
-                onClick={() => setViewMode("list")}
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
+            )}
           </div>
+
+          {/* Badges de filtros ativos */}
+          {hasActiveFilters && (
+            <div className="flex flex-wrap gap-1.5">
+              {selectedSupplier !== "all" && (
+                <Badge variant="secondary" className="text-xs gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setSelectedSupplier("all")}>
+                  <Building2 className="h-3 w-3" />
+                  {suppliers.find(s => s.id === selectedSupplier)?.name}
+                  <X className="h-3 w-3" />
+                </Badge>
+              )}
+              {selectedCategory !== "all" && (
+                <Badge variant="secondary" className="text-xs gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setSelectedCategory("all")}>
+                  <FolderTree className="h-3 w-3" />
+                  {categories.find(c => c.id === selectedCategory)?.name}
+                  <X className="h-3 w-3" />
+                </Badge>
+              )}
+            </div>
+          )}
         </div>
       </CardHeader>
 
@@ -270,13 +344,13 @@ export function NoveltyProductGrid() {
               <NoveltyCardSkeleton key={i} viewMode={viewMode} />
             ))}
           </div>
-        ) : sortedProducts.length > 0 ? (
+        ) : filteredProducts.length > 0 ? (
           <div className={cn(
             viewMode === "grid" 
               ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
               : "space-y-3"
           )}>
-            {sortedProducts.map((product, index) => (
+            {filteredProducts.map((product, index) => (
               <div 
                 key={product.novelty_id}
                 className="stagger-item"
@@ -294,11 +368,17 @@ export function NoveltyProductGrid() {
           <div className="text-center py-12">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
             <p className="text-muted-foreground">
-              Nenhuma novidade encontrada
+              {hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}
             </p>
-            <p className="text-sm text-muted-foreground/70 mt-1">
-              Produtos novos aparecerão aqui automaticamente
-            </p>
+            {hasActiveFilters ? (
+              <Button variant="link" className="mt-2 text-sm" onClick={clearFilters}>
+                Limpar filtros
+              </Button>
+            ) : (
+              <p className="text-sm text-muted-foreground/70 mt-1">
+                Produtos novos aparecerão aqui automaticamente
+              </p>
+            )}
           </div>
         )}
       </CardContent>

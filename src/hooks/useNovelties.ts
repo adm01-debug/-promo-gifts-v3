@@ -70,6 +70,48 @@ interface RawProduct {
   created_at: string;
 }
 
+interface CategoryRecord { id: string; name: string; }
+interface SupplierRecord { id: string; name: string; code?: string; }
+
+/**
+ * Enriquece novidades com nomes de categoria e fornecedor
+ */
+async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<NoveltyWithDetails[]> {
+  const categoryIds = [...new Set(novelties.map(n => n.category_id).filter(Boolean))] as string[];
+  const supplierIds = [...new Set(novelties.map(n => n.supplier_id).filter(Boolean))] as string[];
+
+  const [catResult, supResult] = await Promise.all([
+    categoryIds.length > 0
+      ? invokeExternalDb<CategoryRecord>({
+          table: 'categories',
+          operation: 'select',
+          select: 'id, name',
+          filters: { id: `in.(${categoryIds.join(',')})` },
+          limit: 500,
+        })
+      : { records: [] as CategoryRecord[] },
+    supplierIds.length > 0
+      ? invokeExternalDb<SupplierRecord>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id, name, code',
+          filters: { id: `in.(${supplierIds.join(',')})` },
+          limit: 200,
+        })
+      : { records: [] as SupplierRecord[] },
+  ]);
+
+  const catMap = new Map(catResult.records.map(c => [c.id, c.name]));
+  const supMap = new Map(supResult.records.map(s => [s.id, { name: s.name, code: s.code }]));
+
+  return novelties.map(n => ({
+    ...n,
+    category_name: (n.category_id && catMap.get(n.category_id)) || null,
+    supplier_name: (n.supplier_id && supMap.get(n.supplier_id)?.name) || null,
+    supplier_code: (n.supplier_id && supMap.get(n.supplier_id)?.code) || null,
+  }));
+}
+
 /**
  * Converte produto cru do banco externo em NoveltyWithDetails
  */
@@ -132,7 +174,8 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
         novelties = novelties.filter(n => n.is_highlighted);
       }
 
-      return novelties;
+      // Enriquecer com nomes de categoria e fornecedor
+      return enrichNovelties(novelties);
     },
     staleTime: 2 * 60 * 1000,
     retry: 2,
