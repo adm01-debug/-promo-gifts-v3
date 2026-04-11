@@ -11,12 +11,6 @@ export default function NoveltiesPage() {
     <MainLayout>
       <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
       <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-5 sm:space-y-6 pb-24 md:pb-6">
-        {/* Header */}
-        <PageHeader
-          title="Novidades"
-          description="Produtos adicionados recentemente ao catálogo"
-          icon={<Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
-        />
 
         {/* KPIs focados em chegadas */}
         <NoveltyStatsCards />
