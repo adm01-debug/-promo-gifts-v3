@@ -6,11 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search } from "lucide-react";
+import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
+import { useNoveltiesSelectionMode } from "@/hooks/useNoveltiesSelectionMode";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { BulkActionBar } from "@/components/products/BulkActionBar";
+import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
+import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
+import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list" | "table";
@@ -35,16 +41,25 @@ function getGridColsClass(cols: ColumnCount): string {
   }
 }
 
-function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; onClick: () => void }) {
+interface NoveltyCardProps {
+  product: NoveltyWithDetails;
+  onClick: () => void;
+  selectionMode: boolean;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+}
+
+function NoveltyGridCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
   const fresh = isFresh(product.detected_at);
   return (
     <Card
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300",
         "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
-        fresh && "border-success/30 shadow-[0_0_16px_hsl(var(--success)/0.1)]"
+        fresh && "border-success/30 shadow-[0_0_16px_hsl(var(--success)/0.1)]",
+        isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
       )}
-      onClick={onClick}
+      onClick={selectionMode ? onToggleSelect : onClick}
     >
       <CardContent className="p-0">
         <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30 overflow-hidden">
@@ -60,10 +75,21 @@ function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; on
               <Package className="h-12 w-12 text-muted-foreground/20" />
             </div>
           )}
+          {/* Selection checkbox */}
+          {selectionMode && (
+            <div className="absolute top-2 right-2 z-10" onClick={(e) => e.stopPropagation()}>
+              <SelectionCheckbox
+                checked={isSelected}
+                onChange={onToggleSelect}
+                size="md"
+                animateEntry
+              />
+            </div>
+          )}
           <div className="absolute top-2 left-2">
             <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
           </div>
-          {fresh && (
+          {fresh && !selectionMode && (
             <div className="absolute top-2 right-2">
               <Badge className="bg-success/90 text-success-foreground text-[9px] px-1.5 py-0 gap-0.5 border-0">
                 <Sparkles className="h-2.5 w-2.5" />NEW
@@ -100,18 +126,30 @@ function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; on
   );
 }
 
-function NoveltyListCard({ product, onClick }: { product: NoveltyWithDetails; onClick: () => void }) {
+function NoveltyListCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
   const fresh = isFresh(product.detected_at);
   return (
     <Card
       className={cn(
         "group cursor-pointer transition-all duration-200",
         "hover:shadow-md hover:border-primary/30",
-        fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]"
+        fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]",
+        isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
       )}
-      onClick={onClick}
+      onClick={selectionMode ? onToggleSelect : onClick}
     >
       <CardContent className="p-2.5 flex items-center gap-2.5">
+        {/* Selection checkbox */}
+        {selectionMode && (
+          <div className="shrink-0" onClick={(e) => e.stopPropagation()}>
+            <SelectionCheckbox
+              checked={isSelected}
+              onChange={onToggleSelect}
+              size="md"
+              animateEntry
+            />
+          </div>
+        )}
         <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted overflow-hidden relative">
           {product.product_image ? (
             <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
@@ -158,12 +196,21 @@ function NoveltyListCard({ product, onClick }: { product: NoveltyWithDetails; on
   );
 }
 
-function NoveltyTableView({ products, onProductClick }: { products: NoveltyWithDetails[]; onProductClick: (id: string) => void }) {
+function NoveltyTableView({ 
+  products, onProductClick, selectionMode, selectedIds, onToggleSelect 
+}: { 
+  products: NoveltyWithDetails[]; 
+  onProductClick: (id: string) => void;
+  selectionMode: boolean;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+}) {
   return (
     <div className="rounded-lg border border-border/50 overflow-hidden">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
+            {selectionMode && <TableHead className="w-[40px] px-2"></TableHead>}
             <TableHead className="w-[44px] px-2">Img</TableHead>
             <TableHead className="px-2">Produto</TableHead>
             <TableHead className="hidden sm:table-cell px-2">SKU</TableHead>
@@ -176,15 +223,28 @@ function NoveltyTableView({ products, onProductClick }: { products: NoveltyWithD
         <TableBody>
           {products.map((product) => {
             const fresh = isFresh(product.detected_at);
+            const isSelected = selectedIds.has(product.product_id);
             return (
               <TableRow
                 key={product.novelty_id}
                 className={cn(
                   "cursor-pointer transition-colors",
-                  fresh && "bg-success/5"
+                  fresh && "bg-success/5",
+                  isSelected && "bg-primary/10"
                 )}
-                onClick={() => onProductClick(product.product_id)}
+                onClick={() => selectionMode ? onToggleSelect(product.product_id) : onProductClick(product.product_id)}
               >
+                {selectionMode && (
+                  <TableCell className="p-1.5">
+                    <div onClick={(e) => e.stopPropagation()}>
+                      <SelectionCheckbox
+                        checked={isSelected}
+                        onChange={() => onToggleSelect(product.product_id)}
+                        size="sm"
+                      />
+                    </div>
+                  </TableCell>
+                )}
                 <TableCell className="p-1.5">
                   <div className="w-9 h-9 rounded bg-muted overflow-hidden">
                     {product.product_image ? (
@@ -279,6 +339,7 @@ export function NoveltyProductGrid() {
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectionMode, setSelectionMode] = useState(false);
 
   const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 200 });
   const products = novelties || [];
@@ -327,13 +388,8 @@ export function NoveltyProductGrid() {
         case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
         case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
         case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
-        case "stock": return (b.stock || 0) - (a.stock || 0);
-        case "best-seller-supplier": {
-          const aScore = (a.featured ? 2 : 0) + (a.newArrival ? 1 : 0);
-          const bScore = (b.featured ? 2 : 0) + (b.newArrival ? 1 : 0);
-          if (bScore !== aScore) return bScore - aScore;
-          return (b.stock || 0) - (a.stock || 0);
-        }
+        case "stock": return 0;
+        case "best-seller-supplier": return 0;
         case "best-seller-promo": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
         case "newest":
         default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
@@ -342,6 +398,9 @@ export function NoveltyProductGrid() {
 
     return filtered;
   }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
+
+  // Selection mode hook
+  const sel = useNoveltiesSelectionMode({ selectionMode, filteredProducts });
 
   const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || searchQuery.trim() !== "";
 
@@ -404,7 +463,15 @@ export function NoveltyProductGrid() {
     }
 
     if (viewMode === "table") {
-      return <NoveltyTableView products={filteredProducts} onProductClick={handleProductClick} />;
+      return (
+        <NoveltyTableView
+          products={filteredProducts}
+          onProductClick={handleProductClick}
+          selectionMode={selectionMode}
+          selectedIds={sel.selectedIds}
+          onToggleSelect={sel.toggleSelect}
+        />
+      );
     }
 
     return (
@@ -420,9 +487,21 @@ export function NoveltyProductGrid() {
             style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
           >
             {viewMode === "grid" ? (
-              <NoveltyGridCard product={product} onClick={() => handleProductClick(product.product_id)} />
+              <NoveltyGridCard
+                product={product}
+                onClick={() => handleProductClick(product.product_id)}
+                selectionMode={selectionMode}
+                isSelected={sel.selectedIds.has(product.product_id)}
+                onToggleSelect={() => sel.toggleSelect(product.product_id)}
+              />
             ) : (
-              <NoveltyListCard product={product} onClick={() => handleProductClick(product.product_id)} />
+              <NoveltyListCard
+                product={product}
+                onClick={() => handleProductClick(product.product_id)}
+                selectionMode={selectionMode}
+                isSelected={sel.selectedIds.has(product.product_id)}
+                onToggleSelect={() => sel.toggleSelect(product.product_id)}
+              />
             )}
           </div>
         ))}
@@ -434,7 +513,7 @@ export function NoveltyProductGrid() {
     <div className="space-y-3">
       {/* Toolbar compacto */}
       <div className="flex flex-col gap-2">
-        {/* Row 1: Título + busca + layout */}
+        {/* Row 1: Título + busca + selecionar + layout */}
         <div className="flex items-center gap-2">
           <div className="flex items-center gap-2 shrink-0">
             <Sparkles className="h-4 w-4 text-success" />
@@ -463,6 +542,24 @@ export function NoveltyProductGrid() {
               )}
             </div>
           </div>
+
+          {/* Botão Selecionar */}
+          <Button
+            variant={selectionMode ? "default" : "outline"}
+            size="sm"
+            className={cn(
+              "h-8 text-xs gap-1.5 shrink-0 transition-all",
+              selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+            )}
+            onClick={() => {
+              setSelectionMode(!selectionMode);
+              if (selectionMode) sel.clearSelection();
+            }}
+          >
+            <CheckSquare className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+          </Button>
+
           <LayoutPopover
             viewMode={viewMode}
             setViewMode={setViewMode}
@@ -579,6 +676,47 @@ export function NoveltyProductGrid() {
 
       {/* Content */}
       {renderContent()}
+
+      {/* Bulk Action Bar */}
+      {selectionMode && (
+        <BulkActionBar
+          selectedCount={sel.selectedCount}
+          totalCount={filteredProducts.length}
+          onSelectAll={sel.selectAll}
+          onClearSelection={sel.clearSelection}
+          onBulkFavorite={sel.handleBulkFavorite}
+          onBulkCompare={sel.handleBulkCompare}
+          onBulkCollection={sel.handleBulkCollection}
+          onBulkCart={sel.handleBulkCart}
+          onBulkQuote={sel.handleBulkQuote}
+        />
+      )}
+
+      {/* Bulk Variant Wizard */}
+      <BulkVariantWizard
+        open={sel.variantWizardOpen}
+        onOpenChange={sel.setVariantWizardOpen}
+        products={sel.selectedProducts}
+        mode={sel.wizardMode}
+        onComplete={sel.handleWizardComplete}
+      />
+
+      {/* Bulk Add to Cart Modal */}
+      <BulkAddToCartModal
+        open={sel.cartModalOpen}
+        onOpenChange={sel.setCartModalOpen}
+        products={sel.bulkCartProducts}
+        variantSelections={sel.wizardSelections}
+        onDone={sel.clearSelection}
+      />
+
+      {/* Add to Collection Modal */}
+      <AddToCollectionModal
+        open={sel.collectionModalOpen}
+        onOpenChange={sel.setCollectionModalOpen}
+        productId={sel.firstSelectedId}
+        productName={sel.firstSelectedProduct?.product_name || ""}
+      />
     </div>
   );
 }
