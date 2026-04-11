@@ -440,26 +440,24 @@ export function NoveltyProductGrid() {
   if (error) console.error('Erro ao carregar novidades:', error);
 
   const renderContent = () => {
-    // Show skeletons only on first load (no cached data)
+    // Progressive loading — no skeletons, show progress bar + empty state during initial load
     if (isLoading && products.length === 0) {
-      if (viewMode === "table") {
-        return (
-          <div className="rounded-lg border border-border/50 overflow-hidden">
-            {Array.from({ length: 8 }).map((_, i) => (
-              <NoveltyCardSkeleton key={i} viewMode="table" />
-            ))}
-          </div>
-        );
-      }
       return (
-        <div className={cn(
-          viewMode === "grid"
-            ? `grid ${getGridColsClass(gridColumns)} gap-2 sm:gap-3`
-            : "space-y-2"
-        )}>
-          {Array.from({ length: 8 }).map((_, i) => (
-            <NoveltyCardSkeleton key={i} viewMode={viewMode} />
-          ))}
+        <div className="flex flex-col items-center justify-center py-16 gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-muted-foreground">
+              Carregando {Math.round(loadingProgress)}% dos produtos...
+            </span>
+          </div>
+          <div className="w-64 h-1.5 bg-muted/50 rounded-full overflow-hidden">
+            <motion.div
+              className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full"
+              initial={{ width: 0 }}
+              animate={{ width: `${loadingProgress}%` }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
+            />
+          </div>
         </div>
       );
     }
