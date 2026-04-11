@@ -239,6 +239,37 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     return () => { cancelled = true; };
   }, [isOpen]);
 
+  // Proactive filter feedback: when filters change, auto-send context to Flow
+  const prevFilterCountRef = useRef(0);
+  const filterDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => {
+    const currentCount = countActiveFilters(flowFilters);
+    const prevCount = prevFilterCountRef.current;
+    prevFilterCountRef.current = currentCount;
+
+    // Only trigger when filters go from 0→N or change while active (not on reset)
+    if (currentCount === 0 || isLoading || !isOpen) return;
+    // Skip on initial mount
+    if (prevCount === 0 && currentCount > 0) {
+      // First filter applied - debounce to batch rapid selections
+    } else if (prevCount === currentCount) {
+      return; // no change in count
+    }
+
+    // Debounce: wait 800ms after last filter change before triggering
+    if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    filterDebounceRef.current = setTimeout(() => {
+      const labels = getActiveFilterLabels(flowFilters);
+      const summary = labels.map(l => l.label).join(", ");
+      const autoPrompt = `Filtros aplicados: ${summary}. Me mostre os melhores produtos para esses filtros, com recomendações e insights de vendas.`;
+      handleAutoSend(autoPrompt);
+    }, 800);
+
+    return () => {
+      if (filterDebounceRef.current) clearTimeout(filterDebounceRef.current);
+    };
+  }, [flowFilters, isLoading, isOpen]);
+
   // Smooth auto-scroll
   useEffect(() => {
     if (scrollRef.current && !showScrollDown) {
