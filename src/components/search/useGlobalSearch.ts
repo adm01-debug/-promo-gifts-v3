@@ -76,7 +76,7 @@ export function useGlobalSearch() {
 
   // ── Voice Agent (ElevenLabs + AI) ──
   const handleVoiceAction = useCallback((action: VoiceAgentAction) => {
-    addVoiceCommand(action.data?.query || action.response, action.action as any, true);
+    addVoiceCommand(action.data?.query || action.response, action.action as VoiceCommandRecord['type'], true);
 
     switch (action.action) {
       case "navigate":
