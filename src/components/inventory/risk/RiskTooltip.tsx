@@ -1,8 +1,10 @@
+import { forwardRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { safeNumber } from "@/lib/stock-chart-utils";
 
 // #11 fix: shows fallback when zero-activity day
-export function RiskTooltip({ active, payload }: any) {
+// forwardRef required because Recharts passes refs to custom tooltip components
+export const RiskTooltip = forwardRef<HTMLDivElement, any>(function RiskTooltip({ active, payload }, ref) {
   if (!active || !payload?.length) return null;
   const data = payload[0]?.payload;
   if (!data) return null;
@@ -12,7 +14,7 @@ export function RiskTooltip({ active, payload }: any) {
   const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
-    <div className="bg-popover border border-border rounded-lg p-2.5 shadow-lg min-w-[150px]">
+    <div ref={ref} className="bg-popover border border-border rounded-lg p-2.5 shadow-lg min-w-[150px]">
       <p className="text-[10px] font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-1.5 space-y-1">
         <div className="flex justify-between text-[10px]">
@@ -42,4 +44,4 @@ export function RiskTooltip({ active, payload }: any) {
       </div>
     </div>
   );
-}
+});
