@@ -166,12 +166,12 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             orderBy: { column: "name", ascending: true },
             limit: 200,
           }),
-          invokeExternalDb<{ name: string }>({
+          invokeExternalDb<{ nome: string }>({
             table: "tecnicas_gravacao",
             operation: "select",
-            select: "name",
-            filters: { is_active: true },
-            orderBy: { column: "name", ascending: true },
+            select: "nome",
+            filters: { ativo: true },
+            orderBy: { column: "nome", ascending: true },
             limit: 100,
           }),
           invokeExternalDb<{ name: string }>({
@@ -204,7 +204,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           materials: uniq((materialsResult.records ?? []).map((item) => item.name)),
           colors: uniq((colorsResult.records ?? []).map((item) => item.name)),
           suppliers: uniq((suppliersResult.records ?? []).map((item) => item.name)),
-          techniques: uniq((techniquesResult.records ?? []).map((item) => item.name)),
+          techniques: uniq((techniquesResult.records ?? []).map((item: any) => item.nome)),
           publicoAlvo: [],
           datasComemorativas: [],
           endomarketing: [],
