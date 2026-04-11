@@ -204,7 +204,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
           materials: uniq((materialsResult.records ?? []).map((item) => item.name)),
           colors: uniq((colorsResult.records ?? []).map((item) => item.name)),
           suppliers: uniq((suppliersResult.records ?? []).map((item) => item.name)),
-          techniques: uniq((techniquesResult.records ?? []).map((item) => item.name)),
+          techniques: uniq((techniquesResult.records ?? []).map((item: any) => item.nome)),
           publicoAlvo: [],
           datasComemorativas: [],
           endomarketing: [],
