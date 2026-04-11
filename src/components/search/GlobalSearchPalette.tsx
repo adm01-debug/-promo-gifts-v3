@@ -102,7 +102,7 @@ function NavCard({ action, index, onSelect }: {
   index: number;
   onSelect: (href: string) => void;
 }) {
-  const isHighlight = (action as any).highlight;
+  const isHighlight = 'highlight' in action && action.highlight;
   return (
     <CommandItem
       value={action.title}

@@ -31,7 +31,7 @@ const VALID_TABS = ["products", "suppliers", "personalizacao"] as const;
 export default function AdminCadastrosPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const activeTab = VALID_TABS.includes(tabParam as any) ? tabParam! : "products";
+  const activeTab = (VALID_TABS as readonly string[]).includes(tabParam ?? '') ? tabParam! : "products";
 
   const handleTabChange = (value: string) => {
     setSearchParams({ tab: value }, { replace: true });

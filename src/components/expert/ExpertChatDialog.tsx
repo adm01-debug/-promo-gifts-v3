@@ -1357,7 +1357,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     size="icon"
                     onClick={() => {
                       // Use Web Speech API for voice input
-                      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+                      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
                       if (!SpeechRecognition) {
                         toast.error("Seu navegador não suporta reconhecimento de voz");
                         return;

@@ -42,8 +42,8 @@ export function useFiltersPageState() {
     const mat = getArr('materiais'); if (mat.length) f.materiais = mat;
     const tech = getArr('techniques'); if (tech.length) f.techniques = tech;
     const tags = getArr('tags'); if (tags.length) f.tags = tags;
-    const gender = getArr('gender'); if (gender.length) (f as any).gender = gender;
-    const sizes = getArr('sizes'); if (sizes.length) (f as any).sizes = sizes;
+    const gender = getArr('gender'); if (gender.length) f.gender = gender;
+    const sizes = getArr('sizes'); if (sizes.length) f.sizes = sizes;
     const pMin = get('priceMin'); const pMax = get('priceMax');
     if (pMin || pMax) f.priceRange = [pMin ? parseInt(pMin) : 0, pMax ? parseInt(pMax) : 9999];
     const ms = get('minStock'); if (ms) f.minStock = parseInt(ms);

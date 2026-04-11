@@ -43,7 +43,7 @@ function SortableWidget({ id, children, title }: { id: string; children: React.R
     transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.6 : 1,
-    zIndex: isDragging ? 50 : 'auto' as any,
+    zIndex: isDragging ? 50 : undefined,
   };
 
   return (
