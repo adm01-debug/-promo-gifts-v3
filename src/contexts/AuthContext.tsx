@@ -166,7 +166,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             
             toast.success(`🤖 Flow`, {
               description: randomGreeting,
-              duration: 5000,
+              duration: 3000,
+              closeButton: true,
             });
           }
 
