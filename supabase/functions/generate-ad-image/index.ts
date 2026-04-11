@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
+import { safeParseBody, validationError } from '../_shared/validate.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -17,11 +18,16 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
+    const body = await safeParseBody<Record<string, unknown>>(req);
+    if (!body) {
+      return validationError("Request body is required", corsHeaders);
+    }
+
     const {
       productImageUrl, logoBase64, logoUrl, productName, productColor,
       techniqueName, locationName, scenePrompt, sceneCategory,
       brandColorHex, brandColorName,
-    } = await req.json();
+    } = body as Record<string, string | undefined>;
 
     const logoImageSrc = logoBase64 || logoUrl;
 

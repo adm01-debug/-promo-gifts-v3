@@ -221,7 +221,7 @@ export function FilterPanel({
       <SizeFilter
         selectedSizes={filters.sizes || []}
         onToggleSize={(size) => state.toggleArrayFilter("sizes", size)}
-        products={products as any}
+        products={products as Array<{ variations?: Array<{ size_code?: string | null }> }>}
       />
     ),
   };

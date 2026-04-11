@@ -1357,17 +1357,17 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
                     size="icon"
                     onClick={() => {
                       // Use Web Speech API for voice input
-                      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-                      if (!SpeechRecognition) {
+                      const SpeechRecognitionCtor = window.SpeechRecognition || window.webkitSpeechRecognition;
+                      if (!SpeechRecognitionCtor) {
                         toast.error("Seu navegador não suporta reconhecimento de voz");
                         return;
                       }
-                      const recognition = new SpeechRecognition();
+                      const recognition = new SpeechRecognitionCtor();
                       recognition.lang = "pt-BR";
                       recognition.interimResults = false;
                       recognition.maxAlternatives = 1;
                       toast.info("🎙️ Ouvindo… fale agora", { duration: 3000 });
-                      recognition.onresult = (event: any) => {
+                      recognition.onresult = (event: SpeechRecognitionEvent) => {
                         const transcript = event.results[0][0].transcript;
                         if (transcript) {
                           setInput(transcript);

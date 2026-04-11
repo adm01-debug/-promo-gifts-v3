@@ -289,10 +289,11 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
         style={{ zIndex: 0 }}
         onTouchStart={hasMultipleVariants ? (e) => {
           const touch = e.touches[0];
-          (e.currentTarget as any)._swipeX = touch.clientX;
+          (e.currentTarget as HTMLElement & { _swipeX?: number })._swipeX = touch.clientX;
         } : undefined}
         onTouchEnd={hasMultipleVariants ? (e) => {
-          const startX = (e.currentTarget as any)._swipeX;
+          const el = e.currentTarget as HTMLElement & { _swipeX?: number };
+          const startX = el._swipeX;
           if (startX == null) return;
           const endX = e.changedTouches[0].clientX;
           const diff = endX - startX;
@@ -307,7 +308,7 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
             }
             setImageLoaded(false);
           }
-          (e.currentTarget as any)._swipeX = null;
+          el._swipeX = undefined;
         } : undefined}
       >
         {/* Blur-to-sharp: imagem começa borrada e fica nítida ao carregar */}

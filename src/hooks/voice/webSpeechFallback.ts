@@ -39,14 +39,14 @@ let recognition: SpeechRecognition | null = null;
 
 export function isWebSpeechSupported(): boolean {
   return !!(
-    (window as any).SpeechRecognition ||
-    (window as any).webkitSpeechRecognition
+    window.SpeechRecognition ||
+    window.webkitSpeechRecognition
   );
 }
 
 export function startWebSpeech(callbacks: WebSpeechCallbacks): boolean {
   const SpeechRecognitionClass: SpeechRecognitionConstructor | undefined =
-    (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognitionClass) {
     callbacks.onError(new Error("Web Speech API não suportada neste navegador."));

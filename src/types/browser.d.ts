@@ -5,6 +5,9 @@
 
 interface Window {
   webkitAudioContext?: typeof AudioContext;
+  /** Web Speech API (standard + webkit prefix) */
+  SpeechRecognition?: typeof SpeechRecognition;
+  webkitSpeechRecognition?: typeof SpeechRecognition;
   /** Safari standalone mode detection */
   navigator: Navigator & {
     standalone?: boolean;

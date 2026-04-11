@@ -24,7 +24,7 @@ export function ProductDimensionsSection({ register, numericProps, isBoxProduct 
         ].map(({ id: fId, label, hint }) => (
           <div key={fId}>
             <FieldLabel htmlFor={fId} hint={hint}>{label}</FieldLabel>
-            <Input id={fId} {...numericProps(fId as any)} min="0" step="0.1" className="h-9" />
+            <Input id={fId} {...numericProps(fId)} min="0" step="0.1" className="h-9" />
           </div>
         ))}
       </div>
@@ -40,7 +40,7 @@ export function ProductDimensionsSection({ register, numericProps, isBoxProduct 
             ].map(({ id: fId, label, hint }) => (
               <div key={fId}>
                 <FieldLabel htmlFor={fId} hint={hint}>{label}</FieldLabel>
-                <Input id={fId} {...numericProps(fId as any)} min="0" step="0.1" className="h-9" />
+                <Input id={fId} {...numericProps(fId)} min="0" step="0.1" className="h-9" />
               </div>
             ))}
           </div>

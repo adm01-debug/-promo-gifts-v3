@@ -42,6 +42,7 @@ import {
   extractUniqueSupplierIds,
   getActiveFlags,
   type IntelligenceFlag,
+  type StockVelocity,
 } from "@/hooks/useStockHistory";
 import { useSupplierNames } from "@/hooks/useSupplierNames";
 import { formatCurrency } from "@/lib/format";
@@ -400,7 +401,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         {/* Supplier comparison cards */}
         {effectiveVelocities.length > 1 && supplierNamesMap && (
           <SupplierComparisonCards
-            velocities={effectiveVelocities as any}
+            velocities={effectiveVelocities as StockVelocity[]}
             supplierNames={supplierNamesMap}
           />
         )}

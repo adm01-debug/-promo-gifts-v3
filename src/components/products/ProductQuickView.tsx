@@ -224,7 +224,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
         const params = new URLSearchParams();
         params.set('cor', selectedColor.name);
         if (selectedColor.hex) params.set('hex', selectedColor.hex);
-        if ((selectedColor as any).groupSlug) params.set('grupo', (selectedColor as any).groupSlug);
+        if ('groupSlug' in selectedColor && selectedColor.groupSlug) params.set('grupo', String(selectedColor.groupSlug));
         navigate(`/produto/${product.id}?${params.toString()}`);
         return;
       }
