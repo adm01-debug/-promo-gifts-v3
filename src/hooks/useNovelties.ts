@@ -1,9 +1,30 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { invokeExternalDb } from '@/lib/external-db/bridge';
+
+const NOVELTY_WINDOW_DAYS = 30;
+const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at';
 
 /**
- * Interface para novidade com detalhes da view v_product_novelties
- * Esta é a fonte principal de dados para novidades
+ * Calcula a data de corte para novidades (últimos N dias)
+ */
+function getCutoffDate(days: number = NOVELTY_WINDOW_DAYS): string {
+  const d = new Date();
+  d.setDate(d.getDate() - days);
+  return d.toISOString();
+}
+
+/**
+ * Calcula dias restantes como novidade
+ */
+function calcDaysRemaining(createdAt: string): number {
+  const created = new Date(createdAt).getTime();
+  const now = Date.now();
+  const elapsed = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+  return Math.max(0, NOVELTY_WINDOW_DAYS - elapsed);
+}
+
+/**
+ * Interface para novidade com dados do produto externo
  */
 export interface NoveltyWithDetails {
   novelty_id: string;
@@ -28,16 +49,6 @@ export interface NoveltyWithDetails {
 }
 
 /**
- * Interface para estatísticas de novidades (RPC get_novelties_stats)
- */
-export interface NoveltyStats {
-  total_novelties: number;
-  active_novelties: number;
-  expiring_soon: number;
-  by_supplier?: Record<string, number>;
-}
-
-/**
  * Interface normalizada para exibição de estatísticas
  */
 export interface NoveltyStatsDisplay {
@@ -48,6 +59,47 @@ export interface NoveltyStatsDisplay {
   noveltyRate: number;
 }
 
+interface RawProduct {
+  id: string;
+  name: string;
+  sku: string | null;
+  primary_image_url: string | null;
+  sale_price: number | null;
+  category_id: string | null;
+  supplier_id: string | null;
+  created_at: string;
+}
+
+/**
+ * Converte produto cru do banco externo em NoveltyWithDetails
+ */
+function toNovelty(p: RawProduct): NoveltyWithDetails {
+  const daysRemaining = calcDaysRemaining(p.created_at);
+  const expiresAt = new Date(new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000).toISOString();
+  
+  return {
+    novelty_id: p.id,
+    product_id: p.id,
+    product_sku: p.sku,
+    product_name: p.name,
+    product_description: null,
+    base_price: p.sale_price,
+    product_image: p.primary_image_url,
+    category_id: p.category_id,
+    category_name: null,
+    supplier_code: null,
+    supplier_id: p.supplier_id,
+    supplier_name: null,
+    supplier_product_code: null,
+    detected_at: p.created_at,
+    expires_at: expiresAt,
+    days_remaining: daysRemaining,
+    status: daysRemaining <= 0 ? 'expired' : daysRemaining <= 7 ? 'expiring_soon' : 'active',
+    is_highlighted: daysRemaining >= 25,
+    is_active: daysRemaining > 0,
+  };
+}
+
 export interface UseNoveltiesOptions {
   limit?: number;
   offset?: number;
@@ -55,8 +107,7 @@ export interface UseNoveltiesOptions {
 }
 
 /**
- * Hook para buscar novidades com detalhes completos (view v_product_novelties)
- * FONTE PRINCIPAL - Use esta para listar novidades
+ * Hook para buscar novidades — produtos adicionados nos últimos 30 dias (banco externo)
  */
 export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   const { limit = 100, onlyHighlighted = false } = options;
@@ -64,122 +115,21 @@ export function useNoveltiesWithDetails(options: UseNoveltiesOptions = {}) {
   return useQuery<NoveltyWithDetails[]>({
     queryKey: ['novelties-details', limit, onlyHighlighted],
     queryFn: async () => {
-      let query = supabase
-        .from('v_product_novelties')
-        .select('*')
-        .eq('is_active', true)
-        .order('days_remaining', { ascending: true })
-        .limit(limit);
-
-      if (onlyHighlighted) {
-        query = query.eq('is_highlighted', true);
-      }
-
-      const { data, error } = await query;
-
-      if (error) {
-        console.error('Erro ao buscar novidades detalhadas:', error);
-        throw new Error(`Falha ao buscar novidades: ${error.message}`);
-      }
-
-      return (data || []) as NoveltyWithDetails[];
-    },
-    staleTime: 2 * 60 * 1000,
-    retry: 2,
-  });
-}
-
-/**
- * Hook para buscar novidades expirando em breve (7 dias ou menos)
- */
-export function useExpiringNovelties(maxDays: number = 7) {
-  return useQuery<NoveltyWithDetails[]>({
-    queryKey: ['expiring-novelties', maxDays],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('v_product_novelties')
-        .select('*')
-        .eq('is_active', true)
-        .lte('days_remaining', maxDays)
-        .order('days_remaining', { ascending: true });
-
-      if (error) {
-        console.error('Erro ao buscar novidades expirando:', error);
-        throw new Error(`Falha ao buscar novidades expirando: ${error.message}`);
-      }
-
-      return (data || []) as NoveltyWithDetails[];
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: 2,
-  });
-}
-
-/**
- * Hook para estatísticas de novidades (RPC get_novelties_stats)
- */
-export function useNoveltyStats() {
-  return useQuery<NoveltyStatsDisplay>({
-    queryKey: ['novelty-stats'],
-    queryFn: async () => {
-      // Buscar estatísticas via RPC
-      const { data: rpcData, error: rpcError } = await supabase.rpc('get_novelties_stats');
+      const cutoff = getCutoffDate();
       
-      if (rpcError) {
-        console.error('Erro ao buscar estatísticas:', rpcError);
-        throw new Error(`Falha ao buscar estatísticas: ${rpcError.message}`);
-      }
-
-      const stats = rpcData as NoveltyStats;
-
-      // Buscar contagem total de produtos
-      const { count: totalProducts } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
-
-      const total = totalProducts || 0;
-      const activeNovelties = stats?.active_novelties || 0;
-
-      return {
-        totalNovelties: stats?.total_novelties || 0,
-        activeNovelties: activeNovelties,
-        expiringSoon: stats?.expiring_soon || 0,
-        totalProducts: total,
-        noveltyRate: total > 0 ? Math.round((activeNovelties / total) * 100) : 0,
-      };
-    },
-    staleTime: 5 * 60 * 1000,
-    retry: 2,
-  });
-}
-
-/**
- * Hook para buscar novidades via RPC get_active_novelties
- */
-export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {}) {
-  const { supplierCode, limit = 50, offset = 0, maxDays } = options;
-
-  return useQuery({
-    queryKey: ['novelties-rpc', supplierCode, limit, offset, maxDays],
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc('get_active_novelties', {
-        p_supplier_code: supplierCode || null,
-        p_limit: limit,
-        p_offset: offset,
+      const result = await invokeExternalDb<RawProduct>({
+        table: 'products',
+        operation: 'select',
+        select: NOVELTY_SELECT,
+        filters: { is_active: true, created_at: `gte.${cutoff}` },
+        orderBy: { column: 'created_at', ascending: false },
+        limit,
       });
 
-      if (error) {
-        console.error('Erro ao buscar novidades:', error);
-        throw new Error(`Falha ao buscar novidades: ${error.message}`);
-      }
+      let novelties = result.records.map(toNovelty).filter(n => n.is_active);
 
-      let novelties = data || [];
-
-      // Filtrar por período se maxDays for especificado
-      if (maxDays) {
-        const minDaysRemaining = 30 - maxDays;
-        novelties = novelties.filter((n: { days_remaining?: number }) => (n.days_remaining ?? 0) >= minDaysRemaining);
+      if (onlyHighlighted) {
+        novelties = novelties.filter(n => n.is_highlighted);
       }
 
       return novelties;
@@ -190,23 +140,152 @@ export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: str
 }
 
 /**
- * Hook para contar total de novidades ativas (usando view)
+ * Hook para buscar novidades expirando em breve (≤ maxDays restantes)
+ */
+export function useExpiringNovelties(maxDays: number = 7) {
+  return useQuery<NoveltyWithDetails[]>({
+    queryKey: ['expiring-novelties', maxDays],
+    queryFn: async () => {
+      // Buscar todas as novidades dos últimos 30 dias
+      const cutoff = getCutoffDate();
+      
+      const result = await invokeExternalDb<RawProduct>({
+        table: 'products',
+        operation: 'select',
+        select: NOVELTY_SELECT,
+        filters: { is_active: true, created_at: `gte.${cutoff}` },
+        orderBy: { column: 'created_at', ascending: true },
+        limit: 200,
+      });
+
+      return result.records
+        .map(toNovelty)
+        .filter(n => n.is_active && n.days_remaining <= maxDays)
+        .sort((a, b) => a.days_remaining - b.days_remaining);
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+/**
+ * Hook para estatísticas de novidades
+ */
+export function useNoveltyStats() {
+  return useQuery<NoveltyStatsDisplay>({
+    queryKey: ['novelty-stats'],
+    queryFn: async () => {
+      // Buscar novidades dos últimos 30 dias
+      const cutoff = getCutoffDate();
+      
+      const [noveltiesResult, totalResult] = await Promise.all([
+        invokeExternalDb<RawProduct>({
+          table: 'products',
+          operation: 'select',
+          select: 'id, created_at',
+          filters: { is_active: true, created_at: `gte.${cutoff}` },
+          limit: 500,
+          countMode: 'exact',
+        }),
+        invokeExternalDb<{ id: string }>({
+          table: 'products',
+          operation: 'select',
+          select: 'id',
+          filters: { is_active: true },
+          limit: 1,
+          countMode: 'exact',
+        }),
+      ]);
+
+      const novelties = noveltiesResult.records.map(p => ({
+        daysRemaining: calcDaysRemaining(p.created_at),
+      }));
+
+      const active = novelties.filter(n => n.daysRemaining > 0);
+      const expiring = active.filter(n => n.daysRemaining <= 7);
+      const totalProducts = totalResult.count || 0;
+      const activeCount = active.length;
+
+      return {
+        totalNovelties: novelties.length,
+        activeNovelties: activeCount,
+        expiringSoon: expiring.length,
+        totalProducts,
+        noveltyRate: totalProducts > 0 ? Math.round((activeCount / totalProducts) * 100) : 0,
+      };
+    },
+    staleTime: 5 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+/**
+ * Hook para buscar novidades via interface simplificada (compatível com NoveltiesSection)
+ */
+export function useNovelties(options: UseNoveltiesOptions & { supplierCode?: string; maxDays?: number } = {}) {
+  const { supplierCode, limit = 50, maxDays } = options;
+
+  return useQuery({
+    queryKey: ['novelties-rpc', supplierCode, limit, maxDays],
+    queryFn: async () => {
+      const cutoff = getCutoffDate();
+      const filters: Record<string, unknown> = { is_active: true, created_at: `gte.${cutoff}` };
+      
+      if (supplierCode) {
+        // Precisa buscar o supplier_id pelo code
+        const supplierResult = await invokeExternalDb<{ id: string }>({
+          table: 'suppliers',
+          operation: 'select',
+          select: 'id',
+          filters: { code: supplierCode },
+          limit: 1,
+        });
+        if (supplierResult.records.length > 0) {
+          filters.supplier_id = supplierResult.records[0].id;
+        }
+      }
+
+      const result = await invokeExternalDb<RawProduct>({
+        table: 'products',
+        operation: 'select',
+        select: NOVELTY_SELECT,
+        filters,
+        orderBy: { column: 'created_at', ascending: false },
+        limit,
+      });
+
+      let novelties = result.records.map(toNovelty).filter(n => n.is_active);
+
+      if (maxDays) {
+        novelties = novelties.filter(n => n.days_remaining >= (NOVELTY_WINDOW_DAYS - maxDays));
+      }
+
+      return novelties;
+    },
+    staleTime: 2 * 60 * 1000,
+    retry: 2,
+  });
+}
+
+/**
+ * Hook para contar total de novidades ativas
  */
 export function useNoveltyCount() {
   return useQuery<number>({
     queryKey: ['novelty-count'],
     queryFn: async () => {
-      const { count, error } = await supabase
-        .from('v_product_novelties')
-        .select('*', { count: 'exact', head: true })
-        .eq('is_active', true);
+      const cutoff = getCutoffDate();
+      
+      const result = await invokeExternalDb<{ id: string }>({
+        table: 'products',
+        operation: 'select',
+        select: 'id',
+        filters: { is_active: true, created_at: `gte.${cutoff}` },
+        limit: 1,
+        countMode: 'exact',
+      });
 
-      if (error) {
-        console.error('Erro ao contar novidades:', error);
-        return 0;
-      }
-
-      return count || 0;
+      return result.count || 0;
     },
     staleTime: 2 * 60 * 1000,
     retry: 2,
@@ -220,20 +299,22 @@ export function useIsProductNovelty(productId: string) {
   return useQuery<{ isNovelty: boolean; daysRemaining: number | null }>({
     queryKey: ['is-novelty', productId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('v_product_novelties')
-        .select('days_remaining, is_active')
-        .eq('product_id', productId)
-        .eq('is_active', true)
-        .maybeSingle();
+      const result = await invokeExternalDb<RawProduct>({
+        table: 'products',
+        operation: 'select',
+        select: 'id, created_at',
+        filters: { id: productId, is_active: true },
+        limit: 1,
+      });
 
-      if (error || !data) {
+      if (!result.records.length) {
         return { isNovelty: false, daysRemaining: null };
       }
 
-      return { 
-        isNovelty: true, 
-        daysRemaining: data.days_remaining 
+      const daysRemaining = calcDaysRemaining(result.records[0].created_at);
+      return {
+        isNovelty: daysRemaining > 0,
+        daysRemaining: daysRemaining > 0 ? daysRemaining : null,
       };
     },
     staleTime: 5 * 60 * 1000,
@@ -248,17 +329,17 @@ export function useNoveltyProductIds() {
   return useQuery<Set<string>>({
     queryKey: ['novelty-product-ids'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('v_product_novelties')
-        .select('product_id')
-        .eq('is_active', true);
+      const cutoff = getCutoffDate();
+      
+      const result = await invokeExternalDb<{ id: string }>({
+        table: 'products',
+        operation: 'select',
+        select: 'id',
+        filters: { is_active: true, created_at: `gte.${cutoff}` },
+        limit: 500,
+      });
 
-      if (error) {
-        console.error('Erro ao buscar IDs de novidades:', error);
-        return new Set();
-      }
-
-      return new Set((data || []).map(d => d.product_id));
+      return new Set(result.records.map(r => r.id));
     },
     staleTime: 2 * 60 * 1000,
   });
