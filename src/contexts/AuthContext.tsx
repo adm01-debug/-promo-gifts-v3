@@ -154,9 +154,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
               || session.user.email?.split('@')[0]
               || 'Usuário';
             const firstName = displayName.split(' ')[0];
-            toast.success(`${getGreeting()}, ${firstName}! 👋`, {
-              description: 'Bem-vindo de volta à plataforma.',
-              duration: 4000,
+            
+            const flowGreetings = [
+              `Que bom te ver, ${firstName}! Estou pronto pra te ajudar a vender mais hoje. 🚀`,
+              `Fala, ${firstName}! Já separei algumas novidades do catálogo pra você. 😎`,
+              `${firstName}, bora fazer acontecer! Estou aqui sempre que precisar. 💪`,
+              `Olá, ${firstName}! Tenho insights fresquinhos esperando por você. ✨`,
+              `E aí, ${firstName}! Pronto pra mais um dia de vendas incríveis? 🎯`,
+            ];
+            const randomGreeting = flowGreetings[Math.floor(Math.random() * flowGreetings.length)];
+            
+            toast.success(`${getGreeting()}, ${firstName}!`, {
+              description: `Flow: "${randomGreeting}"`,
+              duration: 5000,
             });
           }
 
