@@ -1,11 +1,12 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles } from "lucide-react";
+import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
@@ -15,17 +16,14 @@ import { cn } from "@/lib/utils";
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "recent" | "price" | "name";
 
-/** Days elapsed since product creation */
 function daysElapsed(detectedAt: string): number {
   return Math.floor((Date.now() - new Date(detectedAt).getTime()) / 86400000);
 }
 
-/** Returns true if product arrived in last 2 days */
 function isFresh(detectedAt: string): boolean {
   return daysElapsed(detectedAt) <= 2;
 }
 
-/** Grid column classes based on ColumnCount */
 function getGridColsClass(cols: ColumnCount): string {
   switch (cols) {
     case 3: return "grid-cols-2 sm:grid-cols-3";
@@ -39,7 +37,6 @@ function getGridColsClass(cols: ColumnCount): string {
 
 function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; onClick: () => void }) {
   const fresh = isFresh(product.detected_at);
-
   return (
     <Card
       className={cn(
@@ -66,23 +63,30 @@ function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; on
           <div className="absolute top-2 left-2">
             <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
           </div>
+          {fresh && (
+            <div className="absolute top-2 right-2">
+              <Badge className="bg-success/90 text-success-foreground text-[9px] px-1.5 py-0 gap-0.5 border-0">
+                <Sparkles className="h-2.5 w-2.5" />NEW
+              </Badge>
+            </div>
+          )}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
-        <div className="p-3 space-y-1.5">
-          <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem]">
+        <div className="p-2.5 space-y-1">
+          <h4 className="font-medium text-xs sm:text-sm line-clamp-2 group-hover:text-primary transition-colors leading-snug min-h-[2rem]">
             {product.product_name}
           </h4>
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center justify-between gap-1">
             {product.product_sku && (
-              <p className="text-[11px] text-muted-foreground truncate">{product.product_sku}</p>
+              <p className="text-[10px] text-muted-foreground truncate">{product.product_sku}</p>
             )}
             {product.category_name && (
-              <Badge variant="outline" className="text-[10px] shrink-0">{product.category_name}</Badge>
+              <Badge variant="outline" className="text-[9px] shrink-0 px-1 py-0">{product.category_name}</Badge>
             )}
           </div>
           {product.supplier_name && (
-            <p className="text-[11px] text-muted-foreground/70 truncate flex items-center gap-1">
-              <Building2 className="h-3 w-3 shrink-0" />{product.supplier_name}
+            <p className="text-[10px] text-muted-foreground/70 truncate flex items-center gap-1">
+              <Building2 className="h-2.5 w-2.5 shrink-0" />{product.supplier_name}
             </p>
           )}
           {product.base_price != null && product.base_price > 0 && (
@@ -98,7 +102,6 @@ function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; on
 
 function NoveltyListCard({ product, onClick }: { product: NoveltyWithDetails; onClick: () => void }) {
   const fresh = isFresh(product.detected_at);
-
   return (
     <Card
       className={cn(
@@ -108,33 +111,36 @@ function NoveltyListCard({ product, onClick }: { product: NoveltyWithDetails; on
       )}
       onClick={onClick}
     >
-      <CardContent className="p-3 flex items-center gap-3">
-        <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden relative">
+      <CardContent className="p-2.5 flex items-center gap-2.5">
+        <div className="shrink-0 w-12 h-12 sm:w-14 sm:h-14 rounded-lg bg-muted overflow-hidden relative">
           {product.product_image ? (
             <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
-              <Package className="h-6 w-6 text-muted-foreground/30" />
+              <Package className="h-5 w-5 text-muted-foreground/30" />
             </div>
           )}
           {fresh && <div className="absolute inset-0 ring-2 ring-success/40 rounded-lg" />}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1">
+          <div className="flex items-center gap-2 mb-0.5">
             <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
+            {fresh && (
+              <Badge className="bg-success/90 text-success-foreground text-[9px] px-1 py-0 border-0">NEW</Badge>
+            )}
           </div>
           <h4 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
             {product.product_name}
           </h4>
-          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-            {product.product_sku && <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>}
+          <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+            {product.product_sku && <p className="text-[10px] text-muted-foreground">SKU: {product.product_sku}</p>}
             {product.supplier_name && (
-              <Badge variant="outline" className="text-[10px] border-info/30 text-info">
+              <Badge variant="outline" className="text-[9px] border-info/30 text-info px-1 py-0">
                 <Building2 className="h-2.5 w-2.5 mr-0.5" />{product.supplier_name}
               </Badge>
             )}
             {product.category_name && (
-              <Badge variant="outline" className="text-[10px]">
+              <Badge variant="outline" className="text-[9px] px-1 py-0">
                 <FolderTree className="h-2.5 w-2.5 mr-0.5" />{product.category_name}
               </Badge>
             )}
@@ -158,13 +164,13 @@ function NoveltyTableView({ products, onProductClick }: { products: NoveltyWithD
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/30 hover:bg-muted/30">
-            <TableHead className="w-[50px]">Img</TableHead>
-            <TableHead>Produto</TableHead>
-            <TableHead className="hidden sm:table-cell">SKU</TableHead>
-            <TableHead className="hidden md:table-cell">Fornecedor</TableHead>
-            <TableHead className="hidden lg:table-cell">Categoria</TableHead>
-            <TableHead className="text-center">Status</TableHead>
-            <TableHead className="text-right">Preço</TableHead>
+            <TableHead className="w-[44px] px-2">Img</TableHead>
+            <TableHead className="px-2">Produto</TableHead>
+            <TableHead className="hidden sm:table-cell px-2">SKU</TableHead>
+            <TableHead className="hidden md:table-cell px-2">Fornecedor</TableHead>
+            <TableHead className="hidden lg:table-cell px-2">Categoria</TableHead>
+            <TableHead className="text-center px-2">Status</TableHead>
+            <TableHead className="text-right px-2">Preço</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -179,39 +185,39 @@ function NoveltyTableView({ products, onProductClick }: { products: NoveltyWithD
                 )}
                 onClick={() => onProductClick(product.product_id)}
               >
-                <TableCell className="p-2">
-                  <div className="w-10 h-10 rounded bg-muted overflow-hidden">
+                <TableCell className="p-1.5">
+                  <div className="w-9 h-9 rounded bg-muted overflow-hidden">
                     {product.product_image ? (
                       <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Package className="h-4 w-4 text-muted-foreground/30" />
+                        <Package className="h-3.5 w-3.5 text-muted-foreground/30" />
                       </div>
                     )}
                   </div>
                 </TableCell>
-                <TableCell>
-                  <p className="font-medium text-sm line-clamp-1">{product.product_name}</p>
+                <TableCell className="px-2 py-1.5">
+                  <p className="font-medium text-xs line-clamp-1">{product.product_name}</p>
                 </TableCell>
-                <TableCell className="hidden sm:table-cell">
-                  <span className="text-xs text-muted-foreground">{product.product_sku || "—"}</span>
+                <TableCell className="hidden sm:table-cell px-2 py-1.5">
+                  <span className="text-[11px] text-muted-foreground">{product.product_sku || "—"}</span>
                 </TableCell>
-                <TableCell className="hidden md:table-cell">
-                  <span className="text-xs text-muted-foreground">{product.supplier_name || "—"}</span>
+                <TableCell className="hidden md:table-cell px-2 py-1.5">
+                  <span className="text-[11px] text-muted-foreground">{product.supplier_name || "—"}</span>
                 </TableCell>
-                <TableCell className="hidden lg:table-cell">
-                  <span className="text-xs text-muted-foreground">{product.category_name || "—"}</span>
+                <TableCell className="hidden lg:table-cell px-2 py-1.5">
+                  <span className="text-[11px] text-muted-foreground">{product.category_name || "—"}</span>
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center px-2 py-1.5">
                   <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
                 </TableCell>
-                <TableCell className="text-right">
+                <TableCell className="text-right px-2 py-1.5">
                   {product.base_price != null && product.base_price > 0 ? (
-                    <span className="text-sm font-semibold tabular-nums">
+                    <span className="text-xs font-semibold tabular-nums">
                       {product.base_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
                     </span>
                   ) : (
-                    <span className="text-xs text-muted-foreground">—</span>
+                    <span className="text-[11px] text-muted-foreground">—</span>
                   )}
                 </TableCell>
               </TableRow>
@@ -227,11 +233,11 @@ function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   if (viewMode === "list") {
     return (
       <Card className="border-border/50">
-        <CardContent className="p-3 flex items-center gap-3">
-          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg shimmer" />
-          <div className="flex-1 space-y-2">
-            <div className="h-4 w-20 rounded shimmer" />
-            <div className="h-4 w-full rounded shimmer" style={{ animationDelay: '150ms' }} />
+        <CardContent className="p-2.5 flex items-center gap-2.5">
+          <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg shimmer" />
+          <div className="flex-1 space-y-1.5">
+            <div className="h-3 w-16 rounded shimmer" />
+            <div className="h-3.5 w-full rounded shimmer" style={{ animationDelay: '150ms' }} />
             <div className="h-3 w-24 rounded shimmer" style={{ animationDelay: '300ms' }} />
           </div>
         </CardContent>
@@ -240,11 +246,11 @@ function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   }
   if (viewMode === "table") {
     return (
-      <div className="flex items-center gap-3 px-3 py-2 border-b border-border/30">
-        <div className="w-10 h-10 rounded shimmer" />
-        <div className="flex-1 h-4 rounded shimmer" style={{ animationDelay: '100ms' }} />
-        <div className="w-16 h-4 rounded shimmer" style={{ animationDelay: '200ms' }} />
-        <div className="w-16 h-4 rounded shimmer" style={{ animationDelay: '300ms' }} />
+      <div className="flex items-center gap-2 px-2 py-1.5 border-b border-border/30">
+        <div className="w-9 h-9 rounded shimmer" />
+        <div className="flex-1 h-3 rounded shimmer" style={{ animationDelay: '100ms' }} />
+        <div className="w-14 h-3 rounded shimmer" style={{ animationDelay: '200ms' }} />
+        <div className="w-14 h-3 rounded shimmer" style={{ animationDelay: '300ms' }} />
       </div>
     );
   }
@@ -252,12 +258,12 @@ function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
     <Card className="border-border/50 overflow-hidden">
       <CardContent className="p-0">
         <div className="aspect-square shimmer" />
-        <div className="p-3 space-y-2">
-          <div className="h-4 w-full rounded shimmer" style={{ animationDelay: '100ms' }} />
-          <div className="h-4 w-3/4 rounded shimmer" style={{ animationDelay: '200ms' }} />
+        <div className="p-2.5 space-y-1.5">
+          <div className="h-3.5 w-full rounded shimmer" style={{ animationDelay: '100ms' }} />
+          <div className="h-3.5 w-3/4 rounded shimmer" style={{ animationDelay: '200ms' }} />
           <div className="flex justify-between">
-            <div className="h-3 w-16 rounded shimmer" style={{ animationDelay: '300ms' }} />
-            <div className="h-5 w-14 rounded shimmer" style={{ animationDelay: '400ms' }} />
+            <div className="h-3 w-14 rounded shimmer" style={{ animationDelay: '300ms' }} />
+            <div className="h-4 w-12 rounded shimmer" style={{ animationDelay: '400ms' }} />
           </div>
         </div>
       </CardContent>
@@ -272,6 +278,7 @@ export function NoveltyProductGrid() {
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 200 });
   const products = novelties || [];
@@ -279,7 +286,6 @@ export function NoveltyProductGrid() {
   const { suppliers, categories } = useMemo(() => {
     const supMap = new Map<string, { id: string; name: string; count: number }>();
     const catMap = new Map<string, { id: string; name: string; count: number }>();
-
     products.forEach(p => {
       if (p.supplier_id && p.supplier_name) {
         const existing = supMap.get(p.supplier_id);
@@ -292,7 +298,6 @@ export function NoveltyProductGrid() {
         else catMap.set(p.category_id, { id: p.category_id, name: p.category_name, count: 1 });
       }
     });
-
     return {
       suppliers: [...supMap.values()].sort((a, b) => b.count - a.count),
       categories: [...catMap.values()].sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')),
@@ -302,6 +307,14 @@ export function NoveltyProductGrid() {
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter(p =>
+        p.product_name.toLowerCase().includes(q) ||
+        (p.product_sku && p.product_sku.toLowerCase().includes(q)) ||
+        (p.supplier_name && p.supplier_name.toLowerCase().includes(q))
+      );
+    }
     if (selectedSupplier !== "all") {
       filtered = filtered.filter(p => p.supplier_id === selectedSupplier);
     }
@@ -311,20 +324,17 @@ export function NoveltyProductGrid() {
 
     filtered.sort((a, b) => {
       switch (sortMode) {
-        case "price":
-          return (b.base_price || 0) - (a.base_price || 0);
-        case "name":
-          return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
+        case "price": return (b.base_price || 0) - (a.base_price || 0);
+        case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
         case "recent":
-        default:
-          return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
+        default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
 
     return filtered;
-  }, [products, selectedSupplier, selectedCategory, sortMode]);
+  }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
 
-  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all";
+  const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || searchQuery.trim() !== "";
 
   const handleProductClick = (productId: string) => {
     navigate(`/produto/${productId}`);
@@ -333,11 +343,10 @@ export function NoveltyProductGrid() {
   const clearFilters = () => {
     setSelectedSupplier("all");
     setSelectedCategory("all");
+    setSearchQuery("");
   };
 
-  if (error) {
-    console.error('Erro ao carregar novidades:', error);
-  }
+  if (error) console.error('Erro ao carregar novidades:', error);
 
   const renderContent = () => {
     if (isLoading) {
@@ -353,8 +362,8 @@ export function NoveltyProductGrid() {
       return (
         <div className={cn(
           viewMode === "grid"
-            ? `grid ${getGridColsClass(gridColumns)} gap-3 sm:gap-4`
-            : "space-y-3"
+            ? `grid ${getGridColsClass(gridColumns)} gap-2 sm:gap-3`
+            : "space-y-2"
         )}>
           {Array.from({ length: 8 }).map((_, i) => (
             <NoveltyCardSkeleton key={i} viewMode={viewMode} />
@@ -365,17 +374,19 @@ export function NoveltyProductGrid() {
 
     if (filteredProducts.length === 0) {
       return (
-        <div className="text-center py-12">
-          <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-          <p className="text-muted-foreground font-medium">
+        <div className="text-center py-10">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-muted/80 mb-3">
+            <Package className="h-7 w-7 text-muted-foreground/40" />
+          </div>
+          <p className="text-muted-foreground font-medium text-sm">
             {hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}
           </p>
           {hasActiveFilters ? (
-            <Button variant="link" className="mt-2 text-sm" onClick={clearFilters}>
+            <Button variant="link" className="mt-1 text-xs" onClick={clearFilters}>
               Limpar filtros
             </Button>
           ) : (
-            <p className="text-sm text-muted-foreground/70 mt-1">
+            <p className="text-xs text-muted-foreground/70 mt-1">
               Produtos novos aparecerão aqui automaticamente
             </p>
           )}
@@ -390,14 +401,14 @@ export function NoveltyProductGrid() {
     return (
       <div className={cn(
         viewMode === "grid"
-          ? `grid ${getGridColsClass(gridColumns)} gap-3 sm:gap-4`
-          : "space-y-3"
+          ? `grid ${getGridColsClass(gridColumns)} gap-2 sm:gap-3`
+          : "space-y-2"
       )}>
         {filteredProducts.map((product, index) => (
           <div
             key={product.novelty_id}
             className="stagger-item"
-            style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
+            style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
           >
             {viewMode === "grid" ? (
               <NoveltyGridCard product={product} onClick={() => handleProductClick(product.product_id)} />
@@ -411,133 +422,150 @@ export function NoveltyProductGrid() {
   };
 
   return (
-    <Card className="border-primary/20">
-      <CardHeader className="pb-3 sm:pb-4">
-        <div className="flex flex-col gap-3">
-          {/* Title + Layout Popover */}
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-success" />
-              Produtos Novidade
-              <Badge variant="secondary" className="text-xs tabular-nums">
-                {filteredProducts.length}
-                {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
-              </Badge>
-            </CardTitle>
-            <LayoutPopover
-              viewMode={viewMode}
-              setViewMode={setViewMode}
-              gridColumns={gridColumns}
-              setGridColumns={setGridColumns}
-            />
+    <div className="space-y-3">
+      {/* Toolbar compacto */}
+      <div className="flex flex-col gap-2">
+        {/* Row 1: Título + busca + layout */}
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
+            <Sparkles className="h-4 w-4 text-success" />
+            <h2 className="text-base sm:text-lg font-semibold">Novidades</h2>
+            <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5">
+              {filteredProducts.length}
+              {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
+            </Badge>
           </div>
-
-          {/* Filters */}
-          <div className="flex flex-wrap items-center gap-2">
-            <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
-              <SelectTrigger className="w-[180px] h-8 text-xs">
-                <Building2 className="h-3 w-3 mr-1 shrink-0" />
-                <SelectValue placeholder="Fornecedor" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos fornecedores</SelectItem>
-                {suppliers.map(s => (
-                  <SelectItem key={s.id} value={s.id}>
-                    {s.name} ({s.count})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-              <SelectTrigger className="w-[180px] h-8 text-xs">
-                <FolderTree className="h-3 w-3 mr-1 shrink-0" />
-                <SelectValue placeholder="Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas categorias</SelectItem>
-                {categories.map(c => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.name} ({c.count})
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-              <SelectTrigger className="w-[140px] h-8 text-xs">
-                <ArrowUpDown className="h-3 w-3 mr-1" />
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="recent">Mais recentes</SelectItem>
-                <SelectItem value="price">Maior preço</SelectItem>
-                <SelectItem value="name">Nome A-Z</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {hasActiveFilters && (
-              <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground" onClick={clearFilters}>
-                <X className="h-3 w-3 mr-1" />
-                Limpar
-              </Button>
-            )}
-          </div>
-
-          {/* Active filter badges */}
-          {hasActiveFilters && (
-            <div className="flex flex-wrap gap-1.5" role="list" aria-label="Filtros ativos">
-              {selectedSupplier !== "all" && (
-                <Badge
-                  role="listitem"
-                  tabIndex={0}
-                  variant="secondary"
-                  className="text-xs gap-1 cursor-pointer hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                  onClick={() => setSelectedSupplier("all")}
-                  onKeyDown={(e) => e.key === 'Enter' && setSelectedSupplier("all")}
-                  aria-label={`Remover filtro: ${suppliers.find(s => s.id === selectedSupplier)?.name}`}
+          <div className="flex-1 max-w-xs ml-auto">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <Input
+                placeholder="Buscar novidades..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery("")}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
                 >
-                  <Building2 className="h-3 w-3" aria-hidden="true" />
-                  {suppliers.find(s => s.id === selectedSupplier)?.name}
-                  <X className="h-3 w-3" aria-hidden="true" />
-                </Badge>
-              )}
-              {selectedCategory !== "all" && (
-                <Badge
-                  role="listitem"
-                  tabIndex={0}
-                  variant="secondary"
-                  className="text-xs gap-1 cursor-pointer hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-                  onClick={() => setSelectedCategory("all")}
-                  onKeyDown={(e) => e.key === 'Enter' && setSelectedCategory("all")}
-                  aria-label={`Remover filtro: ${categories.find(c => c.id === selectedCategory)?.name}`}
-                >
-                  <FolderTree className="h-3 w-3" aria-hidden="true" />
-                  {categories.find(c => c.id === selectedCategory)?.name}
-                  <X className="h-3 w-3" aria-hidden="true" />
-                </Badge>
+                  <X className="h-3 w-3" />
+                </button>
               )}
             </div>
+          </div>
+          <LayoutPopover
+            viewMode={viewMode}
+            setViewMode={setViewMode}
+            gridColumns={gridColumns}
+            setGridColumns={setGridColumns}
+          />
+        </div>
+
+        {/* Row 2: Filtros compactos */}
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
+            <SelectTrigger className="w-[160px] h-7 text-[11px] gap-1">
+              <Building2 className="h-3 w-3 shrink-0" />
+              <SelectValue placeholder="Fornecedor" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todos fornecedores</SelectItem>
+              {suppliers.map(s => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.name} ({s.count})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+            <SelectTrigger className="w-[160px] h-7 text-[11px] gap-1">
+              <FolderTree className="h-3 w-3 shrink-0" />
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Todas categorias</SelectItem>
+              {categories.map(c => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name} ({c.count})
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
+          <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+            <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1">
+              <ArrowUpDown className="h-3 w-3" />
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="recent">Mais recentes</SelectItem>
+              <SelectItem value="price">Maior preço</SelectItem>
+              <SelectItem value="name">Nome A-Z</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {hasActiveFilters && (
+            <Button variant="ghost" size="sm" className="h-7 text-[11px] px-2 text-muted-foreground hover:text-foreground" onClick={clearFilters}>
+              <X className="h-3 w-3 mr-0.5" />
+              Limpar
+            </Button>
           )}
         </div>
-      </CardHeader>
 
-      <CardContent>
-        {/* Results summary */}
-        {!isLoading && filteredProducts.length > 0 && hasActiveFilters && (
-          <p className="text-xs text-muted-foreground mb-3">
-            Mostrando <span className="font-medium text-foreground">{filteredProducts.length}</span> de {products.length} novidades
-            {selectedSupplier !== "all" && suppliers.find(s => s.id === selectedSupplier) && (
-              <> de <span className="font-medium text-info">{suppliers.find(s => s.id === selectedSupplier)?.name}</span></>
+        {/* Active filter badges */}
+        {hasActiveFilters && (
+          <div className="flex flex-wrap gap-1" role="list" aria-label="Filtros ativos">
+            {searchQuery.trim() && (
+              <Badge
+                role="listitem"
+                variant="secondary"
+                className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5"
+                onClick={() => setSearchQuery("")}
+              >
+                <Search className="h-2.5 w-2.5" />
+                "{searchQuery}"
+                <X className="h-2.5 w-2.5" />
+              </Badge>
             )}
-            {selectedCategory !== "all" && categories.find(c => c.id === selectedCategory) && (
-              <> na categoria <span className="font-medium text-foreground">{categories.find(c => c.id === selectedCategory)?.name}</span></>
+            {selectedSupplier !== "all" && (
+              <Badge
+                role="listitem"
+                variant="secondary"
+                className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5"
+                onClick={() => setSelectedSupplier("all")}
+              >
+                <Building2 className="h-2.5 w-2.5" />
+                {suppliers.find(s => s.id === selectedSupplier)?.name}
+                <X className="h-2.5 w-2.5" />
+              </Badge>
             )}
-          </p>
+            {selectedCategory !== "all" && (
+              <Badge
+                role="listitem"
+                variant="secondary"
+                className="text-[10px] gap-0.5 cursor-pointer hover:bg-destructive/10 h-5"
+                onClick={() => setSelectedCategory("all")}
+              >
+                <FolderTree className="h-2.5 w-2.5" />
+                {categories.find(c => c.id === selectedCategory)?.name}
+                <X className="h-2.5 w-2.5" />
+              </Badge>
+            )}
+          </div>
         )}
+      </div>
 
-        {renderContent()}
-      </CardContent>
-    </Card>
+      {/* Results summary */}
+      {!isLoading && filteredProducts.length > 0 && hasActiveFilters && (
+        <p className="text-[11px] text-muted-foreground">
+          Mostrando <span className="font-medium text-foreground">{filteredProducts.length}</span> de {products.length} novidades
+        </p>
+      )}
+
+      {/* Content */}
+      {renderContent()}
+    </div>
   );
 }
