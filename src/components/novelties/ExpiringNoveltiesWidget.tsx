@@ -69,18 +69,17 @@ export function ExpiringNoveltiesWidget() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* + Recentes widget */}
       <Card className="border-orange/30 bg-gradient-to-br from-orange/5 to-transparent">
-        <CardHeader className="pb-2 sm:pb-3">
-          <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-            <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange animate-pulse" />
-            <span className="hidden sm:inline">+ Recentes</span>
-            <span className="sm:hidden">Recentes</span>
+        <CardHeader className="pb-1.5 px-3 pt-3">
+          <CardTitle className="text-sm flex items-center gap-1.5">
+            <Flame className="h-4 w-4 text-orange animate-pulse" />
+            + Recentes
             {recentItems.length > 0 && (
               <Badge 
                 variant="secondary" 
-                className="bg-orange/20 text-orange text-[10px] sm:text-xs tabular-nums"
+                className="bg-orange/20 text-orange text-[9px] tabular-nums px-1 py-0"
               >
                 {recentItems.length}
               </Badge>
@@ -88,22 +87,22 @@ export function ExpiringNoveltiesWidget() {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 px-3 pb-3">
           {isLoading ? (
-            <div className="space-y-3">
+            <div className="space-y-2">
               {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-3">
-                  <div className="h-10 w-10 rounded shimmer" style={{ animationDelay: `${i * 100}ms` }} />
-                  <div className="flex-1 space-y-1.5">
-                    <div className="h-3 w-full rounded shimmer" style={{ animationDelay: `${i * 100 + 50}ms` }} />
-                    <div className="h-3 w-16 rounded shimmer" style={{ animationDelay: `${i * 100 + 100}ms` }} />
+                <div key={i} className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded shimmer" style={{ animationDelay: `${i * 100}ms` }} />
+                  <div className="flex-1 space-y-1">
+                    <div className="h-2.5 w-full rounded shimmer" style={{ animationDelay: `${i * 100 + 50}ms` }} />
+                    <div className="h-2.5 w-12 rounded shimmer" style={{ animationDelay: `${i * 100 + 100}ms` }} />
                   </div>
                 </div>
               ))}
             </div>
           ) : recentItems.length > 0 ? (
-            <ScrollArea className="h-auto max-h-[300px] lg:max-h-[400px]">
-              <div className="space-y-2">
+            <ScrollArea className="h-auto max-h-[280px]">
+              <div className="space-y-1">
                 {recentItems.map((item, idx) => {
                   const isVeryNew = idx < 3;
                   const variant = getRecencyVariant(item.detected_at);
@@ -111,16 +110,15 @@ export function ExpiringNoveltiesWidget() {
                     <div
                       key={item.novelty_id}
                       className={cn(
-                        "group flex items-center gap-2 sm:gap-3 p-2 rounded-lg cursor-pointer",
-                        "bg-background/50 hover:bg-accent/50 transition-all duration-200",
+                        "group flex items-center gap-2 p-1.5 rounded-md cursor-pointer",
+                        "hover:bg-accent/50 transition-all duration-150",
                         isVeryNew 
-                          ? "border border-orange/20 hover:border-orange/40" 
-                          : "border border-transparent hover:border-primary/30",
-                        variant === "hot" && "shadow-[inset_0_0_0_1px_hsl(var(--orange)/0.1)]"
+                          ? "border border-orange/15 hover:border-orange/30" 
+                          : "border border-transparent",
                       )}
                       onClick={() => handleClick(item.product_id)}
                     >
-                      <div className="shrink-0 w-10 h-10 rounded bg-muted overflow-hidden relative">
+                      <div className="shrink-0 w-8 h-8 rounded bg-muted overflow-hidden relative">
                         {item.product_image ? (
                           <img src={item.product_image} 
                             alt={item.product_name}
@@ -129,44 +127,39 @@ export function ExpiringNoveltiesWidget() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-muted-foreground/30">
-                            <Package className="h-4 w-4" />
+                            <Package className="h-3 w-3" />
                           </div>
                         )}
                         {isVeryNew && (
-                          <div className="absolute -top-1 -right-1">
-                            <Flame className="h-3 w-3 text-orange drop-shadow-sm" />
+                          <div className="absolute -top-0.5 -right-0.5">
+                            <Flame className="h-2.5 w-2.5 text-orange drop-shadow-sm" />
                           </div>
                         )}
                       </div>
 
                       <div className="flex-1 min-w-0">
-                        <p className="text-xs sm:text-sm font-medium line-clamp-1 group-hover:text-primary transition-colors">
+                        <p className="text-[11px] font-medium line-clamp-1 group-hover:text-primary transition-colors">
                           {item.product_name}
                         </p>
-                        <div className="flex items-center gap-1 mt-0.5">
-                          <Sparkles className={cn("h-3 w-3", recencyStyles[variant])} />
-                          <span className={cn("text-[11px] font-medium", recencyStyles[variant])}>
+                        <div className="flex items-center gap-1">
+                          <Sparkles className={cn("h-2.5 w-2.5", recencyStyles[variant])} />
+                          <span className={cn("text-[10px] font-medium", recencyStyles[variant])}>
                             {formatDaysAgo(item.detected_at)}
                           </span>
-                          {item.supplier_name && (
-                            <span className="text-[10px] text-muted-foreground/60 ml-1 truncate">
-                              · {item.supplier_name}
-                            </span>
-                          )}
                         </div>
                       </div>
 
-                      <ChevronRight className="h-4 w-4 text-muted-foreground/50 group-hover:text-primary shrink-0 transition-colors" />
+                      <ChevronRight className="h-3 w-3 text-muted-foreground/40 group-hover:text-primary shrink-0 transition-colors" />
                     </div>
                   );
                 })}
               </div>
             </ScrollArea>
           ) : (
-            <div className="text-center py-6 sm:py-8">
-              <Sparkles className="h-8 w-8 mx-auto text-muted-foreground/30 mb-2" />
-              <p className="text-xs sm:text-sm text-muted-foreground">
-                Nenhuma novidade recente encontrada
+            <div className="text-center py-4">
+              <Sparkles className="h-6 w-6 mx-auto text-muted-foreground/30 mb-1.5" />
+              <p className="text-[11px] text-muted-foreground">
+                Nenhuma novidade recente
               </p>
             </div>
           )}
@@ -176,42 +169,38 @@ export function ExpiringNoveltiesWidget() {
       {/* Supplier Breakdown widget */}
       {supplierBreakdown.length > 0 && (
         <Card className="border-info/30 bg-gradient-to-br from-info/5 to-transparent">
-          <CardHeader className="pb-2 sm:pb-3">
-            <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-              <Building2 className="h-4 w-4 sm:h-5 sm:w-5 text-info" />
-              <span>Por Fornecedor</span>
+          <CardHeader className="pb-1.5 px-3 pt-3">
+            <CardTitle className="text-sm flex items-center gap-1.5">
+              <Building2 className="h-4 w-4 text-info" />
+              Por Fornecedor
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-0">
-            <div className="space-y-2.5">
+          <CardContent className="pt-0 px-3 pb-3">
+            <div className="space-y-2">
               {supplierBreakdown.map((sup, idx) => (
                 <div key={sup.id}>
-                  <div className="flex items-center justify-between text-sm mb-1">
-                    <span className="font-medium text-xs truncate max-w-[140px]">{sup.name}</span>
-                    <div className="flex items-center gap-1.5">
-                      <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 py-0">
+                  <div className="flex items-center justify-between mb-0.5">
+                    <span className="font-medium text-[11px] truncate max-w-[120px]">{sup.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Badge variant="secondary" className="text-[9px] tabular-nums px-1 py-0">
                         {sup.count}
                       </Badge>
-                      <span className="text-[10px] text-muted-foreground tabular-nums w-8 text-right">
+                      <span className="text-[9px] text-muted-foreground tabular-nums w-7 text-right">
                         {sup.percentage}%
                       </span>
                     </div>
                   </div>
-                  {/* Progress bar */}
-                  <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                  <div className="h-1 rounded-full bg-muted overflow-hidden">
                     <div
                       className={cn(
                         "h-full rounded-full transition-all duration-700 ease-out",
                         idx === 0 ? "bg-info" : "bg-info/50"
                       )}
-                      style={{ 
-                        width: `${sup.percentage}%`,
-                        animationDelay: `${idx * 100}ms`,
-                      }}
+                      style={{ width: `${sup.percentage}%` }}
                     />
                   </div>
                   {idx < supplierBreakdown.length - 1 && (
-                    <Separator className="mt-2.5 opacity-30" />
+                    <Separator className="mt-2 opacity-20" />
                   )}
                 </div>
               ))}
