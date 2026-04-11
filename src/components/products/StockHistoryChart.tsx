@@ -42,6 +42,7 @@ import {
   extractUniqueSupplierIds,
   getActiveFlags,
   type IntelligenceFlag,
+  type StockVelocity,
 } from "@/hooks/useStockHistory";
 import { useSupplierNames } from "@/hooks/useSupplierNames";
 import { formatCurrency } from "@/lib/format";
