@@ -145,7 +145,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
                           )}
                         </div>
                         <Badge
-                          variant={statusCfg?.badgeVariant as any || "secondary"}
+                          variant={(statusCfg?.badgeVariant as "secondary" | "default" | "destructive" | "outline") || "secondary"}
                           className="text-[10px] h-4 px-1 flex-shrink-0"
                         >
                           {statusCfg?.label || version.status}

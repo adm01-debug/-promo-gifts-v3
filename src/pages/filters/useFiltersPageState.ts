@@ -87,8 +87,8 @@ export function useFiltersPageState() {
     setArr('materialGroups', filters.materialGroups || []); setArr('materialTypes', filters.materialTypes || []);
     setArr('materiais', filters.materiais); setArr('techniques', filters.techniques || []);
     setArr('tags', filters.tags || []);
-    setArr('gender', (filters as any).gender || []);
-    setArr('sizes', (filters as any).sizes || []);
+    setArr('gender', filters.gender || []);
+    setArr('sizes', filters.sizes || []);
     if (filters.priceRange[0] > 0) params.set('priceMin', String(filters.priceRange[0]));
     if (filters.priceRange[1] < 9999) params.set('priceMax', String(filters.priceRange[1]));
     if (filters.minStock > 0) params.set('minStock', String(filters.minStock));
@@ -165,8 +165,8 @@ export function useFiltersPageState() {
     if (filters.hasCommercialPackaging) count++;
     if ((filters.techniques?.length || 0) > 0) count++;
     if ((filters.tags?.length || 0) > 0) count++;
-    if (((filters as any).gender?.length || 0) > 0) count++;
-    if (((filters as any).sizes?.length || 0) > 0) count++;
+    if ((filters.gender?.length || 0) > 0) count++;
+    if ((filters.sizes?.length || 0) > 0) count++;
     if (filters.search) count++;
     return count;
   }, [filters]);
@@ -270,10 +270,10 @@ export function useFiltersPageState() {
     if (totalMateriais > 0) summary.push({ label: "Materiais", value: `${totalMateriais} selecionado${totalMateriais > 1 ? 's' : ''}`, key: "materiais" });
     const totalRamos = (filters.ramosAtividade?.length || 0) + (filters.segmentosAtividade?.length || 0);
     if (totalRamos > 0) summary.push({ label: "Nichos", value: `${totalRamos} selecionado${totalRamos > 1 ? 's' : ''}`, key: "ramosAtividade" });
-    const genderArr = (filters as any).gender || [];
-    if (genderArr.length > 0) summary.push({ label: "Gênero", value: genderArr.join(", "), key: "gender" as any });
-    const sizesArr = (filters as any).sizes || [];
-    if (sizesArr.length > 0) summary.push({ label: "Tamanhos", value: `${sizesArr.length} selecionado${sizesArr.length > 1 ? 's' : ''}`, key: "sizes" as any });
+    const genderArr = filters.gender || [];
+    if (genderArr.length > 0) summary.push({ label: "Gênero", value: genderArr.join(", "), key: "gender" });
+    const sizesArr = filters.sizes || [];
+    if (sizesArr.length > 0) summary.push({ label: "Tamanhos", value: `${sizesArr.length} selecionado${sizesArr.length > 1 ? 's' : ''}`, key: "sizes" });
     return summary;
   }, [filters]);
 
