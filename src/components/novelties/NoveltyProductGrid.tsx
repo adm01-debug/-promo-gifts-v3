@@ -321,19 +321,35 @@ export function NoveltyProductGrid() {
 
           {/* Active filter badges */}
           {hasActiveFilters && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5" role="list" aria-label="Filtros ativos">
               {selectedSupplier !== "all" && (
-                <Badge variant="secondary" className="text-xs gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setSelectedSupplier("all")}>
-                  <Building2 className="h-3 w-3" />
+                <Badge
+                  role="listitem"
+                  tabIndex={0}
+                  variant="secondary"
+                  className="text-xs gap-1 cursor-pointer hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  onClick={() => setSelectedSupplier("all")}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedSupplier("all")}
+                  aria-label={`Remover filtro: ${suppliers.find(s => s.id === selectedSupplier)?.name}`}
+                >
+                  <Building2 className="h-3 w-3" aria-hidden="true" />
                   {suppliers.find(s => s.id === selectedSupplier)?.name}
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden="true" />
                 </Badge>
               )}
               {selectedCategory !== "all" && (
-                <Badge variant="secondary" className="text-xs gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setSelectedCategory("all")}>
-                  <FolderTree className="h-3 w-3" />
+                <Badge
+                  role="listitem"
+                  tabIndex={0}
+                  variant="secondary"
+                  className="text-xs gap-1 cursor-pointer hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  onClick={() => setSelectedCategory("all")}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedCategory("all")}
+                  aria-label={`Remover filtro: ${categories.find(c => c.id === selectedCategory)?.name}`}
+                >
+                  <FolderTree className="h-3 w-3" aria-hidden="true" />
                   {categories.find(c => c.id === selectedCategory)?.name}
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden="true" />
                 </Badge>
               )}
             </div>
