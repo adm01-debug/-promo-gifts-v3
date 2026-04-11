@@ -10,7 +10,15 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
-    const { product } = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { product } = body as { product?: { name?: string; [k: string]: unknown } };
     if (!product?.name) {
       return new Response(JSON.stringify({ error: "Nome do produto é obrigatório" }), {
         status: 400,
