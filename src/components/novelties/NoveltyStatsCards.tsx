@@ -1,36 +1,24 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, Clock, TrendingUp, Package } from "lucide-react";
+import { Sparkles, CalendarPlus, CalendarRange, Building2, TrendingUp } from "lucide-react";
 import { useNoveltyStats } from "@/hooks/useNovelties";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 
-// Hook para animação de contagem
 function useCountUp(end: number, duration: number = 800) {
   const [count, setCount] = useState(0);
-  
   useEffect(() => {
-    if (end === 0) {
-      setCount(0);
-      return;
-    }
-    
+    if (end === 0) { setCount(0); return; }
     let startTime: number | null = null;
-    
     const animate = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
       const progress = Math.min((timestamp - startTime) / duration, 1);
       const easeOutQuart = 1 - Math.pow(1 - progress, 4);
       setCount(Math.floor(end * easeOutQuart));
-      
-      if (progress < 1) {
-        requestAnimationFrame(animate);
-      }
+      if (progress < 1) requestAnimationFrame(animate);
     };
-    
     requestAnimationFrame(animate);
   }, [end, duration]);
-  
   return count;
 }
 
@@ -38,41 +26,49 @@ interface StatCardProps {
   label: string;
   value: number;
   suffix?: string;
+  subtitle?: string;
   icon: React.ReactNode;
-  variant: "success" | "warning" | "info" | "default";
+  variant: "success" | "warning" | "info" | "default" | "orange";
   delay?: number;
 }
 
-function StatCard({ label, value, suffix = "", icon, variant, delay = 0 }: StatCardProps) {
+const variantStyles = {
+  success: { iconBg: "bg-success/15", iconColor: "text-success", glow: "hover:shadow-[0_0_20px_hsl(var(--success)/0.15)]" },
+  warning: { iconBg: "bg-warning/15", iconColor: "text-warning", glow: "hover:shadow-[0_0_20px_hsl(var(--warning)/0.15)]" },
+  info: { iconBg: "bg-info/15", iconColor: "text-info", glow: "hover:shadow-[0_0_20px_hsl(var(--info)/0.15)]" },
+  default: { iconBg: "bg-primary/15", iconColor: "text-primary", glow: "hover:shadow-[0_0_20px_hsl(var(--primary)/0.15)]" },
+  orange: { iconBg: "bg-orange/15", iconColor: "text-orange", glow: "hover:shadow-[0_0_20px_hsl(var(--orange)/0.15)]" },
+};
+
+function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 0 }: StatCardProps) {
   const animatedValue = useCountUp(value, 800);
-  
-  const variantClasses = {
-    success: "bg-success/10 text-success",
-    warning: "bg-warning/10 text-warning",
-    info: "bg-info/10 text-info",
-    default: "bg-primary/10 text-primary",
-  };
+  const styles = variantStyles[variant];
 
   return (
-    <Card 
-      className="border-border/50 hover:border-primary/30 transition-all duration-300"
+    <Card
+      className={cn(
+        "border-border/50 hover:border-primary/30 transition-all duration-300",
+        styles.glow
+      )}
       style={{ animation: `scale-fade-in 0.4s ease-out ${delay}ms backwards` }}
     >
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <div className={cn(
-            "shrink-0 p-2 sm:p-2.5 rounded-lg",
-            variantClasses[variant]
-          )}>
+          <div className={cn("shrink-0 p-2 sm:p-2.5 rounded-lg", styles.iconBg)}>
             {icon}
           </div>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-xl sm:text-2xl font-bold tabular-nums truncate">
               {animatedValue.toLocaleString('pt-BR')}{suffix}
             </p>
             <p className="text-xs sm:text-sm text-muted-foreground truncate">
               {label}
             </p>
+            {subtitle && (
+              <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5">
+                {subtitle}
+              </p>
+            )}
           </div>
         </div>
       </CardContent>
@@ -116,31 +112,32 @@ export function NoveltyStatsCards() {
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
       <StatCard
-        label="Novidades Ativas"
-        value={stats?.activeNovelties || 0}
-        icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
-        variant="success"
+        label="Chegaram Hoje"
+        value={stats?.arrivedToday || 0}
+        icon={<CalendarPlus className="h-4 w-4 sm:h-5 sm:w-5" />}
+        variant="orange"
         delay={0}
       />
       <StatCard
-        label="Expirando em 7d"
-        value={stats?.expiringSoon || 0}
-        icon={<Clock className="h-4 w-4 sm:h-5 sm:w-5" />}
-        variant="warning"
+        label="Últimos 7 Dias"
+        value={stats?.arrivedThisWeek || 0}
+        icon={<CalendarRange className="h-4 w-4 sm:h-5 sm:w-5" />}
+        variant="success"
         delay={100}
       />
       <StatCard
-        label="Total Produtos"
-        value={stats?.totalProducts || 0}
-        icon={<Package className="h-4 w-4 sm:h-5 sm:w-5" />}
+        label="Top Fornecedor"
+        value={stats?.topSupplierCount || 0}
+        subtitle={stats?.topSupplierName || "—"}
+        icon={<Building2 className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="info"
         delay={200}
       />
       <StatCard
-        label="Taxa Novidades"
-        value={stats?.noveltyRate || 0}
-        suffix="%"
-        icon={<TrendingUp className="h-4 w-4 sm:h-5 sm:w-5" />}
+        label="Novidades Ativas"
+        value={stats?.activeNovelties || 0}
+        suffix={stats?.noveltyRate ? ` (${stats.noveltyRate}%)` : ""}
+        icon={<Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />}
         variant="default"
         delay={300}
       />
