@@ -144,15 +144,15 @@ export function ProductPackagingSection({ register, numericProps, watch, setValu
       <div className="grid grid-cols-3 gap-3">
         <div>
           <FieldLabel htmlFor="box_internal_height_cm" hint="Altura interna útil da embalagem">Altura (cm)</FieldLabel>
-          <Input id="box_internal_height_cm" {...numericProps('box_internal_height_cm' as any)} min="0" step="0.1" className="h-9" />
+          <Input id="box_internal_height_cm" {...numericProps('box_internal_height_cm')} min="0" step="0.1" className="h-9" />
         </div>
         <div>
           <FieldLabel htmlFor="box_internal_width_cm" hint="Largura interna útil da embalagem">Largura (cm)</FieldLabel>
-          <Input id="box_internal_width_cm" {...numericProps('box_internal_width_cm' as any)} min="0" step="0.1" className="h-9" />
+          <Input id="box_internal_width_cm" {...numericProps('box_internal_width_cm')} min="0" step="0.1" className="h-9" />
         </div>
         <div>
           <FieldLabel htmlFor="box_internal_length_cm" hint="Profundidade interna útil da embalagem">Profundidade (cm)</FieldLabel>
-          <Input id="box_internal_length_cm" {...numericProps('box_internal_length_cm' as any)} min="0" step="0.1" className="h-9" />
+          <Input id="box_internal_length_cm" {...numericProps('box_internal_length_cm')} min="0" step="0.1" className="h-9" />
         </div>
       </div>
 

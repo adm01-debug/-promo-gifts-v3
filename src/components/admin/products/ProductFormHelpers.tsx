@@ -32,7 +32,7 @@ export interface FormSectionProps {
   setValue: UseFormSetValue<ProductFormData>;
   watch: <T extends keyof ProductFormData>(name: T) => ProductFormData[T];
   errors: FieldErrors<ProductFormData>;
-  numericProps: (name: keyof ProductFormData) => Record<string, unknown>;
+  numericProps: (name: keyof ProductFormData | (string & {})) => Record<string, unknown>;
 }
 
 // ============================================
