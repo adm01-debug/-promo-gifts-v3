@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package, Grid3X3, List, ArrowUpDown, Building2, FolderTree, X, Sparkles } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
@@ -25,7 +24,6 @@ function isFresh(detectedAt: string): boolean {
 
 function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetails; viewMode: ViewMode; onClick: () => void }) {
   const fresh = isFresh(product.detected_at);
-  const elapsed = daysElapsed(product.detected_at);
 
   if (viewMode === "list") {
     return (

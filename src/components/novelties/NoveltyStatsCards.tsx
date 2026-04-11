@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, CalendarPlus, CalendarRange, Building2, TrendingUp } from "lucide-react";
+import { Sparkles, CalendarPlus, CalendarRange, Building2 } from "lucide-react";
 import { useNoveltyStats } from "@/hooks/useNovelties";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
