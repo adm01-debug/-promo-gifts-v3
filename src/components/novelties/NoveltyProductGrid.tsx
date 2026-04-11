@@ -143,28 +143,28 @@ function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetai
 function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   if (viewMode === "list") {
     return (
-      <Card>
+      <Card className="border-border/50">
         <CardContent className="p-3 flex items-center gap-3">
-          <Skeleton className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg" />
+          <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-lg shimmer" />
           <div className="flex-1 space-y-2">
-            <Skeleton className="h-4 w-16" />
-            <Skeleton className="h-4 w-full" />
-            <Skeleton className="h-3 w-20" />
+            <div className="h-4 w-20 rounded shimmer" />
+            <div className="h-4 w-full rounded shimmer" style={{ animationDelay: '150ms' }} />
+            <div className="h-3 w-24 rounded shimmer" style={{ animationDelay: '300ms' }} />
           </div>
         </CardContent>
       </Card>
     );
   }
   return (
-    <Card>
+    <Card className="border-border/50 overflow-hidden">
       <CardContent className="p-0">
-        <Skeleton className="aspect-square" />
+        <div className="aspect-square shimmer" />
         <div className="p-3 space-y-2">
-          <Skeleton className="h-4 w-full" />
-          <Skeleton className="h-4 w-3/4" />
+          <div className="h-4 w-full rounded shimmer" style={{ animationDelay: '100ms' }} />
+          <div className="h-4 w-3/4 rounded shimmer" style={{ animationDelay: '200ms' }} />
           <div className="flex justify-between">
-            <Skeleton className="h-3 w-16" />
-            <Skeleton className="h-5 w-12" />
+            <div className="h-3 w-16 rounded shimmer" style={{ animationDelay: '300ms' }} />
+            <div className="h-5 w-14 rounded shimmer" style={{ animationDelay: '400ms' }} />
           </div>
         </div>
       </CardContent>
