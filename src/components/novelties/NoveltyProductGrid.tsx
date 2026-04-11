@@ -14,7 +14,7 @@ import { getDefaultColumns, type ColumnCount } from "@/components/products/Colum
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list" | "table";
-type SortMode = "recent" | "price" | "name";
+type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
 
 function daysElapsed(detectedAt: string): number {
   return Math.floor((Date.now() - new Date(detectedAt).getTime()) / 86400000);
@@ -275,7 +275,7 @@ export function NoveltyProductGrid() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
-  const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [sortMode, setSortMode] = useState<SortMode>("newest");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState("");
@@ -324,9 +324,18 @@ export function NoveltyProductGrid() {
 
     filtered.sort((a, b) => {
       switch (sortMode) {
-        case "price": return (b.base_price || 0) - (a.base_price || 0);
         case "name": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
-        case "recent":
+        case "price-asc": return (a.base_price || 0) - (b.base_price || 0);
+        case "price-desc": return (b.base_price || 0) - (a.base_price || 0);
+        case "stock": return (b.stock || 0) - (a.stock || 0);
+        case "best-seller-supplier": {
+          const aScore = (a.featured ? 2 : 0) + (a.newArrival ? 1 : 0);
+          const bScore = (b.featured ? 2 : 0) + (b.newArrival ? 1 : 0);
+          if (bScore !== aScore) return bScore - aScore;
+          return (b.stock || 0) - (a.stock || 0);
+        }
+        case "best-seller-promo": return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
+        case "newest":
         default: return new Date(b.detected_at).getTime() - new Date(a.detected_at).getTime();
       }
     });
@@ -495,14 +504,18 @@ export function NoveltyProductGrid() {
           </Select>
 
           <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-            <SelectTrigger className="w-[130px] h-7 text-[11px] gap-1">
+            <SelectTrigger className="w-[180px] h-7 text-[11px] gap-1">
               <ArrowUpDown className="h-3 w-3" />
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="recent">Mais recentes</SelectItem>
-              <SelectItem value="price">Maior preço</SelectItem>
-              <SelectItem value="name">Nome A-Z</SelectItem>
+              <SelectItem value="name">Nome (A-Z)</SelectItem>
+              <SelectItem value="price-asc">Preço (Menor → Maior)</SelectItem>
+              <SelectItem value="price-desc">Preço (Maior → Menor)</SelectItem>
+              <SelectItem value="newest">Mais Recentes</SelectItem>
+              <SelectItem value="stock">Maior Estoque</SelectItem>
+              <SelectItem value="best-seller-supplier">+ Vendidos Fornecedores</SelectItem>
+              <SelectItem value="best-seller-promo">+ Vendidos Promo Brindes</SelectItem>
             </SelectContent>
           </Select>
 
