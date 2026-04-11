@@ -57,6 +57,11 @@ export interface NoveltyStatsDisplay {
   expiringSoon: number;
   totalProducts: number;
   noveltyRate: number;
+  /** Arrival-focused stats */
+  arrivedToday: number;
+  arrivedThisWeek: number;
+  topSupplierName: string | null;
+  topSupplierCount: number;
 }
 
 interface RawProduct {
