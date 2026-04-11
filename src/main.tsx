@@ -3,9 +3,13 @@ import { createRoot } from "react-dom/client";
 import { HelmetProvider } from "react-helmet-async";
 import { registerServiceWorker } from "@/lib/sw-register";
 import { initWebVitals } from "@/lib/web-vitals";
+import { installGlobalErrorHandlers } from "@/lib/error-reporter";
 import EnhancedErrorBoundary from "@/components/errors/EnhancedErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
+
+// Install global error handlers for unhandled errors/rejections
+installGlobalErrorHandlers();
 
 const root = document.getElementById("root");
 
