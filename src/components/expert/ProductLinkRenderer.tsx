@@ -38,16 +38,23 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
   const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
 
-  if (href?.startsWith(PRODUCT_HREF_PREFIX)) {
-    const urlPart = href.slice(PRODUCT_HREF_PREFIX.length);
-    const [productId, fragment] = urlPart.split("#");
-    
-    // Extract image URL from fragment
+  // Detect product links — both produto:// protocol AND /produto/ paths
+  const isProductProtocol = href?.startsWith(PRODUCT_HREF_PREFIX);
+  const isProductPath = href?.match(/^\/produto\/([a-f0-9-]+)/i);
+
+  if (isProductProtocol || isProductPath) {
+    let productId: string;
     let imageUrl: string | null = null;
-    if (fragment?.startsWith("img=")) {
-      try {
-        imageUrl = decodeURIComponent(fragment.slice(4));
-      } catch { /* ignore */ }
+
+    if (isProductProtocol) {
+      const urlPart = href!.slice(PRODUCT_HREF_PREFIX.length);
+      const [id, fragment] = urlPart.split("#");
+      productId = id;
+      if (fragment?.startsWith("img=")) {
+        try { imageUrl = decodeURIComponent(fragment.slice(4)); } catch { /* ignore */ }
+      }
+    } else {
+      productId = isProductPath![1];
     }
 
     // Extract name from children (strip the 🔗 emoji)
@@ -60,6 +67,7 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
     return (
       <button
         onClick={(e) => {
+          e.preventDefault();
           e.stopPropagation();
           navigate(`/produto/${productId}`);
         }}
@@ -92,7 +100,23 @@ export function ProductAwareLink({ href, children, ...props }: React.AnchorHTMLA
     );
   }
 
-  // Regular link — render as normal anchor
+  // Regular link — render as normal anchor, but internal links stay in same tab
+  const isInternal = href?.startsWith("/");
+  if (isInternal) {
+    return (
+      <a
+        href={href}
+        onClick={(e) => {
+          e.preventDefault();
+          navigate(href!);
+        }}
+        {...props}
+      >
+        {children}
+      </a>
+    );
+  }
+
   return (
     <a href={href} target="_blank" rel="noopener noreferrer" {...props}>
       {children}
