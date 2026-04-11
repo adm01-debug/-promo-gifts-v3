@@ -1,4 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { safeParseBody, validationError } from '../_shared/validate.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
@@ -15,13 +16,11 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const { token } = await req.json();
+    const body = await safeParseBody<{ token?: string }>(req);
+    const token = body?.token;
 
-    if (!token) {
-      return new Response(
-        JSON.stringify({ error: 'Token não fornecido' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+    if (!token || typeof token !== 'string') {
+      return validationError('Token não fornecido', corsHeaders);
     }
 
     // Verify the token from email link
