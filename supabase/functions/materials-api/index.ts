@@ -39,7 +39,7 @@ Deno.serve(async (req) => {
 
 
     // Parse body
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     const { action, groupId, materialId, productId, materialTypeIds, materialGroupSlugs, limit = 100 } = body as {
       action: 'groups' | 'types' | 'types_by_group' | 'product_materials' | 'products_by_materials' | 'stats' | 'search' | 'complete';
       groupId?: string;

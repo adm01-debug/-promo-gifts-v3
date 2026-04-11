@@ -70,7 +70,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    const payload: WebhookPayload = await req.json();
+    let payload: WebhookPayload;
+    try { payload = await req.json(); } catch {
+      return new Response(JSON.stringify({ error: "Invalid webhook payload" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     console.log(`Product webhook action: ${payload.action}`);
 
     // Create sync log
