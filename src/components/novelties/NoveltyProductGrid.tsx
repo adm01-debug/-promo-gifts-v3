@@ -5,31 +5,40 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Clock, Grid3X3, List, Filter, Building2, FolderTree, X } from "lucide-react";
+import { Package, Grid3X3, List, ArrowUpDown, Building2, FolderTree, X, Sparkles } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
 import { cn } from "@/lib/utils";
 
 type ViewMode = "grid" | "list";
-type SortMode = "recent" | "expiring" | "name";
+type SortMode = "recent" | "price" | "name";
 
-interface NoveltyCardProps {
-  product: NoveltyWithDetails;
-  viewMode: ViewMode;
-  onClick: () => void;
+/** Days elapsed since product creation */
+function daysElapsed(detectedAt: string): number {
+  return Math.floor((Date.now() - new Date(detectedAt).getTime()) / 86400000);
 }
 
-function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
-  const daysRemaining = product.days_remaining;
+/** Returns true if product arrived in last 2 days */
+function isFresh(detectedAt: string): boolean {
+  return daysElapsed(detectedAt) <= 2;
+}
+
+function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetails; viewMode: ViewMode; onClick: () => void }) {
+  const fresh = isFresh(product.detected_at);
+  const elapsed = daysElapsed(product.detected_at);
 
   if (viewMode === "list") {
     return (
       <Card 
-        className="group cursor-pointer hover:shadow-md hover:border-primary/30 transition-all duration-200"
+        className={cn(
+          "group cursor-pointer transition-all duration-200",
+          "hover:shadow-md hover:border-primary/30",
+          fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]"
+        )}
         onClick={onClick}
       >
         <CardContent className="p-3 flex items-center gap-3">
-          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden">
+          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden relative">
             {product.product_image ? (
               <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
             ) : (
@@ -37,23 +46,21 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
                 <Package className="h-6 w-6 text-muted-foreground/30" />
               </div>
             )}
+            {fresh && (
+              <div className="absolute inset-0 ring-2 ring-success/40 rounded-lg" />
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <NoveltyBadge daysRemaining={daysRemaining} size="sm" />
-              {daysRemaining <= 7 && (
-                <Badge variant="outline" className="text-[10px] text-warning border-warning/50">
-                  <Clock className="h-2.5 w-2.5 mr-0.5" />{daysRemaining}d
-                </Badge>
-              )}
+              <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
             </div>
             <h4 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
               {product.product_name}
             </h4>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
               {product.product_sku && <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>}
               {product.supplier_name && (
-                <Badge variant="outline" className="text-[10px] border-blue-500/30 text-blue-600 dark:text-blue-400">
+                <Badge variant="outline" className="text-[10px] border-info/30 text-info">
                   <Building2 className="h-2.5 w-2.5 mr-0.5" />{product.supplier_name}
                 </Badge>
               )}
@@ -64,9 +71,11 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
               )}
             </div>
           </div>
-          {product.base_price && (
+          {product.base_price != null && product.base_price > 0 && (
             <div className="shrink-0 text-right">
-              <p className="text-sm font-semibold">R$ {product.base_price.toFixed(2)}</p>
+              <p className="text-sm font-semibold tabular-nums">
+                {product.base_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+              </p>
             </div>
           )}
         </CardContent>
@@ -76,28 +85,32 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
 
   return (
     <Card 
-      className="group cursor-pointer hover:shadow-lg hover:-translate-y-1 transition-all duration-300 border-border/50 hover:border-primary/30 overflow-hidden"
+      className={cn(
+        "group cursor-pointer overflow-hidden transition-all duration-300",
+        "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
+        fresh && "border-success/30 shadow-[0_0_16px_hsl(var(--success)/0.1)]"
+      )}
       onClick={onClick}
     >
       <CardContent className="p-0">
-        <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30">
+        <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30 overflow-hidden">
           {product.product_image ? (
-            <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
+            <img 
+              src={product.product_image} 
+              alt={product.product_name} 
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+              loading="lazy" 
+            />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Package className="h-12 w-12 text-muted-foreground/20" />
             </div>
           )}
           <div className="absolute top-2 left-2">
-            <NoveltyBadge daysRemaining={daysRemaining} size="sm" />
+            <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
           </div>
-          {daysRemaining <= 7 && (
-            <div className="absolute top-2 right-2">
-              <Badge variant="secondary" className="bg-warning text-warning-foreground text-[10px] px-1.5">
-                <Clock className="h-2.5 w-2.5 mr-0.5" />{daysRemaining}d
-              </Badge>
-            </div>
-          )}
+          {/* Gradient overlay on hover */}
+          <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <div className="p-3 space-y-1.5">
           <h4 className="font-medium text-sm line-clamp-2 group-hover:text-primary transition-colors min-h-[2.5rem]">
@@ -116,8 +129,10 @@ function NoveltyCard({ product, viewMode, onClick }: NoveltyCardProps) {
               <Building2 className="h-3 w-3 shrink-0" />{product.supplier_name}
             </p>
           )}
-          {product.base_price && (
-            <p className="text-sm font-semibold text-primary">R$ {product.base_price.toFixed(2)}</p>
+          {product.base_price != null && product.base_price > 0 && (
+            <p className="text-sm font-semibold text-primary tabular-nums">
+              {product.base_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
           )}
         </div>
       </CardContent>
@@ -167,7 +182,6 @@ export function NoveltyProductGrid() {
   const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 200 });
   const products = novelties || [];
 
-  // Extrair fornecedores e categorias únicos dos dados
   const { suppliers, categories } = useMemo(() => {
     const supMap = new Map<string, { id: string; name: string; count: number }>();
     const catMap = new Map<string, { id: string; name: string; count: number }>();
@@ -191,7 +205,6 @@ export function NoveltyProductGrid() {
     };
   }, [products]);
 
-  // Filtrar e ordenar
   const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
@@ -204,8 +217,8 @@ export function NoveltyProductGrid() {
 
     filtered.sort((a, b) => {
       switch (sortMode) {
-        case "expiring":
-          return (a.days_remaining || 30) - (b.days_remaining || 30);
+        case "price":
+          return (b.base_price || 0) - (a.base_price || 0);
         case "name":
           return (a.product_name || "").localeCompare(b.product_name || "", 'pt-BR');
         case "recent":
@@ -236,11 +249,12 @@ export function NoveltyProductGrid() {
     <Card className="border-primary/20">
       <CardHeader className="pb-3 sm:pb-4">
         <div className="flex flex-col gap-3">
-          {/* Título + View Toggle */}
+          {/* Title + View Toggle */}
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-success" />
               Produtos Novidade
-              <Badge variant="secondary" className="text-xs">
+              <Badge variant="secondary" className="text-xs tabular-nums">
                 {filteredProducts.length}
                 {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
               </Badge>
@@ -255,9 +269,8 @@ export function NoveltyProductGrid() {
             </div>
           </div>
 
-          {/* Filtros */}
+          {/* Filters */}
           <div className="flex flex-wrap items-center gap-2">
-            {/* Fornecedor */}
             <Select value={selectedSupplier} onValueChange={setSelectedSupplier}>
               <SelectTrigger className="w-[180px] h-8 text-xs">
                 <Building2 className="h-3 w-3 mr-1 shrink-0" />
@@ -273,7 +286,6 @@ export function NoveltyProductGrid() {
               </SelectContent>
             </Select>
 
-            {/* Categoria */}
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-[180px] h-8 text-xs">
                 <FolderTree className="h-3 w-3 mr-1 shrink-0" />
@@ -289,20 +301,18 @@ export function NoveltyProductGrid() {
               </SelectContent>
             </Select>
 
-            {/* Ordenação */}
             <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-              <SelectTrigger className="w-[130px] h-8 text-xs">
-                <Filter className="h-3 w-3 mr-1" />
+              <SelectTrigger className="w-[140px] h-8 text-xs">
+                <ArrowUpDown className="h-3 w-3 mr-1" />
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="recent">Mais recentes</SelectItem>
-                <SelectItem value="expiring">Expirando</SelectItem>
+                <SelectItem value="price">Maior preço</SelectItem>
                 <SelectItem value="name">Nome A-Z</SelectItem>
               </SelectContent>
             </Select>
 
-            {/* Limpar filtros */}
             {hasActiveFilters && (
               <Button variant="ghost" size="sm" className="h-8 text-xs text-muted-foreground hover:text-foreground" onClick={clearFilters}>
                 <X className="h-3 w-3 mr-1" />
@@ -311,7 +321,7 @@ export function NoveltyProductGrid() {
             )}
           </div>
 
-          {/* Badges de filtros ativos */}
+          {/* Active filter badges */}
           {hasActiveFilters && (
             <div className="flex flex-wrap gap-1.5">
               {selectedSupplier !== "all" && (
@@ -367,7 +377,7 @@ export function NoveltyProductGrid() {
         ) : (
           <div className="text-center py-12">
             <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground font-medium">
               {hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}
             </p>
             {hasActiveFilters ? (
