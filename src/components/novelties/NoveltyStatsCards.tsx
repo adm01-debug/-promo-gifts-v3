@@ -1,6 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Sparkles, CalendarPlus, CalendarRange, Building2, TrendingUp } from "lucide-react";
+import { Sparkles, CalendarPlus, CalendarRange, Building2 } from "lucide-react";
 import { useNoveltyStats } from "@/hooks/useNovelties";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -81,10 +80,10 @@ function StatCardSkeleton() {
     <Card className="border-border/50">
       <CardContent className="p-3 sm:p-4">
         <div className="flex items-center gap-3">
-          <Skeleton className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg" />
+          <div className="h-10 w-10 sm:h-11 sm:w-11 rounded-lg shimmer" />
           <div className="space-y-2">
-            <Skeleton className="h-6 w-16" />
-            <Skeleton className="h-4 w-24" />
+            <div className="h-6 w-16 rounded shimmer" style={{ animationDelay: '100ms' }} />
+            <div className="h-4 w-24 rounded shimmer" style={{ animationDelay: '200ms' }} />
           </div>
         </div>
       </CardContent>

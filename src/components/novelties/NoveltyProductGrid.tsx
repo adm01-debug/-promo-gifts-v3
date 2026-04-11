@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package, Grid3X3, List, ArrowUpDown, Building2, FolderTree, X, Sparkles } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
@@ -25,7 +24,6 @@ function isFresh(detectedAt: string): boolean {
 
 function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetails; viewMode: ViewMode; onClick: () => void }) {
   const fresh = isFresh(product.detected_at);
-  const elapsed = daysElapsed(product.detected_at);
 
   if (viewMode === "list") {
     return (
@@ -323,19 +321,35 @@ export function NoveltyProductGrid() {
 
           {/* Active filter badges */}
           {hasActiveFilters && (
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5" role="list" aria-label="Filtros ativos">
               {selectedSupplier !== "all" && (
-                <Badge variant="secondary" className="text-xs gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setSelectedSupplier("all")}>
-                  <Building2 className="h-3 w-3" />
+                <Badge
+                  role="listitem"
+                  tabIndex={0}
+                  variant="secondary"
+                  className="text-xs gap-1 cursor-pointer hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  onClick={() => setSelectedSupplier("all")}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedSupplier("all")}
+                  aria-label={`Remover filtro: ${suppliers.find(s => s.id === selectedSupplier)?.name}`}
+                >
+                  <Building2 className="h-3 w-3" aria-hidden="true" />
                   {suppliers.find(s => s.id === selectedSupplier)?.name}
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden="true" />
                 </Badge>
               )}
               {selectedCategory !== "all" && (
-                <Badge variant="secondary" className="text-xs gap-1 cursor-pointer hover:bg-destructive/10" onClick={() => setSelectedCategory("all")}>
-                  <FolderTree className="h-3 w-3" />
+                <Badge
+                  role="listitem"
+                  tabIndex={0}
+                  variant="secondary"
+                  className="text-xs gap-1 cursor-pointer hover:bg-destructive/10 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  onClick={() => setSelectedCategory("all")}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedCategory("all")}
+                  aria-label={`Remover filtro: ${categories.find(c => c.id === selectedCategory)?.name}`}
+                >
+                  <FolderTree className="h-3 w-3" aria-hidden="true" />
                   {categories.find(c => c.id === selectedCategory)?.name}
-                  <X className="h-3 w-3" />
+                  <X className="h-3 w-3" aria-hidden="true" />
                 </Badge>
               )}
             </div>
@@ -344,6 +358,19 @@ export function NoveltyProductGrid() {
       </CardHeader>
 
       <CardContent>
+        {/* Results summary */}
+        {!isLoading && filteredProducts.length > 0 && hasActiveFilters && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Mostrando <span className="font-medium text-foreground">{filteredProducts.length}</span> de {products.length} novidades
+            {selectedSupplier !== "all" && suppliers.find(s => s.id === selectedSupplier) && (
+              <> de <span className="font-medium text-info">{suppliers.find(s => s.id === selectedSupplier)?.name}</span></>
+            )}
+            {selectedCategory !== "all" && categories.find(c => c.id === selectedCategory) && (
+              <> na categoria <span className="font-medium text-foreground">{categories.find(c => c.id === selectedCategory)?.name}</span></>
+            )}
+          </p>
+        )}
+
         {isLoading ? (
           <div className={cn(
             viewMode === "grid" 
