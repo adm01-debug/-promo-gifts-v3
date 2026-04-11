@@ -202,8 +202,8 @@ export function NoveltiesSection() {
 
   const { data: stats } = useNoveltyStats();
 
-  // Extrair fornecedores únicos das estatísticas
-  const suppliers = stats?.by_supplier ? Object.keys(stats.by_supplier) : [];
+  // Fornecedores não são mais rastreados por estatística individual
+  const suppliers: string[] = [];
 
   const handleProductClick = (productId: string) => {
     navigate(`/produto/${productId}`);
@@ -222,7 +222,7 @@ export function NoveltiesSection() {
                 Novidades
                 {stats && (
                   <Badge variant="secondary" className="text-xs">
-                    {stats.active_novelties} produtos
+                    {stats.activeNovelties} produtos
                   </Badge>
                 )}
               </CardTitle>
@@ -270,21 +270,21 @@ export function NoveltiesSection() {
           <div className="grid grid-cols-3 gap-4 mt-4">
             <NoveltyStatCard
               label="Novidades ativas"
-              value={stats.active_novelties}
+              value={stats.activeNovelties}
               icon={<Sparkles className="h-5 w-5" />}
               variant="success"
               delay={100}
             />
             <NoveltyStatCard
               label="Expirando em 7d"
-              value={stats.expiring_soon}
+              value={stats.expiringSoon}
               icon={<Clock className="h-5 w-5" />}
               variant="warning"
               delay={200}
             />
             <NoveltyStatCard
-              label="Fornecedores"
-              value={Object.keys(stats.by_supplier || {}).length}
+              label="Total Produtos"
+              value={stats.totalProducts}
               icon={<Package className="h-5 w-5" />}
               delay={300}
             />
