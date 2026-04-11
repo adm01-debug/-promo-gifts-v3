@@ -202,8 +202,8 @@ export function NoveltiesSection() {
 
   const { data: stats } = useNoveltyStats();
 
-  // Extrair fornecedores únicos das estatísticas
-  const suppliers = stats?.by_supplier ? Object.keys(stats.by_supplier) : [];
+  // Fornecedores não são mais rastreados por estatística individual
+  const suppliers: string[] = [];
 
   const handleProductClick = (productId: string) => {
     navigate(`/produto/${productId}`);
