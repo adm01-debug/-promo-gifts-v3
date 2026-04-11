@@ -728,8 +728,27 @@ export function NoveltyProductGrid() {
         </p>
       )}
 
-      {/* Content */}
-      {renderContent()}
+      {/* Content with floating loading indicator */}
+      <div className="relative">
+        {renderContent()}
+
+        {/* Floating "Filtrando..." indicator — shown during refetch with existing data */}
+        <AnimatePresence>
+          {isFetching && products.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+            >
+              <div className="flex items-center gap-2 px-4 py-2 bg-background/90 border rounded-full shadow-sm">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-muted-foreground">Filtrando...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Bulk Action Bar */}
       {selectionMode && (
