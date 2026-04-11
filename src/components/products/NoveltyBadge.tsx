@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Sparkles } from "lucide-react";
 
 interface NoveltyBadgeProps {
   daysRemaining: number;
@@ -10,10 +11,11 @@ interface NoveltyBadgeProps {
 }
 
 /**
- * Badge de novidade que mostra há quantos dias o produto é novo
- * - Verde brilhante: produto muito novo (20-30 dias restantes)
- * - Amarelo: produto moderado (10-19 dias restantes)  
- * - Laranja: produto quase expirando (1-9 dias restantes)
+ * Badge de novidade com cores dinâmicas baseadas na recência:
+ * - Verde vibrante: muito novo (≤5 dias desde criação)
+ * - Verde: novo (6-15 dias)
+ * - Amarelo: moderado (16-23 dias)
+ * - Laranja: quase saindo (24-30 dias)
  */
 export function NoveltyBadge({ 
   daysRemaining, 
@@ -21,62 +23,57 @@ export function NoveltyBadge({
   size = "md",
   className 
 }: NoveltyBadgeProps) {
-  // Cor verde esmeralda harmonizada com glow effect
+  const daysElapsed = 30 - daysRemaining;
+
   const getVariantClasses = () => {
-    return "bg-[#10B981] text-primary-foreground shadow-[0_0_0_1px_rgba(16,185,129,0.3),0_2px_8px_rgba(16,185,129,0.25)] hover:shadow-[0_0_0_1px_rgba(16,185,129,0.4),0_4px_12px_rgba(16,185,129,0.35)] transition-shadow duration-300";
+    if (daysElapsed <= 5) {
+      // Very fresh — vibrant success green with glow
+      return "bg-success text-success-foreground shadow-[0_0_0_1px_hsl(var(--success)/0.3),0_2px_8px_hsl(var(--success)/0.25)] hover:shadow-[0_0_0_1px_hsl(var(--success)/0.4),0_4px_12px_hsl(var(--success)/0.35)]";
+    }
+    if (daysElapsed <= 15) {
+      // Fresh — success 
+      return "bg-success/80 text-success-foreground";
+    }
+    if (daysElapsed <= 23) {
+      // Moderate — warning
+      return "bg-warning/80 text-warning-foreground";
+    }
+    // Aging — orange
+    return "bg-orange/80 text-orange-foreground";
   };
 
   const getSizeClasses = () => {
     switch (size) {
-      case "sm":
-        return "text-[9px] px-1.5 py-0.5 gap-0.5";
-      case "lg":
-        return "text-sm px-3 py-1.5 gap-1.5";
-      default:
-        return "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 gap-1";
+      case "sm": return "text-[9px] px-1.5 py-0.5 gap-0.5";
+      case "lg": return "text-sm px-3 py-1.5 gap-1.5";
+      default: return "text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 gap-1";
     }
   };
 
-  const getIconSize = () => {
-    switch (size) {
-      case "sm":
-        return "h-2.5 w-2.5";
-      case "lg":
-        return "h-4 w-4";
-      default:
-        return "h-2.5 w-2.5 sm:h-3 sm:w-3";
-    }
-  };
-
-  // Texto amigável para os dias
-  const getDaysText = () => {
-    if (daysRemaining >= 25) {
-      return "Novinho!";
-    } else if (daysRemaining >= 20) {
-      return `${daysRemaining}d`;
-    } else if (daysRemaining >= 10) {
-      return `${daysRemaining}d`;
-    } else if (daysRemaining === 1) {
-      return "Último dia!";
-    } else {
-      return `${daysRemaining}d restantes`;
-    }
+  const getLabel = () => {
+    if (daysElapsed === 0) return "Hoje!";
+    if (daysElapsed === 1) return "Ontem";
+    if (daysElapsed <= 5) return `Há ${daysElapsed}d`;
+    return "Novidade";
   };
 
   const content = (
     <Badge 
       className={cn(
-        "inline-flex items-center font-semibold rounded-full animate-[badge-pop_0.4s_ease-out]",
+        "inline-flex items-center font-semibold rounded-full transition-shadow duration-300",
         getVariantClasses(),
         getSizeClasses(),
+        daysElapsed <= 2 && "animate-[badge-pop_0.4s_ease-out]",
         className
       )}
     >
-      <span>Novidade</span>
+      {daysElapsed <= 5 && <Sparkles className={cn(
+        size === "sm" ? "h-2.5 w-2.5" : size === "lg" ? "h-4 w-4" : "h-2.5 w-2.5 sm:h-3 sm:w-3"
+      )} />}
+      <span>{showDays ? getLabel() : "Novidade"}</span>
     </Badge>
   );
 
-  // Tooltip com informações detalhadas
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -86,15 +83,16 @@ export function NoveltyBadge({
         <div className="text-sm">
           <p className="font-semibold">🆕 Produto Novidade</p>
           <p className="text-muted-foreground">
-            {daysRemaining === 1 
-              ? "Último dia como novidade!" 
-              : `Expira em ${daysRemaining} dias`
-          }</p>
-          {daysRemaining < 7 && (
-            <p className="text-warning text-xs mt-1">
-              ⚠️ Saindo em breve da seção de novidades
-            </p>
-          )}
+            {daysElapsed === 0 
+              ? "Adicionado hoje!" 
+              : daysElapsed === 1
+                ? "Adicionado ontem"
+                : `Adicionado há ${daysElapsed} dias`
+            }
+          </p>
+          <p className="text-muted-foreground text-xs mt-0.5">
+            Restam {daysRemaining}d como novidade
+          </p>
         </div>
       </TooltipContent>
     </Tooltip>
