@@ -4,12 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Grid3X3, List, ArrowUpDown, Building2, FolderTree, X, Sparkles } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
+import { LayoutPopover } from "@/components/products/LayoutPopover";
+import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { cn } from "@/lib/utils";
 
-type ViewMode = "grid" | "list";
+type ViewMode = "grid" | "list" | "table";
 type SortMode = "recent" | "price" | "name";
 
 /** Days elapsed since product creation */
@@ -22,67 +25,23 @@ function isFresh(detectedAt: string): boolean {
   return daysElapsed(detectedAt) <= 2;
 }
 
-function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetails; viewMode: ViewMode; onClick: () => void }) {
+/** Grid column classes based on ColumnCount */
+function getGridColsClass(cols: ColumnCount): string {
+  switch (cols) {
+    case 3: return "grid-cols-2 sm:grid-cols-3";
+    case 4: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
+    case 5: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+    case 6: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6";
+    case 8: return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8";
+    default: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
+  }
+}
+
+function NoveltyGridCard({ product, onClick }: { product: NoveltyWithDetails; onClick: () => void }) {
   const fresh = isFresh(product.detected_at);
 
-  if (viewMode === "list") {
-    return (
-      <Card 
-        className={cn(
-          "group cursor-pointer transition-all duration-200",
-          "hover:shadow-md hover:border-primary/30",
-          fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]"
-        )}
-        onClick={onClick}
-      >
-        <CardContent className="p-3 flex items-center gap-3">
-          <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden relative">
-            {product.product_image ? (
-              <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center">
-                <Package className="h-6 w-6 text-muted-foreground/30" />
-              </div>
-            )}
-            {fresh && (
-              <div className="absolute inset-0 ring-2 ring-success/40 rounded-lg" />
-            )}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
-            </div>
-            <h4 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
-              {product.product_name}
-            </h4>
-            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-              {product.product_sku && <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>}
-              {product.supplier_name && (
-                <Badge variant="outline" className="text-[10px] border-info/30 text-info">
-                  <Building2 className="h-2.5 w-2.5 mr-0.5" />{product.supplier_name}
-                </Badge>
-              )}
-              {product.category_name && (
-                <Badge variant="outline" className="text-[10px]">
-                  <FolderTree className="h-2.5 w-2.5 mr-0.5" />{product.category_name}
-                </Badge>
-              )}
-            </div>
-          </div>
-          {product.base_price != null && product.base_price > 0 && (
-            <div className="shrink-0 text-right">
-              <p className="text-sm font-semibold tabular-nums">
-                {product.base_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
-              </p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
-    <Card 
+    <Card
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300",
         "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
@@ -93,11 +52,11 @@ function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetai
       <CardContent className="p-0">
         <div className="relative aspect-square bg-gradient-to-br from-muted/50 to-muted/30 overflow-hidden">
           {product.product_image ? (
-            <img 
-              src={product.product_image} 
-              alt={product.product_name} 
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-              loading="lazy" 
+            <img
+              src={product.product_image}
+              alt={product.product_name}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
             />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
@@ -107,7 +66,6 @@ function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetai
           <div className="absolute top-2 left-2">
             <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
           </div>
-          {/* Gradient overlay on hover */}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
         <div className="p-3 space-y-1.5">
@@ -138,6 +96,133 @@ function NoveltyCard({ product, viewMode, onClick }: { product: NoveltyWithDetai
   );
 }
 
+function NoveltyListCard({ product, onClick }: { product: NoveltyWithDetails; onClick: () => void }) {
+  const fresh = isFresh(product.detected_at);
+
+  return (
+    <Card
+      className={cn(
+        "group cursor-pointer transition-all duration-200",
+        "hover:shadow-md hover:border-primary/30",
+        fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]"
+      )}
+      onClick={onClick}
+    >
+      <CardContent className="p-3 flex items-center gap-3">
+        <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 rounded-lg bg-muted overflow-hidden relative">
+          {product.product_image ? (
+            <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Package className="h-6 w-6 text-muted-foreground/30" />
+            </div>
+          )}
+          {fresh && <div className="absolute inset-0 ring-2 ring-success/40 rounded-lg" />}
+        </div>
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1">
+            <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
+          </div>
+          <h4 className="font-medium text-sm line-clamp-1 group-hover:text-primary transition-colors">
+            {product.product_name}
+          </h4>
+          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+            {product.product_sku && <p className="text-xs text-muted-foreground">SKU: {product.product_sku}</p>}
+            {product.supplier_name && (
+              <Badge variant="outline" className="text-[10px] border-info/30 text-info">
+                <Building2 className="h-2.5 w-2.5 mr-0.5" />{product.supplier_name}
+              </Badge>
+            )}
+            {product.category_name && (
+              <Badge variant="outline" className="text-[10px]">
+                <FolderTree className="h-2.5 w-2.5 mr-0.5" />{product.category_name}
+              </Badge>
+            )}
+          </div>
+        </div>
+        {product.base_price != null && product.base_price > 0 && (
+          <div className="shrink-0 text-right">
+            <p className="text-sm font-semibold tabular-nums">
+              {product.base_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+            </p>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function NoveltyTableView({ products, onProductClick }: { products: NoveltyWithDetails[]; onProductClick: (id: string) => void }) {
+  return (
+    <div className="rounded-lg border border-border/50 overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow className="bg-muted/30 hover:bg-muted/30">
+            <TableHead className="w-[50px]">Img</TableHead>
+            <TableHead>Produto</TableHead>
+            <TableHead className="hidden sm:table-cell">SKU</TableHead>
+            <TableHead className="hidden md:table-cell">Fornecedor</TableHead>
+            <TableHead className="hidden lg:table-cell">Categoria</TableHead>
+            <TableHead className="text-center">Status</TableHead>
+            <TableHead className="text-right">Preço</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {products.map((product) => {
+            const fresh = isFresh(product.detected_at);
+            return (
+              <TableRow
+                key={product.novelty_id}
+                className={cn(
+                  "cursor-pointer transition-colors",
+                  fresh && "bg-success/5"
+                )}
+                onClick={() => onProductClick(product.product_id)}
+              >
+                <TableCell className="p-2">
+                  <div className="w-10 h-10 rounded bg-muted overflow-hidden">
+                    {product.product_image ? (
+                      <img src={product.product_image} alt={product.product_name} className="w-full h-full object-cover" loading="lazy" />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <Package className="h-4 w-4 text-muted-foreground/30" />
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <p className="font-medium text-sm line-clamp-1">{product.product_name}</p>
+                </TableCell>
+                <TableCell className="hidden sm:table-cell">
+                  <span className="text-xs text-muted-foreground">{product.product_sku || "—"}</span>
+                </TableCell>
+                <TableCell className="hidden md:table-cell">
+                  <span className="text-xs text-muted-foreground">{product.supplier_name || "—"}</span>
+                </TableCell>
+                <TableCell className="hidden lg:table-cell">
+                  <span className="text-xs text-muted-foreground">{product.category_name || "—"}</span>
+                </TableCell>
+                <TableCell className="text-center">
+                  <NoveltyBadge daysRemaining={product.days_remaining} size="sm" />
+                </TableCell>
+                <TableCell className="text-right">
+                  {product.base_price != null && product.base_price > 0 ? (
+                    <span className="text-sm font-semibold tabular-nums">
+                      {product.base_price.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                    </span>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">—</span>
+                  )}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
   if (viewMode === "list") {
     return (
@@ -151,6 +236,16 @@ function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
           </div>
         </CardContent>
       </Card>
+    );
+  }
+  if (viewMode === "table") {
+    return (
+      <div className="flex items-center gap-3 px-3 py-2 border-b border-border/30">
+        <div className="w-10 h-10 rounded shimmer" />
+        <div className="flex-1 h-4 rounded shimmer" style={{ animationDelay: '100ms' }} />
+        <div className="w-16 h-4 rounded shimmer" style={{ animationDelay: '200ms' }} />
+        <div className="w-16 h-4 rounded shimmer" style={{ animationDelay: '300ms' }} />
+      </div>
     );
   }
   return (
@@ -173,6 +268,7 @@ function NoveltyCardSkeleton({ viewMode }: { viewMode: ViewMode }) {
 export function NoveltyProductGrid() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [selectedSupplier, setSelectedSupplier] = useState<string>("all");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
@@ -243,11 +339,82 @@ export function NoveltyProductGrid() {
     console.error('Erro ao carregar novidades:', error);
   }
 
+  const renderContent = () => {
+    if (isLoading) {
+      if (viewMode === "table") {
+        return (
+          <div className="rounded-lg border border-border/50 overflow-hidden">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <NoveltyCardSkeleton key={i} viewMode="table" />
+            ))}
+          </div>
+        );
+      }
+      return (
+        <div className={cn(
+          viewMode === "grid"
+            ? `grid ${getGridColsClass(gridColumns)} gap-3 sm:gap-4`
+            : "space-y-3"
+        )}>
+          {Array.from({ length: 8 }).map((_, i) => (
+            <NoveltyCardSkeleton key={i} viewMode={viewMode} />
+          ))}
+        </div>
+      );
+    }
+
+    if (filteredProducts.length === 0) {
+      return (
+        <div className="text-center py-12">
+          <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
+          <p className="text-muted-foreground font-medium">
+            {hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}
+          </p>
+          {hasActiveFilters ? (
+            <Button variant="link" className="mt-2 text-sm" onClick={clearFilters}>
+              Limpar filtros
+            </Button>
+          ) : (
+            <p className="text-sm text-muted-foreground/70 mt-1">
+              Produtos novos aparecerão aqui automaticamente
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    if (viewMode === "table") {
+      return <NoveltyTableView products={filteredProducts} onProductClick={handleProductClick} />;
+    }
+
+    return (
+      <div className={cn(
+        viewMode === "grid"
+          ? `grid ${getGridColsClass(gridColumns)} gap-3 sm:gap-4`
+          : "space-y-3"
+      )}>
+        {filteredProducts.map((product, index) => (
+          <div
+            key={product.novelty_id}
+            className="stagger-item"
+            style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
+          >
+            {viewMode === "grid" ? (
+              <NoveltyGridCard product={product} onClick={() => handleProductClick(product.product_id)} />
+            ) : (
+              <NoveltyListCard product={product} onClick={() => handleProductClick(product.product_id)} />
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3 sm:pb-4">
         <div className="flex flex-col gap-3">
-          {/* Title + View Toggle */}
+          {/* Title + Layout Popover */}
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg sm:text-xl flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-success" />
@@ -257,14 +424,12 @@ export function NoveltyProductGrid() {
                 {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
               </Badge>
             </CardTitle>
-            <div className="flex border rounded-lg overflow-hidden">
-              <Button variant={viewMode === "grid" ? "secondary" : "ghost"} size="icon" aria-label="Grid" className="h-8 w-8 rounded-none" onClick={() => setViewMode("grid")}>
-                <Grid3X3 className="h-4 w-4" />
-              </Button>
-              <Button variant={viewMode === "list" ? "secondary" : "ghost"} size="icon" aria-label="Lista" className="h-8 w-8 rounded-none" onClick={() => setViewMode("list")}>
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
+            <LayoutPopover
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              gridColumns={gridColumns}
+              setGridColumns={setGridColumns}
+            />
           </div>
 
           {/* Filters */}
@@ -371,53 +536,7 @@ export function NoveltyProductGrid() {
           </p>
         )}
 
-        {isLoading ? (
-          <div className={cn(
-            viewMode === "grid" 
-              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
-              : "space-y-3"
-          )}>
-            {Array.from({ length: 8 }).map((_, i) => (
-              <NoveltyCardSkeleton key={i} viewMode={viewMode} />
-            ))}
-          </div>
-        ) : filteredProducts.length > 0 ? (
-          <div className={cn(
-            viewMode === "grid" 
-              ? "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4"
-              : "space-y-3"
-          )}>
-            {filteredProducts.map((product, index) => (
-              <div 
-                key={product.novelty_id}
-                className="stagger-item"
-                style={{ animationDelay: `${Math.min(index * 30, 300)}ms` }}
-              >
-                <NoveltyCard
-                  product={product}
-                  viewMode={viewMode}
-                  onClick={() => handleProductClick(product.product_id)}
-                />
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 mx-auto text-muted-foreground/30 mb-4" />
-            <p className="text-muted-foreground font-medium">
-              {hasActiveFilters ? "Nenhuma novidade com esses filtros" : "Nenhuma novidade encontrada"}
-            </p>
-            {hasActiveFilters ? (
-              <Button variant="link" className="mt-2 text-sm" onClick={clearFilters}>
-                Limpar filtros
-              </Button>
-            ) : (
-              <p className="text-sm text-muted-foreground/70 mt-1">
-                Produtos novos aparecerão aqui automaticamente
-              </p>
-            )}
-          </div>
-        )}
+        {renderContent()}
       </CardContent>
     </Card>
   );
