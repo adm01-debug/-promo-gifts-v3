@@ -89,16 +89,9 @@ export function ExpiringNoveltiesWidget() {
 
         <CardContent className="pt-0 px-3 pb-3">
           {isLoading ? (
-            <div className="space-y-2">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded shimmer" style={{ animationDelay: `${i * 100}ms` }} />
-                  <div className="flex-1 space-y-1">
-                    <div className="h-2.5 w-full rounded shimmer" style={{ animationDelay: `${i * 100 + 50}ms` }} />
-                    <div className="h-2.5 w-12 rounded shimmer" style={{ animationDelay: `${i * 100 + 100}ms` }} />
-                  </div>
-                </div>
-              ))}
+            <div className="flex flex-col items-center justify-center py-6 gap-2">
+              <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />
+              <span className="text-[10px] text-muted-foreground/50">carregando...</span>
             </div>
           ) : recentItems.length > 0 ? (
             <ScrollArea className="h-auto max-h-[280px]">
