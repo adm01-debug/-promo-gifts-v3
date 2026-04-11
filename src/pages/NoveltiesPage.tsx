@@ -10,26 +10,26 @@ export default function NoveltiesPage() {
   return (
     <MainLayout>
       <PageSEO title="Novidades" description="Confira os produtos mais recentes adicionados ao catálogo de brindes promocionais." path="/novidades" />
-      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-24 md:pb-6">
-        {/* Header responsivo */}
+      <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-6 space-y-5 sm:space-y-6 pb-24 md:pb-6">
+        {/* Header */}
         <PageHeader
           title="Novidades"
-          description="Produtos adicionados nos últimos 30 dias"
+          description="Produtos adicionados recentemente ao catálogo"
           icon={<Sparkles className="h-5 w-5 sm:h-6 sm:w-6 text-success" />}
         />
 
-        {/* Stats Cards - Grid responsivo */}
+        {/* KPIs focados em chegadas */}
         <NoveltyStatsCards />
 
-        {/* Layout principal - Stack em mobile, Grid em desktop */}
+        {/* Layout principal */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-6">
-          {/* Grid de produtos - 3 colunas em desktop */}
+          {/* Grid de produtos */}
           <div className="lg:col-span-3 order-2 lg:order-1">
             <NoveltyProductGrid />
           </div>
 
-          {/* Widget lateral - Expirando em breve */}
-          <div className="lg:col-span-1 order-1 lg:order-2">
+          {/* Widget + Recentes */}
+          <div className="lg:col-span-1 order-1 lg:order-2 lg:sticky lg:top-4 lg:self-start">
             <ExpiringNoveltiesWidget />
           </div>
         </div>
