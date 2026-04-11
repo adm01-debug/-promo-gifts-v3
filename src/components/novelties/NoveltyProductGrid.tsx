@@ -28,10 +28,10 @@ function getGridColsClass(cols: ColumnCount): string {
   switch (cols) {
     case 3: return "grid-cols-2 sm:grid-cols-3";
     case 4: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
-    case 5: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
-    case 6: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6";
-    case 8: return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8";
-    default: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
+    case 5: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
+    case 6: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7";
+    case 8: return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10";
+    default: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
   }
 }
 
