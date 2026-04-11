@@ -15,18 +15,23 @@ function formatDaysAgo(createdAt: string): string {
   return `${days}d atrás`;
 }
 
-function getRecencyColor(createdAt: string): string {
+function getRecencyVariant(createdAt: string): "hot" | "warm" | "normal" {
   const days = Math.floor((Date.now() - new Date(createdAt).getTime()) / 86400000);
-  if (days <= 2) return "text-orange-400";
-  if (days <= 5) return "text-amber-400";
-  return "text-muted-foreground";
+  if (days <= 2) return "hot";
+  if (days <= 5) return "warm";
+  return "normal";
 }
+
+const recencyStyles = {
+  hot: "text-orange",
+  warm: "text-warning",
+  normal: "text-muted-foreground",
+};
 
 export function ExpiringNoveltiesWidget() {
   const navigate = useNavigate();
   const { data: allNovelties, isLoading } = useNoveltiesWithDetails({ limit: 200 });
 
-  // Pega os 10 mais recentes (ordenados por data de criação desc)
   const recentItems = useMemo(() => {
     if (!allNovelties) return [];
     return [...allNovelties]
@@ -39,16 +44,16 @@ export function ExpiringNoveltiesWidget() {
   };
 
   return (
-    <Card className="border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent">
+    <Card className="border-orange/30 bg-gradient-to-br from-orange/5 to-transparent">
       <CardHeader className="pb-2 sm:pb-3">
         <CardTitle className="text-base sm:text-lg flex items-center gap-2">
-          <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange-400 animate-pulse" />
+          <Flame className="h-4 w-4 sm:h-5 sm:w-5 text-orange animate-pulse" />
           <span className="hidden sm:inline">+ Recentes</span>
           <span className="sm:hidden">Recentes</span>
           {recentItems.length > 0 && (
             <Badge 
               variant="secondary" 
-              className="bg-orange-500/20 text-orange-400 text-[10px] sm:text-xs"
+              className="bg-orange/20 text-orange text-[10px] sm:text-xs"
             >
               {recentItems.length}
             </Badge>
@@ -74,15 +79,17 @@ export function ExpiringNoveltiesWidget() {
             <div className="space-y-2">
               {recentItems.map((item, idx) => {
                 const isVeryNew = idx < 3;
+                const variant = getRecencyVariant(item.detected_at);
                 return (
                   <div
                     key={item.novelty_id}
                     className={cn(
                       "group flex items-center gap-2 sm:gap-3 p-2 rounded-lg cursor-pointer",
-                      "bg-background/50 hover:bg-accent/50 transition-colors",
+                      "bg-background/50 hover:bg-accent/50 transition-all duration-200",
                       isVeryNew 
-                        ? "border border-orange-500/20 hover:border-orange-500/40" 
-                        : "border border-transparent hover:border-primary/30"
+                        ? "border border-orange/20 hover:border-orange/40" 
+                        : "border border-transparent hover:border-primary/30",
+                      variant === "hot" && "shadow-[inset_0_0_0_1px_hsl(var(--orange)/0.1)]"
                     )}
                     onClick={() => handleClick(item.product_id)}
                   >
@@ -101,7 +108,7 @@ export function ExpiringNoveltiesWidget() {
                       )}
                       {isVeryNew && (
                         <div className="absolute -top-1 -right-1">
-                          <Flame className="h-3 w-3 text-orange-400 drop-shadow-sm" />
+                          <Flame className="h-3 w-3 text-orange drop-shadow-sm" />
                         </div>
                       )}
                     </div>
@@ -112,8 +119,8 @@ export function ExpiringNoveltiesWidget() {
                         {item.product_name}
                       </p>
                       <div className="flex items-center gap-1 mt-0.5">
-                        <Sparkles className={cn("h-3 w-3", getRecencyColor(item.detected_at))} />
-                        <span className={cn("text-[11px] font-medium", getRecencyColor(item.detected_at))}>
+                        <Sparkles className={cn("h-3 w-3", recencyStyles[variant])} />
+                        <span className={cn("text-[11px] font-medium", recencyStyles[variant])}>
                           {formatDaysAgo(item.detected_at)}
                         </span>
                         {item.supplier_name && (

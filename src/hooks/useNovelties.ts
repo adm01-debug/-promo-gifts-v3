@@ -57,6 +57,11 @@ export interface NoveltyStatsDisplay {
   expiringSoon: number;
   totalProducts: number;
   noveltyRate: number;
+  /** Arrival-focused stats */
+  arrivedToday: number;
+  arrivedThisWeek: number;
+  topSupplierName: string | null;
+  topSupplierCount: number;
 }
 
 interface RawProduct {
@@ -218,14 +223,13 @@ export function useNoveltyStats() {
   return useQuery<NoveltyStatsDisplay>({
     queryKey: ['novelty-stats'],
     queryFn: async () => {
-      // Buscar novidades dos últimos 30 dias
       const cutoff = getCutoffDate();
       
       const [noveltiesResult, totalResult] = await Promise.all([
-        invokeExternalDb<RawProduct>({
+        invokeExternalDb<RawProduct & { supplier_id: string | null }>({
           table: 'products',
           operation: 'select',
-          select: 'id, created_at',
+          select: 'id, created_at, supplier_id',
           filters: { is_active: true, created_at: `gte.${cutoff}` },
           limit: 500,
           countMode: 'exact',
@@ -240,14 +244,53 @@ export function useNoveltyStats() {
         }),
       ]);
 
+      const now = new Date();
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+      const weekStart = todayStart - 6 * 86400000;
+
       const novelties = noveltiesResult.records.map(p => ({
         daysRemaining: calcDaysRemaining(p.created_at),
+        createdTime: new Date(p.created_at).getTime(),
+        supplierId: p.supplier_id,
       }));
 
       const active = novelties.filter(n => n.daysRemaining > 0);
       const expiring = active.filter(n => n.daysRemaining <= 7);
+      const arrivedToday = active.filter(n => n.createdTime >= todayStart).length;
+      const arrivedThisWeek = active.filter(n => n.createdTime >= weekStart).length;
       const totalProducts = totalResult.count || 0;
       const activeCount = active.length;
+
+      // Find top supplier
+      const supplierCounts = new Map<string, number>();
+      active.forEach(n => {
+        if (n.supplierId) {
+          supplierCounts.set(n.supplierId, (supplierCounts.get(n.supplierId) || 0) + 1);
+        }
+      });
+      let topSupplierId: string | null = null;
+      let topSupplierCount = 0;
+      supplierCounts.forEach((count, id) => {
+        if (count > topSupplierCount) {
+          topSupplierCount = count;
+          topSupplierId = id;
+        }
+      });
+
+      // Resolve top supplier name
+      let topSupplierName: string | null = null;
+      if (topSupplierId) {
+        try {
+          const supResult = await invokeExternalDb<{ name: string }>({
+            table: 'suppliers',
+            operation: 'select',
+            select: 'name',
+            filters: { id: topSupplierId },
+            limit: 1,
+          });
+          topSupplierName = supResult.records[0]?.name || null;
+        } catch { /* fallback */ }
+      }
 
       return {
         totalNovelties: novelties.length,
@@ -255,6 +298,10 @@ export function useNoveltyStats() {
         expiringSoon: expiring.length,
         totalProducts,
         noveltyRate: totalProducts > 0 ? Math.round((activeCount / totalProducts) * 100) : 0,
+        arrivedToday,
+        arrivedThisWeek,
+        topSupplierName,
+        topSupplierCount,
       };
     },
     staleTime: 5 * 60 * 1000,
