@@ -58,7 +58,12 @@ class EnhancedErrorBoundary extends Component<Props, State> {
 
     this.props.onError?.(error, errorInfo);
 
-    // Auto-recover from chunk loading errors (stale cache after deploy)
+    // Report to centralized error tracking
+    reportError(error, {
+      type: 'react_error_boundary',
+      componentStack: errorInfo.componentStack?.slice(0, 1000),
+      retryCount: this.state.retryCount,
+    });
     if (this.isChunkError(error) && this.state.retryCount < MAX_AUTO_RETRIES) {
       this.setState({ isAutoRecovering: true });
       setTimeout(() => {
