@@ -11,7 +11,7 @@ import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useSearch } from "@/hooks/useSearch";
-import { useVoiceCommandHistory } from "@/hooks/useVoiceCommandHistory";
+import { useVoiceCommandHistory, type VoiceCommandRecord } from "@/hooks/useVoiceCommandHistory";
 import { useContextualSuggestions } from "@/hooks/useContextualSuggestions";
 import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
