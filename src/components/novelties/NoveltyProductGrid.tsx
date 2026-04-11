@@ -440,7 +440,8 @@ export function NoveltyProductGrid() {
   if (error) console.error('Erro ao carregar novidades:', error);
 
   const renderContent = () => {
-    if (isLoading) {
+    // Show skeletons only on first load (no cached data)
+    if (isLoading && products.length === 0) {
       if (viewMode === "table") {
         return (
           <div className="rounded-lg border border-border/50 overflow-hidden">
