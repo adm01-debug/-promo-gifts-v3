@@ -342,6 +342,19 @@ export function NoveltyProductGrid() {
       </CardHeader>
 
       <CardContent>
+        {/* Results summary */}
+        {!isLoading && filteredProducts.length > 0 && hasActiveFilters && (
+          <p className="text-xs text-muted-foreground mb-3">
+            Mostrando <span className="font-medium text-foreground">{filteredProducts.length}</span> de {products.length} novidades
+            {selectedSupplier !== "all" && suppliers.find(s => s.id === selectedSupplier) && (
+              <> de <span className="font-medium text-info">{suppliers.find(s => s.id === selectedSupplier)?.name}</span></>
+            )}
+            {selectedCategory !== "all" && categories.find(c => c.id === selectedCategory) && (
+              <> na categoria <span className="font-medium text-foreground">{categories.find(c => c.id === selectedCategory)?.name}</span></>
+            )}
+          </p>
+        )}
+
         {isLoading ? (
           <div className={cn(
             viewMode === "grid" 
