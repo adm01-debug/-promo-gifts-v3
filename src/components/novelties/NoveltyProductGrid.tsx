@@ -342,8 +342,30 @@ export function NoveltyProductGrid() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
 
-  const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 200 });
+  const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ limit: 200 });
   const products = novelties || [];
+
+  // Simulated progressive loading progress
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      setLoadingProgress(0);
+      progressRef.current = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 90) { clearInterval(progressRef.current!); return prev; }
+          return prev + Math.random() * 12 + 3;
+        });
+      }, 300);
+    } else {
+      if (progressRef.current) clearInterval(progressRef.current);
+      setLoadingProgress(100);
+      const t = setTimeout(() => setLoadingProgress(0), 800);
+      return () => clearTimeout(t);
+    }
+    return () => { if (progressRef.current) clearInterval(progressRef.current); };
+  }, [isLoading]);
 
   const { suppliers, categories } = useMemo(() => {
     const supMap = new Map<string, { id: string; name: string; count: number }>();
