@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
+import { safeParseBody, validationError } from '../_shared/validate.ts';
 
 Deno.serve(async (req) => {
   try {
@@ -9,7 +10,11 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { event_type, payload, notification_id } = await req.json();
+    const body = await safeParseBody<{ event_type?: string; payload?: unknown; notification_id?: string }>(req);
+    if (!body?.event_type) {
+      return validationError('event_type is required');
+    }
+    const { event_type, payload, notification_id } = body;
 
     // Buscar webhooks ativos para este tipo de evento
     const { data: webhooks, error: webhooksError } = await supabase

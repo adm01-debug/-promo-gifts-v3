@@ -1,4 +1,5 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { safeParseBody } from '../_shared/validate.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 
 // CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
@@ -30,7 +31,8 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { endpoint } = await req.json();
+    const body = await safeParseBody<{ endpoint?: string }>(req);
+    const endpoint = body?.endpoint || 'api';
     const clientIP = getClientIP(req);
     const config = RATE_LIMITS[endpoint] || RATE_LIMITS.api;
     
