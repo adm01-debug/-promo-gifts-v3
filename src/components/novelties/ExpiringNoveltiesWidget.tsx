@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Flame, Sparkles, ChevronRight, Package, Building2 } from "lucide-react";
@@ -94,10 +93,10 @@ export function ExpiringNoveltiesWidget() {
             <div className="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
                 <div key={i} className="flex items-center gap-3">
-                  <Skeleton className="h-10 w-10 rounded" />
+                  <div className="h-10 w-10 rounded shimmer" style={{ animationDelay: `${i * 100}ms` }} />
                   <div className="flex-1 space-y-1.5">
-                    <Skeleton className="h-3 w-full" />
-                    <Skeleton className="h-3 w-16" />
+                    <div className="h-3 w-full rounded shimmer" style={{ animationDelay: `${i * 100 + 50}ms` }} />
+                    <div className="h-3 w-16 rounded shimmer" style={{ animationDelay: `${i * 100 + 100}ms` }} />
                   </div>
                 </div>
               ))}
