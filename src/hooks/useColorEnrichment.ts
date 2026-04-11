@@ -93,8 +93,8 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
           },
         ]);
 
-        cachedColorGroups = refResults[0]?.success ? (refResults[0].data?.records || []) as any[] : [];
-        cachedColorVariations = refResults[1]?.success ? (refResults[1].data?.records || []) as any[] : [];
+        cachedColorGroups = refResults[0]?.success ? (refResults[0].data?.records || []) as Array<{ id: string; slug: string }> : [];
+        cachedColorVariations = refResults[1]?.success ? (refResults[1].data?.records || []) as Array<{ id: string; name: string; slug: string; group_id: string; hex_code: string | null }> : [];
       }
 
       const groupsBySlug = new Map(cachedColorGroups!.map(g => [g.slug, g.id]));
@@ -146,7 +146,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         }]);
 
         if (results[0]?.success && results[0].data?.records) {
-          allVariants.push(...(results[0].data.records as any[]));
+          allVariants.push(...(results[0].data.records as typeof allVariants));
         }
       }
 
@@ -174,7 +174,7 @@ export function useColorEnrichment({ productIds, colorGroups, colorVariations }:
         }]);
 
         if (results[0]?.success && results[0].data?.records) {
-          allImages.push(...(results[0].data.records as any[]));
+          allImages.push(...(results[0].data.records as typeof allImages));
         }
       }
 
