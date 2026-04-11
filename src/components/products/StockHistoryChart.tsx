@@ -400,7 +400,7 @@ export function StockHistoryChart({ productId, productName }: StockHistoryChartP
         {/* Supplier comparison cards */}
         {effectiveVelocities.length > 1 && supplierNamesMap && (
           <SupplierComparisonCards
-            velocities={effectiveVelocities as any}
+            velocities={effectiveVelocities as StockVelocity[]}
             supplierNames={supplierNamesMap}
           />
         )}
