@@ -51,20 +51,20 @@ function StatCard({ label, value, suffix = "", subtitle, icon, variant, delay = 
       )}
       style={{ animation: `scale-fade-in 0.4s ease-out ${delay}ms backwards` }}
     >
-      <CardContent className="p-3 sm:p-4">
-        <div className="flex items-center gap-3">
-          <div className={cn("shrink-0 p-2 sm:p-2.5 rounded-lg", styles.iconBg)}>
+      <CardContent className="p-2.5 sm:p-3">
+        <div className="flex items-center gap-2.5">
+          <div className={cn("shrink-0 p-2 rounded-lg", styles.iconBg)}>
             {icon}
           </div>
           <div className="min-w-0 flex-1">
-            <p className="text-xl sm:text-2xl font-bold tabular-nums truncate">
+            <p className="text-lg sm:text-xl font-bold tabular-nums truncate leading-tight">
               {animatedValue.toLocaleString('pt-BR')}{suffix}
             </p>
-            <p className="text-xs sm:text-sm text-muted-foreground truncate">
+            <p className="text-[10px] sm:text-xs text-muted-foreground truncate leading-tight">
               {label}
             </p>
             {subtitle && (
-              <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5">
+              <p className="text-[9px] text-muted-foreground/70 truncate mt-0.5 leading-tight">
                 {subtitle}
               </p>
             )}
