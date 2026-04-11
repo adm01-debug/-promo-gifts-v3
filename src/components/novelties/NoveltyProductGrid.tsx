@@ -543,9 +543,39 @@ export function NoveltyProductGrid() {
             <Sparkles className="h-4 w-4 text-success" />
             <h2 className="text-base sm:text-lg font-semibold">Novidades</h2>
             <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5">
-              {filteredProducts.length}
-              {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
+              {isLoading && products.length === 0 ? (
+                <span className="flex items-center gap-1">
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  carregando...
+                </span>
+              ) : (
+                <>
+                  {filteredProducts.length}
+                  {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
+                </>
+              )}
             </Badge>
+            {/* Inline progress bar next to title */}
+            <AnimatePresence>
+              {isLoading && loadingProgress > 0 && loadingProgress < 100 && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 48 }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="inline-flex items-center gap-1 ml-1"
+                >
+                  <span className="h-1 w-12 bg-muted/50 rounded-full overflow-hidden inline-block align-middle">
+                    <motion.span
+                      className="block h-full bg-primary/60 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${loadingProgress}%` }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                  </span>
+                  <span className="text-[10px] tabular-nums text-muted-foreground/60">{Math.round(loadingProgress)}%</span>
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
           <div className="flex-1 max-w-xs ml-auto">
             <div className="relative">
