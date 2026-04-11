@@ -364,6 +364,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
     setCurrentConversationId(null);
     setShowHistory(false);
     setFlowFilters(defaultFlowFilters);
+    prevFilterKeyRef.current = "";
   }, [clientId]);
 
   // Auto-send initial message from voice bridge
@@ -711,7 +712,7 @@ export function ExpertChatDialog({ isOpen, onClose, clientId, clientName, initia
             } catch { /* ignore */ }
           }}
           activeFiltersCount={activeFiltersCount}
-          onReset={() => setFlowFilters(defaultFlowFilters)}
+          onReset={() => { setFlowFilters(defaultFlowFilters); prevFilterKeyRef.current = ""; }}
         />
         {/* ─── HEADER ─── */}
         <DialogHeader className="px-5 pt-4 pb-3 border-b border-border/30 flex-shrink-0 bg-gradient-to-b from-primary/[0.03] to-transparent">
