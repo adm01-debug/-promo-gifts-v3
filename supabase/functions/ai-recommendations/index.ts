@@ -31,10 +31,20 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
-    const { client, products } = await req.json() as { 
-      client: ClientProfile; 
-      products: Product[];
-    };
+    let body: { client?: ClientProfile; products?: Product[] };
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { client, products } = body;
+    if (!client?.name || !Array.isArray(products) || products.length === 0) {
+      return new Response(JSON.stringify({ error: "client.name and products[] are required" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

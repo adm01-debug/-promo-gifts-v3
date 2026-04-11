@@ -15,11 +15,19 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(JSON.stringify({ error: "Invalid request body" }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const {
       productName, productColor, productCategory, techniqueName, locationName,
       maxWidth, maxHeight, dimensionUnit, isCurved, clientSegment, clientName,
       brandColorName, objective, tone, targetAudience, season, numberOfPrompts,
-    } = await req.json();
+    } = body as Record<string, string | number | boolean | undefined>;
 
     if (!productName) {
       return new Response(

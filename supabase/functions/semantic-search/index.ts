@@ -108,7 +108,16 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
-    const { query } = await req.json();
+    let body: Record<string, unknown>;
+    try {
+      body = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ success: false, error: 'Invalid request body' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    const { query } = body as { query?: string };
     if (!query || query.trim().length < 2) {
       return new Response(
         JSON.stringify({ success: false, error: 'Query too short' }),
