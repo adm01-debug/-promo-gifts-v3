@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare } from "lucide-react";
+import { Package, ArrowUpDown, Building2, FolderTree, X, Sparkles, Search, CheckSquare, Loader2 } from "lucide-react";
 import { useNoveltiesWithDetails, type NoveltyWithDetails } from "@/hooks/useNovelties";
 import { useNoveltiesSelectionMode } from "@/hooks/useNoveltiesSelectionMode";
 import { NoveltyBadge } from "@/components/products/NoveltyBadge";
@@ -18,6 +18,7 @@ import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
 import { cn } from "@/lib/utils";
+import { AnimatePresence, motion } from "framer-motion";
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
@@ -341,8 +342,30 @@ export function NoveltyProductGrid() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectionMode, setSelectionMode] = useState(false);
 
-  const { data: novelties, isLoading, error } = useNoveltiesWithDetails({ limit: 200 });
+  const { data: novelties, isLoading, isFetching, error } = useNoveltiesWithDetails({ limit: 200 });
   const products = novelties || [];
+
+  // Simulated progressive loading progress
+  const [loadingProgress, setLoadingProgress] = useState(0);
+  const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  useEffect(() => {
+    if (isLoading) {
+      setLoadingProgress(0);
+      progressRef.current = setInterval(() => {
+        setLoadingProgress(prev => {
+          if (prev >= 90) { clearInterval(progressRef.current!); return prev; }
+          return prev + Math.random() * 12 + 3;
+        });
+      }, 300);
+    } else {
+      if (progressRef.current) clearInterval(progressRef.current);
+      setLoadingProgress(100);
+      const t = setTimeout(() => setLoadingProgress(0), 800);
+      return () => clearTimeout(t);
+    }
+    return () => { if (progressRef.current) clearInterval(progressRef.current); };
+  }, [isLoading]);
 
   const { suppliers, categories } = useMemo(() => {
     const supMap = new Map<string, { id: string; name: string; count: number }>();
@@ -417,7 +440,8 @@ export function NoveltyProductGrid() {
   if (error) console.error('Erro ao carregar novidades:', error);
 
   const renderContent = () => {
-    if (isLoading) {
+    // Show skeletons only on first load (no cached data)
+    if (isLoading && products.length === 0) {
       if (viewMode === "table") {
         return (
           <div className="rounded-lg border border-border/50 overflow-hidden">
@@ -519,9 +543,39 @@ export function NoveltyProductGrid() {
             <Sparkles className="h-4 w-4 text-success" />
             <h2 className="text-base sm:text-lg font-semibold">Novidades</h2>
             <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5">
-              {filteredProducts.length}
-              {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
+              {isLoading && products.length === 0 ? (
+                <span className="flex items-center gap-1">
+                  <Loader2 className="h-2.5 w-2.5 animate-spin" />
+                  carregando...
+                </span>
+              ) : (
+                <>
+                  {filteredProducts.length}
+                  {hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}
+                </>
+              )}
             </Badge>
+            {/* Inline progress bar next to title */}
+            <AnimatePresence>
+              {isLoading && loadingProgress > 0 && loadingProgress < 100 && (
+                <motion.span
+                  initial={{ opacity: 0, width: 0 }}
+                  animate={{ opacity: 1, width: 48 }}
+                  exit={{ opacity: 0, width: 0 }}
+                  className="inline-flex items-center gap-1 ml-1"
+                >
+                  <span className="h-1 w-12 bg-muted/50 rounded-full overflow-hidden inline-block align-middle">
+                    <motion.span
+                      className="block h-full bg-primary/60 rounded-full"
+                      initial={{ width: 0 }}
+                      animate={{ width: `${loadingProgress}%` }}
+                      transition={{ duration: 0.4, ease: "easeOut" }}
+                    />
+                  </span>
+                  <span className="text-[10px] tabular-nums text-muted-foreground/60">{Math.round(loadingProgress)}%</span>
+                </motion.span>
+              )}
+            </AnimatePresence>
           </div>
           <div className="flex-1 max-w-xs ml-auto">
             <div className="relative">
@@ -674,8 +728,27 @@ export function NoveltyProductGrid() {
         </p>
       )}
 
-      {/* Content */}
-      {renderContent()}
+      {/* Content with floating loading indicator */}
+      <div className="relative">
+        {renderContent()}
+
+        {/* Floating "Filtrando..." indicator — shown during refetch with existing data */}
+        <AnimatePresence>
+          {isFetching && products.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.9 }}
+              className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+            >
+              <div className="flex items-center gap-2 px-4 py-2 bg-background/90 border rounded-full shadow-sm">
+                <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                <span className="text-sm text-muted-foreground">Filtrando...</span>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Bulk Action Bar */}
       {selectionMode && (
