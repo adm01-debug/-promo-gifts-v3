@@ -48,43 +48,12 @@ export function useWorkspaceNotifications() {
     fetchNotifications();
   }, [fetchNotifications]);
 
-  // Realtime subscription
+  // Polling every 30s for new notifications (realtime removed for security)
   useEffect(() => {
     if (!user) return;
-
-    const channel = supabase
-      .channel("workspace-notifications-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "workspace_notifications",
-          filter: `user_id=eq.${user.id}`,
-        },
-        (payload) => {
-          const newNotif = payload.new as WorkspaceNotification;
-          setNotifications((prev) => [newNotif, ...prev].slice(0, 50));
-          setUnreadCount((prev) => prev + 1);
-
-          // Show push toast for real-time notifications
-          const icon = newNotif.type === "success" ? "✅" : newNotif.type === "warning" ? "⚠️" : "ℹ️";
-          toast(newNotif.title, {
-            description: newNotif.message,
-            icon,
-            action: newNotif.action_url
-              ? { label: "Ver", onClick: () => window.location.assign(newNotif.action_url!) }
-              : undefined,
-            duration: 8000,
-          });
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+    const interval = setInterval(fetchNotifications, 30_000);
+    return () => clearInterval(interval);
+  }, [user, fetchNotifications]);
 
   const markAsRead = useCallback(
     async (id: string) => {
