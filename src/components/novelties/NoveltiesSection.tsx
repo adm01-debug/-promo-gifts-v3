@@ -222,7 +222,7 @@ export function NoveltiesSection() {
                 Novidades
                 {stats && (
                   <Badge variant="secondary" className="text-xs">
-                    {stats.active_novelties} produtos
+                    {stats.activeNovelties} produtos
                   </Badge>
                 )}
               </CardTitle>
