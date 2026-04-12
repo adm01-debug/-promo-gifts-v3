@@ -141,11 +141,11 @@ export function NoveltyProductGrid() {
     <div className="space-y-3">
       {/* Toolbar */}
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-2 shrink-0">
-            <Sparkles className="h-4 w-4 text-success" />
-            <h2 className="text-base sm:text-lg font-semibold">Novidades</h2>
-            <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5">
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-2 flex-1 min-w-0">
+            <Sparkles className="h-4 w-4 text-success shrink-0" />
+            <h2 className="text-base sm:text-lg font-semibold whitespace-nowrap">Novidades</h2>
+            <Badge variant="secondary" className="text-[10px] tabular-nums px-1.5 shrink-0">
               {isLoading && products.length === 0 ? <span className="flex items-center gap-1"><Loader2 className="h-2.5 w-2.5 animate-spin" />carregando...</span> : <>{filteredProducts.length}{hasActiveFilters && <span className="text-muted-foreground">/{products.length}</span>}</>}
             </Badge>
             <AnimatePresence>
@@ -156,12 +156,14 @@ export function NoveltyProductGrid() {
                 </motion.span>
               )}
             </AnimatePresence>
-          </div>
-          <div className="flex-1 max-w-xs ml-auto">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input placeholder="Buscar novidades..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background" />
-              {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
+
+            {/* Search inline — mesmo padrão do CatalogHeader */}
+            <div className="hidden sm:block w-80 lg:w-[25rem]">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                <Input placeholder="Buscar novidades…  /" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="h-8 text-xs pl-8 bg-muted/40 border-border/50 focus:bg-background" />
+                {searchQuery && <button onClick={() => setSearchQuery("")} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"><X className="h-3 w-3" /></button>}
+              </div>
             </div>
           </div>
           <Button variant={selectionMode ? "default" : "outline"} size="sm" className={cn("h-8 text-xs gap-1.5 shrink-0 transition-all", selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]")} onClick={() => { setSelectionMode(!selectionMode); if (selectionMode) sel.clearSelection(); }}>
