@@ -85,7 +85,7 @@ export default function AdminAiUsagePage() {
               <Brain className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Consumo de IA</h1>
+              <h1 className="font-display text-2xl font-bold text-foreground">Consumo de IA</h1>
               <p className="text-sm text-muted-foreground">Monitoramento de uso e quotas por usuário</p>
             </div>
           </div>
@@ -107,7 +107,7 @@ export default function AdminAiUsagePage() {
             value={stats ? formatNumber(stats.totalRequests) : "--"}
             sub={stats ? `${stats.successCount} ok / ${stats.errorCount} erros` : ""}
             loading={statsLoading}
-            color="text-blue-500"
+            color="text-primary"
           />
           <SummaryCard
             icon={<Activity className="h-4 w-4" />}
@@ -115,7 +115,7 @@ export default function AdminAiUsagePage() {
             value={stats ? formatNumber(stats.totalTokens) : "--"}
             sub="input + output"
             loading={statsLoading}
-            color="text-emerald-500"
+            color="text-primary"
           />
           <SummaryCard
             icon={<DollarSign className="h-4 w-4" />}
@@ -123,7 +123,7 @@ export default function AdminAiUsagePage() {
             value={stats ? formatCurrency(stats.totalCost) : "--"}
             sub="USD no período"
             loading={statsLoading}
-            color="text-amber-500"
+            color="text-primary"
           />
           <SummaryCard
             icon={<Users className="h-4 w-4" />}
@@ -131,7 +131,7 @@ export default function AdminAiUsagePage() {
             value={stats ? formatNumber(stats.byUser.length) : "--"}
             sub="com chamadas de IA"
             loading={statsLoading}
-            color="text-purple-500"
+            color="text-primary"
           />
         </div>
 
