@@ -23,6 +23,7 @@ import { toast } from "sonner";
 import type { ScenePrompt } from "./PromptBank";
 import { OBJECTIVES, TONES, AUDIENCES, SEASONS, getMoodColor } from "./promptGeneratorConstants";
 import type { PrintAreaWithTechniques } from "@/types/gravacao";
+import { PromptCustomizationPanel } from "./PromptCustomizationPanel";
 
 interface GeneratedPrompt {
   title: string;
@@ -219,95 +220,13 @@ export function PromptGenerator({
     <div className="space-y-4">
       {/* ─── Customization: Location, Technique & Dimensions ──── */}
       {hasPrintAreas && (
-        <div className="space-y-2.5 p-3 rounded-lg border border-primary/20 bg-primary/5">
-          <p className="text-[11px] font-semibold text-primary flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5" />
-            Personalização do Produto
-          </p>
-
-          <div className="grid grid-cols-2 gap-2.5">
-            {/* Location */}
-            <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
-                <MapPin className="h-3 w-3" /> Local
-              </Label>
-              <Select value={selectedAreaId || "none"} onValueChange={handleAreaChange}>
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Selecione..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none" className="text-xs">Nenhum</SelectItem>
-                  {printAreas!.map(area => {
-                    const label = [area.component_name, area.location_name].filter(Boolean).join(" — ") || area.area_code;
-                    return (
-                      <SelectItem key={area.area_id} value={area.area_id} className="text-xs">
-                        {label}
-                        {area.max_width > 0 && (
-                          <span className="text-muted-foreground ml-1">
-                            ({area.max_width}×{area.max_height}{area.unit})
-                          </span>
-                        )}
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Technique */}
-            <div className="space-y-1">
-              <Label className="text-[11px] text-muted-foreground flex items-center gap-1">
-                <Paintbrush className="h-3 w-3" /> Técnica
-              </Label>
-              <Select
-                value={selectedTechId || "none"}
-                onValueChange={handleTechChange}
-                disabled={!selectedAreaId || availableTechniques.length === 0}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder={selectedAreaId ? "Selecione..." : "Escolha local primeiro"} />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none" className="text-xs">Nenhuma</SelectItem>
-                  {availableTechniques.map(t => (
-                    <SelectItem key={t.id} value={t.id} className="text-xs">
-                      {t.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Dimensions info */}
-          {selectedArea && selectedArea.max_width > 0 && (
-            <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-              <Ruler className="h-3 w-3 shrink-0" />
-              <span>
-                Área máxima: <strong className="text-foreground">{selectedArea.max_width} × {selectedArea.max_height} {selectedArea.unit}</strong>
-                {selectedArea.is_curved && (
-                  <Badge variant="outline" className="text-[8px] ml-1.5 px-1 py-0">Superfície curva</Badge>
-                )}
-              </span>
-            </div>
-          )}
-
-          {/* Selection summary chips */}
-          {(selectedArea || selectedTech) && (
-            <div className="flex flex-wrap gap-1">
-              {locationLabel && (
-                <Badge variant="secondary" className="text-[9px] gap-1">
-                  <MapPin className="h-2.5 w-2.5" /> {locationLabel}
-                </Badge>
-              )}
-              {selectedTech && (
-                <Badge variant="secondary" className="text-[9px] gap-1">
-                  <Paintbrush className="h-2.5 w-2.5" /> {selectedTech.nome}
-                </Badge>
-              )}
-            </div>
-          )}
-        </div>
+        <PromptCustomizationPanel
+          printAreas={printAreas!}
+          selectedAreaId={selectedAreaId}
+          selectedTechId={selectedTechId}
+          onAreaChange={handleAreaChange}
+          onTechChange={handleTechChange}
+        />
       )}
 
       {/* ─── Campaign Configuration ───────────────────────────── */}
