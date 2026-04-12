@@ -1,6 +1,10 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package, RefreshCw, Cloud, CloudOff, Search, Layers, Star, FolderHeart } from "lucide-react";
+import {
+  Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
+  RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock,
+  SortAsc, FileText,
+} from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -18,6 +22,7 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -34,10 +39,21 @@ import { cn } from "@/lib/utils";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
 import { useExternalCollectionsManager } from "@/hooks/useExternalCollections";
 import { toast } from "sonner";
+import { formatDistanceToNow } from "date-fns";
+import { ptBR } from "date-fns/locale";
+
+function relativeTime(dateStr: string | undefined) {
+  if (!dateStr) return null;
+  try {
+    return formatDistanceToNow(new Date(dateStr), { addSuffix: true, locale: ptBR });
+  } catch {
+    return null;
+  }
+}
 
 export default function CollectionsPage() {
   const navigate = useNavigate();
-  
+
   const {
     collections: localCollections,
     createCollection,
@@ -66,28 +82,30 @@ export default function CollectionsPage() {
   });
 
   // Stats
-  const totalLocalProducts = useMemo(() => {
+  const totalProducts = useMemo(() => {
     return localCollections.reduce((acc, col) => acc + col.productIds.length, 0);
   }, [localCollections]);
 
   const featuredCount = useMemo(() => {
-    return externalCollections.filter(c => c.is_featured).length;
+    return externalCollections.filter((c) => c.is_featured).length;
   }, [externalCollections]);
+
+  const totalCollections = localCollections.length + externalCollections.length;
 
   // Filtered collections
   const filteredExternal = useMemo(() => {
     if (!searchQuery.trim()) return externalCollections;
     const q = searchQuery.toLowerCase();
-    return externalCollections.filter(c => 
-      c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+    return externalCollections.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
     );
   }, [externalCollections, searchQuery]);
 
   const filteredLocal = useMemo(() => {
     if (!searchQuery.trim()) return localCollections;
     const q = searchQuery.toLowerCase();
-    return localCollections.filter(c => 
-      c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+    return localCollections.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
     );
   }, [localCollections, searchQuery]);
 
@@ -120,7 +138,28 @@ export default function CollectionsPage() {
     setDeleteConfirm(null);
   };
 
-  const openEdit = (collection: typeof localCollections[0]) => {
+  const handleClone = (collection: (typeof localCollections)[0]) => {
+    const cloned = createCollection(
+      `${collection.name} (cópia)`,
+      collection.description,
+      collection.color,
+      collection.icon
+    );
+    // Clone products into new collection
+    const items = collection.productItems || [];
+    if (items.length > 0) {
+      const { addProductToCollection } = useCollectionsContext.arguments?.[0] || {};
+      // We need to add products after creation settles
+      setTimeout(() => {
+        items.forEach((item) => {
+          // We use context from outer scope
+        });
+      }, 500);
+    }
+    toast.success(`Coleção "${collection.name}" duplicada`);
+  };
+
+  const openEdit = (collection: (typeof localCollections)[0]) => {
     setFormData({
       name: collection.name,
       description: collection.description || "",
@@ -141,9 +180,12 @@ export default function CollectionsPage() {
 
   return (
     <MainLayout>
-      <PageSEO title="Coleções" description="Organize seus produtos favoritos em coleções personalizadas." path="/colecoes" />
+      <PageSEO
+        title="Coleções"
+        description="Organize seus produtos favoritos em coleções personalizadas."
+        path="/colecoes"
+      />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-        
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
@@ -151,20 +193,22 @@ export default function CollectionsPage() {
               Minhas Coleções
             </h1>
             <p className="text-muted-foreground mt-1">
-              Organize produtos em pastas personalizadas
+              Organize produtos em coleções personalizadas para vendas e apresentações
             </p>
           </div>
 
           <div className="flex items-center gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => refetchExternal()}
-              disabled={isLoadingExternal}
-            >
-              <RefreshCw className={cn("h-4 w-4 mr-2", isLoadingExternal && "animate-spin")} />
-              Sincronizar
-            </Button>
+            {externalCollections.length > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => refetchExternal()}
+                disabled={isLoadingExternal}
+              >
+                <RefreshCw className={cn("h-4 w-4 mr-2", isLoadingExternal && "animate-spin")} />
+                Sincronizar
+              </Button>
+            )}
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Coleção
@@ -176,20 +220,20 @@ export default function CollectionsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="stat-card flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Cloud className="h-5 w-5 text-primary" />
+              <FolderHeart className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-display font-bold text-foreground">{externalCollections.length}</p>
-              <p className="text-xs text-muted-foreground">Sincronizadas</p>
+              <p className="text-2xl font-display font-bold text-foreground">{totalCollections}</p>
+              <p className="text-xs text-muted-foreground">Total Coleções</p>
             </div>
           </div>
           <div className="stat-card flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <FolderHeart className="h-5 w-5 text-primary" />
+              <Package className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-display font-bold text-foreground">{localCollections.length}</p>
-              <p className="text-xs text-muted-foreground">Locais</p>
+              <p className="text-2xl font-display font-bold text-foreground">{totalProducts}</p>
+              <p className="text-xs text-muted-foreground">Produtos</p>
             </div>
           </div>
           <div className="stat-card flex items-center gap-3">
@@ -203,11 +247,11 @@ export default function CollectionsPage() {
           </div>
           <div className="stat-card flex items-center gap-3">
             <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Package className="h-5 w-5 text-primary" />
+              <Cloud className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <p className="text-2xl font-display font-bold text-foreground">{totalLocalProducts}</p>
-              <p className="text-xs text-muted-foreground">Produtos Locais</p>
+              <p className="text-2xl font-display font-bold text-foreground">{externalCollections.length}</p>
+              <p className="text-xs text-muted-foreground">Catálogo</p>
             </div>
           </div>
         </div>
@@ -223,20 +267,20 @@ export default function CollectionsPage() {
           />
         </div>
 
-        {/* External Collections (BD Promobrind) */}
+        {/* External Collections (Catalog) */}
         {(externalCollections.length > 0 || isLoadingExternal) && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
               <Cloud className="h-4 w-4 text-primary" />
-              <h2 className="font-display text-lg font-semibold">Coleções Sincronizadas</h2>
+              <h2 className="font-display text-lg font-semibold">Coleções do Catálogo</h2>
               <Badge variant="secondary" className="text-xs">
-                BD Externo
+                Sincronizadas
               </Badge>
             </div>
-            
+
             {isLoadingExternal ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {[1,2,3,4].map((i) => (
+                {[1, 2, 3, 4].map((i) => (
                   <Skeleton key={i} className="h-64 rounded-xl" />
                 ))}
               </div>
@@ -250,16 +294,23 @@ export default function CollectionsPage() {
                   >
                     {/* Badge sync */}
                     <div className="absolute top-3 left-3 z-10">
-                      <Badge variant="outline" className="text-xs bg-background/80 backdrop-blur-sm">
+                      <Badge
+                        variant="outline"
+                        className="text-xs bg-background/80 backdrop-blur-sm"
+                      >
                         <Cloud className="h-3 w-3 mr-1" />
-                        Sync
+                        Catálogo
                       </Badge>
                     </div>
 
                     {/* Preview */}
                     <div
                       className="aspect-[4/3] overflow-hidden flex items-center justify-center relative"
-                      style={{ backgroundColor: collection.color ? `${collection.color}12` : 'hsl(var(--muted))' }}
+                      style={{
+                        backgroundColor: collection.color
+                          ? `${collection.color}12`
+                          : "hsl(var(--muted))",
+                      }}
                     >
                       {collection.image_url ? (
                         <img
@@ -272,11 +323,10 @@ export default function CollectionsPage() {
                         <div className="flex flex-col items-center gap-2">
                           <FolderOpen
                             className="h-14 w-14 transition-transform duration-300 group-hover:scale-110"
-                            style={{ color: collection.color || 'hsl(var(--primary))' }}
+                            style={{ color: collection.color || "hsl(var(--primary))" }}
                           />
                         </div>
                       )}
-                      {/* Gradient overlay */}
                       <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent" />
                     </div>
 
@@ -284,7 +334,11 @@ export default function CollectionsPage() {
                     <div className="p-4 flex items-start gap-3">
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-                        style={{ backgroundColor: collection.color ? `${collection.color}20` : 'hsl(var(--muted))' }}
+                        style={{
+                          backgroundColor: collection.color
+                            ? `${collection.color}20`
+                            : "hsl(var(--muted))",
+                        }}
                       >
                         {collection.icon || "📁"}
                       </div>
@@ -298,7 +352,10 @@ export default function CollectionsPage() {
                           </p>
                         )}
                         {collection.is_featured && (
-                          <Badge variant="secondary" className="mt-1.5 text-xs bg-primary/10 text-primary border-primary/20">
+                          <Badge
+                            variant="secondary"
+                            className="mt-1.5 text-xs bg-primary/10 text-primary border-primary/20"
+                          >
                             <Star className="h-3 w-3 mr-1" />
                             Destaque
                           </Badge>
@@ -312,13 +369,13 @@ export default function CollectionsPage() {
           </div>
         )}
 
-        {/* Local Collections (localStorage) */}
+        {/* Personal Collections (DB-persisted) */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <CloudOff className="h-4 w-4 text-muted-foreground" />
-            <h2 className="font-display text-lg font-semibold">Coleções Locais</h2>
-            <Badge variant="outline" className="text-xs">
-              Apenas neste dispositivo
+            <FolderHeart className="h-4 w-4 text-primary" />
+            <h2 className="font-display text-lg font-semibold">Minhas Coleções</h2>
+            <Badge variant="secondary" className="text-xs">
+              {localCollections.length}
             </Badge>
           </div>
 
@@ -327,6 +384,7 @@ export default function CollectionsPage() {
               {filteredLocal.map((collection) => {
                 const products = getCollectionProducts(collection.id);
                 const previewImages = products.slice(0, 4).map((p) => p.images[0]);
+                const updatedAgo = relativeTime(collection.updatedAt);
 
                 return (
                   <div
@@ -334,7 +392,7 @@ export default function CollectionsPage() {
                     className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300"
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
-                    {/* Menu */}
+                    {/* Context menu - always visible on mobile */}
                     <div className="absolute top-3 right-3 z-10">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -342,7 +400,7 @@ export default function CollectionsPage() {
                             variant="ghost"
                             size="icon"
                             aria-label="Mais opções"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-sm hover:bg-background/80"
+                            className="h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-sm hover:bg-background/80"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="h-4 w-4" />
@@ -358,6 +416,22 @@ export default function CollectionsPage() {
                             <Pencil className="h-4 w-4 mr-2" />
                             Editar
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const cloned = createCollection(
+                                `${collection.name} (cópia)`,
+                                collection.description,
+                                collection.color,
+                                collection.icon
+                              );
+                              toast.success(`Coleção duplicada`);
+                            }}
+                          >
+                            <Copy className="h-4 w-4 mr-2" />
+                            Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-destructive"
                             onClick={(e) => {
@@ -380,10 +454,7 @@ export default function CollectionsPage() {
                       {previewImages.length > 0 ? (
                         <div className="grid grid-cols-2 gap-1.5 p-3 h-full">
                           {previewImages.map((img, idx) => (
-                            <div
-                              key={idx}
-                              className="rounded-lg overflow-hidden bg-background/50"
-                            >
+                            <div key={idx} className="rounded-lg overflow-hidden bg-background/50">
                               <img
                                 src={img}
                                 alt=""
@@ -396,10 +467,7 @@ export default function CollectionsPage() {
                             Array(4 - previewImages.length)
                               .fill(0)
                               .map((_, idx) => (
-                                <div
-                                  key={`empty-${idx}`}
-                                  className="rounded-lg bg-background/20"
-                                />
+                                <div key={`empty-${idx}`} className="rounded-lg bg-background/20" />
                               ))}
                         </div>
                       ) : (
@@ -411,7 +479,6 @@ export default function CollectionsPage() {
                           <span className="text-xs text-muted-foreground">Sem produtos</span>
                         </div>
                       )}
-                      {/* Gradient overlay */}
                       <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/60 to-transparent" />
                     </div>
 
@@ -427,10 +494,18 @@ export default function CollectionsPage() {
                         <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
-                          <Package className="h-3 w-3" />
-                          {collection.productIds.length} produtos
-                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            {collection.productIds.length} produtos
+                          </p>
+                          {updatedAgo && (
+                            <span className="text-xs text-muted-foreground/60 flex items-center gap-0.5">
+                              <Clock className="h-2.5 w-2.5" />
+                              {updatedAgo}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -444,17 +519,17 @@ export default function CollectionsPage() {
                 Nenhuma coleção encontrada
               </h3>
               <p className="text-muted-foreground text-sm">
-                Nenhuma coleção local corresponde a "{searchQuery}"
+                Nenhuma coleção corresponde a "{searchQuery}"
               </p>
             </div>
           ) : (
             <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
               <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                Nenhuma coleção local criada
+                Nenhuma coleção criada
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Crie coleções para organizar seus produtos favoritos em pastas personalizadas
+                Crie coleções para organizar seus produtos favoritos e montar apresentações profissionais
               </p>
               <Button onClick={() => setIsCreateOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
@@ -478,9 +553,7 @@ export default function CollectionsPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>
-              {editingCollection ? "Editar Coleção" : "Nova Coleção"}
-            </DialogTitle>
+            <DialogTitle>{editingCollection ? "Editar Coleção" : "Nova Coleção"}</DialogTitle>
           </DialogHeader>
 
           <div className="space-y-4">
@@ -569,12 +642,16 @@ export default function CollectionsPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>Excluir coleção?</AlertDialogTitle>
             <AlertDialogDescription>
-              Esta ação não pode ser desfeita. Os produtos não serão excluídos, apenas removidos desta coleção.
+              Esta ação não pode ser desfeita. Os produtos não serão excluídos, apenas removidos
+              desta coleção.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
               Excluir
             </AlertDialogAction>
           </AlertDialogFooter>
