@@ -135,12 +135,12 @@ describe("VoiceSearchOverlay", () => {
   describe("Phase Titles & Subtitles", () => {
     it("shows booting/idle state title on initial open", () => {
       render(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
-      expect(screen.getByText("Ativando microfone...")).toBeDefined();
+      expect(screen.getByText("Ativando microfone…")).toBeDefined();
     });
 
     it("shows listening phase title", () => {
       render(<VoiceSearchOverlay {...defaultProps} phase="listening" />);
-      expect(screen.getByText("Ouvindo...")).toBeDefined();
+      expect(screen.getByText("Ouvindo…")).toBeDefined();
     });
 
     it("shows listening subtitle", () => {
@@ -150,7 +150,7 @@ describe("VoiceSearchOverlay", () => {
 
     it("shows processing phase title", () => {
       render(<VoiceSearchOverlay {...defaultProps} phase="processing" />);
-      expect(screen.getByText("Processando...")).toBeDefined();
+      expect(screen.getByText("Processando…")).toBeDefined();
     });
 
     it("shows processing subtitle", () => {
@@ -160,7 +160,7 @@ describe("VoiceSearchOverlay", () => {
 
     it("shows speaking phase title", () => {
       render(<VoiceSearchOverlay {...defaultProps} phase="speaking" />);
-      expect(screen.getByText("Respondendo...")).toBeDefined();
+      expect(screen.getByText("Respondendo…")).toBeDefined();
     });
 
     it("shows error phase title", () => {
@@ -201,7 +201,7 @@ describe("VoiceSearchOverlay", () => {
     it("handles empty partial transcript gracefully", () => {
       render(<VoiceSearchOverlay {...defaultProps} phase="listening" partialTranscript="" />);
       // Should not crash, should show listening state
-      expect(screen.getByText("Ouvindo...")).toBeDefined();
+      expect(screen.getByText("Ouvindo…")).toBeDefined();
     });
 
     it("handles very long transcript", () => {
@@ -278,19 +278,19 @@ describe("VoiceSearchOverlay", () => {
     it("transitions from idle to listening", () => {
       const { rerender } = render(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
       rerender(<VoiceSearchOverlay {...defaultProps} phase="listening" />);
-      expect(screen.getByText("Ouvindo...")).toBeDefined();
+      expect(screen.getByText("Ouvindo…")).toBeDefined();
     });
 
     it("transitions from listening to processing", () => {
       const { rerender } = render(<VoiceSearchOverlay {...defaultProps} phase="listening" />);
       rerender(<VoiceSearchOverlay {...defaultProps} phase="processing" finalTranscript="teste" />);
-      expect(screen.getByText("Processando...")).toBeDefined();
+      expect(screen.getByText("Processando…")).toBeDefined();
     });
 
     it("transitions from processing to speaking", () => {
       const { rerender } = render(<VoiceSearchOverlay {...defaultProps} phase="processing" />);
       rerender(<VoiceSearchOverlay {...defaultProps} phase="speaking" agentResponse="Resposta" />);
-      expect(screen.getByText("Respondendo...")).toBeDefined();
+      expect(screen.getByText("Respondendo…")).toBeDefined();
     });
 
     it("transitions from speaking back to idle", () => {
@@ -311,13 +311,13 @@ describe("VoiceSearchOverlay", () => {
       const { rerender } = render(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
       
       rerender(<VoiceSearchOverlay {...defaultProps} phase="listening" />);
-      expect(screen.getByText("Ouvindo...")).toBeDefined();
+      expect(screen.getByText("Ouvindo…")).toBeDefined();
       
       rerender(<VoiceSearchOverlay {...defaultProps} phase="processing" finalTranscript="canetas" />);
-      expect(screen.getByText("Processando...")).toBeDefined();
+      expect(screen.getByText("Processando…")).toBeDefined();
       
       rerender(<VoiceSearchOverlay {...defaultProps} phase="speaking" agentResponse="Achei!" />);
-      expect(screen.getByText("Respondendo...")).toBeDefined();
+      expect(screen.getByText("Respondendo…")).toBeDefined();
       expect(screen.getByText("Achei!")).toBeDefined();
       
       rerender(<VoiceSearchOverlay {...defaultProps} phase="idle" />);
