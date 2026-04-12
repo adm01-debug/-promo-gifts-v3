@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +13,13 @@ import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { ProductListItem } from "@/components/products/ProductListItem";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { NoveltyGridCard, NoveltyListCard, NoveltyTableView } from "./NoveltyCards";
+import { NoveltyGridCard, NoveltyTableView } from "./NoveltyCards";
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
@@ -104,6 +108,22 @@ export function NoveltyProductGrid() {
   const clearFilters = () => { setSelectedSupplier("all"); setSelectedCategory("all"); setSearchQuery(""); };
   if (error) console.error('Erro ao carregar novidades:', error);
 
+  // Favorites & Compare stores for ProductListItem integration
+  const { isFavorite, toggleFavorite } = useFavoritesStore();
+  const { isInCompare, addToCompare, removeFromCompare, canAdd: canAddToCompare } = useComparisonStore();
+  const onToggleCompare = useCallback((productId: string) => {
+    if (isInCompare(productId)) { removeFromCompare(productId); return { added: false, isFull: false }; }
+    const result = addToCompare(productId);
+    return { added: !!result, isFull: !canAddToCompare };
+  }, [isInCompare, addToCompare, removeFromCompare, canAddToCompare]);
+
+  // Convert novelties to Product for list view
+  const productMap = useMemo(() => {
+    const map = new Map<string, ReturnType<typeof sel.noveltyToProduct>>();
+    filteredProducts.forEach(n => map.set(n.product_id, sel.noveltyToProduct(n)));
+    return map;
+  }, [filteredProducts, sel]);
+
   const renderContent = () => {
     if (isLoading && products.length === 0) {
       return (
@@ -124,13 +144,46 @@ export function NoveltyProductGrid() {
     }
     if (viewMode === "table") return <NoveltyTableView products={filteredProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
     const effectiveCols = Math.min(gridColumns, filteredProducts.length) as ColumnCount;
+
+    if (viewMode === "list") {
+      return (
+        <div className="space-y-2">
+          {filteredProducts.map((novelty, index) => {
+            const prod = productMap.get(novelty.product_id);
+            if (!prod) return null;
+            const isSelected = sel.selectedIds.has(novelty.product_id);
+            return (
+              <div key={novelty.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
+                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
+                  {selectionMode && (
+                    <div className="flex-shrink-0 ml-1">
+                      <SelectionCheckbox checked={isSelected} onChange={() => sel.toggleSelect(novelty.product_id)} size="md" />
+                    </div>
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <ProductListItem
+                      product={prod}
+                      onClick={() => selectionMode ? sel.toggleSelect(novelty.product_id) : handleProductClick(novelty.product_id)}
+                      isFavorited={isFavorite(novelty.product_id)}
+                      onToggleFavorite={toggleFavorite}
+                      isInCompare={isInCompare(novelty.product_id)}
+                      onToggleCompare={onToggleCompare}
+                      canAddToCompare={canAddToCompare}
+                    />
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
+
     return (
-      <div className={cn(viewMode === "grid" ? `grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}` : "space-y-2")}>
+      <div className={`grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}`}>
         {filteredProducts.map((product, index) => (
           <div key={product.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
-            {viewMode === "grid"
-              ? <NoveltyGridCard product={product} onClick={() => handleProductClick(product.product_id)} selectionMode={selectionMode} isSelected={sel.selectedIds.has(product.product_id)} onToggleSelect={() => sel.toggleSelect(product.product_id)} />
-              : <NoveltyListCard product={product} onClick={() => handleProductClick(product.product_id)} selectionMode={selectionMode} isSelected={sel.selectedIds.has(product.product_id)} onToggleSelect={() => sel.toggleSelect(product.product_id)} />}
+            <NoveltyGridCard product={product} onClick={() => handleProductClick(product.product_id)} selectionMode={selectionMode} isSelected={sel.selectedIds.has(product.product_id)} onToggleSelect={() => sel.toggleSelect(product.product_id)} />
           </div>
         ))}
       </div>
