@@ -1,8 +1,6 @@
 /**
  * MockupHistoryPanel — History grid with filters and pagination
- * 
- * Extracted from MockupGenerator.tsx.
- * Includes: filters (client, product, technique, date), grid, pagination.
+ * Refatorado: Lightbox extraído para MockupLightbox.tsx
  */
 
 import { useState, useMemo, useCallback } from "react";
@@ -17,31 +15,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
-  History,
-  Download,
-  RotateCcw,
-  Trash2,
-  Clock,
-  Search,
-  RefreshCw,
-  Wand2,
-  ChevronLeft,
-  ChevronRight,
-  Calendar,
-  Columns2,
-  X,
-  Ruler,
-  MapPin,
-  Palette,
-  FileImage,
-  ZoomIn,
-  ZoomOut,
+  History, Download, RotateCcw, Trash2, Clock, Search, RefreshCw, Wand2,
+  ChevronLeft, ChevronRight, Calendar, Columns2, X, Ruler, MapPin, Palette, FileImage,
 } from "lucide-react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { MockupHistorySkeleton } from "./MockupSkeleton";
 import { MockupCompareDialog } from "./MockupCompareDialog";
+import { MockupLightbox } from "./MockupLightbox";
 import { ShareMenu } from "./ShareMenu";
 
 interface GeneratedMockup {
@@ -66,16 +47,8 @@ interface GeneratedMockup {
   annotations: any | null;
 }
 
-interface Technique {
-  id: string;
-  name: string;
-  code: string | null;
-}
-
-interface Client {
-  id: string;
-  name: string;
-}
+interface Technique { id: string; name: string; code: string | null; }
+interface Client { id: string; name: string; }
 
 interface MockupHistoryPanelProps {
   mockupHistory: GeneratedMockup[];
@@ -91,14 +64,8 @@ interface MockupHistoryPanelProps {
 const ITEMS_PER_PAGE = 12;
 
 export function MockupHistoryPanel({
-  mockupHistory,
-  isLoading,
-  clients,
-  techniques,
-  onLoadFromHistory,
-  onDownload,
-  onDelete,
-  onShare,
+  mockupHistory, isLoading, clients, techniques,
+  onLoadFromHistory, onDownload, onDelete,
 }: MockupHistoryPanelProps) {
   const [filterClient, setFilterClient] = useState("all");
   const [filterProduct, setFilterProduct] = useState("");
@@ -110,13 +77,8 @@ export function MockupHistoryPanel({
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => getDefaultColumns());
   const [lightboxMockup, setLightboxMockup] = useState<GeneratedMockup | null>(null);
-  const [lightboxZoom, setLightboxZoom] = useState(1);
 
-  const handleSetViewMode = (mode: "grid" | "list") => {
-    setViewMode(mode);
-    setCurrentPage(1);
-  };
-
+  const handleSetViewMode = (mode: "grid" | "list") => { setViewMode(mode); setCurrentPage(1); };
   const toggleCompareSelection = (id: string) => {
     setSelectedForCompare(prev => {
       const next = new Set(prev);
@@ -129,7 +91,6 @@ export function MockupHistoryPanel({
   const compareMode = selectedForCompare.size > 0;
   const compareMockups = mockupHistory.filter(m => selectedForCompare.has(m.id));
 
-  // Extract unique techniques from history
   const historyTechniques = useMemo(() => {
     const map = new Map<string, string>();
     for (const m of mockupHistory) {
@@ -143,36 +104,25 @@ export function MockupHistoryPanel({
 
   const filteredMockups = useMemo(() => {
     return mockupHistory.filter((mockup) => {
-      // Client filter
-      const mockupClientName = mockup.client_name;
-      const hasClient = mockup.client_id || mockupClientName;
+      const hasClient = mockup.client_id || mockup.client_name;
       if (filterClient === "none" && hasClient) return false;
       if (filterClient !== "all" && filterClient !== "none") {
-        if (mockup.client_id !== filterClient && mockupClientName !== filterClient) return false;
+        if (mockup.client_id !== filterClient && mockup.client_name !== filterClient) return false;
       }
-      // Product filter (name + SKU)
       if (filterProduct) {
         const q = filterProduct.toLowerCase();
-        const matchName = mockup.product_name.toLowerCase().includes(q);
-        const matchSku = mockup.product_sku?.toLowerCase().includes(q);
-        if (!matchName && !matchSku) return false;
+        if (!mockup.product_name.toLowerCase().includes(q) && !mockup.product_sku?.toLowerCase().includes(q)) return false;
       }
-      // Technique filter
       if (filterTechnique !== "all") {
         const selectedTech = historyTechniques.find(t => t.id === filterTechnique);
         if (selectedTech && mockup.technique_name !== selectedTech.name) return false;
       }
-
-      // Date range filter
       if (filterDateRange !== "all") {
-        const created = new Date(mockup.created_at);
-        const now = new Date();
-        const diffDays = (now.getTime() - created.getTime()) / (1000 * 60 * 60 * 24);
+        const diffDays = (Date.now() - new Date(mockup.created_at).getTime()) / (1000 * 60 * 60 * 24);
         if (filterDateRange === "7d" && diffDays > 7) return false;
         if (filterDateRange === "30d" && diffDays > 30) return false;
         if (filterDateRange === "90d" && diffDays > 90) return false;
       }
-
       return true;
     });
   }, [mockupHistory, filterClient, filterProduct, filterTechnique, filterDateRange, historyTechniques]);
@@ -180,56 +130,27 @@ export function MockupHistoryPanel({
   const totalPages = Math.ceil(filteredMockups.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const paginatedMockups = filteredMockups.slice(startIndex, startIndex + ITEMS_PER_PAGE);
-
   const hasFilters = filterClient !== "all" || filterProduct || filterTechnique !== "all" || filterDateRange !== "all";
 
-  const clearFilters = () => {
-    setFilterClient("all");
-    setFilterProduct("");
-    setFilterTechnique("all");
-    setFilterDateRange("all");
-    setCurrentPage(1);
-  };
-
-  const openLightbox = useCallback((mockup: GeneratedMockup) => {
-    setLightboxMockup(mockup);
-    setLightboxZoom(1);
-  }, []);
-
-  const closeLightbox = useCallback(() => {
-    setLightboxMockup(null);
-    setLightboxZoom(1);
-  }, []);
+  const clearFilters = () => { setFilterClient("all"); setFilterProduct(""); setFilterTechnique("all"); setFilterDateRange("all"); setCurrentPage(1); };
 
   return (
     <Card className="border-border/30">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <History className="h-5 w-5 text-primary" />
-              Histórico de Mockups
-            </CardTitle>
+            <CardTitle className="flex items-center gap-2"><History className="h-5 w-5 text-primary" />Histórico de Mockups</CardTitle>
             <CardDescription>Mockups gerados anteriormente</CardDescription>
           </div>
           <div className="flex items-center gap-2">
             {compareMode && (
               <>
                 <Badge variant="secondary">{selectedForCompare.size} selecionados</Badge>
-                <Button size="sm" onClick={() => setShowCompare(true)} disabled={selectedForCompare.size < 2}>
-                  <Columns2 className="h-4 w-4 mr-1" /> Comparar
-                </Button>
-                <Button size="sm" variant="ghost" onClick={() => setSelectedForCompare(new Set())}>
-                  <X className="h-4 w-4" />
-                </Button>
+                <Button size="sm" onClick={() => setShowCompare(true)} disabled={selectedForCompare.size < 2}><Columns2 className="h-4 w-4 mr-1" /> Comparar</Button>
+                <Button size="sm" variant="ghost" onClick={() => setSelectedForCompare(new Set())}><X className="h-4 w-4" /></Button>
               </>
             )}
-            <LayoutPopover
-              viewMode={viewMode}
-              setViewMode={handleSetViewMode}
-              gridColumns={gridColumns}
-              setGridColumns={setGridColumns}
-            />
+            <LayoutPopover viewMode={viewMode} setViewMode={handleSetViewMode} gridColumns={gridColumns} setGridColumns={setGridColumns} />
           </div>
         </div>
       </CardHeader>
@@ -239,49 +160,33 @@ export function MockupHistoryPanel({
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Cliente</Label>
             <Select value={filterClient} onValueChange={(v) => { setFilterClient(v); setCurrentPage(1); }}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Todos" />
-              </SelectTrigger>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todos os clientes</SelectItem>
                 <SelectItem value="none">Sem cliente</SelectItem>
-                {clients.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                ))}
+                {clients.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Produto</Label>
-            <Input
-              placeholder="Buscar por nome ou SKU..."
-              value={filterProduct}
-              onChange={(e) => { setFilterProduct(e.target.value); setCurrentPage(1); }}
-              className="h-9"
-            />
+            <Input placeholder="Buscar por nome ou SKU..." value={filterProduct}
+              onChange={(e) => { setFilterProduct(e.target.value); setCurrentPage(1); }} className="h-9" />
           </div>
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Técnica</Label>
             <Select value={filterTechnique} onValueChange={(v) => { setFilterTechnique(v); setCurrentPage(1); }}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Todas" />
-              </SelectTrigger>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todas as técnicas</SelectItem>
-                {historyTechniques.map((t) => (
-                  <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>
-                ))}
+                {historyTechniques.map((t) => <SelectItem key={t.id} value={t.id}>{t.name}</SelectItem>)}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground flex items-center gap-1">
-              <Calendar className="h-3 w-3" /> Período
-            </Label>
+            <Label className="text-xs text-muted-foreground flex items-center gap-1"><Calendar className="h-3 w-3" /> Período</Label>
             <Select value={filterDateRange} onValueChange={(v) => { setFilterDateRange(v); setCurrentPage(1); }}>
-              <SelectTrigger className="h-9">
-                <SelectValue placeholder="Todo período" />
-              </SelectTrigger>
+              <SelectTrigger className="h-9"><SelectValue placeholder="Todo período" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Todo período</SelectItem>
                 <SelectItem value="7d">Últimos 7 dias</SelectItem>
@@ -292,415 +197,182 @@ export function MockupHistoryPanel({
           </div>
         </div>
 
-        {/* Clear filters */}
         {hasFilters && (
           <div className="flex justify-end">
-            <Button variant="ghost" size="sm" onClick={clearFilters}>
-              <RefreshCw className="h-4 w-4 mr-1" /> Limpar filtros
-            </Button>
+            <Button variant="ghost" size="sm" onClick={clearFilters}><RefreshCw className="h-4 w-4 mr-1" /> Limpar filtros</Button>
           </div>
         )}
 
         {/* Content */}
-        {isLoading ? (
-          <MockupHistorySkeleton count={8} />
-        ) : mockupHistory.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-              <Wand2 className="h-10 w-10 text-primary/60" />
+        {isLoading ? <MockupHistorySkeleton count={8} />
+          : mockupHistory.length === 0 ? (
+            <div className="text-center py-16 animate-fade-in">
+              <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
+                <Wand2 className="h-10 w-10 text-primary/60" />
+              </div>
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
+              <p className="text-muted-foreground max-w-md mx-auto">Comece criando seu primeiro mockup!</p>
             </div>
-            <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhum mockup gerado ainda</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              Comece criando seu primeiro mockup!
-            </p>
-          </div>
-        ) : filteredMockups.length === 0 ? (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-              <Search className="h-8 w-8 text-muted-foreground/50" />
+          ) : filteredMockups.length === 0 ? (
+            <div className="text-center py-16 animate-fade-in">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
+                <Search className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <h3 className="font-display text-lg font-semibold mb-2">Nenhum resultado</h3>
+              <p className="text-muted-foreground mb-4">Ajuste os filtros de busca.</p>
+              <Button variant="outline" size="sm" onClick={clearFilters}><RefreshCw className="h-4 w-4 mr-2" /> Limpar filtros</Button>
             </div>
-            <h3 className="font-display text-lg font-semibold mb-2">Nenhum resultado</h3>
-            <p className="text-muted-foreground mb-4">Ajuste os filtros de busca.</p>
-            <Button variant="outline" size="sm" onClick={clearFilters}>
-              <RefreshCw className="h-4 w-4 mr-2" /> Limpar filtros
-            </Button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="flex items-center justify-between text-sm text-muted-foreground">
-              <span>
-                {startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredMockups.length)} de {filteredMockups.length}
-              </span>
-              {totalPages > 1 && <span>Página {currentPage} de {totalPages}</span>}
-            </div>
+          ) : (
+            <div className="space-y-4">
+              <div className="flex items-center justify-between text-sm text-muted-foreground">
+                <span>{startIndex + 1}-{Math.min(startIndex + ITEMS_PER_PAGE, filteredMockups.length)} de {filteredMockups.length}</span>
+                {totalPages > 1 && <span>Página {currentPage} de {totalPages}</span>}
+              </div>
 
-            
-            {viewMode === "grid" ? (
-              <div
-                className="grid gap-4"
-                style={{
-                  gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))`,
-                }}
-              >
-                {paginatedMockups.map((mockup) => (
-                  <div
-                    key={mockup.id}
-                    className={cn(
-                      "group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
-                      selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
-                    )}
-                  >
-                    {/* Compare checkbox */}
-                    <div className="absolute top-2 left-2 z-10">
-                      <div
-                        className={cn(
-                          "flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
-                          selectedForCompare.has(mockup.id) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100"
-                        )}
-                        onClick={(e) => { e.stopPropagation(); toggleCompareSelection(mockup.id); }}
-                      >
-                        {selectedForCompare.has(mockup.id) && <span className="text-xs font-bold">✓</span>}
-                      </div>
-                    </div>
+              {viewMode === "grid" ? (
+                <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${gridColumns}, minmax(0, 1fr))` }}>
+                  {paginatedMockups.map((mockup) => (
+                    <MockupGridCard key={mockup.id} mockup={mockup} isCompareSelected={selectedForCompare.has(mockup.id)}
+                      onToggleCompare={toggleCompareSelection} onOpenLightbox={setLightboxMockup}
+                      onLoadFromHistory={onLoadFromHistory} onDownload={onDownload} onDelete={onDelete} />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {paginatedMockups.map((mockup) => (
+                    <MockupListRow key={mockup.id} mockup={mockup} isCompareSelected={selectedForCompare.has(mockup.id)}
+                      onToggleCompare={toggleCompareSelection} onLoadFromHistory={onLoadFromHistory}
+                      onDownload={onDownload} onDelete={onDelete} />
+                  ))}
+                </div>
+              )}
 
-                    <div
-                      className="aspect-[3/4] bg-muted/30 overflow-hidden cursor-pointer"
-                      onClick={() => openLightbox(mockup)}
-                    >
-                      <img
-                        src={mockup.layout_url || mockup.mockup_url}
-                        alt={`Mockup de ${mockup.product_name}`}
-                        className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                        loading="lazy"
-                      />
-                      {mockup.layout_url && (
-                        <div className="absolute bottom-1 left-1">
-                          <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-background/80 backdrop-blur-sm">
-                            <FileImage className="h-2.5 w-2.5 mr-0.5" />
-                            Layout
-                          </Badge>
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>{mockup.product_name}</p>
-                          {mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}
-                        </TooltipContent>
-                      </Tooltip>
-
-                      {mockup.product_sku && (
-                        <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>
-                      )}
-
-                      <div className="flex flex-wrap items-center gap-1">
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
-                        {mockup.location_name && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {mockup.location_name}
-                          </Badge>
-                        )}
-                      </div>
-
-                      {(mockup.logo_width_cm || mockup.logo_height_cm) && (
-                        <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
-                          <Ruler className="h-2.5 w-2.5" />
-                          {mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
-                          {mockup.colors_count && (
-                            <span className="flex items-center gap-0.5 ml-1">
-                              <Palette className="h-2.5 w-2.5" />
-                              {mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}
-                            </span>
-                          )}
-                        </div>
-                      )}
-
-                      {mockup.client_name && (
-                        <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name}</p>
-                      )}
-
-                      <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                        <Clock className="h-3 w-3" />
-                        {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
-                      </div>
-                    </div>
-
-                    {/* Overlay actions */}
-                    <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" aria-label="Desfazer" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}>
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Regenerar</TooltipContent>
-                      </Tooltip>
-
-                      <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 shadow-md [&>svg]:h-4 [&>svg]:w-4" />
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" aria-label="Download" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Baixar</TooltipContent>
-                      </Tooltip>
-
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" aria-label="Excluir" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Excluir</TooltipContent>
-                      </Tooltip>
-                    </div>
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-center gap-2 pt-4">
+                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>Primeira</Button>
+                  <Button variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}><ChevronLeft className="h-4 w-4" /></Button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number;
+                      if (totalPages <= 5) pageNum = i + 1;
+                      else if (currentPage <= 3) pageNum = i + 1;
+                      else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                      else pageNum = currentPage - 2 + i;
+                      return <Button key={pageNum} variant={currentPage === pageNum ? "default" : "outline"} size="sm" className="h-8 w-8 p-0" onClick={() => setCurrentPage(pageNum)}>{pageNum}</Button>;
+                    })}
                   </div>
-                ))}
-              </div>
-            ) : (
-              /* List view */
-              <div className="space-y-2">
-                {paginatedMockups.map((mockup) => (
-                  <div
-                    key={mockup.id}
-                    className={cn(
-                      "group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
-                      selectedForCompare.has(mockup.id) && "ring-2 ring-primary shadow-lg"
-                    )}
-                  >
-                    {/* Compare checkbox */}
-                    <div
-                      className={cn(
-                        "flex-shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all",
-                        selectedForCompare.has(mockup.id) ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30"
-                      )}
-                      onClick={(e) => { e.stopPropagation(); toggleCompareSelection(mockup.id); }}
-                    >
-                      {selectedForCompare.has(mockup.id) && <span className="text-[10px] font-bold">✓</span>}
-                    </div>
-
-                    {/* Thumbnail */}
-                    <div className="flex-shrink-0 w-16 h-20 rounded-md bg-muted/30 overflow-hidden border">
-                      <img
-                        src={mockup.layout_url || mockup.mockup_url}
-                        alt={mockup.product_name}
-                        className="w-full h-full object-contain"
-                        loading="lazy"
-                      />
-                    </div>
-
-                    {/* Info */}
-                    <div className="flex-1 min-w-0 space-y-1">
-                      {mockup.client_name && (
-                        <p className="text-sm text-primary font-semibold truncate">👤 {mockup.client_name}</p>
-                      )}
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm truncate">{mockup.product_name}</span>
-                        {mockup.product_sku && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono shrink-0">{mockup.product_sku}</Badge>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
-                        {mockup.location_name && (
-                          <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5">
-                            <MapPin className="h-2.5 w-2.5" />
-                            {mockup.location_name}
-                          </Badge>
-                        )}
-                        {(mockup.logo_width_cm || mockup.logo_height_cm) && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <Ruler className="h-2.5 w-2.5" />
-                            {mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
-                          </span>
-                        )}
-                        {mockup.colors_count && (
-                          <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                            <Palette className="h-2.5 w-2.5" />
-                            {mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}
-                          </span>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
-                          <Clock className="h-3 w-3" />
-                          {formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" aria-label="Desfazer" variant="secondary" className="h-8 w-8" onClick={() => onLoadFromHistory(mockup)}>
-                            <RotateCcw className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Regenerar</TooltipContent>
-                      </Tooltip>
-                      <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 [&>svg]:h-4 [&>svg]:w-4" />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" aria-label="Download" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}>
-                            <Download className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Baixar</TooltipContent>
-                      </Tooltip>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button size="icon" aria-label="Excluir" variant="destructive" className="h-8 w-8" onClick={() => onDelete(mockup.id)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Excluir</TooltipContent>
-                      </Tooltip>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-center gap-2 pt-4">
-                <Button variant="outline" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>
-                  Primeira
-                </Button>
-                <Button variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.max(1, p - 1))} disabled={currentPage === 1}>
-                  <ChevronLeft className="h-4 w-4" />
-                </Button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum: number;
-                    if (totalPages <= 5) pageNum = i + 1;
-                    else if (currentPage <= 3) pageNum = i + 1;
-                    else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
-                    else pageNum = currentPage - 2 + i;
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                        onClick={() => setCurrentPage(pageNum)}
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
+                  <Button variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}><ChevronRight className="h-4 w-4" /></Button>
+                  <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>Última</Button>
                 </div>
-                <Button variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8" onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-                <Button variant="outline" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>
-                  Última
-                </Button>
-              </div>
-            )}
-          </div>
-        )}
-      </CardContent>
-
-      {/* Compare Dialog */}
-      <MockupCompareDialog
-        open={showCompare}
-        onOpenChange={setShowCompare}
-        mockups={compareMockups}
-        onDownload={onDownload}
-      />
-
-      {/* Lightbox Dialog */}
-      <Dialog open={!!lightboxMockup} onOpenChange={(open) => { if (!open) closeLightbox(); }}>
-        <DialogContent className="max-w-[95vw] max-h-[95vh] w-auto h-auto p-0 border-0 bg-black [&>button]:hidden">
-          {lightboxMockup && (
-            <div className="relative flex flex-col w-full h-full">
-              {/* Top bar — solid dark */}
-              <div className="flex items-center justify-between px-4 py-2.5 bg-card border-b border-border shrink-0">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="min-w-0">
-                    <p className="font-medium text-sm text-primary-foreground truncate">{lightboxMockup.product_name}</p>
-                    <div className="flex items-center gap-2 mt-0.5">
-                      {lightboxMockup.product_sku && (
-                        <span className="text-[10px] text-muted-foreground font-mono">{lightboxMockup.product_sku}</span>
-                      )}
-                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{lightboxMockup.technique_name}</Badge>
-                      {lightboxMockup.location_name && (
-                        <span className="text-[10px] text-muted-foreground flex items-center gap-0.5">
-                          <MapPin className="h-2.5 w-2.5" /> {lightboxMockup.location_name}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  {lightboxMockup.client_name && (
-                    <Badge variant="outline" className="text-[10px] border-primary/40 text-primary shrink-0">👤 {lightboxMockup.client_name}</Badge>
-                  )}
-                  <span className="text-[10px] text-muted-foreground flex items-center gap-1 shrink-0">
-                    <Clock className="h-3 w-3" />
-                    {formatDistanceToNow(new Date(lightboxMockup.created_at), { addSuffix: true, locale: ptBR })}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-1.5 shrink-0 ml-4">
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-border bg-muted text-foreground hover:bg-muted" onClick={() => onLoadFromHistory(lightboxMockup)}>
-                    <RotateCcw className="h-3.5 w-3.5" /> Regenerar
-                  </Button>
-                  <ShareMenu mockupUrl={lightboxMockup.mockup_url} productName={lightboxMockup.product_name} techniqueName={lightboxMockup.technique_name} />
-                  <Button size="sm" variant="outline" className="gap-1.5 h-8 text-xs border-border bg-muted text-foreground hover:bg-muted" onClick={() => onDownload(lightboxMockup.layout_url || lightboxMockup.mockup_url)}>
-                    <Download className="h-3.5 w-3.5" /> Baixar PDF
-                  </Button>
-                  <Button size="icon" variant="ghost" className="h-8 w-8 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={closeLightbox} aria-label="Fechar"><X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-
-              {/* Image area — clean black bg, no blur */}
-              <div
-                className="flex-1 overflow-auto flex items-center justify-center"
-                style={{ cursor: lightboxZoom > 1 ? "grab" : "default", minHeight: "70vh" }}
-              >
-                <img
-                  src={lightboxMockup.layout_url || lightboxMockup.mockup_url}
-                  alt={`Mockup de ${lightboxMockup.product_name}`}
-                  className="max-h-[82vh] object-contain select-none"
-                  style={{
-                    transform: `scale(${lightboxZoom})`,
-                    transition: "transform 0.15s ease-out",
-                    imageRendering: lightboxZoom > 1.5 ? "auto" : undefined,
-                  }}
-                  draggable={false}
-                />
-              </div>
-
-              {/* Bottom zoom bar — compact */}
-              <div className="flex items-center justify-center py-2 bg-card border-t border-border shrink-0">
-                <div className="flex items-center gap-1">
-                  <Button size="icon" aria-label="Reduzir" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(z => Math.max(z - 0.25, 0.25))} disabled={lightboxZoom <= 0.25}>
-                    <ZoomOut className="h-3.5 w-3.5" />
-                  </Button>
-                  <span className="text-xs font-medium w-12 text-center text-muted-foreground">{Math.round(lightboxZoom * 100)}%</span>
-                  <Button size="icon" aria-label="Ampliar" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(z => Math.min(z + 0.25, 5))}>
-                    <ZoomIn className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button size="icon" aria-label="Desfazer" variant="ghost" className="h-7 w-7 text-muted-foreground hover:text-primary-foreground hover:bg-muted" onClick={() => setLightboxZoom(1)}>
-                    <RotateCcw className="h-3 w-3" />
-                  </Button>
-                </div>
-              </div>
+              )}
             </div>
           )}
-        </DialogContent>
-      </Dialog>
+      </CardContent>
+
+      <MockupCompareDialog open={showCompare} onOpenChange={setShowCompare} mockups={compareMockups} onDownload={onDownload} />
+      <MockupLightbox mockup={lightboxMockup} onClose={() => setLightboxMockup(null)} onLoadFromHistory={onLoadFromHistory} onDownload={onDownload} />
     </Card>
+  );
+}
+
+// ============================================
+// Sub-components (inlined — small enough)
+// ============================================
+
+function MockupGridCard({ mockup, isCompareSelected, onToggleCompare, onOpenLightbox, onLoadFromHistory, onDownload, onDelete }: {
+  mockup: GeneratedMockup; isCompareSelected: boolean;
+  onToggleCompare: (id: string) => void; onOpenLightbox: (m: GeneratedMockup) => void;
+  onLoadFromHistory: (m: GeneratedMockup) => void; onDownload: (url: string) => void; onDelete: (id: string) => void;
+}) {
+  return (
+    <div className={cn("group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
+      isCompareSelected && "ring-2 ring-primary shadow-lg")}>
+      <div className="absolute top-2 left-2 z-10">
+        <div className={cn("flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
+          isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100")}
+          onClick={(e) => { e.stopPropagation(); onToggleCompare(mockup.id); }}>
+          {isCompareSelected && <span className="text-xs font-bold">✓</span>}
+        </div>
+      </div>
+      <div className="aspect-[3/4] bg-muted/30 overflow-hidden cursor-pointer" onClick={() => onOpenLightbox(mockup)}>
+        <img src={mockup.layout_url || mockup.mockup_url} alt={`Mockup de ${mockup.product_name}`}
+          className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" loading="lazy" />
+        {mockup.layout_url && (
+          <div className="absolute bottom-1 left-1">
+            <Badge variant="secondary" className="text-[9px] px-1 py-0 bg-background/80 backdrop-blur-sm"><FileImage className="h-2.5 w-2.5 mr-0.5" />Layout</Badge>
+          </div>
+        )}
+      </div>
+      <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
+        <Tooltip><TooltipTrigger asChild><span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span></TooltipTrigger>
+          <TooltipContent><p>{mockup.product_name}</p>{mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}</TooltipContent></Tooltip>
+        {mockup.product_sku && <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>}
+        <div className="flex flex-wrap items-center gap-1">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
+          {mockup.location_name && <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5"><MapPin className="h-2.5 w-2.5" />{mockup.location_name}</Badge>}
+        </div>
+        {(mockup.logo_width_cm || mockup.logo_height_cm) && (
+          <div className="flex items-center gap-1 text-[10px] text-muted-foreground">
+            <Ruler className="h-2.5 w-2.5" />{mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm
+            {mockup.colors_count && <span className="flex items-center gap-0.5 ml-1"><Palette className="h-2.5 w-2.5" />{mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}</span>}
+          </div>
+        )}
+        {mockup.client_name && <p className="text-xs text-primary truncate font-medium">👤 {mockup.client_name}</p>}
+        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+          <Clock className="h-3 w-3" />{formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}
+        </div>
+      </div>
+      <div className="absolute top-2 right-2 flex gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200 translate-y-1 group-hover:translate-y-0">
+        <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="Regenerar" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onLoadFromHistory(mockup)}><RotateCcw className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Regenerar</TooltipContent></Tooltip>
+        <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 shadow-md [&>svg]:h-4 [&>svg]:w-4" />
+        <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="Download" variant="secondary" className="h-8 w-8 shadow-md" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}><Download className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Baixar</TooltipContent></Tooltip>
+        <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="Excluir" variant="destructive" className="h-8 w-8 shadow-md" onClick={() => onDelete(mockup.id)}><Trash2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Excluir</TooltipContent></Tooltip>
+      </div>
+    </div>
+  );
+}
+
+function MockupListRow({ mockup, isCompareSelected, onToggleCompare, onLoadFromHistory, onDownload, onDelete }: {
+  mockup: GeneratedMockup; isCompareSelected: boolean;
+  onToggleCompare: (id: string) => void; onLoadFromHistory: (m: GeneratedMockup) => void;
+  onDownload: (url: string) => void; onDelete: (id: string) => void;
+}) {
+  return (
+    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
+      isCompareSelected && "ring-2 ring-primary shadow-lg")}>
+      <div className={cn("flex-shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all",
+        isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30")}
+        onClick={(e) => { e.stopPropagation(); onToggleCompare(mockup.id); }}>
+        {isCompareSelected && <span className="text-[10px] font-bold">✓</span>}
+      </div>
+      <div className="flex-shrink-0 w-16 h-20 rounded-md bg-muted/30 overflow-hidden border">
+        <img src={mockup.layout_url || mockup.mockup_url} alt={mockup.product_name} className="w-full h-full object-contain" loading="lazy" />
+      </div>
+      <div className="flex-1 min-w-0 space-y-1">
+        {mockup.client_name && <p className="text-sm text-primary font-semibold truncate">👤 {mockup.client_name}</p>}
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-sm truncate">{mockup.product_name}</span>
+          {mockup.product_sku && <Badge variant="outline" className="text-[10px] px-1.5 py-0 font-mono shrink-0">{mockup.product_sku}</Badge>}
+        </div>
+        <div className="flex flex-wrap items-center gap-1.5">
+          <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
+          {mockup.location_name && <Badge variant="outline" className="text-[10px] px-1.5 py-0 gap-0.5"><MapPin className="h-2.5 w-2.5" />{mockup.location_name}</Badge>}
+          {(mockup.logo_width_cm || mockup.logo_height_cm) && (
+            <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Ruler className="h-2.5 w-2.5" />{mockup.logo_width_cm?.toFixed(1)}×{mockup.logo_height_cm?.toFixed(1)} cm</span>
+          )}
+          {mockup.colors_count && <span className="text-[10px] text-muted-foreground flex items-center gap-0.5"><Palette className="h-2.5 w-2.5" />{mockup.colors_count} cor{mockup.colors_count > 1 ? "es" : ""}</span>}
+        </div>
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <span className="flex items-center gap-1"><Clock className="h-3 w-3" />{formatDistanceToNow(new Date(mockup.created_at), { addSuffix: true, locale: ptBR })}</span>
+        </div>
+      </div>
+      <div className="flex items-center gap-1.5 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+        <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="Regenerar" variant="secondary" className="h-8 w-8" onClick={() => onLoadFromHistory(mockup)}><RotateCcw className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Regenerar</TooltipContent></Tooltip>
+        <ShareMenu mockupUrl={mockup.mockup_url} productName={mockup.product_name} techniqueName={mockup.technique_name} className="h-8 w-8 p-0 [&>svg]:h-4 [&>svg]:w-4" />
+        <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="Download" variant="secondary" className="h-8 w-8" onClick={() => onDownload(mockup.layout_url || mockup.mockup_url)}><Download className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Baixar</TooltipContent></Tooltip>
+        <Tooltip><TooltipTrigger asChild><Button size="icon" aria-label="Excluir" variant="destructive" className="h-8 w-8" onClick={() => onDelete(mockup.id)}><Trash2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Excluir</TooltipContent></Tooltip>
+      </div>
+    </div>
   );
 }
