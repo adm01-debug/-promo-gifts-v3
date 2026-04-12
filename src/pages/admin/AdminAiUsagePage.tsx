@@ -398,7 +398,7 @@ export default function AdminAiUsagePage() {
                         <td className="py-1.5 px-2 text-right">{log.duration_ms ? `${log.duration_ms}ms` : "-"}</td>
                         <td className="py-1.5 px-2 text-center">
                           {log.status === "success" ? (
-                            <Badge className="bg-emerald-500/10 text-emerald-500 text-[10px]">OK</Badge>
+                            <Badge className="bg-primary/10 text-primary text-[10px]">OK</Badge>
                           ) : (
                             <Tooltip>
                               <TooltipTrigger>
