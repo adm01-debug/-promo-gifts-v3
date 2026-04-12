@@ -50,9 +50,7 @@ import { ptBR } from "date-fns/locale";
 
 type SortOption = "name" | "sku" | "added";
 
-
-
-
+export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const {
