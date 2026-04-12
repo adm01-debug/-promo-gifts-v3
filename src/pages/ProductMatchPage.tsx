@@ -1,6 +1,7 @@
 /**
  * ProductMatchPage — "Match" tool for sellers.
  * Side-by-side layout: selected product on the left, matches on the right.
+ * v2: Filters extracted to MatchFiltersPanel.
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
