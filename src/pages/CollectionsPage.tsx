@@ -2,10 +2,12 @@ import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
-  RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock, List,
-  FileText, CheckSquare, X, Sparkles, ShoppingBag, ArrowRight,
+  Plus, FolderOpen, Package,
+  Search, Star, FolderHeart, Copy,
+  FileText, CheckSquare, X, Sparkles, ArrowRight,
 } from "lucide-react";
+import { CollectionGridCard } from "@/components/collections/CollectionGridCard";
+import { CollectionListItem } from "@/components/collections/CollectionListItem";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
