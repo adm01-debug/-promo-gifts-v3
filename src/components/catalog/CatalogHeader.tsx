@@ -56,6 +56,7 @@ export function CatalogHeader({
                 size="icon"
                 onClick={onReset}
                 className="shrink-0 h-9 w-9 border-primary/40 text-primary hover:bg-primary/10"
+                aria-label="Voltar ao início"
               >
                 <Home className="h-4 w-4" />
               </Button>
