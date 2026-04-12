@@ -20,16 +20,8 @@ import { ptBR } from "date-fns/locale";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { TechniqueChangeDialog, DeleteMockupDialog } from "./mockup-generator/MockupDialogs";
+import { MockupEmptyState } from "./mockup-generator/MockupEmptyState";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
 import { useMockupGenerator } from "@/hooks/useMockupGenerator";
@@ -441,37 +433,7 @@ export default function MockupGenerator() {
                     }
                   />
                 ) : (
-                  <Card className="border-border/50">
-                    <CardContent className="flex items-center justify-center py-16">
-                      <div className="text-center text-muted-foreground max-w-xs">
-                        <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-primary/10 flex items-center justify-center">
-                          <ImageIcon className="h-8 w-8 text-primary/50" />
-                        </div>
-                        <p className="font-medium text-foreground mb-1">Selecione um produto</p>
-                        <p className="text-sm mb-3">
-                          Comece escolhendo uma empresa e produto no painel ao lado para posicionar o logo
-                        </p>
-                        <div className="flex flex-col gap-1.5 text-xs text-left mx-auto max-w-[200px]">
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">1</span>
-                            Selecione a empresa
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">2</span>
-                            Escolha o produto
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">3</span>
-                            Defina a técnica
-                          </span>
-                          <span className="flex items-center gap-1.5">
-                            <span className="w-4 h-4 rounded-full bg-primary/10 text-primary flex items-center justify-center text-[10px] font-bold">4</span>
-                            Faça upload do logo
-                          </span>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
+                  <MockupEmptyState />
                 )}
 
                 {/* Generated Result */}
@@ -533,49 +495,21 @@ export default function MockupGenerator() {
         </Tabs>
       </div>
 
-      {/* Technique Change Confirmation Dialog */}
-      <AlertDialog open={techniqueChangeDialogOpen} onOpenChange={(open) => { setTechniqueChangeDialogOpen(open); if (!open) setPendingTechnique(null); }}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Alterar técnica de personalização?</AlertDialogTitle>
-            <AlertDialogDescription className="space-y-2">
-              <span className="block">
-                Você está trocando de <strong>{mg.selectedTechnique?.name}</strong> para <strong>{pendingTechnique?.name}</strong>.
-              </span>
-              <span className="block text-sm">
-                • O logo será mantido, mas as dimensões serão ajustadas aos limites da nova técnica.
-                {mg.generatedMockup && (
-                  <span className="block">• O mockup gerado será descartado (será necessário gerar novamente).</span>
-                )}
-              </span>
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setPendingTechnique(null)}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmTechniqueChange}>
-              Alterar técnica
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <TechniqueChangeDialog
+        open={techniqueChangeDialogOpen}
+        onOpenChange={setTechniqueChangeDialogOpen}
+        fromName={mg.selectedTechnique?.name}
+        toName={pendingTechnique?.name}
+        hasGeneratedMockup={!!mg.generatedMockup}
+        onConfirm={confirmTechniqueChange}
+        onCancel={() => setPendingTechnique(null)}
+      />
 
-      {/* Delete Dialog */}
-      <AlertDialog open={mg.deleteDialogOpen} onOpenChange={mg.setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir mockup?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={mg.deleteMockup} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <DeleteMockupDialog
+        open={mg.deleteDialogOpen}
+        onOpenChange={mg.setDeleteDialogOpen}
+        onConfirm={mg.deleteMockup}
+      />
 
       {/* Mobile FAB removed - only AI Assistant remains */}
 

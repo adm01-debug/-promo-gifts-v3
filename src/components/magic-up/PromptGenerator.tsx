@@ -13,14 +13,15 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Wand2, Loader2, Sparkles, Target, Megaphone,
-  Users, CalendarDays, RefreshCw, Check, Star,
-  Lightbulb, Zap, MapPin, Paintbrush, Ruler,
+  Wand2, Loader2, Sparkles, Target,
+  Users, CalendarDays, RefreshCw, Check,
+  Lightbulb, MapPin, Paintbrush, Ruler,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import type { ScenePrompt } from "./PromptBank";
+import { OBJECTIVES, TONES, AUDIENCES, SEASONS, getMoodColor } from "./promptGeneratorConstants";
 import type { PrintAreaWithTechniques } from "@/types/gravacao";
 
 interface GeneratedPrompt {
@@ -57,47 +58,7 @@ interface PromptGeneratorProps {
   }) => void;
 }
 
-const OBJECTIVES = [
-  { value: "brand-awareness", label: "Reconhecimento de marca", icon: Megaphone },
-  { value: "product-launch", label: "Lançamento de produto", icon: Zap },
-  { value: "corporate-gift", label: "Brinde corporativo", icon: Target },
-  { value: "social-media", label: "Redes sociais", icon: Star },
-  { value: "catalog", label: "Catálogo / E-commerce", icon: Lightbulb },
-];
-
-const TONES = [
-  { value: "premium", label: "Premium & Sofisticado" },
-  { value: "fun", label: "Divertido & Vibrante" },
-  { value: "professional", label: "Profissional & Clean" },
-  { value: "warm", label: "Acolhedor & Humano" },
-  { value: "bold", label: "Ousado & Impactante" },
-  { value: "minimalist", label: "Minimalista & Elegante" },
-];
-
-const AUDIENCES = [
-  { value: "executives", label: "Executivos / C-Level" },
-  { value: "young-professionals", label: "Jovens Profissionais" },
-  { value: "students", label: "Estudantes" },
-  { value: "families", label: "Famílias" },
-  { value: "athletes", label: "Atletas / Fitness" },
-  { value: "general", label: "Público Geral" },
-];
-
-const SEASONS = [
-  { value: "none", label: "Nenhuma" },
-  { value: "christmas", label: "🎄 Natal" },
-  { value: "new-year", label: "🎆 Ano Novo" },
-  { value: "carnival", label: "🎭 Carnaval" },
-  { value: "easter", label: "🐰 Páscoa" },
-  { value: "mothers-day", label: "👩 Dia das Mães" },
-  { value: "fathers-day", label: "👨 Dia dos Pais" },
-  { value: "valentines", label: "💕 Dia dos Namorados" },
-  { value: "black-friday", label: "🏷️ Black Friday" },
-  { value: "summer", label: "☀️ Verão" },
-  { value: "winter", label: "❄️ Inverno" },
-  { value: "back-to-school", label: "📚 Volta às aulas" },
-  { value: "corporate-event", label: "🏢 Evento Corporativo" },
-];
+// Constants imported from ./promptGeneratorConstants
 
 export function PromptGenerator({
   productName,
@@ -250,21 +211,7 @@ export function PromptGenerator({
     onSelectPrompt(scenePrompt);
   };
 
-  const MOOD_COLORS: Record<string, string> = {
-    warm: "bg-orange/10 text-orange border-orange/20",
-    elegant: "bg-primary/10 text-primary border-primary/20",
-    dynamic: "bg-primary/15 text-primary/80 border-primary/25",
-    serene: "bg-primary/10 text-primary border-primary/20",
-    bold: "bg-destructive/10 text-destructive border-destructive/20",
-    playful: "bg-primary/10 text-primary/70 border-primary/15",
-    professional: "bg-muted/30 text-muted-foreground border-border",
-    cozy: "bg-warning/10 text-warning border-warning/20",
-  };
-
-  const getMoodColor = (mood: string) => {
-    const m = mood.toLowerCase();
-    return MOOD_COLORS[m] || "bg-muted text-muted-foreground border-border";
-  };
+  // getMoodColor imported from ./promptGeneratorConstants
 
   const hasPrintAreas = printAreas && printAreas.length > 0;
 
