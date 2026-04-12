@@ -33,6 +33,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { cn } from "@/lib/utils";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
@@ -445,6 +446,8 @@ export default function CollectionDetailPage() {
                           product={product}
                           variant={variantMap.get(product.id)}
                           onRemove={() => handleRemoveFromCollection(product.id)}
+                          isSelected={selectedIds.has(product.id)}
+                          onToggleSelect={() => toggleSelect(product.id)}
                         />
                       ))}
                     </div>
