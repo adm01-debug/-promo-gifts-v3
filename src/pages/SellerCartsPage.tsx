@@ -206,7 +206,7 @@ function SellerCartsContent() {
 
             {/* Products grid */}
             {s.activeCart.items.length === 0 ? (
-              <div className="text-center py-16 bg-muted/20 rounded-xl border border-dashed border-border/40">
+              <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
                 <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
                 <h3 className="font-display text-lg font-medium text-muted-foreground mb-1">Carrinho vazio</h3>
                 <p className="text-sm text-muted-foreground/70 mb-4">Navegue pelo catálogo e adicione produtos a este carrinho</p>
