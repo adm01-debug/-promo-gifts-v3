@@ -201,48 +201,45 @@ export function CollectionGridCard({
       </div>
 
       {/* ── Footer ── */}
-      <div className="px-4 pt-3.5 pb-4 space-y-2.5">
-        {/* Title — full width, no truncation competition */}
-        <div className="flex items-center gap-2">
-          <h3 className="font-display font-bold text-base leading-snug text-foreground line-clamp-2 flex-1">
-            {collection.name}
-          </h3>
+      <div className="p-4 space-y-3">
+        {/* Row 1: Icon + Title + Star */}
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-md"
+            style={{
+              backgroundColor: collection.color,
+              color: "#fff",
+            }}
+          >
+            {collection.icon}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display font-bold text-base leading-tight text-foreground line-clamp-2">
+              {collection.name}
+            </h3>
+          </div>
           {collection.isFeatured && (
             <Star className="h-4 w-4 text-primary fill-primary shrink-0" />
           )}
         </div>
 
-        {/* Bottom row: icon + meta + arrow */}
-        <div className="flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 shadow-sm"
-              style={{
-                backgroundColor: collection.color,
-                color: "#fff",
-              }}
-            >
-              {collection.icon}
-            </div>
-            <div className="flex items-center gap-2 text-[11px] text-muted-foreground/60">
-              <span className="flex items-center gap-1">
-                <Package className="h-2.5 w-2.5" />
-                {productCount} {productCount === 1 ? "item" : "itens"}
+        {/* Row 2: Meta chips */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 font-medium">
+              <Package className="h-3 w-3 text-primary" />
+              {productCount} {productCount === 1 ? "item" : "itens"}
+            </span>
+            {updatedAgo && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-muted-foreground/50">
+                <Clock className="h-3 w-3" />
+                {updatedAgo}
               </span>
-              {updatedAgo && (
-                <>
-                  <span className="text-border">·</span>
-                  <span className="flex items-center gap-1">
-                    <Clock className="h-2.5 w-2.5" />
-                    {updatedAgo}
-                  </span>
-                </>
-              )}
-            </div>
+            )}
           </div>
 
-          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0">
-            <ArrowUpRight className="h-3.5 w-3.5" />
+          <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-primary text-primary-foreground opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0 shadow-sm">
+            <ArrowUpRight className="h-4 w-4" />
           </div>
         </div>
       </div>
