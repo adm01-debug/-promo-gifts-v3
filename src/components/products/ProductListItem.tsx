@@ -14,6 +14,7 @@
  */
 import { memo, useState, useCallback, useRef, useEffect } from "react";
 import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText } from "lucide-react";
+import { ListItemActions } from "./list-item/ListItemActions";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl } from "@/utils/image-utils";
 import { Badge } from "@/components/ui/badge";
@@ -383,146 +384,25 @@ export const ProductListItem = memo(function ProductListItem({
           </span>
         </div>
 
-        {/* Quick actions — hover on desktop, always on mobile */}
-        <div className={cn(
-          "shrink-0 flex items-center gap-0.5",
-          "opacity-100 sm:opacity-0 sm:group-hover:opacity-100",
-          "transition-opacity duration-200"
-        )}>
-          {/* Favoritar */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "h-8 w-8 rounded-full",
-                  isFavorited ? "text-destructive bg-destructive/10" : "text-muted-foreground hover:text-destructive"
-                )}
-                onClick={handleFavorite}
-                aria-label="Favoritar"
-              >
-                <Heart className={cn("h-3.5 w-3.5", isFavorited && "fill-current")} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">{isFavorited ? "Remover favorito" : "Favoritar"}</TooltipContent>
-          </Tooltip>
-
-          {/* Comparar */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className={cn("h-8 w-8 rounded-full", isInCompare ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary")}
-                onClick={handleCompare}
-                disabled={!isInCompare && !canAddToCompare}
-                aria-label="Comparar"
-              >
-                <GitCompare className="h-3.5 w-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Comparar</TooltipContent>
-          </Tooltip>
-
-          {/* Desktop-only actions */}
-          <div className="hidden sm:flex items-center gap-0.5">
-            {/* Compartilhar via VariantPicker */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    markBusy();
-                    setVariantPickerMode('share');
-                    setVariantPickerOpen(true);
-                  }}
-                  aria-label="Compartilhar"
-                >
-                  <Share2 className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Compartilhar</TooltipContent>
-            </Tooltip>
-
-            {/* Coleção */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    markBusy();
-                    setVariantPickerMode('collection');
-                    setVariantPickerOpen(true);
-                  }}
-                  aria-label="Adicionar à coleção"
-                >
-                  <FolderPlus className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Coleção</TooltipContent>
-            </Tooltip>
-
-            {/* Orçamento via VariantPicker */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    markBusy();
-                    setVariantPickerMode('quote');
-                    setVariantPickerOpen(true);
-                  }}
-                  aria-label="Orçamento"
-                >
-                  <FileText className="h-3.5 w-3.5" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom">Orçamento</TooltipContent>
-            </Tooltip>
-          </div>
-
-          {/* Carrinho (QuickAddToQuote) */}
-          <QuickAddToQuote
-            productId={product.id}
-            productName={product.name}
-            productSku={product.sku}
-            productImageUrl={product.og_image_url || product.images[0]}
-            productPrice={product.price}
-            minQuantity={product.minQuantity || 1}
-            variant="icon"
-            className="h-8 w-8"
-          />
-
-          {/* Quick View */}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 rounded-full text-muted-foreground hover:text-foreground hidden sm:flex"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  markBusy();
-                  setQuickViewOpen(true);
-                }}
-                aria-label="Visualização rápida"
-              >
-                <Eye className="h-3.5 w-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="bottom">Quick View</TooltipContent>
-          </Tooltip>
-        </div>
+        <ListItemActions
+          product={product}
+          isFavorited={isFavorited}
+          isInCompare={isInCompare}
+          canAddToCompare={canAddToCompare}
+          onFavorite={handleFavorite}
+          onCompare={handleCompare}
+          onVariantAction={(mode, e) => {
+            e.stopPropagation();
+            markBusy();
+            setVariantPickerMode(mode);
+            setVariantPickerOpen(true);
+          }}
+          onQuickView={(e) => {
+            e.stopPropagation();
+            markBusy();
+            setQuickViewOpen(true);
+          }}
+        />
       </article>
 
       {/* Variant Picker Dialog */}
