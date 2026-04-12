@@ -59,7 +59,7 @@ function dbToCollection(
     name: row.name,
     description: row.description || undefined,
     color: row.icon_color || DEFAULT_COLORS[0],
-    icon: "📁", // Icons stored in DB would need a column; default for now
+    icon: row.icon || "📁",
     productIds: productItems.map((i) => i.productId),
     productItems,
     createdAt: row.created_at,
@@ -212,6 +212,7 @@ export function useCollections() {
             name,
             description: description || null,
             icon_color: chosenColor,
+            icon: icon || DEFAULT_ICONS[0],
           })
           .select()
           .single()
@@ -248,6 +249,7 @@ export function useCollections() {
       if (updates.name !== undefined) dbUpdates.name = updates.name;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.color !== undefined) dbUpdates.icon_color = updates.color;
+      if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
 
       if (Object.keys(dbUpdates).length > 0) {
         supabase.from("collections").update(dbUpdates).eq("id", id).then();
