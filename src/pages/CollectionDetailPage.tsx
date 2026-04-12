@@ -123,6 +123,7 @@ export default function CollectionDetailPage() {
     getCollectionProductItems,
     removeProductFromCollection,
     reorderProducts,
+    updateProductNotes,
   } = useCollectionsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
@@ -472,6 +473,8 @@ export default function CollectionDetailPage() {
                           onRemove={() => handleRemoveFromCollection(product.id)}
                           isSelected={selectedIds.has(product.id)}
                           onToggleSelect={() => toggleSelect(product.id)}
+                          notes={getCollectionProductItems(id!).find((i) => i.productId === product.id)?.notes}
+                          onNotesChange={(notes) => updateProductNotes(id!, product.id, notes)}
                         />
                       ))}
                     </div>
