@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "../_shared/zod-validate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -9,40 +10,45 @@ const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const webhookSecret = Deno.env.get("N8N_PRODUCT_WEBHOOK_SECRET");
 
-interface ProductPayload {
-  external_id?: string;
-  sku: string;
-  name: string;
-  description?: string;
-  price: number;
-  min_quantity?: number;
-  category_id?: number;
-  category_name?: string;
-  subcategory?: string;
-  supplier_id?: string;
-  supplier_name?: string;
-  stock?: number;
-  stock_status?: string;
-  is_kit?: boolean;
-  is_active?: boolean;
-  featured?: boolean;
-  new_arrival?: boolean;
-  on_sale?: boolean;
-  images?: string[];
-  video_url?: string;
-  colors?: Array<{ name: string; hex: string; group?: string }>;
-  materials?: string[];
-  tags?: {
-    publicoAlvo?: string[];
-    datasComemorativas?: string[];
-    endomarketing?: string[];
-    ramo?: string[];
-    nicho?: string[];
-  };
-  kit_items?: Array<{ productId: string; productName: string; quantity: number; sku: string }>;
-  variations?: Array<{ id: string; sku: string; color: any; stock: number; image: string }>;
-  metadata?: Record<string, any>;
-}
+const ProductPayloadSchema = z.object({
+  external_id: z.string().max(255).optional(),
+  sku: z.string().min(1).max(100),
+  name: z.string().min(1).max(500),
+  description: z.string().max(5000).optional(),
+  price: z.number().nonneg(),
+  min_quantity: z.number().int().positive().optional(),
+  category_id: z.number().int().optional(),
+  category_name: z.string().max(255).optional(),
+  subcategory: z.string().max(255).optional(),
+  supplier_id: z.string().max(255).optional(),
+  supplier_name: z.string().max(255).optional(),
+  stock: z.number().int().nonneg().optional(),
+  stock_status: z.string().max(50).optional(),
+  is_kit: z.boolean().optional(),
+  is_active: z.boolean().optional(),
+  featured: z.boolean().optional(),
+  new_arrival: z.boolean().optional(),
+  on_sale: z.boolean().optional(),
+  images: z.array(z.string().url().max(2000)).max(50).optional(),
+  video_url: z.string().url().max(2000).optional().nullable(),
+  colors: z.array(z.object({ name: z.string(), hex: z.string(), group: z.string().optional() })).max(100).optional(),
+  materials: z.array(z.string().max(100)).max(50).optional(),
+  tags: z.record(z.array(z.string())).optional(),
+  kit_items: z.array(z.object({
+    productId: z.string(), productName: z.string(), quantity: z.number(), sku: z.string()
+  })).max(50).optional(),
+  variations: z.array(z.any()).max(200).optional(),
+  metadata: z.record(z.any()).optional(),
+});
+
+const WebhookPayloadSchema = z.object({
+  action: z.enum(["sync", "upsert", "delete", "batch_upsert"]),
+  products: z.array(ProductPayloadSchema).max(500).optional(),
+  product: ProductPayloadSchema.optional(),
+  external_ids: z.array(z.string().max(255)).max(500).optional(),
+});
+
+type ProductPayload = z.infer<typeof ProductPayloadSchema>;
 
 interface WebhookPayload {
   action: "sync" | "upsert" | "delete" | "batch_upsert";
@@ -70,12 +76,20 @@ Deno.serve(async (req) => {
       );
     }
 
-    let payload: WebhookPayload;
-    try { payload = await req.json(); } catch {
+    let rawBody: unknown;
+    try { rawBody = await req.json(); } catch {
       return new Response(JSON.stringify({ error: "Invalid webhook payload" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const parsed = WebhookPayloadSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const payload: WebhookPayload = parsed.data;
     console.log(`Product webhook action: ${payload.action}`);
 
     // Create sync log
