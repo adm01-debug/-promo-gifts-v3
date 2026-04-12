@@ -1,12 +1,20 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from '../_shared/zod-validate.ts';
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const MaterialsRequestSchema = z.object({
+  action: z.enum(['groups', 'types', 'types_by_group', 'product_materials', 'products_by_materials', 'stats', 'search', 'complete']),
+  groupId: z.string().max(255).optional(),
+  materialId: z.string().uuid().optional(),
+  productId: z.string().uuid().optional(),
+  materialTypeIds: z.array(z.string().uuid()).max(200).optional(),
+  materialGroupSlugs: z.array(z.string().max(100)).max(50).optional(),
+  limit: z.number().int().min(1).max(500).default(100),
+  search: z.string().max(200).optional(),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -21,7 +29,6 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Validar token no banco local
     const localSupabase = createClient(
       Deno.env.get('SUPABASE_URL')!,
       Deno.env.get('SUPABASE_ANON_KEY')!,
@@ -37,19 +44,14 @@ Deno.serve(async (req) => {
     }
     console.log(`Materials API request from user: ${user.id}`);
 
-
-    // Parse body
-    const body = await req.json().catch(() => ({}));
-    const { action, groupId, materialId, productId, materialTypeIds, materialGroupSlugs, limit = 100 } = body as {
-      action: 'groups' | 'types' | 'types_by_group' | 'product_materials' | 'products_by_materials' | 'stats' | 'search' | 'complete';
-      groupId?: string;
-      materialId?: string;
-      productId?: string;
-      materialTypeIds?: string[];
-      materialGroupSlugs?: string[];
-      limit?: number;
-      search?: string;
-    };
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = MaterialsRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { action, groupId, materialId, productId, materialTypeIds, materialGroupSlugs, limit } = parsed.data;
 
     // Conectar ao banco externo
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
