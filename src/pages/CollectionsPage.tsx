@@ -513,7 +513,6 @@ export default function CollectionsPage() {
               })}
             </div>
           )
-                const updatedAgo = relativeTime(collection.updatedAt);
                 const isSelected = selectedCollectionIds.has(collection.id);
 
                 const contextMenu = (
