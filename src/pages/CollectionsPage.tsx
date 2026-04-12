@@ -214,9 +214,6 @@ export default function CollectionsPage() {
             <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
               Minhas Coleções
             </h1>
-            <p className="text-muted-foreground mt-1">
-              Organize produtos em coleções personalizadas para vendas e apresentações
-            </p>
           </div>
 
           <div className="flex items-center gap-2">
