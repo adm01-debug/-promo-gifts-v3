@@ -473,7 +473,46 @@ export default function CollectionsPage() {
             <div className={gridClasses}>
               {filteredLocal.map((collection, idx) => {
                 const products = getCollectionProducts(collection.id);
-                const previewImages = products.slice(0, 4).map((p) => p.images[0]);
+                const updatedAgo = relativeTime(collection.updatedAt);
+                const isSelected = selectedCollectionIds.has(collection.id);
+
+                const sharedProps = {
+                  collection,
+                  isSelected,
+                  onToggleSelect: () => toggleSelectCollection(collection.id),
+                  onNavigate: () => navigate(`/colecoes/${collection.id}`),
+                  onEdit: () => openEdit(collection),
+                  onClone: () => handleClone(collection),
+                  onToggleFeatured: () => {
+                    updateCollection(collection.id, { isFeatured: !collection.isFeatured });
+                    toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
+                  },
+                  onDelete: () => setDeleteConfirm(collection.id),
+                  updatedAgo,
+                  index: idx,
+                };
+
+                if (viewMode === "list") {
+                  return (
+                    <CollectionListItem
+                      key={collection.id}
+                      previewImage={products[0]?.images?.[0]}
+                      {...sharedProps}
+                    />
+                  );
+                }
+
+                return (
+                  <CollectionGridCard
+                    key={collection.id}
+                    products={products}
+                    isSelectionMode={isSelectionMode}
+                    {...sharedProps}
+                  />
+                );
+              })}
+            </div>
+          )
                 const updatedAgo = relativeTime(collection.updatedAt);
                 const isSelected = selectedCollectionIds.has(collection.id);
 
