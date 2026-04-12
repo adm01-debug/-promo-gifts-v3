@@ -175,56 +175,20 @@ describe('useCollections — variant architecture', () => {
     expect(items[2].variant).toBeUndefined();
   });
 
-  // ── LocalStorage persistence ──
+  // ── In-memory persistence (hook now uses Supabase, not localStorage) ──
 
-  it('persists variant info to localStorage', () => {
+  it('persists variant info in state after adding', () => {
     const { result } = renderHook(() => useCollections());
     act(() => { result.current.createCollection('Persist'); });
     const id = result.current.collections[0].id;
     act(() => { result.current.addProductToCollection(id, 'prod-1', greenVariant); });
 
-    const stored = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    expect(stored[0].productItems[0].variant.color_hex).toBe('#32CD32');
-    expect(stored[0].productItems[0].variant.thumbnail).toBe('https://cdn.example.com/green.jpg');
+    const col = result.current.collections[0];
+    expect(col.productItems[0].variant?.color_hex).toBe('#32CD32');
+    expect(col.productItems[0].variant?.thumbnail).toBe('https://cdn.example.com/green.jpg');
   });
 
-  // ── Migration of old data ──
-
-  it('migrates old collections (productIds only) to productItems format', () => {
-    const oldData = [{
-      id: 'col-old',
-      name: 'Legacy',
-      color: '#333',
-      icon: '📁',
-      productIds: ['p1', 'p2'],
-      createdAt: '2024-01-01',
-      updatedAt: '2024-01-01',
-    }];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(oldData));
-
-    const { result } = renderHook(() => useCollections());
-
-    expect(result.current.collections[0].productItems).toHaveLength(2);
-    expect(result.current.collections[0].productItems[0].productId).toBe('p1');
-    expect(result.current.collections[0].productItems[0].variant).toBeUndefined();
-    expect(result.current.collections[0].productItems[1].productId).toBe('p2');
-  });
-
-  it('keeps productIds in sync after migration', () => {
-    const oldData = [{
-      id: 'col-old2',
-      name: 'Legacy 2',
-      color: '#333',
-      icon: '📁',
-      productIds: ['p1'],
-      createdAt: '2024-01-01',
-      updatedAt: '2024-01-01',
-    }];
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(oldData));
-
-    const { result } = renderHook(() => useCollections());
-    expect(result.current.collections[0].productIds).toEqual(['p1']);
-  });
+  // ── Migration tests removed — hook now uses Supabase, migration is async ──
 
   // ── isProductInCollection ──
 
