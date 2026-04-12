@@ -2,7 +2,7 @@
  * Exporta a lista de produtos de uma coleção como PDF.
  */
 import { jsPDF } from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
 import type { Product } from "@/hooks/useProducts";
 
 interface ExportOptions {
@@ -53,13 +53,13 @@ export async function exportCollectionPDF({
       p.sku || "-",
       p.name,
       p.brand || "-",
-      p.category || "-",
+      p.category_name || "-",
       variant?.color_name || "-",
       p.price ? `R$ ${p.price.toFixed(2)}` : "-",
     ];
   });
 
-  (doc as any).autoTable({
+  autoTable(doc, {
     startY,
     head: [["#", "SKU", "Produto", "Marca", "Categoria", "Cor", "Preço"]],
     body: tableRows,
