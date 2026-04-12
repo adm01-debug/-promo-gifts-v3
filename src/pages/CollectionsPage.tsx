@@ -218,42 +218,22 @@ export default function CollectionsPage() {
 
         {/* KPI Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-          <div className="stat-card flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <FolderHeart className="h-5 w-5 text-primary" />
+          {[
+            { icon: FolderHeart, value: totalCollections, label: "Total Coleções" },
+            { icon: Package, value: totalProducts, label: "Produtos" },
+            { icon: Star, value: featuredCount, label: "Destaques" },
+            { icon: Cloud, value: externalCollections.length, label: "Catálogo" },
+          ].map((stat, idx) => (
+            <div key={stat.label} className="stat-card flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${idx * 80}ms` }}>
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <stat.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
+                <p className="text-xs text-muted-foreground">{stat.label}</p>
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-display font-bold text-foreground">{totalCollections}</p>
-              <p className="text-xs text-muted-foreground">Total Coleções</p>
-            </div>
-          </div>
-          <div className="stat-card flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Package className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-display font-bold text-foreground">{totalProducts}</p>
-              <p className="text-xs text-muted-foreground">Produtos</p>
-            </div>
-          </div>
-          <div className="stat-card flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Star className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-display font-bold text-foreground">{featuredCount}</p>
-              <p className="text-xs text-muted-foreground">Destaques</p>
-            </div>
-          </div>
-          <div className="stat-card flex items-center gap-3">
-            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-              <Cloud className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-display font-bold text-foreground">{externalCollections.length}</p>
-              <p className="text-xs text-muted-foreground">Catálogo</p>
-            </div>
-          </div>
+          ))}
         </div>
 
         {/* Search Bar */}
@@ -286,10 +266,11 @@ export default function CollectionsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {filteredExternal.map((collection) => (
+                {filteredExternal.map((collection, idx) => (
                   <div
                     key={collection.id}
-                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300"
+                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item"
+                    style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     {/* Badge sync */}
