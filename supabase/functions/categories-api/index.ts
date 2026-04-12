@@ -1,18 +1,20 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from '../_shared/zod-validate.ts';
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const CategoriesRequestSchema = z.object({
+  action: z.enum(['tree', 'all', 'descendants', 'products_by_categories']),
+  categoryIds: z.array(z.string().uuid()).max(200).optional(),
+  includeDescendants: z.boolean().optional(),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Criar cliente para o banco externo
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
     const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
 
@@ -22,9 +24,14 @@ Deno.serve(async (req) => {
 
     const externalClient = createClient(externalUrl, externalKey);
 
-    // Parse request body
-    const body = await req.json().catch(() => ({}));
-    const { action, categoryIds, includeDescendants } = body;
+    const rawBody = await req.json().catch(() => ({}));
+    const parsed = CategoriesRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }), {
+        status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    const { action, categoryIds, includeDescendants } = parsed.data;
 
     switch (action) {
       case 'tree': {

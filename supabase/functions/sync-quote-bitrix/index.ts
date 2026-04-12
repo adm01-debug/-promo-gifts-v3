@@ -1,8 +1,5 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-
-// Full CORS headers required by Supabase web clients
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { z } from '../_shared/zod-validate.ts';
 
 // Mapping: seller email → Bitrix24 numeric seller_id
 const SELLER_EMAIL_MAP: Record<string, number> = {
@@ -15,6 +12,17 @@ const SELLER_EMAIL_MAP: Record<string, number> = {
   "comercial07@promobrindes.com.br": 16558,
 };
 
+const SyncQuoteBitrixSchema = z.object({
+  quote: z.record(z.any()).optional(),
+  proposalData: z.record(z.any()).optional(),
+  pdfUrl: z.string().url().max(2000).optional(),
+  filename: z.string().max(500).optional(),
+  bitrixCompanyId: z.string().max(50).optional(),
+  sellerEmail: z.string().email().max(255).optional(),
+  shippingType: z.string().max(50).optional(),
+  shippingCost: z.number().nonneg().optional(),
+});
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   // Handle CORS preflight
@@ -23,22 +31,30 @@ Deno.serve(async (req) => {
   }
 
   try {
-    let body: Record<string, unknown>;
-    try { body = await req.json(); } catch {
+    let rawBody: unknown;
+    try { rawBody = await req.json(); } catch {
       return new Response(JSON.stringify({ error: "Invalid request body" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const parsed = SyncQuoteBitrixSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const {
       quote,
       proposalData,
-      pdfUrl,           // public storage URL of the PDF (no base64 in memory)
+      pdfUrl,
       filename,
-      bitrixCompanyId,  // companies.bitrix_id — numeric string (e.g. "125240")
-      sellerEmail,      // authenticated user email for seller mapping
-      shippingType,     // decoded shipping type: "cif", "fob", "fob_pre"
-      shippingCost,     // decoded shipping cost (number)
-    } = body;
+      bitrixCompanyId,
+      sellerEmail,
+      shippingType,
+      shippingCost,
+    } = parsed.data;
 
     // ── 1. Validate webhook URL ──────────────────────────────────────────────
     const webhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
