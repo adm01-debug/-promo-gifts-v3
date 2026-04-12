@@ -24,6 +24,7 @@ export interface Collection {
   description?: string;
   color: string;
   icon: string;
+  isFeatured: boolean;
   /** @deprecated Use productItems instead */
   productIds: string[];
   productItems: CollectionProductItem[];
@@ -60,6 +61,7 @@ function dbToCollection(
     description: row.description || undefined,
     color: row.icon_color || DEFAULT_COLORS[0],
     icon: row.icon || "📁",
+    isFeatured: row.is_featured ?? false,
     productIds: productItems.map((i) => i.productId),
     productItems,
     createdAt: row.created_at,
