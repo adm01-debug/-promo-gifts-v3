@@ -1,20 +1,25 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
+import { getCorsHeaders } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "https://esm.sh/zod@3.23.8";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const BodySchema = z.object({
+  mode: z.enum(['tables', 'columns']).default('tables'),
+  tableName: z.string().trim().min(1).max(100).regex(/^[a-z_][a-z0-9_]*$/i, 'Invalid table name').optional(),
+});
+
+const corsHeadersRef: { current: Record<string, string> } = { current: {} };
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    headers: { ...corsHeadersRef.current, 'Content-Type': 'application/json' },
   });
 }
 
 Deno.serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req);
+  corsHeadersRef.current = getCorsHeaders(req);
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: corsHeadersRef.current });
   }
 
   try {
@@ -47,42 +52,28 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: 'Forbidden: admin role required' }, 403);
     }
 
-    const body = await req.json().catch(() => ({}));
-    const { mode = 'tables', tableName } = body;
+    // Validate body
+    let rawBody: unknown = {};
+    try { rawBody = await req.json(); } catch { /* empty body ok */ }
 
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonResponse({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }, 400);
+    }
+
+    const { mode, tableName } = parsed.data;
     console.log(`[INSPECT] Mode: ${mode}, Table: ${tableName || 'all'}`);
 
-    // Conectar ao banco externo
+    // External DB connection
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
     const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
-
     if (!externalUrl || !externalKey) {
       return jsonResponse({ error: 'Banco externo não configurado' }, 500);
     }
 
     const externalSupabase = createClient(externalUrl, externalKey);
 
-    // Lista de tabelas para testar
-    const tablesToTest = [
-      'products', 'categories', 'suppliers', 'tags',
-      'personalization_techniques', 'customization_price_tables',
-      'product_images', 'product_videos', 'product_variants',
-      'product_materials', 'product_tags', 'product_categories',
-      'product_suppliers', 'product_print_areas', 'product_kit_components',
-      'color_groups', 'color_nuances', 'color_equivalences', 'color_variations',
-      'material_groups', 'material_types', 'material_variations',
-      'supplier_colors', 'supplier_materials',
-      'supplier_attribute_definitions', 'supplier_product_attributes',
-      'product_attributes', 'category_attributes',
-      'price_lists', 'variant_stocks', 'variant_cost_tiers', 'variant_sale_prices',
-      'variation_types', 'variation_values', 'stock_movements',
-      'collections', 'collection_products',
-      'ramo_atividade', 'ramo_atividade_filho', 'produto_ramo_atividade',
-      'bitrix_clients', 'organizations', 'client_contacts', 'business_sectors',
-      'mockup_drafts', 'generated_mockups',
-    ];
-
-    // Modo: verificar uma tabela específica
+    // Inspect specific table columns
     if (mode === 'columns' && tableName) {
       try {
         const { data, error } = await externalSupabase
@@ -113,13 +104,31 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Modo padrão: listar todas as tabelas existentes
+    // Default: list all tables
+    const tablesToTest = [
+      'products', 'categories', 'suppliers', 'tags',
+      'personalization_techniques', 'customization_price_tables',
+      'product_images', 'product_videos', 'product_variants',
+      'product_materials', 'product_tags', 'product_categories',
+      'product_suppliers', 'product_print_areas', 'product_kit_components',
+      'color_groups', 'color_nuances', 'color_equivalences', 'color_variations',
+      'material_groups', 'material_types', 'material_variations',
+      'supplier_colors', 'supplier_materials',
+      'supplier_attribute_definitions', 'supplier_product_attributes',
+      'product_attributes', 'category_attributes',
+      'price_lists', 'variant_stocks', 'variant_cost_tiers', 'variant_sale_prices',
+      'variation_types', 'variation_values', 'stock_movements',
+      'collections', 'collection_products',
+      'ramo_atividade', 'ramo_atividade_filho', 'produto_ramo_atividade',
+      'bitrix_clients', 'organizations', 'client_contacts', 'business_sectors',
+      'mockup_drafts', 'generated_mockups',
+    ];
+
     const results: Array<{ name: string; exists: boolean; columns: string[]; rowCount: number; error?: string }> = [];
 
     const batchSize = 10;
     for (let i = 0; i < tablesToTest.length; i += batchSize) {
       const batch = tablesToTest.slice(i, i + batchSize);
-
       const batchResults = await Promise.all(
         batch.map(async (tbl) => {
           try {
@@ -131,7 +140,6 @@ Deno.serve(async (req) => {
             if (error) {
               return { name: tbl, exists: false, columns: [], rowCount: 0, error: error.message };
             }
-
             return {
               name: tbl,
               exists: true,
@@ -143,14 +151,11 @@ Deno.serve(async (req) => {
           }
         })
       );
-
       results.push(...batchResults);
     }
 
     const existingTables = results.filter(r => r.exists);
     const missingTables = results.filter(r => !r.exists);
-
-    console.log(`[INSPECT] Found ${existingTables.length} tables, ${missingTables.length} missing`);
 
     return jsonResponse({
       success: true,
