@@ -7,7 +7,8 @@
  *    Favoritar, Comparar, Coleção, Share, Orçamento, Carrinho, QuickView
  */
 import { memo, useState, useCallback } from "react";
-import { ArrowUpDown, ArrowUp, ArrowDown, Package, Heart, GitCompare, ExternalLink, Share2, FolderPlus, Eye, FileText } from "lucide-react";
+import { ArrowUpDown, ArrowUp, ArrowDown, Package } from "lucide-react";
+import { TableRowActions } from "./table-view/TableRowActions";
 import { resolveColorImage, resolveColorStock, getActiveColorName, type ActiveColorFilter } from "@/utils/color-image-resolver";
 import { resolveHighlightHex } from "@/utils/color-group-hex";
 // Table view shows all color dots inline — no carousel needed
@@ -359,151 +360,16 @@ export const ProductTableView = memo(function ProductTableView({
                 </td>
                 {/* Actions — full parity with Grid */}
                 <td className="px-2 py-1.5">
-                  <div className="flex items-center justify-center gap-0.5 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                    {/* Favoritar */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn("h-7 w-7 rounded-full", fav && "text-destructive bg-destructive/10")}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (fav) {
-                              onToggleFavorite?.(product.id);
-                              showUndoToast({
-                                title: `"${product.name}" removido dos favoritos`,
-                                onUndo: () => onToggleFavorite?.(product.id),
-                              });
-                            } else {
-                              openVariantPicker(product, 'favorite');
-                            }
-                          }}
-                          aria-label="Favoritar"
-                        >
-                          <Heart className={cn("h-3 w-3", fav && "fill-current")} />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">{fav ? "Remover favorito" : "Favoritar"}</TooltipContent>
-                    </Tooltip>
-
-                    {/* Comparar */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className={cn("h-7 w-7 rounded-full", inComp && "text-primary bg-primary/10")}
-                          disabled={!inComp && !canAddToCompare}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (inComp) {
-                              onToggleCompare?.(product.id);
-                              showUndoToast({
-                                title: `"${product.name}" removido da comparação`,
-                                onUndo: () => onToggleCompare?.(product.id),
-                              });
-                            } else {
-                              openVariantPicker(product, 'compare');
-                            }
-                          }}
-                          aria-label="Comparar"
-                        >
-                          <GitCompare className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Comparar</TooltipContent>
-                    </Tooltip>
-
-                    {/* Coleção */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openVariantPicker(product, 'collection');
-                          }}
-                          aria-label="Adicionar à coleção"
-                        >
-                          <FolderPlus className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Coleção</TooltipContent>
-                    </Tooltip>
-
-                    {/* Compartilhar via VariantPicker */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openVariantPicker(product, 'share');
-                          }}
-                          aria-label="Compartilhar"
-                        >
-                          <Share2 className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Compartilhar</TooltipContent>
-                    </Tooltip>
-
-                    {/* Orçamento */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openVariantPicker(product, 'quote');
-                          }}
-                          aria-label="Orçamento"
-                        >
-                          <FileText className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Orçamento</TooltipContent>
-                    </Tooltip>
-
-                    {/* Carrinho */}
-                    <QuickAddToQuote
-                      productId={product.id}
-                      productName={product.name}
-                      productSku={product.sku}
-                      productImageUrl={product.og_image_url || product.images[0]}
-                      productPrice={product.price}
-                      minQuantity={product.minQuantity || 1}
-                      variant="icon"
-                      className="h-7 w-7"
-                    />
-
-                    {/* Quick View */}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-7 w-7 rounded-full text-muted-foreground hover:text-foreground"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setQuickViewProduct(product);
-                            setQuickViewOpen(true);
-                          }}
-                          aria-label="Visualização rápida"
-                        >
-                          <Eye className="h-3 w-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top">Quick View</TooltipContent>
-                    </Tooltip>
-                  </div>
+                  <TableRowActions
+                    product={product}
+                    isFavorite={fav}
+                    isInCompare={inComp}
+                    canAddToCompare={canAddToCompare}
+                    onToggleFavorite={onToggleFavorite}
+                    onToggleCompare={onToggleCompare}
+                    onOpenVariantPicker={openVariantPicker}
+                    onOpenQuickView={(p) => { setQuickViewProduct(p); setQuickViewOpen(true); }}
+                  />
                 </td>
               </tr>
             );
