@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import { HelmetProvider } from "react-helmet-async";
 import {
   LoadingScreen,
   ExpiredScreen,
@@ -8,9 +9,11 @@ import {
   SubmittedScreen,
 } from "@/pages/public-approval/PublicQuoteStatusScreens";
 
+const wrap = (ui: React.ReactElement) => render(<HelmetProvider>{ui}</HelmetProvider>);
+
 describe("PublicQuoteStatusScreens", () => {
   it("LoadingScreen shows loading text", () => {
-    render(<LoadingScreen />);
+    wrap(<LoadingScreen />);
     expect(screen.getByText("Carregando proposta...")).toBeInTheDocument();
   });
 
