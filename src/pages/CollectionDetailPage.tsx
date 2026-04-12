@@ -42,6 +42,44 @@ import { ptBR } from "date-fns/locale";
 
 type SortOption = "name" | "sku" | "added";
 
+function SortableProductItem({
+  product,
+  variant,
+  onRemove,
+}: {
+  product: any;
+  variant?: { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null };
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const displayImage = variant?.thumbnail || product.images?.[0];
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
+        <GripVertical className="h-4 w-4" />
+      </button>
+      {displayImage && <img src={displayImage} alt={product.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" />}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{product.name}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs text-muted-foreground">{product.sku}</p>
+          {variant?.color_hex && (
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full border border-border" style={{ backgroundColor: variant.color_hex }} />
+              {variant.color_name && <span className="text-xs text-muted-foreground truncate max-w-[80px]">{variant.color_name}</span>}
+            </span>
+          )}
+        </div>
+      </div>
+      <Button variant="ghost" size="icon" aria-label="Remover da coleção" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={onRemove}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
+
 export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
