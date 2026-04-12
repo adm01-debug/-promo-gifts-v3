@@ -1,9 +1,11 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
   RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock, List,
+  FileText, CheckSquare, X,
 } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -83,12 +85,69 @@ export default function CollectionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: defaultColors[0],
     icon: defaultIcons[0],
   });
+
+  const toggleSelectCollection = useCallback((id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setSelectedCollectionIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedCollectionIds(new Set()), []);
+
+  const handleSendSelectedToQuote = useCallback(() => {
+    const allProducts: Array<{
+      product_id: string;
+      product_name: string;
+      product_sku: string | null;
+      product_image_url: string | null;
+      unit_price: number;
+      quantity: number;
+    }> = [];
+
+    const collectionNames: string[] = [];
+
+    selectedCollectionIds.forEach(colId => {
+      const col = localCollections.find(c => c.id === colId);
+      if (!col) return;
+      collectionNames.push(col.name);
+      const products = getCollectionProducts(colId);
+      products.forEach(p => {
+        // Avoid duplicates
+        if (!allProducts.some(x => x.product_id === p.id)) {
+          allProducts.push({
+            product_id: p.id,
+            product_name: p.name,
+            product_sku: p.sku || null,
+            product_image_url: p.images?.[0] || null,
+            unit_price: p.price || 0,
+            quantity: 1,
+          });
+        }
+      });
+    });
+
+    if (allProducts.length === 0) {
+      toast.error("As coleções selecionadas não possuem produtos");
+      return;
+    }
+
+    navigate("/orcamentos/novo", {
+      state: {
+        fromCollection: collectionNames.join(", "),
+        preloadProducts: allProducts,
+      },
+    });
+  }, [selectedCollectionIds, localCollections, getCollectionProducts, navigate]);
 
   // Stats
   const totalProducts = useMemo(() => {
@@ -480,13 +539,24 @@ export default function CollectionsPage() {
                 );
 
                 if (viewMode === "list") {
+                  const isSelected = selectedCollectionIds.has(collection.id);
                   return (
                     <div
                       key={collection.id}
-                      className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200 animate-fade-in"
+                      className={cn(
+                        "group flex items-center gap-4 p-3 rounded-xl bg-card border cursor-pointer transition-all duration-200 animate-fade-in",
+                        isSelected ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/40 hover:shadow-md"
+                      )}
                       style={{ animationDelay: `${idx * 40}ms` }}
                       onClick={() => navigate(`/colecoes/${collection.id}`)}
                     >
+                      <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelectCollection(collection.id)}
+                          className="h-5 w-5"
+                        />
+                      </div>
                       <div
                         className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
                         style={{ backgroundColor: `${collection.color}20` }}
@@ -521,14 +591,25 @@ export default function CollectionsPage() {
                   );
                 }
 
+                const isSelectedGrid = selectedCollectionIds.has(collection.id);
                 return (
                   <div
                     key={collection.id}
-                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item"
+                    className={cn(
+                      "group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item",
+                      isSelectedGrid ? "border-primary ring-2 ring-primary/20" : "border-primary/20 hover:border-primary/50"
+                    )}
                     style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     <div className="absolute top-3 right-3 z-10">{contextMenu}</div>
+                    <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelectedGrid}
+                        onCheckedChange={() => toggleSelectCollection(collection.id)}
+                        className="h-5 w-5 bg-background/80 backdrop-blur-sm border-2"
+                      />
+                    </div>
 
                     {/* Preview images grid */}
                     <div
@@ -613,7 +694,26 @@ export default function CollectionsPage() {
         </div>
       </div>
 
-      {/* Create/Edit Modal */}
+      {/* Floating Selection Bar */}
+      {selectedCollectionIds.size > 0 && (
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border shadow-2xl rounded-2xl px-5 py-3 flex items-center gap-4 animate-fade-in">
+          <div className="flex items-center gap-2">
+            <CheckSquare className="h-5 w-5 text-primary" />
+            <span className="font-display font-semibold text-sm">
+              {selectedCollectionIds.size} coleção(ões) selecionada(s)
+            </span>
+          </div>
+          <div className="w-px h-6 bg-border" />
+          <Button size="sm" className="gap-2" onClick={handleSendSelectedToQuote}>
+            <FileText className="h-4 w-4" />
+            Criar Orçamento
+          </Button>
+          <Button size="sm" variant="ghost" onClick={clearSelection}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
+
       <Dialog
         open={isCreateOpen || !!editingCollection}
         onOpenChange={(open) => {
