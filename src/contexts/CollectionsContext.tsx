@@ -20,6 +20,7 @@ interface CollectionsContextType {
   addProductToCollection: (collectionId: string, productId: string, variant?: CollectionVariantInfo) => void;
   removeProductFromCollection: (collectionId: string, productId: string) => void;
   addProductToMultipleCollections: (productId: string, collectionIds: string[], variant?: CollectionVariantInfo) => void;
+  reorderProducts: (collectionId: string, orderedProductIds: string[]) => void;
   getCollectionProducts: (collectionId: string) => Product[];
   getCollectionProductItems: (collectionId: string) => CollectionProductItem[];
   getCollectionProductVariant: (collectionId: string, productId: string) => CollectionVariantInfo | undefined;
