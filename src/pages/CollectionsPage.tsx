@@ -539,13 +539,24 @@ export default function CollectionsPage() {
                 );
 
                 if (viewMode === "list") {
+                  const isSelected = selectedCollectionIds.has(collection.id);
                   return (
                     <div
                       key={collection.id}
-                      className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200 animate-fade-in"
+                      className={cn(
+                        "group flex items-center gap-4 p-3 rounded-xl bg-card border cursor-pointer transition-all duration-200 animate-fade-in",
+                        isSelected ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/40 hover:shadow-md"
+                      )}
                       style={{ animationDelay: `${idx * 40}ms` }}
                       onClick={() => navigate(`/colecoes/${collection.id}`)}
                     >
+                      <div onClick={(e) => e.stopPropagation()} className="shrink-0">
+                        <Checkbox
+                          checked={isSelected}
+                          onCheckedChange={() => toggleSelectCollection(collection.id)}
+                          className="h-5 w-5"
+                        />
+                      </div>
                       <div
                         className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
                         style={{ backgroundColor: `${collection.color}20` }}
@@ -580,14 +591,25 @@ export default function CollectionsPage() {
                   );
                 }
 
+                const isSelectedGrid = selectedCollectionIds.has(collection.id);
                 return (
                   <div
                     key={collection.id}
-                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item"
+                    className={cn(
+                      "group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item",
+                      isSelectedGrid ? "border-primary ring-2 ring-primary/20" : "border-primary/20 hover:border-primary/50"
+                    )}
                     style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     <div className="absolute top-3 right-3 z-10">{contextMenu}</div>
+                    <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelectedGrid}
+                        onCheckedChange={() => toggleSelectCollection(collection.id)}
+                        className="h-5 w-5 bg-background/80 backdrop-blur-sm border-2"
+                      />
+                    </div>
 
                     {/* Preview images grid */}
                     <div
