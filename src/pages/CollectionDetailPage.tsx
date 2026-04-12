@@ -50,14 +50,8 @@ import { ptBR } from "date-fns/locale";
 
 type SortOption = "name" | "sku" | "added";
 
-function SortableProductItem({
-  product,
-  variant,
-  onRemove,
-  isSelected,
-  onToggleSelect,
-  notes,
-  onNotesChange,
+
+
 }: {
   product: any;
   variant?: { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null };
