@@ -87,8 +87,10 @@ export default function CollectionsPage() {
   }, [localCollections]);
 
   const featuredCount = useMemo(() => {
-    return externalCollections.filter((c) => c.is_featured).length;
-  }, [externalCollections]);
+    const extFeatured = externalCollections.filter((c) => c.is_featured).length;
+    const localFeatured = localCollections.filter((c) => c.isFeatured).length;
+    return extFeatured + localFeatured;
+  }, [externalCollections, localCollections]);
 
   const totalCollections = localCollections.length + externalCollections.length;
 
