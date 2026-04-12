@@ -192,7 +192,7 @@ export default function MeusKitsPage() {
   const draftCount = kits.filter(k => k.status === 'draft').length;
 
   return (
-    <div className="container mx-auto py-6 px-4 max-w-5xl space-y-6">
+    <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO title="Meus Kits" description="Visualize e gerencie seus kits de brindes salvos." path="/meus-kits" noIndex />
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -313,7 +313,7 @@ export default function MeusKitsPage() {
           {filtered.map((kit) => {
             const statusInfo = STATUS_MAP[kit.status] || STATUS_MAP.draft;
             return (
-              <Card key={kit.id} className="hover:shadow-md transition-shadow">
+              <Card key={kit.id} className="border-[1.5px] border-primary/15 hover:border-primary/30 hover:shadow-lg card-lift transition-all duration-300">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Compare checkbox + Icon */}

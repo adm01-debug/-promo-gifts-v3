@@ -78,7 +78,7 @@ function OrdersPageContent() {
   return (
     <MainLayout>
       <PageSEO title="Gestão de Pedidos" description="Acompanhe e gerencie todos os seus pedidos em um só lugar." path="/pedidos" />
-      <div className="space-y-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
@@ -134,7 +134,7 @@ function OrdersPageContent() {
             {filteredOrders.map((order) => (
               <Card
                 key={order.id}
-                className="hover:border-primary/30 transition-colors cursor-pointer"
+                className="hover:border-primary/30 border-[1.5px] border-primary/15 transition-all duration-300 cursor-pointer hover:shadow-lg card-lift"
                 onClick={() => navigate(`/pedidos/${order.id}`)}
               >
                 <CardContent className="p-4 flex items-center justify-between">
