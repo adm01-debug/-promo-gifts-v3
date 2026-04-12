@@ -86,6 +86,7 @@ export default function CollectionsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<Set<string>>(new Set());
+  const [hintDismissed, setHintDismissed] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -293,20 +294,26 @@ export default function CollectionsPage() {
         {/* KPI Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { icon: FolderHeart, value: totalCollections, label: "Total Coleções" },
-            { icon: FolderOpen, value: externalCollections.length, label: "Coleções Catálogo" },
-            { icon: Star, value: localCollections.length, label: "Minhas Coleções" },
-            { icon: Package, value: totalProducts, label: "Produtos" },
+            { icon: FolderHeart, value: totalCollections, label: "Total Coleções", color: "text-primary" },
+            { icon: FolderOpen, value: externalCollections.length, label: "Coleções Catálogo", color: "text-blue-500" },
+            { icon: Star, value: localCollections.length, label: "Minhas Coleções", color: "text-amber-500" },
+            { icon: Package, value: totalProducts, label: "Produtos", color: "text-emerald-500" },
           ].map((stat, idx) => (
-            <div key={stat.label} className="stat-card flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${idx * 80}ms` }}>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <stat.icon className="h-5 w-5 text-primary" />
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.08, type: "spring", stiffness: 400, damping: 25 }}
+              className="stat-card flex items-center gap-3 group hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-default"
+            >
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
               <div>
                 <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
@@ -425,18 +432,30 @@ export default function CollectionsPage() {
         </AnimatePresence>
 
         {/* ═══ Hint bar when no selection ═══ */}
-        {!isSelectionMode && localCollections.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted/40 border border-border/50"
-          >
-            <Sparkles className="h-4 w-4 text-primary shrink-0" />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Dica:</span> Selecione coleções marcando o checkbox nos cards para enviar todos os produtos para um orçamento de uma vez.
-            </p>
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {!isSelectionMode && !hintDismissed && localCollections.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted/40 border border-border/50"
+            >
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <p className="text-xs text-muted-foreground flex-1">
+                <span className="font-medium text-foreground">Dica:</span> Selecione coleções marcando o checkbox nos cards para enviar todos os produtos para um orçamento de uma vez.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() => setHintDismissed(true)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ═══ Personal Collections (DB-persisted) ═══ */}
         <div className="space-y-3">
@@ -651,19 +670,30 @@ export default function CollectionsPage() {
               </p>
             </div>
           ) : (
-            <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
-              <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10"
+            >
+              <motion.div
+                initial={{ y: 10 }}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              >
+                <FolderOpen className="h-16 w-16 text-primary/40 mx-auto mb-4" />
+              </motion.div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                 Nenhuma coleção criada
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 Crie coleções para organizar seus produtos favoritos e montar apresentações profissionais
               </p>
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
+                <Plus className="h-4 w-4" />
                 Criar primeira coleção
               </Button>
-            </div>
+            </motion.div>
           )}
         </div>
 
@@ -858,13 +888,45 @@ export default function CollectionsPage() {
             <DialogTitle>{editingCollection ? "Editar Coleção" : "Nova Coleção"}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="space-y-5" onKeyDown={(e) => {
+            if (e.key === "Enter" && formData.name.trim()) {
+              e.preventDefault();
+              editingCollection ? handleUpdate() : handleCreate();
+            }
+          }}>
+            {/* Live preview */}
+            <motion.div
+              layout
+              className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/20 bg-muted/30"
+            >
+              <motion.div
+                key={`${formData.color}-${formData.icon}`}
+                initial={{ scale: 0.8, rotate: -10 }}
+                animate={{ scale: 1, rotate: 0 }}
+                transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                className="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                style={{ backgroundColor: `${formData.color}20` }}
+              >
+                {formData.icon}
+              </motion.div>
+              <div className="min-w-0 flex-1">
+                <p className="font-display font-semibold text-foreground truncate">
+                  {formData.name || "Nome da coleção..."}
+                </p>
+                {formData.description && (
+                  <p className="text-xs text-muted-foreground truncate">{formData.description}</p>
+                )}
+              </div>
+              <Badge variant="secondary" className="text-[10px] shrink-0">Preview</Badge>
+            </motion.div>
+
             <div className="space-y-2">
               <Label>Nome</Label>
               <Input
                 placeholder="Ex: Clientes Premium"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                autoFocus
               />
             </div>
 
@@ -881,12 +943,14 @@ export default function CollectionsPage() {
               <Label>Cor</Label>
               <div className="flex flex-wrap gap-2">
                 {defaultColors.map((color) => (
-                  <button
+                  <motion.button
                     key={color}
+                    whileHover={{ scale: 1.15 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => setFormData({ ...formData, color })}
                     className={cn(
-                      "w-8 h-8 rounded-full transition-transform",
-                      formData.color === color && "ring-2 ring-offset-2 ring-primary scale-110"
+                      "w-8 h-8 rounded-full transition-all duration-200",
+                      formData.color === color && "ring-2 ring-offset-2 ring-primary scale-110 shadow-md"
                     )}
                     style={{ backgroundColor: color }}
                   />
@@ -898,23 +962,25 @@ export default function CollectionsPage() {
               <Label>Ícone</Label>
               <div className="flex flex-wrap gap-2">
                 {defaultIcons.map((icon) => (
-                  <button
+                  <motion.button
                     key={icon}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => setFormData({ ...formData, icon })}
                     className={cn(
                       "w-10 h-10 rounded-lg text-lg flex items-center justify-center border transition-all",
                       formData.icon === icon
-                        ? "border-primary bg-primary/10"
+                        ? "border-primary bg-primary/10 shadow-sm"
                         : "border-border hover:border-primary/50"
                     )}
                   >
                     {icon}
-                  </button>
+                  </motion.button>
                 ))}
               </div>
             </div>
 
-            <div className="flex gap-2 pt-4">
+            <div className="flex gap-2 pt-2">
               <Button
                 variant="outline"
                 className="flex-1"
@@ -927,11 +993,16 @@ export default function CollectionsPage() {
                 Cancelar
               </Button>
               <Button
-                className="flex-1"
+                className="flex-1 gap-2 shadow-lg shadow-primary/20"
                 onClick={editingCollection ? handleUpdate : handleCreate}
                 disabled={!formData.name.trim()}
               >
-                {editingCollection ? "Salvar" : "Criar"}
+                {editingCollection ? "Salvar" : (
+                  <>
+                    <Plus className="h-4 w-4" />
+                    Criar
+                  </>
+                )}
               </Button>
             </div>
           </div>
