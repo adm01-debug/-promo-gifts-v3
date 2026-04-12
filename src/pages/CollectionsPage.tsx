@@ -417,13 +417,7 @@ export default function CollectionsPage() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              const cloned = createCollection(
-                                `${collection.name} (cópia)`,
-                                collection.description,
-                                collection.color,
-                                collection.icon
-                              );
-                              toast.success(`Coleção duplicada`);
+                              handleClone(collection);
                             }}
                           >
                             <Copy className="h-4 w-4 mr-2" />
