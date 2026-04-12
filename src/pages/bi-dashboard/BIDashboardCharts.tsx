@@ -219,7 +219,7 @@ export function RecentProductsCard({ metrics, isLoading }: ChartsSectionProps) {
         ) : metrics?.recentProducts.length ? (
           <div className="space-y-3">
             {metrics.recentProducts.map((product: any) => (
-              <div key={product.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border" onClick={() => navigate(`/produto/${product.sku}`)}>
+              <div key={product.id} className="flex items-center justify-between p-3 rounded-lg hover:bg-muted/50 cursor-pointer transition-colors border" role="button" tabIndex={0} onClick={() => navigate(`/produto/${product.sku}`)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/produto/${product.sku}`); } }} aria-label={`Ver produto ${product.name}`}>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{product.name}</p>
                   <div className="flex items-center gap-2 text-xs text-muted-foreground">

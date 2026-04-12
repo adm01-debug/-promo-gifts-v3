@@ -118,7 +118,7 @@ export function ProductsTabContent({ topProducts, isLoading }: ProductsTabProps)
           ) : topProducts && topProducts.length > 0 ? (
             <div className="space-y-3 max-h-[300px] overflow-y-auto">
               {topProducts.map((product, index) => (
-                <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" onClick={() => product.id && navigate(`/produto/${product.id}`)}>
+                <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" role="button" tabIndex={0} onClick={() => product.id && navigate(`/produto/${product.id}`)} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && product.id) { e.preventDefault(); navigate(`/produto/${product.id}`); } }} aria-label={`Ver produto ${product.name}`}>
                   <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">{index + 1}</div>
                   <div className="flex-1 min-w-0">
                     <p className="font-medium text-foreground truncate">{product.name}</p>
