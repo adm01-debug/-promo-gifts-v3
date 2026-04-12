@@ -4,9 +4,8 @@
 
 import { useState, useMemo, useCallback } from "react";
 import { renderQuoteCell } from "./QuoteListCellRenderer";
-import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
