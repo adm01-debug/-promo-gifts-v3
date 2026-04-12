@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package, RefreshCw, Cloud, CloudOff } from "lucide-react";
+import { Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package, RefreshCw, Cloud, CloudOff, Search, Layers, Star, FolderHeart } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -38,7 +38,6 @@ import { toast } from "sonner";
 export default function CollectionsPage() {
   const navigate = useNavigate();
   
-  // Coleções locais (localStorage)
   const {
     collections: localCollections,
     createCollection,
@@ -49,7 +48,6 @@ export default function CollectionsPage() {
     defaultIcons,
   } = useCollectionsContext();
 
-  // Coleções do BD externo (Promobrind)
   const {
     collections: externalCollections,
     isLoading: isLoadingExternal,
@@ -59,12 +57,39 @@ export default function CollectionsPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: defaultColors[0],
     icon: defaultIcons[0],
   });
+
+  // Stats
+  const totalLocalProducts = useMemo(() => {
+    return localCollections.reduce((acc, col) => acc + col.productIds.length, 0);
+  }, [localCollections]);
+
+  const featuredCount = useMemo(() => {
+    return externalCollections.filter(c => c.is_featured).length;
+  }, [externalCollections]);
+
+  // Filtered collections
+  const filteredExternal = useMemo(() => {
+    if (!searchQuery.trim()) return externalCollections;
+    const q = searchQuery.toLowerCase();
+    return externalCollections.filter(c => 
+      c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+    );
+  }, [externalCollections, searchQuery]);
+
+  const filteredLocal = useMemo(() => {
+    if (!searchQuery.trim()) return localCollections;
+    const q = searchQuery.toLowerCase();
+    return localCollections.filter(c => 
+      c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+    );
+  }, [localCollections, searchQuery]);
 
   const handleCreate = () => {
     if (!formData.name.trim()) return;
@@ -89,13 +114,13 @@ export default function CollectionsPage() {
 
   const handleDelete = () => {
     if (!deleteConfirm) return;
-    const collection = collections.find((c) => c.id === deleteConfirm);
+    const collection = localCollections.find((c) => c.id === deleteConfirm);
     deleteCollection(deleteConfirm);
     toast.success(`Coleção "${collection?.name}" excluída`);
     setDeleteConfirm(null);
   };
 
-  const openEdit = (collection: typeof collections[0]) => {
+  const openEdit = (collection: typeof localCollections[0]) => {
     setFormData({
       name: collection.name,
       description: collection.description || "",
@@ -117,9 +142,10 @@ export default function CollectionsPage() {
   return (
     <MainLayout>
       <PageSEO title="Coleções" description="Organize seus produtos favoritos em coleções personalizadas." path="/colecoes" />
-      <div className="space-y-6 animate-fade-in">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+        
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
             <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
               Minhas Coleções
@@ -146,6 +172,57 @@ export default function CollectionsPage() {
           </div>
         </div>
 
+        {/* KPI Stat Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="stat-card flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Cloud className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold text-foreground">{externalCollections.length}</p>
+              <p className="text-xs text-muted-foreground">Sincronizadas</p>
+            </div>
+          </div>
+          <div className="stat-card flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <FolderHeart className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold text-foreground">{localCollections.length}</p>
+              <p className="text-xs text-muted-foreground">Locais</p>
+            </div>
+          </div>
+          <div className="stat-card flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Star className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold text-foreground">{featuredCount}</p>
+              <p className="text-xs text-muted-foreground">Destaques</p>
+            </div>
+          </div>
+          <div className="stat-card flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+              <Package className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-display font-bold text-foreground">{totalLocalProducts}</p>
+              <p className="text-xs text-muted-foreground">Produtos Locais</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar coleções..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
         {/* External Collections (BD Promobrind) */}
         {(externalCollections.length > 0 || isLoadingExternal) && (
           <div className="space-y-3">
@@ -165,15 +242,15 @@ export default function CollectionsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {externalCollections.map((collection) => (
+                {filteredExternal.map((collection) => (
                   <div
                     key={collection.id}
-                    className="group relative card-interactive p-4 cursor-pointer border-primary/20"
+                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300"
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     {/* Badge sync */}
-                    <div className="absolute top-2 left-2 z-10">
-                      <Badge variant="outline" className="text-xs bg-background/80">
+                    <div className="absolute top-3 left-3 z-10">
+                      <Badge variant="outline" className="text-xs bg-background/80 backdrop-blur-sm">
                         <Cloud className="h-3 w-3 mr-1" />
                         Sync
                       </Badge>
@@ -181,41 +258,48 @@ export default function CollectionsPage() {
 
                     {/* Preview */}
                     <div
-                      className="aspect-square rounded-xl overflow-hidden mb-4 flex items-center justify-center"
-                      style={{ backgroundColor: collection.color ? `${collection.color}15` : 'hsl(var(--muted))' }}
+                      className="aspect-[4/3] overflow-hidden flex items-center justify-center relative"
+                      style={{ backgroundColor: collection.color ? `${collection.color}12` : 'hsl(var(--muted))' }}
                     >
                       {collection.image_url ? (
                         <img
                           src={collection.image_url}
                           alt={collection.name}
-                          className="w-full h-full object-cover" loading="lazy" />
-                      ) : (
-                        <FolderOpen
-                          className="h-16 w-16"
-                          style={{ color: collection.color || 'hsl(var(--primary))' }}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                          loading="lazy"
                         />
+                      ) : (
+                        <div className="flex flex-col items-center gap-2">
+                          <FolderOpen
+                            className="h-14 w-14 transition-transform duration-300 group-hover:scale-110"
+                            style={{ color: collection.color || 'hsl(var(--primary))' }}
+                          />
+                        </div>
                       )}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent" />
                     </div>
 
                     {/* Info */}
-                    <div className="flex items-start gap-3">
+                    <div className="p-4 flex items-start gap-3">
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
                         style={{ backgroundColor: collection.color ? `${collection.color}20` : 'hsl(var(--muted))' }}
                       >
                         {collection.icon || "📁"}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
                         {collection.description && (
-                          <p className="text-sm text-muted-foreground line-clamp-1">
+                          <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
                             {collection.description}
                           </p>
                         )}
                         {collection.is_featured && (
-                          <Badge variant="secondary" className="mt-1 text-xs">
+                          <Badge variant="secondary" className="mt-1.5 text-xs bg-primary/10 text-primary border-primary/20">
+                            <Star className="h-3 w-3 mr-1" />
                             Destaque
                           </Badge>
                         )}
@@ -238,26 +322,27 @@ export default function CollectionsPage() {
             </Badge>
           </div>
 
-          {localCollections.length > 0 ? (
+          {filteredLocal.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {localCollections.map((collection) => {
+              {filteredLocal.map((collection) => {
                 const products = getCollectionProducts(collection.id);
                 const previewImages = products.slice(0, 4).map((p) => p.images[0]);
 
                 return (
                   <div
                     key={collection.id}
-                    className="group relative card-interactive p-4 cursor-pointer"
+                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300"
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     {/* Menu */}
-                    <div className="absolute top-2 right-2 z-10">
+                    <div className="absolute top-3 right-3 z-10">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             variant="ghost"
-                            size="icon" aria-label="Mais opções"
-                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            size="icon"
+                            aria-label="Mais opções"
+                            className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-sm hover:bg-background/80"
                             onClick={(e) => e.stopPropagation()}
                           >
                             <MoreVertical className="h-4 w-4" />
@@ -289,11 +374,11 @@ export default function CollectionsPage() {
 
                     {/* Preview images grid */}
                     <div
-                      className="aspect-square rounded-xl overflow-hidden mb-4"
-                      style={{ backgroundColor: `${collection.color}15` }}
+                      className="aspect-[4/3] overflow-hidden relative"
+                      style={{ backgroundColor: `${collection.color}12` }}
                     >
                       {previewImages.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-1 p-2 h-full">
+                        <div className="grid grid-cols-2 gap-1.5 p-3 h-full">
                           {previewImages.map((img, idx) => (
                             <div
                               key={idx}
@@ -302,7 +387,9 @@ export default function CollectionsPage() {
                               <img
                                 src={img}
                                 alt=""
-                                className="w-full h-full object-cover" loading="lazy" />
+                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                                loading="lazy"
+                              />
                             </div>
                           ))}
                           {previewImages.length < 4 &&
@@ -311,33 +398,36 @@ export default function CollectionsPage() {
                               .map((_, idx) => (
                                 <div
                                   key={`empty-${idx}`}
-                                  className="rounded-lg bg-background/30"
+                                  className="rounded-lg bg-background/20"
                                 />
                               ))}
                         </div>
                       ) : (
-                        <div className="flex items-center justify-center h-full">
+                        <div className="flex flex-col items-center justify-center h-full gap-2">
                           <FolderOpen
-                            className="h-16 w-16"
+                            className="h-14 w-14 transition-transform duration-300 group-hover:scale-110"
                             style={{ color: collection.color }}
                           />
+                          <span className="text-xs text-muted-foreground">Sem produtos</span>
                         </div>
                       )}
+                      {/* Gradient overlay */}
+                      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/60 to-transparent" />
                     </div>
 
                     {/* Info */}
-                    <div className="flex items-start gap-3">
+                    <div className="p-4 flex items-start gap-3">
                       <div
                         className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
                         style={{ backgroundColor: `${collection.color}20` }}
                       >
                         {collection.icon}
                       </div>
-                      <div className="min-w-0">
+                      <div className="min-w-0 flex-1">
                         <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
-                        <p className="text-sm text-muted-foreground flex items-center gap-1">
+                        <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
                           <Package className="h-3 w-3" />
                           {collection.productIds.length} produtos
                         </p>
@@ -347,8 +437,18 @@ export default function CollectionsPage() {
                 );
               })}
             </div>
+          ) : localCollections.length > 0 && searchQuery ? (
+            <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+              <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+                Nenhuma coleção encontrada
+              </h3>
+              <p className="text-muted-foreground text-sm">
+                Nenhuma coleção local corresponde a "{searchQuery}"
+              </p>
+            </div>
           ) : (
-            <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed border-border">
+            <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
               <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                 Nenhuma coleção local criada

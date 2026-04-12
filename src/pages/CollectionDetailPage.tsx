@@ -34,7 +34,6 @@ export default function CollectionDetailPage() {
     return getCollectionProducts(id);
   }, [id, getCollectionProducts]);
 
-  // Map productId -> variant info for display
   const variantMap = useMemo(() => {
     if (!id) return new Map();
     const items = getCollectionProductItems(id);
@@ -47,7 +46,6 @@ export default function CollectionDetailPage() {
     return map;
   }, [id, getCollectionProductItems]);
 
-  // Products with variant thumbnails injected
   const productsWithVariant = useMemo(() => {
     return products.map((product) => {
       const variant = variantMap.get(product.id);
@@ -81,9 +79,9 @@ export default function CollectionDetailPage() {
     <>
     <MainLayout>
       <PageSEO title={`Coleção: ${collection.name}`} description={`Explore os produtos da coleção ${collection.name}.`} path={`/colecoes/${id}`} noIndex />
-      <div className="space-y-6 animate-fade-in">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-3">
           <Button
             variant="ghost"
             className="w-fit -ml-2"
@@ -95,7 +93,7 @@ export default function CollectionDetailPage() {
 
           <div className="flex items-start gap-4">
             <div
-              className="w-16 h-16 rounded-xl flex items-center justify-center text-2xl shrink-0"
+              className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl shrink-0 border-[1.5px] border-primary/20"
               style={{ backgroundColor: `${collection.color}20` }}
             >
               {collection.icon}
@@ -107,7 +105,7 @@ export default function CollectionDetailPage() {
               {collection.description && (
                 <p className="text-muted-foreground mt-1">{collection.description}</p>
               )}
-              <Badge variant="secondary" className="mt-2">
+              <Badge variant="secondary" className="mt-2 bg-primary/10 text-primary border-primary/20">
                 <Package className="h-3 w-3 mr-1" />
                 {products.length} produtos
               </Badge>
@@ -141,14 +139,14 @@ export default function CollectionDetailPage() {
             />
 
             {/* Quick remove buttons */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mt-8">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 mt-6">
               {products.map((product) => {
                 const variant = variantMap.get(product.id);
                 const displayImage = variant?.thumbnail || product.images[0];
                 return (
                   <div
                     key={product.id}
-                    className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card"
+                    className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors"
                   >
                     <img
                       src={displayImage}
@@ -187,7 +185,7 @@ export default function CollectionDetailPage() {
             </div>
           </div>
         ) : (
-          <div className="text-center py-16 bg-muted/30 rounded-xl border border-dashed border-border">
+          <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
             <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="font-display text-lg font-semibold text-foreground mb-2">
               Coleção vazia
