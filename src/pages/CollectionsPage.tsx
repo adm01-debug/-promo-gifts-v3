@@ -16,7 +16,14 @@ import { getDefaultColumns, type ColumnCount } from "@/components/products/Colum
 import type { ViewMode } from "@/hooks/useCatalogState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
