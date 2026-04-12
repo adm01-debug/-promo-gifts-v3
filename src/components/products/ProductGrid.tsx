@@ -80,7 +80,7 @@ export function ProductGrid({
   onToggleCompare,
   canAddToCompare = true,
   highlightColors,
-  hideCategoryBadges = true,
+  hideCategoryBadges = false,
   activeColorFilter,
   columns = 5,
 }: ProductGridProps) {
