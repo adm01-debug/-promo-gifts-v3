@@ -71,15 +71,15 @@ export function ExpiringNoveltiesWidget() {
   return (
     <div className="space-y-3">
       {/* + Recentes widget */}
-      <Card className="border-orange/30 bg-gradient-to-br from-orange/5 to-transparent">
+      <Card className="border-success/40 bg-gradient-to-br from-success/10 via-success/5 to-transparent shadow-[0_0_20px_hsl(var(--success)/0.15)] ring-1 ring-success/20">
         <CardHeader className="pb-1.5 px-3 pt-3">
           <CardTitle className="text-sm flex items-center gap-1.5">
-            <Flame className="h-4 w-4 text-orange animate-pulse" />
-            + Recentes
+            <Flame className="h-4 w-4 text-success animate-pulse drop-shadow-[0_0_6px_hsl(var(--success)/0.6)]" />
+            <span className="text-success font-bold">+ Recentes</span>
             {recentItems.length > 0 && (
               <Badge 
                 variant="secondary" 
-                className="bg-orange/20 text-orange text-[9px] tabular-nums px-1 py-0"
+                className="bg-success/20 text-success border border-success/30 text-[9px] tabular-nums px-1.5 py-0 font-bold"
               >
                 {recentItems.length}
               </Badge>
@@ -97,18 +97,18 @@ export function ExpiringNoveltiesWidget() {
             <ScrollArea className="h-auto max-h-[280px]">
               <div className="space-y-1">
                 {recentItems.map((item, idx) => {
-                  const isVeryNew = idx < 3;
-                  const variant = getRecencyVariant(item.detected_at);
-                  return (
-                    <div
-                      key={item.novelty_id}
-                      className={cn(
-                        "group flex items-center gap-2 p-1.5 rounded-md cursor-pointer",
-                        "hover:bg-accent/50 transition-all duration-150",
-                        isVeryNew 
-                          ? "border border-orange/15 hover:border-orange/30" 
-                          : "border border-transparent",
-                      )}
+                   const isVeryNew = idx < 3;
+                   const variant = getRecencyVariant(item.detected_at);
+                   return (
+                     <div
+                       key={item.novelty_id}
+                       className={cn(
+                         "group flex items-center gap-2 p-1.5 rounded-md cursor-pointer",
+                         "hover:bg-success/10 transition-all duration-150",
+                         isVeryNew 
+                           ? "border border-success/20 hover:border-success/40 bg-success/5" 
+                           : "border border-transparent",
+                       )}
                       onClick={() => handleClick(item.product_id)}
                     >
                       <div className="shrink-0 w-8 h-8 rounded bg-muted overflow-hidden relative">
@@ -125,7 +125,7 @@ export function ExpiringNoveltiesWidget() {
                         )}
                         {isVeryNew && (
                           <div className="absolute -top-0.5 -right-0.5">
-                            <Flame className="h-2.5 w-2.5 text-orange drop-shadow-sm" />
+                            <Flame className="h-2.5 w-2.5 text-success drop-shadow-[0_0_4px_hsl(var(--success)/0.5)]" />
                           </div>
                         )}
                       </div>
