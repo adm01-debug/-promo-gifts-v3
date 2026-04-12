@@ -47,17 +47,25 @@ function SortableProductItem({
   product,
   variant,
   onRemove,
+  isSelected,
+  onToggleSelect,
 }: {
   product: any;
   variant?: { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null };
   onRemove: () => void;
+  isSelected: boolean;
+  onToggleSelect: () => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
   const displayImage = variant?.thumbnail || product.images?.[0];
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors">
+    <div ref={setNodeRef} style={style} className={cn(
+      "flex items-center gap-3 p-3 rounded-xl border-[1.5px] bg-card transition-colors",
+      isSelected ? "border-primary/50 bg-primary/5" : "border-primary/15 hover:border-primary/30"
+    )}>
+      <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} aria-label="Selecionar" />
       <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
         <GripVertical className="h-4 w-4" />
       </button>
