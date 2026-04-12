@@ -86,7 +86,7 @@ export function EditUserDialog({ user, onClose, onSave, onUploadAvatar, onRemove
                 htmlFor="avatar-upload"
                 className="absolute inset-0 flex items-center justify-center bg-black/50 rounded-full opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
               >
-                {isUploading ? <Loader2 className="h-5 w-5 animate-spin text-white" /> : <Camera className="h-5 w-5 text-white" />}
+                {isUploading ? <Loader2 className="h-5 w-5 animate-spin text-primary-foreground" /> : <Camera className="h-5 w-5 text-primary-foreground" />}
               </label>
               <input id="avatar-upload" type="file" accept="image/*" className="hidden" onChange={handleUpload} disabled={isUploading} />
             </div>

@@ -55,7 +55,7 @@ export function ColorEmojiPicker({
               style={{ backgroundColor: c }}
             >
               {color === c && (
-                <Check className="h-3.5 w-3.5 text-white mx-auto" />
+                <Check className="h-3.5 w-3.5 text-primary-foreground mx-auto" />
               )}
             </button>
           ))}
