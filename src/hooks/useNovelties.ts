@@ -77,6 +77,8 @@ interface RawProduct {
   category_id: string | null;
   supplier_id: string | null;
   created_at: string;
+  stock_quantity: number | null;
+  min_quantity: number | null;
 }
 
 interface CategoryRecord { id: string; name: string; }
@@ -127,6 +129,9 @@ async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<Novelty
 function toNovelty(p: RawProduct): NoveltyWithDetails {
   const daysRemaining = calcDaysRemaining(p.created_at);
   const expiresAt = new Date(new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000).toISOString();
+  const stock = p.stock_quantity ?? 0;
+  const minQty = p.min_quantity ?? 10;
+  const stockStatus: NoveltyWithDetails['stock_status'] = stock === 0 ? 'out-of-stock' : stock < minQty ? 'low-stock' : 'in-stock';
   
   return {
     novelty_id: p.id,
@@ -148,6 +153,9 @@ function toNovelty(p: RawProduct): NoveltyWithDetails {
     status: daysRemaining <= 0 ? 'expired' : daysRemaining <= 7 ? 'expiring_soon' : 'active',
     is_highlighted: daysRemaining >= 25,
     is_active: daysRemaining > 0,
+    stock_quantity: stock,
+    min_quantity: minQty,
+    stock_status: stockStatus,
   };
 }
 
