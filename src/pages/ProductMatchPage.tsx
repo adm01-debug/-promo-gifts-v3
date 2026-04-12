@@ -1,297 +1,23 @@
 /**
  * ProductMatchPage — "Match" tool for sellers.
  * Side-by-side layout: selected product on the left, matches on the right.
- * v2: Filters extracted to MatchFiltersPanel.
+ * v3: Sub-components extracted to product-match/ folder.
  */
 import { useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { MainLayout } from '@/components/layout/MainLayout';
 import { PageSEO } from '@/components/seo/PageSEO';
-
 import { useProducts, type Product } from '@/hooks/useProducts';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useProductMatch, type MatchFilters, type MatchResult } from '@/hooks/useProductMatch';
 import { MOCK_MATCH_PRODUCTS } from '@/data/mock-match-products';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { MatchFiltersPanel } from './product-match/MatchFiltersPanel';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { ProductSearchPanel } from './product-match/ProductSearchPanel';
+import { SelectedProductCard, MatchCard, MATCH_TYPE_CONFIG } from './product-match/MatchCards';
 import { cn } from '@/lib/utils';
-import {
-  Search,
-  Target,
-  Package,
-  Layers,
-  ExternalLink,
-  Zap,
-  Users,
-  Tag,
-  Sparkles,
-  Link2,
-  Equal,
-  FileText,
-} from 'lucide-react';
-import { getCdnUrl } from '@/utils/image-utils';
-import { createProductFuseOptions, dedupeById, rankProductSearchResults } from '@/utils/product-search';
-import Fuse from 'fuse.js';
-
-const MATCH_TYPE_CONFIG = {
-  identical: { label: 'Idêntico', icon: Equal, color: 'bg-primary text-primary-foreground' },
-  similar: { label: 'Semelhante', icon: Layers, color: 'bg-info text-info-foreground' },
-  complementary: { label: 'Complementar', icon: Link2, color: 'bg-warning text-warning-foreground' },
-} as const;
-
-function formatPrice(value: number) {
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
-}
-
-function ProductSearchPanel({
-  products,
-  onSelect,
-  selectedId,
-}: {
-  products: Product[];
-  onSelect: (p: Product) => void;
-  selectedId?: string;
-}) {
-  const [search, setSearch] = useState('');
-  const debouncedSearch = useDebounce(search, 250);
-
-  const { data: remoteProducts = [], isFetching: isRemoteSearching } = useProducts(
-    { search: debouncedSearch.trim(), limit: 120 },
-    {
-      enabled: debouncedSearch.trim().length >= 2,
-      staleTime: 60_000,
-    }
-  );
-
-  const fuse = useMemo(
-    () =>
-      new Fuse(
-        products,
-        createProductFuseOptions<Product>({
-          threshold: 0.35,
-          minMatchCharLength: 2,
-        })
-      ),
-    [products]
-  );
-
-  const filtered = useMemo(() => {
-    const query = search.trim();
-    if (!query) return products.slice(0, 50);
-
-    const localRanked = rankProductSearchResults(products, query, fuse, { limit: 50 });
-    const merged = dedupeById([...localRanked, ...remoteProducts]);
-
-    return rankProductSearchResults(merged, query, undefined, { limit: 50 });
-  }, [search, products, fuse, remoteProducts]);
-
-  return (
-    <div className="space-y-3">
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar produto por nome ou código..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
-      {search.trim().length >= 2 && isRemoteSearching && (
-        <p className="text-[10px] text-muted-foreground">Buscando no catálogo completo…</p>
-      )}
-      <ScrollArea className="h-[calc(100vh-22rem)]">
-        <div className="space-y-1.5 pr-3">
-          {filtered.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => onSelect(p)}
-              className={cn(
-                'w-full flex items-center gap-3 p-2.5 rounded-lg text-left transition-all border',
-                selectedId === p.id
-                  ? 'bg-primary/10 border-primary/40 shadow-sm'
-                  : 'bg-card/50 border-border/30 hover:bg-accent/50 hover:border-border/60'
-              )}
-            >
-              <img
-                src={getCdnUrl(p.images?.[0] || p.image_url || '/placeholder.svg', 'thumbnail')}
-                alt={p.name}
-                className="w-10 h-10 rounded-md object-cover bg-muted shrink-0" loading="lazy" />
-              <div className="min-w-0 flex-1">
-                <p className="text-xs font-semibold text-foreground truncate">{p.name}</p>
-                <p className="text-[10px] text-muted-foreground">{p.sku} • {formatPrice(p.price)}</p>
-              </div>
-              {selectedId === p.id && <Target className="h-4 w-4 text-primary shrink-0" />}
-            </button>
-          ))}
-          {filtered.length === 0 && !(search.trim().length >= 2 && isRemoteSearching) && (
-            <p className="text-xs text-muted-foreground text-center py-6">Nenhum produto encontrado</p>
-          )}
-        </div>
-      </ScrollArea>
-    </div>
-  );
-}
-
-function SelectedProductCard({ product }: { product: Product }) {
-  const navigate = useNavigate();
-  return (
-    <Card className="border-primary/30 bg-gradient-to-br from-primary/5 to-transparent">
-      <CardContent className="p-4 space-y-3">
-        <div className="flex items-start gap-3">
-          <img
-            src={getCdnUrl(product.images?.[0] || product.image_url || '/placeholder.svg', 'small')}
-            alt={product.name}
-            className="w-20 h-20 rounded-lg object-cover bg-muted shrink-0" loading="lazy" />
-          <div className="min-w-0 flex-1 space-y-1">
-            <h3 className="font-display text-sm font-bold text-foreground leading-tight">{product.name}</h3>
-            <p className="text-[11px] text-muted-foreground">SKU: {product.sku}</p>
-            <p className="text-sm font-semibold text-foreground">{formatPrice(product.price)}</p>
-            <div className="flex flex-wrap gap-1 pt-1">
-              {product.category?.name && (
-                <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{product.category.name}</Badge>
-              )}
-              {product.supplier?.name && (
-                <Badge variant="outline" className="text-[10px] px-1.5 py-0">{product.supplier.name}</Badge>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Tags summary */}
-        {product.tags && (
-          <div className="space-y-1.5">
-            {product.tags.publicoAlvo?.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Users className="h-3 w-3 text-primary shrink-0" />
-                {product.tags.publicoAlvo.map(t => (
-                  <Badge key={t} variant="secondary" className="text-[9px] px-1.5 py-0">{t}</Badge>
-                ))}
-              </div>
-            )}
-            {product.tags.nicho?.length > 0 && (
-              <div className="flex items-center gap-1.5 flex-wrap">
-                <Tag className="h-3 w-3 text-accent-foreground shrink-0" />
-                {product.tags.nicho.map(t => (
-                  <Badge key={t} variant="secondary" className="text-[9px] px-1.5 py-0">{t}</Badge>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        <Button
-          variant="ghost"
-          size="sm"
-          className="w-full text-xs gap-1.5"
-          onClick={() => navigate(`/produto/${product.id}`)}
-        >
-          <ExternalLink className="h-3.5 w-3.5" />
-          Ver detalhes
-        </Button>
-      </CardContent>
-    </Card>
-  );
-}
-
-function MatchCard({ match, onNavigate }: { match: MatchResult; onNavigate: (id: string) => void }) {
-  const navigate = useNavigate();
-  const config = MATCH_TYPE_CONFIG[match.matchType];
-  const Icon = config.icon;
-
-  const handleAddToQuote = () => {
-    const p = match.product;
-    const params = new URLSearchParams({
-      product_id: p.id,
-      product_name: p.name,
-      product_sku: p.sku || '',
-      product_price: String(p.price),
-      min_quantity: String(p.minQuantity || 1),
-      ...(p.image_url ? { product_image: p.image_url } : {}),
-    });
-    navigate(`/orcamentos/novo?${params.toString()}`);
-  };
-
-  return (
-    <Card className="border-border/40 hover:border-border/80 hover:shadow-md transition-all group">
-      <CardContent className="p-3 flex items-start gap-3">
-        <img
-          src={getCdnUrl(match.product.images?.[0] || match.product.image_url || '/placeholder.svg', 'small')}
-          alt={match.product.name}
-          className="w-16 h-16 rounded-lg object-cover bg-muted shrink-0" loading="lazy" />
-        <div className="min-w-0 flex-1 space-y-1">
-          <div className="flex items-start justify-between gap-2">
-            <div className="min-w-0 flex-1">
-              <h4 className="text-xs font-bold text-foreground truncate">{match.product.name}</h4>
-              <p className="text-[10px] text-muted-foreground">{match.product.sku} • {formatPrice(match.product.price)}</p>
-            </div>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Badge className={cn('text-[9px] px-1.5 py-0 gap-0.5', config.color)}>
-                <Icon className="h-2.5 w-2.5" />
-                {config.label}
-              </Badge>
-              <Badge variant="outline" className="text-[9px] px-1.5 py-0 font-mono">
-                {match.score}pts
-              </Badge>
-            </div>
-          </div>
-
-          {/* Reasons */}
-          <div className="flex flex-wrap gap-1">
-            {match.reasons.map((reason, i) => (
-              <span key={i} className="inline-flex items-center text-[9px] text-muted-foreground bg-secondary/50 px-1.5 py-0.5 rounded">
-                {reason}
-              </span>
-            ))}
-          </div>
-
-          {/* Category + Supplier */}
-          <div className="flex items-center gap-2 text-[10px] text-muted-foreground">
-            {match.product.category?.name && <span>{match.product.category.name}</span>}
-            {match.product.supplier?.name && (
-              <>
-                <span className="text-border">•</span>
-                <span>{match.product.supplier.name}</span>
-              </>
-            )}
-            {match.product.colors?.length > 0 && (
-              <>
-                <span className="text-border">•</span>
-                <span>{match.product.colors.length} cores</span>
-              </>
-            )}
-          </div>
-
-          {/* Action buttons */}
-          <div className="flex items-center gap-1.5 pt-1">
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-6 text-[10px] gap-1 px-2"
-              onClick={handleAddToQuote}
-            >
-              <FileText className="h-3 w-3" />
-              Orçamento
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-6 text-[10px] gap-1 px-2"
-              onClick={() => onNavigate(match.product.id)}
-            >
-              <ExternalLink className="h-3 w-3" />
-              Detalhes
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+import { Search, Target, Package, Zap, Sparkles } from 'lucide-react';
 
 export default function ProductMatchPage() {
   const navigate = useNavigate();
@@ -302,13 +28,10 @@ export default function ProductMatchPage() {
     onlyInStock: false,
   });
 
-  // Load all products for matching — fall back to mock data when DB is empty
   const { data: dbProducts = [] } = useProducts({ limit: 500 });
   const allProducts = dbProducts.length > 0 ? dbProducts : MOCK_MATCH_PRODUCTS;
-
   const { matches } = useProductMatch(selectedProduct, allProducts, filters);
 
-  // Derive unique categories and suppliers for filter dropdowns
   const categories = useMemo(() => {
     const cats = new Set<string>();
     allProducts.forEach(p => p.category?.name && cats.add(p.category.name));
@@ -321,7 +44,6 @@ export default function ProductMatchPage() {
     return [...sups].sort();
   }, [allProducts]);
 
-  // Stats
   const stats = useMemo(() => {
     const byType = { identical: 0, similar: 0, complementary: 0 };
     matches.forEach(m => byType[m.matchType]++);
@@ -388,7 +110,7 @@ export default function ProductMatchPage() {
           )}
         </div>
 
-        {/* Main grid: Search | Selected + Filters | Matches */}
+        {/* Main grid */}
         <div className="grid grid-cols-1 lg:grid-cols-[280px_300px_1fr] gap-4 xl:gap-5">
           {/* Column 1: Product search */}
           <div className="space-y-3">
@@ -413,13 +135,7 @@ export default function ProductMatchPage() {
             {selectedProduct ? (
               <>
                 <SelectedProductCard product={selectedProduct} />
-
-                <MatchFiltersPanel
-                  filters={filters}
-                  setFilters={setFilters}
-                  categories={categories}
-                  suppliers={suppliers}
-                />
+                <MatchFiltersPanel filters={filters} setFilters={setFilters} categories={categories} suppliers={suppliers} />
               </>
             ) : (
               <Card className="border-dashed border-border/40">
