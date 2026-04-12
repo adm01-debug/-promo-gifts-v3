@@ -86,7 +86,7 @@ export function TechniquesPanel() {
       impression: "bg-info/10 text-info border-info/20",
       engraving: "bg-warning/10 text-warning border-warning/20",
       textile: "bg-primary/10 text-primary border-primary/20",
-      embroidery: "bg-primary/10 text-primary border-pink-500/20",
+      embroidery: "bg-primary/10 text-primary border-primary/20",
       transfer: "bg-success/10 text-success border-success/20",
     };
     return colors[categoria] || "bg-muted text-muted-foreground";

@@ -138,7 +138,7 @@ export function ChatMessageList({
                         isActive ? "opacity-100" : "opacity-0 group-hover/msg:opacity-100")}>
                         <button onClick={() => onCopy(id, message.content)}
                           className={cn("p-1.5 rounded-lg transition-all duration-150",
-                            isCopied ? "text-emerald-500" : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50")}
+                            isCopied ? "text-success" : "text-muted-foreground/50 hover:text-foreground hover:bg-muted/50")}
                           title={isCopied ? "Copiado!" : "Copiar"} aria-label="Copiar mensagem">
                           {isCopied ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
                         </button>

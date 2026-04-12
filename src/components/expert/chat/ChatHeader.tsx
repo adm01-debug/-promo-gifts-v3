@@ -29,7 +29,7 @@ export function ChatHeader({
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center">
               <Bot className="h-5 w-5 text-primary" />
             </div>
-            <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-emerald-500 border-[1.5px] border-background" />
+            <div className="absolute -bottom-0.5 -right-0.5 h-2.5 w-2.5 rounded-full bg-success border-[1.5px] border-background" />
           </div>
           <div>
             <DialogTitle className="text-base font-display font-semibold tracking-tight flex items-center gap-1.5">
