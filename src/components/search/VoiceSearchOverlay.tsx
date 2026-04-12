@@ -48,12 +48,12 @@ const SUGGESTION_COMMANDS = [
   "Abre os orçamentos",
 ];
 const ACTION_META: Record<string, { icon: React.ElementType; label: string; color: string }> = {
-  search: { icon: Search, label: "Busca", color: "text-blue-400" },
-  filter: { icon: Filter, label: "Filtro", color: "text-purple-400" },
-  navigate: { icon: Navigation, label: "Navegação", color: "text-emerald-400" },
-  sort: { icon: ArrowUpDown, label: "Ordenação", color: "text-amber-400" },
-  clear: { icon: Trash2, label: "Limpar", color: "text-red-400" },
-  answer: { icon: HelpCircle, label: "Resposta", color: "text-cyan-400" },
+  search: { icon: Search, label: "Busca", color: "text-primary" },
+  filter: { icon: Filter, label: "Filtro", color: "text-accent-foreground" },
+  navigate: { icon: Navigation, label: "Navegação", color: "text-success" },
+  sort: { icon: ArrowUpDown, label: "Ordenação", color: "text-orange" },
+  clear: { icon: Trash2, label: "Limpar", color: "text-destructive" },
+  answer: { icon: HelpCircle, label: "Resposta", color: "text-secondary-foreground" },
 };
 
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
