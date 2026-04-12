@@ -399,6 +399,37 @@ export function useCollections() {
     [collections]
   );
 
+  const reorderProducts = useCallback(
+    (collectionId: string, orderedProductIds: string[]) => {
+      setCollections((prev) =>
+        prev.map((col) => {
+          if (col.id !== collectionId) return col;
+          const itemMap = new Map(col.productItems.map((item) => [item.productId, item]));
+          const reordered = orderedProductIds
+            .map((pid) => itemMap.get(pid))
+            .filter(Boolean) as CollectionProductItem[];
+          return {
+            ...col,
+            productIds: reordered.map((i) => i.productId),
+            productItems: reordered,
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
+
+      // Persist sort_order to DB
+      orderedProductIds.forEach((pid, idx) => {
+        supabase
+          .from("collection_items")
+          .update({ sort_order: idx })
+          .eq("collection_id", collectionId)
+          .eq("product_id", pid)
+          .then();
+      });
+    },
+    []
+  );
+
   return {
     collections,
     isLoaded,
@@ -408,6 +439,7 @@ export function useCollections() {
     addProductToCollection,
     removeProductFromCollection,
     addProductToMultipleCollections,
+    reorderProducts,
     getCollectionProductsFromMap,
     getCollectionProductItems,
     getCollectionProductVariant,
