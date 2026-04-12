@@ -20,10 +20,11 @@ import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useGlobalSearch } from "./useGlobalSearch";
 import { typeConfig } from "./search-types";
+import { GlobalSearchIdleState } from "./GlobalSearchIdleState";
 
 const LazyVoiceOverlay = lazy(() => import("./VoiceSearchOverlayConnected"));
 
-/* ── Quick Actions ── */
+/* ── Quick Actions (passed to idle state) ── */
 const quickActions = [
   { id: "new-quote", title: "Novo Orçamento", description: "Criar um novo orçamento", icon: <FileText className="h-4 w-4" />, href: "/orcamentos/novo", shortcut: "N", highlight: true },
   { id: "products", title: "Catálogo de Produtos", description: "Ver todos os produtos", icon: <Package className="h-4 w-4" />, href: "/" },
@@ -320,151 +321,17 @@ export function GlobalSearchPalette() {
           {/* ── IDLE STATE (no search query) ──      */}
           {/* ═══════════════════════════════════════ */}
           {s.query.length < 2 && !s.isSearching && (
-            <>
-              {/* ── Buscas Recentes ── */}
-              {s.history.length > 0 && (
-                <div className="animate-in fade-in-0 duration-200">
-                  <SectionHeader icon={<Clock />} label="Recentes" count={s.history.length} gradient="[background-color:hsl(var(--command-accent))]" />
-                  <div className="space-y-0.5 px-2">
-                    {s.history.slice(0, 4).map((term, i) => (
-                      <CommandItem
-                        key={`h-${i}`}
-                        value={`history-${term}`}
-                        onSelect={() => s.handleSuggestionClick(term)}
-                        className={cn("flex items-center gap-3.5 py-2.5 rounded-xl px-3 group animate-in fade-in-0 slide-in-from-left-2 duration-200", paletteItemStateClass)}
-                        style={staggerStyle(i)}
-                      >
-                        <div className="h-9 w-9 rounded-xl [background-color:hsl(var(--command-accent))] flex items-center justify-center shrink-0 group-data-[selected=true]:[background-color:hsl(var(--command-accent-strong))]">
-                          <Clock className="h-4 w-4 [color:hsl(var(--command-text-subtle))]" />
-                        </div>
-                        <span className="flex-1 text-[13px] truncate">{term}</span>
-                        <button
-                          onClick={e => s.handleRemoveFromHistory(e, term)}
-                          aria-label={`Remover "${term}" do histórico`}
-                          className="opacity-0 group-hover:opacity-100 group-data-[selected=true]:opacity-100 h-7 w-7 flex items-center justify-center hover:bg-destructive/10 rounded-lg transition-all"
-                        >
-                          <X className="h-3 w-3 [color:hsl(var(--command-text-subtle))] hover:text-destructive" aria-hidden="true" />
-                        </button>
-                      </CommandItem>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Produtos Populares ── */}
-              {s.popularProducts.length > 0 && (
-                <div className="animate-in fade-in-0 duration-300" style={{ animationDelay: '80ms' }}>
-                  <SectionHeader icon={<Flame />} label="Mais Populares" count={s.popularProducts.length} gradient="bg-gradient-to-br from-orange/15 to-orange/5" />
-                  <div className="space-y-1 px-2">
-                    {s.popularProducts.map((product, idx) => (
-                      <CommandItem
-                        key={`pop-${product.id}`}
-                        value={`popular-${product.name}`}
-                        onSelect={() => s.handleSelect(`/produto/${product.id}`, false)}
-                        className={cn(
-                          "flex items-center gap-3.5 py-3 rounded-xl px-3 animate-in fade-in-0 slide-in-from-bottom-1 duration-200",
-                          paletteItemStateClass,
-                          idx === 0 && "bg-gradient-to-r from-orange/[0.06] to-transparent border border-orange/10"
-                        )}
-                        style={staggerStyle(idx, 100)}
-                      >
-                        <RankBadge index={idx} />
-                        <div className="flex-1 min-w-0">
-                          <p className={cn("text-[13px] truncate", idx === 0 ? "font-bold" : "font-medium")}>{product.name}</p>
-                          <div className="flex items-center gap-2 mt-1">
-                            <span className="text-[10px] [color:hsl(var(--command-text-subtle))] font-mono [background-color:hsl(var(--command-accent))] px-1.5 py-0.5 rounded">{product.sku}</span>
-                            <div className="flex items-center gap-1 text-[10px] [color:hsl(var(--command-text-subtle))]">
-                              <Eye className="h-3 w-3" />
-                              <span>{product.view_count}</span>
-                            </div>
-                          </div>
-                        </div>
-                        {idx === 0 ? (
-                          <Badge className="shrink-0 text-[10px] h-6 rounded-lg bg-gradient-to-r from-orange/20 to-orange/10 text-orange border-orange/20 hover:bg-orange/25 font-semibold shadow-sm shadow-orange/10">
-                            🔥 Top 1
-                          </Badge>
-                        ) : (
-                          <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
-                        )}
-                      </CommandItem>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Sugestões Contextuais — pill chips ── */}
-              {s.contextualSuggestions.length > 0 && (
-                <div className="animate-in fade-in-0 duration-300" style={{ animationDelay: '160ms' }}>
-                  <SectionHeader
-                    icon={<Sparkles />}
-                    label={s.routeContext.section === "products" ? "Para o Catálogo" : s.routeContext.section === "quotes" ? "Para Orçamentos" : "Sugestões"}
-                    gradient="bg-gradient-to-br from-primary/12 to-primary/4"
-                  />
-                  <div className="flex flex-wrap gap-2 px-4 pb-2" role="group" aria-label="Sugestões contextuais">
-                    {s.contextualSuggestions.slice(0, 6).map((sug, i) => (
-                      <motion.button
-                        key={sug.id}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ duration: 0.15, delay: 0.2 + i * 0.04 }}
-                        onClick={() => s.handleSuggestionClick(sug.text)}
-                        aria-label={`Buscar ${sug.text}`}
-                        whileHover={{ scale: 1.04 }}
-                        whileTap={{ scale: 0.96 }}
-                        className={cn(
-                          "inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all duration-150 shadow-sm",
-                          sug.type === "filter" && "bg-gradient-to-r from-primary/8 to-primary/4 hover:from-primary/15 hover:to-primary/8 text-primary/80 hover:text-primary border border-primary/15 hover:border-primary/30",
-                          sug.type === "navigation" && "[background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] text-foreground border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))]",
-                          sug.type === "action" && "bg-gradient-to-r from-orange/8 to-orange/4 hover:from-orange/15 hover:to-orange/8 text-orange/80 hover:text-orange border border-orange/15 hover:border-orange/30",
-                          sug.type === "search" && "[background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] [color:hsl(var(--command-text-muted))] hover:text-foreground border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))]",
-                        )}
-                      >
-                        <span className="text-sm leading-none">{sug.icon}</span>
-                        <span>{sug.text}</span>
-                      </motion.button>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* ── Atalhos Rápidos — compact pills ── */}
-              <div className="animate-in fade-in-0 duration-300" style={{ animationDelay: '240ms' }}>
-                <SectionHeader icon={<Zap />} label="Atalhos" gradient="bg-gradient-to-br from-orange/12 to-orange/4" />
-                <div className="flex flex-wrap gap-2 px-4 pb-2" role="group" aria-label="Atalhos rápidos">
-                  {s.quickSuggestions.map((qs, i) => (
-                    <motion.button
-                      key={`q-${i}`}
-                      initial={{ opacity: 0, scale: 0.9 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.15, delay: 0.28 + i * 0.03 }}
-                      onClick={() => s.handleSuggestionClick(qs.label)}
-                      aria-label={`Buscar ${qs.label}`}
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="inline-flex items-center gap-2 px-3 py-1.5 [background-color:hsl(var(--command-surface-raised))] hover:[background-color:hsl(var(--command-surface-soft))] rounded-xl text-xs font-medium [color:hsl(var(--command-text-muted))] hover:text-foreground transition-all duration-150 border [border-color:hsl(var(--command-border))] hover:[border-color:hsl(var(--command-border-strong))] hover:shadow-sm"
-                    >
-                      <span className="text-sm leading-none opacity-70">{qs.icon}</span>
-                      <span>{qs.label}</span>
-                    </motion.button>
-                  ))}
-                </div>
-              </div>
-
-              {/* ── Ir Para — 2-column navigation grid ── */}
-              <div className="pb-2 animate-in fade-in-0 duration-300" style={{ animationDelay: '320ms' }}>
-                <SectionHeader icon={<Compass />} label="Ir Para" count={quickActions.length} gradient="bg-gradient-to-br from-primary/10 to-primary/4" />
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 px-2">
-                  {quickActions.map((action, i) => (
-                    <NavCard
-                      key={action.id}
-                      action={action}
-                      index={i}
-                      onSelect={(href) => s.handleSelect(href, false)}
-                    />
-                  ))}
-                </div>
-              </div>
-            </>
+            <GlobalSearchIdleState
+              history={s.history}
+              popularProducts={s.popularProducts}
+              contextualSuggestions={s.contextualSuggestions}
+              quickSuggestions={s.quickSuggestions}
+              routeContext={s.routeContext}
+              quickActionsData={quickActions}
+              onSuggestionClick={s.handleSuggestionClick}
+              onSelect={s.handleSelect}
+              onRemoveFromHistory={s.handleRemoveFromHistory}
+            />
           )}
         </CommandList>
 

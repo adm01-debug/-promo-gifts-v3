@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
-import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
+import { useExpertChatTts } from "./useExpertChatTts";
 import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertConversations";
 import {
   FlowFilterState,
@@ -60,19 +60,13 @@ export function useExpertChat({
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [playingTtsId, setPlayingTtsId] = useState<string | null>(null);
-  const [pausedTtsId, setPausedTtsId] = useState<string | null>(null);
-  const [loadingTtsId, setLoadingTtsId] = useState<string | null>(null);
-  const [ttsErrorId, setTtsErrorId] = useState<string | null>(null);
+  const tts = useExpertChatTts();
   const [isFromVoice, setIsFromVoice] = useState(false);
   const isFromVoiceRef = useRef(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [showScrollDown, setShowScrollDown] = useState(false);
   const [lastUserInput, setLastUserInput] = useState("");
   const [thinkingMessage, setThinkingMessage] = useState("");
-  const ttsStopRef = useRef<(() => void) | null>(null);
-  const ttsPauseRef = useRef<(() => void) | null>(null);
-  const ttsResumeRef = useRef<(() => void) | null>(null);
   const abortControllerRef = useRef<AbortController | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [historySearch, setHistorySearch] = useState("");
@@ -268,39 +262,8 @@ export function useExpertChat({
     if (!isOpen) { initialMessageSentRef.current = false; setIsFromVoice(false); isFromVoiceRef.current = false; }
   }, [isOpen, initialMessage, isLoading]);
 
-  // TTS
-  const handlePlayTts = useCallback(async (messageId: string, text: string) => {
-    if (pausedTtsId === messageId && ttsResumeRef.current) {
-      ttsResumeRef.current(); setPausedTtsId(null); setPlayingTtsId(messageId); return;
-    }
-    if (ttsStopRef.current) {
-      ttsStopRef.current(); ttsStopRef.current = null; ttsPauseRef.current = null; ttsResumeRef.current = null;
-      if (playingTtsId === messageId) { setPlayingTtsId(null); setPausedTtsId(null); return; }
-    }
-    setPausedTtsId(null); setLoadingTtsId(messageId); setTtsErrorId(null);
-    try {
-      const { promise, stop, pause, resume } = playTtsAudio(text, { onStart: () => { setLoadingTtsId(null); setPlayingTtsId(messageId); } });
-      ttsStopRef.current = stop; ttsPauseRef.current = pause; ttsResumeRef.current = resume;
-      await promise;
-    } catch {
-      setTtsErrorId(messageId);
-      toast.error("Não foi possível reproduzir o áudio", { description: "O navegador bloqueou a reprodução. Toque novamente para tentar." });
-    } finally {
-      setPlayingTtsId(null); setPausedTtsId(null); setLoadingTtsId(null);
-      ttsStopRef.current = null; ttsPauseRef.current = null; ttsResumeRef.current = null;
-    }
-  }, [playingTtsId, pausedTtsId]);
-
-  const handlePauseTts = useCallback((messageId: string) => {
-    if (ttsPauseRef.current && playingTtsId === messageId) {
-      ttsPauseRef.current(); setPlayingTtsId(null); setPausedTtsId(messageId);
-    }
-  }, [playingTtsId]);
-
-  const stopTts = useCallback(() => {
-    if (ttsStopRef.current) { ttsStopRef.current(); ttsStopRef.current = null; ttsPauseRef.current = null; ttsResumeRef.current = null; }
-    setPlayingTtsId(null); setPausedTtsId(null);
-  }, []);
+  // TTS — delegated to useExpertChatTts
+  const { handlePlayTts, handlePauseTts, stopTts } = tts;
 
   const startNewConversation = useCallback(() => {
     setMessages([]); setCurrentConversationId(null); setShowHistory(false);
@@ -487,7 +450,7 @@ export function useExpertChat({
     sellerFirstName, conversations, isLoadingConversations,
     currentConversationId, clientId, clientName,
     savingQuoteId, copiedId,
-    playingTtsId, pausedTtsId, loadingTtsId, ttsErrorId,
+    playingTtsId: tts.playingTtsId, pausedTtsId: tts.pausedTtsId, loadingTtsId: tts.loadingTtsId, ttsErrorId: tts.ttsErrorId,
     // Refs
     scrollRef, inputRef,
     // Actions
