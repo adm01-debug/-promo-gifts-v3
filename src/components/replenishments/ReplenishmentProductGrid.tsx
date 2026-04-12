@@ -241,18 +241,17 @@ export function ReplenishmentProductGrid() {
       );
     }
 
-    // Grid
-    const effectiveCols = Math.min(gridColumns, filteredProducts.length) as ColumnCount;
+    // Virtualized Grid
     return (
-      <div className={`grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}`} role="list">
-        {filteredProducts.map((product, index) => (
-          <div key={product.replenishment_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }} role="listitem">
-            <ReplenishmentGridCard product={product} onClick={() => handleProductClick(product.product_id)} selectionMode={selectionMode} isSelected={sel.selectedIds.has(product.product_id)} onToggleSelect={() => sel.toggleSelect(product.product_id)} />
-          </div>
-        ))}
-      </div>
+      <VirtualizedReplenishmentGrid
+        products={filteredProducts}
+        gridColumns={gridColumns}
+        selectionMode={selectionMode}
+        selectedIds={sel.selectedIds}
+        onToggleSelect={sel.toggleSelect}
+        onProductClick={handleProductClick}
+      />
     );
-  };
 
   return (
     <div className="space-y-3">
