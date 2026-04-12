@@ -257,11 +257,8 @@ export default function CollectionsPage() {
         {(externalCollections.length > 0 || isLoadingExternal) && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Cloud className="h-4 w-4 text-primary" />
+              <FolderOpen className="h-4 w-4 text-primary" />
               <h2 className="font-display text-lg font-semibold">Coleções do Catálogo</h2>
-              <Badge variant="secondary" className="text-xs">
-                Sincronizadas
-              </Badge>
             </div>
 
             {isLoadingExternal ? (
