@@ -2,16 +2,17 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare, Cloud,
+  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare, X, ArrowRight, Sparkles,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,12 +74,27 @@ function SortableProductItem({
   const [showNotes, setShowNotes] = useState(!!notes);
 
   return (
-    <div ref={setNodeRef} style={style} className={cn(
-      "flex flex-col gap-2 p-3 rounded-xl border-[1.5px] bg-card transition-colors",
-      isSelected ? "border-primary/50 bg-primary/5" : "border-primary/15 hover:border-primary/30"
-    )}>
+    <motion.div
+      ref={setNodeRef}
+      style={style}
+      layout
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      className={cn(
+        "flex flex-col gap-2 p-3 rounded-xl border-[1.5px] bg-card transition-all duration-200",
+        isSelected
+          ? "border-primary/50 bg-primary/5 shadow-md shadow-primary/10"
+          : "border-primary/15 hover:border-primary/30 hover:shadow-sm"
+      )}
+    >
       <div className="flex items-center gap-3">
-        <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} aria-label="Selecionar" />
+        <div onClick={(e) => e.stopPropagation()}>
+          <SelectionCheckbox
+            checked={isSelected}
+            onChange={onToggleSelect}
+            size="sm"
+          />
+        </div>
         <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
           <GripVertical className="h-4 w-4" />
         </button>
@@ -108,15 +124,24 @@ function SortableProductItem({
           <Trash2 className="h-4 w-4" />
         </Button>
       </div>
-      {showNotes && (
-        <Input
-          placeholder="Nota de venda (ex: cliente gosta deste modelo)..."
-          defaultValue={notes || ""}
-          onBlur={(e) => onNotesChange(e.target.value)}
-          className="text-xs h-8 ml-[76px]"
-        />
-      )}
-    </div>
+      <AnimatePresence>
+        {showNotes && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <Input
+              placeholder="Nota de venda (ex: cliente gosta deste modelo)..."
+              defaultValue={notes || ""}
+              onBlur={(e) => onNotesChange(e.target.value)}
+              className="text-xs h-8 ml-[76px]"
+            />
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 }
 
@@ -219,6 +244,8 @@ export default function CollectionDetailPage() {
     return map;
   }, [id, isExternal, getCollectionProductItems]);
 
+  const isSelectionMode = selectedIds.size > 0;
+
   const toggleSelect = useCallback((pid: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -235,12 +262,34 @@ export default function CollectionDetailPage() {
     );
   }, [products]);
 
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
   const handleBulkRemove = useCallback(() => {
     if (!id || selectedIds.size === 0) return;
     selectedIds.forEach((pid) => removeProductFromCollection(id, pid));
     toast.success(`${selectedIds.size} produto(s) removido(s)`);
     setSelectedIds(new Set());
   }, [id, selectedIds, removeProductFromCollection]);
+
+  const handleBulkQuote = useCallback(() => {
+    if (!collection || selectedIds.size === 0) return;
+    const selectedProducts = products.filter((p) => selectedIds.has(p.id));
+    navigate("/orcamentos/novo", {
+      state: {
+        fromCollection: collection.name,
+        preloadProducts: selectedProducts.map((p) => ({
+          product_id: p.id,
+          product_name: p.name,
+          product_sku: p.sku || null,
+          product_image_url: p.images?.[0] || null,
+          unit_price: p.price || 0,
+          quantity: 1,
+          color_name: variantMap.get(p.id)?.color_name || null,
+          color_hex: variantMap.get(p.id)?.color_hex || null,
+        })),
+      },
+    });
+  }, [collection, selectedIds, products, variantMap, navigate]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -384,12 +433,15 @@ export default function CollectionDetailPage() {
             </Button>
 
             <div className="flex items-start gap-4">
-              <div
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl shrink-0 border-[1.5px] border-primary/20"
                 style={{ backgroundColor: `${collection.color}20` }}
               >
                 {collection.icon}
-              </div>
+              </motion.div>
               <div className="flex-1">
                 <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">
                   {collection.name}
@@ -407,18 +459,24 @@ export default function CollectionDetailPage() {
                       ? "Carregando..."
                       : `${products.length} produtos`}
                   </Badge>
+                  {updatedAgo && (
+                    <span className="text-xs text-muted-foreground flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Atualizado {updatedAgo}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
                 {products.length > 0 && (
                   <>
                     <Button
-                      variant="default"
-                      className="gap-2"
+                      className="gap-2 font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                       onClick={handleCreateQuote}
                     >
                       <FileText className="h-4 w-4" />
                       <span className="hidden sm:inline">Criar Orçamento</span>
+                      <ArrowRight className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
@@ -449,6 +507,96 @@ export default function CollectionDetailPage() {
               </div>
             </div>
           </div>
+
+          {/* ═══ Premium Bulk Selection Bar ═══ */}
+          <AnimatePresence>
+            {isSelectionMode && (
+              <motion.div
+                initial={{ opacity: 0, y: -12, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -12, scale: 0.98 }}
+                transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                className="sticky top-0 z-30 rounded-xl overflow-hidden"
+              >
+                <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-2 border-primary/30 backdrop-blur-xl rounded-xl px-5 py-4">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    {/* Left — Counter */}
+                    <div className="flex items-center gap-3 min-w-0">
+                      <motion.div
+                        className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ type: "spring", stiffness: 600, damping: 25 }}
+                      >
+                        <span className="font-display font-bold text-lg">{selectedIds.size}</span>
+                      </motion.div>
+                      <div className="min-w-0">
+                        <p className="font-display font-bold text-sm text-foreground">
+                          {selectedIds.size} produto{selectedIds.size > 1 ? "s" : ""} selecionado{selectedIds.size > 1 ? "s" : ""}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Da coleção "{collection.name}"
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Right — Actions */}
+                    <div className="flex items-center gap-2">
+                      {selectedIds.size < products.length && (
+                        <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={toggleSelectAll}
+                            className="gap-1.5 text-xs"
+                          >
+                            <CheckSquare className="h-3.5 w-3.5" />
+                            <span className="hidden sm:inline">Selecionar Todos</span>
+                          </Button>
+                        </motion.div>
+                      )}
+
+                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                        <Button
+                          size="default"
+                          className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                          onClick={handleBulkQuote}
+                        >
+                          <FileText className="h-4 w-4" />
+                          Orçamento ({selectedIds.size})
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={handleBulkRemove}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remover
+                        </Button>
+                      </motion.div>
+
+                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={clearSelection}
+                          className="gap-1.5 text-xs"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                          Limpar
+                        </Button>
+                      </motion.div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Search + Sort toolbar */}
           {products.length > 0 && (
@@ -519,10 +667,10 @@ export default function CollectionDetailPage() {
                 <div className="space-y-3">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <div className="flex items-center gap-3">
-                      <Checkbox
+                      <SelectionCheckbox
                         checked={selectedIds.size === products.length && products.length > 0}
-                        onCheckedChange={toggleSelectAll}
-                        aria-label="Selecionar todos"
+                        onChange={toggleSelectAll}
+                        size="md"
                       />
                       <p className="text-sm font-medium text-muted-foreground">
                         {selectedIds.size > 0
@@ -530,17 +678,11 @@ export default function CollectionDetailPage() {
                           : `Gerenciar produtos (${products.length}) — arraste para reordenar`}
                       </p>
                     </div>
-                    {selectedIds.size > 0 && (
-                      <Button variant="destructive" size="sm" onClick={handleBulkRemove} className="gap-1.5">
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Remover {selectedIds.size}
-                      </Button>
-                    )}
                   </div>
                   <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                     <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        {products.map((product) => (
+                        {products.map((product, idx) => (
                           <SortableProductItem
                             key={product.id}
                             product={product}
