@@ -161,13 +161,26 @@ export function ReplenishmentProductGrid() {
   const renderContent = () => {
     if (isLoading && products.length === 0) {
       return (
-        <div className="flex flex-col items-center justify-center py-16 gap-4" role="status">
-          <div className="flex items-center gap-3">
+        <div className="space-y-4" role="status" aria-label="Carregando produtos">
+          <div className="flex items-center gap-3 mb-2">
             <div className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
             <span className="text-sm text-muted-foreground">Carregando {Math.round(loadingProgress)}% dos produtos…</span>
           </div>
-          <div className="w-64 h-1.5 bg-muted/50 rounded-full overflow-hidden" role="progressbar" aria-valuenow={Math.round(loadingProgress)} aria-valuemin={0} aria-valuemax={100}>
-            <motion.div className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full" initial={{ width: 0 }} animate={{ width: `${loadingProgress}%` }} transition={{ duration: 0.4, ease: "easeOut" }} />
+          <div className="w-64 h-1.5 bg-muted/50 rounded-full overflow-hidden mb-4" role="progressbar" aria-valuenow={Math.round(loadingProgress)} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full transition-all duration-300" style={{ width: `${loadingProgress}%` }} />
+          </div>
+          {/* Skeleton placeholders to reserve layout space and prevent CLS */}
+          <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
+            {Array.from({ length: 10 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-border/30 overflow-hidden animate-pulse">
+                <div className="aspect-square bg-muted/40" />
+                <div className="p-3 space-y-2">
+                  <div className="h-3 bg-muted/50 rounded w-3/4" />
+                  <div className="h-3 bg-muted/40 rounded w-1/2" />
+                  <div className="h-3 bg-muted/30 rounded w-1/3" />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       );
