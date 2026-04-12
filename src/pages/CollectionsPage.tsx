@@ -212,9 +212,9 @@ export default function CollectionsPage() {
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
             { icon: FolderHeart, value: totalCollections, label: "Total Coleções" },
+            { icon: FolderOpen, value: externalCollections.length, label: "Coleções Catálogo" },
+            { icon: Star, value: localCollections.length, label: "Minhas Coleções" },
             { icon: Package, value: totalProducts, label: "Produtos" },
-            { icon: Star, value: featuredCount, label: "Destaques" },
-            { icon: FolderOpen, value: externalCollections.length, label: "Catálogo" },
           ].map((stat, idx) => (
             <div key={stat.label} className="stat-card flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${idx * 80}ms` }}>
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
