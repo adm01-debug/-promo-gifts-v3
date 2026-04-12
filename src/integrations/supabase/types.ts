@@ -230,6 +230,7 @@ export type Database = {
         Row: {
           created_at: string
           description: string | null
+          icon: string | null
           icon_color: string | null
           id: string
           is_featured: boolean
@@ -240,6 +241,7 @@ export type Database = {
         Insert: {
           created_at?: string
           description?: string | null
+          icon?: string | null
           icon_color?: string | null
           id?: string
           is_featured?: boolean
@@ -250,6 +252,7 @@ export type Database = {
         Update: {
           created_at?: string
           description?: string | null
+          icon?: string | null
           icon_color?: string | null
           id?: string
           is_featured?: boolean
