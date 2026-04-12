@@ -327,14 +327,15 @@ export default function PublicQuoteApprovalPage() {
           </Card>
         )}
 
-        {/* Items */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Package className="h-4 w-4 text-primary" />
-              Itens ({items.length})
-            </CardTitle>
-          </CardHeader>
+        <PublicQuoteItemsList items={items} />
+        <PublicQuoteTotals
+          subtotal={subtotal}
+          discountAmount={discountAmount}
+          discountPercent={quote.discount_percent}
+          shippingCost={shippingCost}
+          shippingType={quote.shipping_type}
+          total={total}
+        />
           <CardContent className="space-y-3">
             {items.map((item: any, idx: number) => (
               <div key={item.id || idx} className="flex gap-3 py-3 border-b border-border/50 last:border-0">
