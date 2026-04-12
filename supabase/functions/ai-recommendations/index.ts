@@ -1,24 +1,30 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
+import { z } from '../_shared/zod-validate.ts';
 
-interface ClientProfile {
-  name: string;
-  company?: string;
-  industry?: string;
-  preferences?: string[];
-  purchaseHistory?: string[];
-  budget?: string;
-}
+const ClientSchema = z.object({
+  name: z.string().trim().min(1).max(255),
+  company: z.string().max(255).optional(),
+  industry: z.string().max(100).optional(),
+  preferences: z.array(z.string().max(100)).max(20).optional(),
+  purchaseHistory: z.array(z.string().max(200)).max(50).optional(),
+  budget: z.string().max(100).optional(),
+});
 
-interface Product {
-  id: string;
-  name: string;
-  category: string;
-  description?: string;
-  priceRange?: string;
-  tags?: string[];
-}
+const ProductSchema = z.object({
+  id: z.string().min(1).max(100),
+  name: z.string().min(1).max(255),
+  category: z.string().min(1).max(100),
+  description: z.string().max(1000).optional(),
+  priceRange: z.string().max(50).optional(),
+  tags: z.array(z.string().max(50)).max(20).optional(),
+});
+
+const RecommendationRequestSchema = z.object({
+  client: ClientSchema,
+  products: z.array(ProductSchema).min(1).max(100),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -31,20 +37,22 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
-    let body: { client?: ClientProfile; products?: Product[] };
+    let rawBody: unknown;
     try {
-      body = await req.json();
+      rawBody = await req.json();
     } catch {
       return new Response(JSON.stringify({ error: "Invalid request body" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { client, products } = body;
-    if (!client?.name || !Array.isArray(products) || products.length === 0) {
-      return new Response(JSON.stringify({ error: "client.name and products[] are required" }), {
+
+    const parsed = RecommendationRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const { client, products } = parsed.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {

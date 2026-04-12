@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
+import { z } from '../_shared/zod-validate.ts';
 
 // ========================================
 // CACHE IMPLEMENTATION - TTL 5 minutes
@@ -108,22 +109,28 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
-    let body: Record<string, unknown>;
+    const SearchSchema = z.object({
+      query: z.string().trim().min(2, 'Query too short').max(500, 'Query too long'),
+    });
+
+    let rawBody: unknown;
     try {
-      body = await req.json();
+      rawBody = await req.json();
     } catch {
       return new Response(
         JSON.stringify({ success: false, error: 'Invalid request body' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { query } = body as { query?: string };
-    if (!query || query.trim().length < 2) {
+
+    const parsed = SearchSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ success: false, error: 'Query too short' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ success: false, error: parsed.error.issues[0]?.message || 'Invalid input' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    const { query } = parsed.data;
 
     // Periodic cleanup
     if (Date.now() - lastCleanup > CLEANUP_INTERVAL) {

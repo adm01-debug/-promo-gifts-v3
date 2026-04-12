@@ -327,10 +327,11 @@ O deploy é gerenciado automaticamente pelo **Lovable Cloud**:
 | Métrica | Valor |
 |---|---|
 | Arquivos TypeScript | ~907 |
-| Linhas de código | ~185.000 |
-| Edge Functions | 47 |
-| Migrations SQL | 205 |
+| Linhas de código | ~180.000 |
+| Edge Functions | 46 |
+| Migrations SQL | 212 |
 | Tabelas com RLS | 100% |
+| Testes | 168 arquivos |
 | TypeScript strict | ✅ |
 
 ---

@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
+import { z } from '../_shared/zod-validate.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -10,21 +11,35 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
-    let body: Record<string, unknown>;
+    const ProductSeoSchema = z.object({
+      product: z.object({
+        name: z.string().trim().min(1, 'Nome do produto é obrigatório').max(255),
+        sku: z.string().max(100).optional(),
+        description: z.string().max(5000).optional(),
+        short_description: z.string().max(1000).optional(),
+        brand: z.string().max(200).optional(),
+        category_name: z.string().max(200).optional(),
+        country_of_origin: z.string().max(100).optional(),
+        materials: z.string().max(500).optional(),
+        sale_price: z.union([z.string(), z.number()]).optional(),
+      }),
+    });
+
+    let rawBody: unknown;
     try {
-      body = await req.json();
+      rawBody = await req.json();
     } catch {
       return new Response(JSON.stringify({ error: "Invalid request body" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { product } = body as { product?: { name?: string; [k: string]: unknown } };
-    if (!product?.name) {
-      return new Response(JSON.stringify({ error: "Nome do produto é obrigatório" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+    const parsed = ProductSeoSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }), {
+        status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+    const { product } = parsed.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY not configured");

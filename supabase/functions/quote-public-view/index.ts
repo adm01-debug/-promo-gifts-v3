@@ -1,10 +1,18 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "../_shared/zod-validate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
+
+const GetQuoteSchema = z.object({
+  action: z.enum(["get_quote", "submit_response"]),
+  token: z.string().min(1, "Token é obrigatório").max(200),
+  response: z.enum(["approved", "rejected"]).optional(),
+  response_notes: z.string().max(2000).optional(),
+});
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -13,10 +21,10 @@ Deno.serve(async (req: Request) => {
 
   try {
     // Safely parse body — GET requests have no body
-    let body: Record<string, unknown> = {};
+    let rawBody: Record<string, unknown> = {};
     if (req.method === "POST" || req.method === "PUT") {
       try {
-        body = await req.json();
+        rawBody = await req.json();
       } catch {
         return new Response(
           JSON.stringify({ error: "Corpo da requisição inválido. Envie um JSON com action e token." }),
@@ -28,7 +36,7 @@ Deno.serve(async (req: Request) => {
       const url = new URL(req.url);
       const tokenParam = url.searchParams.get("token");
       if (tokenParam) {
-        body = { action: "get_quote", token: tokenParam };
+        rawBody = { action: "get_quote", token: tokenParam };
       } else {
         return new Response(
           JSON.stringify({ error: "Use POST com JSON body ou GET com ?token=..." }),
@@ -37,19 +45,15 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const { action, token, response, response_notes } = body as {
-      action?: string;
-      token?: string;
-      response?: string;
-      response_notes?: string;
-    };
-
-    if (!action || !token) {
+    const parsed = GetQuoteSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Parâmetros 'action' e 'token' são obrigatórios" }),
+        JSON.stringify({ error: "Parâmetros inválidos", details: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { action, token, response, response_notes } = parsed.data;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
