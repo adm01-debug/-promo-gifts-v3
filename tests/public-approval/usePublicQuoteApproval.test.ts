@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { formatCurrency, calcPersonalizationTotal } from "../usePublicQuoteApproval";
+import { formatCurrency, calcPersonalizationTotal } from "@/pages/public-approval/usePublicQuoteApproval";
 
 describe("formatCurrency", () => {
   it("formats BRL currency correctly", () => {

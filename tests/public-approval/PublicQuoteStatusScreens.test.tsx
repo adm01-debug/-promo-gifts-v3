@@ -6,7 +6,7 @@ import {
   AlreadyRespondedScreen,
   ErrorScreen,
   SubmittedScreen,
-} from "../PublicQuoteStatusScreens";
+} from "@/pages/public-approval/PublicQuoteStatusScreens";
 
 describe("PublicQuoteStatusScreens", () => {
   it("LoadingScreen shows loading text", () => {

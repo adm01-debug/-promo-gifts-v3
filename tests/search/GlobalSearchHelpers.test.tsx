@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { RankBadge, SectionHeader, staggerStyle } from "../GlobalSearchHelpers";
+import { RankBadge, SectionHeader, staggerStyle } from "@/components/search/GlobalSearchHelpers";
 
 describe("RankBadge", () => {
   it("renders Trophy icon for index 0", () => {
