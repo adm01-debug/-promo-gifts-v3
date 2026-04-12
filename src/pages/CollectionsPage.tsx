@@ -86,6 +86,7 @@ export default function CollectionsPage() {
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<Set<string>>(new Set());
+  const [hintDismissed, setHintDismissed] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
