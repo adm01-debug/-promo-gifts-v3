@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare,
+  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare, Cloud,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +19,11 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
+import { useProductsContext } from "@/contexts/ProductsContext";
+import {
+  useExternalCollections,
+  useExternalCollectionProducts,
+} from "@/hooks/useExternalCollections";
 import {
   DndContext,
   closestCenter,
@@ -125,6 +131,7 @@ export default function CollectionDetailPage() {
     reorderProducts,
     updateProductNotes,
   } = useCollectionsContext();
+  const { getProductsByIds, products: _cacheSignal } = useProductsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const [showPresentation, setShowPresentation] = useState(false);
@@ -132,17 +139,73 @@ export default function CollectionDetailPage() {
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const collection = useMemo(() => {
+  // --- Local collection lookup ---
+  const localCollection = useMemo(() => {
     return collections.find((c) => c.id === id);
   }, [collections, id]);
 
+  // --- External collection lookup ---
+  const { data: externalCollections = [] } = useExternalCollections();
+  const externalCollection = useMemo(() => {
+    if (localCollection) return null;
+    return externalCollections.find((c) => c.id === id) || null;
+  }, [localCollection, externalCollections, id]);
+
+  const isExternal = !!externalCollection;
+
+  // Fetch external collection products (product IDs)
+  const { data: externalProductLinks = [], isLoading: isLoadingExternalProducts } =
+    useExternalCollectionProducts(isExternal ? id! : null);
+
+  // Resolve external product IDs to Product objects
+  const externalProductIds = useMemo(
+    () => externalProductLinks.map((link) => link.product_id),
+    [externalProductLinks]
+  );
+  const externalProducts = useMemo(
+    () => (isExternal ? getProductsByIds(externalProductIds) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [isExternal, externalProductIds, getProductsByIds, _cacheSignal]
+  );
+
+  // --- Unified collection data ---
+  const collection = useMemo(() => {
+    if (localCollection) {
+      return {
+        id: localCollection.id,
+        name: localCollection.name,
+        description: localCollection.description,
+        color: localCollection.color,
+        icon: localCollection.icon,
+        isFeatured: localCollection.isFeatured,
+        updatedAt: localCollection.updatedAt,
+        isExternal: false as const,
+      };
+    }
+    if (externalCollection) {
+      return {
+        id: externalCollection.id,
+        name: externalCollection.name,
+        description: externalCollection.description || undefined,
+        color: externalCollection.color || "#3B82F6",
+        icon: externalCollection.icon || "📁",
+        isFeatured: externalCollection.is_featured || false,
+        updatedAt: externalCollection.updated_at,
+        isExternal: true as const,
+      };
+    }
+    return null;
+  }, [localCollection, externalCollection]);
+
+  // --- Products ---
   const products = useMemo(() => {
     if (!id) return [];
+    if (isExternal) return externalProducts;
     return getCollectionProducts(id);
-  }, [id, getCollectionProducts]);
+  }, [id, isExternal, externalProducts, getCollectionProducts]);
 
   const variantMap = useMemo(() => {
-    if (!id) return new Map();
+    if (!id || isExternal) return new Map();
     const items = getCollectionProductItems(id);
     const map = new Map<
       string,
@@ -154,7 +217,7 @@ export default function CollectionDetailPage() {
       }
     });
     return map;
-  }, [id, getCollectionProductItems]);
+  }, [id, isExternal, getCollectionProductItems]);
 
   const toggleSelect = useCallback((pid: string) => {
     setSelectedIds((prev) => {
@@ -243,6 +306,23 @@ export default function CollectionDetailPage() {
     }
   }, [collection?.updatedAt]);
 
+  // Loading state for external collections
+  if (isExternal && isLoadingExternalProducts) {
+    return (
+      <MainLayout>
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-16 w-full" />
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5, 6].map((i) => (
+              <Skeleton key={i} className="aspect-square rounded-xl" />
+            ))}
+          </div>
+        </div>
+      </MainLayout>
+    );
+  }
+
   if (!collection) {
     return (
       <MainLayout>
@@ -263,8 +343,6 @@ export default function CollectionDetailPage() {
   };
 
   const handleCreateQuote = () => {
-    // Navigate to quotes page with products pre-loaded via URL state
-    const productIds = products.map((p) => p.id);
     navigate("/orcamentos/novo", {
       state: {
         fromCollection: collection.name,
@@ -325,8 +403,16 @@ export default function CollectionDetailPage() {
                     className="bg-primary/10 text-primary border-primary/20"
                   >
                     <Package className="h-3 w-3 mr-1" />
-                    {products.length} produtos
+                    {isExternal && isLoadingExternalProducts
+                      ? "Carregando..."
+                      : `${products.length} produtos`}
                   </Badge>
+                  {isExternal && (
+                    <Badge variant="outline" className="text-xs">
+                      <Cloud className="h-3 w-3 mr-1" />
+                      Catálogo
+                    </Badge>
+                  )}
                   {updatedAgo && (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" />
@@ -440,58 +526,64 @@ export default function CollectionDetailPage() {
                 </div>
               )}
 
-              {/* Bulk selection toolbar + Drag-and-drop manage list */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between flex-wrap gap-2">
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      checked={selectedIds.size === products.length && products.length > 0}
-                      onCheckedChange={toggleSelectAll}
-                      aria-label="Selecionar todos"
-                    />
-                    <p className="text-sm font-medium text-muted-foreground">
-                      {selectedIds.size > 0
-                        ? `${selectedIds.size} selecionado(s)`
-                        : `Gerenciar produtos (${products.length}) — arraste para reordenar`}
-                    </p>
-                  </div>
-                  {selectedIds.size > 0 && (
-                    <Button variant="destructive" size="sm" onClick={handleBulkRemove} className="gap-1.5">
-                      <Trash2 className="h-3.5 w-3.5" />
-                      Remover {selectedIds.size}
-                    </Button>
-                  )}
-                </div>
-                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                  <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                      {products.map((product) => (
-                        <SortableProductItem
-                          key={product.id}
-                          product={product}
-                          variant={variantMap.get(product.id)}
-                          onRemove={() => handleRemoveFromCollection(product.id)}
-                          isSelected={selectedIds.has(product.id)}
-                          onToggleSelect={() => toggleSelect(product.id)}
-                          notes={getCollectionProductItems(id!).find((i) => i.productId === product.id)?.notes}
-                          onNotesChange={(notes) => updateProductNotes(id!, product.id, notes)}
-                        />
-                      ))}
+              {/* Management section — only for local collections */}
+              {!isExternal && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={selectedIds.size === products.length && products.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                        aria-label="Selecionar todos"
+                      />
+                      <p className="text-sm font-medium text-muted-foreground">
+                        {selectedIds.size > 0
+                          ? `${selectedIds.size} selecionado(s)`
+                          : `Gerenciar produtos (${products.length}) — arraste para reordenar`}
+                      </p>
                     </div>
-                  </SortableContext>
-                </DndContext>
-              </div>
+                    {selectedIds.size > 0 && (
+                      <Button variant="destructive" size="sm" onClick={handleBulkRemove} className="gap-1.5">
+                        <Trash2 className="h-3.5 w-3.5" />
+                        Remover {selectedIds.size}
+                      </Button>
+                    )}
+                  </div>
+                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                    <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                        {products.map((product) => (
+                          <SortableProductItem
+                            key={product.id}
+                            product={product}
+                            variant={variantMap.get(product.id)}
+                            onRemove={() => handleRemoveFromCollection(product.id)}
+                            isSelected={selectedIds.has(product.id)}
+                            onToggleSelect={() => toggleSelect(product.id)}
+                            notes={getCollectionProductItems(id!).find((i) => i.productId === product.id)?.notes}
+                            onNotesChange={(notes) => updateProductNotes(id!, product.id, notes)}
+                          />
+                        ))}
+                      </div>
+                    </SortableContext>
+                  </DndContext>
+                </div>
+              )}
             </div>
           ) : (
             <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
               <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                Coleção vazia
+                {isExternal ? "Nenhum produto nesta coleção" : "Coleção vazia"}
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Adicione produtos a esta coleção clicando no ícone de pasta nos cards de produto
+                {isExternal
+                  ? "Esta coleção do catálogo ainda não possui produtos vinculados."
+                  : "Adicione produtos a esta coleção clicando no ícone de pasta nos cards de produto"}
               </p>
-              <Button onClick={() => navigate("/")}>Explorar produtos</Button>
+              <Button onClick={() => navigate(isExternal ? "/colecoes" : "/")}>
+                {isExternal ? "Voltar para coleções" : "Explorar produtos"}
+              </Button>
             </div>
           )}
         </div>
