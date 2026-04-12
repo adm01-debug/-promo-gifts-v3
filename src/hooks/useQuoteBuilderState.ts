@@ -236,11 +236,7 @@ export function useQuoteBuilderState() {
       personalizations: [],
     }));
     setItems(collectionItems);
-    toast.success(`${collectionItems.length} produto(s) importado(s)`, {
-      icon: "📁",
-      description: `Da coleção "${state.fromCollection}" — preencha os dados do cliente e envie!`,
-      duration: 5000,
-    });
+    toast.success(`${collectionItems.length} produto(s) importado(s) da coleção "${state.fromCollection}"`);
     window.history.replaceState({}, document.title);
   }, [location.state]);
 

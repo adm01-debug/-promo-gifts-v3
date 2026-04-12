@@ -1,11 +1,10 @@
 import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare,
-  X, ArrowRight, Sparkles,
+  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare, X, ArrowRight, Sparkles,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -60,7 +59,6 @@ function SortableProductItem({
   onToggleSelect,
   notes,
   onNotesChange,
-  index,
 }: {
   product: any;
   variant?: { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null };
@@ -69,7 +67,6 @@ function SortableProductItem({
   onToggleSelect: () => void;
   notes?: string;
   onNotesChange: (notes: string) => void;
-  index: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
@@ -80,9 +77,9 @@ function SortableProductItem({
     <motion.div
       ref={setNodeRef}
       style={style}
+      layout
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: index * 0.03 }}
       className={cn(
         "flex flex-col gap-2 p-3 rounded-xl border-[1.5px] bg-card transition-all duration-200",
         isSelected
@@ -101,14 +98,7 @@ function SortableProductItem({
         <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
           <GripVertical className="h-4 w-4" />
         </button>
-        {displayImage && (
-          <img
-            src={displayImage}
-            alt={product.name}
-            className="w-12 h-12 rounded-lg object-cover ring-1 ring-border/50"
-            loading="lazy"
-          />
-        )}
+        {displayImage && <img src={displayImage} alt={product.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" />}
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium truncate">{product.name}</p>
           <div className="flex items-center gap-1.5">
@@ -174,8 +164,6 @@ export default function CollectionDetailPage() {
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const isSelectionMode = selectedIds.size > 0;
-
   // --- Local collection lookup ---
   const localCollection = useMemo(() => {
     return collections.find((c) => c.id === id);
@@ -190,9 +178,11 @@ export default function CollectionDetailPage() {
 
   const isExternal = !!externalCollection;
 
+  // Fetch external collection products (product IDs)
   const { data: externalProductLinks = [], isLoading: isLoadingExternalProducts } =
     useExternalCollectionProducts(isExternal ? id! : null);
 
+  // Resolve external product IDs to Product objects
   const externalProductIds = useMemo(
     () => externalProductLinks.map((link) => link.product_id),
     [externalProductLinks]
@@ -254,6 +244,8 @@ export default function CollectionDetailPage() {
     return map;
   }, [id, isExternal, getCollectionProductItems]);
 
+  const isSelectionMode = selectedIds.size > 0;
+
   const toggleSelect = useCallback((pid: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -270,6 +262,8 @@ export default function CollectionDetailPage() {
     );
   }, [products]);
 
+  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+
   const handleBulkRemove = useCallback(() => {
     if (!id || selectedIds.size === 0) return;
     selectedIds.forEach((pid) => removeProductFromCollection(id, pid));
@@ -278,12 +272,11 @@ export default function CollectionDetailPage() {
   }, [id, selectedIds, removeProductFromCollection]);
 
   const handleBulkQuote = useCallback(() => {
-    const selectedProducts = products.filter(p => selectedIds.has(p.id));
-    if (selectedProducts.length === 0) return;
-
+    if (!collection || selectedIds.size === 0) return;
+    const selectedProducts = products.filter((p) => selectedIds.has(p.id));
     navigate("/orcamentos/novo", {
       state: {
-        fromCollection: collection?.name || "Seleção",
+        fromCollection: collection.name,
         preloadProducts: selectedProducts.map((p) => ({
           product_id: p.id,
           product_name: p.name,
@@ -296,7 +289,7 @@ export default function CollectionDetailPage() {
         })),
       },
     });
-  }, [products, selectedIds, collection, navigate, variantMap]);
+  }, [collection, selectedIds, products, variantMap, navigate]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -441,9 +434,9 @@ export default function CollectionDetailPage() {
 
             <div className="flex items-start gap-4">
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
+                initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                transition={{ type: "spring", stiffness: 400, damping: 20 }}
                 className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl flex items-center justify-center text-2xl shrink-0 border-[1.5px] border-primary/20"
                 style={{ backgroundColor: `${collection.color}20` }}
               >
@@ -469,7 +462,7 @@ export default function CollectionDetailPage() {
                   {updatedAgo && (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      {updatedAgo}
+                      Atualizado {updatedAgo}
                     </span>
                   )}
                 </div>
@@ -478,13 +471,12 @@ export default function CollectionDetailPage() {
                 {products.length > 0 && (
                   <>
                     <Button
-                      variant="default"
-                      className="gap-2 shadow-lg hover:shadow-xl transition-shadow"
+                      className="gap-2 font-semibold shadow-lg shadow-primary/20 hover:shadow-xl hover:shadow-primary/30 transition-all"
                       onClick={handleCreateQuote}
                     >
                       <FileText className="h-4 w-4" />
                       <span className="hidden sm:inline">Criar Orçamento</span>
-                      <ArrowRight className="h-4 w-4 hidden sm:inline" />
+                      <ArrowRight className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
@@ -516,7 +508,7 @@ export default function CollectionDetailPage() {
             </div>
           </div>
 
-          {/* ═══ Bulk Selection Action Bar ═══ */}
+          {/* ═══ Premium Bulk Selection Bar ═══ */}
           <AnimatePresence>
             {isSelectionMode && (
               <motion.div
@@ -526,27 +518,29 @@ export default function CollectionDetailPage() {
                 transition={{ type: "spring", stiffness: 500, damping: 30 }}
                 className="sticky top-0 z-30 rounded-xl overflow-hidden"
               >
-                <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-2 border-primary/30 backdrop-blur-xl rounded-xl px-5 py-3.5">
+                <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-2 border-primary/30 backdrop-blur-xl rounded-xl px-5 py-4">
                   <div className="flex items-center justify-between gap-4 flex-wrap">
+                    {/* Left — Counter */}
                     <div className="flex items-center gap-3 min-w-0">
                       <motion.div
-                        className="flex items-center justify-center w-9 h-9 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                        className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25"
                         initial={{ scale: 0 }}
                         animate={{ scale: 1 }}
                         transition={{ type: "spring", stiffness: 600, damping: 25 }}
                       >
-                        <span className="font-display font-bold text-base">{selectedIds.size}</span>
+                        <span className="font-display font-bold text-lg">{selectedIds.size}</span>
                       </motion.div>
-                      <div>
+                      <div className="min-w-0">
                         <p className="font-display font-bold text-sm text-foreground">
                           {selectedIds.size} produto{selectedIds.size > 1 ? "s" : ""} selecionado{selectedIds.size > 1 ? "s" : ""}
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Envie para orçamento ou remova da coleção
+                          Da coleção "{collection.name}"
                         </p>
                       </div>
                     </div>
 
+                    {/* Right — Actions */}
                     <div className="flex items-center gap-2">
                       {selectedIds.size < products.length && (
                         <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.05 }}>
@@ -557,7 +551,7 @@ export default function CollectionDetailPage() {
                             className="gap-1.5 text-xs"
                           >
                             <CheckSquare className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Todos</span>
+                            <span className="hidden sm:inline">Selecionar Todos</span>
                           </Button>
                         </motion.div>
                       )}
@@ -569,33 +563,32 @@ export default function CollectionDetailPage() {
                           onClick={handleBulkQuote}
                         >
                           <FileText className="h-4 w-4" />
-                          Orçamento
+                          Orçamento ({selectedIds.size})
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                       </motion.div>
 
-                      {!isExternal && (
-                        <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleBulkRemove}
-                            className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                            <span className="hidden sm:inline">Remover</span>
-                          </Button>
-                        </motion.div>
-                      )}
+                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10"
+                          onClick={handleBulkRemove}
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remover
+                        </Button>
+                      </motion.div>
 
                       <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => setSelectedIds(new Set())}
-                          className="gap-1 text-xs text-muted-foreground hover:text-foreground"
+                          onClick={clearSelection}
+                          className="gap-1.5 text-xs"
                         >
                           <X className="h-3.5 w-3.5" />
+                          Limpar
                         </Button>
                       </motion.div>
                     </div>
@@ -699,7 +692,6 @@ export default function CollectionDetailPage() {
                             onToggleSelect={() => toggleSelect(product.id)}
                             notes={getCollectionProductItems(id!).find((i) => i.productId === product.id)?.notes}
                             onNotesChange={(notes) => updateProductNotes(id!, product.id, notes)}
-                            index={idx}
                           />
                         ))}
                       </div>
