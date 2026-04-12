@@ -12,7 +12,7 @@ export default function ReplenishmentsPage() {
         description="Acompanhe os produtos repostos pelos fornecedores nos últimos 30 dias. Visualize KPIs, filtre por categoria e fornecedor."
         path="/reposicao"
       />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <ReplenishmentStatsCards />
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_280px] gap-3 sm:gap-4">
           <main className="order-2 xl:order-1 min-w-0">
