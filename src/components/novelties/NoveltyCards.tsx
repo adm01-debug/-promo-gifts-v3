@@ -115,9 +115,9 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
 
           {/* Category badge */}
           {product.category_name && (
-            <div className="flex flex-wrap gap-1.5 pt-1 border-t border-border/50">
-              <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground font-medium flex items-center gap-1">
-                <FolderTree className="h-2.5 w-2.5" />{product.category_name}
+            <div className="flex flex-wrap gap-1.5 pt-1.5 mt-0.5 border-t border-primary/20">
+              <span className="text-[10px] sm:text-xs px-2.5 py-0.5 rounded-full bg-primary/15 text-primary font-semibold flex items-center gap-1 shadow-sm shadow-primary/10">
+                <FolderTree className="h-2.5 w-2.5" aria-hidden="true" />{product.category_name}
               </span>
             </div>
           )}
