@@ -479,11 +479,90 @@ export default function CollectionsPage() {
           </div>
 
           {filteredLocal.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            <div className={gridClasses}>
               {filteredLocal.map((collection, idx) => {
                 const products = getCollectionProducts(collection.id);
                 const previewImages = products.slice(0, 4).map((p) => p.images[0]);
                 const updatedAgo = relativeTime(collection.updatedAt);
+
+                // Context menu shared between views
+                const contextMenu = (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Mais opções"
+                        className="h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-sm hover:bg-background/80"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(collection); }}>
+                        <Pencil className="h-4 w-4 mr-2" /> Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleClone(collection); }}>
+                        <Copy className="h-4 w-4 mr-2" /> Duplicar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={(e) => {
+                        e.stopPropagation();
+                        updateCollection(collection.id, { isFeatured: !collection.isFeatured });
+                        toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
+                      }}>
+                        <Star className="h-4 w-4 mr-2" />
+                        {collection.isFeatured ? "Remover destaque" : "Destacar"}
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(collection.id); }}>
+                        <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                );
+
+                if (viewMode === "list") {
+                  return (
+                    <div
+                      key={collection.id}
+                      className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200 animate-fade-in"
+                      style={{ animationDelay: `${idx * 40}ms` }}
+                      onClick={() => navigate(`/colecoes/${collection.id}`)}
+                    >
+                      <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
+                        style={{ backgroundColor: `${collection.color}20` }}
+                      >
+                        {previewImages[0] ? (
+                          <img src={previewImages[0]} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <span>{collection.icon}</span>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display font-semibold text-foreground truncate">{collection.name}</h3>
+                        {collection.description && (
+                          <p className="text-sm text-muted-foreground truncate">{collection.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          {collection.productIds.length}
+                        </span>
+                        {collection.isFeatured && <Star className="h-4 w-4 text-primary" />}
+                        {updatedAgo && (
+                          <span className="text-xs text-muted-foreground/60 hidden md:flex items-center gap-0.5">
+                            <Clock className="h-2.5 w-2.5" />
+                            {updatedAgo}
+                          </span>
+                        )}
+                        {contextMenu}
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <div
@@ -492,63 +571,7 @@ export default function CollectionsPage() {
                     style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
-                    {/* Context menu - always visible on mobile */}
-                    <div className="absolute top-3 right-3 z-10">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            aria-label="Mais opções"
-                            className="h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-sm hover:bg-background/80"
-                            onClick={(e) => e.stopPropagation()}
-                          >
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              openEdit(collection);
-                            }}
-                          >
-                            <Pencil className="h-4 w-4 mr-2" />
-                            Editar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleClone(collection);
-                            }}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicar
-                          </DropdownMenuItem>
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              updateCollection(collection.id, { isFeatured: !collection.isFeatured });
-                              toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
-                            }}
-                          >
-                            <Star className="h-4 w-4 mr-2" />
-                            {collection.isFeatured ? "Remover destaque" : "Destacar"}
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem
-                            className="text-destructive"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setDeleteConfirm(collection.id);
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Excluir
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
+                    <div className="absolute top-3 right-3 z-10">{contextMenu}</div>
 
                     {/* Preview images grid */}
                     <div
@@ -557,29 +580,18 @@ export default function CollectionsPage() {
                     >
                       {previewImages.length > 0 ? (
                         <div className="grid grid-cols-2 gap-1.5 p-3 h-full">
-                          {previewImages.map((img, idx) => (
-                            <div key={idx} className="rounded-lg overflow-hidden bg-background/50">
-                              <img
-                                src={img}
-                                alt=""
-                                className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                                loading="lazy"
-                              />
+                          {previewImages.map((img, imgIdx) => (
+                            <div key={imgIdx} className="rounded-lg overflow-hidden bg-background/50">
+                              <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
                             </div>
                           ))}
-                          {previewImages.length < 4 &&
-                            Array(4 - previewImages.length)
-                              .fill(0)
-                              .map((_, idx) => (
-                                <div key={`empty-${idx}`} className="rounded-lg bg-background/20" />
-                              ))}
+                          {previewImages.length < 4 && Array(4 - previewImages.length).fill(0).map((_, i) => (
+                            <div key={`empty-${i}`} className="rounded-lg bg-background/20" />
+                          ))}
                         </div>
                       ) : (
                         <div className="flex flex-col items-center justify-center h-full gap-2">
-                          <FolderOpen
-                            className="h-14 w-14 transition-transform duration-300 group-hover:scale-110"
-                            style={{ color: collection.color }}
-                          />
+                          <FolderOpen className="h-14 w-14 transition-transform duration-300 group-hover:scale-110" style={{ color: collection.color }} />
                           <span className="text-xs text-muted-foreground">Sem produtos</span>
                         </div>
                       )}
@@ -588,16 +600,11 @@ export default function CollectionsPage() {
 
                     {/* Info */}
                     <div className="p-4 flex items-start gap-3">
-                      <div
-                        className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-                        style={{ backgroundColor: `${collection.color}20` }}
-                      >
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0" style={{ backgroundColor: `${collection.color}20` }}>
                         {collection.icon}
                       </div>
                       <div className="min-w-0 flex-1">
-                        <h3 className="font-display font-semibold text-foreground truncate">
-                          {collection.name}
-                        </h3>
+                        <h3 className="font-display font-semibold text-foreground truncate">{collection.name}</h3>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Package className="h-3 w-3" />
@@ -605,8 +612,7 @@ export default function CollectionsPage() {
                           </p>
                           {collection.isFeatured && (
                             <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
-                              <Star className="h-2.5 w-2.5 mr-0.5" />
-                              Destaque
+                              <Star className="h-2.5 w-2.5 mr-0.5" /> Destaque
                             </Badge>
                           )}
                           {updatedAgo && (
@@ -615,7 +621,7 @@ export default function CollectionsPage() {
                               {updatedAgo}
                             </span>
                           )}
-                      </div>
+                        </div>
                       </div>
                     </div>
                   </div>
