@@ -214,7 +214,7 @@ export default function CollectionsPage() {
             { icon: FolderHeart, value: totalCollections, label: "Total Coleções" },
             { icon: Package, value: totalProducts, label: "Produtos" },
             { icon: Star, value: featuredCount, label: "Destaques" },
-            { icon: Cloud, value: externalCollections.length, label: "Catálogo" },
+            { icon: FolderOpen, value: externalCollections.length, label: "Catálogo" },
           ].map((stat, idx) => (
             <div key={stat.label} className="stat-card flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${idx * 80}ms` }}>
               <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
@@ -257,11 +257,8 @@ export default function CollectionsPage() {
         {(externalCollections.length > 0 || isLoadingExternal) && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <Cloud className="h-4 w-4 text-primary" />
+              <FolderOpen className="h-4 w-4 text-primary" />
               <h2 className="font-display text-lg font-semibold">Coleções do Catálogo</h2>
-              <Badge variant="secondary" className="text-xs">
-                Sincronizadas
-              </Badge>
             </div>
 
             {isLoadingExternal ? (
@@ -297,10 +294,6 @@ export default function CollectionsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant="outline" className="text-xs">
-                          <Cloud className="h-3 w-3 mr-1" />
-                          Catálogo
-                        </Badge>
                         <span className="text-sm text-muted-foreground flex items-center gap-1">
                           <Package className="h-3 w-3" />
                           {externalProductCounts ? (externalProductCounts.get(collection.id) ?? 0) : "…"}
@@ -334,16 +327,6 @@ export default function CollectionsPage() {
                     style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
-                    {/* Badge sync */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-background/80 backdrop-blur-sm"
-                      >
-                        <Cloud className="h-3 w-3 mr-1" />
-                        Catálogo
-                      </Badge>
-                    </div>
 
                     {/* Preview */}
                     <div
