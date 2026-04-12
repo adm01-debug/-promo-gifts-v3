@@ -6,7 +6,6 @@ import { useState, useMemo, useCallback } from "react";
 import { renderQuoteCell } from "./QuoteListCellRenderer";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
