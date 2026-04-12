@@ -2,11 +2,14 @@ import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
-  RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock,
+  RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock, List,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
+import { LayoutPopover } from "@/components/products/LayoutPopover";
+import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
+import type { ViewMode } from "@/hooks/useCatalogState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -78,6 +81,8 @@ export default function CollectionsPage() {
   const [editingCollection, setEditingCollection] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -240,15 +245,25 @@ export default function CollectionsPage() {
           ))}
         </div>
 
-        {/* Search Bar */}
-        <div className="relative max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar coleções..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
-          />
+        {/* Search Bar + Layout */}
+        <div className="flex items-center justify-between gap-3">
+          <div className="relative max-w-md flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar coleções..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+          <div className="hidden sm:block">
+            <LayoutPopover
+              viewMode={viewMode}
+              setViewMode={setViewMode}
+              gridColumns={gridColumns}
+              setGridColumns={setGridColumns}
+            />
+          </div>
         </div>
 
         {/* External Collections (Catalog) */}
