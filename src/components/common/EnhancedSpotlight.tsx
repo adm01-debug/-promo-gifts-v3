@@ -2,41 +2,12 @@ import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import Fuse from "fuse.js";
-import {
-  Search,
-  Package,
-  FileText,
-  Users,
-  Settings,
-  BarChart3,
-  Wand2,
-  ShoppingBag,
-  Sparkles,
-  ArrowRight,
-  Command,
-  Plus,
-  Heart,
-  Calculator,
-  TrendingUp,
-  FolderOpen,
-  GitCompare,
-  ShoppingCart,
-  Clock,
-  Zap,
-} from "lucide-react";
+import { Search, ArrowRight, Command, Clock, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
+import { buildSpotlightItems, type SpotlightItem } from "./spotlight/SpotlightItems";
 
-interface SpotlightItem {
-  id: string;
-  title: string;
-  description?: string;
-  icon: React.ReactNode;
-  action: () => void;
-  category: string;
-  shortcut?: string;
-  isQuickAction?: boolean;
-}
+// SpotlightItem type imported from ./spotlight/SpotlightItems
 
 export function EnhancedSpotlight() {
   const [isOpen, setIsOpen] = useState(false);
@@ -64,140 +35,7 @@ export function EnhancedSpotlight() {
     localStorage.setItem("spotlight-recent", JSON.stringify(updated));
   };
 
-  const items: SpotlightItem[] = useMemo(
-    () => [
-      // Quick Actions - Most Used
-      {
-        id: "new-quote",
-        title: "Novo Orçamento",
-        description: "Criar orçamento rapidamente",
-        icon: <Plus className="h-4 w-4" />,
-        action: () => navigate("/orcamentos/novo"),
-        category: "Ações Rápidas",
-        shortcut: "N",
-        isQuickAction: true,
-      },
-      {
-        id: "mockup-quick",
-        title: "Gerar Mockup",
-        description: "Criar mockup com logo",
-        icon: <Wand2 className="h-4 w-4" />,
-        action: () => navigate("/mockup-generator"),
-        category: "Ações Rápidas",
-        shortcut: "M",
-        isQuickAction: true,
-      },
-      // Navigation
-      {
-        id: "products",
-        title: "Catálogo de Produtos",
-        description: "Navegar pelo catálogo completo",
-        icon: <Package className="h-4 w-4" />,
-        action: () => navigate("/"),
-        category: "Navegação",
-      },
-      {
-        id: "quotes",
-        title: "Orçamentos",
-        description: "Gerenciar todos os orçamentos",
-        icon: <FileText className="h-4 w-4" />,
-        action: () => navigate("/orcamentos"),
-        category: "Navegação",
-      },
-      {
-        id: "collections",
-        title: "Coleções",
-        description: "Ver suas coleções",
-        icon: <FolderOpen className="h-4 w-4" />,
-        action: () => navigate("/colecoes"),
-        category: "Navegação",
-      },
-      {
-        id: "favorites",
-        title: "Favoritos",
-        description: "Produtos favoritos",
-        icon: <Heart className="h-4 w-4" />,
-        action: () => navigate("/favoritos"),
-        category: "Navegação",
-      },
-      {
-        id: "seller-carts",
-        title: "Carrinhos",
-        description: "Gerenciar carrinhos de orçamento",
-        icon: <ShoppingCart className="h-4 w-4" />,
-        action: () => navigate("/carrinhos"),
-        category: "Navegação",
-      },
-      {
-        id: "compare",
-        title: "Comparar Produtos",
-        description: "Comparação lado a lado",
-        icon: <GitCompare className="h-4 w-4" />,
-        action: () => navigate("/comparar"),
-        category: "Navegação",
-      },
-      // Tools
-      {
-        id: "simulator",
-        title: "Simulador de Custos",
-        description: "Calcular personalização",
-        icon: <Calculator className="h-4 w-4" />,
-        action: () => navigate("/simulador"),
-        category: "Ferramentas",
-      },
-      {
-        id: "mockup",
-        title: "Gerador de Mockup",
-        description: "Mockups profissionais",
-        icon: <Wand2 className="h-4 w-4" />,
-        action: () => navigate("/mockup-generator"),
-        category: "Ferramentas",
-      },
-      {
-        id: "magic-up",
-        title: "Magic Up",
-        description: "IA para edição de imagens",
-        icon: <Sparkles className="h-4 w-4" />,
-        action: () => navigate("/magic-up"),
-        category: "Ferramentas",
-      },
-      {
-        id: "commercial-intelligence",
-        title: "Inteligência Comercial",
-        description: "Insights estratégicos de vendas",
-        icon: <BarChart3 className="h-4 w-4" />,
-        action: () => navigate("/inteligencia-comercial"),
-        category: "Ferramentas",
-      },
-      // Analytics
-      {
-        id: "dashboard",
-        title: "Dashboard BI",
-        description: "Métricas e análises",
-        icon: <BarChart3 className="h-4 w-4" />,
-        action: () => navigate("/bi"),
-        category: "Analytics",
-      },
-      {
-        id: "trends",
-        title: "Tendências",
-        description: "Análise de tendências",
-        icon: <TrendingUp className="h-4 w-4" />,
-        action: () => navigate("/tendencias"),
-        category: "Analytics",
-      },
-      // System
-      {
-        id: "users-admin",
-        title: "Gestão de Usuários",
-        description: "Gerenciar usuários e perfis",
-        icon: <Settings className="h-4 w-4" />,
-        action: () => navigate("/admin/usuarios"),
-        category: "Admin",
-      },
-    ],
-    [navigate]
-  );
+  const items: SpotlightItem[] = useMemo(() => buildSpotlightItems(navigate), [navigate]);
 
   // Fuse.js para busca fuzzy
   const fuse = useMemo(() => {

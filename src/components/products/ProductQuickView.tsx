@@ -28,6 +28,7 @@ import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
 import { ProductCategoryBadges } from "./ProductCategoryBadges";
+import { QuickViewGallery } from "./quick-view/QuickViewGallery";
 import { ProductColorSelector, type ProductColor } from "./ProductColorSelector";
 import { sortByColorGroup } from "@/utils/colorSorting";
 import { toast } from "sonner";
@@ -246,119 +247,16 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
         
         <div className="grid md:grid-cols-2 gap-0">
           {/* Image Gallery */}
-          <div className="relative bg-white aspect-square md:aspect-auto md:min-h-[500px]">
-            {/* Badges */}
-            <div className="absolute top-4 left-4 flex flex-col gap-2 z-10">
-              {product.featured && (
-                <Badge className="bg-gradient-to-r from-primary to-primary-glow text-primary-foreground shadow-lg">
-                  <Sparkles className="h-3 w-3 mr-1" />
-                  Destaque
-                </Badge>
-              )}
-              {product.newArrival && (
-                <Badge className="bg-gradient-to-r from-info to-info/80 text-info-foreground shadow-md">
-                  Novidade
-                </Badge>
-              )}
-              {product.isKit && (
-                <Badge className="bg-gradient-to-r from-warning to-warning/80 text-warning-foreground shadow-md">
-                  <Layers className="h-3 w-3 mr-1" />
-                  KIT
-                </Badge>
-              )}
-            </div>
-
-            {/* Main Image */}
-            <div className="relative w-full h-full flex items-center justify-center">
-              {/* Loading skeleton */}
-              {/* Spinner removido — imagens do CDN carregam rapidamente */}
-              
-              {/* Placeholder/Error state */}
-              {(imageError || currentImageUrl === '/placeholder.svg') && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-muted-foreground bg-muted/30">
-                  <ImageOff className="h-16 w-16 mb-2 opacity-50" />
-                  <p className="text-sm">Imagem não disponível</p>
-                </div>
-              )}
-              
-              {currentImageUrl !== '/placeholder.svg' && (
-                <img
-                  key={`${currentImageIndex}-${selectedColorId}`}
-                  src={currentImageUrl}
-                  srcSet={currentImageSrcSet}
-                  sizes="(max-width: 768px) 100vw, 50vw"
-                  alt={currentAlt}
-                  title={currentImage?.title_text || product.name}
-                  className="w-full h-full object-contain p-8 animate-fade-in"
-                  onError={(e) => {
-                    // Fallback: tentar URL original se CDN falhar
-                    const img = e.currentTarget;
-                    if (!img.dataset.fallback && currentImage?.url_original) {
-                      img.dataset.fallback = '1';
-                      img.srcset = '';
-                      img.src = currentImage.url_original;
-                    } else if (!img.dataset.fallback2) {
-                      img.dataset.fallback2 = '1';
-                      const legacyImg = product.images[currentImageIndex] || product.images[0];
-                      if (legacyImg) {
-                        img.srcset = '';
-                        img.src = legacyImg;
-                      } else {
-                        setImageError(true);
-                      }
-                    } else {
-                      setImageError(true);
-                    }
-                  }}
-                />
-              )}
-            </div>
-
-            {/* Navigation Arrows */}
-            {displayImages.length > 1 && (
-              <>
-                <Button
-                  variant="secondary"
-                  size="icon" aria-label="Voltar"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg hover:bg-card"
-                  onClick={(e) => { e.stopPropagation(); handlePrevImage(); }}
-                >
-                  <ChevronLeft className="h-5 w-5" />
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="icon" aria-label="Avançar"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-10 w-10 rounded-full bg-card/90 backdrop-blur-md shadow-lg hover:bg-card"
-                  onClick={(e) => { e.stopPropagation(); handleNextImage(); }}
-                >
-                  <ChevronRight className="h-5 w-5" />
-                </Button>
-              </>
-            )}
-
-            {/* Thumbnail dots */}
-            {displayImages.length > 1 && (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
-                {displayImages.map((_, idx) => (
-                  <button
-                    type="button"
-                    key={idx}
-                    className={cn(
-                      "w-2.5 h-2.5 rounded-full transition-all duration-200",
-                      idx === currentImageIndex
-                        ? "bg-primary scale-110"
-                        : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                    )}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setImageError(false);
-                      setCurrentImageIndex(idx);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
+          <QuickViewGallery
+            productName={product.name}
+            images={product.images}
+            displayImages={displayImages}
+            currentImageIndex={currentImageIndex}
+            onIndexChange={(idx) => { setCurrentImageIndex(idx); }}
+            featured={product.featured}
+            newArrival={product.newArrival}
+            isKit={product.isKit}
+          />
 
           {/* Product Info */}
           <div className="p-6 flex flex-col">
