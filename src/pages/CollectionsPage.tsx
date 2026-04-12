@@ -670,19 +670,30 @@ export default function CollectionsPage() {
               </p>
             </div>
           ) : (
-            <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
-              <FolderOpen className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: "spring", stiffness: 400, damping: 25 }}
+              className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10"
+            >
+              <motion.div
+                initial={{ y: 10 }}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}
+              >
+                <FolderOpen className="h-16 w-16 text-primary/40 mx-auto mb-4" />
+              </motion.div>
               <h3 className="font-display text-lg font-semibold text-foreground mb-2">
                 Nenhuma coleção criada
               </h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
                 Crie coleções para organizar seus produtos favoritos e montar apresentações profissionais
               </p>
-              <Button onClick={() => setIsCreateOpen(true)}>
-                <Plus className="h-4 w-4 mr-2" />
+              <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
+                <Plus className="h-4 w-4" />
                 Criar primeira coleção
               </Button>
-            </div>
+            </motion.div>
           )}
         </div>
 
