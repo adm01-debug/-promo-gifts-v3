@@ -80,6 +80,34 @@ export function useExternalCollectionProducts(collectionId: string | null) {
 }
 
 /**
+ * Busca contagem de produtos para todas as coleções externas
+ */
+export function useExternalCollectionProductCounts(collectionIds: string[]) {
+  return useQuery({
+    queryKey: [QUERY_KEY, 'product-counts', collectionIds],
+    queryFn: async () => {
+      if (collectionIds.length === 0) return new Map<string, number>();
+      
+      const result = await invokeExternalDb<ExternalCollectionProduct>({
+        table: 'collection_products',
+        operation: 'select',
+        select: 'collection_id,product_id',
+        filters: { collection_id: collectionIds },
+        limit: 5000,
+      });
+      
+      const counts = new Map<string, number>();
+      for (const r of result.records) {
+        counts.set(r.collection_id, (counts.get(r.collection_id) || 0) + 1);
+      }
+      return counts;
+    },
+    enabled: collectionIds.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+/**
  * Mutations para gerenciar coleções
  */
 export function useExternalCollectionMutations() {
