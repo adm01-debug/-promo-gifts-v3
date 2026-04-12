@@ -70,6 +70,10 @@ export default function CollectionsPage() {
     refetch: refetchExternal,
   } = useExternalCollectionsManager();
 
+  // Product counts for external collections
+  const externalCollectionIds = useMemo(() => externalCollections.map(c => c.id), [externalCollections]);
+  const { data: externalProductCounts } = useExternalCollectionProductCounts(externalCollectionIds);
+
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [editingCollection, setEditingCollection] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
