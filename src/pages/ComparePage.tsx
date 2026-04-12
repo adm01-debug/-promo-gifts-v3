@@ -110,7 +110,7 @@ export default function ComparePage() {
               {compareEntries.map((entry) => {
                 const status = getStockStatusLabel(entry.product.stockStatus);
                 return (
-                  <div key={`card-${entry.index}`} className="p-4 rounded-xl bg-card border border-border space-y-3">
+                  <div key={`card-${entry.index}`} className="p-4 rounded-xl bg-card border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold text-primary">{formatCurrency(entry.product.price)}</span>
