@@ -51,10 +51,9 @@ export function NoveltyBadge({
   };
 
   const getLabel = () => {
-    if (daysElapsed === 0) return "Hoje!";
-    if (daysElapsed === 1) return "Ontem";
-    if (daysElapsed <= 5) return `Há ${daysElapsed}d`;
-    return "Novidade";
+    if (daysElapsed === 0) return "Novidade hoje!";
+    if (daysElapsed === 1) return "Novidade 1 dia";
+    return `Novidade ${daysElapsed} dias`;
   };
 
   const content = (
