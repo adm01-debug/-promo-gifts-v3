@@ -18,7 +18,7 @@ import { MagicUpResultPanel } from "./magic-up/MagicUpResultPanel";
 function MagicUpSkeleton() {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div className="space-y-4">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {[1, 2, 3].map(i => (
           <div key={i} className="rounded-xl border border-border bg-card p-4 space-y-3">
             <div className="flex items-center gap-2">
@@ -100,7 +100,7 @@ export default function MagicUp() {
   return (
     <MainLayout>
       <PageSEO title="MagicUp — Gerador de Imagens IA" description="Crie imagens publicitárias profissionais com inteligência artificial." path="/magic-up" />
-      <div className="space-y-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <MagicUpHeader variationsCount={m.variations.length} historyCount={m.history.length} />
         <MagicUpProgress step={m.step} />
 

@@ -62,7 +62,7 @@ export default function AdvancedPriceSearchPage() {
             <CardHeader className="pb-4">
               <CardTitle className="text-lg flex items-center gap-2"><Filter className="h-5 w-5" />Filtros de Busca</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
               <FilterSection title="Buscar Produto" icon={Search}>
                 <Input placeholder="Nome ou SKU..." value={filters.searchQuery} onChange={e => updateFilter('searchQuery', e.target.value)} />
               </FilterSection>
@@ -120,7 +120,7 @@ export default function AdvancedPriceSearchPage() {
               </FilterSection>
 
               <FilterSection title="Faixa de Preço Unitário" icon={TrendingDown}>
-                <div className="space-y-4">
+                <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
                   <div className="flex gap-2">
                     <div className="flex-1">
                       <Label className="text-xs text-muted-foreground">Mínimo</Label>

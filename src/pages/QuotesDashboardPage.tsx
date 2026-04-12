@@ -25,7 +25,7 @@ export default function QuotesDashboardPage() {
   if (s.isLoading) {
     return (
       <MainLayout>
-        <div className="space-y-6">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-32" />)}
@@ -167,7 +167,7 @@ export default function QuotesDashboardPage() {
         <Card className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader><CardTitle className="text-lg">Últimas Respostas de Clientes</CardTitle></CardHeader>
           <CardContent>
-            <div className="space-y-4">
+            <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
               {s.quotes
                 .filter(q => q.client_response_at)
                 .sort((a, b) => new Date(b.client_response_at!).getTime() - new Date(a.client_response_at!).getTime())
