@@ -39,6 +39,8 @@ export interface NoveltyCardProps {
 
 export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
   const fresh = isFresh(product.detected_at);
+  const stockQty = product.stock_quantity ?? 0;
+  const stockStatus = stockStatus ?? 'in-stock';
   return (
     <Card
       className={cn(
@@ -102,12 +104,12 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
               )}
             </div>
             <div className="flex flex-col items-end gap-0.5 sm:gap-1">
-              <span className={cn("stock-indicator text-[10px] sm:text-xs", getStockStatusColor(product.stock_status))}>
+              <span className={cn("stock-indicator text-[10px] sm:text-xs", getStockStatusColor(stockStatus))}>
                 <Package className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                <span className="hidden sm:inline">{getStockStatusLabel(product.stock_status)}</span>
-                <span className="sm:hidden">{product.stock_status === 'in-stock' ? '✓' : product.stock_status === 'low-stock' ? '!' : '✗'}</span>
+                <span className="hidden sm:inline">{getStockStatusLabel(stockStatus)}</span>
+                <span className="sm:hidden">{stockStatus === 'in-stock' ? '✓' : stockStatus === 'low-stock' ? '!' : '✗'}</span>
               </span>
-              <span className="text-[10px] sm:text-xs text-muted-foreground">{product.stock_quantity.toLocaleString('pt-BR')} un.</span>
+              <span className="text-[10px] sm:text-xs text-muted-foreground">{stockQty.toLocaleString('pt-BR')} un.</span>
             </div>
           </div>
 
@@ -135,6 +137,8 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
 
 export const NoveltyListCard = memo(function NoveltyListCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
   const fresh = isFresh(product.detected_at);
+  const stockQty = product.stock_quantity ?? 0;
+  const stockStatus = product.stock_status ?? 'in-stock';
   return (
     <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30", fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]", isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]")} onClick={selectionMode ? onToggleSelect : onClick}>
       <CardContent className="p-2.5 flex items-center gap-2.5">
@@ -153,10 +157,10 @@ export const NoveltyListCard = memo(function NoveltyListCard({ product, onClick,
             {product.product_sku && <p className="text-[10px] text-muted-foreground">SKU: {product.product_sku}</p>}
             {product.supplier_name && <Badge variant="outline" className="text-[9px] border-info/30 text-info px-1 py-0"><Building2 className="h-2.5 w-2.5 mr-0.5" />{product.supplier_name}</Badge>}
             {product.category_name && <Badge variant="outline" className="text-[9px] px-1 py-0"><FolderTree className="h-2.5 w-2.5 mr-0.5" />{product.category_name}</Badge>}
-            <span className={cn("stock-indicator text-[9px]", getStockStatusColor(product.stock_status))}>
-              <Package className="h-2.5 w-2.5" />{getStockStatusLabel(product.stock_status)}
+            <span className={cn("stock-indicator text-[9px]", getStockStatusColor(stockStatus))}>
+              <Package className="h-2.5 w-2.5" />{getStockStatusLabel(stockStatus)}
             </span>
-            <span className="text-[9px] text-muted-foreground">{product.stock_quantity.toLocaleString('pt-BR')} un.</span>
+            <span className="text-[9px] text-muted-foreground">{stockQty.toLocaleString('pt-BR')} un.</span>
           </div>
         </div>
         {product.base_price != null && product.base_price > 0 && <div className="shrink-0 text-right"><p className="text-[10px] text-muted-foreground">A partir de</p><p className="text-sm font-semibold tabular-nums">{formatPrice(product.base_price)}</p></div>}
@@ -189,6 +193,8 @@ export function NoveltyTableView({ products, onProductClick, selectionMode, sele
           {products.map((product) => {
             const fresh = isFresh(product.detected_at);
             const isSelected = selectedIds.has(product.product_id);
+            const stockQty = product.stock_quantity ?? 0;
+            const stockStatus = product.stock_status ?? 'in-stock';
             return (
               <TableRow key={product.novelty_id} className={cn("cursor-pointer transition-colors", fresh && "bg-success/5", isSelected && "bg-primary/10")} onClick={() => selectionMode ? onToggleSelect(product.product_id) : onProductClick(product.product_id)}>
                 {selectionMode && <TableCell className="p-1.5"><div onClick={(e) => e.stopPropagation()}><SelectionCheckbox checked={isSelected} onChange={() => onToggleSelect(product.product_id)} size="sm" /></div></TableCell>}
@@ -199,10 +205,10 @@ export function NoveltyTableView({ products, onProductClick, selectionMode, sele
                 <TableCell className="hidden lg:table-cell px-2 py-1.5"><span className="text-[11px] text-muted-foreground">{product.category_name || "—"}</span></TableCell>
                 <TableCell className="text-center px-2 py-1.5"><NoveltyBadge daysRemaining={product.days_remaining} size="sm" /></TableCell>
                 <TableCell className="text-center px-2 py-1.5">
-                  <span className={cn("stock-indicator text-[10px]", getStockStatusColor(product.stock_status))}>
-                    <Package className="h-2.5 w-2.5" />{getStockStatusLabel(product.stock_status)}
+                  <span className={cn("stock-indicator text-[10px]", getStockStatusColor(stockStatus))}>
+                    <Package className="h-2.5 w-2.5" />{getStockStatusLabel(stockStatus)}
                   </span>
-                  <p className="text-[10px] text-muted-foreground">{product.stock_quantity.toLocaleString('pt-BR')} un.</p>
+                  <p className="text-[10px] text-muted-foreground">{stockQty.toLocaleString('pt-BR')} un.</p>
                 </TableCell>
                 <TableCell className="text-right px-2 py-1.5">{product.base_price != null && product.base_price > 0 ? <span className="text-xs font-semibold tabular-nums">{formatPrice(product.base_price)}</span> : <span className="text-[11px] text-muted-foreground">—</span>}</TableCell>
               </TableRow>
