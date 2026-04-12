@@ -1,24 +1,18 @@
 /**
- * ProductFormFullscreen — Ferramenta de cadastro com stepper horizontal compacto
- * Conteúdo ocupa a tela inteira, sem duplicações.
+ * ProductFormFullscreen — Stepper horizontal com preview lateral
+ * Refatorado: conteúdo das etapas em ProductFormStepContent.tsx
  */
 
-import React, { Suspense, useCallback, useEffect, useMemo, useState } from 'react';
-
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { productFormSchema, type ProductFormData, defaultFormValues } from './ProductFormSchema';
-import { FieldLabel, SectionCard } from './ProductFormHelpers';
-import { CategoryCascadeSelector } from './CategoryCascadeSelector';
 import { ProductPreviewPanel } from './ProductPreviewPanel';
 import { HorizontalStepper, type StepDef } from './HorizontalStepper';
+import { ProductFormStepContent } from './ProductFormStepContent';
 import { useProductFormDraft } from './hooks/useProductFormDraft';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Loader2, Package, Tag, ImageIcon, Layers, Megaphone, Paintbrush,
   AlertCircle, FileText, Save, X,
@@ -26,37 +20,9 @@ import {
   ChevronLeft, ChevronRight, Info, Boxes, Wand2,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { motion, AnimatePresence } from 'framer-motion';
-
-import { ProductSupplierSection } from './sections/ProductSupplierSection';
-import { ProductInfoSection } from './sections/ProductInfoSection';
-import { ProductDimensionsSection } from './sections/ProductDimensionsSection';
-import { ProductPriceSection } from './sections/ProductPriceSection';
-import { ProductFlagsSection } from './sections/ProductFlagsSection';
-import { ProductPackagingSection } from './sections/ProductPackagingSection';
-import { ProductFiscalSection } from './sections/ProductFiscalSection';
-import { ProductSeoSection } from './sections/ProductSeoSection';
-import { ProductMarketingTextsSection } from './sections/ProductMarketingTextsSection';
 import { useSkuValidation } from './hooks/useSkuValidation';
 import { useProductSeoAI } from '@/hooks/useProductSeoAI';
-
-const ProductClassificationSection = lazyWithRetry(() => import('./sections/ProductClassificationSection'));
-const ProductMediaSection = lazyWithRetry(() => import('./sections/ProductMediaSection'));
-const ProductEngravingSection = lazyWithRetry(() => import('./sections/ProductEngravingSection'));
-const ProductKitComponentsSection = lazyWithRetry(() => import('../products/kit-components/ProductKitComponentsSection').then(m => ({ default: m.ProductKitComponentsSection })));
-
-function SectionSkeleton() {
-  return (
-    <Card className="overflow-hidden border-border/50 bg-card/70">
-      <div className="space-y-4 p-5">
-        <Skeleton className="h-5 w-40" />
-        <Skeleton className="h-10 w-full" />
-        <Skeleton className="h-10 w-2/3" />
-      </div>
-    </Card>
-  );
-}
 
 // ============================================
 // TYPES & STEPS
@@ -97,7 +63,6 @@ export function ProductFormFullscreen({
   isSaving,
   isEdit,
 }: ProductFormFullscreenProps) {
-  
   const [images, setImages] = useState<string[]>(initialImages);
   const [skuManuallyEdited, setSkuManuallyEdited] = useState(isEdit);
   const [supplierMarkup, setSupplierMarkup] = useState<number | null>(null);
@@ -120,7 +85,6 @@ export function ProductFormFullscreen({
 
   const formValues = watch();
   const supplierId = formValues.supplier_id || '';
-  const isKit = formValues.is_kit;
   const packingType = formValues.packing_type || '';
   const isBoxProduct = packingType.toLowerCase().includes('caixa');
   const skuValue = formValues.sku || '';
@@ -155,11 +119,7 @@ export function ProductFormFullscreen({
   };
 
   const { status: skuStatus, duplicateName } = useSkuValidation(skuValue, isEdit, initialData?.sku);
-
-  // Draft auto-save
-  const { clearDraft } = useProductFormDraft(
-    productId, setValue, formValues, images, stepIndex, setImages, setStepIndex,
-  );
+  const { clearDraft } = useProductFormDraft(productId, setValue, formValues, images, stepIndex, setImages, setStepIndex);
 
   // Effects
   useEffect(() => {
@@ -237,20 +197,12 @@ export function ProductFormFullscreen({
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [stepIndex]);
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
-        if (e.key === 's') {
-          e.preventDefault();
-          document.querySelector<HTMLFormElement>('form')?.requestSubmit();
-        } else if (e.key === 'ArrowRight' && stepIndex < STEPS.length - 1) {
-          e.preventDefault();
-          goStep(stepIndex + 1);
-        } else if (e.key === 'ArrowLeft' && stepIndex > 0) {
-          e.preventDefault();
-          goStep(stepIndex - 1);
-        }
+        if (e.key === 's') { e.preventDefault(); document.querySelector<HTMLFormElement>('form')?.requestSubmit(); }
+        else if (e.key === 'ArrowRight' && stepIndex < STEPS.length - 1) { e.preventDefault(); goStep(stepIndex + 1); }
+        else if (e.key === 'ArrowLeft' && stepIndex > 0) { e.preventDefault(); goStep(stepIndex - 1); }
       }
     };
     window.addEventListener('keydown', handler);
@@ -265,9 +217,7 @@ export function ProductFormFullscreen({
     if (!isValid || totalMissing > 0) {
       setShowValidation(true);
       const firstBadStep = missingFields.findIndex(arr => arr.length > 0);
-      if (firstBadStep >= 0 && firstBadStep !== stepIndex) {
-        goStep(firstBadStep);
-      }
+      if (firstBadStep >= 0 && firstBadStep !== stepIndex) goStep(firstBadStep);
       return;
     }
 
@@ -279,184 +229,18 @@ export function ProductFormFullscreen({
   };
 
   const currentStep = STEPS[stepIndex];
-
-  const renderContent = () => {
-    switch (currentStep.id) {
-      case 'essentials':
-        return (
-          <>
-            <ProductSupplierSection
-              supplierId={supplierId}
-              onSupplierChange={(id, name, markupPercent) => {
-                setValue('supplier_id', id);
-                if (name) setValue('brand', name);
-                setSupplierMarkup(markupPercent ?? null);
-                setPriceManuallyEdited(false);
-              }}
-              setValue={setValue}
-              errors={errors}
-              productId={productId}
-              isEdit={isEdit}
-              primarySupplierName={formValues.brand || ''}
-            />
-            <ProductInfoSection
-              {...formProps}
-              skuStatus={skuStatus}
-              duplicateName={duplicateName}
-              skuManuallyEdited={skuManuallyEdited}
-              onSkuManualEdit={() => setSkuManuallyEdited(true)}
-            />
-            <ProductDimensionsSection {...formProps} isBoxProduct={isBoxProduct} />
-          </>
-        );
-      case 'commercial':
-        return (
-          <>
-            <SectionCard id="category" title="Categoria" icon={Layers} subtitle="Classificação principal do produto no catálogo">
-              <CategoryCascadeSelector
-                value={formValues.category_id || ''}
-                onChange={(id) => setValue('category_id', id)}
-                error={errors.category_id?.message}
-              />
-            </SectionCard>
-            <ProductFlagsSection setValue={setValue} flags={flags} expirations={expirations} />
-          </>
-        );
-      case 'packaging':
-        return <ProductPackagingSection {...formProps} />;
-      case 'fiscal':
-        return (
-          <>
-            <ProductPriceSection
-              {...formProps}
-              supplierMarkup={supplierMarkup}
-              costPriceDisplay={costPriceDisplay}
-              salePriceDisplay={salePriceDisplay}
-              onCostPriceDisplayChange={setCostPriceDisplay}
-              onSalePriceDisplayChange={setSalePriceDisplay}
-              onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
-            />
-            <ProductFiscalSection {...formProps} />
-          </>
-        );
-      case 'content':
-        return (
-          <>
-            <div className="flex items-center justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={generateSeoAI}
-                disabled={isSeoGenerating}
-                className="gap-2 border-primary/30 text-primary hover:bg-primary/10"
-              >
-                {isSeoGenerating ? <Loader2 className="h-4 w-4 animate-spin" /> : <Wand2 className="h-4 w-4 animate-pulse" />}
-                {isSeoGenerating ? 'Gerando...' : 'Preencher com IA'}
-              </Button>
-            </div>
-            <ProductSeoSection {...formProps} />
-            <ProductMarketingTextsSection register={register} />
-          </>
-        );
-      case 'engraving':
-        return (
-          <Suspense fallback={<SectionSkeleton />}>
-            <ProductEngravingSection productId={productId} isEdit={isEdit} />
-          </Suspense>
-        );
-      case 'classification':
-        return (
-          <Suspense fallback={<SectionSkeleton />}>
-            <ProductClassificationSection
-              productId={productId}
-              isEdit={isEdit}
-              productName={formValues.name}
-              productSku={formValues.sku}
-              gender={formValues.gender || ''}
-              onGenderChange={(v) => setValue('gender', v)}
-            />
-          </Suspense>
-        );
-      case 'kits':
-        return (
-          <>
-            <SectionCard id="kit-flag" title="Tipo de Produto" icon={Package} subtitle="Defina se este produto é um kit">
-              <div
-                className={cn(
-                  'flex items-center justify-between rounded-lg border p-3 transition-all duration-200 cursor-pointer hover:bg-accent/30',
-                  formValues.is_kit ? 'bg-primary/5 border-primary/20' : 'border-border/50',
-                )}
-                onClick={() => setValue('is_kit', !formValues.is_kit)}
-                role="switch"
-                aria-checked={!!formValues.is_kit}
-                tabIndex={0}
-                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setValue('is_kit', !formValues.is_kit); } }}
-              >
-                <div className="flex items-center gap-1.5">
-                  <Label className="cursor-pointer text-xs font-medium">É Kit</Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="h-3 w-3 text-muted-foreground/40 cursor-help shrink-0" />
-                    </TooltipTrigger>
-                    <TooltipContent className="text-xs max-w-[220px]">Define como kit composto por múltiplos componentes</TooltipContent>
-                  </Tooltip>
-                </div>
-                <div onClick={(e) => e.stopPropagation()}>
-                  <Switch checked={!!formValues.is_kit} onCheckedChange={(v) => setValue('is_kit', v)} />
-                </div>
-              </div>
-            </SectionCard>
-            {formValues.is_kit && (
-              <Suspense fallback={<SectionSkeleton />}>
-                <ProductKitComponentsSection
-                  productId={productId || ''}
-                  boxInternalDimensions={{
-                    height_cm: formValues.internal_height_cm ?? null,
-                    width_cm: formValues.internal_width_cm ?? null,
-                    length_cm: formValues.internal_length_cm ?? null,
-                  }}
-                />
-              </Suspense>
-            )}
-          </>
-        );
-      case 'media':
-        return (
-          <Suspense fallback={<SectionSkeleton />}>
-            <ProductMediaSection
-              images={images}
-              onImagesChange={setImages}
-              productId={productId}
-            />
-          </Suspense>
-        );
-      default:
-        return null;
-    }
-  };
-
   const hasPrev = stepIndex > 0;
   const hasNext = stepIndex < STEPS.length - 1;
   const isLast = stepIndex === STEPS.length - 1;
 
   return (
     <form onSubmit={handleSubmitWithValidation} className="flex flex-col gap-4">
-      {/* ===== STEPPER BAR ===== */}
+      {/* STEPPER BAR */}
       <Card className="border-border/50 bg-card/80 px-6 py-4">
         <div className="flex items-end justify-between gap-6">
           <div className="flex-1 min-w-0">
-            <HorizontalStepper
-              steps={STEPS}
-              activeIndex={stepIndex}
-              stepReady={stepReady}
-              stepErrors={stepErrors}
-              onStepClick={goStep}
-              missingFields={missingFields}
-              showValidation={showValidation}
-            />
+            <HorizontalStepper steps={STEPS} activeIndex={stepIndex} stepReady={stepReady} stepErrors={stepErrors} onStepClick={goStep} missingFields={missingFields} showValidation={showValidation} />
           </div>
-
           <div className="flex items-center gap-2 shrink-0 pb-1">
             {Object.keys(errors).length > 0 && (
               <span className="flex items-center gap-1 text-destructive text-xs font-medium">
@@ -464,12 +248,7 @@ export function ProductFormFullscreen({
                 {Object.keys(errors).length}
               </span>
             )}
-            <Button
-              type="submit"
-              size="sm"
-              disabled={isSaving || skuStatus === 'duplicate'}
-              className="gap-2 font-semibold shadow-sm"
-            >
+            <Button type="submit" size="sm" disabled={isSaving || skuStatus === 'duplicate'} className="gap-2 font-semibold shadow-sm">
               {isSaving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
               {isEdit ? 'Salvar' : 'Criar'}
             </Button>
@@ -477,7 +256,7 @@ export function ProductFormFullscreen({
         </div>
       </Card>
 
-      {/* ===== CONTENT + PREVIEW ===== */}
+      {/* CONTENT + PREVIEW */}
       <div className="flex gap-6">
         <div className="flex-1 min-w-0 space-y-5">
           {skuStatus === 'duplicate' && (
@@ -486,9 +265,7 @@ export function ProductFormFullscreen({
                 <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
                 <div>
                   <p className="text-sm font-semibold">SKU duplicado</p>
-                  <p className="mt-1 text-sm">
-                    Este SKU já está em uso{duplicateName ? ` no produto "${duplicateName}"` : ''}. Ajuste antes de salvar.
-                  </p>
+                  <p className="mt-1 text-sm">Este SKU já está em uso{duplicateName ? ` no produto "${duplicateName}"` : ''}. Ajuste antes de salvar.</p>
                 </div>
               </div>
             </Card>
@@ -504,16 +281,42 @@ export function ProductFormFullscreen({
               exit={{ opacity: 0, x: direction > 0 ? -60 : 60 }}
               transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
             >
-              {renderContent()}
+              <ProductFormStepContent
+                stepId={currentStep.id}
+                formProps={formProps}
+                formValues={formValues}
+                productId={productId}
+                isEdit={isEdit}
+                images={images}
+                onImagesChange={setImages}
+                supplierId={supplierId}
+                onSupplierChange={(id, name, markupPercent) => {
+                  setValue('supplier_id', id);
+                  if (name) setValue('brand', name);
+                  setSupplierMarkup(markupPercent ?? null);
+                  setPriceManuallyEdited(false);
+                }}
+                skuStatus={skuStatus}
+                duplicateName={duplicateName}
+                skuManuallyEdited={skuManuallyEdited}
+                onSkuManualEdit={() => setSkuManuallyEdited(true)}
+                isBoxProduct={isBoxProduct}
+                supplierMarkup={supplierMarkup}
+                costPriceDisplay={costPriceDisplay}
+                salePriceDisplay={salePriceDisplay}
+                onCostPriceDisplayChange={setCostPriceDisplay}
+                onSalePriceDisplayChange={setSalePriceDisplay}
+                onSalePriceManualEdit={() => setPriceManuallyEdited(true)}
+                flags={flags}
+                expirations={expirations}
+                generateSeoAI={generateSeoAI}
+                isSeoGenerating={isSeoGenerating}
+              />
             </motion.div>
           </AnimatePresence>
 
           {showValidation && missingFields[stepIndex].length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="rounded-lg border border-warning/30 bg-warning/5 p-3"
-            >
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-lg border border-warning/30 bg-warning/5 p-3">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                 <div>
@@ -542,11 +345,8 @@ export function ProductFormFullscreen({
                   {STEPS[stepIndex - 1].label}
                 </Button>
               )}
-              <span className="hidden lg:inline text-[10px] text-muted-foreground/50">
-                Ctrl+←/→ navegar · Ctrl+S salvar
-              </span>
+              <span className="hidden lg:inline text-[10px] text-muted-foreground/50">Ctrl+←/→ navegar · Ctrl+S salvar</span>
             </div>
-
             <div className="flex items-center gap-2">
               {hasNext && (
                 <Button type="button" size="sm" onClick={() => goStep(stepIndex + 1)} className="gap-2">
@@ -560,9 +360,7 @@ export function ProductFormFullscreen({
                   {isEdit ? 'Salvar produto' : 'Criar produto'}
                 </Button>
               )}
-              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-                Cancelar
-              </Button>
+              <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Cancelar</Button>
             </div>
           </div>
         </div>
@@ -571,17 +369,8 @@ export function ProductFormFullscreen({
         <div className="hidden xl:flex flex-col shrink-0">
           <div className="sticky top-24">
             <div className="flex items-center justify-end mb-2">
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
-                onClick={() => setShowPreview(v => {
-                  const next = !v;
-                  localStorage.setItem('product-form-show-preview', String(next));
-                  return next;
-                })}
-              >
+              <Button type="button" variant="ghost" size="sm" className="gap-1.5 text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+                onClick={() => setShowPreview(v => { const next = !v; localStorage.setItem('product-form-show-preview', String(next)); return next; })}>
                 {showPreview ? <PanelRightClose className="h-3.5 w-3.5" /> : <PanelRightOpen className="h-3.5 w-3.5" />}
                 {showPreview ? 'Ocultar' : 'Preview'}
               </Button>
@@ -589,17 +378,10 @@ export function ProductFormFullscreen({
             {showPreview && (
               <div className="w-64 animate-in slide-in-from-right-4 duration-200">
                 <ProductPreviewPanel
-                  name={nameValue}
-                  sku={skuValue}
-                  salePrice={salePriceValue}
-                  stockQuantity={stockQuantityValue}
-                  images={images}
-                  brand={brandValue}
-                  isFeatured={flags.is_featured}
-                  isNew={flags.is_new}
-                  isOnSale={flags.is_on_sale}
-                  isKit={isKit}
-                  isActive={flags.is_active}
+                  name={nameValue} sku={skuValue} salePrice={salePriceValue}
+                  stockQuantity={stockQuantityValue} images={images} brand={brandValue}
+                  isFeatured={flags.is_featured} isNew={flags.is_new} isOnSale={flags.is_on_sale}
+                  isKit={formValues.is_kit} isActive={flags.is_active}
                 />
               </div>
             )}
@@ -616,9 +398,7 @@ export function ProductFormFullscreen({
                 <ChevronLeft className="h-4 w-4" />
               </Button>
             )}
-            <span className="text-xs font-medium text-muted-foreground">
-              {stepIndex + 1}/{STEPS.length}
-            </span>
+            <span className="text-xs font-medium text-muted-foreground">{stepIndex + 1}/{STEPS.length}</span>
           </div>
           <div className="flex items-center gap-2">
             {hasNext ? (
@@ -631,9 +411,7 @@ export function ProductFormFullscreen({
                 {isEdit ? 'Salvar' : 'Criar'}
               </Button>
             )}
-            <Button type="button" variant="ghost" size="sm" onClick={onCancel}>
-              <X className="h-4 w-4" />
-            </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={onCancel}><X className="h-4 w-4" /></Button>
           </div>
         </div>
       </div>
