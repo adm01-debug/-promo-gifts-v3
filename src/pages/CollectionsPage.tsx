@@ -312,6 +312,37 @@ export default function CollectionsPage() {
           </div>
         </div>
 
+        {/* Selection Action Bar — inline, visible near collections */}
+        {selectedCollectionIds.size > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl bg-primary/10 border-2 border-primary/40 backdrop-blur-sm"
+          >
+            <div className="flex items-center gap-3">
+              <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground">
+                <CheckSquare className="h-5 w-5" />
+              </div>
+              <div>
+                <span className="font-display font-bold text-sm text-foreground">
+                  {selectedCollectionIds.size} coleção{selectedCollectionIds.size > 1 ? "ões" : ""} selecionada{selectedCollectionIds.size > 1 ? "s" : ""}
+                </span>
+                <p className="text-xs text-muted-foreground">Selecione coleções e envie para o orçamento</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button size="default" className="gap-2 font-semibold shadow-lg" onClick={handleSendSelectedToQuote}>
+                <FileText className="h-4 w-4" />
+                Criar Orçamento
+              </Button>
+              <Button size="default" variant="outline" onClick={clearSelection} className="gap-1.5">
+                <X className="h-4 w-4" />
+                Limpar
+              </Button>
+            </div>
+          </motion.div>
+        )}
+
         {/* Personal Collections (DB-persisted) */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
