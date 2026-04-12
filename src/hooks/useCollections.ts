@@ -252,6 +252,7 @@ export function useCollections() {
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.color !== undefined) dbUpdates.icon_color = updates.color;
       if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
+      if (updates.isFeatured !== undefined) dbUpdates.is_featured = updates.isFeatured;
 
       if (Object.keys(dbUpdates).length > 0) {
         supabase.from("collections").update(dbUpdates).eq("id", id).then();
