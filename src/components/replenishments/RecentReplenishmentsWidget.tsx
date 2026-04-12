@@ -6,29 +6,40 @@ import { RefreshCw, ChevronRight, Package, Building2 } from "lucide-react";
 import { useReplenishmentsWithDetails } from "@/hooks/useReplenishments";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useMemo } from "react";
+import { useMemo, useCallback } from "react";
+
+// ─── Helpers ─────────────────────────────────────────────────────
 
 function formatDaysAgo(date: string): string {
-  const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+  const days = Math.floor((Date.now() - new Date(date).getTime()) / 86_400_000);
   if (days === 0) return "Hoje!";
   if (days === 1) return "Ontem";
   return `${days}d atrás`;
 }
 
-function getRecencyVariant(date: string): "hot" | "warm" | "normal" {
-  const days = Math.floor((Date.now() - new Date(date).getTime()) / 86400000);
+type Recency = "hot" | "warm" | "normal";
+
+function getRecencyVariant(date: string): Recency {
+  const days = Math.floor((Date.now() - new Date(date).getTime()) / 86_400_000);
   if (days <= 2) return "hot";
   if (days <= 5) return "warm";
   return "normal";
 }
 
-const recencyStyles = {
+const RECENCY_STYLES: Record<Recency, string> = {
   hot: "text-info",
   warm: "text-warning",
   normal: "text-muted-foreground",
 };
 
-interface SupplierBreakdown { id: string; name: string; count: number; percentage: number; }
+interface SupplierBreakdown {
+  readonly id: string;
+  readonly name: string;
+  readonly count: number;
+  readonly percentage: number;
+}
+
+// ─── Widget ──────────────────────────────────────────────────────
 
 export function RecentReplenishmentsWidget() {
   const navigate = useNavigate();
@@ -36,104 +47,134 @@ export function RecentReplenishmentsWidget() {
 
   const recentItems = useMemo(() => {
     if (!allItems) return [];
-    return [...allItems].sort((a, b) => new Date(b.replenished_at).getTime() - new Date(a.replenished_at).getTime()).slice(0, 10);
+    return [...allItems]
+      .sort((a, b) => new Date(b.replenished_at).getTime() - new Date(a.replenished_at).getTime())
+      .slice(0, 10);
   }, [allItems]);
 
-  const supplierBreakdown = useMemo<SupplierBreakdown[]>(() => {
+  const supplierBreakdown = useMemo<readonly SupplierBreakdown[]>(() => {
     if (!allItems || allItems.length === 0) return [];
     const supMap = new Map<string, { id: string; name: string; count: number }>();
-    allItems.forEach(p => {
+    for (const p of allItems) {
       if (p.supplier_id && p.supplier_name) {
         const existing = supMap.get(p.supplier_id);
         if (existing) existing.count++;
         else supMap.set(p.supplier_id, { id: p.supplier_id, name: p.supplier_name, count: 1 });
       }
-    });
+    }
     const total = allItems.length;
-    return [...supMap.values()].sort((a, b) => b.count - a.count).slice(0, 5).map(s => ({ ...s, percentage: Math.round((s.count / total) * 100) }));
+    return [...supMap.values()]
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+      .map(s => ({ ...s, percentage: Math.round((s.count / total) * 100) }));
   }, [allItems]);
 
-  const handleClick = (productId: string) => navigate(`/produto/${productId}`);
+  const handleClick = useCallback(
+    (productId: string) => navigate(`/produto/${productId}`),
+    [navigate],
+  );
 
   return (
-    <div className="space-y-3">
+    <aside className="space-y-3" aria-label="Reposições recentes e fornecedores">
+      {/* Recent Items Card */}
       <Card className="border-info/40 bg-gradient-to-br from-info/10 via-info/5 to-transparent shadow-[0_0_20px_hsl(var(--info)/0.15)] ring-1 ring-info/20">
         <CardHeader className="pb-1.5 px-3 pt-3">
           <CardTitle className="text-sm flex items-center gap-1.5">
-            <RefreshCw className="h-4 w-4 text-info animate-pulse drop-shadow-[0_0_6px_hsl(var(--info)/0.6)]" />
+            <RefreshCw className="h-4 w-4 text-info animate-pulse drop-shadow-[0_0_6px_hsl(var(--info)/0.6)]" aria-hidden="true" />
             <span className="text-info font-bold">+ Recentes</span>
             {recentItems.length > 0 && (
-              <Badge variant="secondary" className="bg-info/20 text-info border border-info/30 text-[9px] tabular-nums px-1.5 py-0 font-bold">{recentItems.length}</Badge>
+              <Badge variant="secondary" className="bg-info/20 text-info border border-info/30 text-[9px] tabular-nums px-1.5 py-0 font-bold">
+                {recentItems.length}
+              </Badge>
             )}
           </CardTitle>
         </CardHeader>
         <CardContent className="pt-0 px-3 pb-3">
           {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-6 gap-2">
-              <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" />
+            <div className="flex flex-col items-center justify-center py-6 gap-2" role="status" aria-label="Carregando itens recentes">
+              <div className="w-4 h-4 border-2 border-primary/40 border-t-transparent rounded-full animate-spin" aria-hidden="true" />
               <span className="text-[10px] text-muted-foreground/50">carregando...</span>
             </div>
           ) : recentItems.length > 0 ? (
             <ScrollArea className="h-auto max-h-[280px]">
-              <div className="space-y-1">
-                {recentItems.map((item, idx) => {
-                  const isVeryNew = idx < 3;
-                  const variant = getRecencyVariant(item.replenished_at);
-                  return (
-                    <div
-                      key={item.replenishment_id}
-                      className={cn(
-                        "group flex items-center gap-2 p-1.5 rounded-md cursor-pointer",
-                        "hover:bg-info/10 transition-all duration-150",
-                        isVeryNew ? "border border-info/20 hover:border-info/40 bg-info/5" : "border border-transparent",
-                      )}
-                      onClick={() => handleClick(item.product_id)}
-                    >
-                      <div className="shrink-0 w-8 h-8 rounded bg-muted overflow-hidden relative">
-                        {item.product_image ? (
-                          <img src={item.product_image} alt={item.product_name} className="w-full h-full object-cover" loading="lazy" />
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center text-muted-foreground/30"><Package className="h-3 w-3" /></div>
-                        )}
-                        {isVeryNew && (
-                          <div className="absolute -top-0.5 -right-0.5">
-                            <RefreshCw className="h-2.5 w-2.5 text-info drop-shadow-[0_0_4px_hsl(var(--info)/0.5)]" />
+              <nav aria-label="Lista de produtos repostos recentemente">
+                <ul className="space-y-1" role="list">
+                  {recentItems.map((item, idx) => {
+                    const isVeryNew = idx < 3;
+                    const variant = getRecencyVariant(item.replenished_at);
+                    return (
+                      <li key={item.replenishment_id}>
+                        <button
+                          type="button"
+                          className={cn(
+                            "group w-full flex items-center gap-2 p-1.5 rounded-md cursor-pointer text-left",
+                            "hover:bg-info/10 transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info",
+                            isVeryNew ? "border border-info/20 hover:border-info/40 bg-info/5" : "border border-transparent",
+                          )}
+                          onClick={() => handleClick(item.product_id)}
+                          aria-label={`${item.product_name} — reposto ${formatDaysAgo(item.replenished_at)}`}
+                        >
+                          <div className="shrink-0 w-8 h-8 rounded bg-muted overflow-hidden relative">
+                            {item.product_image ? (
+                              <img
+                                src={item.product_image}
+                                alt=""
+                                className="w-full h-full object-cover"
+                                loading="lazy"
+                                decoding="async"
+                              />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-muted-foreground/30" aria-hidden="true">
+                                <Package className="h-3 w-3" />
+                              </div>
+                            )}
+                            {isVeryNew && (
+                              <div className="absolute -top-0.5 -right-0.5" aria-hidden="true">
+                                <RefreshCw className="h-2.5 w-2.5 text-info drop-shadow-[0_0_4px_hsl(var(--info)/0.5)]" />
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[11px] font-medium line-clamp-1 group-hover:text-primary transition-colors">{item.product_name}</p>
-                        <div className="flex items-center gap-1">
-                          <RefreshCw className={cn("h-2.5 w-2.5", recencyStyles[variant])} />
-                          <span className={cn("text-[10px] font-medium", recencyStyles[variant])}>{formatDaysAgo(item.replenished_at)}</span>
-                        </div>
-                      </div>
-                      <ChevronRight className="h-3 w-3 text-muted-foreground/40 group-hover:text-primary shrink-0 transition-colors" />
-                    </div>
-                  );
-                })}
-              </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[11px] font-medium line-clamp-1 group-hover:text-primary transition-colors">
+                              {item.product_name}
+                            </p>
+                            <div className="flex items-center gap-1">
+                              <RefreshCw className={cn("h-2.5 w-2.5", RECENCY_STYLES[variant])} aria-hidden="true" />
+                              <span className={cn("text-[10px] font-medium", RECENCY_STYLES[variant])}>
+                                {formatDaysAgo(item.replenished_at)}
+                              </span>
+                            </div>
+                          </div>
+                          <ChevronRight className="h-3 w-3 text-muted-foreground/40 group-hover:text-primary shrink-0 transition-colors" aria-hidden="true" />
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </nav>
             </ScrollArea>
           ) : (
-            <div className="text-center py-4">
-              <RefreshCw className="h-6 w-6 mx-auto text-muted-foreground/30 mb-1.5" />
+            <div className="text-center py-4" role="status">
+              <RefreshCw className="h-6 w-6 mx-auto text-muted-foreground/30 mb-1.5" aria-hidden="true" />
               <p className="text-[11px] text-muted-foreground">Nenhuma reposição recente</p>
             </div>
           )}
         </CardContent>
       </Card>
 
+      {/* Supplier Breakdown Card */}
       {supplierBreakdown.length > 0 && (
         <Card className="border-info/30 bg-gradient-to-br from-info/5 to-transparent">
           <CardHeader className="pb-1.5 px-3 pt-3">
             <CardTitle className="text-sm flex items-center gap-1.5">
-              <Building2 className="h-4 w-4 text-info" />Por Fornecedor
+              <Building2 className="h-4 w-4 text-info" aria-hidden="true" />
+              Por Fornecedor
             </CardTitle>
           </CardHeader>
           <CardContent className="pt-0 px-3 pb-3">
-            <div className="space-y-2">
+            <div className="space-y-2" role="list" aria-label="Reposições por fornecedor">
               {supplierBreakdown.map((sup, idx) => (
-                <div key={sup.id}>
+                <div key={sup.id} role="listitem">
                   <div className="flex items-center justify-between mb-0.5">
                     <span className="font-medium text-[11px] truncate max-w-[120px]">{sup.name}</span>
                     <div className="flex items-center gap-1">
@@ -141,8 +182,11 @@ export function RecentReplenishmentsWidget() {
                       <span className="text-[9px] text-muted-foreground tabular-nums w-7 text-right">{sup.percentage}%</span>
                     </div>
                   </div>
-                  <div className="h-1 rounded-full bg-muted overflow-hidden">
-                    <div className={cn("h-full rounded-full transition-all duration-700 ease-out", idx === 0 ? "bg-info" : "bg-info/50")} style={{ width: `${sup.percentage}%` }} />
+                  <div className="h-1 rounded-full bg-muted overflow-hidden" role="progressbar" aria-valuenow={sup.percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`${sup.name}: ${sup.percentage}%`}>
+                    <div
+                      className={cn("h-full rounded-full transition-all duration-700 ease-out", idx === 0 ? "bg-info" : "bg-info/50")}
+                      style={{ width: `${sup.percentage}%` }}
+                    />
                   </div>
                   {idx < supplierBreakdown.length - 1 && <Separator className="mt-2 opacity-20" />}
                 </div>
@@ -151,6 +195,6 @@ export function RecentReplenishmentsWidget() {
           </CardContent>
         </Card>
       )}
-    </div>
+    </aside>
   );
 }
