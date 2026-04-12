@@ -127,7 +127,7 @@ export default function SimuladorWizard() {
     <>
     <MainLayout>
       <PageSEO title="Simulador de Personalização" description="Simule personalizações de brindes com cálculo automático de custos." path="/simulador" />
-      <div className="min-h-[calc(100vh-8rem)]">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in min-h-[calc(100vh-8rem)]">
         {/* Compact Header */}
         <motion.div 
           initial={{ opacity: 0, y: -10 }}
