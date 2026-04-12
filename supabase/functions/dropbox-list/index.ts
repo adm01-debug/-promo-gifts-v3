@@ -1,48 +1,49 @@
-import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-/// <reference lib="deno.ns" />
-/**
- * Edge Function: dropbox-list
- * Lista arquivos e pastas do Dropbox
- */
+import { getCorsHeaders } from '../_shared/cors.ts';
+import { z } from "https://esm.sh/zod@3.23.8";
 
-
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const BodySchema = z.object({
+  path: z.string().max(1000).default(''),
+  action: z.enum(['list', 'check']).default('list'),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
-  // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { path = "", action = "list" } = await req.json().catch(() => ({ path: "", action: "list" }));
+    // Parse & validate body (graceful fallback for empty body)
+    let body: z.infer<typeof BodySchema>;
+    try {
+      const raw = await req.json();
+      const parsed = BodySchema.safeParse(raw);
+      if (!parsed.success) {
+        return new Response(
+          JSON.stringify({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      body = parsed.data;
+    } catch {
+      body = { path: '', action: 'list' };
+    }
 
+    const { path, action } = body;
     const accessToken = Deno.env.get("DROPBOX_ACCESS_TOKEN");
 
     // Check if Dropbox is configured
     if (action === "check") {
       return new Response(
-        JSON.stringify({
-          connected: !!accessToken,
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        }
+        JSON.stringify({ connected: !!accessToken }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     if (!accessToken) {
       return new Response(
-        JSON.stringify({
-          error: "DROPBOX_ACCESS_TOKEN não configurado",
-          entries: [],
-        }),
-        {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 400,
-        }
+        JSON.stringify({ error: "DROPBOX_ACCESS_TOKEN não configurado", entries: [] }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
@@ -74,10 +75,12 @@ Deno.serve(async (req) => {
 
     // Get thumbnails for images
     const entriesWithThumbnails = await Promise.all(
-      data.entries.map(async (entry: any) => {
-        if (entry[".tag"] === "file" && /\.(jpg|jpeg|png|gif)$/i.test(entry.name)) {
+      data.entries.map(async (entry: Record<string, unknown>) => {
+        const tag = entry[".tag"] as string;
+        const name = entry.name as string;
+        const pathLower = entry.path_lower as string;
+        if (tag === "file" && /\.(jpg|jpeg|png|gif)$/i.test(name)) {
           try {
-            // Get thumbnail
             const thumbnailResponse = await fetch(
               "https://content.dropboxapi.com/2/files/get_thumbnail_v2",
               {
@@ -85,7 +88,7 @@ Deno.serve(async (req) => {
                 headers: {
                   "Authorization": `Bearer ${accessToken}`,
                   "Dropbox-API-Arg": JSON.stringify({
-                    resource: { ".tag": "path", path: entry.path_lower },
+                    resource: { ".tag": "path", path: pathLower },
                     format: "jpeg",
                     size: "w128h128",
                     mode: "strict",
@@ -97,10 +100,7 @@ Deno.serve(async (req) => {
             if (thumbnailResponse.ok) {
               const blob = await thumbnailResponse.blob();
               const base64 = await blobToBase64(blob);
-              return {
-                ...entry,
-                thumbnail_url: `data:image/jpeg;base64,${base64}`,
-              };
+              return { ...entry, thumbnail_url: `data:image/jpeg;base64,${base64}` };
             }
           } catch (err) {
             console.error("Error getting thumbnail:", err);
@@ -116,26 +116,18 @@ Deno.serve(async (req) => {
         cursor: data.cursor,
         has_more: data.has_more,
       }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      }
+      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
-  } catch (error: any) {
-    console.error("Error in dropbox-list:", error);
+  } catch (error: unknown) {
+    const msg = error instanceof Error ? error.message : "Erro interno";
+    console.error("Error in dropbox-list:", msg);
     return new Response(
-      JSON.stringify({
-        error: error.message || "Erro interno",
-        entries: [],
-      }),
-      {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 500,
-      }
+      JSON.stringify({ error: msg, entries: [] }),
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
 
-// Helper to convert blob to base64
 async function blobToBase64(blob: Blob): Promise<string> {
   const arrayBuffer = await blob.arrayBuffer();
   const bytes = new Uint8Array(arrayBuffer);

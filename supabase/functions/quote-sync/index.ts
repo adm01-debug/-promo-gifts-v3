@@ -1,5 +1,7 @@
 /// <reference lib="deno.ns" />
 import { createClient } from "npm:@supabase/supabase-js@2.49.1";
+import { z } from "https://esm.sh/zod@3.23.8";
+import { parseBodyWithSchema } from "../_shared/zod-validate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +14,33 @@ const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const crmUrl = Deno.env.get("CRM_SUPABASE_URL");
 const crmKey = Deno.env.get("CRM_SUPABASE_ANON_KEY");
 const n8nWebhookUrl = Deno.env.get("N8N_QUOTE_WEBHOOK_URL");
+
+// ===== Zod Schemas =====
+
+const SyncQuoteSchema = z.object({
+  action: z.literal('sync_quote'),
+  data: z.object({
+    quoteId: z.string().uuid('quoteId must be a valid UUID'),
+  }),
+});
+
+const SyncAllPendingSchema = z.object({
+  action: z.literal('sync_all_pending'),
+  data: z.object({}).optional(),
+});
+
+const TestWebhookSchema = z.object({
+  action: z.literal('test_webhook'),
+  data: z.object({}).optional(),
+});
+
+const RequestSchema = z.discriminatedUnion('action', [
+  SyncQuoteSchema,
+  SyncAllPendingSchema,
+  TestWebhookSchema,
+]);
+
+// ===== Types =====
 
 interface QuoteData {
   id: string;
@@ -64,32 +93,26 @@ Deno.serve(async (req) => {
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
   try {
-    const { action, data } = await req.json();
+    // Validate body with Zod
+    const parsed = await parseBodyWithSchema(req, RequestSchema, corsHeaders);
+    if ('error' in parsed) return parsed.error;
+
+    const { action, data } = parsed.data;
     console.log(`Quote sync action: ${action}`, data);
 
     switch (action) {
       case "sync_quote": {
         const { quoteId } = data;
-        if (!quoteId) throw new Error("quoteId is required");
-
-        // Fetch quote from external CRM database
         const quoteData = await fetchQuoteFromCRM(quoteId);
         if (!quoteData) throw new Error("Quote not found in CRM");
 
-        // Send to N8N if configured
-        let n8nResponse: any = {};
+        let n8nResponse: Record<string, unknown> = {};
         if (n8nWebhookUrl) {
-          try {
-            n8nResponse = await sendToN8N(quoteData);
-          } catch (err) {
-            console.error("N8N sync failed (non-blocking):", err);
-          }
+          try { n8nResponse = await sendToN8N(quoteData); }
+          catch (err) { console.error("N8N sync failed (non-blocking):", err); }
         }
 
-        // Send to SalesPro
         await sendToSalesPro(quoteData);
-
-        // Update sync status in CRM
         await updateCRMSyncStatus(quoteId, n8nResponse);
 
         return new Response(
@@ -120,7 +143,7 @@ Deno.serve(async (req) => {
           try {
             const quoteData = await fetchQuoteFromCRM(quote.id);
             if (quoteData) {
-              let response: any = {};
+              let response: Record<string, unknown> = {};
               if (n8nWebhookUrl) {
                 try { response = await sendToN8N(quoteData); } catch { /* skip */ }
               }
@@ -147,9 +170,8 @@ Deno.serve(async (req) => {
       }
 
       case "test_webhook": {
-        const results: Record<string, any> = {};
+        const results: Record<string, unknown> = {};
 
-        // Test N8N
         if (n8nWebhookUrl) {
           try {
             const response = await fetch(n8nWebhookUrl, {
@@ -163,7 +185,6 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Test SalesPro
         const salesProUrl = Deno.env.get("SALESPRO_WEBHOOK_URL");
         const apiKey = Deno.env.get("QUOTE_SYNC_API_KEY");
         if (salesProUrl && apiKey) {
@@ -185,9 +206,6 @@ Deno.serve(async (req) => {
           { headers: { ...corsHeaders, "Content-Type": "application/json" } },
         );
       }
-
-      default:
-        throw new Error(`Unknown action: ${action}`);
     }
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
@@ -202,179 +220,100 @@ Deno.serve(async (req) => {
 // ===== Fetch quote data from external CRM database =====
 async function fetchQuoteFromCRM(quoteId: string): Promise<QuoteData | null> {
   if (!crmUrl || !crmKey) {
-    throw new Error("CRM database credentials not configured (CRM_SUPABASE_URL / CRM_SUPABASE_ANON_KEY)");
+    throw new Error("CRM database credentials not configured");
   }
 
   const crm = createClient(crmUrl, crmKey);
 
-  // Fetch quote
   const { data: quote, error: quoteError } = await crm
-    .from("quotes")
-    .select("*")
-    .eq("id", quoteId)
-    .single();
+    .from("quotes").select("*").eq("id", quoteId).single();
+  if (quoteError || !quote) { console.error("Error fetching quote:", quoteError); return null; }
 
-  if (quoteError || !quote) {
-    console.error("Error fetching quote from CRM:", quoteError);
-    return null;
-  }
-
-  // Fetch quote items with personalizations
   const { data: items, error: itemsError } = await crm
-    .from("quote_items")
-    .select("*, quote_item_personalizations(*)")
-    .eq("quote_id", quoteId)
-    .order("sort_order");
+    .from("quote_items").select("*, quote_item_personalizations(*)")
+    .eq("quote_id", quoteId).order("sort_order");
+  if (itemsError) console.error("Error fetching items:", itemsError);
 
-  if (itemsError) {
-    console.error("Error fetching quote items from CRM:", itemsError);
-  }
-
-  // Fetch seller name from local profiles
   let sellerName: string | undefined;
   if (quote.seller_id) {
-    const supabase = createClient(supabaseUrl, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const { data: profile } = await supabase
-      .from("profiles")
-      .select("full_name")
-      .eq("user_id", quote.seller_id)
-      .single();
+      .from("profiles").select("full_name").eq("user_id", quote.seller_id).single();
     sellerName = profile?.full_name;
   }
 
-  const formattedItems: QuoteItemData[] = (items || []).map((item: any) => ({
-    product_id: item.product_id,
-    product_name: item.product_name,
-    product_sku: item.product_sku,
-    quantity: item.quantity,
+  const formattedItems: QuoteItemData[] = (items || []).map((item: Record<string, unknown>) => ({
+    product_id: item.product_id as string,
+    product_name: item.product_name as string,
+    product_sku: item.product_sku as string | undefined,
+    quantity: item.quantity as number,
     unit_price: Number(item.unit_price),
     subtotal: Number(item.subtotal),
-    color_name: item.color_name,
-    personalizations: (item.quote_item_personalizations || []).map((p: any) => ({
-      technique_name: p.technique_name || "Unknown",
-      colors_count: p.colors_count,
-      positions_count: p.positions_count,
+    color_name: item.color_name as string | undefined,
+    personalizations: ((item.quote_item_personalizations as Record<string, unknown>[]) || []).map((p) => ({
+      technique_name: (p.technique_name as string) || "Unknown",
+      colors_count: p.colors_count as number,
+      positions_count: p.positions_count as number,
       total_cost: Number(p.total_cost),
     })),
   }));
 
   return {
-    id: quote.id,
-    quote_number: quote.quote_number,
-    client_id: quote.client_id,
-    client_name: quote.client_name,
-    client_email: quote.client_email,
-    client_phone: quote.client_phone,
-    client_company: quote.client_company,
-    seller_id: quote.seller_id,
-    seller_name: sellerName,
-    status: quote.status,
-    subtotal: Number(quote.subtotal || 0),
-    discount_percent: Number(quote.discount_percent || 0),
-    discount_amount: Number(quote.discount_amount || 0),
-    total: Number(quote.total || 0),
-    notes: quote.notes,
-    valid_until: quote.valid_until,
-    payment_terms: quote.payment_terms,
-    delivery_time: quote.delivery_time,
-    shipping_type: quote.shipping_type,
-    shipping_cost: Number(quote.shipping_cost || 0),
-    items: formattedItems,
-    created_at: quote.created_at,
+    id: quote.id, quote_number: quote.quote_number,
+    client_id: quote.client_id, client_name: quote.client_name,
+    client_email: quote.client_email, client_phone: quote.client_phone,
+    client_company: quote.client_company, seller_id: quote.seller_id,
+    seller_name: sellerName, status: quote.status,
+    subtotal: Number(quote.subtotal || 0), discount_percent: Number(quote.discount_percent || 0),
+    discount_amount: Number(quote.discount_amount || 0), total: Number(quote.total || 0),
+    notes: quote.notes, valid_until: quote.valid_until,
+    payment_terms: quote.payment_terms, delivery_time: quote.delivery_time,
+    shipping_type: quote.shipping_type, shipping_cost: Number(quote.shipping_cost || 0),
+    items: formattedItems, created_at: quote.created_at,
   };
 }
 
-// ===== Update sync status in CRM =====
-async function updateCRMSyncStatus(quoteId: string, n8nResponse: any): Promise<void> {
+async function updateCRMSyncStatus(quoteId: string, n8nResponse: Record<string, unknown>): Promise<void> {
   if (!crmUrl || !crmKey) return;
   const crm = createClient(crmUrl, crmKey);
-
-  const { error } = await crm
-    .from("quotes")
-    .update({
-      synced_to_bitrix: true,
-      synced_at: new Date().toISOString(),
-      bitrix_deal_id: n8nResponse?.bitrix_deal_id || null,
-      bitrix_quote_id: n8nResponse?.bitrix_quote_id || null,
-    })
-    .eq("id", quoteId);
-
-  if (error) {
-    console.error("Error updating CRM sync status:", error);
-  }
+  const { error } = await crm.from("quotes").update({
+    synced_to_bitrix: true, synced_at: new Date().toISOString(),
+    bitrix_deal_id: (n8nResponse?.bitrix_deal_id as string) || null,
+    bitrix_quote_id: (n8nResponse?.bitrix_quote_id as string) || null,
+  }).eq("id", quoteId);
+  if (error) console.error("Error updating CRM sync status:", error);
 }
 
-// ===== Send to N8N =====
-async function sendToN8N(quoteData: QuoteData): Promise<any> {
+async function sendToN8N(quoteData: QuoteData): Promise<Record<string, unknown>> {
   if (!n8nWebhookUrl) throw new Error("N8N_QUOTE_WEBHOOK_URL not configured");
-
-  console.log("Sending quote to N8N:", quoteData.quote_number);
-
   const response = await fetch(n8nWebhookUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "create_or_update_quote",
-      quote: quoteData,
-      timestamp: new Date().toISOString(),
-    }),
+    body: JSON.stringify({ action: "create_or_update_quote", quote: quoteData, timestamp: new Date().toISOString() }),
   });
-
   if (!response.ok) {
     const errorText = await response.text();
     throw new Error(`N8N webhook failed: ${response.status} - ${errorText}`);
   }
-
-  try {
-    return await response.json();
-  } catch {
-    return { success: true };
-  }
+  try { return await response.json(); } catch { return { success: true }; }
 }
 
-// ===== Send to SalesPro CRM =====
 async function sendToSalesPro(quoteData: QuoteData): Promise<void> {
   const webhookUrl = Deno.env.get("SALESPRO_WEBHOOK_URL");
   const apiKey = Deno.env.get("QUOTE_SYNC_API_KEY");
-
-  if (!webhookUrl) {
-    console.warn("SALESPRO_WEBHOOK_URL not configured, skipping SalesPro sync");
-    return;
-  }
-
-  if (!apiKey) {
-    console.warn("QUOTE_SYNC_API_KEY not configured, skipping SalesPro sync");
-    return;
-  }
-
-  console.log("Sending quote to SalesPro:", quoteData.quote_number);
+  if (!webhookUrl || !apiKey) { console.warn("SalesPro not configured, skipping"); return; }
 
   try {
     const response = await fetch(webhookUrl, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        action: "create_or_update_quote",
-        quote: quoteData,
-        source: "gifts-store",
-        timestamp: new Date().toISOString(),
-      }),
+      headers: { "Content-Type": "application/json", "x-api-key": apiKey },
+      body: JSON.stringify({ action: "create_or_update_quote", quote: quoteData, source: "gifts-store", timestamp: new Date().toISOString() }),
     });
-
     if (!response.ok) {
       const errorText = await response.text();
       console.error("SalesPro webhook error:", response.status, errorText);
     } else {
       console.log("SalesPro sync successful for quote:", quoteData.quote_number);
-      try {
-        const result = await response.json();
-        console.log("SalesPro response:", JSON.stringify(result));
-      } catch {
-        await response.text();
-      }
     }
   } catch (err) {
     console.error("SalesPro sync failed:", err);

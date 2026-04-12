@@ -1,5 +1,6 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "https://esm.sh/zod@3.23.8";
 
 // ============================================
 // CORS
@@ -415,8 +416,34 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
-    const crm = createClient(CRM_URL, CRM_KEY);
-    const body = await req.json() as CrmQuery;
+    // Validate body with Zod schema
+    let rawBody: unknown;
+    try { rawBody = await req.json(); } catch {
+      return jsonResponse({ error: "Invalid JSON in request body" }, 400);
+    }
+
+    const CrmRequestSchema = z.object({
+      operation: z.enum(["select", "search", "insert", "update", "delete", "batch"]),
+      table: z.string().trim().min(1).max(100).regex(/^[a-z_][a-z0-9_]*$/i).optional(),
+      id: z.string().uuid().optional(),
+      filters: z.record(z.unknown()).optional(),
+      select: z.string().max(2000).optional(),
+      orderBy: z.union([z.string(), z.object({ column: z.string(), ascending: z.boolean().optional() })]).optional(),
+      limit: z.number().int().min(1).max(1000).optional(),
+      offset: z.number().int().min(0).optional(),
+      search: z.object({ column: z.string(), term: z.string() }).optional(),
+      relations: z.string().max(2000).optional(),
+      data: z.union([z.record(z.unknown()), z.array(z.record(z.unknown()))]).optional(),
+      returning: z.string().max(2000).optional(),
+      queries: z.array(z.record(z.unknown())).max(10).optional(),
+    });
+
+    const parsed = CrmRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonResponse({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }, 400);
+    }
+
+    const body = parsed.data as CrmQuery;
     const { operation, table } = body;
 
     // Write permission check for vendedores
