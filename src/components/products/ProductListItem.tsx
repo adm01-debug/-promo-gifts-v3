@@ -69,6 +69,8 @@ export const ProductListItem = memo(function ProductListItem({
   canAddToCompare = true,
   highlightColors = [],
   activeColorFilter,
+  isNovelty = false,
+  noveltyDaysRemaining,
 }: ProductListItemProps) {
   const navigate = useNavigate();
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
