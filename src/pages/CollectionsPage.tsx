@@ -425,6 +425,16 @@ export default function CollectionsPage() {
                             <Copy className="h-4 w-4 mr-2" />
                             Duplicar
                           </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateCollection(collection.id, { isFeatured: !collection.isFeatured });
+                              toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
+                            }}
+                          >
+                            <Star className="h-4 w-4 mr-2" />
+                            {collection.isFeatured ? "Remover destaque" : "Destacar"}
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
                             className="text-destructive"
@@ -488,11 +498,24 @@ export default function CollectionsPage() {
                         <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Package className="h-3 w-3" />
                             {collection.productIds.length} produtos
                           </p>
+                          {collection.isFeatured && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+                              <Star className="h-2.5 w-2.5 mr-0.5" />
+                              Destaque
+                            </Badge>
+                          )}
+                          {updatedAgo && (
+                            <span className="text-xs text-muted-foreground/60 flex items-center gap-0.5">
+                              <Clock className="h-2.5 w-2.5" />
+                              {updatedAgo}
+                            </span>
+                          )}
+                        </div>
                           {updatedAgo && (
                             <span className="text-xs text-muted-foreground/60 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" />
