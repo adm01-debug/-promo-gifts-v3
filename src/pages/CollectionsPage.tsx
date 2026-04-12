@@ -381,7 +381,7 @@ export default function CollectionsPage() {
 
           {filteredLocal.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredLocal.map((collection) => {
+              {filteredLocal.map((collection, idx) => {
                 const products = getCollectionProducts(collection.id);
                 const previewImages = products.slice(0, 4).map((p) => p.images[0]);
                 const updatedAgo = relativeTime(collection.updatedAt);
@@ -389,7 +389,8 @@ export default function CollectionsPage() {
                 return (
                   <div
                     key={collection.id}
-                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300"
+                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item"
+                    style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     {/* Context menu - always visible on mobile */}
