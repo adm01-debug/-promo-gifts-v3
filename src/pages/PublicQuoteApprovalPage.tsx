@@ -1,243 +1,41 @@
-import { useState, useEffect } from "react";
+/**
+ * PublicQuoteApprovalPage — Refactored orchestrator.
+ * Logic in usePublicQuoteApproval, status screens in PublicQuoteStatusScreens.
+ */
 import { useParams } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
-import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
-  CheckCircle,
-  XCircle,
-  Package,
-  DollarSign,
-  Calendar,
-  User,
-  Phone,
-  Mail,
-  Loader2,
-  AlertTriangle,
-  FileText,
-  Truck,
-  CreditCard,
-  Clock,
-  Palette,
-  Sparkles,
+  CheckCircle, XCircle, User, Phone, Mail, Loader2,
+  CreditCard, Calendar, Clock,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { PageSEO } from "@/components/seo/PageSEO";
+import { usePublicQuoteApproval, calcPersonalizationTotal } from "./public-approval/usePublicQuoteApproval";
 import { PublicQuoteItemsList, PublicQuoteTotals } from "./public-approval/PublicQuoteItems";
-
-interface QuoteData {
-  quote: any;
-  seller: any;
-  token: any;
-}
+import {
+  LoadingScreen, ExpiredScreen, AlreadyRespondedScreen,
+  ErrorScreen, SubmittedScreen,
+} from "./public-approval/PublicQuoteStatusScreens";
 
 export default function PublicQuoteApprovalPage() {
   const { token } = useParams<{ token: string }>();
-  const [data, setData] = useState<QuoteData | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isExpired, setIsExpired] = useState(false);
-  const [alreadyResponded, setAlreadyResponded] = useState<any>(null);
-  const [responseNotes, setResponseNotes] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState<string | null>(null);
+  const state = usePublicQuoteApproval(token);
 
-  useEffect(() => {
-    if (!token) return;
+  if (state.isLoading) return <LoadingScreen />;
+  if (state.isExpired) return <ExpiredScreen />;
+  if (state.alreadyResponded) return <AlreadyRespondedScreen data={state.alreadyResponded} />;
+  if (state.error || !state.data) return <ErrorScreen error={state.error} />;
+  if (state.submitted) return <SubmittedScreen response={state.submitted} />;
 
-    const fetchQuote = async () => {
-      setIsLoading(true);
-      try {
-        const { data: result, error: fnError } = await supabase.functions.invoke(
-          "quote-public-view",
-          { body: { action: "get_quote", token } }
-        );
-
-        // supabase.functions.invoke returns the parsed body even on non-2xx
-        // but sets fnError for network failures
-        if (fnError && !result) {
-          throw new Error(fnError.message);
-        }
-
-        // Handle error responses from the edge function
-        if (result?.error) {
-          if (result.expired) {
-            setIsExpired(true);
-          } else {
-            setError(result.error);
-          }
-          return;
-        }
-
-        if (result.already_responded) {
-          setAlreadyResponded(result);
-          return;
-        }
-
-        setData(result);
-      } catch (err) {
-        setError("Erro ao carregar proposta");
-        console.error(err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchQuote();
-  }, [token]);
-
-  const handleResponse = async (response: "approved" | "rejected") => {
-    if (!token) return;
-    setIsSubmitting(true);
-
-    try {
-      const { data: result, error: fnError } = await supabase.functions.invoke(
-          "quote-public-view",
-          {
-            body: {
-              action: "respond",
-              token,
-              response,
-              response_notes: responseNotes.trim() || null,
-            },
-          }
-        );
-
-        if (fnError && !result) throw new Error(fnError.message);
-        if (result?.error) throw new Error(result.error);
-
-      setSubmitted(response);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const formatCurrency = (value: number) =>
-    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-      <PageSEO title="Aprovação de Orçamento" description="Revise e aprove seu orçamento de brindes promocionais." noIndex />
-        <div className="text-center space-y-4">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <p className="text-muted-foreground">Carregando proposta...</p>
-        </div>
-      </div>
-    );
-  }
-
-  if (isExpired) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8 space-y-4">
-            <AlertTriangle className="h-16 w-16 text-warning mx-auto" />
-            <h2 className="font-display text-xl font-bold">Link expirado</h2>
-            <p className="text-muted-foreground">
-              Este link de aprovação expirou. Entre em contato com o vendedor para receber um novo link.
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (alreadyResponded) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8 space-y-4">
-            {alreadyResponded.response === "approved" ? (
-              <CheckCircle className="h-16 w-16 text-success mx-auto" />
-            ) : (
-              <XCircle className="h-16 w-16 text-destructive mx-auto" />
-            )}
-            <h2 className="font-display text-xl font-bold">
-              Proposta {alreadyResponded.response === "approved" ? "aprovada" : "recusada"}
-            </h2>
-            <p className="text-muted-foreground">
-              Esta proposta foi {alreadyResponded.response === "approved" ? "aprovada" : "recusada"} em{" "}
-              {format(new Date(alreadyResponded.responded_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}.
-            </p>
-            {alreadyResponded.response_notes && (
-              <p className="text-sm text-muted-foreground italic">
-                "{alreadyResponded.response_notes}"
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (error || !data) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8 space-y-4">
-            <FileText className="h-16 w-16 text-muted-foreground mx-auto" />
-            <h2 className="font-display text-xl font-bold">Proposta não encontrada</h2>
-            <p className="text-muted-foreground">{error || "Verifique o link e tente novamente."}</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  if (submitted) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center p-4">
-        <Card className="max-w-md w-full text-center">
-          <CardContent className="pt-8 pb-8 space-y-4">
-            {submitted === "approved" ? (
-              <>
-                <div className="relative mx-auto w-20 h-20">
-                  <CheckCircle className="h-20 w-20 text-success" />
-                  <Sparkles className="h-6 w-6 text-warning absolute -top-1 -right-1" />
-                </div>
-                <h2 className="font-display text-2xl font-bold text-success">Proposta aprovada!</h2>
-                <p className="text-muted-foreground">
-                  Obrigado! O vendedor foi notificado e entrará em contato em breve.
-                </p>
-              </>
-            ) : (
-              <>
-                <XCircle className="h-20 w-20 text-destructive mx-auto" />
-                <h2 className="font-display text-2xl font-bold">Proposta recusada</h2>
-                <p className="text-muted-foreground">
-                  Sua resposta foi registrada. O vendedor foi notificado.
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
-  const { quote, seller } = data;
+  const { quote, seller } = state.data;
   const items = quote.items || [];
 
-  // Calculate personalization totals per item
-  const calcPersTotal = (item: any) => {
-    const persCost = (item.personalizations || []).reduce(
-      (sum: number, p: any) => sum + (p.total_cost || 0),
-      0
-    );
-    return persCost;
-  };
-
-  const subtotal = items.reduce((sum: number, item: any) => {
-    return sum + item.quantity * item.unit_price + calcPersTotal(item);
-  }, 0);
+  const subtotal = items.reduce((sum: number, item: any) =>
+    sum + item.quantity * item.unit_price + calcPersonalizationTotal(item), 0);
 
   const discountAmount = quote.discount_percent
     ? subtotal * (quote.discount_percent / 100)
@@ -250,13 +48,6 @@ export default function PublicQuoteApprovalPage() {
 
   const total = subtotal - discountAmount + shippingCost;
 
-  const shippingLabels: Record<string, string> = {
-    cif: "CIF (incluso)",
-    fob: "FOB (a cobrar)",
-    fob_pre: "FOB Pré-pago",
-    retirada: "Retirada",
-  };
-
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -265,9 +56,7 @@ export default function PublicQuoteApprovalPage() {
           <div className="flex items-center justify-between">
             <div>
               <h1 className="font-display text-2xl font-bold text-foreground">Proposta Comercial</h1>
-              <p className="text-muted-foreground mt-1">
-                #{quote.quote_number}
-              </p>
+              <p className="text-muted-foreground mt-1">#{quote.quote_number}</p>
             </div>
             {quote.valid_until && (
               <Badge variant="outline" className="gap-1.5">
@@ -295,14 +84,10 @@ export default function PublicQuoteApprovalPage() {
                   <p className="font-medium">{seller.full_name || "Vendedor"}</p>
                   <div className="flex flex-wrap gap-3 text-sm text-muted-foreground mt-1">
                     {seller.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" /> {seller.email}
-                      </span>
+                      <span className="flex items-center gap-1"><Mail className="h-3 w-3" /> {seller.email}</span>
                     )}
                     {seller.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone className="h-3 w-3" /> {seller.phone}
-                      </span>
+                      <span className="flex items-center gap-1"><Phone className="h-3 w-3" /> {seller.phone}</span>
                     )}
                   </div>
                 </div>
@@ -384,34 +169,26 @@ export default function PublicQuoteApprovalPage() {
           <CardContent className="space-y-4">
             <Textarea
               placeholder="Observações ou comentários (opcional)..."
-              value={responseNotes}
-              onChange={(e) => setResponseNotes(e.target.value)}
+              value={state.responseNotes}
+              onChange={(e) => state.setResponseNotes(e.target.value)}
               className="min-h-[80px] resize-none bg-background"
             />
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
-                onClick={() => handleResponse("approved")}
-                disabled={isSubmitting}
+                onClick={() => state.handleResponse("approved")}
+                disabled={state.isSubmitting}
                 className="flex-1 h-12 text-base bg-success hover:bg-success/90 text-success-foreground"
               >
-                {isSubmitting ? (
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                ) : (
-                  <CheckCircle className="h-5 w-5 mr-2" />
-                )}
+                {state.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle className="h-5 w-5 mr-2" />}
                 Aprovar Proposta
               </Button>
               <Button
-                onClick={() => handleResponse("rejected")}
-                disabled={isSubmitting}
+                onClick={() => state.handleResponse("rejected")}
+                disabled={state.isSubmitting}
                 variant="destructive"
                 className="flex-1 h-12 text-base"
               >
-                {isSubmitting ? (
-                  <Loader2 className="h-5 w-5 animate-spin mr-2" />
-                ) : (
-                  <XCircle className="h-5 w-5 mr-2" />
-                )}
+                {state.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <XCircle className="h-5 w-5 mr-2" />}
                 Recusar Proposta
               </Button>
             </div>

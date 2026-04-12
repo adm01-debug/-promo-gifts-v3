@@ -1,61 +1,21 @@
 import { useState, useCallback } from "react";
 import {
-  DndContext,
-  closestCenter,
-  KeyboardSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
+  DndContext, closestCenter, KeyboardSensor, PointerSensor,
+  useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
 import {
-  arrayMove,
-  SortableContext,
-  sortableKeyboardCoordinates,
-  verticalListSortingStrategy,
-  useSortable,
+  arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  GripVertical,
-  Plus,
-  Trash2,
-  Play,
-  Pause,
-  Settings2,
-  Bot,
-  Brain,
-  Zap,
-  MessageSquare,
-  Search,
-  FileText,
-  ArrowRight,
-  Workflow,
-  Sparkles,
-  Copy,
-} from "lucide-react";
+import { Plus, Play, Pause, Workflow, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { STEP_TYPES } from "./workflowConstants";
+import { SortableStep } from "./WorkflowStepCard";
+import { WorkflowEditDialog } from "./WorkflowEditDialog";
 
 // Types
 export interface WorkflowStep {
@@ -76,10 +36,6 @@ export interface WorkflowDefinition {
   status: "draft" | "active" | "paused";
 }
 
-import { STEP_TYPES, AI_MODELS } from "./workflowConstants";
-import { SortableStep } from "./WorkflowStepCard";
-
-// Main component
 export function WorkflowCanvas() {
   const [workflow, setWorkflow] = useState<WorkflowDefinition>({
     id: crypto.randomUUID(),
@@ -97,19 +53,15 @@ export function WorkflowCanvas() {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
   );
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id) return;
-
-      setWorkflow((prev) => {
-        const oldIndex = prev.steps.findIndex((s) => s.id === active.id);
-        const newIndex = prev.steps.findIndex((s) => s.id === over.id);
-        return { ...prev, steps: arrayMove(prev.steps, oldIndex, newIndex) };
-      });
-    },
-    []
-  );
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    setWorkflow((prev) => {
+      const oldIndex = prev.steps.findIndex((s) => s.id === active.id);
+      const newIndex = prev.steps.findIndex((s) => s.id === over.id);
+      return { ...prev, steps: arrayMove(prev.steps, oldIndex, newIndex) };
+    });
+  }, []);
 
   const addStep = (type: WorkflowStep["type"]) => {
     const typeLabel = STEP_TYPES.find((t) => t.value === type)?.label || type;
@@ -127,18 +79,12 @@ export function WorkflowCanvas() {
   };
 
   const deleteStep = (id: string) => {
-    setWorkflow((prev) => ({
-      ...prev,
-      steps: prev.steps.filter((s) => s.id !== id),
-    }));
+    setWorkflow((prev) => ({ ...prev, steps: prev.steps.filter((s) => s.id !== id) }));
   };
 
   const duplicateStep = (step: WorkflowStep) => {
     const newStep = { ...step, id: crypto.randomUUID(), name: `${step.name} (cópia)` };
-    setWorkflow((prev) => ({
-      ...prev,
-      steps: [...prev.steps, newStep],
-    }));
+    setWorkflow((prev) => ({ ...prev, steps: [...prev.steps, newStep] }));
     toast.success("Etapa duplicada");
   };
 
@@ -151,9 +97,7 @@ export function WorkflowCanvas() {
     if (!editDialog || !editForm) return;
     setWorkflow((prev) => ({
       ...prev,
-      steps: prev.steps.map((s) =>
-        s.id === editDialog.id ? { ...s, ...editForm } as WorkflowStep : s
-      ),
+      steps: prev.steps.map((s) => s.id === editDialog.id ? { ...s, ...editForm } as WorkflowStep : s),
     }));
     setEditDialog(null);
     toast.success("Etapa atualizada");
@@ -196,18 +140,9 @@ export function WorkflowCanvas() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setWorkflow((p) => ({
-                    ...p,
-                    status: p.status === "active" ? "paused" : "active",
-                  }))
-                }
+                onClick={() => setWorkflow((p) => ({ ...p, status: p.status === "active" ? "paused" : "active" }))}
               >
-                {workflow.status === "active" ? (
-                  <><Pause className="h-4 w-4 mr-1" />Pausar</>
-                ) : (
-                  <><Play className="h-4 w-4 mr-1" />Ativar</>
-                )}
+                {workflow.status === "active" ? <><Pause className="h-4 w-4 mr-1" />Pausar</> : <><Play className="h-4 w-4 mr-1" />Ativar</>}
               </Button>
             </div>
           </div>
@@ -244,29 +179,15 @@ export function WorkflowCanvas() {
               </div>
               <h3 className="font-display text-lg font-semibold text-muted-foreground">Canvas vazio</h3>
               <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Adicione etapas para criar seu fluxo de orquestração multiagente.
-                Arraste para reordenar.
+                Adicione etapas para criar seu fluxo de orquestração multiagente. Arraste para reordenar.
               </p>
-              <Button
-                variant="outline"
-                size="sm"
-                className="mt-4"
-                onClick={() => addStep("agent")}
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                Adicionar primeira etapa
+              <Button variant="outline" size="sm" className="mt-4" onClick={() => addStep("agent")}>
+                <Plus className="h-4 w-4 mr-1" />Adicionar primeira etapa
               </Button>
             </div>
           ) : (
-            <DndContext
-              sensors={sensors}
-              collisionDetection={closestCenter}
-              onDragEnd={handleDragEnd}
-            >
-              <SortableContext
-                items={workflow.steps.map((s) => s.id)}
-                strategy={verticalListSortingStrategy}
-              >
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={workflow.steps.map((s) => s.id)} strategy={verticalListSortingStrategy}>
                 <div className="space-y-8">
                   {workflow.steps.map((step, index) => (
                     <SortableStep
@@ -298,95 +219,13 @@ export function WorkflowCanvas() {
       )}
 
       {/* Edit Step Dialog */}
-      <Dialog open={!!editDialog} onOpenChange={(open) => !open && setEditDialog(null)}>
-        <DialogContent className="max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <Settings2 className="h-5 w-5" />
-              Configurar Etapa
-            </DialogTitle>
-            <DialogDescription>Configure os parâmetros desta etapa do workflow</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium mb-1 block">Nome</label>
-              <Input
-                value={editForm.name || ""}
-                onChange={(e) => setEditForm((p) => ({ ...p, name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Tipo</label>
-              <Select
-                value={editForm.type || "agent"}
-                onValueChange={(v) =>
-                  setEditForm((p) => ({
-                    ...p,
-                    type: v as WorkflowStep["type"],
-                    agentModel: v === "agent" ? p.agentModel || "google/gemini-2.5-flash" : undefined,
-                  }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {STEP_TYPES.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>
-                      {t.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium mb-1 block">Descrição</label>
-              <Input
-                value={editForm.description || ""}
-                onChange={(e) => setEditForm((p) => ({ ...p, description: e.target.value }))}
-                placeholder="O que esta etapa faz..."
-              />
-            </div>
-            {(editForm.type === "agent") && (
-              <>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Modelo de IA</label>
-                  <Select
-                    value={editForm.agentModel || "google/gemini-2.5-flash"}
-                    onValueChange={(v) => setEditForm((p) => ({ ...p, agentModel: v }))}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {AI_MODELS.map((m) => (
-                        <SelectItem key={m.value} value={m.value}>
-                          {m.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="text-sm font-medium mb-1 block">Prompt do Agente</label>
-                  <Textarea
-                    value={editForm.prompt || ""}
-                    onChange={(e) => setEditForm((p) => ({ ...p, prompt: e.target.value }))}
-                    className="min-h-[120px] font-mono text-xs"
-                    placeholder="Instruções para o agente..."
-                  />
-                </div>
-              </>
-            )}
-          </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialog(null)}>
-              Cancelar
-            </Button>
-            <Button onClick={saveEdit}>Salvar</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <WorkflowEditDialog
+        step={editDialog}
+        form={editForm}
+        onFormChange={setEditForm}
+        onSave={saveEdit}
+        onClose={() => setEditDialog(null)}
+      />
     </div>
   );
 }
