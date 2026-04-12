@@ -196,6 +196,7 @@ export function useCollections() {
         description,
         color: chosenColor,
         icon: icon || DEFAULT_ICONS[0],
+        isFeatured: false,
         productIds: [],
         productItems: [],
         createdAt: now,
