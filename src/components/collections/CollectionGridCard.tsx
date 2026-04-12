@@ -200,46 +200,49 @@ export function CollectionGridCard({
         )}
       </div>
 
-      {/* ── Footer — solid, vibrant, editorial ── */}
-      <div
-        className="relative px-4 py-4 border-t border-border/10"
-        style={{ backgroundColor: `${collection.color}0A` }}
-      >
-        <div className="flex items-center gap-3">
-          {/* Icon */}
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 font-semibold shadow-sm transition-transform duration-300 group-hover:scale-105"
-            style={{
-              backgroundColor: collection.color,
-              color: "#fff",
-            }}
-          >
-            {collection.icon}
-          </div>
+      {/* ── Footer ── */}
+      <div className="px-4 pt-3.5 pb-4 space-y-2.5">
+        {/* Title — full width, no truncation competition */}
+        <div className="flex items-center gap-2">
+          <h3 className="font-display font-bold text-base leading-snug text-foreground line-clamp-2 flex-1">
+            {collection.name}
+          </h3>
+          {collection.isFeatured && (
+            <Star className="h-4 w-4 text-primary fill-primary shrink-0" />
+          )}
+        </div>
 
-          {/* Info */}
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-display font-bold text-[15px] leading-snug text-foreground truncate">
-                {collection.name}
-              </h3>
-              {collection.isFeatured && (
-                <Star className="h-3.5 w-3.5 text-primary fill-primary shrink-0" />
-              )}
+        {/* Bottom row: icon + meta + arrow */}
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0 shadow-sm"
+              style={{
+                backgroundColor: collection.color,
+                color: "#fff",
+              }}
+            >
+              {collection.icon}
             </div>
-            <div className="flex items-center gap-2 mt-0.5">
+            <div className="flex items-center gap-2 text-[11px] text-muted-foreground/60">
+              <span className="flex items-center gap-1">
+                <Package className="h-2.5 w-2.5" />
+                {productCount} {productCount === 1 ? "item" : "itens"}
+              </span>
               {updatedAgo && (
-                <p className="text-[11px] text-muted-foreground/60 flex items-center gap-1">
-                  <Clock className="h-2.5 w-2.5" />
-                  {updatedAgo}
-                </p>
+                <>
+                  <span className="text-border">·</span>
+                  <span className="flex items-center gap-1">
+                    <Clock className="h-2.5 w-2.5" />
+                    {updatedAgo}
+                  </span>
+                </>
               )}
             </div>
           </div>
 
-          {/* Arrow CTA */}
-          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0 -translate-x-1">
-            <ArrowUpRight className="h-4 w-4" />
+          <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-all duration-200 shrink-0">
+            <ArrowUpRight className="h-3.5 w-3.5" />
           </div>
         </div>
       </div>
