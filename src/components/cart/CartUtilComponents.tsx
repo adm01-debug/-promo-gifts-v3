@@ -1,32 +1,25 @@
 /**
- * Cart utility components: Skeletons, FollowUpTimer, Compare, Export, Suggestions, History, Templates, Mobile
+ * Cart utility components: Skeletons, FollowUpTimer, Suggestions, History, and re-exports
+ * 
+ * Dialogs, export utils, and mobile sheet extracted to ./cart-utils/
  */
 
-import { useState, useMemo } from "react";
+import { useMemo } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
-} from "@/components/ui/dialog";
-import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 import {
-  Building2, Package, Trash2, ArrowRight, FileText, Copy, Plus,
-  MessageSquare, ChevronDown, Timer, Sparkles, TrendingUp,
-  Download, Columns, Lightbulb, ChevronUp, Save, BookTemplate, History,
-  MoveRight,
+  Package, Trash2, Plus, Copy,
+  FileText, Timer, Sparkles, TrendingUp,
+  Lightbulb, History, MessageSquare, MoveRight,
 } from "lucide-react";
-import { toast } from "sonner";
 import { SellerCart, CartStatus } from "@/hooks/useSellerCarts";
-import { CartTemplateItem } from "@/hooks/useCartTemplates";
 import { differenceInDays, differenceInHours, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ChevronDown } from "lucide-react";
 
 // ============================================
 // HELPERS
@@ -124,172 +117,6 @@ export function FollowUpTimer({ createdAt }: { createdAt: string }) {
       </span>
     </div>
   );
-}
-
-// ============================================
-// COMPARE SIDE-BY-SIDE DIALOG
-// ============================================
-
-export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
-  if (carts.length < 2) return null;
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
-          <Columns className="h-3.5 w-3.5" />
-          Comparar
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-5xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle>Comparar Carrinhos</DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="max-h-[65vh]">
-          <div className={cn("grid gap-4", carts.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
-            {carts.map(cart => {
-              const subtotal = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
-              const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
-              const statusCfg = getStatusCfg(cart.status);
-              return (
-                <Card key={cart.id} className="p-4 space-y-3">
-                  <div className="flex items-center gap-2">
-                    {cart.company_logo_url ? (
-                      
-<img src={cart.company_logo_url} alt="Logo da empresa" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5"  loading="lazy" />
-                    ) : (
-                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold truncate">{cart.company_name}</p>
-                      <Badge variant="outline" className={cn("text-[9px]", statusCfg.color)}>
-                        {statusCfg.label}
-                      </Badge>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 text-xs">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">SKUs</span>
-                      <span className="font-medium">{cart.items.length}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Qtd total</span>
-                      <span className="font-medium">{totalQty.toLocaleString("pt-BR")}</span>
-                    </div>
-                    <div className="flex justify-between border-t border-border/30 pt-1.5">
-                      <span className="font-medium">Subtotal</span>
-                      <span className="font-bold text-primary">{formatCurrency(subtotal)}</span>
-                    </div>
-                  </div>
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {cart.items.map(item => (
-                      <div key={item.id} className="flex items-center gap-2 text-xs p-1.5 rounded-lg bg-muted/30">
-                        {item.product_image_url ? (
-                          
-<img src={item.product_image_url} alt="Logo da empresa" className="w-8 h-8 rounded object-contain bg-background"  loading="lazy" />
-                        ) : (
-                          <div className="w-8 h-8 rounded bg-muted flex items-center justify-center">
-                            <Package className="h-3 w-3 text-muted-foreground" />
-                          </div>
-                        )}
-                        <div className="flex-1 min-w-0">
-                          <p className="truncate font-medium">{item.product_name}</p>
-                          <p className="text-muted-foreground">{item.quantity}x {formatCurrency(item.product_price)}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ============================================
-// EXPORT UTILITIES
-// ============================================
-
-export function exportCartToCSV(cart: SellerCart) {
-  const header = "SKU,Produto,Cor,Qtd,Preço Unit.,Subtotal,Observações";
-  const rows = cart.items.map(i =>
-    [
-      i.product_sku || "",
-      `"${i.product_name}"`,
-      i.color_name || "",
-      i.quantity,
-      i.product_price.toFixed(2),
-      (i.product_price * i.quantity).toFixed(2),
-      `"${(i.notes || "").replace(/"/g, '""')}"`,
-    ].join(",")
-  );
-  const total = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
-  rows.push(`,,,,Total,${total.toFixed(2)},`);
-
-  const csv = [header, ...rows].join("\n");
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = `carrinho-${cart.company_name.replace(/\s+/g, "-").toLowerCase()}.csv`;
-  a.click();
-  URL.revokeObjectURL(url);
-  toast.success("CSV exportado com sucesso");
-}
-
-export async function exportCartToPDF(cart: SellerCart) {
-  const { default: jsPDF } = await import("jspdf");
-  const { default: autoTable } = await import("jspdf-autotable");
-
-  const doc = new jsPDF();
-  const total = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
-  const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
-
-  doc.setFontSize(18);
-  doc.text(`Carrinho — ${cart.company_name}`, 14, 20);
-  doc.setFontSize(10);
-  doc.setTextColor(120);
-  doc.text(cart.company_location || "", 14, 28);
-  doc.text(`${cart.items.length} SKUs • ${totalQty} unidades • ${formatCurrency(total)}`, 14, 34);
-  if (cart.notes) {
-    doc.text(`Notas: ${cart.notes}`, 14, 40);
-  }
-
-  autoTable(doc, {
-    startY: cart.notes ? 46 : 40,
-    head: [["SKU", "Produto", "Cor", "Qtd", "Unit.", "Subtotal", "Obs."]],
-    body: cart.items.map(i => [
-      i.product_sku || "-",
-      i.product_name,
-      i.color_name || "-",
-      i.quantity.toString(),
-      formatCurrency(i.product_price),
-      formatCurrency(i.product_price * i.quantity),
-      i.notes || "",
-    ]),
-    foot: [["", "", "", totalQty.toString(), "", formatCurrency(total), ""]],
-    styles: { fontSize: 8 },
-    headStyles: { fillColor: [16, 185, 129] },
-    footStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: "bold" },
-  });
-
-  doc.setFontSize(7);
-  doc.setTextColor(180);
-  doc.text("Gerado pelo CRM", 14, doc.internal.pageSize.getHeight() - 10);
-  doc.save(`carrinho-${cart.company_name.replace(/\s+/g, "-").toLowerCase()}.pdf`);
-  toast.success("PDF exportado com sucesso");
-}
-
-export function shareCartLink(cartId: string) {
-  const url = `${window.location.origin}/carrinhos/${cartId}`;
-  navigator.clipboard.writeText(url).then(() => {
-    toast.success("Link copiado!", { description: url });
-  });
 }
 
 // ============================================
@@ -420,184 +247,9 @@ export function ActionHistoryPanel({ cartId }: { cartId: string }) {
 }
 
 // ============================================
-// SAVE AS TEMPLATE DIALOG
+// RE-EXPORTS from extracted modules
 // ============================================
 
-export function SaveTemplateDialog({ cart, onSave }: { cart: SellerCart; onSave: (name: string, desc: string) => void }) {
-  const [name, setName] = useState("");
-  const [desc, setDesc] = useState("");
-  const [open, setOpen] = useState(false);
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-xs gap-1.5 w-full">
-          <Save className="h-3.5 w-3.5" />
-          Salvar como Template
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Salvar Template de Carrinho</DialogTitle>
-        </DialogHeader>
-        <div className="space-y-3">
-          <Input
-            placeholder='Ex: "Kit Onboarding"'
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-          />
-          <Textarea
-            placeholder="Descrição opcional..."
-            value={desc}
-            onChange={(e) => setDesc(e.target.value)}
-            rows={2}
-          />
-          <p className="text-xs text-muted-foreground">{cart.items.length} itens serão salvos no template</p>
-        </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button
-            disabled={!name.trim()}
-            onClick={() => {
-              onSave(name.trim(), desc.trim());
-              setOpen(false);
-              setName("");
-              setDesc("");
-            }}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground"
-          >
-            Salvar
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ============================================
-// LOAD TEMPLATE DIALOG
-// ============================================
-
-export function LoadTemplateDialog({
-  templates,
-  onLoad,
-  onDelete,
-}: {
-  templates: { id: string; name: string; description: string | null; items: CartTemplateItem[]; created_at: string }[];
-  onLoad: (items: CartTemplateItem[]) => void;
-  onDelete: (id: string) => void;
-}) {
-  if (templates.length === 0) return null;
-
-  return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="text-xs gap-1.5 w-full">
-          <BookTemplate className="h-3.5 w-3.5" />
-          Usar Template ({templates.length})
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-md max-h-[70vh]">
-        <DialogHeader>
-          <DialogTitle>Templates Salvos</DialogTitle>
-        </DialogHeader>
-        <ScrollArea className="max-h-[50vh]">
-          <div className="space-y-2">
-            {templates.map(t => (
-              <Card key={t.id} className="p-3 space-y-2">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    {t.description && <p className="text-xs text-muted-foreground">{t.description}</p>}
-                    <p className="text-[10px] text-muted-foreground mt-1">{t.items.length} itens</p>
-                  </div>
-                  <div className="flex gap-1.5">
-                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => onLoad(t.items)}>
-                      Aplicar
-                    </Button>
-                    <Button size="sm" variant="ghost" className="text-xs h-7 text-destructive" onClick={() => onDelete(t.id)}>
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// ============================================
-// MOBILE SUMMARY BOTTOM SHEET
-// ============================================
-
-export function MobileSummarySheet({
-  cart,
-  subtotal,
-  totalQty,
-  onGenerateQuote,
-}: {
-  cart: SellerCart;
-  subtotal: number;
-  totalQty: number;
-  onGenerateQuote: () => void;
-}) {
-  const [expanded, setExpanded] = useState(false);
-
-  if (cart.items.length === 0) return null;
-
-  return (
-    <div className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
-      <motion.div
-        className="bg-card border-t border-border shadow-2xl rounded-t-2xl"
-        style={{ paddingBottom: "max(env(safe-area-inset-bottom), 16px)" }}
-      >
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="w-full flex items-center justify-between px-5 py-3"
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-semibold">{cart.items.length} SKUs • {totalQty} un.</span>
-            <span className="text-sm font-bold text-primary tabular-nums">{formatCurrency(subtotal)}</span>
-          </div>
-          <ChevronUp className={cn("h-4 w-4 text-muted-foreground transition-transform", expanded && "rotate-180")} />
-        </button>
-
-        <AnimatePresence>
-          {expanded && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden px-5 pb-3"
-            >
-              <div className="space-y-2 text-xs mb-3">
-                {cart.items.slice(0, 5).map(item => (
-                  <div key={item.id} className="flex justify-between">
-                    <span className="truncate flex-1 mr-2">{item.product_name}</span>
-                    <span className="tabular-nums text-muted-foreground">{item.quantity}x</span>
-                  </div>
-                ))}
-                {cart.items.length > 5 && (
-                  <p className="text-muted-foreground">+{cart.items.length - 5} itens</p>
-                )}
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="px-5 pb-1">
-          <Button
-            className="w-full gap-2 h-11 font-semibold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl"
-            onClick={onGenerateQuote}
-          >
-            <ArrowRight className="h-4 w-4" />
-            Gerar Orçamento
-          </Button>
-        </div>
-      </motion.div>
-    </div>
-  );
-}
+export { exportCartToCSV, exportCartToPDF, shareCartLink } from "./cart-utils/CartExport";
+export { CompareCartsDialog, SaveTemplateDialog, LoadTemplateDialog } from "./cart-utils/CartDialogs";
+export { MobileSummarySheet } from "./cart-utils/CartMobileSheet";
