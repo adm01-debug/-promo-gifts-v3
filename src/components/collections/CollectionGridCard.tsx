@@ -1,11 +1,11 @@
 /**
- * CollectionGridCard — Premium card with geometric honeycomb image mosaic
- * and refined editorial footer.
+ * CollectionGridCard — Premium card with dynamic diagonal collage layout.
+ * Inspired by editorial photo grids with angular cuts.
  */
 import { motion } from "framer-motion";
 import {
   FolderOpen, MoreVertical, Pencil, Copy, Star,
-  Trash2, Package, Clock,
+  Trash2, Package, Clock, ArrowUpRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
@@ -15,8 +15,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { Collection } from "@/hooks/useCollections";
-
-const hexClip = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
 interface CollectionGridCardProps {
   collection: Collection;
@@ -33,86 +31,71 @@ interface CollectionGridCardProps {
   index: number;
 }
 
-/* ── Honeycomb Image Mosaic ── */
-function HoneycombMosaic({ images }: { images: string[] }) {
+/* ── Dynamic Collage ── */
+function DynamicCollage({ images }: { images: string[] }) {
   const count = images.length;
 
   if (count === 1) {
     return (
       <div className="absolute inset-0">
-        <img src={images[0]} alt="" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.04]" loading="lazy" />
+        <img src={images[0]} alt="" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" loading="lazy" />
       </div>
     );
   }
 
   if (count === 2) {
     return (
-      <div className="absolute inset-0 flex gap-[3px]">
-        {images.map((img, i) => (
-          <div key={i} className="flex-1 relative overflow-hidden">
-            <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-          </div>
-        ))}
+      <div className="absolute inset-0">
+        {/* Left - diagonal cut */}
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 55% 0, 45% 100%, 0 100%)" }}>
+          <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+        {/* Right */}
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(55% 0, 100% 0, 100% 100%, 45% 100%)" }}>
+          <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
       </div>
     );
   }
 
   if (count === 3) {
     return (
-      <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[3px]">
-        <div className="row-span-2 relative overflow-hidden">
+      <div className="absolute inset-0">
+        {/* Top-left big */}
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 60% 0, 50% 55%, 0 55%)" }}>
           <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
-        <div className="relative overflow-hidden">
+        {/* Top-right */}
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(62% 0, 100% 0, 100% 55%, 52% 55%)" }}>
           <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
-        <div className="relative overflow-hidden">
+        {/* Bottom full */}
+        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 57%, 100% 57%, 100% 100%, 0 100%)" }}>
           <img src={images[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
       </div>
     );
   }
 
-  // 4+ images → geometric mosaic with hexagonal center
-  const display = images.slice(0, 5);
+  // 4+ images → editorial grid with diagonal accents
+  const display = images.slice(0, 4);
   return (
     <div className="absolute inset-0">
-      <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-[3px]">
-        <div className="col-span-2 relative overflow-hidden">
-          <img src={display[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <div className="relative overflow-hidden">
-          <img src={display[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <div className="relative overflow-hidden">
-          <img src={display[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        {display[3] && (
-          <div className="relative overflow-hidden">
-            <img src={display[3]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-          </div>
-        )}
-        {display[4] ? (
-          <div className="relative overflow-hidden">
-            <img src={display[4]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-          </div>
-        ) : (
-          <div className="relative overflow-hidden bg-muted/30" />
-        )}
+      {/* Top-left large */}
+      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 58% 0, 48% 52%, 0 52%)" }}>
+        <img src={display[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
-
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div
-          className="w-[45%] aspect-[1/1.15] overflow-hidden shadow-xl"
-          style={{ clipPath: hexClip }}
-        >
-          <img
-            src={display[Math.min(1, display.length - 1)]}
-            alt=""
-            className="w-full h-full object-cover"
-            loading="lazy"
-          />
-        </div>
+      {/* Top-right */}
+      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(60% 0, 100% 0, 100% 52%, 50% 52%)" }}>
+        <img src={display[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+      </div>
+      {/* Bottom-left */}
+      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 54%, 48% 54%, 42% 100%, 0 100%)" }}>
+        <img src={display[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+      </div>
+      {/* Bottom-right */}
+      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(50% 54%, 100% 54%, 100% 100%, 44% 100%)" }}>
+        <img src={display[3]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
     </div>
   );
@@ -144,8 +127,8 @@ export function CollectionGridCard({
       transition={{ delay: index * 0.035, type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
         "group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300",
-        "bg-card border-[1.5px] border-border/30",
-        "hover:border-primary/30 hover:shadow-[0_16px_48px_-12px_hsl(var(--primary)/0.15)]",
+        "bg-card border-[1.5px] border-border/20",
+        "hover:border-primary/40 hover:shadow-[0_16px_48px_-12px_hsl(var(--primary)/0.18)]",
         isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10"
       )}
       onClick={onNavigate}
@@ -168,7 +151,7 @@ export function CollectionGridCard({
               variant="ghost"
               size="icon"
               aria-label="Mais opções"
-              className="h-8 w-8 rounded-xl sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-xl hover:bg-background/80 shadow-sm border border-border/20"
+              className="h-8 w-8 rounded-xl sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-card/80 backdrop-blur-xl hover:bg-card shadow-sm border border-border/20"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="h-3.5 w-3.5" />
@@ -197,45 +180,45 @@ export function CollectionGridCard({
       <div className="aspect-[3/4] relative overflow-hidden bg-muted/10">
         {hasImages ? (
           <>
-            <HoneycombMosaic images={allImages} />
-
-            {/* Bottom gradient for footer blend */}
-            <div className="absolute inset-x-0 bottom-0 h-12 bg-card pointer-events-none" />
+            <DynamicCollage images={allImages} />
 
             {/* Product count pill */}
-            <div className="absolute bottom-3 right-3">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-background/70 backdrop-blur-xl text-foreground/90 border border-border/20 shadow-sm">
-                <Package className="h-3 w-3" />
+            <div className="absolute top-3 right-14 sm:right-3 sm:group-hover:right-14 transition-all duration-200">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-card/90 backdrop-blur-xl text-foreground border border-border/20 shadow-sm">
+                <Package className="h-3 w-3 text-primary" />
                 {productCount}
               </span>
             </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-4">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 bg-muted/20 border border-border/20">
-              <FolderOpen className="h-8 w-8 text-muted-foreground/30" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-muted/15 border border-border/20">
+              <FolderOpen className="h-8 w-8 text-muted-foreground/25" />
             </div>
-            <span className="text-xs text-muted-foreground/40 font-medium tracking-wide">Coleção vazia</span>
+            <span className="text-xs text-muted-foreground/35 font-medium tracking-wide">Coleção vazia</span>
           </div>
         )}
       </div>
 
-      {/* ── Card footer — refined editorial style ── */}
-      <div className="px-4 py-4 space-y-2">
-        {/* Title row */}
-        <div className="flex items-start gap-3">
-          {/* Collection icon badge */}
+      {/* ── Footer — solid, vibrant, editorial ── */}
+      <div
+        className="relative px-4 py-4 border-t border-border/10"
+        style={{ backgroundColor: `${collection.color}0A` }}
+      >
+        <div className="flex items-center gap-3">
+          {/* Icon */}
           <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center text-base shrink-0 shadow-sm border border-border/10 transition-transform duration-300 group-hover:scale-105"
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 font-semibold shadow-sm transition-transform duration-300 group-hover:scale-105"
             style={{
-              backgroundColor: `${collection.color}18`,
-              color: collection.color,
+              backgroundColor: collection.color,
+              color: "#fff",
             }}
           >
             {collection.icon}
           </div>
 
-          <div className="min-w-0 flex-1 pt-0.5">
+          {/* Info */}
+          <div className="min-w-0 flex-1">
             <div className="flex items-center gap-2">
               <h3 className="font-display font-bold text-[15px] leading-snug text-foreground truncate">
                 {collection.name}
@@ -244,22 +227,19 @@ export function CollectionGridCard({
                 <Star className="h-3.5 w-3.5 text-primary fill-primary shrink-0" />
               )}
             </div>
-
-            {/* Meta info */}
-            <div className="flex items-center gap-3 mt-1">
+            <div className="flex items-center gap-2 mt-0.5">
               {updatedAgo && (
-                <p className="text-[11px] text-muted-foreground/50 flex items-center gap-1">
+                <p className="text-[11px] text-muted-foreground/60 flex items-center gap-1">
                   <Clock className="h-2.5 w-2.5" />
                   {updatedAgo}
                 </p>
               )}
-              {!hasImages && (
-                <p className="text-[11px] text-muted-foreground/50 flex items-center gap-1">
-                  <Package className="h-2.5 w-2.5" />
-                  {productCount} {productCount === 1 ? 'produto' : 'produtos'}
-                </p>
-              )}
             </div>
+          </div>
+
+          {/* Arrow CTA */}
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-primary/10 text-primary opacity-0 group-hover:opacity-100 transition-all duration-200 group-hover:translate-x-0 -translate-x-1">
+            <ArrowUpRight className="h-4 w-4" />
           </div>
         </div>
       </div>
