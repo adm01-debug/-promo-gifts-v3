@@ -759,12 +759,12 @@ html[data-scroll-locked] body {
 
 /* Fusion-style card border glow on dark mode */
 .dark .card-glow {
-  border: 1px solid hsl(var(--primary) / 0.15);
+  border: 1.5px solid hsl(var(--primary) / 0.2);
   transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 .dark .card-glow:hover {
-  border-color: hsl(var(--primary) / 0.25);
-  box-shadow: 0 0 20px hsl(var(--primary) / 0.08), 0 4px 20px hsl(225 20% 2% / 0.5);
+  border-color: hsl(var(--primary) / 0.45);
+  box-shadow: 0 0 20px hsl(var(--primary) / 0.12), 0 4px 20px hsl(225 20% 2% / 0.5);
 }
 
 @keyframes count-up {
@@ -1123,8 +1123,8 @@ html[data-scroll-locked] body {
   }
 
   .card-interactive {
-    @apply relative bg-card rounded-xl border border-border p-[var(--spacing-card)] 
-           transition-all duration-300 hover:border-primary/30 hover:shadow-lg overflow-hidden cursor-pointer;
+    @apply relative bg-card rounded-xl border-[1.5px] border-primary/15 p-[var(--spacing-card)] 
+           transition-all duration-300 hover:border-primary/45 hover:shadow-lg overflow-hidden cursor-pointer;
   }
 
   .card-interactive::before {
@@ -1163,8 +1163,8 @@ html[data-scroll-locked] body {
   }
 
   .stat-card {
-    @apply bg-card rounded-xl border border-border p-[var(--spacing-card-sm)] transition-all duration-200 
-           hover:border-primary/20 hover:shadow-sm;
+    @apply bg-card rounded-xl border-[1.5px] border-primary/15 p-[var(--spacing-card-sm)] transition-all duration-200 
+           hover:border-primary/40 hover:shadow-sm;
   }
 
   .card-subtle {
@@ -1316,8 +1316,8 @@ html[data-scroll-locked] body {
   }
 
   .product-card-enhanced:hover {
-    @apply -translate-y-1 border-primary/30;
-    box-shadow: var(--shadow-lg);
+    @apply -translate-y-1 border-primary/50;
+    box-shadow: var(--shadow-lg), 0 0 12px hsl(var(--primary) / 0.1);
   }
 
   .product-card-enhanced .product-image {
