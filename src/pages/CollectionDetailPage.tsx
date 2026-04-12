@@ -406,11 +406,28 @@ export default function CollectionDetailPage() {
                 </div>
               )}
 
-              {/* Drag-and-drop manage list */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Gerenciar produtos ({products.length}) — arraste para reordenar
-                </p>
+              {/* Bulk selection toolbar + Drag-and-drop manage list */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={selectedIds.size === products.length && products.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Selecionar todos"
+                    />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {selectedIds.size > 0
+                        ? `${selectedIds.size} selecionado(s)`
+                        : `Gerenciar produtos (${products.length}) — arraste para reordenar`}
+                    </p>
+                  </div>
+                  {selectedIds.size > 0 && (
+                    <Button variant="destructive" size="sm" onClick={handleBulkRemove} className="gap-1.5">
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remover {selectedIds.size}
+                    </Button>
+                  )}
+                </div>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
