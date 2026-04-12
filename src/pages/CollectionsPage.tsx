@@ -512,9 +512,7 @@ export default function CollectionsPage() {
                 );
               })}
             </div>
-          )
-                const isSelected = selectedCollectionIds.has(collection.id);
-
+          ) : localCollections.length > 0 && searchQuery ? (
                 const contextMenu = (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
