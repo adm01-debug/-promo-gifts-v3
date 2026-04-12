@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, CheckSquare, X, ArrowRight, Sparkles,
+  FileText, ArrowUpDown, Clock, Download, CheckSquare, X, ArrowRight,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -49,6 +49,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type SortOption = "name" | "sku" | "added";
+
 
 export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();

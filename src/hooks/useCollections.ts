@@ -419,16 +419,15 @@ export function useCollections() {
         })
       );
 
-      // Batch persist sort_order via Promise.all instead of N individual queries
-      Promise.all(
-        orderedProductIds.map((pid, idx) =>
-          supabase
-            .from("collection_items")
-            .update({ sort_order: idx })
-            .eq("collection_id", collectionId)
-            .eq("product_id", pid)
-        )
-      ).catch((err) => console.error("Error updating sort order:", err));
+      // Persist sort_order to DB
+      orderedProductIds.forEach((pid, idx) => {
+        supabase
+          .from("collection_items")
+          .update({ sort_order: idx })
+          .eq("collection_id", collectionId)
+          .eq("product_id", pid)
+          .then();
+      });
     },
     []
   );
@@ -449,7 +448,7 @@ export function useCollections() {
 
       supabase
         .from("collection_items")
-        .update({ notes })
+        .update({ notes } as any)
         .eq("collection_id", collectionId)
         .eq("product_id", productId)
         .then();

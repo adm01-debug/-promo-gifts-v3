@@ -1,6 +1,6 @@
 /**
  * SortableProductItem — Draggable product row for collection management.
- * Extracted from CollectionDetailPage for maintainability.
+ * Extracted from CollectionDetailPage for modularity.
  */
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -17,7 +17,7 @@ interface SortableProductItemProps {
     id: string;
     name: string;
     sku?: string;
-    images: string[];
+    images?: string[];
   };
   variant?: {
     color_name?: string | null;
