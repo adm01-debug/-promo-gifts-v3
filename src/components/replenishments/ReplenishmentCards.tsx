@@ -42,7 +42,7 @@ export const ReplenishmentGridCard = memo(function ReplenishmentGridCard({ produ
       className={cn(
         "group cursor-pointer overflow-hidden transition-all duration-300 rounded-xl sm:rounded-2xl",
         "border-border/50 hover:shadow-lg hover:-translate-y-1 hover:border-primary/30",
-        recent && "border-info/30 shadow-[0_0_16px_hsl(var(--info)/0.1)]",
+        recent && "shadow-[0_0_16px_hsl(var(--info)/0.06)]",
         isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]"
       )}
       onClick={selectionMode ? onToggleSelect : onClick}
