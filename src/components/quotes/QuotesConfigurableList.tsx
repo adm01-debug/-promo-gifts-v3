@@ -47,6 +47,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import type { Quote } from "@/hooks/useQuotes";
+import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 import { BulkActionsBar, type BulkAction } from "@/components/common/BulkActionsBar";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
 import {
