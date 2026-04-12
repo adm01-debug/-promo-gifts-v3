@@ -1,12 +1,11 @@
 import { useState, useMemo, useCallback } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
   RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock, List,
-  FileText, CheckSquare, X,
+  FileText, CheckSquare, X, Sparkles, ShoppingBag, ArrowRight,
 } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -17,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import {
   Dialog,
   DialogContent,
@@ -76,7 +76,6 @@ export default function CollectionsPage() {
     refetch: refetchExternal,
   } = useExternalCollectionsManager();
 
-  // Product counts for external collections
   const externalCollectionIds = useMemo(() => externalCollections.map(c => c.id), [externalCollections]);
   const { data: externalProductCounts } = useExternalCollectionProductCounts(externalCollectionIds);
 
@@ -94,8 +93,9 @@ export default function CollectionsPage() {
     icon: defaultIcons[0],
   });
 
-  const toggleSelectCollection = useCallback((id: string, e?: React.MouseEvent) => {
-    e?.stopPropagation();
+  const isSelectionMode = selectedCollectionIds.size > 0;
+
+  const toggleSelectCollection = useCallback((id: string) => {
     setSelectedCollectionIds(prev => {
       const next = new Set(prev);
       if (next.has(id)) next.delete(id); else next.add(id);
@@ -103,7 +103,33 @@ export default function CollectionsPage() {
     });
   }, []);
 
+  const selectAllLocal = useCallback(() => {
+    setSelectedCollectionIds(new Set(localCollections.map(c => c.id)));
+  }, [localCollections]);
+
   const clearSelection = useCallback(() => setSelectedCollectionIds(new Set()), []);
+
+  // Compute selected products summary
+  const selectedSummary = useMemo(() => {
+    const names: string[] = [];
+    let totalProducts = 0;
+    const productIds = new Set<string>();
+
+    selectedCollectionIds.forEach(colId => {
+      const col = localCollections.find(c => c.id === colId);
+      if (!col) return;
+      names.push(col.name);
+      const products = getCollectionProducts(colId);
+      products.forEach(p => {
+        if (!productIds.has(p.id)) {
+          productIds.add(p.id);
+          totalProducts++;
+        }
+      });
+    });
+
+    return { names, totalProducts, uniqueProductCount: productIds.size };
+  }, [selectedCollectionIds, localCollections, getCollectionProducts]);
 
   const handleSendSelectedToQuote = useCallback(() => {
     const allProducts: Array<{
@@ -123,7 +149,6 @@ export default function CollectionsPage() {
       collectionNames.push(col.name);
       const products = getCollectionProducts(colId);
       products.forEach(p => {
-        // Avoid duplicates
         if (!allProducts.some(x => x.product_id === p.id)) {
           allProducts.push({
             product_id: p.id,
@@ -163,7 +188,6 @@ export default function CollectionsPage() {
 
   const totalCollections = localCollections.length + externalCollections.length;
 
-  // Dynamic grid classes based on column count
   const gridClasses = useMemo(() => {
     if (viewMode === "list") return "flex flex-col gap-2";
     const colMap: Record<ColumnCount, string> = {
@@ -176,7 +200,6 @@ export default function CollectionsPage() {
     return colMap[gridColumns] || colMap[4];
   }, [viewMode, gridColumns]);
 
-  // Filtered collections
   const filteredExternal = useMemo(() => {
     if (!searchQuery.trim()) return externalCollections;
     const q = searchQuery.toLowerCase();
@@ -229,7 +252,6 @@ export default function CollectionsPage() {
       collection.color,
       collection.icon
     );
-    // Clone all products into the new collection after a tick (to allow temp ID to settle)
     const items = collection.productItems || [];
     if (items.length > 0) {
       setTimeout(() => {
@@ -313,38 +335,110 @@ export default function CollectionsPage() {
           </div>
         </div>
 
-        {/* Selection Action Bar — inline, visible near collections */}
-        {selectedCollectionIds.size > 0 && (
+        {/* ═══ Premium Selection Action Bar ═══ */}
+        <AnimatePresence>
+          {isSelectionMode && (
+            <motion.div
+              initial={{ opacity: 0, y: -12, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -12, scale: 0.98 }}
+              transition={{ type: "spring", stiffness: 500, damping: 30 }}
+              className="sticky top-0 z-30 rounded-xl overflow-hidden"
+            >
+              <div className="bg-gradient-to-r from-primary/15 via-primary/10 to-primary/15 border-2 border-primary/30 backdrop-blur-xl rounded-xl px-5 py-4">
+                <div className="flex items-center justify-between gap-4 flex-wrap">
+                  {/* Left — Counter + Collection names */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <motion.div
+                      className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary text-primary-foreground shadow-lg shadow-primary/25"
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 600, damping: 25 }}
+                    >
+                      <span className="font-display font-bold text-lg">{selectedCollectionIds.size}</span>
+                    </motion.div>
+                    <div className="min-w-0">
+                      <p className="font-display font-bold text-sm text-foreground">
+                        {selectedCollectionIds.size} coleção{selectedCollectionIds.size > 1 ? "ões" : ""} selecionada{selectedCollectionIds.size > 1 ? "s" : ""}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate max-w-[300px]">
+                        {selectedSummary.uniqueProductCount > 0 ? (
+                          <>
+                            <Package className="h-3 w-3 inline mr-1" />
+                            {selectedSummary.uniqueProductCount} produto{selectedSummary.uniqueProductCount > 1 ? "s" : ""} únicos
+                            {selectedSummary.names.length <= 3 && (
+                              <> · {selectedSummary.names.join(", ")}</>
+                            )}
+                          </>
+                        ) : (
+                          "Nenhum produto nas coleções selecionadas"
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Right — Actions */}
+                  <div className="flex items-center gap-2">
+                    {selectedCollectionIds.size < localCollections.length && (
+                      <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.1 }}>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={selectAllLocal}
+                          className="gap-1.5 text-xs"
+                        >
+                          <CheckSquare className="h-3.5 w-3.5" />
+                          <span className="hidden sm:inline">Selecionar Todas</span>
+                        </Button>
+                      </motion.div>
+                    )}
+
+                    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
+                      <Button
+                        size="default"
+                        className="gap-2 font-semibold shadow-lg hover:shadow-xl transition-shadow"
+                        onClick={handleSendSelectedToQuote}
+                        disabled={selectedSummary.uniqueProductCount === 0}
+                      >
+                        <FileText className="h-4 w-4" />
+                        Criar Orçamento
+                        <ArrowRight className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+
+                    <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }}>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={clearSelection}
+                        className="gap-1.5 text-xs hover:text-destructive hover:border-destructive/50 transition-colors"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                        Limpar
+                      </Button>
+                    </motion.div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* ═══ Hint bar when no selection ═══ */}
+        {!isSelectionMode && localCollections.length > 0 && (
           <motion.div
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl bg-primary/10 border-2 border-primary/40 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted/40 border border-border/50"
           >
-            <div className="flex items-center gap-3">
-              <div className="flex items-center justify-center w-9 h-9 rounded-lg bg-primary text-primary-foreground">
-                <CheckSquare className="h-5 w-5" />
-              </div>
-              <div>
-                <span className="font-display font-bold text-sm text-foreground">
-                  {selectedCollectionIds.size} coleção{selectedCollectionIds.size > 1 ? "ões" : ""} selecionada{selectedCollectionIds.size > 1 ? "s" : ""}
-                </span>
-                <p className="text-xs text-muted-foreground">Selecione coleções e envie para o orçamento</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <Button size="default" className="gap-2 font-semibold shadow-lg" onClick={handleSendSelectedToQuote}>
-                <FileText className="h-4 w-4" />
-                Criar Orçamento
-              </Button>
-              <Button size="default" variant="outline" onClick={clearSelection} className="gap-1.5">
-                <X className="h-4 w-4" />
-                Limpar
-              </Button>
-            </div>
+            <Sparkles className="h-4 w-4 text-primary shrink-0" />
+            <p className="text-xs text-muted-foreground">
+              <span className="font-medium text-foreground">Dica:</span> Selecione coleções marcando o checkbox nos cards para enviar todos os produtos para um orçamento de uma vez.
+            </p>
           </motion.div>
         )}
 
-        {/* Personal Collections (DB-persisted) */}
+        {/* ═══ Personal Collections (DB-persisted) ═══ */}
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <FolderHeart className="h-4 w-4 text-primary" />
@@ -360,8 +454,8 @@ export default function CollectionsPage() {
                 const products = getCollectionProducts(collection.id);
                 const previewImages = products.slice(0, 4).map((p) => p.images[0]);
                 const updatedAgo = relativeTime(collection.updatedAt);
+                const isSelected = selectedCollectionIds.has(collection.id);
 
-                // Context menu shared between views
                 const contextMenu = (
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -399,22 +493,26 @@ export default function CollectionsPage() {
                 );
 
                 if (viewMode === "list") {
-                  const isSelected = selectedCollectionIds.has(collection.id);
                   return (
-                    <div
+                    <motion.div
                       key={collection.id}
+                      layout
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
                       className={cn(
-                        "group flex items-center gap-4 p-3 rounded-xl bg-card border cursor-pointer transition-all duration-200 animate-fade-in",
-                        isSelected ? "border-primary bg-primary/5" : "border-border/50 hover:border-primary/40 hover:shadow-md"
+                        "group flex items-center gap-4 p-3 rounded-xl bg-card border cursor-pointer transition-all duration-200",
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
+                          : "border-border/50 hover:border-primary/40 hover:shadow-md"
                       )}
-                      style={{ animationDelay: `${idx * 40}ms` }}
                       onClick={() => navigate(`/colecoes/${collection.id}`)}
                     >
                       <div onClick={(e) => e.stopPropagation()} className="shrink-0">
-                        <Checkbox
+                        <SelectionCheckbox
                           checked={isSelected}
-                          onCheckedChange={() => toggleSelectCollection(collection.id)}
-                          className="h-5 w-5"
+                          onChange={() => toggleSelectCollection(collection.id)}
+                          size="md"
                         />
                       </div>
                       <div
@@ -447,35 +545,43 @@ export default function CollectionsPage() {
                         )}
                         {contextMenu}
                       </div>
-                    </div>
+                    </motion.div>
                   );
                 }
 
-                const isSelectedGrid = selectedCollectionIds.has(collection.id);
+                // Grid card
                 return (
-                  <div
+                  <motion.div
                     key={collection.id}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05, type: "spring", stiffness: 400, damping: 25 }}
                     className={cn(
-                      "group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item",
-                      isSelectedGrid ? "border-primary ring-2 ring-primary/20" : "border-primary/20 hover:border-primary/50"
+                      "group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] hover:shadow-xl card-lift transition-all duration-300",
+                      isSelected
+                        ? "border-primary ring-2 ring-primary/20 shadow-lg shadow-primary/10"
+                        : "border-primary/20 hover:border-primary/50"
                     )}
-                    style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     <div className="absolute top-3 right-3 z-10">{contextMenu}</div>
+
+                    {/* Selection checkbox — always visible in selection mode, otherwise on hover */}
                     <div
                       className={cn(
                         "absolute top-3 left-3 z-10 transition-opacity duration-200",
-                        isSelectedGrid || selectedCollectionIds.size > 0
+                        isSelected || isSelectionMode
                           ? "opacity-100"
                           : "opacity-0 group-hover:opacity-100"
                       )}
                       onClick={(e) => e.stopPropagation()}
                     >
-                      <Checkbox
-                        checked={isSelectedGrid}
-                        onCheckedChange={() => toggleSelectCollection(collection.id)}
-                        className="h-6 w-6 bg-background border-2 border-muted-foreground/50 shadow-md data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      <SelectionCheckbox
+                        checked={isSelected}
+                        onChange={() => toggleSelectCollection(collection.id)}
+                        size="lg"
+                        animateEntry
                       />
                     </div>
 
@@ -530,7 +636,7 @@ export default function CollectionsPage() {
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 );
               })}
             </div>
@@ -561,7 +667,7 @@ export default function CollectionsPage() {
           )}
         </div>
 
-        {/* External Collections (Catalog) */}
+        {/* ═══ External Collections (Catalog) ═══ */}
         {(externalCollections.length > 0 || isLoadingExternal) && (
           <div className="space-y-3">
             <div className="flex items-center gap-2">
@@ -579,10 +685,12 @@ export default function CollectionsPage() {
               <div className={gridClasses}>
                 {filteredExternal.map((collection, idx) => (
                   viewMode === "list" ? (
-                    <div
+                    <motion.div
                       key={collection.id}
-                      className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200 animate-fade-in"
-                      style={{ animationDelay: `${idx * 40}ms` }}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.03 }}
+                      className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200"
                       onClick={() => navigate(`/colecoes/${collection.id}`)}
                     >
                       <div
@@ -627,15 +735,16 @@ export default function CollectionsPage() {
                           <Copy className="h-4 w-4" />
                         </Button>
                       </div>
-                    </div>
+                    </motion.div>
                   ) : (
-                  <div
+                  <motion.div
                     key={collection.id}
-                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item"
-                    style={{ animationDelay: `${idx * 60}ms` }}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: idx * 0.05, type: "spring", stiffness: 400, damping: 25 }}
+                    className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300"
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
-
                     {/* Preview */}
                     <div
                       className="aspect-[4/3] overflow-hidden flex items-center justify-center relative"
@@ -725,7 +834,7 @@ export default function CollectionsPage() {
                         <Copy className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
+                  </motion.div>
                   )
                 ))}
               </div>
