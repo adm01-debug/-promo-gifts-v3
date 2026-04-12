@@ -124,7 +124,7 @@ export function NoveltyProductGrid() {
     }
     if (viewMode === "table") return <NoveltyTableView products={filteredProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
     return (
-      <div className={cn(viewMode === "grid" ? `grid ${getGridColsClass(gridColumns)} gap-2 sm:gap-3` : "space-y-2")}>
+      <div className={cn(viewMode === "grid" ? `grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}` : "space-y-2")}>
         {filteredProducts.map((product, index) => (
           <div key={product.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
             {viewMode === "grid"
