@@ -83,7 +83,7 @@ export default function ComparePage() {
 
   return (
     <MainLayout>
-      <div className="space-y-6 animate-fade-in pb-20">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
@@ -110,7 +110,7 @@ export default function ComparePage() {
               {compareEntries.map((entry) => {
                 const status = getStockStatusLabel(entry.product.stockStatus);
                 return (
-                  <div key={`card-${entry.index}`} className="p-4 rounded-xl bg-card border border-border space-y-3">
+                  <div key={`card-${entry.index}`} className="p-4 rounded-xl bg-card border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-lg font-bold text-primary">{formatCurrency(entry.product.price)}</span>

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -7,19 +7,18 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Heart, Trash2, Share2, ShoppingCart } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Heart, Trash2, Share2, Search, Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
-import { FadeInView, HoverCard, StaggerList } from "@/components/common/MicroInteractions";
-import { DataCard, DataCardGrid, MiniStatCard } from "@/components/ui/DataCard";
-import { Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
 
 export default function FavoritesPage() {
   const navigate = useNavigate();
   const { favorites, clearFavorites, favoriteCount, toggleFavorite } =
     useFavoritesStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
+  const [searchQuery, setSearchQuery] = useState("");
 
   const favoriteProducts = useMemo(
     () => getProductsByIds(favorites.map((f) => f.productId)),
@@ -27,7 +26,6 @@ export default function FavoritesPage() {
     [getProductsByIds, favorites, _cacheSignal]
   );
 
-  // Build a map of productId -> variant info for quick lookup
   const variantMap = useMemo(() => {
     const map = new Map<string, FavoriteVariantInfo>();
     favorites.forEach((f) => {
@@ -36,7 +34,6 @@ export default function FavoritesPage() {
     return map;
   }, [favorites]);
 
-  // Create products with variant thumbnail as primary image
   const productsWithVariant = useMemo(() => {
     return favoriteProducts.map((product) => {
       const variant = variantMap.get(product.id);
@@ -49,6 +46,28 @@ export default function FavoritesPage() {
       return product;
     });
   }, [favoriteProducts, variantMap]);
+
+  const filteredProducts = useMemo(() => {
+    if (!searchQuery.trim()) return productsWithVariant;
+    const q = searchQuery.toLowerCase();
+    return productsWithVariant.filter(p =>
+      p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q)
+    );
+  }, [productsWithVariant, searchQuery]);
+
+  // Stats
+  const stats = useMemo(() => {
+    if (favoriteProducts.length === 0) return null;
+    const prices = favoriteProducts.map(p => p.price);
+    return {
+      total: favoriteProducts.length,
+      categories: new Set(favoriteProducts.map(p => p.category.id)).size,
+      minPrice: Math.min(...prices),
+      maxPrice: Math.max(...prices),
+    };
+  }, [favoriteProducts]);
+
+  const fmt = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
 
   const handleClearAll = () => {
     clearFavorites();
@@ -64,10 +83,7 @@ export default function FavoritesPage() {
     const message = `Meus produtos favoritos:\n\n${productNames}`;
     
     if (navigator.share) {
-      navigator.share({
-        title: "Meus Favoritos - PROMO BRINDES",
-        text: message,
-      });
+      navigator.share({ title: "Meus Favoritos - PROMO BRINDES", text: message });
     } else {
       navigator.clipboard.writeText(message);
       toast.success("Lista copiada para a área de transferência!");
@@ -82,9 +98,9 @@ export default function FavoritesPage() {
   return (
     <MainLayout>
       <PageSEO title="Favoritos" description="Seus produtos favoritos salvos para referência rápida." path="/favoritos" />
-      <div className="space-y-6 animate-fade-in">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-xl bg-destructive/10 flex items-center justify-center">
               <Heart className="h-6 w-6 text-destructive fill-destructive" />
@@ -101,14 +117,13 @@ export default function FavoritesPage() {
 
           {favoriteProducts.length > 0 && (
             <div className="flex gap-2">
-              <Button variant="outline" onClick={handleShareAll}>
+              <Button variant="outline" size="sm" onClick={handleShareAll}>
                 <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar Lista
+                Compartilhar
               </Button>
-
               <DeleteConfirmDialog
                 trigger={
-                  <Button variant="outline" className="text-destructive hover:text-destructive">
+                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
                     <Trash2 className="h-4 w-4 mr-2" />
                     Limpar Tudo
                   </Button>
@@ -122,10 +137,65 @@ export default function FavoritesPage() {
           )}
         </div>
 
+        {/* KPI Stat Cards */}
+        {stats && (
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="stat-card flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Package className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-foreground">{stats.total}</p>
+                <p className="text-xs text-muted-foreground">Produtos</p>
+              </div>
+            </div>
+            <div className="stat-card flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Layers className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-foreground">{stats.categories}</p>
+                <p className="text-xs text-muted-foreground">Categorias</p>
+              </div>
+            </div>
+            <div className="stat-card flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-success/10 flex items-center justify-center shrink-0">
+                <TrendingDown className="h-5 w-5 text-success" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-foreground">{fmt(stats.minPrice)}</p>
+                <p className="text-xs text-muted-foreground">Menor preço</p>
+              </div>
+            </div>
+            <div className="stat-card flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <TrendingUp className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-2xl font-display font-bold text-foreground">{fmt(stats.maxPrice)}</p>
+                <p className="text-xs text-muted-foreground">Maior preço</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Search */}
+        {favoriteProducts.length > 0 && (
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Buscar nos favoritos..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        )}
+
         {/* Products grid */}
-        {productsWithVariant.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 lg:gap-6">
-            {productsWithVariant.map((product, index) => {
+        {filteredProducts.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+            {filteredProducts.map((product, index) => {
               const variant = variantMap.get(product.id);
               return (
                 <div
@@ -171,6 +241,16 @@ export default function FavoritesPage() {
               );
             })}
           </div>
+        ) : favoriteProducts.length > 0 && searchQuery ? (
+          <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+            <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <h3 className="font-display text-lg font-semibold text-foreground mb-1">
+              Nenhum favorito encontrado
+            </h3>
+            <p className="text-muted-foreground text-sm">
+              Nenhum produto corresponde a "{searchQuery}"
+            </p>
+          </div>
         ) : (
           <EmptyState
             variant="favorites"
@@ -181,45 +261,6 @@ export default function FavoritesPage() {
               onClick: () => navigate("/"),
             }}
           />
-        )}
-
-        {/* Quick stats using DataCard */}
-        {favoriteProducts.length > 0 && (
-          <DataCardGrid columns={4}>
-            <DataCard
-              icon={Package}
-              value={favoriteProducts.length}
-              label="Produtos"
-              variant="primary"
-              size="sm"
-            />
-            <DataCard
-              icon={Layers}
-              value={new Set(favoriteProducts.map((p) => p.category.id)).size}
-              label="Categorias"
-              size="sm"
-            />
-            <DataCard
-              icon={TrendingDown}
-              value={new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(Math.min(...favoriteProducts.map((p) => p.price)))}
-              label="Menor preço"
-              variant="success"
-              size="sm"
-            />
-            <DataCard
-              icon={TrendingUp}
-              value={new Intl.NumberFormat("pt-BR", {
-                style: "currency",
-                currency: "BRL",
-              }).format(Math.max(...favoriteProducts.map((p) => p.price)))}
-              label="Maior preço"
-              variant="primary"
-              size="sm"
-            />
-          </DataCardGrid>
         )}
       </div>
     </MainLayout>
