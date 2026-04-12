@@ -142,7 +142,7 @@ export function TechniqueCard({
           </div>
         )}
 
-        <div className="p-4 cursor-pointer" onClick={onToggle}>
+        <div className="p-4 cursor-pointer" role="button" tabIndex={0} onClick={onToggle} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle(); } }} aria-label={`Selecionar técnica ${technique.name}`}>
           <div className="flex items-start gap-4">
             <HoverCard openDelay={200}>
               <HoverCardTrigger asChild>
