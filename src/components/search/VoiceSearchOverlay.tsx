@@ -1,7 +1,6 @@
 import React, { useEffect, useCallback, useRef, useState, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, MessageCircle, MicOff, Search, Filter, Navigation, ArrowUpDown, Trash2, HelpCircle, Send, Keyboard } from "lucide-react";
 import type { VoiceAgentAction, VoiceAgentPhase } from "@/hooks/useVoiceAgent";
 import { usePhaseColors } from "./voice/usePhaseColors";
 import {
@@ -14,6 +13,8 @@ import {
 import { SpectrumWaveform } from "./voice/VoiceVisualEffects";
 import { VoiceOrb } from "./voice/VoiceOrb";
 import { FloatingParticles } from "./voice/FloatingParticles";
+import { VoiceTranscriptPanel } from "./voice/VoiceTranscriptPanel";
+import { VoiceSuggestionsPanel } from "./voice/VoiceSuggestionsPanel";
 import type { VoiceHistoryEntry } from "@/hooks/voice/useVoiceHistory";
 
 interface VoiceSearchOverlayProps {
@@ -41,21 +42,6 @@ const PHASE_META: Record<VoiceAgentPhase, { title: string; subtitle: string; emo
   error: { title: "Erro", subtitle: "Toque para tentar novamente", emoji: "⚠️" },
 };
 
-const SUGGESTION_COMMANDS = [
-  "Quero canetas azuis baratas",
-  "Mostra mochilas ecológicas",
-  "Pergunte ao Flow qual o melhor brinde",
-  "Abre os orçamentos",
-];
-const ACTION_META: Record<string, { icon: React.ElementType; label: string; color: string }> = {
-  search: { icon: Search, label: "Busca", color: "text-primary" },
-  filter: { icon: Filter, label: "Filtro", color: "text-accent-foreground" },
-  navigate: { icon: Navigation, label: "Navegação", color: "text-success" },
-  sort: { icon: ArrowUpDown, label: "Ordenação", color: "text-orange" },
-  clear: { icon: Trash2, label: "Limpar", color: "text-destructive" },
-  answer: { icon: HelpCircle, label: "Resposta", color: "text-secondary-foreground" },
-};
-
 export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOverlayProps>(
   function VoiceSearchOverlay({
     isOpen, phase, partialTranscript, finalTranscript, agentResponse, error,
@@ -64,9 +50,6 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
     const [isAutoStarting, setIsAutoStarting] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [bootingTimedOut, setBootingTimedOut] = useState(false);
-    const [showTextInput, setShowTextInput] = useState(false);
-    const [textCommand, setTextCommand] = useState("");
-    const textInputRef = useRef<HTMLInputElement>(null);
     const wasOpenRef = useRef(false);
 
     // Closing transition guard
@@ -82,12 +65,11 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       }
     }, [isOpen]);
 
-    // Keyboard shortcuts: ESC to close, Space to toggle listening
+    // Keyboard shortcuts
     useEffect(() => {
       const handleKeyDown = (e: KeyboardEvent) => {
         if (!isOpen) return;
         if (e.key === "Escape") { onClose(); return; }
-        // Space toggles listen/stop when not typing in an input
         if (e.key === " " && !(e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement)) {
           e.preventDefault();
           handleOrbClick();
@@ -113,21 +95,18 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
         setIsAutoStarting(false);
         return;
       }
-
       if (phase === "idle" && !hasAutoStarted.current) {
         hasAutoStarted.current = true;
         setIsAutoStarting(true);
         const timer = window.setTimeout(() => startListeningRef.current(), 120);
         return () => clearTimeout(timer);
       }
-
       if (phase === "idle" && prevPhaseRef.current === "speaking") {
         setIsAutoStarting(true);
         const timer = window.setTimeout(() => startListeningRef.current(), 800);
         prevPhaseRef.current = phase;
         return () => clearTimeout(timer);
       }
-
       if (phase !== "idle") {
         setIsAutoStarting(false);
         hasAutoStarted.current = true;
@@ -135,12 +114,9 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       prevPhaseRef.current = phase;
     }, [isOpen, phase]);
 
-    // Booting timeout — show friendly message if mic takes too long
+    // Booting timeout
     useEffect(() => {
-      if (!isOpen) {
-        setBootingTimedOut(false);
-        return;
-      }
+      if (!isOpen) { setBootingTimedOut(false); return; }
       const showsBooting = isAutoStarting && phase === "idle";
       if (showsBooting) {
         const timer = setTimeout(() => setBootingTimedOut(true), 10000);
@@ -151,19 +127,11 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
 
     const showBooting = (isAutoStarting && phase === "idle") || isClosing;
     const meta = PHASE_META[phase] ?? PHASE_META.idle;
-    const title = showBooting
-      ? (bootingTimedOut ? "Microfone indisponível" : "Ativando microfone...")
-      : meta.title;
-    const subtitle = showBooting
-      ? (bootingTimedOut ? "Verifique as permissões do navegador e tente novamente" : "Preparando sua conversa por voz")
-      : meta.subtitle;
-    const showTranscript = partialTranscript || finalTranscript;
     const colors = usePhaseColors(phase, showBooting);
     const isWaveformActive = phase === "listening" || phase === "speaking" || showBooting;
 
-    // Extract border glow colors from phase colors (convert hsl to hsla for border effects)
+    // Border glow
     const borderGlow = useMemo(() => {
-      // Parse "hsl(h, s%, l%)" to get h, s, l
       const match = colors.primary.match(/hsl\((\d+),\s*(\d+)%,\s*(\d+)%\)/);
       const [h, s, l] = match ? [match[1], match[2], match[3]] : ["220", "80", "55"];
       return {
@@ -175,7 +143,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
       };
     }, [colors.primary]);
 
-    // Haptic feedback for mobile
+    // Haptic feedback
     const vibrate = useCallback((pattern: number | number[]) => {
       try { navigator?.vibrate?.(pattern); } catch { /* unsupported */ }
     }, []);
@@ -214,7 +182,7 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
             aria-modal="true"
             aria-label="Assistente de Voz"
           >
-            {/* Glass backdrop with breathing effect — always active when overlay is open */}
+            {/* Glass backdrop */}
             <motion.div
               className="absolute inset-0 backdrop-blur-xl"
               animate={{ backgroundColor: ["rgba(2,2,10,0.20)", "rgba(2,2,10,0.65)", "rgba(2,2,10,0.20)"] }}
@@ -222,12 +190,10 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
               onClick={onClose}
             />
 
-            {/* Floating particles */}
             <FloatingParticles phase={phase} isBooting={showBooting} />
 
             {/* Centered card */}
             <div className="absolute inset-0 flex items-center justify-center p-4 pointer-events-none">
-              {/* Glowing border wrapper */}
               <motion.div
                 initial={{ scale: 0.9, opacity: 0, y: 30 }}
                 animate={{ scale: 1, opacity: 1, y: 0 }}
@@ -235,23 +201,12 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                 transition={{ type: "spring", damping: 25, stiffness: 250 }}
                 className="relative max-w-xs w-full pointer-events-auto"
               >
-                {/* Inner card with glowing pulsing border — color synced to phase */}
                 <motion.div
                   className="relative flex flex-col items-center gap-4 w-full px-6 py-7 rounded-3xl max-h-[90vh] overflow-hidden"
-                  style={{
-                    background: "rgba(8,8,18,0.95)",
-                  }}
+                  style={{ background: "rgba(8,8,18,0.95)" }}
                   animate={{
-                    boxShadow: [
-                      borderGlow.shadowDim,
-                      borderGlow.shadowBright,
-                      borderGlow.shadowDim,
-                    ],
-                    borderColor: [
-                      borderGlow.borderDim,
-                      borderGlow.borderBright,
-                      borderGlow.borderDim,
-                    ],
+                    boxShadow: [borderGlow.shadowDim, borderGlow.shadowBright, borderGlow.shadowDim],
+                    borderColor: [borderGlow.borderDim, borderGlow.borderBright, borderGlow.borderDim],
                     border: `1.5px solid ${borderGlow.border}`,
                   }}
                   transition={{
@@ -260,281 +215,78 @@ export const VoiceSearchOverlay = React.forwardRef<HTMLDivElement, VoiceSearchOv
                     border: { duration: 0.8, ease: "easeInOut" },
                   }}
                 >
-                {/* Title — refined typography */}
-                <motion.div
-                  initial={{ opacity: 0, y: -10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.15 }}
-                  className="text-center space-y-1"
-                >
-                  <h2 className="font-display text-sm font-semibold text-white/70 tracking-wide">
-                    {showBooting
-                      ? (bootingTimedOut ? "Microfone indisponível" : "Ativando microfone…")
-                      : meta.title}
-                  </h2>
-                  <p className="text-white/30 text-[11px] tracking-wider">
-                    {showBooting
-                      ? (bootingTimedOut ? "Verifique as permissões do navegador" : "Preparando sua conversa por voz")
-                      : meta.subtitle}
-                  </p>
-                </motion.div>
-
-                {/* Clickable Orb */}
-                <motion.div
-                  className="cursor-pointer select-none"
-                  onClick={handleOrbClick}
-                  whileHover={{ scale: 1.03 }}
-                  whileTap={{ scale: 0.97 }}
-                  role="button"
-                  aria-label={
-                    showBooting ? "Ativando microfone"
-                      : phase === "listening" ? "Parar de ouvir"
-                      : phase === "processing" ? "Processando comando"
-                      : phase === "speaking" ? "Parar resposta"
-                      : "Iniciar microfone"
-                  }
-                  tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleOrbClick(); }}
-                >
-                  <VoiceOrb phase={phase} isBooting={showBooting} />
-                </motion.div>
-
-                {/* Spectrum waveform */}
-                <AnimatePresence mode="wait">
-                  {isWaveformActive && (
-                    <motion.div
-                      key="spectrum"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                    >
-                      <SpectrumWaveform colors={colors} isActive={isWaveformActive} isSpeaking={phase === "speaking"} />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Live transcript */}
-                <AnimatePresence mode="wait">
-                  {showTranscript && (
-                    <motion.div
-                      key="transcript"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="w-full"
-                    >
-                      <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-5 py-4 backdrop-blur-sm">
-                        <p className="text-[10px] text-white/35 uppercase tracking-[0.15em] font-medium mb-1.5">
-                          {phase === "listening" ? "🎙️ Você está dizendo:" : "✅ Você disse:"}
-                        </p>
-                        <p className="text-[15px] font-display font-medium text-white/90 leading-relaxed">
-                          "{partialTranscript || finalTranscript}"
-                          {phase === "listening" && partialTranscript && (
-                            <motion.span
-                              animate={{ opacity: [1, 0] }}
-                              transition={{ duration: 0.5, repeat: Infinity }}
-                              className="text-primary ml-0.5"
-                            >
-                              |
-                            </motion.span>
-                          )}
-                        </p>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Agent response with action badge */}
-                <AnimatePresence mode="wait">
-                  {agentResponse && (phase === "speaking" || phase === "idle") && (
-                    <motion.div
-                      key="agent-response"
-                      initial={{ opacity: 0, scale: 0.95, y: 10 }}
-                      animate={{ opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.95, y: -10 }}
-                      className="w-full"
-                    >
-                      <div className="bg-white/[0.06] border border-white/[0.08] rounded-2xl px-5 py-4 backdrop-blur-sm">
-                        <div className="flex items-start gap-3">
-                          {(() => {
-                            const actionType = currentAction?.action || "answer";
-                            const actionMeta = ACTION_META[actionType] || ACTION_META.answer;
-                            const Icon = actionMeta.icon;
-                            return (
-                              <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ type: "spring", damping: 10, stiffness: 200 }}
-                                className="h-8 w-8 rounded-xl bg-white/[0.08] border border-white/[0.1] flex items-center justify-center shrink-0 mt-0.5"
-                              >
-                                <Icon className={`h-4 w-4 ${actionMeta.color}`} />
-                              </motion.div>
-                            );
-                          })()}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2 mb-1.5">
-                              <p className="text-[10px] text-white/35 uppercase tracking-[0.15em] font-medium">Assistente</p>
-                              {currentAction && currentAction.action !== "answer" && (
-                                <motion.span
-                                  initial={{ scale: 0, opacity: 0 }}
-                                  animate={{ scale: 1, opacity: 1 }}
-                                  className={`text-[9px] px-2 py-0.5 rounded-full bg-white/[0.06] border border-white/[0.1] font-medium ${ACTION_META[currentAction.action]?.color || "text-white/50"}`}
-                                >
-                                  {ACTION_META[currentAction.action]?.label}
-                                </motion.span>
-                              )}
-                            </div>
-                            <p className="text-sm font-display text-white/90 leading-relaxed">{agentResponse}</p>
-                          </div>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Error with friendly mic feedback */}
-                <AnimatePresence>
-                  {error && (
-                    <motion.div
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="w-full bg-destructive/10 border border-destructive/20 rounded-2xl px-5 py-4"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="h-7 w-7 rounded-full bg-destructive/20 flex items-center justify-center shrink-0 mt-0.5">
-                          <MicOff className="h-3.5 w-3.5 text-destructive" />
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-destructive">{error}</p>
-                          <p className="text-xs text-white/40 mt-1">Toque no orbe para tentar novamente</p>
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Suggestions / Recent Commands */}
-                {phase === "idle" && !showBooting && (
+                  {/* Title */}
                   <motion.div
-                    initial={{ y: 15, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: 0.25 }}
-                    className="space-y-3 text-center w-full"
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.15 }}
+                    className="text-center space-y-1"
                   >
-                    {recentCommands && recentCommands.length > 0 ? (
-                      <>
-                        <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
-                          Comandos recentes
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {recentCommands.slice(0, 4).map((entry) => (
-                            <button
-                              key={entry.timestamp}
-                              onClick={() => onCommandSelect?.(entry.transcript)}
-                              className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
-                            >
-                              <span className="group-hover:tracking-wide transition-all duration-200">"{entry.transcript}"</span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    ) : (
-                      <>
-                        <p className="text-[10px] text-white/25 uppercase tracking-widest font-medium">
-                          Experimente dizer
-                        </p>
-                        <div className="flex flex-wrap justify-center gap-2">
-                          {SUGGESTION_COMMANDS.map((cmd) => (
-                            <button
-                              key={cmd}
-                              onClick={() => onCommandSelect?.(cmd)}
-                              className="group px-3 py-1.5 bg-white/[0.04] hover:bg-white/[0.08] rounded-full text-xs text-white/35 hover:text-white/70 border border-white/[0.06] hover:border-white/[0.12] transition-all duration-200 cursor-pointer hover:shadow-[0_0_12px_rgba(255,255,255,0.05)]"
-                            >
-                              <span className="group-hover:tracking-wide transition-all duration-200">"{cmd}"</span>
-                            </button>
-                          ))}
-                        </div>
-                      </>
-                    )}
+                    <h2 className="font-display text-sm font-semibold text-white/70 tracking-wide">
+                      {showBooting
+                        ? (bootingTimedOut ? "Microfone indisponível" : "Ativando microfone…")
+                        : meta.title}
+                    </h2>
+                    <p className="text-white/30 text-[11px] tracking-wider">
+                      {showBooting
+                        ? (bootingTimedOut ? "Verifique as permissões do navegador" : "Preparando sua conversa por voz")
+                        : meta.subtitle}
+                    </p>
                   </motion.div>
-                )}
 
-                {/* Text input toggle & field */}
-                <AnimatePresence>
-                  {showTextInput && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="w-full overflow-hidden"
-                    >
-                      <form
-                        onSubmit={(e) => {
-                          e.preventDefault();
-                          if (textCommand.trim() && onSimulateCommand) {
-                            onSimulateCommand(textCommand.trim());
-                            setTextCommand("");
-                            setShowTextInput(false);
-                          }
-                        }}
-                        className="flex gap-2"
-                      >
-                        <input
-                          ref={textInputRef}
-                          type="text"
-                          value={textCommand}
-                          onChange={(e) => setTextCommand(e.target.value)}
-                          placeholder="Digite um comando..."
-                          className="flex-1 bg-white/[0.06] border border-white/[0.1] rounded-xl px-3 py-2 text-sm text-white/90 placeholder:text-white/30 focus:outline-none focus:border-white/25 focus:ring-1 focus:ring-white/10"
-                          autoFocus
-                          disabled={phase === "processing" || phase === "speaking"}
-                        />
-                        <button
-                          type="submit"
-                          disabled={!textCommand.trim() || phase === "processing" || phase === "speaking"}
-                          className="h-9 w-9 rounded-xl bg-primary/20 hover:bg-primary/30 border border-primary/30 flex items-center justify-center text-primary disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
-                        >
-                          <Send className="h-3.5 w-3.5" />
-                        </button>
-                      </form>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-
-                {/* Footer: ESC hint + text toggle + close button */}
-                <div className="w-full flex items-center justify-between mt-1">
-                  <motion.p
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.4 }}
-                    className="text-[10px] text-white/20"
+                  {/* Clickable Orb */}
+                  <motion.div
+                    className="cursor-pointer select-none"
+                    onClick={handleOrbClick}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    role="button"
+                    aria-label={
+                      showBooting ? "Ativando microfone"
+                        : phase === "listening" ? "Parar de ouvir"
+                        : phase === "processing" ? "Processando comando"
+                        : phase === "speaking" ? "Parar resposta"
+                        : "Iniciar microfone"
+                    }
+                    tabIndex={0}
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleOrbClick(); }}
                   >
-                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">ESC</kbd> fechar
-                    <span className="mx-1.5 text-white/10">·</span>
-                    <kbd className="px-1 py-0.5 bg-white/5 rounded text-[9px] font-mono border border-white/10">SPACE</kbd> ativar
-                  </motion.p>
-                  <div className="flex items-center gap-1.5">
-                    <button
-                      onClick={() => {
-                        setShowTextInput((v) => !v);
-                        if (!showTextInput) setTimeout(() => textInputRef.current?.focus(), 100);
-                      }}
-                      className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
-                      aria-label="Digitar comando"
-                      title="Digitar comando (sem microfone)"
-                    >
-                      <Keyboard className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={onClose}
-                      className="flex items-center justify-center w-7 h-7 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-white/40 hover:text-white/80 transition-colors"
-                      aria-label="Fechar assistente de voz"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
-                  </div>
-                </div>
+                    <VoiceOrb phase={phase} isBooting={showBooting} />
+                  </motion.div>
+
+                  {/* Spectrum waveform */}
+                  <AnimatePresence mode="wait">
+                    {isWaveformActive && (
+                      <motion.div
+                        key="spectrum"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -10 }}
+                      >
+                        <SpectrumWaveform colors={colors} isActive={isWaveformActive} isSpeaking={phase === "speaking"} />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Transcript + Response + Error */}
+                  <VoiceTranscriptPanel
+                    phase={phase}
+                    partialTranscript={partialTranscript}
+                    finalTranscript={finalTranscript}
+                    agentResponse={agentResponse}
+                    error={error}
+                    currentAction={currentAction}
+                  />
+
+                  {/* Suggestions + Text Input + Footer */}
+                  <VoiceSuggestionsPanel
+                    phase={phase}
+                    isBooting={showBooting}
+                    recentCommands={recentCommands}
+                    onCommandSelect={onCommandSelect}
+                    onSimulateCommand={onSimulateCommand}
+                    onClose={onClose}
+                  />
                 </motion.div>
               </motion.div>
             </div>
