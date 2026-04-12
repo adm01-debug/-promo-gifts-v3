@@ -211,17 +211,6 @@ export default function CollectionsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-2">
-            {externalCollections.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => refetchExternal()}
-                disabled={isLoadingExternal}
-              >
-                <RefreshCw className={cn("h-4 w-4 mr-2", isLoadingExternal && "animate-spin")} />
-                Sincronizar
-              </Button>
-            )}
             <Button onClick={() => setIsCreateOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
               Nova Coleção
