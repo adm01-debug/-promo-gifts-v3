@@ -128,7 +128,7 @@ export default function KitBuilderPage() {
       
       {/* Header */}
       <div className="border-b bg-card">
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4">
+        <div className="container py-6">
           <BackButton fallbackPath="/meus-kits" className="mb-3" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -172,13 +172,13 @@ export default function KitBuilderPage() {
 
       {/* Wizard Steps */}
       <div className="border-b bg-card/50">
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4">
+        <div className="container py-6">
           <WizardSteps currentStep={wizardState.currentStep} completedSteps={wizardState.completedSteps} onStepClick={goToStep} />
         </div>
       </div>
 
       {/* Content */}
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 pb-24 md:pb-6">
+      <div className="container py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             <Card>
@@ -191,7 +191,7 @@ export default function KitBuilderPage() {
                 )}
 
                 {wizardState.currentStep === 'box' && (
-                  <div className="space-y-6">
+                  <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
                     <div><h2 className="text-xl font-semibold font-display">1. Selecione a Embalagem</h2><p className="text-muted-foreground">Escolha a caixa ou embalagem que será a base do seu kit</p></div>
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Tipo de Kit</Label>
@@ -211,7 +211,7 @@ export default function KitBuilderPage() {
                 )}
 
                 {wizardState.currentStep === 'items' && (
-                  <div className="space-y-4">
+                  <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
                     <h2 className="text-xl font-semibold font-display">2. Adicione os Itens</h2>
                     <p className="text-muted-foreground">Selecione os produtos que farão parte do kit</p>
                     <ItemSelector items={availableItems} selectedItems={kitState.items} isLoading={isLoadingItems}

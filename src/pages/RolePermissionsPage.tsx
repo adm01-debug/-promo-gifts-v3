@@ -217,7 +217,7 @@ export default function RolePermissionsPage() {
             </div>
           </header>
           
-          <main className="flex-1 p-6">
+          <main className="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
             <div className="max-w-6xl mx-auto space-y-6">
               {/* Role Cards Overview */}
               <div className="grid gap-4 md:grid-cols-2">

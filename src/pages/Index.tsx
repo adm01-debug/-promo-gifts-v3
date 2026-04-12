@@ -35,7 +35,7 @@ export default function Index() {
       />
       <div>
         <div className="flex-1 min-w-0">
-          <div className="space-y-3 p-4 sm:p-6">
+          <div className="space-y-3 p-4 sm:p-6 animate-fade-in">
             {/* Header: Title + Search */}
             <CatalogHeader
               shouldShowCatalogSkeleton={catalog.shouldShowCatalogSkeleton}

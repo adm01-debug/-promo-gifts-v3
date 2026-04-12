@@ -242,7 +242,7 @@ export default function SystemStatusPage() {
   const crmErrorCount = crmTables.filter((t) => t.status === "error").length;
 
   return (
-    <div className="min-h-screen bg-background p-6">
+    <div className="min-h-screen bg-background w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO title="Status do Sistema" description="Monitore a saúde e status de todos os serviços." path="/status" noIndex />
       <div className="max-w-2xl mx-auto space-y-6">
         {/* Header */}

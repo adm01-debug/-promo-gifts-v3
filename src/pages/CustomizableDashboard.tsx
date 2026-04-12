@@ -255,7 +255,7 @@ export function CustomizableDashboard() {
 
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
           <SortableContext items={visibleWidgets.map(w => w.id)} strategy={rectSortingStrategy}>
-            <div className="space-y-4">
+            <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
               {visibleWidgets.map((widget) => {
                 const isFullWidth = fullWidthIds.has(widget.id);
                 

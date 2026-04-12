@@ -110,7 +110,7 @@ export default function OrderDetailPage() {
   if (loading) {
     return (
       <MainLayout>
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64 w-full" />
           <Skeleton className="h-48 w-full" />
@@ -140,7 +140,7 @@ export default function OrderDetailPage() {
   return (
     <MainLayout>
       <PageSEO title={`Pedido #${order.order_number}`} description={`Detalhes do pedido ${order.order_number}`} path={`/pedidos/${id}`} noIndex />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <div className="space-y-6 max-w-5xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -275,7 +275,7 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Gerenciar Status</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
+              <CardContent className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
                 <div>
                   <Label>Status do Pedido</Label>
                   <Select value={order.status} onValueChange={updateStatus} disabled={isSaving}>
