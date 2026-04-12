@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
   RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock,
-  SortAsc, FileText,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -59,6 +58,7 @@ export default function CollectionsPage() {
     createCollection,
     updateCollection,
     deleteCollection,
+    addProductToCollection,
     getCollectionProducts,
     defaultColors,
     defaultIcons,
@@ -145,18 +145,16 @@ export default function CollectionsPage() {
       collection.color,
       collection.icon
     );
-    // Clone products into new collection
+    // Clone all products into the new collection after a tick (to allow temp ID to settle)
     const items = collection.productItems || [];
     if (items.length > 0) {
-      const { addProductToCollection } = useCollectionsContext.arguments?.[0] || {};
-      // We need to add products after creation settles
       setTimeout(() => {
         items.forEach((item) => {
-          // We use context from outer scope
+          addProductToCollection(cloned.id, item.productId, item.variant);
         });
-      }, 500);
+      }, 300);
     }
-    toast.success(`Coleção "${collection.name}" duplicada`);
+    toast.success(`Coleção "${collection.name}" duplicada com ${items.length} produtos`);
   };
 
   const openEdit = (collection: (typeof localCollections)[0]) => {
