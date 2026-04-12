@@ -134,7 +134,7 @@ function OrdersPageContent() {
             {filteredOrders.map((order) => (
               <Card
                 key={order.id}
-                className="hover:border-primary/30 transition-colors cursor-pointer"
+                className="hover:border-primary/30 border-[1.5px] border-primary/15 transition-all duration-300 cursor-pointer hover:shadow-lg card-lift"
                 onClick={() => navigate(`/pedidos/${order.id}`)}
               >
                 <CardContent className="p-4 flex items-center justify-between">

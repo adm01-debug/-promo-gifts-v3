@@ -313,7 +313,7 @@ export default function MeusKitsPage() {
           {filtered.map((kit) => {
             const statusInfo = STATUS_MAP[kit.status] || STATUS_MAP.draft;
             return (
-              <Card key={kit.id} className="hover:shadow-md transition-shadow">
+              <Card key={kit.id} className="border-[1.5px] border-primary/15 hover:border-primary/30 hover:shadow-lg card-lift transition-all duration-300">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row sm:items-center gap-4">
                     {/* Compare checkbox + Icon */}
