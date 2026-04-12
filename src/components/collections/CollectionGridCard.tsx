@@ -1,6 +1,5 @@
 /**
- * CollectionGridCard — Premium bento-style card for local collections.
- * Hero image layout with glassmorphism info overlay.
+ * CollectionGridCard — Premium card with geometric honeycomb image mosaic.
  */
 import { motion } from "framer-motion";
 import {
@@ -8,7 +7,6 @@ import {
   Trash2, Package, Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -16,6 +14,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import type { Collection } from "@/hooks/useCollections";
+
+/* ── Hexagon clip paths ── */
+const hexClip = "polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%)";
 
 interface CollectionGridCardProps {
   collection: Collection;
@@ -30,6 +31,97 @@ interface CollectionGridCardProps {
   onDelete: () => void;
   updatedAgo?: string | null;
   index: number;
+}
+
+/* ── Honeycomb Image Mosaic ── */
+function HoneycombMosaic({ images }: { images: string[] }) {
+  const count = images.length;
+
+  if (count === 1) {
+    return (
+      <div className="absolute inset-0">
+        <img src={images[0]} alt="" className="w-full h-full object-cover" loading="lazy" />
+      </div>
+    );
+  }
+
+  if (count === 2) {
+    return (
+      <div className="absolute inset-0 flex gap-[3px]">
+        {images.map((img, i) => (
+          <div key={i} className="flex-1 relative overflow-hidden">
+            <img src={img} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (count === 3) {
+    return (
+      <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-[3px]">
+        <div className="row-span-2 relative overflow-hidden">
+          <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+        <div className="relative overflow-hidden">
+          <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+        <div className="relative overflow-hidden">
+          <img src={images[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+      </div>
+    );
+  }
+
+  // 4+ images → geometric mosaic with hexagonal clip on center piece
+  const display = images.slice(0, 5);
+  return (
+    <div className="absolute inset-0">
+      {/* Background grid */}
+      <div className="absolute inset-0 grid grid-cols-3 grid-rows-2 gap-[3px]">
+        {/* Top-left large */}
+        <div className="col-span-2 relative overflow-hidden">
+          <img src={display[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+        {/* Top-right */}
+        <div className="relative overflow-hidden">
+          <img src={display[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+        {/* Bottom-left */}
+        <div className="relative overflow-hidden">
+          <img src={display[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+        </div>
+        {/* Bottom-center+right */}
+        {display[3] && (
+          <div className="relative overflow-hidden">
+            <img src={display[3]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          </div>
+        )}
+        {display[4] ? (
+          <div className="relative overflow-hidden">
+            <img src={display[4]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
+          </div>
+        ) : (
+          <div className="relative overflow-hidden bg-muted/30" />
+        )}
+      </div>
+
+      {/* Hexagonal center overlay */}
+      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+        <div
+          className="w-[45%] aspect-[1/1.15] overflow-hidden shadow-xl"
+          style={{ clipPath: hexClip }}
+        >
+          <img
+            src={display[Math.min(1, display.length - 1)]}
+            alt=""
+            className="w-full h-full object-cover"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    </div>
+  );
 }
 
 export function CollectionGridCard({
@@ -47,8 +139,6 @@ export function CollectionGridCard({
   index,
 }: CollectionGridCardProps) {
   const allImages = products.flatMap((p) => p.images).filter(Boolean);
-  const heroImage = allImages[0];
-  const thumbImages = allImages.slice(1, 4);
   const hasImages = allImages.length > 0;
   const productCount = collection.productIds.length;
 
@@ -68,7 +158,6 @@ export function CollectionGridCard({
     >
       {/* ── Top controls ── */}
       <div className="absolute top-2.5 left-2.5 right-2.5 z-10 flex items-start justify-between">
-        {/* Selection */}
         <div
           className={cn(
             "transition-opacity duration-200",
@@ -79,7 +168,6 @@ export function CollectionGridCard({
           <SelectionCheckbox checked={isSelected} onChange={onToggleSelect} size="lg" animateEntry />
         </div>
 
-        {/* Context menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -111,67 +199,37 @@ export function CollectionGridCard({
         </DropdownMenu>
       </div>
 
-      {/* ── Image area ── */}
-      <div className="aspect-[4/3] relative overflow-hidden bg-muted/20">
+      {/* ── Image area — taller aspect for bigger cards ── */}
+      <div className="aspect-[3/4] relative overflow-hidden bg-muted/20">
         {hasImages ? (
           <>
-            {/* Hero + side thumbnails layout */}
-            <div className="absolute inset-0 flex gap-[2px]">
-              {/* Hero (left, or full if only 1 image) */}
-              <div className={cn("relative overflow-hidden", thumbImages.length > 0 ? "flex-[2]" : "flex-1")}>
-                <img
-                  src={heroImage}
-                  alt=""
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
-                  loading="lazy"
-                />
-              </div>
+            <HoneycombMosaic images={allImages} />
 
-              {/* Side strip (up to 3 thumbs stacked) */}
-              {thumbImages.length > 0 && (
-                <div className="flex-1 flex flex-col gap-[2px]">
-                  {thumbImages.map((img, i) => (
-                    <div key={i} className="relative flex-1 overflow-hidden">
-                      <img
-                        src={img}
-                        alt=""
-                        className="absolute inset-0 w-full h-full object-cover"
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            {/* Bottom gradient */}
+            <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-card via-card/70 to-transparent pointer-events-none" />
 
-            {/* Bottom gradient for text contrast */}
-            <div className="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-card via-card/70 to-transparent pointer-events-none" />
-
-            {/* Product count pill overlay */}
+            {/* Product count pill */}
             <div className="absolute bottom-2.5 right-2.5">
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium bg-background/60 backdrop-blur-md text-foreground/80 border border-border/30">
-                <Package className="h-2.5 w-2.5" />
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-background/60 backdrop-blur-md text-foreground/80 border border-border/30">
+                <Package className="h-3 w-3" />
                 {productCount}
               </span>
             </div>
           </>
         ) : (
           <div className="flex flex-col items-center justify-center h-full gap-3">
-            <div
-              className="w-14 h-14 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 bg-muted/30"
-            >
-              <FolderOpen className="h-7 w-7 text-muted-foreground/40" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center transition-transform duration-300 group-hover:scale-110 bg-muted/30">
+              <FolderOpen className="h-8 w-8 text-muted-foreground/40" />
             </div>
-            <span className="text-[11px] text-muted-foreground/40 font-medium">Coleção vazia</span>
+            <span className="text-xs text-muted-foreground/40 font-medium">Coleção vazia</span>
           </div>
         )}
       </div>
 
       {/* ── Card footer ── */}
-      <div className="px-3.5 py-3 flex items-center gap-2.5">
-        {/* Collection icon */}
+      <div className="px-4 py-3.5 flex items-center gap-3">
         <div
-          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
+          className="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0"
           style={{
             backgroundColor: `${collection.color}14`,
             color: collection.color,
@@ -180,7 +238,6 @@ export function CollectionGridCard({
           {collection.icon}
         </div>
 
-        {/* Text block */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
             <h3 className="font-display font-semibold text-sm leading-tight text-foreground truncate">
