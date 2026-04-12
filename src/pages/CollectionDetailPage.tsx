@@ -343,58 +343,25 @@ export default function CollectionDetailPage() {
                 </div>
               )}
 
-              {/* Quick remove list */}
+              {/* Drag-and-drop manage list */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Gerenciar produtos ({products.length})
+                  Gerenciar produtos ({products.length}) — arraste para reordenar
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {products.map((product) => {
-                    const variant = variantMap.get(product.id);
-                    const displayImage = variant?.thumbnail || product.images[0];
-                    return (
-                      <div
-                        key={product.id}
-                        className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors"
-                      >
-                        <img
-                          src={displayImage}
-                          alt={product.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                          loading="lazy"
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {products.map((product) => (
+                        <SortableProductItem
+                          key={product.id}
+                          product={product}
+                          variant={variantMap.get(product.id)}
+                          onRemove={() => handleRemoveFromCollection(product.id)}
                         />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{product.name}</p>
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs text-muted-foreground">{product.sku}</p>
-                            {variant?.color_hex && (
-                              <span className="flex items-center gap-1">
-                                <span
-                                  className="w-2.5 h-2.5 rounded-full border border-border"
-                                  style={{ backgroundColor: variant.color_hex }}
-                                />
-                                {variant.color_name && (
-                                  <span className="text-xs text-muted-foreground truncate max-w-[80px]">
-                                    {variant.color_name}
-                                  </span>
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Remover da coleção"
-                          className="shrink-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleRemoveFromCollection(product.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           ) : (
