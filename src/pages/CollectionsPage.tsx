@@ -294,10 +294,6 @@ export default function CollectionsPage() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge variant="outline" className="text-xs">
-                          <Cloud className="h-3 w-3 mr-1" />
-                          Catálogo
-                        </Badge>
                         <span className="text-sm text-muted-foreground flex items-center gap-1">
                           <Package className="h-3 w-3" />
                           {externalProductCounts ? (externalProductCounts.get(collection.id) ?? 0) : "…"}
@@ -331,16 +327,6 @@ export default function CollectionsPage() {
                     style={{ animationDelay: `${idx * 60}ms` }}
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
-                    {/* Badge sync */}
-                    <div className="absolute top-3 left-3 z-10">
-                      <Badge
-                        variant="outline"
-                        className="text-xs bg-background/80 backdrop-blur-sm"
-                      >
-                        <Cloud className="h-3 w-3 mr-1" />
-                        Catálogo
-                      </Badge>
-                    </div>
 
                     {/* Preview */}
                     <div
