@@ -211,7 +211,7 @@ export function GenericSkeleton() {
  */
 export function getFallback(pathname: string): React.ReactNode {
   if (pathname.startsWith("/produto/")) return <ProductDetailSkeleton />;
-  if (pathname === "/produtos" || pathname === "/filtros" || pathname === "/" || pathname === "/novidades" || pathname === "/favoritos")
+  if (pathname === "/produtos" || pathname === "/filtros" || pathname === "/" || pathname === "/novidades" || pathname === "/reposicao" || pathname === "/favoritos")
     return <CatalogSkeleton />;
   if (pathname.startsWith("/orcamentos")) return <QuotesSkeleton />;
   if (pathname.startsWith("/admin") || pathname === "/bi" || pathname === "/status")
