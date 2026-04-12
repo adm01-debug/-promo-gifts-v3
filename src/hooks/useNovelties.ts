@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
 
 const NOVELTY_WINDOW_DAYS = 30;
-const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at';
+const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at, stock_quantity, min_quantity';
 
 /**
  * Calcula a data de corte para novidades (últimos N dias)
@@ -46,6 +46,9 @@ export interface NoveltyWithDetails {
   status: 'active' | 'expiring_soon' | 'expired';
   is_highlighted: boolean;
   is_active: boolean;
+  stock_quantity: number;
+  min_quantity: number;
+  stock_status: 'in-stock' | 'low-stock' | 'out-of-stock';
 }
 
 /**
@@ -74,6 +77,8 @@ interface RawProduct {
   category_id: string | null;
   supplier_id: string | null;
   created_at: string;
+  stock_quantity: number | null;
+  min_quantity: number | null;
 }
 
 interface CategoryRecord { id: string; name: string; }
@@ -124,6 +129,9 @@ async function enrichNovelties(novelties: NoveltyWithDetails[]): Promise<Novelty
 function toNovelty(p: RawProduct): NoveltyWithDetails {
   const daysRemaining = calcDaysRemaining(p.created_at);
   const expiresAt = new Date(new Date(p.created_at).getTime() + NOVELTY_WINDOW_DAYS * 86400000).toISOString();
+  const stock = p.stock_quantity ?? 0;
+  const minQty = p.min_quantity ?? 10;
+  const stockStatus: NoveltyWithDetails['stock_status'] = stock === 0 ? 'out-of-stock' : stock < minQty ? 'low-stock' : 'in-stock';
   
   return {
     novelty_id: p.id,
@@ -145,6 +153,9 @@ function toNovelty(p: RawProduct): NoveltyWithDetails {
     status: daysRemaining <= 0 ? 'expired' : daysRemaining <= 7 ? 'expiring_soon' : 'active',
     is_highlighted: daysRemaining >= 25,
     is_active: daysRemaining > 0,
+    stock_quantity: stock,
+    min_quantity: minQty,
+    stock_status: stockStatus,
   };
 }
 
