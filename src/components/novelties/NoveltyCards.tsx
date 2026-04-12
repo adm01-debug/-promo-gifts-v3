@@ -40,7 +40,7 @@ export interface NoveltyCardProps {
 export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
   const fresh = isFresh(product.detected_at);
   const stockQty = product.stock_quantity ?? 0;
-  const stockStatus = stockStatus ?? 'in-stock';
+  const stockStatus = product.stock_status ?? 'in-stock';
   return (
     <Card
       className={cn(
