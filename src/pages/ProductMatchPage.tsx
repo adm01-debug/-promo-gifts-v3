@@ -23,20 +23,15 @@ import { cn } from '@/lib/utils';
 import {
   Search,
   Target,
-  ArrowRight,
   Package,
   Layers,
-  Filter,
-  Star,
   ExternalLink,
   Zap,
   Users,
   Tag,
-  X,
   Sparkles,
   Link2,
   Equal,
-  ShoppingCart,
   FileText,
 } from 'lucide-react';
 import { getCdnUrl } from '@/utils/image-utils';
