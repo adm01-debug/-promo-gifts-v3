@@ -137,6 +137,8 @@ export const NoveltyGridCard = memo(function NoveltyGridCard({ product, onClick,
 
 export const NoveltyListCard = memo(function NoveltyListCard({ product, onClick, selectionMode, isSelected, onToggleSelect }: NoveltyCardProps) {
   const fresh = isFresh(product.detected_at);
+  const stockQty = product.stock_quantity ?? 0;
+  const stockStatus = product.stock_status ?? 'in-stock';
   return (
     <Card className={cn("group cursor-pointer transition-all duration-200 hover:shadow-md hover:border-primary/30", fresh && "border-success/30 shadow-[0_0_12px_hsl(var(--success)/0.08)]", isSelected && "ring-2 ring-primary border-primary/50 shadow-[0_0_20px_hsl(var(--primary)/0.15)]")} onClick={selectionMode ? onToggleSelect : onClick}>
       <CardContent className="p-2.5 flex items-center gap-2.5">
