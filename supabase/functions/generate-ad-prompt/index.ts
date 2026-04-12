@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
+import { z } from '../_shared/zod-validate.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -15,26 +16,48 @@ Deno.serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
-    let body: Record<string, unknown>;
+    const AdPromptSchema = z.object({
+      productName: z.string().trim().min(1, 'Product name is required').max(255),
+      productColor: z.string().max(100).optional(),
+      productCategory: z.string().max(100).optional(),
+      techniqueName: z.string().max(100).optional(),
+      locationName: z.string().max(100).optional(),
+      maxWidth: z.union([z.string(), z.number()]).optional(),
+      maxHeight: z.union([z.string(), z.number()]).optional(),
+      dimensionUnit: z.string().max(10).optional(),
+      isCurved: z.boolean().optional(),
+      clientSegment: z.string().max(200).optional(),
+      clientName: z.string().max(200).optional(),
+      brandColorName: z.string().max(100).optional(),
+      objective: z.string().max(500).optional(),
+      tone: z.string().max(100).optional(),
+      targetAudience: z.string().max(200).optional(),
+      season: z.string().max(100).optional(),
+      numberOfPrompts: z.number().int().min(1).max(6).optional(),
+    });
+
+    let rawBody: unknown;
     try {
-      body = await req.json();
+      rawBody = await req.json();
     } catch {
       return new Response(JSON.stringify({ error: "Invalid request body" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    const parsed = AdPromptSchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const {
       productName, productColor, productCategory, techniqueName, locationName,
       maxWidth, maxHeight, dimensionUnit, isCurved, clientSegment, clientName,
       brandColorName, objective, tone, targetAudience, season, numberOfPrompts,
-    } = body as Record<string, string | number | boolean | undefined>;
-
-    if (!productName) {
-      return new Response(
-        JSON.stringify({ error: "Product name is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    } = parsed.data;
 
     const numPrompts = Math.min(numberOfPrompts || 4, 6);
 
