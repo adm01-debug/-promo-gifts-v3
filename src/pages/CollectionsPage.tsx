@@ -515,14 +515,7 @@ export default function CollectionsPage() {
                               {updatedAgo}
                             </span>
                           )}
-                        </div>
-                          {updatedAgo && (
-                            <span className="text-xs text-muted-foreground/60 flex items-center gap-0.5">
-                              <Clock className="h-2.5 w-2.5" />
-                              {updatedAgo}
-                            </span>
-                          )}
-                        </div>
+                      </div>
                       </div>
                     </div>
                   </div>
