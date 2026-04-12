@@ -53,6 +53,8 @@ interface ProductListItemProps {
   canAddToCompare?: boolean;
   highlightColors?: string[];
   activeColorFilter?: ActiveColorFilter | null;
+  isNovelty?: boolean;
+  noveltyDaysRemaining?: number;
 }
 
 export const ProductListItem = memo(function ProductListItem({
