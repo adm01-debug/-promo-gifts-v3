@@ -185,6 +185,80 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_items: {
+        Row: {
+          collection_id: string
+          color_hex: string | null
+          color_name: string | null
+          created_at: string
+          id: string
+          product_id: string
+          sort_order: number | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          collection_id: string
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          id?: string
+          product_id: string
+          sort_order?: number | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          collection_id?: string
+          color_hex?: string | null
+          color_name?: string | null
+          created_at?: string
+          id?: string
+          product_id?: string
+          sort_order?: number | null
+          thumbnail_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "collection_items_collection_id_fkey"
+            columns: ["collection_id"]
+            isOneToOne: false
+            referencedRelation: "collections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      collections: {
+        Row: {
+          created_at: string
+          description: string | null
+          icon_color: string | null
+          id: string
+          is_featured: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          icon_color?: string | null
+          id?: string
+          is_featured?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          icon_color?: string | null
+          id?: string
+          is_featured?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       component_media: {
         Row: {
           component_id: string

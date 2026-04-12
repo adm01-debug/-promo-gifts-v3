@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 import { Product } from "@/hooks/useProducts";
 
-const STORAGE_KEY = "product-collections";
+const LEGACY_STORAGE_KEY = "product-collections";
 
 export interface CollectionVariantInfo {
   color_name?: string | null;
@@ -30,78 +32,205 @@ export interface Collection {
 }
 
 const DEFAULT_COLORS = [
-  "#8B5CF6", // purple
-  "#EC4899", // pink
-  "#F59E0B", // amber
-  "#10B981", // emerald
-  "#3B82F6", // blue
-  "#EF4444", // red
-  "#6366F1", // indigo
-  "#14B8A6", // teal
+  "#8B5CF6", "#EC4899", "#F59E0B", "#10B981",
+  "#3B82F6", "#EF4444", "#6366F1", "#14B8A6",
 ];
 
 const DEFAULT_ICONS = ["📁", "⭐", "🎁", "💼", "🎯", "💡", "🔥", "❤️"];
 
-/** Migrate old collections that only have productIds to the new productItems format */
-function migrateCollections(collections: any[]): Collection[] {
-  return collections.map((col) => {
-    if (!col.productItems) {
-      return {
-        ...col,
-        productItems: (col.productIds || []).map((id: string) => ({ productId: id })),
-      };
-    }
-    // Keep productIds in sync for backward compatibility
-    if (!col.productIds || col.productIds.length !== col.productItems.length) {
-      return {
-        ...col,
-        productIds: col.productItems.map((item: CollectionProductItem) => item.productId),
-      };
-    }
-    return col;
-  });
+/** Convert DB rows to Collection interface */
+function dbToCollection(
+  row: any,
+  items: any[]
+): Collection {
+  const productItems: CollectionProductItem[] = items.map((item) => ({
+    productId: item.product_id,
+    variant: item.color_name || item.color_hex || item.thumbnail_url
+      ? {
+          color_name: item.color_name,
+          color_hex: item.color_hex,
+          thumbnail: item.thumbnail_url,
+        }
+      : undefined,
+  }));
+
+  return {
+    id: row.id,
+    name: row.name,
+    description: row.description || undefined,
+    color: row.icon_color || DEFAULT_COLORS[0],
+    icon: "📁", // Icons stored in DB would need a column; default for now
+    productIds: productItems.map((i) => i.productId),
+    productItems,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
 }
 
 export function useCollections() {
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
+  const { user } = useAuth();
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        setCollections(migrateCollections(JSON.parse(stored)));
-      }
-    } catch (e) {
-      console.error("Error loading collections:", e);
+  // Load collections from DB
+  const loadCollections = useCallback(async () => {
+    if (!user?.id) return;
+
+    const { data: colRows, error } = await supabase
+      .from("collections")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error("Error loading collections:", error);
+      setIsLoaded(true);
+      return;
     }
+
+    if (!colRows || colRows.length === 0) {
+      setCollections([]);
+      setIsLoaded(true);
+      return;
+    }
+
+    // Load all items for user's collections
+    const colIds = colRows.map((c) => c.id);
+    const { data: itemRows } = await supabase
+      .from("collection_items")
+      .select("*")
+      .in("collection_id", colIds)
+      .order("sort_order", { ascending: true });
+
+    const itemsByCollection = new Map<string, any[]>();
+    (itemRows || []).forEach((item) => {
+      const list = itemsByCollection.get(item.collection_id) || [];
+      list.push(item);
+      itemsByCollection.set(item.collection_id, list);
+    });
+
+    const mapped = colRows.map((row) =>
+      dbToCollection(row, itemsByCollection.get(row.id) || [])
+    );
+
+    setCollections(mapped);
     setIsLoaded(true);
-  }, []);
+  }, [user?.id]);
 
+  // Migrate localStorage data on first load
   useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(collections));
-    }
-  }, [collections, isLoaded]);
+    if (!user?.id) return;
+
+    const migrateAndLoad = async () => {
+      try {
+        const stored = localStorage.getItem(LEGACY_STORAGE_KEY);
+        if (stored) {
+          const legacyCollections = JSON.parse(stored);
+          if (Array.isArray(legacyCollections) && legacyCollections.length > 0) {
+            // Check if user already has DB collections
+            const { count } = await supabase
+              .from("collections")
+              .select("*", { count: "exact", head: true })
+              .eq("user_id", user.id);
+
+            if (count === 0) {
+              // Migrate each collection
+              for (const col of legacyCollections) {
+                const { data: newCol } = await supabase
+                  .from("collections")
+                  .insert({
+                    user_id: user.id,
+                    name: col.name,
+                    description: col.description || null,
+                    is_featured: false,
+                    icon_color: col.color || DEFAULT_COLORS[0],
+                  })
+                  .select()
+                  .single();
+
+                if (newCol) {
+                  const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
+                  if (items.length > 0) {
+                    await supabase.from("collection_items").insert(
+                      items.map((item: any, idx: number) => ({
+                        collection_id: newCol.id,
+                        product_id: item.productId || item,
+                        color_name: item.variant?.color_name || null,
+                        color_hex: item.variant?.color_hex || null,
+                        thumbnail_url: item.variant?.thumbnail || null,
+                        sort_order: idx,
+                      }))
+                    );
+                  }
+                }
+              }
+              // Clear localStorage after successful migration
+              localStorage.removeItem(LEGACY_STORAGE_KEY);
+            } else {
+              // User already has DB collections, just clear legacy
+              localStorage.removeItem(LEGACY_STORAGE_KEY);
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error migrating collections:", e);
+      }
+
+      await loadCollections();
+    };
+
+    migrateAndLoad();
+  }, [user?.id, loadCollections]);
 
   const createCollection = useCallback(
     (name: string, description?: string, color?: string, icon?: string): Collection => {
+      const tempId = `temp-${Date.now()}`;
+      const now = new Date().toISOString();
+      const chosenColor = color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)];
+
       const newCollection: Collection = {
-        id: `col-${Date.now()}`,
+        id: tempId,
         name,
         description,
-        color:
-          color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)],
+        color: chosenColor,
         icon: icon || DEFAULT_ICONS[0],
         productIds: [],
         productItems: [],
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdAt: now,
+        updatedAt: now,
       };
-      setCollections((prev) => [...prev, newCollection]);
+
+      // Optimistic update
+      setCollections((prev) => [newCollection, ...prev]);
+
+      // Persist to DB
+      if (user?.id) {
+        supabase
+          .from("collections")
+          .insert({
+            user_id: user.id,
+            name,
+            description: description || null,
+            icon_color: chosenColor,
+          })
+          .select()
+          .single()
+          .then(({ data }) => {
+            if (data) {
+              setCollections((prev) =>
+                prev.map((c) =>
+                  c.id === tempId
+                    ? { ...c, id: data.id, createdAt: data.created_at, updatedAt: data.updated_at }
+                    : c
+                )
+              );
+            }
+          });
+      }
+
       return newCollection;
     },
-    []
+    [user?.id]
   );
 
   const updateCollection = useCallback(
@@ -113,12 +242,23 @@ export function useCollections() {
             : col
         )
       );
+
+      // Persist
+      const dbUpdates: any = {};
+      if (updates.name !== undefined) dbUpdates.name = updates.name;
+      if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.color !== undefined) dbUpdates.icon_color = updates.color;
+
+      if (Object.keys(dbUpdates).length > 0) {
+        supabase.from("collections").update(dbUpdates).eq("id", id).then();
+      }
     },
     []
   );
 
   const deleteCollection = useCallback((id: string) => {
     setCollections((prev) => prev.filter((col) => col.id !== id));
+    supabase.from("collections").delete().eq("id", id).then();
   }, []);
 
   const addProductToCollection = useCallback(
@@ -126,7 +266,6 @@ export function useCollections() {
       setCollections((prev) =>
         prev.map((col) => {
           if (col.id !== collectionId) return col;
-          // Check if already exists
           if (col.productIds.includes(productId)) return col;
           return {
             ...col,
@@ -136,6 +275,18 @@ export function useCollections() {
           };
         })
       );
+
+      supabase
+        .from("collection_items")
+        .insert({
+          collection_id: collectionId,
+          product_id: productId,
+          color_name: variant?.color_name || null,
+          color_hex: variant?.color_hex || null,
+          thumbnail_url: variant?.thumbnail || null,
+          sort_order: 0,
+        })
+        .then();
     },
     []
   );
@@ -154,6 +305,13 @@ export function useCollections() {
             : col
         )
       );
+
+      supabase
+        .from("collection_items")
+        .delete()
+        .eq("collection_id", collectionId)
+        .eq("product_id", productId)
+        .then();
     },
     []
   );
@@ -173,11 +331,24 @@ export function useCollections() {
           return col;
         })
       );
+
+      // Persist all
+      const inserts = collectionIds.map((colId) => ({
+        collection_id: colId,
+        product_id: productId,
+        color_name: variant?.color_name || null,
+        color_hex: variant?.color_hex || null,
+        thumbnail_url: variant?.thumbnail || null,
+        sort_order: 0,
+      }));
+
+      supabase.from("collection_items").upsert(inserts, {
+        onConflict: "collection_id,product_id,color_name",
+      }).then();
     },
     []
   );
 
-  /** Get variant info for a product in a collection */
   const getCollectionProductVariant = useCallback(
     (collectionId: string, productId: string): CollectionVariantInfo | undefined => {
       const collection = collections.find((col) => col.id === collectionId);
@@ -188,7 +359,6 @@ export function useCollections() {
     [collections]
   );
 
-  /** Get all product items with variant info for a collection */
   const getCollectionProductItems = useCallback(
     (collectionId: string): CollectionProductItem[] => {
       const collection = collections.find((col) => col.id === collectionId);
@@ -197,7 +367,6 @@ export function useCollections() {
     [collections]
   );
 
-  /** Resolver produtos usando a função do ProductsContext */
   const getCollectionProductsFromMap = useCallback(
     (
       collectionId: string,
