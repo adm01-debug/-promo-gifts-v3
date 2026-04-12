@@ -222,35 +222,19 @@ export function ReplenishmentProductGrid() {
 
     if (viewMode === "list") {
       return (
-        <div className="space-y-2" role="list" aria-label="Lista de produtos repostos">
-          {filteredProducts.map((item, index) => {
-            const prod = productMap.get(item.product_id);
-            if (!prod) return null;
-            const isSelected = sel.selectedIds.has(item.product_id);
-            return (
-              <div key={item.replenishment_id} role="listitem">
-                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
-                  {selectionMode && (
-                    <div className="flex-shrink-0 ml-1">
-                      <SelectionCheckbox checked={isSelected} onChange={() => sel.toggleSelect(item.product_id)} size="md" aria-label={`Selecionar ${item.product_name}`} />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <ProductListItem
-                      product={prod}
-                      onClick={() => selectionMode ? sel.toggleSelect(item.product_id) : handleProductClick(item.product_id)}
-                      isFavorited={isFavorite(item.product_id)}
-                      onToggleFavorite={toggleFavorite}
-                      isInCompare={isInCompare(item.product_id)}
-                      onToggleCompare={onToggleCompare}
-                      canAddToCompare={canAddToCompare}
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <VirtualizedReplenishmentList
+          products={filteredProducts}
+          productMap={productMap}
+          selectionMode={selectionMode}
+          selectedIds={sel.selectedIds}
+          onToggleSelect={sel.toggleSelect}
+          onProductClick={handleProductClick}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+          isInCompare={isInCompare}
+          onToggleCompare={onToggleCompare}
+          canAddToCompare={canAddToCompare}
+        />
       );
     }
 
