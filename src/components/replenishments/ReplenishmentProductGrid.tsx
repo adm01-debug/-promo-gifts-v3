@@ -228,7 +228,7 @@ export function ReplenishmentProductGrid() {
             if (!prod) return null;
             const isSelected = sel.selectedIds.has(item.product_id);
             return (
-              <div key={item.replenishment_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }} role="listitem">
+              <div key={item.replenishment_id} role="listitem">
                 <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
                   {selectionMode && (
                     <div className="flex-shrink-0 ml-1">
