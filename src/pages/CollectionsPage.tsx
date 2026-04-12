@@ -339,7 +339,7 @@ export default function CollectionsPage() {
                         <div className="flex items-center gap-2 mt-1.5 flex-wrap">
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Package className="h-3 w-3" />
-                            {externalProductCounts?.get(collection.id) ?? "…"} produtos
+                            {externalProductCounts ? (externalProductCounts.get(collection.id) ?? 0) : "…"} produtos
                           </p>
                           {collection.is_featured && (
                             <Badge
