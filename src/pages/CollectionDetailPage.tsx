@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, Monitor, Package, Trash2, Search, SortAsc,
-  FileText, ArrowUpDown, Clock,
+  ArrowLeft, Monitor, Package, Trash2, Search,
+  FileText, ArrowUpDown, Clock, Download, GripVertical,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -17,14 +17,68 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  useSortable,
+  verticalListSortingStrategy,
+  arrayMove,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
 import { toast } from "sonner";
+import { exportCollectionPDF } from "@/lib/export-collection-pdf";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type SortOption = "name" | "sku" | "added";
+
+function SortableProductItem({
+  product,
+  variant,
+  onRemove,
+}: {
+  product: any;
+  variant?: { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null };
+  onRemove: () => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id });
+  const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
+  const displayImage = variant?.thumbnail || product.images?.[0];
+
+  return (
+    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors">
+      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
+        <GripVertical className="h-4 w-4" />
+      </button>
+      {displayImage && <img src={displayImage} alt={product.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" />}
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium truncate">{product.name}</p>
+        <div className="flex items-center gap-1.5">
+          <p className="text-xs text-muted-foreground">{product.sku}</p>
+          {variant?.color_hex && (
+            <span className="flex items-center gap-1">
+              <span className="w-2.5 h-2.5 rounded-full border border-border" style={{ backgroundColor: variant.color_hex }} />
+              {variant.color_name && <span className="text-xs text-muted-foreground truncate max-w-[80px]">{variant.color_name}</span>}
+            </span>
+          )}
+        </div>
+      </div>
+      <Button variant="ghost" size="icon" aria-label="Remover da coleção" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={onRemove}>
+        <Trash2 className="h-4 w-4" />
+      </Button>
+    </div>
+  );
+}
 
 export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -34,12 +88,35 @@ export default function CollectionDetailPage() {
     getCollectionProducts,
     getCollectionProductItems,
     removeProductFromCollection,
+    reorderProducts,
   } = useCollectionsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const [showPresentation, setShowPresentation] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || !id) return;
+      const oldIndex = products.findIndex((p) => p.id === active.id);
+      const newIndex = products.findIndex((p) => p.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const newOrder = arrayMove(
+        products.map((p) => p.id),
+        oldIndex,
+        newIndex
+      );
+      reorderProducts(id, newOrder);
+      toast.success("Ordem atualizada");
+    },
+    [id, products, reorderProducts]
+  );
 
   const collection = useMemo(() => {
     return collections.find((c) => c.id === id);
@@ -213,6 +290,22 @@ export default function CollectionDetailPage() {
                     <Button
                       variant="outline"
                       className="gap-2"
+                      onClick={() => {
+                        exportCollectionPDF({
+                          collectionName: collection.name,
+                          collectionDescription: collection.description,
+                          products,
+                          variantMap,
+                        });
+                        toast.success("PDF exportado!");
+                      }}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="hidden sm:inline">PDF</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
                       onClick={() => setShowPresentation(true)}
                     >
                       <Monitor className="h-4 w-4" />
@@ -288,58 +381,25 @@ export default function CollectionDetailPage() {
                 </div>
               )}
 
-              {/* Quick remove list */}
+              {/* Drag-and-drop manage list */}
               <div className="space-y-2">
                 <p className="text-sm font-medium text-muted-foreground">
-                  Gerenciar produtos ({products.length})
+                  Gerenciar produtos ({products.length}) — arraste para reordenar
                 </p>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                  {products.map((product) => {
-                    const variant = variantMap.get(product.id);
-                    const displayImage = variant?.thumbnail || product.images[0];
-                    return (
-                      <div
-                        key={product.id}
-                        className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors"
-                      >
-                        <img
-                          src={displayImage}
-                          alt={product.name}
-                          className="w-12 h-12 rounded-lg object-cover"
-                          loading="lazy"
+                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                  <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                      {products.map((product) => (
+                        <SortableProductItem
+                          key={product.id}
+                          product={product}
+                          variant={variantMap.get(product.id)}
+                          onRemove={() => handleRemoveFromCollection(product.id)}
                         />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{product.name}</p>
-                          <div className="flex items-center gap-1.5">
-                            <p className="text-xs text-muted-foreground">{product.sku}</p>
-                            {variant?.color_hex && (
-                              <span className="flex items-center gap-1">
-                                <span
-                                  className="w-2.5 h-2.5 rounded-full border border-border"
-                                  style={{ backgroundColor: variant.color_hex }}
-                                />
-                                {variant.color_name && (
-                                  <span className="text-xs text-muted-foreground truncate max-w-[80px]">
-                                    {variant.color_name}
-                                  </span>
-                                )}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          aria-label="Remover da coleção"
-                          className="shrink-0 text-muted-foreground hover:text-destructive"
-                          onClick={() => handleRemoveFromCollection(product.id)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    );
-                  })}
-                </div>
+                      ))}
+                    </div>
+                  </SortableContext>
+                </DndContext>
               </div>
             </div>
           ) : (

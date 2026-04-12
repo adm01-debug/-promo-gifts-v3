@@ -24,6 +24,7 @@ export interface Collection {
   description?: string;
   color: string;
   icon: string;
+  isFeatured: boolean;
   /** @deprecated Use productItems instead */
   productIds: string[];
   productItems: CollectionProductItem[];
@@ -60,6 +61,7 @@ function dbToCollection(
     description: row.description || undefined,
     color: row.icon_color || DEFAULT_COLORS[0],
     icon: row.icon || "📁",
+    isFeatured: row.is_featured ?? false,
     productIds: productItems.map((i) => i.productId),
     productItems,
     createdAt: row.created_at,
@@ -194,6 +196,7 @@ export function useCollections() {
         description,
         color: chosenColor,
         icon: icon || DEFAULT_ICONS[0],
+        isFeatured: false,
         productIds: [],
         productItems: [],
         createdAt: now,
@@ -250,6 +253,7 @@ export function useCollections() {
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.color !== undefined) dbUpdates.icon_color = updates.color;
       if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
+      if (updates.isFeatured !== undefined) dbUpdates.is_featured = updates.isFeatured;
 
       if (Object.keys(dbUpdates).length > 0) {
         supabase.from("collections").update(dbUpdates).eq("id", id).then();
@@ -395,6 +399,37 @@ export function useCollections() {
     [collections]
   );
 
+  const reorderProducts = useCallback(
+    (collectionId: string, orderedProductIds: string[]) => {
+      setCollections((prev) =>
+        prev.map((col) => {
+          if (col.id !== collectionId) return col;
+          const itemMap = new Map(col.productItems.map((item) => [item.productId, item]));
+          const reordered = orderedProductIds
+            .map((pid) => itemMap.get(pid))
+            .filter(Boolean) as CollectionProductItem[];
+          return {
+            ...col,
+            productIds: reordered.map((i) => i.productId),
+            productItems: reordered,
+            updatedAt: new Date().toISOString(),
+          };
+        })
+      );
+
+      // Persist sort_order to DB
+      orderedProductIds.forEach((pid, idx) => {
+        supabase
+          .from("collection_items")
+          .update({ sort_order: idx })
+          .eq("collection_id", collectionId)
+          .eq("product_id", pid)
+          .then();
+      });
+    },
+    []
+  );
+
   return {
     collections,
     isLoaded,
@@ -404,6 +439,7 @@ export function useCollections() {
     addProductToCollection,
     removeProductFromCollection,
     addProductToMultipleCollections,
+    reorderProducts,
     getCollectionProductsFromMap,
     getCollectionProductItems,
     getCollectionProductVariant,

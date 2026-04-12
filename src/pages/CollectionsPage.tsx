@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
   RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock,
-  SortAsc, FileText,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -59,6 +58,7 @@ export default function CollectionsPage() {
     createCollection,
     updateCollection,
     deleteCollection,
+    addProductToCollection,
     getCollectionProducts,
     defaultColors,
     defaultIcons,
@@ -87,8 +87,10 @@ export default function CollectionsPage() {
   }, [localCollections]);
 
   const featuredCount = useMemo(() => {
-    return externalCollections.filter((c) => c.is_featured).length;
-  }, [externalCollections]);
+    const extFeatured = externalCollections.filter((c) => c.is_featured).length;
+    const localFeatured = localCollections.filter((c) => c.isFeatured).length;
+    return extFeatured + localFeatured;
+  }, [externalCollections, localCollections]);
 
   const totalCollections = localCollections.length + externalCollections.length;
 
@@ -145,18 +147,16 @@ export default function CollectionsPage() {
       collection.color,
       collection.icon
     );
-    // Clone products into new collection
+    // Clone all products into the new collection after a tick (to allow temp ID to settle)
     const items = collection.productItems || [];
     if (items.length > 0) {
-      const { addProductToCollection } = useCollectionsContext.arguments?.[0] || {};
-      // We need to add products after creation settles
       setTimeout(() => {
         items.forEach((item) => {
-          // We use context from outer scope
+          addProductToCollection(cloned.id, item.productId, item.variant);
         });
-      }, 500);
+      }, 300);
     }
-    toast.success(`Coleção "${collection.name}" duplicada`);
+    toast.success(`Coleção "${collection.name}" duplicada com ${items.length} produtos`);
   };
 
   const openEdit = (collection: (typeof localCollections)[0]) => {
@@ -419,17 +419,21 @@ export default function CollectionsPage() {
                           <DropdownMenuItem
                             onClick={(e) => {
                               e.stopPropagation();
-                              const cloned = createCollection(
-                                `${collection.name} (cópia)`,
-                                collection.description,
-                                collection.color,
-                                collection.icon
-                              );
-                              toast.success(`Coleção duplicada`);
+                              handleClone(collection);
                             }}
                           >
                             <Copy className="h-4 w-4 mr-2" />
                             Duplicar
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              updateCollection(collection.id, { isFeatured: !collection.isFeatured });
+                              toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
+                            }}
+                          >
+                            <Star className="h-4 w-4 mr-2" />
+                            {collection.isFeatured ? "Remover destaque" : "Destacar"}
                           </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem
@@ -494,18 +498,24 @@ export default function CollectionsPage() {
                         <h3 className="font-display font-semibold text-foreground truncate">
                           {collection.name}
                         </h3>
-                        <div className="flex items-center gap-2 mt-0.5">
+                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                           <p className="text-sm text-muted-foreground flex items-center gap-1">
                             <Package className="h-3 w-3" />
                             {collection.productIds.length} produtos
                           </p>
+                          {collection.isFeatured && (
+                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
+                              <Star className="h-2.5 w-2.5 mr-0.5" />
+                              Destaque
+                            </Badge>
+                          )}
                           {updatedAgo && (
                             <span className="text-xs text-muted-foreground/60 flex items-center gap-0.5">
                               <Clock className="h-2.5 w-2.5" />
                               {updatedAgo}
                             </span>
                           )}
-                        </div>
+                      </div>
                       </div>
                     </div>
                   </div>
