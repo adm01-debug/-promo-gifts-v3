@@ -85,12 +85,69 @@ export default function CollectionsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [selectedCollectionIds, setSelectedCollectionIds] = useState<Set<string>>(new Set());
   const [formData, setFormData] = useState({
     name: "",
     description: "",
     color: defaultColors[0],
     icon: defaultIcons[0],
   });
+
+  const toggleSelectCollection = useCallback((id: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    setSelectedCollectionIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }, []);
+
+  const clearSelection = useCallback(() => setSelectedCollectionIds(new Set()), []);
+
+  const handleSendSelectedToQuote = useCallback(() => {
+    const allProducts: Array<{
+      product_id: string;
+      product_name: string;
+      product_sku: string | null;
+      product_image_url: string | null;
+      unit_price: number;
+      quantity: number;
+    }> = [];
+
+    const collectionNames: string[] = [];
+
+    selectedCollectionIds.forEach(colId => {
+      const col = localCollections.find(c => c.id === colId);
+      if (!col) return;
+      collectionNames.push(col.name);
+      const products = getCollectionProducts(colId);
+      products.forEach(p => {
+        // Avoid duplicates
+        if (!allProducts.some(x => x.product_id === p.id)) {
+          allProducts.push({
+            product_id: p.id,
+            product_name: p.name,
+            product_sku: p.sku || null,
+            product_image_url: p.images?.[0] || null,
+            unit_price: p.price || 0,
+            quantity: 1,
+          });
+        }
+      });
+    });
+
+    if (allProducts.length === 0) {
+      toast.error("As coleções selecionadas não possuem produtos");
+      return;
+    }
+
+    navigate("/orcamentos/novo", {
+      state: {
+        fromCollection: collectionNames.join(", "),
+        preloadProducts: allProducts,
+      },
+    });
+  }, [selectedCollectionIds, localCollections, getCollectionProducts, navigate]);
 
   // Stats
   const totalProducts = useMemo(() => {
