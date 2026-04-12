@@ -4,7 +4,7 @@
  */
 import { useState, useRef, useEffect, memo, forwardRef, useCallback } from "react";
 import { GenderBadge } from "./GenderBadge";
-import { Building2, Package } from "lucide-react";
+import { Building2, Package, FolderTree } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl, getSrcSet } from "@/utils/image-utils";
 import { Badge } from "@/components/ui/badge";
@@ -274,6 +274,16 @@ export const ProductCard = memo(forwardRef<HTMLElement, ProductCardProps>(functi
             </div>
           );
         })()}
+
+        {/* Category line */}
+        {product.category?.name && (
+          <div className="flex flex-wrap gap-1.5 pt-1 border-t border-border/50">
+            <span className="text-[10px] sm:text-xs px-2 py-0.5 rounded-full bg-muted/50 text-muted-foreground font-medium flex items-center gap-1">
+              <FolderTree className="h-2.5 w-2.5" aria-hidden="true" />
+              {product.category.name}
+            </span>
+          </div>
+        )}
 
         {Array.isArray(product.materials) && product.materials.length > 0 && (
           <div className="hidden sm:flex flex-wrap gap-1.5 pt-2 border-t border-border/50">
