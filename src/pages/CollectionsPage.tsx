@@ -336,16 +336,46 @@ export default function CollectionsPage() {
                             {collection.description}
                           </p>
                         )}
-                        {collection.is_featured && (
-                          <Badge
-                            variant="secondary"
-                            className="mt-1.5 text-xs bg-primary/10 text-primary border-primary/20"
-                          >
-                            <Star className="h-3 w-3 mr-1" />
-                            Destaque
-                          </Badge>
-                        )}
+                        <div className="flex items-center gap-2 mt-1.5 flex-wrap">
+                          <p className="text-sm text-muted-foreground flex items-center gap-1">
+                            <Package className="h-3 w-3" />
+                            {externalProductCounts?.get(collection.id) ?? "…"} produtos
+                          </p>
+                          {collection.is_featured && (
+                            <Badge
+                              variant="secondary"
+                              className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20"
+                            >
+                              <Star className="h-3 w-3 mr-0.5" />
+                              Destaque
+                            </Badge>
+                          )}
+                        </div>
                       </div>
+                    </div>
+
+                    {/* Duplicate button */}
+                    <div className="absolute top-3 right-3 z-10 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        aria-label="Duplicar como coleção local"
+                        className="h-8 w-8 bg-background/60 backdrop-blur-sm hover:bg-background/80"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const cloned = createCollection(
+                            collection.name,
+                            collection.description || undefined,
+                            collection.color || defaultColors[0],
+                            collection.icon || defaultIcons[0]
+                          );
+                          toast.success(`Coleção "${collection.name}" duplicada como local`, {
+                            description: "Adicione produtos manualmente à nova coleção",
+                          });
+                        }}
+                      >
+                        <Copy className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
                 ))}
