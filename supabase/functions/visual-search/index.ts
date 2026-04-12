@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
+import { z } from '../_shared/zod-validate.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -12,20 +13,25 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
-    let body: Record<string, unknown>;
-    try { body = await req.json(); } catch {
+    const ImageSchema = z.object({
+      imageBase64: z.string().min(10, 'Image is required').max(10_000_000, 'Image too large'),
+    });
+
+    let rawBody: unknown;
+    try { rawBody = await req.json(); } catch {
       return new Response(JSON.stringify({ error: "Invalid request body" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { imageBase64 } = body as { imageBase64?: string };
     
-    if (!imageBase64) {
+    const parsed = ImageSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Image is required" }),
+        JSON.stringify({ error: parsed.error.issues[0]?.message || "Invalid input" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+    const { imageBase64 } = parsed.data;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
