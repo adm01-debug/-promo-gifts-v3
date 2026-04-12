@@ -3,6 +3,7 @@
  * Logic in usePublicQuoteApproval, status screens in PublicQuoteStatusScreens.
  */
 import { useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
