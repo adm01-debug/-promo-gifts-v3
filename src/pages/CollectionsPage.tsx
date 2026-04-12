@@ -293,20 +293,26 @@ export default function CollectionsPage() {
         {/* KPI Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
-            { icon: FolderHeart, value: totalCollections, label: "Total Coleções" },
-            { icon: FolderOpen, value: externalCollections.length, label: "Coleções Catálogo" },
-            { icon: Star, value: localCollections.length, label: "Minhas Coleções" },
-            { icon: Package, value: totalProducts, label: "Produtos" },
+            { icon: FolderHeart, value: totalCollections, label: "Total Coleções", color: "text-primary" },
+            { icon: FolderOpen, value: externalCollections.length, label: "Coleções Catálogo", color: "text-blue-500" },
+            { icon: Star, value: localCollections.length, label: "Minhas Coleções", color: "text-amber-500" },
+            { icon: Package, value: totalProducts, label: "Produtos", color: "text-emerald-500" },
           ].map((stat, idx) => (
-            <div key={stat.label} className="stat-card flex items-center gap-3 animate-fade-in" style={{ animationDelay: `${idx * 80}ms` }}>
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <stat.icon className="h-5 w-5 text-primary" />
+            <motion.div
+              key={stat.label}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: idx * 0.08, type: "spring", stiffness: 400, damping: 25 }}
+              className="stat-card flex items-center gap-3 group hover:shadow-lg hover:border-primary/30 transition-all duration-300 cursor-default"
+            >
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <stat.icon className={cn("h-5 w-5", stat.color)} />
               </div>
               <div>
                 <p className="text-2xl font-display font-bold text-foreground">{stat.value}</p>
                 <p className="text-xs text-muted-foreground">{stat.label}</p>
               </div>
-            </div>
+            </motion.div>
           ))}
         </div>
 
