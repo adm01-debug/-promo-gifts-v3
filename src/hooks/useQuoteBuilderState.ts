@@ -220,6 +220,26 @@ export function useQuoteBuilderState() {
     window.history.replaceState({}, document.title);
   }, [location.state]);
 
+  // ── Pre-fill from collection ──
+  useEffect(() => {
+    const state = location.state as { fromCollection?: string; preloadProducts?: Array<{ product_id: string; product_name: string; product_sku?: string; product_image_url?: string | null; unit_price: number; quantity: number; color_name?: string | null; color_hex?: string | null }> } | null;
+    if (!state?.fromCollection || !state.preloadProducts?.length) return;
+    const collectionItems: QuoteItem[] = state.preloadProducts.map((p) => ({
+      product_id: p.product_id,
+      product_name: p.product_name,
+      product_sku: p.product_sku || '',
+      product_image_url: p.product_image_url || undefined,
+      quantity: p.quantity || 1,
+      unit_price: p.unit_price || 0,
+      color_name: p.color_name || undefined,
+      color_hex: p.color_hex || undefined,
+      personalizations: [],
+    }));
+    setItems(collectionItems);
+    toast.success(`${collectionItems.length} produto(s) importado(s) da coleção "${state.fromCollection}"`);
+    window.history.replaceState({}, document.title);
+  }, [location.state]);
+
   // ── Pre-fill from product detail page (query params) ──
   useEffect(() => {
     if (isEditMode) return;
