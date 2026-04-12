@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, GripVertical,
+  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -10,6 +10,7 @@ import { ProductGrid } from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,7 @@ import {
   arrayMove,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import { cn } from "@/lib/utils";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
@@ -46,36 +48,68 @@ function SortableProductItem({
   product,
   variant,
   onRemove,
+  isSelected,
+  onToggleSelect,
+  notes,
+  onNotesChange,
 }: {
   product: any;
   variant?: { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null };
   onRemove: () => void;
+  isSelected: boolean;
+  onToggleSelect: () => void;
+  notes?: string;
+  onNotesChange: (notes: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: product.id });
   const style = { transform: CSS.Transform.toString(transform), transition, opacity: isDragging ? 0.5 : 1 };
   const displayImage = variant?.thumbnail || product.images?.[0];
+  const [showNotes, setShowNotes] = useState(!!notes);
 
   return (
-    <div ref={setNodeRef} style={style} className="flex items-center gap-3 p-3 rounded-xl border-[1.5px] border-primary/15 bg-card hover:border-primary/30 transition-colors">
-      <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
-        <GripVertical className="h-4 w-4" />
-      </button>
-      {displayImage && <img src={displayImage} alt={product.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" />}
-      <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium truncate">{product.name}</p>
-        <div className="flex items-center gap-1.5">
-          <p className="text-xs text-muted-foreground">{product.sku}</p>
-          {variant?.color_hex && (
-            <span className="flex items-center gap-1">
-              <span className="w-2.5 h-2.5 rounded-full border border-border" style={{ backgroundColor: variant.color_hex }} />
-              {variant.color_name && <span className="text-xs text-muted-foreground truncate max-w-[80px]">{variant.color_name}</span>}
-            </span>
-          )}
+    <div ref={setNodeRef} style={style} className={cn(
+      "flex flex-col gap-2 p-3 rounded-xl border-[1.5px] bg-card transition-colors",
+      isSelected ? "border-primary/50 bg-primary/5" : "border-primary/15 hover:border-primary/30"
+    )}>
+      <div className="flex items-center gap-3">
+        <Checkbox checked={isSelected} onCheckedChange={onToggleSelect} aria-label="Selecionar" />
+        <button {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground shrink-0 touch-none" aria-label="Arrastar">
+          <GripVertical className="h-4 w-4" />
+        </button>
+        {displayImage && <img src={displayImage} alt={product.name} className="w-12 h-12 rounded-lg object-cover" loading="lazy" />}
+        <div className="flex-1 min-w-0">
+          <p className="text-sm font-medium truncate">{product.name}</p>
+          <div className="flex items-center gap-1.5">
+            <p className="text-xs text-muted-foreground">{product.sku}</p>
+            {variant?.color_hex && (
+              <span className="flex items-center gap-1">
+                <span className="w-2.5 h-2.5 rounded-full border border-border" style={{ backgroundColor: variant.color_hex }} />
+                {variant.color_name && <span className="text-xs text-muted-foreground truncate max-w-[80px]">{variant.color_name}</span>}
+              </span>
+            )}
+          </div>
         </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Nota"
+          className="shrink-0 text-muted-foreground hover:text-primary"
+          onClick={() => setShowNotes((v) => !v)}
+        >
+          <FileText className={cn("h-4 w-4", notes && "text-primary")} />
+        </Button>
+        <Button variant="ghost" size="icon" aria-label="Remover da coleção" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={onRemove}>
+          <Trash2 className="h-4 w-4" />
+        </Button>
       </div>
-      <Button variant="ghost" size="icon" aria-label="Remover da coleção" className="shrink-0 text-muted-foreground hover:text-destructive" onClick={onRemove}>
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      {showNotes && (
+        <Input
+          placeholder="Nota de venda (ex: cliente gosta deste modelo)..."
+          defaultValue={notes || ""}
+          onBlur={(e) => onNotesChange(e.target.value)}
+          className="text-xs h-8 ml-[76px]"
+        />
+      )}
     </div>
   );
 }
@@ -89,12 +123,37 @@ export default function CollectionDetailPage() {
     getCollectionProductItems,
     removeProductFromCollection,
     reorderProducts,
+    updateProductNotes,
   } = useCollectionsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const [showPresentation, setShowPresentation] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = useCallback((pid: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(pid) ? next.delete(pid) : next.add(pid);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) =>
+      prev.size === products.length
+        ? new Set()
+        : new Set(products.map((p) => p.id))
+    );
+  }, [products]);
+
+  const handleBulkRemove = useCallback(() => {
+    if (!id || selectedIds.size === 0) return;
+    selectedIds.forEach((pid) => removeProductFromCollection(id, pid));
+    toast.success(`${selectedIds.size} produto(s) removido(s)`);
+    setSelectedIds(new Set());
+  }, [id, selectedIds, removeProductFromCollection]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -381,11 +440,28 @@ export default function CollectionDetailPage() {
                 </div>
               )}
 
-              {/* Drag-and-drop manage list */}
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-muted-foreground">
-                  Gerenciar produtos ({products.length}) — arraste para reordenar
-                </p>
+              {/* Bulk selection toolbar + Drag-and-drop manage list */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={selectedIds.size === products.length && products.length > 0}
+                      onCheckedChange={toggleSelectAll}
+                      aria-label="Selecionar todos"
+                    />
+                    <p className="text-sm font-medium text-muted-foreground">
+                      {selectedIds.size > 0
+                        ? `${selectedIds.size} selecionado(s)`
+                        : `Gerenciar produtos (${products.length}) — arraste para reordenar`}
+                    </p>
+                  </div>
+                  {selectedIds.size > 0 && (
+                    <Button variant="destructive" size="sm" onClick={handleBulkRemove} className="gap-1.5">
+                      <Trash2 className="h-3.5 w-3.5" />
+                      Remover {selectedIds.size}
+                    </Button>
+                  )}
+                </div>
                 <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                   <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
@@ -395,6 +471,10 @@ export default function CollectionDetailPage() {
                           product={product}
                           variant={variantMap.get(product.id)}
                           onRemove={() => handleRemoveFromCollection(product.id)}
+                          isSelected={selectedIds.has(product.id)}
+                          onToggleSelect={() => toggleSelect(product.id)}
+                          notes={getCollectionProductItems(id!).find((i) => i.productId === product.id)?.notes}
+                          onNotesChange={(notes) => updateProductNotes(id!, product.id, notes)}
                         />
                       ))}
                     </div>

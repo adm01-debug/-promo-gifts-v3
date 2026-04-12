@@ -192,6 +192,7 @@ export type Database = {
           color_name: string | null
           created_at: string
           id: string
+          notes: string | null
           product_id: string
           sort_order: number | null
           thumbnail_url: string | null
@@ -202,6 +203,7 @@ export type Database = {
           color_name?: string | null
           created_at?: string
           id?: string
+          notes?: string | null
           product_id: string
           sort_order?: number | null
           thumbnail_url?: string | null
@@ -212,6 +214,7 @@ export type Database = {
           color_name?: string | null
           created_at?: string
           id?: string
+          notes?: string | null
           product_id?: string
           sort_order?: number | null
           thumbnail_url?: string | null
