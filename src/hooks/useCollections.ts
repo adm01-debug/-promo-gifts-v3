@@ -16,6 +16,7 @@ export interface CollectionVariantInfo {
 export interface CollectionProductItem {
   productId: string;
   variant?: CollectionVariantInfo;
+  notes?: string;
 }
 
 export interface Collection {
