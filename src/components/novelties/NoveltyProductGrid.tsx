@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,9 +13,13 @@ import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
+import { ProductListItem } from "@/components/products/ProductListItem";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { useFavoritesStore } from "@/stores/useFavoritesStore";
+import { useComparisonStore } from "@/stores/useComparisonStore";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { NoveltyGridCard, NoveltyListCard, NoveltyTableView } from "./NoveltyCards";
+import { NoveltyGridCard, NoveltyTableView } from "./NoveltyCards";
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock" | "best-seller-supplier" | "best-seller-promo";
