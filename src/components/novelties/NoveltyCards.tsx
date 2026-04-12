@@ -193,6 +193,8 @@ export function NoveltyTableView({ products, onProductClick, selectionMode, sele
           {products.map((product) => {
             const fresh = isFresh(product.detected_at);
             const isSelected = selectedIds.has(product.product_id);
+            const stockQty = product.stock_quantity ?? 0;
+            const stockStatus = product.stock_status ?? 'in-stock';
             return (
               <TableRow key={product.novelty_id} className={cn("cursor-pointer transition-colors", fresh && "bg-success/5", isSelected && "bg-primary/10")} onClick={() => selectionMode ? onToggleSelect(product.product_id) : onProductClick(product.product_id)}>
                 {selectionMode && <TableCell className="p-1.5"><div onClick={(e) => e.stopPropagation()}><SelectionCheckbox checked={isSelected} onChange={() => onToggleSelect(product.product_id)} size="sm" /></div></TableCell>}
