@@ -60,11 +60,6 @@ export const ReplenishmentGridCard = memo(function ReplenishmentGridCard({ produ
             </div>
           )}
           <div className="absolute top-2 left-2"><ReplenishmentBadge daysSince={product.days_since} size="sm" /></div>
-          {recent && !selectionMode && (
-            <div className="absolute top-2 right-2">
-              <Badge className="bg-info/90 text-info-foreground text-[9px] px-1.5 py-0 gap-0.5 border-0"><RefreshCw className="h-2.5 w-2.5" />REPOSTO</Badge>
-            </div>
-          )}
           <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
         </div>
 
