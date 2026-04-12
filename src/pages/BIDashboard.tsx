@@ -24,7 +24,7 @@ export default function BIDashboard() {
     <MainLayout>
       <PageSEO title="Dashboard BI" description="Painel de Business Intelligence com métricas e indicadores do catálogo." path="/bi" noIndex />
 
-      <div className="space-y-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div>
           <h1 className="font-display text-3xl font-bold tracking-tight">Dashboard de Produtos</h1>
           <p className="text-muted-foreground mt-1">Visão geral do catálogo de produtos</p>

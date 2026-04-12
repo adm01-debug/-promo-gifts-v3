@@ -30,7 +30,7 @@ export default function CommercialIntelligencePage() {
         path="/inteligencia-comercial"
         noIndex
       />
-      <div className="container mx-auto py-6 px-4 space-y-6">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-700 flex items-center justify-center shadow-lg shadow-violet-500/20">
