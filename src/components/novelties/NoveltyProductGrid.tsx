@@ -24,11 +24,17 @@ function getGridColsClass(cols: ColumnCount): string {
   switch (cols) {
     case 3: return "grid-cols-2 sm:grid-cols-3";
     case 4: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4";
-    case 5: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6";
-    case 6: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 2xl:grid-cols-7";
-    case 8: return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 2xl:grid-cols-10";
+    case 5: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+    case 6: return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6";
+    case 8: return "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8";
     default: return "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
   }
+}
+
+function getGridGapClass(cols: ColumnCount): string {
+  if (cols >= 8) return "gap-x-4 gap-y-8";
+  if (cols >= 6) return "gap-x-6 gap-y-8";
+  return "gap-x-8 gap-y-8";
 }
 
 export function NoveltyProductGrid() {
@@ -118,7 +124,7 @@ export function NoveltyProductGrid() {
     }
     if (viewMode === "table") return <NoveltyTableView products={filteredProducts} onProductClick={handleProductClick} selectionMode={selectionMode} selectedIds={sel.selectedIds} onToggleSelect={sel.toggleSelect} />;
     return (
-      <div className={cn(viewMode === "grid" ? `grid ${getGridColsClass(gridColumns)} gap-2 sm:gap-3` : "space-y-2")}>
+      <div className={cn(viewMode === "grid" ? `grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}` : "space-y-2")}>
         {filteredProducts.map((product, index) => (
           <div key={product.novelty_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}>
             {viewMode === "grid"
