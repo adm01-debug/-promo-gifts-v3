@@ -21,6 +21,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { TechniqueChangeDialog, DeleteMockupDialog } from "./mockup-generator/MockupDialogs";
+import { MockupToolbar } from "./mockup-generator/MockupToolbar";
 import { MockupEmptyState } from "./mockup-generator/MockupEmptyState";
 import { useKeyboardShortcuts } from "@/components/mockup/KeyboardShortcuts";
 import { GeneratingOverlay } from "@/components/mockup/GeneratingOverlay";
@@ -253,81 +254,15 @@ export default function MockupGenerator() {
               </TabsTrigger>
             </TabsList>
 
-            <div className="flex items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <Button
-                      variant="ghost"
-                      size="icon" aria-label="Desfazer"
-                      className="h-8 w-8"
-                      disabled={!mg.positionHistory.canUndo}
-                      onClick={() => {
-                        const state = mg.positionHistory.undo();
-                        if (state) mg.updateActiveArea(state);
-                      }}
-                    >
-                      <Undo2 className="h-4 w-4" />
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Desfazer (Ctrl+Z)</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="inline-flex">
-                    <Button
-                      variant="ghost"
-                      size="icon" aria-label="Refazer"
-                      className="h-8 w-8"
-                      disabled={!mg.positionHistory.canRedo}
-                      onClick={() => {
-                        const state = mg.positionHistory.redo();
-                        if (state) mg.updateActiveArea(state);
-                      }}
-                    >
-                      <Redo2 className="h-4 w-4" />
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Refazer (Ctrl+Shift+Z)</TooltipContent>
-              </Tooltip>
-
-              <div className="ml-1">
-                {mg.isDraftSaving ? (
-                  <Badge variant="secondary" className="flex items-center gap-1.5">
-                    <Loader2 className="h-3 w-3 animate-spin" />
-                    Salvando...
-                  </Badge>
-                ) : mg.lastSaved ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="inline-flex">
-                        <Badge variant="outline" className="flex items-center gap-1.5 cursor-default">
-                          <Cloud className="h-3 w-3 text-success" />
-                          Salvo
-                        </Badge>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      Último salvamento: {format(mg.lastSaved, "HH:mm:ss", { locale: ptBR })}
-                    </TooltipContent>
-                  </Tooltip>
-                ) : mg.draftError ? (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <span className="inline-flex">
-                        <Badge variant="destructive" className="flex items-center gap-1.5 cursor-default">
-                          <CloudOff className="h-3 w-3" />
-                          Erro ao salvar
-                        </Badge>
-                      </span>
-                    </TooltipTrigger>
-                    <TooltipContent>{mg.draftError}</TooltipContent>
-                  </Tooltip>
-                ) : null}
-              </div>
-            </div>
+            <MockupToolbar
+              canUndo={mg.positionHistory.canUndo}
+              canRedo={mg.positionHistory.canRedo}
+              onUndo={() => { const state = mg.positionHistory.undo(); if (state) mg.updateActiveArea(state); }}
+              onRedo={() => { const state = mg.positionHistory.redo(); if (state) mg.updateActiveArea(state); }}
+              isDraftSaving={mg.isDraftSaving}
+              lastSaved={mg.lastSaved}
+              draftError={mg.draftError}
+            />
           </div>
 
           <TabsContent value="generator">
