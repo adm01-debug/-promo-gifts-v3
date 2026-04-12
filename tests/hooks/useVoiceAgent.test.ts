@@ -225,8 +225,10 @@ describe("useVoiceAgent", () => {
     });
 
     expect(mockDisconnect).toHaveBeenCalledTimes(1);
+    // After Scribe error, hook tries Web Speech fallback. In jsdom it's unavailable,
+    // so it falls back to "Reconhecimento de voz não disponível" error.
     expect(result.current.phase).toBe("error");
-    expect(result.current.error).toBe("Não foi possível conectar ao serviço de voz. Tente novamente.");
+    expect(result.current.error).toBe("Reconhecimento de voz não disponível neste navegador.");
 
     await act(async () => {
       await result.current.startListening();
@@ -252,9 +254,11 @@ describe("useVoiceAgent", () => {
     });
 
     expect(mockDisconnect).toHaveBeenCalled();
+    // After timeout, hook tries Web Speech fallback. In jsdom it's unavailable,
+    // so it shows the browser-not-available error.
     expect(result.current.phase).toBe("error");
-    expect(result.current.error).toBe("A conexão de voz demorou demais para responder. Tente novamente.");
-    expect(onError).toHaveBeenCalledWith("A conexão de voz demorou demais para responder. Tente novamente.");
+    expect(result.current.error).toBe("Reconhecimento de voz não disponível neste navegador.");
+    expect(onError).toHaveBeenCalledWith("Reconhecimento de voz não disponível neste navegador.");
 
     act(() => {
       vi.advanceTimersByTime(5000);
@@ -274,6 +278,7 @@ describe("useVoiceAgent", () => {
       await result.current.startListening();
     });
 
+    // Token failure triggers fallback → no Web Speech in jsdom → error
     expect(result.current.phase).toBe("error");
 
     act(() => {

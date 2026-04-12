@@ -1,8 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 describe('logger', () => {
-  const originalDev = import.meta.env.DEV;
-
   beforeEach(() => {
     vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -27,12 +25,21 @@ describe('logger', () => {
   it('logger.error should always log (even in production)', async () => {
     const { logger } = await import('@/lib/logger');
     logger.error('test error');
-    expect(console.error).toHaveBeenCalledWith('test error');
+    // Logger prepends [ERROR] timestamp prefix
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringMatching(/^\[ERROR\] .+$/),
+      'test error'
+    );
   });
 
   it('logger methods should accept multiple arguments', async () => {
     const { logger } = await import('@/lib/logger');
     logger.error('msg', { data: 1 }, [1, 2]);
-    expect(console.error).toHaveBeenCalledWith('msg', { data: 1 }, [1, 2]);
+    expect(console.error).toHaveBeenCalledWith(
+      expect.stringMatching(/^\[ERROR\] .+$/),
+      'msg',
+      { data: 1 },
+      [1, 2]
+    );
   });
 });
