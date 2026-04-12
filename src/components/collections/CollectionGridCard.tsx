@@ -119,7 +119,7 @@ export function CollectionGridCard({
         <div className="absolute top-2.5 left-1/2 -translate-x-1/2 z-10">
           <Badge
             variant="secondary"
-            className="text-[10px] px-2 py-0.5 bg-amber-500/90 text-white border-0 backdrop-blur-sm shadow-sm"
+            className="text-[10px] px-2 py-0.5 bg-primary/90 text-primary-foreground border-0 backdrop-blur-sm shadow-sm"
           >
             <Star className="h-2.5 w-2.5 mr-0.5 fill-current" /> Destaque
           </Badge>
