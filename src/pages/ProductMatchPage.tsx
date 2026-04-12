@@ -15,10 +15,9 @@ import { MOCK_MATCH_PRODUCTS } from '@/data/mock-match-products';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
+import { Card, CardContent } from '@/components/ui/card';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { MatchFiltersPanel } from './product-match/MatchFiltersPanel';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import {
@@ -420,105 +419,12 @@ export default function ProductMatchPage() {
               <>
                 <SelectedProductCard product={selectedProduct} />
 
-                {/* Filters */}
-                <Card className="border-border/30">
-                  <CardHeader className="p-3 pb-2">
-                    <CardTitle className="text-xs flex items-center gap-1.5">
-                      <Filter className="h-3.5 w-3.5 text-primary" />
-                      Filtros Inteligentes
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="p-3 pt-0 space-y-3">
-                    {/* Category filter */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Categoria</label>
-                      <Select
-                        value={filters.categoryFilter || '__all__'}
-                        onValueChange={(v) =>
-                          setFilters((f) => ({ ...f, categoryFilter: v === '__all__' ? undefined : v }))
-                        }
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Todas" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__all__">Todas as categorias</SelectItem>
-                          {categories.map((c) => (
-                            <SelectItem key={c} value={c}>{c}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Supplier filter */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Fornecedor</label>
-                      <Select
-                        value={filters.supplierFilter || '__all__'}
-                        onValueChange={(v) =>
-                          setFilters((f) => ({ ...f, supplierFilter: v === '__all__' ? undefined : v }))
-                        }
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue placeholder="Todos" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="__all__">Todos os fornecedores</SelectItem>
-                          {suppliers.map((s) => (
-                            <SelectItem key={s} value={s}>{s}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* Min score */}
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-medium text-muted-foreground">Score mínimo</label>
-                      <Select
-                        value={String(filters.minScore || 10)}
-                        onValueChange={(v) => setFilters((f) => ({ ...f, minScore: Number(v) }))}
-                      >
-                        <SelectTrigger className="h-8 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="5">5+ (todos)</SelectItem>
-                          <SelectItem value="10">10+ (relevante)</SelectItem>
-                          <SelectItem value="25">25+ (forte)</SelectItem>
-                          <SelectItem value="50">50+ (muito forte)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {/* In stock only */}
-                    <div className="flex items-center justify-between">
-                      <label className="text-[10px] font-medium text-muted-foreground">Apenas em estoque</label>
-                      <Switch
-                        checked={filters.onlyInStock || false}
-                        onCheckedChange={(v) => setFilters((f) => ({ ...f, onlyInStock: v }))}
-                      />
-                    </div>
-
-                    {/* Clear filters */}
-                    {(filters.categoryFilter || filters.supplierFilter || filters.onlyInStock) && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="w-full text-xs gap-1.5 text-destructive"
-                        onClick={() =>
-                          setFilters({
-                            minScore: 10,
-                            matchTypes: ['identical', 'similar', 'complementary'],
-                            onlyInStock: false,
-                          })
-                        }
-                      >
-                        <X className="h-3 w-3" />
-                        Limpar filtros
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
+                <MatchFiltersPanel
+                  filters={filters}
+                  setFilters={setFilters}
+                  categories={categories}
+                  suppliers={suppliers}
+                />
               </>
             ) : (
               <Card className="border-dashed border-border/40">
