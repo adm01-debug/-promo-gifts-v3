@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle } from "lucide-react";
 import { useReplenishmentsWithDetails } from "@/hooks/useReplenishments";
@@ -17,6 +18,11 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReplenishmentGridCard, ReplenishmentTableView } from "./ReplenishmentCards";
 import { ReplenishmentToolbar } from "./ReplenishmentToolbar";
+
+// ─── Column count to numeric ─────────────────────────────────────
+function colsToNum(cols: ColumnCount): number {
+  return typeof cols === 'number' ? cols : 5;
+}
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock";
