@@ -1,0 +1,209 @@
+/**
+ * TrendsCharts — Chart and list sections extracted from TrendsPage
+ */
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Eye, Search, Package, BarChart3 } from "lucide-react";
+import {
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  Area, AreaChart,
+} from "recharts";
+import { useNavigate } from "react-router-dom";
+
+const tooltipStyle = {
+  backgroundColor: "hsl(var(--card))",
+  border: "1px solid hsl(var(--border))",
+  borderRadius: "8px",
+};
+
+interface ActivityChartProps {
+  dailyTrends: any[] | undefined;
+  isLoading: boolean;
+}
+
+export function ActivityChart({ dailyTrends, isLoading }: ActivityChartProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <BarChart3 className="h-5 w-5 text-primary" />Atividade ao Longo do Tempo
+        </CardTitle>
+        <CardDescription>Visualizações e buscas por dia</CardDescription>
+      </CardHeader>
+      <CardContent>
+        {isLoading ? (
+          <Skeleton className="h-[300px] w-full" />
+        ) : dailyTrends && dailyTrends.length > 0 ? (
+          <ResponsiveContainer width="100%" height={300}>
+            <AreaChart data={dailyTrends}>
+              <defs>
+                <linearGradient id="colorViews" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--primary))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="colorSearches" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+              <XAxis dataKey="dateLabel" className="text-xs" />
+              <YAxis className="text-xs" />
+              <Tooltip contentStyle={tooltipStyle} />
+              <Area type="monotone" dataKey="views" name="Visualizações" stroke="hsl(var(--primary))" fillOpacity={1} fill="url(#colorViews)" />
+              <Area type="monotone" dataKey="searches" name="Buscas" stroke="hsl(var(--chart-2))" fillOpacity={1} fill="url(#colorSearches)" />
+            </AreaChart>
+          </ResponsiveContainer>
+        ) : (
+          <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+            <div className="text-center">
+              <BarChart3 className="h-12 w-12 mx-auto mb-2 opacity-50" />
+              <p>Nenhum dado disponível</p>
+              <p className="text-sm">As tendências aparecerão conforme você navegar pelo catálogo</p>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+interface ProductsTabProps {
+  topProducts: any[] | undefined;
+  isLoading: boolean;
+}
+
+export function ProductsTabContent({ topProducts, isLoading }: ProductsTabProps) {
+  const navigate = useNavigate();
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Top 10 Produtos</CardTitle>
+          <CardDescription>Produtos com mais visualizações</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : topProducts && topProducts.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topProducts.slice(0, 5)} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis type="number" className="text-xs" />
+                <YAxis type="category" dataKey="name" className="text-xs" width={120} tickFormatter={(v) => v.length > 15 ? `${v.substring(0, 15)}...` : v} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="views" fill="hsl(var(--primary))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Package className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>Nenhum produto visualizado ainda</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Detalhamento</CardTitle>
+          <CardDescription>Breakdown por tipo de interação</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-16 w-full" />)}</div>
+          ) : topProducts && topProducts.length > 0 ? (
+            <div className="space-y-3 max-h-[300px] overflow-y-auto">
+              {topProducts.map((product, index) => (
+                <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" onClick={() => product.id && navigate(`/produto/${product.id}`)}>
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">{index + 1}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground truncate">{product.name}</p>
+                    {product.sku && <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>}
+                  </div>
+                  <div className="flex gap-1.5 flex-wrap justify-end">
+                    <Badge variant="secondary" className="text-xs"><Eye className="h-3 w-3 mr-1" />{product.views}</Badge>
+                    {product.compares > 0 && <Badge variant="outline" className="text-xs">Comp: {product.compares}</Badge>}
+                    {product.favorites > 0 && <Badge variant="outline" className="text-xs text-primary">♥ {product.favorites}</Badge>}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground"><p>Nenhum dado disponível</p></div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+interface SearchesTabProps {
+  topSearches: any[] | undefined;
+  isLoading: boolean;
+}
+
+export function SearchesTabContent({ topSearches, isLoading }: SearchesTabProps) {
+  return (
+    <div className="grid lg:grid-cols-2 gap-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Top 10 Buscas</CardTitle>
+          <CardDescription>Termos mais pesquisados</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <Skeleton className="h-[300px] w-full" />
+          ) : topSearches && topSearches.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <BarChart data={topSearches.slice(0, 5)} layout="vertical">
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
+                <XAxis type="number" className="text-xs" />
+                <YAxis type="category" dataKey="term" className="text-xs" width={100} tickFormatter={(v) => v.length > 12 ? `${v.substring(0, 12)}...` : v} />
+                <Tooltip contentStyle={tooltipStyle} />
+                <Bar dataKey="count" name="Buscas" fill="hsl(var(--chart-2))" radius={[0, 4, 4, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+              <div className="text-center">
+                <Search className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                <p>Nenhuma busca registrada ainda</p>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Detalhamento de Buscas</CardTitle>
+          <CardDescription>Quantidade de buscas e resultados médios</CardDescription>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <div className="space-y-3">{[...Array(5)].map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}</div>
+          ) : topSearches && topSearches.length > 0 ? (
+            <div className="space-y-3 max-h-[300px] overflow-y-auto">
+              {topSearches.map((search, index) => (
+                <div key={search.term} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-chart-2/10 text-chart-2 font-bold text-sm">{index + 1}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-foreground">"{search.term}"</p>
+                    <p className="text-xs text-muted-foreground">Média de {search.avgResults} resultados</p>
+                  </div>
+                  <Badge variant="secondary">{search.count}x</Badge>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="h-[300px] flex items-center justify-center text-muted-foreground"><p>Nenhum dado disponível</p></div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
