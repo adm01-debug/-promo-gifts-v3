@@ -208,16 +208,6 @@ export default function CollectionsPage() {
         path="/colecoes"
       />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Button onClick={() => setIsCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Coleção
-            </Button>
-          </div>
-        </div>
-
         {/* KPI Stat Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           {[
@@ -238,8 +228,12 @@ export default function CollectionsPage() {
           ))}
         </div>
 
-        {/* Search Bar + Layout */}
+        {/* Nova Coleção + Search Bar + Layout */}
         <div className="flex items-center justify-between gap-3">
+          <Button onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Coleção
+          </Button>
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
