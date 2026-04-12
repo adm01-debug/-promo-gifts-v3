@@ -58,6 +58,28 @@ export default function CollectionDetailPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
 
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  const handleDragEnd = useCallback(
+    (event: DragEndEvent) => {
+      const { active, over } = event;
+      if (!over || active.id === over.id || !id) return;
+      const oldIndex = products.findIndex((p) => p.id === active.id);
+      const newIndex = products.findIndex((p) => p.id === over.id);
+      if (oldIndex === -1 || newIndex === -1) return;
+      const newOrder = arrayMove(
+        products.map((p) => p.id),
+        oldIndex,
+        newIndex
+      );
+      reorderProducts(id, newOrder);
+      toast.success("Ordem atualizada");
+    },
+    [id, products, reorderProducts]
+  );
+
   const collection = useMemo(() => {
     return collections.find((c) => c.id === id);
   }, [collections, id]);
