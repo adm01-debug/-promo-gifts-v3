@@ -1,6 +1,34 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
+import React from 'react';
 import { useCollections, type CollectionVariantInfo, type Collection } from '@/hooks/useCollections';
+
+// Mock AuthContext so useCollections can call useAuth
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: vi.fn().mockReturnValue({
+    user: { id: "test-user-id", email: "test@test.com" },
+    session: { access_token: "mock-token" },
+    loading: false,
+    signOut: vi.fn(),
+  }),
+  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}));
+
+// Mock supabase client
+vi.mock("@/integrations/supabase/client", () => ({
+  supabase: {
+    from: vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      order: vi.fn().mockReturnThis(),
+      single: vi.fn().mockResolvedValue({ data: null, error: null }),
+      then: vi.fn().mockResolvedValue({ data: [], error: null }),
+    }),
+  },
+}));
 
 const STORAGE_KEY = 'product-collections';
 
