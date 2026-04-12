@@ -14,6 +14,7 @@
  */
 import { memo, useState, useCallback, useRef, useEffect } from "react";
 import { Heart, GitCompare, Share2, Package, Building2, FolderPlus, Eye, FileText } from "lucide-react";
+import { NoveltyBadge } from "./NoveltyBadge";
 import { ListItemActions } from "./list-item/ListItemActions";
 import { useNavigate } from "react-router-dom";
 import { getCdnUrl } from "@/utils/image-utils";
@@ -52,6 +53,8 @@ interface ProductListItemProps {
   canAddToCompare?: boolean;
   highlightColors?: string[];
   activeColorFilter?: ActiveColorFilter | null;
+  isNovelty?: boolean;
+  noveltyDaysRemaining?: number;
 }
 
 export const ProductListItem = memo(function ProductListItem({
@@ -66,6 +69,8 @@ export const ProductListItem = memo(function ProductListItem({
   canAddToCompare = true,
   highlightColors = [],
   activeColorFilter,
+  isNovelty = false,
+  noveltyDaysRemaining,
 }: ProductListItemProps) {
   const navigate = useNavigate();
   const [collectionModalOpen, setCollectionModalOpen] = useState(false);
@@ -316,6 +321,9 @@ export const ProductListItem = memo(function ProductListItem({
         <div className="flex-1 min-w-0 py-0.5">
           {/* Top meta row */}
           <div className="flex items-center gap-1.5 text-[10px] sm:text-xs text-muted-foreground mb-0.5">
+            {isNovelty && noveltyDaysRemaining !== undefined && (
+              <NoveltyBadge daysRemaining={noveltyDaysRemaining} size="sm" />
+            )}
             <span className="truncate max-w-[120px]">{product.category?.name || "Sem categoria"}</span>
             <span className="text-border">•</span>
             <span className={cn("flex items-center gap-0.5 shrink-0", getSupplierColors(product.supplier.name).text)}>

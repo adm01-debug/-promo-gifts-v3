@@ -169,6 +169,8 @@ export function NoveltyProductGrid() {
                       isInCompare={isInCompare(novelty.product_id)}
                       onToggleCompare={onToggleCompare}
                       canAddToCompare={canAddToCompare}
+                      isNovelty={true}
+                      noveltyDaysRemaining={novelty.days_remaining}
                     />
                   </div>
                 </div>
