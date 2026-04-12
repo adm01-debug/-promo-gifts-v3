@@ -10,16 +10,7 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from "@/components/ui/dropdown-menu";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { TemplateDeleteDialog, TemplateCloneDialog } from "./AdminTemplateDialogs";
 import {
   Select,
   SelectContent,
@@ -448,79 +439,19 @@ export function AdminTemplatesManager({ onEditTemplate }: AdminTemplatesManagerP
         </div>
       )}
 
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteConfirmId} onOpenChange={() => setDeleteConfirmId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Excluir template?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Esta ação não pode ser desfeita. O template será permanentemente excluído.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancelar</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground">
-              Excluir
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      {/* Clone Template Dialog */}
-      <Dialog open={cloneDialogOpen} onOpenChange={setCloneDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <UserPlus className="h-5 w-5" />
-              Clonar Template para Vendedor
-            </DialogTitle>
-            <DialogDescription>
-              Selecione o vendedor que receberá uma cópia deste template.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <label className="text-sm font-medium mb-2 block">
-              Vendedor Destino
-            </label>
-            <Select value={targetSellerId} onValueChange={setTargetSellerId}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione um vendedor..." />
-              </SelectTrigger>
-              <SelectContent>
-                {sellers.map((seller) => (
-                  <SelectItem key={seller.id} value={seller.id}>
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span>{seller.full_name || seller.email}</span>
-                    </div>
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setCloneDialogOpen(false);
-                setCloneTemplateId(null);
-                setTargetSellerId("");
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              onClick={handleClone}
-              disabled={!targetSellerId}
-            >
-              <Copy className="h-4 w-4 mr-2" />
-              Clonar Template
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <TemplateDeleteDialog
+        open={!!deleteConfirmId}
+        onClose={() => setDeleteConfirmId(null)}
+        onConfirm={handleDelete}
+      />
+      <TemplateCloneDialog
+        open={cloneDialogOpen}
+        onClose={() => { setCloneDialogOpen(false); setCloneTemplateId(null); setTargetSellerId(""); }}
+        onConfirm={handleClone}
+        sellers={sellers}
+        targetSellerId={targetSellerId}
+        setTargetSellerId={setTargetSellerId}
+      />
     </div>
   );
 }
