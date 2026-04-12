@@ -173,7 +173,7 @@ export default function QuotesDashboardPage() {
                 .sort((a, b) => new Date(b.client_response_at!).getTime() - new Date(a.client_response_at!).getTime())
                 .slice(0, 5)
                 .map(quote => (
-                  <div key={quote.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors" onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                  <div key={quote.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/30 hover:bg-muted/50 cursor-pointer transition-colors" role="button" tabIndex={0} onClick={() => navigate(`/orcamentos/${quote.id}`)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(`/orcamentos/${quote.id}`); } }} aria-label={`Ver orçamento ${quote.quote_number}`}>
                     <div className="flex items-center gap-3">
                       {quote.status === "approved" ? <CheckCircle className="h-5 w-5 text-success" /> : <XCircle className="h-5 w-5 text-destructive" />}
                       <div>

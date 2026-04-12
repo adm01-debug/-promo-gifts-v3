@@ -295,7 +295,7 @@ function MockupGridCard({ mockup, isCompareSelected, onToggleCompare, onOpenLigh
           {isCompareSelected && <span className="text-xs font-bold">✓</span>}
         </div>
       </div>
-      <div className="aspect-[3/4] bg-muted/30 overflow-hidden cursor-pointer" onClick={() => onOpenLightbox(mockup)}>
+      <div className="aspect-[3/4] bg-muted/30 overflow-hidden cursor-pointer" role="button" tabIndex={0} onClick={() => onOpenLightbox(mockup)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onOpenLightbox(mockup); } }} aria-label={`Abrir mockup de ${mockup.product_name}`}>
         <img src={mockup.layout_url || mockup.mockup_url} alt={`Mockup de ${mockup.product_name}`}
           className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105" loading="lazy" />
         {mockup.layout_url && (

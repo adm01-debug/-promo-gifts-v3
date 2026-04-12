@@ -179,6 +179,7 @@ export const BulkActionBar = memo(function BulkActionBar({
                 size="icon"
                 className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
                 onClick={onClearSelection}
+                aria-label="Limpar seleção"
               >
                 <X className="h-3.5 w-3.5" />
               </Button>

@@ -197,6 +197,7 @@ export function QuickAddToQuote({
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => setQuantity(Math.max(minQuantity, quantity - 10))}
+                  aria-label="Diminuir quantidade"
                 >
                   -
                 </Button>
@@ -212,6 +213,7 @@ export function QuickAddToQuote({
                   size="icon"
                   className="h-8 w-8"
                   onClick={() => setQuantity(quantity + 10)}
+                  aria-label="Aumentar quantidade"
                 >
                   +
                 </Button>

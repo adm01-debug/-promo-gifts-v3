@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle } from "lucide-react";
 import { useReplenishmentsWithDetails } from "@/hooks/useReplenishments";
@@ -17,6 +18,11 @@ import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 import { ReplenishmentGridCard, ReplenishmentTableView } from "./ReplenishmentCards";
 import { ReplenishmentToolbar } from "./ReplenishmentToolbar";
+
+// ─── Column count to numeric ─────────────────────────────────────
+function colsToNum(cols: ColumnCount): number {
+  return typeof cols === 'number' ? cols : 5;
+}
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock";
@@ -235,18 +241,17 @@ export function ReplenishmentProductGrid() {
       );
     }
 
-    // Grid
-    const effectiveCols = Math.min(gridColumns, filteredProducts.length) as ColumnCount;
+    // Virtualized Grid
     return (
-      <div className={`grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}`} role="list">
-        {filteredProducts.map((product, index) => (
-          <div key={product.replenishment_id} className="stagger-item" style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }} role="listitem">
-            <ReplenishmentGridCard product={product} onClick={() => handleProductClick(product.product_id)} selectionMode={selectionMode} isSelected={sel.selectedIds.has(product.product_id)} onToggleSelect={() => sel.toggleSelect(product.product_id)} />
-          </div>
-        ))}
-      </div>
+      <VirtualizedReplenishmentGrid
+        products={filteredProducts}
+        gridColumns={gridColumns}
+        selectionMode={selectionMode}
+        selectedIds={sel.selectedIds}
+        onToggleSelect={sel.toggleSelect}
+        onProductClick={handleProductClick}
+      />
     );
-  };
 
   return (
     <div className="space-y-3">
@@ -301,6 +306,89 @@ export function ReplenishmentProductGrid() {
       <BulkVariantWizard open={sel.variantWizardOpen} onOpenChange={sel.setVariantWizardOpen} products={sel.selectedProducts} mode={sel.wizardMode} onComplete={sel.handleWizardComplete} />
       <BulkAddToCartModal open={sel.cartModalOpen} onOpenChange={sel.setCartModalOpen} products={sel.bulkCartProducts} variantSelections={sel.wizardSelections} onDone={sel.clearSelection} />
       <AddToCollectionModal open={sel.collectionModalOpen} onOpenChange={sel.setCollectionModalOpen} productId={sel.firstSelectedId} productName={sel.firstSelectedProduct?.product_name ?? ""} />
+    </div>
+  );
+}
+
+// ─── Virtualized Grid Component ──────────────────────────────────
+
+interface VirtualizedGridProps {
+  products: import("@/hooks/useReplenishments").ReplenishmentWithDetails[];
+  gridColumns: ColumnCount;
+  selectionMode: boolean;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onProductClick: (id: string) => void;
+}
+
+function VirtualizedReplenishmentGrid({
+  products,
+  gridColumns,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+  onProductClick,
+}: VirtualizedGridProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+  const numCols = Math.min(colsToNum(gridColumns), products.length);
+  const rowCount = Math.ceil(products.length / numCols);
+
+  const virtualizer = useVirtualizer({
+    count: rowCount,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 340,
+    overscan: 3,
+  });
+
+  const effectiveCols = Math.min(gridColumns, products.length) as ColumnCount;
+
+  return (
+    <div
+      ref={parentRef}
+      className="overflow-auto"
+      style={{ maxHeight: "calc(100vh - 280px)" }}
+      role="list"
+      aria-label="Grade de produtos repostos"
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: "100%",
+          position: "relative",
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const startIdx = virtualRow.index * numCols;
+          const rowProducts = products.slice(startIdx, startIdx + numCols);
+
+          return (
+            <div
+              key={virtualRow.key}
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+              className={`grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}`}
+            >
+              {rowProducts.map((product) => (
+                <div key={product.replenishment_id} role="listitem">
+                  <ReplenishmentGridCard
+                    product={product}
+                    onClick={() => onProductClick(product.product_id)}
+                    selectionMode={selectionMode}
+                    isSelected={selectedIds.has(product.product_id)}
+                    onToggleSelect={() => onToggleSelect(product.product_id)}
+                  />
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
