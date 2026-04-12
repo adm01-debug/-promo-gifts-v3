@@ -200,7 +200,7 @@ export function CollectionGridCard({
             <HoneycombMosaic images={allImages} />
 
             {/* Bottom gradient for footer blend */}
-            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-card via-card/80 to-transparent pointer-events-none" />
+            <div className="absolute inset-x-0 bottom-0 h-12 bg-card pointer-events-none" />
 
             {/* Product count pill */}
             <div className="absolute bottom-3 right-3">
