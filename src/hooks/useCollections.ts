@@ -432,6 +432,30 @@ export function useCollections() {
     []
   );
 
+  const updateProductNotes = useCallback(
+    (collectionId: string, productId: string, notes: string) => {
+      setCollections((prev) =>
+        prev.map((col) => {
+          if (col.id !== collectionId) return col;
+          return {
+            ...col,
+            productItems: col.productItems.map((item) =>
+              item.productId === productId ? { ...item, notes } : item
+            ),
+          };
+        })
+      );
+
+      supabase
+        .from("collection_items")
+        .update({ notes } as any)
+        .eq("collection_id", collectionId)
+        .eq("product_id", productId)
+        .then();
+    },
+    []
+  );
+
   return {
     collections,
     isLoaded,
@@ -442,6 +466,7 @@ export function useCollections() {
     removeProductFromCollection,
     addProductToMultipleCollections,
     reorderProducts,
+    updateProductNotes,
     getCollectionProductsFromMap,
     getCollectionProductItems,
     getCollectionProductVariant,
