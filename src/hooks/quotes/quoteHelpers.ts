@@ -1,0 +1,121 @@
+/**
+ * quoteHelpers — Cálculos e payloads reutilizáveis de orçamentos
+ */
+import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Quote, QuoteItem } from "./quoteTypes";
+
+export function calculateQuoteTotals(quote: Partial<Quote>, items: QuoteItem[]) {
+  const subtotal = items.reduce((sum, item) => {
+    const baseTotal = item.quantity * item.unit_price;
+    const persTotal = (item.personalizations || []).reduce((pSum, p) => pSum + (p.total_cost || 0), 0);
+    return sum + baseTotal + persTotal;
+  }, 0);
+  const discountAmount = quote.discount_percent
+    ? subtotal * (quote.discount_percent / 100)
+    : (quote.discount_amount || 0);
+  const shippingCostValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre")
+    ? (quote.shipping_cost || 0) : 0;
+  const total = subtotal - discountAmount + shippingCostValue;
+  return { subtotal, discountAmount, total };
+}
+
+export function buildInsertPayload(
+  quote: Partial<Quote>,
+  userId: string,
+  orgId: string | null,
+  totals: { subtotal: number; discountAmount: number; total: number }
+): TablesInsert<"quotes"> {
+  return {
+    client_id: quote.client_id || null,
+    client_name: quote.client_name || null,
+    client_email: quote.client_email || null,
+    client_phone: quote.client_phone || null,
+    client_company: quote.client_company || null,
+    seller_id: userId,
+    organization_id: orgId,
+    status: quote.status || "draft",
+    subtotal: totals.subtotal,
+    discount_percent: quote.discount_percent || 0,
+    discount_amount: totals.discountAmount,
+    total: totals.total,
+    payment_terms: quote.payment_terms || null,
+    delivery_time: quote.delivery_time || null,
+    shipping_type: quote.shipping_type || null,
+    shipping_cost: quote.shipping_cost || 0,
+    notes: quote.notes || null,
+    internal_notes: quote.internal_notes || null,
+    valid_until: quote.valid_until || null,
+  };
+}
+
+export function buildUpdatePayload(
+  quote: Partial<Quote>,
+  totals: { subtotal: number; discountAmount: number; total: number }
+): TablesUpdate<"quotes"> {
+  return {
+    client_id: quote.client_id || null,
+    client_name: quote.client_name || null,
+    client_email: quote.client_email || null,
+    client_phone: quote.client_phone || null,
+    client_company: quote.client_company || null,
+    status: quote.status,
+    subtotal: totals.subtotal,
+    discount_percent: quote.discount_percent || 0,
+    discount_amount: totals.discountAmount,
+    total: totals.total,
+    payment_terms: quote.payment_terms || null,
+    delivery_time: quote.delivery_time || null,
+    shipping_type: quote.shipping_type || null,
+    shipping_cost: quote.shipping_cost || 0,
+    notes: quote.notes || null,
+    internal_notes: quote.internal_notes || null,
+    valid_until: quote.valid_until || null,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+export function buildItemsInsertPayload(
+  items: QuoteItem[],
+  quoteId: string
+): TablesInsert<"quote_items">[] {
+  return items.map((item, index) => ({
+    quote_id: quoteId,
+    product_id: item.product_id,
+    product_name: item.product_name,
+    product_sku: item.product_sku,
+    product_image_url: item.product_image_url,
+    quantity: item.quantity,
+    unit_price: item.unit_price,
+    color_name: item.color_name,
+    color_hex: item.color_hex,
+    size_code: item.size_code || null,
+    gender: item.gender || null,
+    notes: item.notes,
+    sort_order: index,
+    kit_group_id: item.kit_group_id || null,
+    kit_name: item.kit_name || null,
+  }));
+}
+
+export function buildPersonalizationsInsertPayload(
+  personalizations: NonNullable<QuoteItem["personalizations"]>,
+  quoteItemId: string
+): TablesInsert<"quote_item_personalizations">[] {
+  return personalizations.map(p => ({
+    quote_item_id: quoteItemId,
+    technique_id: p.technique_id || null,
+    technique_name: p.technique_name || null,
+    colors_count: p.colors_count || 1,
+    positions_count: p.positions_count || 1,
+    area_cm2: p.area_cm2,
+    setup_cost: p.setup_cost || 0,
+    unit_cost: p.unit_cost || 0,
+    total_cost: p.total_cost || 0,
+    notes: p.notes,
+  }));
+}
+
+export const STATUS_LABELS: Record<string, string> = {
+  draft: "Rascunho", pending: "Pendente", sent: "Enviado",
+  approved: "Aprovado", rejected: "Rejeitado", expired: "Expirado",
+};

@@ -1,0 +1,89 @@
+/**
+ * quoteTypes — Tipos de domínio para orçamentos
+ */
+
+export interface QuoteItemPersonalization {
+  id?: string;
+  quote_item_id?: string;
+  technique_id: string;
+  technique_name?: string;
+  colors_count?: number;
+  positions_count?: number;
+  area_cm2?: number;
+  width_cm?: number;
+  height_cm?: number;
+  personalized_quantity?: number;
+  setup_cost?: number;
+  unit_cost?: number;
+  total_cost?: number;
+  notes?: string;
+}
+
+export interface QuoteItem {
+  id?: string;
+  quote_id?: string;
+  product_id: string;
+  product_name: string;
+  product_sku?: string;
+  product_image_url?: string;
+  quantity: number;
+  unit_price: number;
+  subtotal?: number;
+  color_name?: string;
+  color_hex?: string;
+  notes?: string;
+  sort_order?: number;
+  bitrix_product_id?: string | number | null;
+  kit_group_id?: string | null;
+  kit_name?: string | null;
+  size_code?: string | null;
+  gender?: string | null;
+  personalizations?: QuoteItemPersonalization[];
+}
+
+export interface Quote {
+  id?: string;
+  quote_number?: string;
+  client_id?: string;
+  client_name?: string;
+  client_email?: string;
+  client_phone?: string;
+  client_company?: string;
+  client_cnpj?: string;
+  seller_id?: string;
+  status: "draft" | "pending" | "sent" | "approved" | "rejected" | "expired";
+  subtotal: number;
+  discount_percent: number;
+  discount_amount: number;
+  total: number;
+  notes?: string;
+  payment_terms?: string;
+  delivery_time?: string;
+  shipping_method?: string;
+  shipping_type?: string;
+  shipping_cost?: number;
+  internal_notes?: string;
+  valid_until?: string;
+  bitrix_deal_id?: string;
+  bitrix_quote_id?: string;
+  synced_to_bitrix?: boolean;
+  synced_at?: string;
+  client_response?: string;
+  client_response_at?: string;
+  client_response_notes?: string;
+  created_at?: string;
+  updated_at?: string;
+  items?: QuoteItem[];
+}
+
+export interface PersonalizationTechnique {
+  id: string;
+  name: string;
+  description?: string;
+  code?: string;
+  min_quantity?: number;
+  setup_cost?: number;
+  unit_cost?: number;
+  estimated_days?: number;
+  is_active?: boolean;
+}
