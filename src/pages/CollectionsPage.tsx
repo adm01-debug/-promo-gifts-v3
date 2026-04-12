@@ -2,10 +2,12 @@ import { useState, useMemo, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
-  RefreshCw, Cloud, Search, Star, FolderHeart, Copy, Clock, List,
-  FileText, CheckSquare, X, Sparkles, ShoppingBag, ArrowRight,
+  Plus, FolderOpen, Package,
+  Search, Star, FolderHeart, Copy,
+  FileText, CheckSquare, X, Sparkles, ArrowRight,
 } from "lucide-react";
+import { CollectionGridCard } from "@/components/collections/CollectionGridCard";
+import { CollectionListItem } from "@/components/collections/CollectionListItem";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -471,191 +473,42 @@ export default function CollectionsPage() {
             <div className={gridClasses}>
               {filteredLocal.map((collection, idx) => {
                 const products = getCollectionProducts(collection.id);
-                const previewImages = products.slice(0, 4).map((p) => p.images[0]);
                 const updatedAgo = relativeTime(collection.updatedAt);
                 const isSelected = selectedCollectionIds.has(collection.id);
 
-                const contextMenu = (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Mais opções"
-                        className="h-8 w-8 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/60 backdrop-blur-sm hover:bg-background/80"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); openEdit(collection); }}>
-                        <Pencil className="h-4 w-4 mr-2" /> Editar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleClone(collection); }}>
-                        <Copy className="h-4 w-4 mr-2" /> Duplicar
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={(e) => {
-                        e.stopPropagation();
-                        updateCollection(collection.id, { isFeatured: !collection.isFeatured });
-                        toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
-                      }}>
-                        <Star className="h-4 w-4 mr-2" />
-                        {collection.isFeatured ? "Remover destaque" : "Destacar"}
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); setDeleteConfirm(collection.id); }}>
-                        <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                );
+                const sharedProps = {
+                  collection,
+                  isSelected,
+                  onToggleSelect: () => toggleSelectCollection(collection.id),
+                  onNavigate: () => navigate(`/colecoes/${collection.id}`),
+                  onEdit: () => openEdit(collection),
+                  onClone: () => handleClone(collection),
+                  onToggleFeatured: () => {
+                    updateCollection(collection.id, { isFeatured: !collection.isFeatured });
+                    toast.success(collection.isFeatured ? "Removido dos destaques" : "Marcado como destaque ⭐");
+                  },
+                  onDelete: () => setDeleteConfirm(collection.id),
+                  updatedAgo,
+                  index: idx,
+                };
 
                 if (viewMode === "list") {
                   return (
-                    <motion.div
+                    <CollectionListItem
                       key={collection.id}
-                      layout
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: idx * 0.03 }}
-                      className={cn(
-                        "group flex items-center gap-4 p-3 rounded-xl bg-card border cursor-pointer transition-all duration-200",
-                        isSelected
-                          ? "border-primary bg-primary/5 shadow-md shadow-primary/10"
-                          : "border-border/50 hover:border-primary/40 hover:shadow-md"
-                      )}
-                      onClick={() => navigate(`/colecoes/${collection.id}`)}
-                    >
-                      <div onClick={(e) => e.stopPropagation()} className="shrink-0">
-                        <SelectionCheckbox
-                          checked={isSelected}
-                          onChange={() => toggleSelectCollection(collection.id)}
-                          size="md"
-                        />
-                      </div>
-                      <div
-                        className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
-                        style={{ backgroundColor: `${collection.color}20` }}
-                      >
-                        {previewImages[0] ? (
-                          <img src={previewImages[0]} alt="" className="w-full h-full object-cover" />
-                        ) : (
-                          <span>{collection.icon}</span>
-                        )}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="font-display font-semibold text-foreground truncate">{collection.name}</h3>
-                        {collection.description && (
-                          <p className="text-sm text-muted-foreground truncate">{collection.description}</p>
-                        )}
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <span className="text-sm text-muted-foreground flex items-center gap-1">
-                          <Package className="h-3 w-3" />
-                          {collection.productIds.length}
-                        </span>
-                        {collection.isFeatured && <Star className="h-4 w-4 text-primary" />}
-                        {updatedAgo && (
-                          <span className="text-xs text-muted-foreground/60 hidden md:flex items-center gap-0.5">
-                            <Clock className="h-2.5 w-2.5" />
-                            {updatedAgo}
-                          </span>
-                        )}
-                        {contextMenu}
-                      </div>
-                    </motion.div>
+                      previewImage={products[0]?.images?.[0]}
+                      {...sharedProps}
+                    />
                   );
                 }
 
-                // Grid card
                 return (
-                  <motion.div
+                  <CollectionGridCard
                     key={collection.id}
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: idx * 0.05, type: "spring", stiffness: 400, damping: 25 }}
-                    className={cn(
-                      "group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] hover:shadow-xl card-lift transition-all duration-300",
-                      isSelected
-                        ? "border-primary ring-2 ring-primary/20 shadow-lg shadow-primary/10"
-                        : "border-primary/20 hover:border-primary/50"
-                    )}
-                    onClick={() => navigate(`/colecoes/${collection.id}`)}
-                  >
-                    <div className="absolute top-3 right-3 z-10">{contextMenu}</div>
-
-                    {/* Selection checkbox — always visible in selection mode, otherwise on hover */}
-                    <div
-                      className={cn(
-                        "absolute top-3 left-3 z-10 transition-opacity duration-200",
-                        isSelected || isSelectionMode
-                          ? "opacity-100"
-                          : "opacity-0 group-hover:opacity-100"
-                      )}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <SelectionCheckbox
-                        checked={isSelected}
-                        onChange={() => toggleSelectCollection(collection.id)}
-                        size="lg"
-                        animateEntry
-                      />
-                    </div>
-
-                    {/* Preview images grid */}
-                    <div
-                      className="aspect-[4/3] overflow-hidden relative"
-                      style={{ backgroundColor: `${collection.color}12` }}
-                    >
-                      {previewImages.length > 0 ? (
-                        <div className="grid grid-cols-2 gap-1.5 p-3 h-full">
-                          {previewImages.map((img, imgIdx) => (
-                            <div key={imgIdx} className="rounded-lg overflow-hidden bg-background/50">
-                              <img src={img} alt="" className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" />
-                            </div>
-                          ))}
-                          {previewImages.length < 4 && Array(4 - previewImages.length).fill(0).map((_, i) => (
-                            <div key={`empty-${i}`} className="rounded-lg bg-background/20" />
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="flex flex-col items-center justify-center h-full gap-2">
-                          <FolderOpen className="h-14 w-14 transition-transform duration-300 group-hover:scale-110" style={{ color: collection.color }} />
-                          <span className="text-xs text-muted-foreground">Sem produtos</span>
-                        </div>
-                      )}
-                      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-card/60 to-transparent" />
-                    </div>
-
-                    {/* Info */}
-                    <div className="p-4 flex items-start gap-3">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0" style={{ backgroundColor: `${collection.color}20` }}>
-                        {collection.icon}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <h3 className="font-display font-semibold text-foreground truncate">{collection.name}</h3>
-                        <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <p className="text-sm text-muted-foreground flex items-center gap-1">
-                            <Package className="h-3 w-3" />
-                            {collection.productIds.length} produtos
-                          </p>
-                          {collection.isFeatured && (
-                            <Badge variant="secondary" className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20">
-                              <Star className="h-2.5 w-2.5 mr-0.5" /> Destaque
-                            </Badge>
-                          )}
-                          {updatedAgo && (
-                            <span className="text-xs text-muted-foreground/60 flex items-center gap-0.5">
-                              <Clock className="h-2.5 w-2.5" />
-                              {updatedAgo}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </motion.div>
+                    products={products}
+                    isSelectionMode={isSelectionMode}
+                    {...sharedProps}
+                  />
                 );
               })}
             </div>
