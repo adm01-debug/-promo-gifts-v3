@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare, X, ArrowRight, Sparkles,
+  FileText, ArrowUpDown, Clock, Download, CheckSquare, X, ArrowRight, Sparkles,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { SortableProductItem } from "@/components/collections/SortableProductItem";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,11 +36,9 @@ import {
 } from "@dnd-kit/core";
 import {
   SortableContext,
-  useSortable,
   verticalListSortingStrategy,
   arrayMove,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
