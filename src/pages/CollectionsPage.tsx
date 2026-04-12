@@ -603,11 +603,19 @@ export default function CollectionsPage() {
                     onClick={() => navigate(`/colecoes/${collection.id}`)}
                   >
                     <div className="absolute top-3 right-3 z-10">{contextMenu}</div>
-                    <div className="absolute top-3 left-3 z-10" onClick={(e) => e.stopPropagation()}>
+                    <div
+                      className={cn(
+                        "absolute top-3 left-3 z-10 transition-opacity duration-200",
+                        isSelectedGrid || selectedCollectionIds.size > 0
+                          ? "opacity-100"
+                          : "opacity-0 group-hover:opacity-100"
+                      )}
+                      onClick={(e) => e.stopPropagation()}
+                    >
                       <Checkbox
                         checked={isSelectedGrid}
                         onCheckedChange={() => toggleSelectCollection(collection.id)}
-                        className="h-5 w-5 bg-background/80 backdrop-blur-sm border-2"
+                        className="h-6 w-6 bg-background border-2 border-muted-foreground/50 shadow-md data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                       />
                     </div>
 
