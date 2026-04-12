@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
 
 const NOVELTY_WINDOW_DAYS = 30;
-const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at';
+const NOVELTY_SELECT = 'id, name, sku, primary_image_url, sale_price, category_id, supplier_id, created_at, stock_quantity, min_quantity';
 
 /**
  * Calcula a data de corte para novidades (últimos N dias)
@@ -46,6 +46,9 @@ export interface NoveltyWithDetails {
   status: 'active' | 'expiring_soon' | 'expired';
   is_highlighted: boolean;
   is_active: boolean;
+  stock_quantity: number;
+  min_quantity: number;
+  stock_status: 'in-stock' | 'low-stock' | 'out-of-stock';
 }
 
 /**
