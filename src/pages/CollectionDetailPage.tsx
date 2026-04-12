@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  ArrowLeft, Monitor, Package, Trash2, Search, SortAsc,
-  FileText, ArrowUpDown, Clock,
+  ArrowLeft, Monitor, Package, Trash2, Search,
+  FileText, ArrowUpDown, Clock, Download,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -21,6 +21,7 @@ import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
 import { toast } from "sonner";
+import { exportCollectionPDF } from "@/lib/export-collection-pdf";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -209,6 +210,22 @@ export default function CollectionDetailPage() {
                     >
                       <FileText className="h-4 w-4" />
                       <span className="hidden sm:inline">Criar Orçamento</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      className="gap-2"
+                      onClick={() => {
+                        exportCollectionPDF({
+                          collectionName: collection.name,
+                          collectionDescription: collection.description,
+                          products,
+                          variantMap,
+                        });
+                        toast.success("PDF exportado!");
+                      }}
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="hidden sm:inline">PDF</span>
                     </Button>
                     <Button
                       variant="outline"
