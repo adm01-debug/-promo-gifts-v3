@@ -733,26 +733,6 @@ export default function CollectionsPage() {
         )}
       </div>
 
-      {/* Floating Selection Bar */}
-      {selectedCollectionIds.size > 0 && (
-        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 bg-card border border-border shadow-2xl rounded-2xl px-5 py-3 flex items-center gap-4 animate-fade-in">
-          <div className="flex items-center gap-2">
-            <CheckSquare className="h-5 w-5 text-primary" />
-            <span className="font-display font-semibold text-sm">
-              {selectedCollectionIds.size} coleção(ões) selecionada(s)
-            </span>
-          </div>
-          <div className="w-px h-6 bg-border" />
-          <Button size="sm" className="gap-2" onClick={handleSendSelectedToQuote}>
-            <FileText className="h-4 w-4" />
-            Criar Orçamento
-          </Button>
-          <Button size="sm" variant="ghost" onClick={clearSelection}>
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
-      )}
-
       <Dialog
         open={isCreateOpen || !!editingCollection}
         onOpenChange={(open) => {
