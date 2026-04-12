@@ -54,6 +54,7 @@ function dbToCollection(
           thumbnail: item.thumbnail_url,
         }
       : undefined,
+    notes: item.notes || undefined,
   }));
 
   return {
