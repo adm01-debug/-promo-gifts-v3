@@ -3,6 +3,7 @@
  * Logic in usePublicQuoteApproval, status screens in PublicQuoteStatusScreens.
  */
 import { useParams } from "react-router-dom";
+import { Helmet } from "react-helmet-async";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -50,6 +51,11 @@ export default function PublicQuoteApprovalPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Proposta #{quote.quote_number} | Promo Gifts</title>
+        <meta name="description" content={`Proposta comercial #${quote.quote_number} para aprovação`} />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {/* Header */}
       <div className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-4 py-6">

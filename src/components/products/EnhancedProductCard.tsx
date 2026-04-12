@@ -287,6 +287,7 @@ export function EnhancedProductCard({
                   size="icon"
                   className="h-8 w-8 rounded-full"
                   onClick={() => setQuickAddQuantity(Math.max(1, quickAddQuantity - 1))}
+                  aria-label="Diminuir quantidade"
                 >
                   -
                 </Button>
@@ -298,6 +299,7 @@ export function EnhancedProductCard({
                   size="icon"
                   className="h-8 w-8 rounded-full"
                   onClick={() => setQuickAddQuantity(quickAddQuantity + 1)}
+                  aria-label="Aumentar quantidade"
                 >
                   +
                 </Button>

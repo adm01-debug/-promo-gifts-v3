@@ -128,6 +128,7 @@ export function AreaCard({
               onLogoRemove();
             }}
             title="Remover logo"
+            aria-label="Remover logo"
             aria-label={`Remover logo de ${area.name}`}
           >
             <X className="h-3.5 w-3.5" />

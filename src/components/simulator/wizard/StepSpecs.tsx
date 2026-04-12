@@ -211,6 +211,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ width: Math.max(0.5, engravingSpecs.width - 0.5) })}
                     disabled={engravingSpecs.width <= 0.5}
+                    aria-label="Diminuir largura"
                   >
                     −
                   </Button>
@@ -232,6 +233,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ width: Math.min(maxWidth, engravingSpecs.width + 0.5) })}
                     disabled={engravingSpecs.width >= maxWidth}
+                    aria-label="Aumentar largura"
                   >
                     +
                   </Button>
@@ -259,6 +261,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ height: Math.max(0.5, engravingSpecs.height - 0.5) })}
                     disabled={engravingSpecs.height <= 0.5}
+                    aria-label="Diminuir altura"
                   >
                     −
                   </Button>
@@ -280,6 +283,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ height: Math.min(maxHeight, engravingSpecs.height + 0.5) })}
                     disabled={engravingSpecs.height >= maxHeight}
+                    aria-label="Aumentar altura"
                   >
                     +
                   </Button>

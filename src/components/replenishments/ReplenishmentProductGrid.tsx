@@ -222,35 +222,19 @@ export function ReplenishmentProductGrid() {
 
     if (viewMode === "list") {
       return (
-        <div className="space-y-2" role="list" aria-label="Lista de produtos repostos">
-          {filteredProducts.map((item, index) => {
-            const prod = productMap.get(item.product_id);
-            if (!prod) return null;
-            const isSelected = sel.selectedIds.has(item.product_id);
-            return (
-              <div key={item.replenishment_id} role="listitem">
-                <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
-                  {selectionMode && (
-                    <div className="flex-shrink-0 ml-1">
-                      <SelectionCheckbox checked={isSelected} onChange={() => sel.toggleSelect(item.product_id)} size="md" aria-label={`Selecionar ${item.product_name}`} />
-                    </div>
-                  )}
-                  <div className="flex-1 min-w-0">
-                    <ProductListItem
-                      product={prod}
-                      onClick={() => selectionMode ? sel.toggleSelect(item.product_id) : handleProductClick(item.product_id)}
-                      isFavorited={isFavorite(item.product_id)}
-                      onToggleFavorite={toggleFavorite}
-                      isInCompare={isInCompare(item.product_id)}
-                      onToggleCompare={onToggleCompare}
-                      canAddToCompare={canAddToCompare}
-                    />
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        <VirtualizedReplenishmentList
+          products={filteredProducts}
+          productMap={productMap}
+          selectionMode={selectionMode}
+          selectedIds={sel.selectedIds}
+          onToggleSelect={sel.toggleSelect}
+          onProductClick={handleProductClick}
+          isFavorite={isFavorite}
+          toggleFavorite={toggleFavorite}
+          isInCompare={isInCompare}
+          onToggleCompare={onToggleCompare}
+          canAddToCompare={canAddToCompare}
+        />
       );
     }
 
@@ -399,6 +383,104 @@ function VirtualizedReplenishmentGrid({
                   />
                 </div>
               ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+// ─── Virtualized List Component ──────────────────────────────────
+
+interface VirtualizedListProps {
+  products: import("@/hooks/useReplenishments").ReplenishmentWithDetails[];
+  productMap: Map<string, ReturnType<typeof replenishmentToProduct>>;
+  selectionMode: boolean;
+  selectedIds: Set<string>;
+  onToggleSelect: (id: string) => void;
+  onProductClick: (id: string) => void;
+  isFavorite: (id: string) => boolean;
+  toggleFavorite: (id: string) => void;
+  isInCompare: (id: string) => boolean;
+  onToggleCompare: (id: string) => { added: boolean; isFull: boolean };
+  canAddToCompare: boolean;
+}
+
+function VirtualizedReplenishmentList({
+  products,
+  productMap,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+  onProductClick,
+  isFavorite,
+  toggleFavorite,
+  isInCompare,
+  onToggleCompare,
+  canAddToCompare,
+}: VirtualizedListProps) {
+  const parentRef = useRef<HTMLDivElement>(null);
+
+  const virtualizer = useVirtualizer({
+    count: products.length,
+    getScrollElement: () => parentRef.current,
+    estimateSize: () => 80,
+    overscan: 8,
+  });
+
+  return (
+    <div
+      ref={parentRef}
+      className="overflow-auto"
+      style={{ maxHeight: "calc(100vh - 280px)" }}
+      role="list"
+      aria-label="Lista de produtos repostos"
+    >
+      <div
+        style={{
+          height: `${virtualizer.getTotalSize()}px`,
+          width: "100%",
+          position: "relative",
+        }}
+      >
+        {virtualizer.getVirtualItems().map((virtualRow) => {
+          const item = products[virtualRow.index];
+          const prod = productMap.get(item.product_id);
+          if (!prod) return null;
+          const isSelected = selectedIds.has(item.product_id);
+
+          return (
+            <div
+              key={virtualRow.key}
+              role="listitem"
+              style={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: "100%",
+                height: `${virtualRow.size}px`,
+                transform: `translateY(${virtualRow.start}px)`,
+              }}
+            >
+              <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
+                {selectionMode && (
+                  <div className="flex-shrink-0 ml-1">
+                    <SelectionCheckbox checked={isSelected} onChange={() => onToggleSelect(item.product_id)} size="md" aria-label={`Selecionar ${item.product_name}`} />
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <ProductListItem
+                    product={prod}
+                    onClick={() => selectionMode ? onToggleSelect(item.product_id) : onProductClick(item.product_id)}
+                    isFavorited={isFavorite(item.product_id)}
+                    onToggleFavorite={toggleFavorite}
+                    isInCompare={isInCompare(item.product_id)}
+                    onToggleCompare={onToggleCompare}
+                    canAddToCompare={canAddToCompare}
+                  />
+                </div>
+              </div>
             </div>
           );
         })}

@@ -83,6 +83,7 @@ function SortableItemBadge({
           size="icon"
           className="h-5 w-5"
           onClick={() => onUpdateQuantity(item.id, item.quantity - 1)}
+          aria-label="Diminuir quantidade"
         >
           -
         </Button>
@@ -91,6 +92,7 @@ function SortableItemBadge({
           size="icon"
           className="h-5 w-5"
           onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
+          aria-label="Aumentar quantidade"
         >
           +
         </Button>
