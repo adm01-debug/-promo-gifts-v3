@@ -1,4 +1,5 @@
 import { useState, useMemo, useCallback } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Plus, MoreVertical, Pencil, Trash2, FolderOpen, Package,
