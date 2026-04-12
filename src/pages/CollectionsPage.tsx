@@ -432,18 +432,30 @@ export default function CollectionsPage() {
         </AnimatePresence>
 
         {/* ═══ Hint bar when no selection ═══ */}
-        {!isSelectionMode && localCollections.length > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted/40 border border-border/50"
-          >
-            <Sparkles className="h-4 w-4 text-primary shrink-0" />
-            <p className="text-xs text-muted-foreground">
-              <span className="font-medium text-foreground">Dica:</span> Selecione coleções marcando o checkbox nos cards para enviar todos os produtos para um orçamento de uma vez.
-            </p>
-          </motion.div>
-        )}
+        <AnimatePresence>
+          {!isSelectionMode && !hintDismissed && localCollections.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.25 }}
+              className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-muted/40 border border-border/50"
+            >
+              <Sparkles className="h-4 w-4 text-primary shrink-0" />
+              <p className="text-xs text-muted-foreground flex-1">
+                <span className="font-medium text-foreground">Dica:</span> Selecione coleções marcando o checkbox nos cards para enviar todos os produtos para um orçamento de uma vez.
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-6 w-6 p-0 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() => setHintDismissed(true)}
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* ═══ Personal Collections (DB-persisted) ═══ */}
         <div className="space-y-3">
