@@ -24,7 +24,7 @@ import { useCatalogRealStats } from "@/hooks/useCatalogRealStats";
 import { useToast } from "@/hooks/use-toast";
 import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
 import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
-import { sortProducts } from "@/utils/product-sorting";
+import { useCatalogFiltering } from "./useCatalogFiltering";
 
 export type ViewMode = "grid" | "list" | "table";
 export type SortOption = "name" | "price-asc" | "price-desc" | "stock" | "newest" | "color-match" | "best-seller-supplier" | "best-seller-promo";
@@ -181,117 +181,12 @@ export function useCatalogState() {
   const { results: fuzzySearchResults, hasSearch: hasFuzzySearch } = useProductFuzzySearch(realProducts, debouncedSearchQuery);
 
   // Filter & sort products
-  const filteredProducts = useMemo(() => {
-    let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
-
-    if (hasCategoryFilter && categoryFilteredProductIds.size > 0) {
-      result = result.filter((p) => categoryFilteredProductIds.has(p.id));
-    } else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) {
-      result = [];
-    }
-
-    if (filters.colors.length) {
-      result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => filters.colors.includes(c.name)) || false
-      );
-    }
-
-    if (filters.colorGroups?.length) {
-      result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => {
-          const colorGroupSlug = c.groupSlug || '';
-          const colorGroup = (c.group || '').toLowerCase().trim();
-          const colorName = (c.name || '').toLowerCase().trim();
-          return filters.colorGroups.some(slug => {
-            const slugLower = slug.toLowerCase().trim();
-            if (colorGroupSlug === slugLower) return true;
-            if (colorGroup === slugLower) return true;
-            if (colorGroup.includes(slugLower) || slugLower.includes(colorGroup)) return true;
-            if (colorName.includes(slugLower) || slugLower.includes(colorName.split(/[\s-]/)[0])) return true;
-            return false;
-          });
-        }) || false
-      );
-    }
-
-    if (filters.colorVariations?.length) {
-      result = result.filter((p) =>
-        p.colors?.some((c: Record<string, string>) => {
-          const colorVariationSlug = c.variationSlug || '';
-          const colorName = (c.name || '').toLowerCase().trim();
-          return filters.colorVariations.some(slug => {
-            const slugLower = slug.toLowerCase().trim();
-            if (colorVariationSlug === slugLower) return true;
-            const slugWords = slugLower.split('-');
-            return slugWords.every(word => colorName.includes(word));
-          });
-        }) || false
-      );
-    }
-
-    if (filters.categories.length) {
-      result = result.filter((p) =>
-        filters.categories.includes(parseInt(p.category_id || '0')) ||
-        filters.categories.map(String).includes(p.category_id || '')
-      );
-    }
-
-    if (filters.suppliers.length) {
-      result = result.filter((p) =>
-        filters.suppliers.includes(p.brand || '') ||
-        filters.suppliers.includes(p.supplier_reference || '')
-      );
-    }
-
-    if (filters.priceRange[0] > 0 || filters.priceRange[1] < 500) {
-      result = result.filter((p) => p.price >= filters.priceRange[0] && p.price <= filters.priceRange[1]);
-    }
-
-    if (filters.inStock) {
-      result = result.filter((p) => (p.stock || 0) > 0);
-    }
-
-    // Gender filter
-    if (filters.gender?.length) {
-      const genderFilter = filters.gender;
-      result = result.filter((p) => {
-        const productGender = (p.gender || '').toLowerCase().trim();
-        if (!productGender) return false;
-        return genderFilter.some(g => productGender === g.toLowerCase());
-      });
-    }
-
-    if (hasMaterialFilter && materialFilteredProductIds.size > 0) {
-      result = result.filter((p) => materialFilteredProductIds.has(p.id));
-    } else if (hasMaterialFilter && materialFilteredProductIds.size === 0 && !isLoadingMaterialFilter) {
-      result = [];
-    }
-
-    if (!hasMaterialFilter && filters.materiais.length) {
-      result = result.filter((p) => {
-        const materialsStr = Array.isArray(p.materials) ? p.materials.join(' ').toLowerCase() : (p.materials || '').toLowerCase();
-        return filters.materiais.some((m) => materialsStr.includes(m.toLowerCase()));
-      });
-    }
-
-    // ⚠️ REGRA DE NEGÓCIO — NÃO ALTERAR
-    // Quando há busca ativa e o sort é "Nome A-Z" (padrão), a reordenação
-    // alfabética é PULADA para preservar a ordem de relevância calculada pelo
-    // motor rankProductSearchResults (product-search.ts). A hierarquia é:
-    //   1. SKU/Referência exata
-    //   2. Nome exato
-    //   3. Nome começa com o termo
-    //   4. Palavra exata no nome (word boundary)
-    //   5. Nome contém o termo
-    //   6. Código começa com / contém
-    //   7. Metadados (marca, categoria, descrição)
-    //   8. Fuzzy (Fuse.js, threshold < 0.45)
-    // Se o usuário escolher outro sort (preço, estoque, etc.), reordena normalmente.
-    const skipSort = hasFuzzySearch && sortBy === 'name';
-    sortProducts(result, sortBy, { promoSalesMap, supplierSalesMap, skipSort });
-
-    return result;
-  }, [filters, sortBy, hasFuzzySearch, fuzzySearchResults, realProducts, hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter, hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter, promoSalesMap, supplierSalesMap]);
+  const filteredProducts = useCatalogFiltering({
+    realProducts, filters, sortBy, hasFuzzySearch, fuzzySearchResults,
+    hasMaterialFilter, materialFilteredProductIds, isLoadingMaterialFilter,
+    hasCategoryFilter, categoryFilteredProductIds, isLoadingCategoryFilter,
+    promoSalesMap, supplierSalesMap,
+  });
 
   // Paginated products
   const rawPaginatedProducts = useMemo(() => filteredProducts.slice(0, displayCount), [filteredProducts, displayCount]);

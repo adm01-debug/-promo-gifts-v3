@@ -222,98 +222,19 @@ export default function QuoteViewPage() {
 
   const handleSyncBitrix = async () => {
     if (!quote || !proposalData) return;
-
-    let effectiveBitrixCompanyId = bitrixCompanyId;
-    if (!effectiveBitrixCompanyId && quote.client_id) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const company = await selectCrmById<any>("companies", quote.client_id);
-        const bId = company?.bitrix_company_id ?? company?.bitrix_id;
-        if (bId) {
-          effectiveBitrixCompanyId = String(bId);
-          setBitrixCompanyId(String(bId));
-        }
-      } catch { /* ignore */ }
-    }
-
-    if (!effectiveBitrixCompanyId) {
-      toast.error("Empresa sem ID Bitrix24", {
-        description: "Esta empresa não possui um vínculo com o Bitrix24.",
-      });
-      return;
-    }
-
-    const itemsSemBitrixId = quote.items?.filter(item => !item.bitrix_product_id) || [];
-    const itensSincronizaveis = quote.items?.filter(item => !!item.bitrix_product_id) || [];
-
-    if (itensSincronizaveis.length === 0) {
-      toast.error("Nenhum produto com ID Bitrix24");
-      return;
-    }
-
-    if (itemsSemBitrixId.length > 0) {
-      const nomes = itemsSemBitrixId.map(i => `${i.product_name}${i.color_name ? ` - ${i.color_name}` : ''}`).join(", ");
-      toast.warning(`${itemsSemBitrixId.length} produto(s) excluído(s) da sincronização`, {
-        description: `Sem ID Bitrix24: ${nomes}`,
-        duration: 7000,
-      });
-    }
-
     setIsSyncing(true);
-    logQuoteHistory(quote.id, "sync_started", "Sincronização com Bitrix24 iniciada").catch(() => {});
-
     try {
-      let pdfStorageUrl: string | undefined;
-      let filename: string | undefined;
-      try {
-        const blob = await generateProposalPDFv2(proposalData, { isDraft: quote.status === "draft" });
-        filename = `proposta-${(quote.quote_number || quote.id).replace(/\s+/g, "")}.pdf`;
-        const storagePath = `quotes/${quote.id}/${filename}`;
-        const { error: uploadError } = await supabase.storage
-          .from("art-files")
-          .upload(storagePath, blob, { contentType: "application/pdf", upsert: true });
-
-        if (uploadError) {
-          logger.warn("PDF upload failed:", uploadError);
-        } else {
-          const { data: urlData } = supabase.storage.from("art-files").getPublicUrl(storagePath);
-          pdfStorageUrl = urlData.publicUrl;
-        }
-      } catch (pdfErr) {
-        logger.warn("PDF generation failed:", pdfErr);
-      }
-
-      const { data, error } = await supabase.functions.invoke("sync-quote-bitrix", {
-        body: {
-          quote, proposalData, pdfUrl: pdfStorageUrl, filename,
-          bitrixCompanyId: effectiveBitrixCompanyId, sellerEmail: user?.email,
-          shippingType: quote.shipping_type, shippingCost: quote.shipping_cost,
-        },
+      const { syncQuoteToBitrix } = await import("./quote-view/QuoteBitrixSync");
+      const result = await syncQuoteToBitrix({
+        quote, proposalData, bitrixCompanyId, userEmail: user?.email,
+        logQuoteHistory,
+        onBitrixCompanyIdFound: (id) => setBitrixCompanyId(id),
       });
-
-      if (error || !data?.success) throw new Error(data?.error || error?.message || "Erro desconhecido");
-
-      const result = data.result;
-      const parsedBitrixId = result?.quote_id ? Number(result.quote_id) : null;
-      const bitrixQuoteIdFromResponse = parsedBitrixId && !isNaN(parsedBitrixId) ? parsedBitrixId : null;
-
-      const crmUpdates: Record<string, unknown> = { status: "sent" };
-      if (bitrixQuoteIdFromResponse) crmUpdates.bitrix_quote_id = bitrixQuoteIdFromResponse;
-
-      try {
-        await supabase.from("quotes").update(crmUpdates).eq("id", quote.id);
-      } catch { /* ignore */ }
-
-      await logQuoteHistory(quote.id, "sync_success",
-        `Sincronizado com Bitrix24${bitrixQuoteIdFromResponse ? ` — ID Bitrix: ${bitrixQuoteIdFromResponse}` : ""}`,
-        { newValue: bitrixQuoteIdFromResponse ? String(bitrixQuoteIdFromResponse) : undefined }
-      );
-
-      setQuote((prev) => prev ? { ...prev, status: "sent", ...(bitrixQuoteIdFromResponse ? { bitrix_quote_id: bitrixQuoteIdFromResponse } : {}) } : prev);
-      toast.success(result?.message || "Orçamento sincronizado com Bitrix24!");
+      if (result.success && result.updatedQuote) {
+        setQuote((prev) => prev ? { ...prev, ...result.updatedQuote } : prev);
+      }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "erro desconhecido";
-      await logQuoteHistory(quote.id, "sync_error", `Falha: ${msg}`);
       toast.error("Erro ao sincronizar", { description: msg });
     } finally {
       setIsSyncing(false);

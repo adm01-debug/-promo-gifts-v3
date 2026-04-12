@@ -28,6 +28,7 @@ import {
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PageSEO } from "@/components/seo/PageSEO";
+import { PublicQuoteItemsList, PublicQuoteTotals } from "./public-approval/PublicQuoteItems";
 
 interface QuoteData {
   quote: any;
