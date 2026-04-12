@@ -11,7 +11,7 @@ vi.mock("@/contexts/AuthContext", () => ({
     loading: false,
     signOut: vi.fn(),
   }),
-  AuthProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  AuthProvider: ({ children }: { children: React.ReactNode }) => children,
 }));
 
 // Mock supabase client
