@@ -103,6 +103,19 @@ export default function CollectionsPage() {
 
   const totalCollections = localCollections.length + externalCollections.length;
 
+  // Dynamic grid classes based on column count
+  const gridClasses = useMemo(() => {
+    if (viewMode === "list") return "flex flex-col gap-2";
+    const colMap: Record<ColumnCount, string> = {
+      3: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
+      4: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
+      5: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4",
+      6: "grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3",
+      8: "grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3",
+    };
+    return colMap[gridColumns] || colMap[4];
+  }, [viewMode, gridColumns]);
+
   // Filtered collections
   const filteredExternal = useMemo(() => {
     if (!searchQuery.trim()) return externalCollections;
