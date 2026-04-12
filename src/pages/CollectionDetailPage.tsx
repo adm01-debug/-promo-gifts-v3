@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   ArrowLeft, Monitor, Package, Trash2, Search,
-  FileText, ArrowUpDown, Clock, Download, GripVertical,
+  FileText, ArrowUpDown, Clock, Download, GripVertical, CheckSquare,
 } from "lucide-react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -10,6 +10,7 @@ import { ProductGrid } from "@/components/products/ProductGrid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -95,6 +96,30 @@ export default function CollectionDetailPage() {
   const [showPresentation, setShowPresentation] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+
+  const toggleSelect = useCallback((pid: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(pid) ? next.delete(pid) : next.add(pid);
+      return next;
+    });
+  }, []);
+
+  const toggleSelectAll = useCallback(() => {
+    setSelectedIds((prev) =>
+      prev.size === products.length
+        ? new Set()
+        : new Set(products.map((p) => p.id))
+    );
+  }, [products]);
+
+  const handleBulkRemove = useCallback(() => {
+    if (!id || selectedIds.size === 0) return;
+    selectedIds.forEach((pid) => removeProductFromCollection(id, pid));
+    toast.success(`${selectedIds.size} produto(s) removido(s)`);
+    setSelectedIds(new Set());
+  }, [id, selectedIds, removeProductFromCollection]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
