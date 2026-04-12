@@ -132,6 +132,30 @@ export default function CollectionDetailPage() {
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
+  const collection = useMemo(() => {
+    return collections.find((c) => c.id === id);
+  }, [collections, id]);
+
+  const products = useMemo(() => {
+    if (!id) return [];
+    return getCollectionProducts(id);
+  }, [id, getCollectionProducts]);
+
+  const variantMap = useMemo(() => {
+    if (!id) return new Map();
+    const items = getCollectionProductItems(id);
+    const map = new Map<
+      string,
+      { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null }
+    >();
+    items.forEach((item) => {
+      if (item.variant) {
+        map.set(item.productId, item.variant);
+      }
+    });
+    return map;
+  }, [id, getCollectionProductItems]);
+
   const toggleSelect = useCallback((pid: string) => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
@@ -176,30 +200,6 @@ export default function CollectionDetailPage() {
     },
     [id, products, reorderProducts]
   );
-
-  const collection = useMemo(() => {
-    return collections.find((c) => c.id === id);
-  }, [collections, id]);
-
-  const products = useMemo(() => {
-    if (!id) return [];
-    return getCollectionProducts(id);
-  }, [id, getCollectionProducts]);
-
-  const variantMap = useMemo(() => {
-    if (!id) return new Map();
-    const items = getCollectionProductItems(id);
-    const map = new Map<
-      string,
-      { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null }
-    >();
-    items.forEach((item) => {
-      if (item.variant) {
-        map.set(item.productId, item.variant);
-      }
-    });
-    return map;
-  }, [id, getCollectionProductItems]);
 
   // Filter + sort
   const filteredProducts = useMemo(() => {
