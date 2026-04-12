@@ -391,7 +391,7 @@ Deno.serve(async (req) => {
 
       case 'search': {
         // Buscar materiais por nome usando dados completos
-        const searchTerm = body.search || '';
+        const searchTerm = parsed.data.search || '';
         if (!searchTerm) {
           return new Response(
             JSON.stringify({ error: 'search é obrigatório' }),
