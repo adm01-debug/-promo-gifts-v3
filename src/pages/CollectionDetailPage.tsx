@@ -407,18 +407,6 @@ export default function CollectionDetailPage() {
                       ? "Carregando..."
                       : `${products.length} produtos`}
                   </Badge>
-                  {isExternal && (
-                    <Badge variant="outline" className="text-xs">
-                      <Cloud className="h-3 w-3 mr-1" />
-                      Catálogo
-                    </Badge>
-                  )}
-                  {updatedAgo && (
-                    <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      Atualizado {updatedAgo}
-                    </span>
-                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0 flex-wrap">
