@@ -51,6 +51,11 @@ export default function PublicQuoteApprovalPage() {
 
   return (
     <div className="min-h-screen bg-background">
+      <Helmet>
+        <title>Proposta #{quote.quote_number} | Promo Gifts</title>
+        <meta name="description" content={`Proposta comercial #${quote.quote_number} para aprovação`} />
+        <meta name="robots" content="noindex, nofollow" />
+      </Helmet>
       {/* Header */}
       <div className="bg-card border-b border-border">
         <div className="max-w-4xl mx-auto px-4 py-6">
