@@ -299,6 +299,61 @@ export default function CollectionsPage() {
             ) : (
               <div className={gridClasses}>
                 {filteredExternal.map((collection, idx) => (
+                  viewMode === "list" ? (
+                    <div
+                      key={collection.id}
+                      className="group flex items-center gap-4 p-3 rounded-xl bg-card border border-border/50 hover:border-primary/40 hover:shadow-md cursor-pointer transition-all duration-200 animate-fade-in"
+                      style={{ animationDelay: `${idx * 40}ms` }}
+                      onClick={() => navigate(`/colecoes/${collection.id}`)}
+                    >
+                      <div
+                        className="w-12 h-12 rounded-lg flex items-center justify-center text-lg shrink-0 overflow-hidden"
+                        style={{ backgroundColor: collection.color ? `${collection.color}20` : "hsl(var(--muted))" }}
+                      >
+                        {collection.image_url ? (
+                          <img src={collection.image_url} alt="" className="w-full h-full object-cover" />
+                        ) : (
+                          <FolderOpen className="h-6 w-6" style={{ color: collection.color || "hsl(var(--primary))" }} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-display font-semibold text-foreground truncate">{collection.name}</h3>
+                        {collection.description && (
+                          <p className="text-sm text-muted-foreground truncate">{collection.description}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge variant="outline" className="text-xs">
+                          <Cloud className="h-3 w-3 mr-1" />
+                          Catálogo
+                        </Badge>
+                        <span className="text-sm text-muted-foreground flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          {externalProductCounts ? (externalProductCounts.get(collection.id) ?? 0) : "…"}
+                        </span>
+                        {collection.is_featured && (
+                          <Star className="h-4 w-4 text-primary" />
+                        )}
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            createCollection(
+                              collection.name,
+                              collection.description || undefined,
+                              collection.color || defaultColors[0],
+                              collection.icon || defaultIcons[0]
+                            );
+                            toast.success(`Coleção "${collection.name}" duplicada como local`);
+                          }}
+                        >
+                          <Copy className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
                   <div
                     key={collection.id}
                     className="group relative rounded-xl sm:rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-primary/20 hover:border-primary/50 hover:shadow-xl card-lift transition-all duration-300 animate-fade-in stagger-item"
@@ -391,7 +446,7 @@ export default function CollectionsPage() {
                         className="h-8 w-8 bg-background/60 backdrop-blur-sm hover:bg-background/80"
                         onClick={(e) => {
                           e.stopPropagation();
-                          const cloned = createCollection(
+                          createCollection(
                             collection.name,
                             collection.description || undefined,
                             collection.color || defaultColors[0],
@@ -406,6 +461,7 @@ export default function CollectionsPage() {
                       </Button>
                     </div>
                   </div>
+                  )
                 ))}
               </div>
             )}
