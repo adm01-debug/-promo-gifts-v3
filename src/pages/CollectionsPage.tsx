@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
 import { useCollectionsContext } from "@/contexts/CollectionsContext";
-import { useExternalCollectionsManager } from "@/hooks/useExternalCollections";
+import { useExternalCollectionsManager, useExternalCollectionProductCounts } from "@/hooks/useExternalCollections";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
