@@ -191,7 +191,7 @@ export default function QuotesListPage() {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="space-y-6">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <DynamicBreadcrumbs />
           <div className="flex items-center justify-between">
             <div className="space-y-2">
@@ -214,7 +214,7 @@ export default function QuotesListPage() {
     <MainLayout>
       <PageSEO title="Orçamentos" description="Gerencie seus orçamentos. Crie, edite e acompanhe propostas comerciais." path="/orcamentos" />
       <TooltipProvider>
-        <div className="space-y-5">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
 
           {/* Header */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
