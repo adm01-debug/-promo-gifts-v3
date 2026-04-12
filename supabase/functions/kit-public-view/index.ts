@@ -1,4 +1,5 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "../_shared/zod-validate.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -6,17 +7,21 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
 };
 
+const KitRequestSchema = z.object({
+  action: z.enum(["get_kit"]),
+  token: z.string().min(1, "Token é obrigatório").max(200),
+});
+
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    // Safely parse body — GET requests have no body
-    let body: Record<string, unknown> = {};
+    let rawBody: Record<string, unknown> = {};
     if (req.method === "POST" || req.method === "PUT") {
       try {
-        body = await req.json();
+        rawBody = await req.json();
       } catch {
         return new Response(
           JSON.stringify({ error: "Corpo da requisição inválido. Envie um JSON com action e token." }),
@@ -24,11 +29,10 @@ Deno.serve(async (req: Request) => {
         );
       }
     } else {
-      // For GET requests, try to read token from query params
       const url = new URL(req.url);
       const tokenParam = url.searchParams.get("token");
       if (tokenParam) {
-        body = { action: "get_kit", token: tokenParam };
+        rawBody = { action: "get_kit", token: tokenParam };
       } else {
         return new Response(
           JSON.stringify({ error: "Use POST com JSON body ou GET com ?token=..." }),
@@ -37,14 +41,15 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    const { action, token } = body as { action?: string; token?: string };
-
-    if (!action || !token) {
+    const parsed = KitRequestSchema.safeParse(rawBody);
+    if (!parsed.success) {
       return new Response(
-        JSON.stringify({ error: "Parâmetros 'action' e 'token' são obrigatórios" }),
+        JSON.stringify({ error: "Parâmetros inválidos", details: parsed.error.flatten().fieldErrors }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    const { action, token } = parsed.data;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
