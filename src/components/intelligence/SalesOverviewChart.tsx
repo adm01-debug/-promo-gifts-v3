@@ -60,7 +60,7 @@ export function SalesOverviewChart({ days = 30, productId }: Props) {
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
             <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-              <ShoppingCart className="h-3.5 w-3.5 text-white" />
+              <ShoppingCart className="h-3.5 w-3.5 text-primary-foreground" />
             </div>
             📊 Vendas Internas (Macro)
           </CardTitle>
@@ -83,7 +83,7 @@ export function SalesOverviewChart({ days = 30, productId }: Props) {
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-                <ShoppingCart className="h-3.5 w-3.5 text-white" />
+                <ShoppingCart className="h-3.5 w-3.5 text-primary-foreground" />
               </div>
               📊 Vendas Internas (Macro)
             </CardTitle>

@@ -177,11 +177,11 @@ export function AIMockupAssistant({
     >
       {/* Header */}
       <div
-        className="flex items-center gap-3 p-3 border-b bg-[hsl(145,80%,30%)]/15 cursor-pointer"
+        className="flex items-center gap-3 p-3 border-b bg-primary/15 cursor-pointer"
         onClick={() => setIsMinimized(!isMinimized)}
       >
-        <div className="p-2 rounded-lg bg-[hsl(145,80%,30%)]/25">
-          <Bot className="h-4 w-4 text-[hsl(145,80%,30%)]" />
+        <div className="p-2 rounded-lg bg-primary/25">
+          <Bot className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="font-display font-semibold text-sm">Matheus — Expert em Layouts</h3>
@@ -228,7 +228,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "p-2 rounded-lg shrink-0",
                         message.role === "user"
-                          ? "bg-[hsl(145,80%,30%)] text-white"
+                          ? "bg-primary text-white"
                           : "bg-muted"
                       )}
                     >
@@ -242,7 +242,7 @@ export function AIMockupAssistant({
                       className={cn(
                         "rounded-xl p-3 max-w-[80%]",
                         message.role === "user"
-                          ? "bg-[hsl(145,80%,30%)] text-white"
+                          ? "bg-primary text-white"
                           : "bg-muted"
                       )}
                     >
@@ -306,7 +306,7 @@ export function AIMockupAssistant({
               <Button
                 type="submit"
                 size="icon" aria-label="Carregando"
-                className="h-10 w-10 shrink-0 bg-[hsl(145,80%,30%)] hover:bg-[hsl(145,80%,25%)] text-white"
+                className="h-10 w-10 shrink-0 bg-primary hover:bg-primary/90 text-white"
                 disabled={!input.trim() || isLoading}
               >
                 {isLoading ? (

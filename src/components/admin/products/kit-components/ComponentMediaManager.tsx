@@ -138,7 +138,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                   {/* Badge type */}
                   <div className="absolute top-1 left-1">
                     {item.media_type === 'video' && (
-                      <Badge className="text-[8px] px-1 py-0 h-3.5 bg-warning/80 text-white border-0">
+                      <Badge className="text-[8px] px-1 py-0 h-3.5 bg-warning/80 text-primary-foreground border-0">
                         Vídeo
                       </Badge>
                     )}
@@ -155,7 +155,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                       <button
                         type="button"
                         onClick={() => handleSetCover(item)}
-                        className="p-1.5 rounded-md bg-white/20 hover:bg-white/30 text-white transition-colors"
+                        className="p-1.5 rounded-md bg-white/20 hover:bg-white/30 text-primary-foreground transition-colors"
                         title="Definir como capa"
                       >
                         <Star className="h-3 w-3" />
@@ -164,7 +164,7 @@ export function ComponentMediaManager({ componentId, productId, componentName }:
                     <button
                       type="button"
                       onClick={() => handleDelete(item)}
-                      className="p-1.5 rounded-md bg-destructive/60 hover:bg-destructive/80 text-white transition-colors"
+                      className="p-1.5 rounded-md bg-destructive/60 hover:bg-destructive/80 text-primary-foreground transition-colors"
                       title="Excluir"
                     >
                       <Trash2 className="h-3 w-3" />
