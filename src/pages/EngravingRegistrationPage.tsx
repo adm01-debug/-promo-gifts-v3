@@ -13,7 +13,7 @@ export function EngravingRegistrationContent() {
   const [activeTab, setActiveTab] = useState("techniques");
 
   return (
-    <div className="space-y-6">
+    <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
       <PageSEO title="Cadastro de Gravações" description="Cadastre técnicas de gravação e personalização." path="/gravacoes" noIndex />
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full max-w-4xl grid-cols-6">
