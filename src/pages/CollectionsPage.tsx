@@ -89,8 +89,8 @@ export default function CollectionsPage() {
 
         {/* Toolbar */}
         <div className="flex items-center justify-between gap-3">
-          <Button size="sm" onClick={() => setIsCreateOpen(true)}>
-            <Plus className="h-3.5 w-3.5 mr-1.5" />
+          <Button size="sm" className="h-7 px-2.5 text-xs" onClick={() => setIsCreateOpen(true)}>
+            <Plus className="h-3 w-3 mr-1" />
             Nova Coleção
           </Button>
           <div className="relative max-w-md flex-1">
