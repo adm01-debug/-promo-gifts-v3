@@ -221,6 +221,27 @@ function removeTechniqueFromAreas(personalizationAreas: unknown, areaId: string,
 // MAIN HANDLER
 // ============================================
 
+const TopLevelBodySchema = z.object({
+  operation: z.enum(['select', 'insert', 'update', 'delete', 'upsert', 'batch_insert', 'rpc', 'batch']),
+  table: z.string().min(1).optional(),
+  queries: z.array(z.record(z.unknown())).max(10).optional(),
+  rpcName: z.string().optional(),
+  rpcParams: z.record(z.unknown()).optional(),
+  filters: z.record(z.unknown()).optional(),
+  data: z.unknown().optional(),
+  id: z.unknown().optional(),
+  select: z.string().optional(),
+  orderBy: z.object({ column: z.string(), ascending: z.boolean().optional() }).optional(),
+  limit: z.number().int().positive().optional(),
+  offset: z.number().int().min(0).optional(),
+  countMode: z.string().optional(),
+  onConflict: z.string().optional(),
+}).refine(data => {
+  if (data.operation === 'batch') return true;
+  if (data.operation === 'rpc') return !!data.rpcName;
+  return !!data.table;
+}, { message: "Field 'table' is required for CRUD operations, 'rpcName' for RPC" });
+
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
   const preflightResponse = handleCorsPreflightIfNeeded(req);
@@ -229,7 +250,19 @@ Deno.serve(async (req) => {
   const requestStartTime = performance.now();
 
   try {
-    const body = await req.json();
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return jsonResponse({ error: 'Invalid JSON body' }, 400, corsHeaders);
+    }
+
+    const parsed = TopLevelBodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return jsonResponse({ error: 'Validation failed', details: parsed.error.flatten().fieldErrors }, 400, corsHeaders);
+    }
+
+    const body = parsed.data as Record<string, unknown>;
 
     // ============================================
     // BATCH OPERATION
