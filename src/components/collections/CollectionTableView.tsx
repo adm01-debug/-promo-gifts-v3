@@ -1,0 +1,194 @@
+/**
+ * CollectionTableView — Table view for local collections.
+ */
+import { motion } from "framer-motion";
+import {
+  FolderOpen, MoreVertical, Pencil, Copy, Star,
+  Trash2, Package, Clock,
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem,
+  DropdownMenuSeparator, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import type { Collection } from "@/hooks/useCollections";
+
+interface CollectionTableRowProps {
+  collection: Collection;
+  products: any[];
+  isSelected: boolean;
+  isSelectionMode: boolean;
+  onToggleSelect: () => void;
+  onNavigate: () => void;
+  onEdit: () => void;
+  onClone: () => void;
+  onToggleFeatured: () => void;
+  onDelete: () => void;
+  updatedAgo?: string | null;
+  index: number;
+}
+
+function CollectionTableRow({
+  collection, products, isSelected, isSelectionMode,
+  onToggleSelect, onNavigate, onEdit, onClone, onToggleFeatured, onDelete,
+  updatedAgo, index,
+}: CollectionTableRowProps) {
+  const previewImage = products[0]?.images?.[0];
+  const iconChar = collection.icon || "📁";
+  const iconColor = collection.iconColor || "#6366f1";
+
+  return (
+    <motion.tr
+      initial={{ opacity: 0, y: 6 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * 0.03 }}
+      className={cn(
+        "group border-b border-border/50 hover:bg-muted/30 transition-colors cursor-pointer",
+        isSelected && "bg-primary/5"
+      )}
+      onClick={onNavigate}
+    >
+      {/* Checkbox */}
+      <td className="w-10 px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
+        <SelectionCheckbox
+          isSelected={isSelected}
+          onToggle={onToggleSelect}
+          size="sm"
+        />
+      </td>
+
+      {/* Icon + Name */}
+      <td className="px-3 py-2.5">
+        <div className="flex items-center gap-2.5">
+          {previewImage ? (
+            <img src={previewImage} alt="" className="w-8 h-8 rounded object-cover shrink-0" />
+          ) : (
+            <div
+              className="w-8 h-8 rounded flex items-center justify-center text-sm shrink-0"
+              style={{ backgroundColor: `${iconColor}20`, color: iconColor }}
+            >
+              {iconChar}
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground truncate">{collection.name}</p>
+            {collection.description && (
+              <p className="text-xs text-muted-foreground truncate max-w-[200px]">{collection.description}</p>
+            )}
+          </div>
+        </div>
+      </td>
+
+      {/* Products count */}
+      <td className="px-3 py-2.5 text-center">
+        <Badge variant="secondary" className="text-xs gap-1">
+          <Package className="h-3 w-3" />
+          {collection.productIds.length}
+        </Badge>
+      </td>
+
+      {/* Featured */}
+      <td className="px-3 py-2.5 text-center">
+        {collection.isFeatured && (
+          <Star className="h-4 w-4 text-amber-500 fill-amber-500 mx-auto" />
+        )}
+      </td>
+
+      {/* Updated */}
+      <td className="px-3 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
+        {updatedAgo && (
+          <span className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            {updatedAgo}
+          </span>
+        )}
+      </td>
+
+      {/* Actions */}
+      <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="sm" className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+              <MoreVertical className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onClick={onEdit}>
+              <Pencil className="h-3.5 w-3.5 mr-2" /> Editar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onClone}>
+              <Copy className="h-3.5 w-3.5 mr-2" /> Duplicar
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onToggleFeatured}>
+              <Star className="h-3.5 w-3.5 mr-2" />
+              {collection.isFeatured ? "Remover destaque" : "Destacar"}
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onClick={onDelete} className="text-destructive focus:text-destructive">
+              <Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </td>
+    </motion.tr>
+  );
+}
+
+interface CollectionTableViewProps {
+  collections: Collection[];
+  getCollectionProducts: (id: string) => any[];
+  selectedCollectionIds: Set<string>;
+  isSelectionMode: boolean;
+  onToggleSelect: (id: string) => void;
+  onNavigate: (id: string) => void;
+  onEdit: (collection: Collection) => void;
+  onClone: (collection: Collection) => void;
+  onToggleFeatured: (collection: Collection) => void;
+  onDelete: (id: string) => void;
+  relativeTime: (dateStr: string | undefined) => string | null;
+}
+
+export function CollectionTableView({
+  collections, getCollectionProducts, selectedCollectionIds, isSelectionMode,
+  onToggleSelect, onNavigate, onEdit, onClone, onToggleFeatured, onDelete,
+  relativeTime,
+}: CollectionTableViewProps) {
+  return (
+    <div className="rounded-lg border border-border/50 overflow-hidden">
+      <table className="w-full text-left">
+        <thead>
+          <tr className="bg-muted/30 border-b border-border/50">
+            <th className="w-10 px-3 py-2" />
+            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Coleção</th>
+            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Produtos</th>
+            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Destaque</th>
+            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Atualizado</th>
+            <th className="px-3 py-2 w-12" />
+          </tr>
+        </thead>
+        <tbody>
+          {collections.map((collection, idx) => (
+            <CollectionTableRow
+              key={collection.id}
+              collection={collection}
+              products={getCollectionProducts(collection.id)}
+              isSelected={selectedCollectionIds.has(collection.id)}
+              isSelectionMode={isSelectionMode}
+              onToggleSelect={() => onToggleSelect(collection.id)}
+              onNavigate={() => onNavigate(collection.id)}
+              onEdit={() => onEdit(collection)}
+              onClone={() => onClone(collection)}
+              onToggleFeatured={() => onToggleFeatured(collection)}
+              onDelete={() => onDelete(collection.id)}
+              updatedAgo={relativeTime(collection.updatedAt)}
+              index={idx}
+            />
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
