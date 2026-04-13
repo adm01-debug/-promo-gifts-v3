@@ -1,15 +1,14 @@
 /**
- * CollectionTableView — Table view for local collections with sorting, search & filters.
+ * CollectionTableView — Table view for local collections with sorting.
  */
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   FolderOpen, MoreVertical, Pencil, Copy, Star,
   Trash2, Package, Clock, ArrowUp, ArrowDown, ArrowUpDown,
-  Search, X, Filter,
+  Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -182,8 +181,6 @@ export function CollectionTableView({
 }: CollectionTableViewProps) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [tableSearch, setTableSearch] = useState("");
-  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -194,39 +191,10 @@ export function CollectionTableView({
     }
   };
 
-  const filtered = useMemo(() => {
-    let result = collections;
-
-    // Text search
-    if (tableSearch.trim()) {
-      const q = tableSearch.toLowerCase();
-      result = result.filter(
-        (c) =>
-          c.name.toLowerCase().includes(q) ||
-          c.description?.toLowerCase().includes(q)
-      );
-    }
-
-    // Filter chips
-    switch (activeFilter) {
-      case "featured":
-        result = result.filter((c) => c.isFeatured);
-        break;
-      case "with-products":
-        result = result.filter((c) => c.productIds.length > 0);
-        break;
-      case "empty":
-        result = result.filter((c) => c.productIds.length === 0);
-        break;
-    }
-
-    return result;
-  }, [collections, tableSearch, activeFilter]);
-
   const sorted = useMemo(() => {
-    if (!sortKey) return filtered;
+    if (!sortKey) return collections;
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...filtered].sort((a, b) => {
+    return [...collections].sort((a, b) => {
       switch (sortKey) {
         case "name":
           return dir * a.name.localeCompare(b.name, "pt-BR");
@@ -240,70 +208,10 @@ export function CollectionTableView({
           return 0;
       }
     });
-  }, [filtered, sortKey, sortDir]);
-
-  const hasActiveFilters = tableSearch.trim() !== "" || activeFilter !== "all";
+  }, [collections, sortKey, sortDir]);
 
   return (
     <div className="space-y-2">
-      {/* Search & Filter Bar */}
-      <div className="flex items-center gap-2 flex-wrap">
-        <div className="relative max-w-xs flex-1 min-w-[180px]">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Filtrar na tabela..."
-            value={tableSearch}
-            onChange={(e) => setTableSearch(e.target.value)}
-            className="h-8 pl-8 pr-8 text-xs"
-          />
-          {tableSearch && (
-            <button
-              onClick={() => setTableSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-
-        <div className="flex items-center gap-1">
-          {FILTER_OPTIONS.map((opt) => (
-            <Button
-              key={opt.value}
-              variant={activeFilter === opt.value ? "default" : "outline"}
-              size="sm"
-              className={cn(
-                "h-7 px-2.5 text-xs gap-1 transition-all",
-                activeFilter === opt.value
-                  ? "shadow-sm"
-                  : "border-border/50 text-muted-foreground hover:text-foreground"
-              )}
-              onClick={() => setActiveFilter(opt.value)}
-            >
-              {opt.icon}
-              {opt.label}
-            </Button>
-          ))}
-        </div>
-
-        {hasActiveFilters && (
-          <div className="flex items-center gap-1.5 ml-auto">
-            <span className="text-xs text-muted-foreground">
-              {sorted.length} de {collections.length}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
-              onClick={() => { setTableSearch(""); setActiveFilter("all"); }}
-            >
-              <X className="h-3 w-3" />
-              Limpar
-            </Button>
-          </div>
-        )}
-      </div>
-
       {/* Table */}
       <div className="rounded-lg border border-border/50 overflow-hidden">
         <table className="w-full text-left">
