@@ -79,7 +79,7 @@ export function ExternalCollectionCard({
       onClick={onNavigate}
     >
       <div
-        className="aspect-[4/3] overflow-hidden flex items-center justify-center relative"
+        className="aspect-[3/4] overflow-hidden flex items-center justify-center relative"
         style={{
           backgroundColor: collection.color ? `${collection.color}12` : "hsl(var(--muted))",
         }}
