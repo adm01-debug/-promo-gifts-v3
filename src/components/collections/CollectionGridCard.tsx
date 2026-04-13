@@ -198,7 +198,7 @@ export function CollectionGridCard({
       </div>
 
       {/* ── Image area ── */}
-      <div className="aspect-[3/4] relative overflow-hidden bg-muted/10">
+      <div className="aspect-[3/4] relative overflow-hidden bg-white/[0.03]">
         {hasImages ? (
           <>
             <DynamicCollage images={allImages} />
