@@ -253,6 +253,29 @@
 }
 
 /* ============================================
+   FLUTED GLASS (vidro canelado)
+   ============================================ */
+.fluted-glass {
+  position: relative;
+}
+.fluted-glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2;
+  background: repeating-linear-gradient(
+    90deg,
+    transparent 0px,
+    transparent 4px,
+    rgba(255, 255, 255, 0.07) 4px,
+    rgba(255, 255, 255, 0.07) 6px
+  );
+  border-radius: inherit;
+}
+
+
+/* ============================================
    TEXT UTILITIES
    ============================================ */
 .text-balance {
