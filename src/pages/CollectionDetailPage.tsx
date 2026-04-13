@@ -360,6 +360,17 @@ export default function CollectionDetailPage() {
                   <DropdownMenuItem onClick={() => setSortBy("sku")}>SKU</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              {!isExternal && (
+                <Button
+                  variant={isSelectionMode ? "default" : "outline"}
+                  size="sm"
+                  className="gap-2"
+                  onClick={toggleSelectionMode}
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  {isSelectionMode ? "Selecionando" : "Selecionar"}
+                </Button>
+              )}
               <p className="text-sm text-muted-foreground">
                 {filteredProducts.length === products.length ? `${products.length} produtos` : `${filteredProducts.length} de ${products.length}`}
               </p>
@@ -378,6 +389,9 @@ export default function CollectionDetailPage() {
                   isInCompare={isInCompare}
                   onToggleCompare={toggleCompare}
                   canAddToCompare={canAddMore}
+                  selectionMode={isSelectionMode}
+                  selectedIds={selectedIds}
+                  onToggleSelect={toggleSelect}
                 />
               ) : (
                 <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
