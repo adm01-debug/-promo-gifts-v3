@@ -185,21 +185,7 @@ export default function CollectionDetailPage() {
     });
   }, [collection, selectedIds, products, variantMap, navigate]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id || !id) return;
-      const oldIndex = products.findIndex((p) => p.id === active.id);
-      const newIndex = products.findIndex((p) => p.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-      const newOrder = arrayMove(products.map((p) => p.id), oldIndex, newIndex);
-      reorderProducts(id, newOrder);
-      toast.success("Ordem atualizada");
-    },
-    [id, products, reorderProducts]
-  );
 
   // Filter + sort
   const filteredProducts = useMemo(() => {
