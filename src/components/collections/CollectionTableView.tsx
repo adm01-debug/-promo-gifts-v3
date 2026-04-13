@@ -1,13 +1,15 @@
 /**
- * CollectionTableView — Table view for local collections with column sorting.
+ * CollectionTableView — Table view for local collections with sorting, search & filters.
  */
 import { useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   FolderOpen, MoreVertical, Pencil, Copy, Star,
   Trash2, Package, Clock, ArrowUp, ArrowDown, ArrowUpDown,
+  Search, X, Filter,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem,
@@ -19,17 +21,19 @@ import type { Collection } from "@/hooks/useCollections";
 
 type SortKey = "name" | "products" | "featured" | "updated";
 type SortDir = "asc" | "desc";
+type FilterType = "all" | "featured" | "with-products" | "empty";
 
-interface SortHeaderProps {
-  label: string;
-  sortKey: SortKey;
-  currentKey: SortKey | null;
-  currentDir: SortDir;
-  onSort: (key: SortKey) => void;
-  className?: string;
-}
+const FILTER_OPTIONS: { value: FilterType; label: string; icon?: React.ReactNode }[] = [
+  { value: "all", label: "Todas" },
+  { value: "featured", label: "Destacadas", icon: <Star className="h-3 w-3" /> },
+  { value: "with-products", label: "Com produtos", icon: <Package className="h-3 w-3" /> },
+  { value: "empty", label: "Vazias", icon: <FolderOpen className="h-3 w-3" /> },
+];
 
-function SortHeader({ label, sortKey, currentKey, currentDir, onSort, className }: SortHeaderProps) {
+function SortHeader({ label, sortKey, currentKey, currentDir, onSort, className }: {
+  label: string; sortKey: SortKey; currentKey: SortKey | null; currentDir: SortDir;
+  onSort: (key: SortKey) => void; className?: string;
+}) {
   const isActive = currentKey === sortKey;
   return (
     <th
@@ -178,6 +182,8 @@ export function CollectionTableView({
 }: CollectionTableViewProps) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [tableSearch, setTableSearch] = useState("");
+  const [activeFilter, setActiveFilter] = useState<FilterType>("all");
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -188,10 +194,39 @@ export function CollectionTableView({
     }
   };
 
+  const filtered = useMemo(() => {
+    let result = collections;
+
+    // Text search
+    if (tableSearch.trim()) {
+      const q = tableSearch.toLowerCase();
+      result = result.filter(
+        (c) =>
+          c.name.toLowerCase().includes(q) ||
+          c.description?.toLowerCase().includes(q)
+      );
+    }
+
+    // Filter chips
+    switch (activeFilter) {
+      case "featured":
+        result = result.filter((c) => c.isFeatured);
+        break;
+      case "with-products":
+        result = result.filter((c) => c.productIds.length > 0);
+        break;
+      case "empty":
+        result = result.filter((c) => c.productIds.length === 0);
+        break;
+    }
+
+    return result;
+  }, [collections, tableSearch, activeFilter]);
+
   const sorted = useMemo(() => {
-    if (!sortKey) return collections;
+    if (!sortKey) return filtered;
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...collections].sort((a, b) => {
+    return [...filtered].sort((a, b) => {
       switch (sortKey) {
         case "name":
           return dir * a.name.localeCompare(b.name, "pt-BR");
@@ -205,41 +240,119 @@ export function CollectionTableView({
           return 0;
       }
     });
-  }, [collections, sortKey, sortDir]);
+  }, [filtered, sortKey, sortDir]);
+
+  const hasActiveFilters = tableSearch.trim() !== "" || activeFilter !== "all";
 
   return (
-    <div className="rounded-lg border border-border/50 overflow-hidden">
-      <table className="w-full text-left">
-        <thead>
-          <tr className="bg-muted/30 border-b border-border/50">
-            <th className="w-10 px-3 py-2" />
-            <SortHeader label="Coleção" sortKey="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-            <SortHeader label="Produtos" sortKey="products" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
-            <SortHeader label="Destaque" sortKey="featured" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
-            <SortHeader label="Atualizado" sortKey="updated" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
-            <th className="px-3 py-2 w-12" />
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((collection, idx) => (
-            <CollectionTableRow
-              key={collection.id}
-              collection={collection}
-              products={getCollectionProducts(collection.id)}
-              isSelected={selectedCollectionIds.has(collection.id)}
-              isSelectionMode={isSelectionMode}
-              onToggleSelect={() => onToggleSelect(collection.id)}
-              onNavigate={() => onNavigate(collection.id)}
-              onEdit={() => onEdit(collection)}
-              onClone={() => onClone(collection)}
-              onToggleFeatured={() => onToggleFeatured(collection)}
-              onDelete={() => onDelete(collection.id)}
-              updatedAgo={relativeTime(collection.updatedAt)}
-              index={idx}
-            />
+    <div className="space-y-2">
+      {/* Search & Filter Bar */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <div className="relative max-w-xs flex-1 min-w-[180px]">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Filtrar na tabela..."
+            value={tableSearch}
+            onChange={(e) => setTableSearch(e.target.value)}
+            className="h-8 pl-8 pr-8 text-xs"
+          />
+          {tableSearch && (
+            <button
+              onClick={() => setTableSearch("")}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1">
+          {FILTER_OPTIONS.map((opt) => (
+            <Button
+              key={opt.value}
+              variant={activeFilter === opt.value ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "h-7 px-2.5 text-xs gap-1 transition-all",
+                activeFilter === opt.value
+                  ? "shadow-sm"
+                  : "border-border/50 text-muted-foreground hover:text-foreground"
+              )}
+              onClick={() => setActiveFilter(opt.value)}
+            >
+              {opt.icon}
+              {opt.label}
+            </Button>
           ))}
-        </tbody>
-      </table>
+        </div>
+
+        {hasActiveFilters && (
+          <div className="flex items-center gap-1.5 ml-auto">
+            <span className="text-xs text-muted-foreground">
+              {sorted.length} de {collections.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 text-xs text-muted-foreground hover:text-foreground gap-1"
+              onClick={() => { setTableSearch(""); setActiveFilter("all"); }}
+            >
+              <X className="h-3 w-3" />
+              Limpar
+            </Button>
+          </div>
+        )}
+      </div>
+
+      {/* Table */}
+      <div className="rounded-lg border border-border/50 overflow-hidden">
+        <table className="w-full text-left">
+          <thead>
+            <tr className="bg-muted/30 border-b border-border/50">
+              <th className="w-10 px-3 py-2" />
+              <SortHeader label="Coleção" sortKey="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+              <SortHeader label="Produtos" sortKey="products" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+              <SortHeader label="Destaque" sortKey="featured" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+              <SortHeader label="Atualizado" sortKey="updated" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+              <th className="px-3 py-2 w-12" />
+            </tr>
+          </thead>
+          <tbody>
+            <AnimatePresence mode="popLayout">
+              {sorted.length > 0 ? (
+                sorted.map((collection, idx) => (
+                  <CollectionTableRow
+                    key={collection.id}
+                    collection={collection}
+                    products={getCollectionProducts(collection.id)}
+                    isSelected={selectedCollectionIds.has(collection.id)}
+                    isSelectionMode={isSelectionMode}
+                    onToggleSelect={() => onToggleSelect(collection.id)}
+                    onNavigate={() => onNavigate(collection.id)}
+                    onEdit={() => onEdit(collection)}
+                    onClone={() => onClone(collection)}
+                    onToggleFeatured={() => onToggleFeatured(collection)}
+                    onDelete={() => onDelete(collection.id)}
+                    updatedAgo={relativeTime(collection.updatedAt)}
+                    index={idx}
+                  />
+                ))
+              ) : (
+                <motion.tr
+                  key="empty"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <td colSpan={6} className="px-3 py-8 text-center">
+                    <Filter className="h-8 w-8 text-muted-foreground/40 mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Nenhuma coleção encontrada com os filtros atuais</p>
+                  </td>
+                </motion.tr>
+              )}
+            </AnimatePresence>
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
