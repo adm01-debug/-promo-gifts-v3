@@ -147,9 +147,8 @@ export function CollectionGridCard({
       transition={{ delay: index * 0.035, type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
         "group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500",
-        "bg-card/60 backdrop-blur-xl border-[1.5px] border-white/15",
-        "hover:border-primary/50",
-        "shadow-[inset_0_1px_0_0_hsl(var(--foreground)/0.06)]",
+        "border-[1.5px] border-white/20",
+        "hover:border-white/30",
         isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10",
         "holo-card"
       )}
@@ -223,7 +222,7 @@ export function CollectionGridCard({
       </div>
 
       {/* ── Footer ── */}
-      <div className="p-4 space-y-3 bg-white/[0.04] border-t border-white/[0.06]">
+      <div className="p-4 space-y-3 bg-white/[0.06] backdrop-blur-md border-t border-white/10">
         {/* Row 1: Icon + Title + Star */}
         <div className="flex items-center gap-3">
           <div
