@@ -203,8 +203,19 @@ export function CollectionGridCard({
           <>
             <DynamicCollage images={allImages} />
 
+            {/* Glass overlay on entire image area */}
+            <div
+              className="absolute inset-0 z-[1] pointer-events-none"
+              style={{
+                background: "linear-gradient(180deg, hsl(var(--card) / 0.25) 0%, hsl(var(--card) / 0.08) 40%, hsl(var(--card) / 0.15) 100%)",
+                backdropFilter: "blur(2px) saturate(1.2)",
+                WebkitBackdropFilter: "blur(2px) saturate(1.2)",
+                boxShadow: "inset 0 1px 0 0 hsl(0 0% 100% / 0.1), inset 0 -1px 0 0 hsl(0 0% 100% / 0.05)",
+              }}
+            />
+
             {/* Product count pill */}
-            <div className="absolute top-3 right-14 sm:right-3 sm:group-hover:right-14 transition-all duration-200">
+            <div className="absolute top-3 right-14 sm:right-3 sm:group-hover:right-14 transition-all duration-200 z-[5]">
               <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-card/90 backdrop-blur-xl text-foreground border border-border/20 shadow-sm">
                 <Package className="h-3 w-3 text-primary" />
                 {productCount}
