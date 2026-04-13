@@ -7,6 +7,7 @@ import {
 import { CollectionGridCard } from "@/components/collections/CollectionGridCard";
 import { CollectionListItem } from "@/components/collections/CollectionListItem";
 import { CollectionTableView } from "@/components/collections/CollectionTableView";
+import { ExternalCollectionTableView } from "@/components/collections/ExternalCollectionTableView";
 import { CollectionFormDialog } from "@/components/collections/CollectionFormDialog";
 import { ExternalCollectionCard } from "@/components/collections/ExternalCollectionCard";
 import { MainLayout } from "@/components/layout/MainLayout";
