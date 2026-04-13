@@ -2,7 +2,7 @@ import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Package, Trash2, Search,
-  FileText, ArrowUpDown, ArrowRight,
+  FileText, ArrowUpDown, ArrowRight, CheckSquare,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -68,6 +68,7 @@ export default function CollectionDetailPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [selectionModeActive, setSelectionModeActive] = useState(false);
 
   // --- Local collection lookup ---
   const localCollection = useMemo(() => collections.find((c) => c.id === id), [collections, id]);
@@ -140,7 +141,7 @@ export default function CollectionDetailPage() {
     return map;
   }, [id, isExternal, getCollectionProductItems]);
 
-  const isSelectionMode = selectedIds.size > 0;
+  const isSelectionMode = selectionModeActive || selectedIds.size > 0;
 
   const toggleSelect = useCallback((pid: string) => {
     setSelectedIds((prev) => {
@@ -154,7 +155,16 @@ export default function CollectionDetailPage() {
     setSelectedIds((prev) => prev.size === products.length ? new Set() : new Set(products.map((p) => p.id)));
   }, [products]);
 
-  const clearSelection = useCallback(() => setSelectedIds(new Set()), []);
+  const clearSelection = useCallback(() => { setSelectedIds(new Set()); setSelectionModeActive(false); }, []);
+
+  const toggleSelectionMode = useCallback(() => {
+    if (selectionModeActive) {
+      setSelectedIds(new Set());
+      setSelectionModeActive(false);
+    } else {
+      setSelectionModeActive(true);
+    }
+  }, [selectionModeActive]);
 
   const handleBulkRemove = useCallback(() => {
     if (!id || selectedIds.size === 0) return;
