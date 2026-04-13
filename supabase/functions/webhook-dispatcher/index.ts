@@ -1,7 +1,13 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { crypto } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import { encodeHex } from "https://deno.land/std@0.224.0/encoding/hex.ts";
-import { safeParseBody, validationError } from '../_shared/validate.ts';
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+
+const BodySchema = z.object({
+  event_type: z.string().min(1, "event_type is required"),
+  payload: z.unknown().optional(),
+  notification_id: z.string().uuid().optional(),
+});
 
 Deno.serve(async (req) => {
   try {
@@ -10,11 +16,25 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const body = await safeParseBody<{ event_type?: string; payload?: unknown; notification_id?: string }>(req);
-    if (!body?.event_type) {
-      return validationError('event_type is required');
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
     }
-    const { event_type, payload, notification_id } = body;
+
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { event_type, payload } = parsed.data;
 
     // Buscar webhooks ativos para este tipo de evento
     const { data: webhooks, error: webhooksError } = await supabase
@@ -45,7 +65,6 @@ Deno.serve(async (req) => {
 
       while (attemptNumber <= webhook.max_retries && !success) {
         try {
-          // Gerar HMAC signature se secret configurado
           const headers: Record<string, string> = {
             'Content-Type': 'application/json',
             'User-Agent': 'Promo-Brindes-Webhooks/1.0',
@@ -60,7 +79,6 @@ Deno.serve(async (req) => {
             headers['X-Webhook-Signature'] = signature;
           }
 
-          // Enviar webhook
           const response = await fetch(webhook.url, {
             method: 'POST',
             headers,
@@ -73,7 +91,6 @@ Deno.serve(async (req) => {
 
           const responseBody = await response.text();
 
-          // Log
           await supabase.from('webhook_logs').insert({
             webhook_id: webhook.id,
             event_type,
@@ -87,7 +104,6 @@ Deno.serve(async (req) => {
           if (response.ok) {
             success = true;
             
-            // Atualizar stats
             await supabase
               .from('webhook_configs')
               .update({
@@ -106,7 +122,6 @@ Deno.serve(async (req) => {
             lastError = `HTTP ${response.status}: ${responseBody}`;
             
             if (attemptNumber < webhook.max_retries) {
-              // Wait before retry
               await new Promise(resolve => 
                 setTimeout(resolve, webhook.retry_delay_seconds * 1000)
               );
@@ -116,7 +131,6 @@ Deno.serve(async (req) => {
           const errorMessage = err instanceof Error ? err.message : 'Unknown error';
           lastError = errorMessage;
           
-          // Log erro
           await supabase.from('webhook_logs').insert({
             webhook_id: webhook.id,
             event_type,
@@ -138,7 +152,6 @@ Deno.serve(async (req) => {
       }
 
       if (!success) {
-        // Atualizar contador de falhas
         await supabase
           .from('webhook_configs')
           .update({

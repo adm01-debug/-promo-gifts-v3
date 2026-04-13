@@ -1,9 +1,10 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-import { safeParseBody, validationError } from '../_shared/validate.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const BodySchema = z.object({
+  token: z.string().min(1, "Token não fornecido"),
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -16,12 +17,25 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    const body = await safeParseBody<{ token?: string }>(req);
-    const token = body?.token;
-
-    if (!token || typeof token !== 'string') {
-      return validationError('Token não fornecido', corsHeaders);
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
+
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: parsed.error.issues[0]?.message || "Validation failed" }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const { token } = parsed.data;
 
     // Verify the token from email link
     const { data: { user }, error: verifyError } = await supabase.auth.admin.getUserById(token);

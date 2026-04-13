@@ -1,7 +1,23 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
-import { safeParseBody, validationError } from '../_shared/validate.ts';
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+
+const BodySchema = z.object({
+  productImageUrl: z.string().url(),
+  logoBase64: z.string().optional(),
+  logoUrl: z.string().url().optional(),
+  productName: z.string().optional(),
+  productColor: z.string().optional(),
+  techniqueName: z.string().optional(),
+  locationName: z.string().optional(),
+  scenePrompt: z.string().min(1, "Scene prompt is required"),
+  sceneCategory: z.string().optional(),
+  brandColorHex: z.string().optional(),
+  brandColorName: z.string().optional(),
+}).refine(data => data.logoBase64 || data.logoUrl, {
+  message: "Either logoBase64 or logoUrl must be provided",
+});
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -18,32 +34,31 @@ Deno.serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    const body = await safeParseBody<Record<string, unknown>>(req);
-    if (!body) {
-      return validationError("Request body is required", corsHeaders);
+    let rawBody: unknown;
+    try {
+      rawBody = await req.json();
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
     const {
       productImageUrl, logoBase64, logoUrl, productName, productColor,
       techniqueName, locationName, scenePrompt, sceneCategory,
       brandColorHex, brandColorName,
-    } = body as Record<string, string | undefined>;
+    } = parsed.data;
 
-    const logoImageSrc = logoBase64 || logoUrl;
-
-    if (!productImageUrl || !logoImageSrc) {
-      return new Response(
-        JSON.stringify({ error: "Product image and logo are required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    if (!scenePrompt) {
-      return new Response(
-        JSON.stringify({ error: "Scene prompt is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const logoImageSrc = logoBase64 || logoUrl!;
 
     console.log(`[ad-image] Product: ${productName} (${productColor})`);
     console.log(`[ad-image] Technique: ${techniqueName} @ ${locationName}`);
