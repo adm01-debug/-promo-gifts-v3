@@ -15,9 +15,7 @@ import { getDefaultColumns, type ColumnCount } from "@/components/products/Colum
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import { BulkSelectionBar } from "@/components/common/BulkSelectionBar";
-import { SortableProductItem } from "@/components/collections/SortableProductItem";
 import { CollectionDetailHeader } from "@/components/collections/CollectionDetailHeader";
 import {
   DropdownMenu,
@@ -31,19 +29,6 @@ import {
   useExternalCollections,
   useExternalCollectionProducts,
 } from "@/hooks/useExternalCollections";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
