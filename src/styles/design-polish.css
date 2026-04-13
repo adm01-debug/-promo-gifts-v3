@@ -324,6 +324,11 @@
 .holo-card {
   position: relative;
   isolation: isolate;
+  box-shadow:
+    0 1px 0 hsl(var(--background) / 0.7) inset,
+    0 12px 28px -16px hsl(var(--foreground) / 0.22),
+    0 0 0 1px hsl(var(--primary) / 0.08);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
 }
 
 .holo-card::before {
@@ -334,81 +339,107 @@
   pointer-events: none;
   border-radius: inherit;
   background:
+    radial-gradient(circle at 12% 18%, hsl(280 88% 74% / 0.32), transparent 24%),
+    radial-gradient(circle at 82% 22%, hsl(192 92% 68% / 0.28), transparent 28%),
+    radial-gradient(circle at 76% 78%, hsl(332 88% 70% / 0.24), transparent 26%),
     linear-gradient(
-      125deg,
+      120deg,
       transparent 0%,
-      hsl(280 80% 70% / 0.08) 15%,
-      hsl(200 90% 60% / 0.12) 30%,
-      transparent 45%,
-      hsl(340 80% 65% / 0.08) 60%,
-      hsl(170 80% 55% / 0.10) 75%,
+      hsl(56 95% 78% / 0.24) 18%,
+      hsl(186 90% 72% / 0.22) 34%,
+      transparent 48%,
+      hsl(318 85% 72% / 0.24) 66%,
+      hsl(150 82% 68% / 0.2) 82%,
       transparent 100%
     );
-  opacity: 0.4;
-  transition: opacity 0.5s ease;
-  mix-blend-mode: screen;
-}
-
-.holo-card:hover::before {
-  opacity: 1;
-  animation: holo-shift 3s ease-in-out infinite alternate;
+  background-size: 180% 180%;
+  opacity: 0.72;
+  transform: scale(1.01);
+  filter: saturate(1.08);
+  animation: holo-sheen 8s ease-in-out infinite alternate;
+  transition: opacity 0.35s ease, transform 0.35s ease, filter 0.35s ease;
 }
 
 .holo-card::after {
   content: '';
   position: absolute;
-  inset: -1px;
+  inset: 0;
   z-index: 11;
   pointer-events: none;
   border-radius: inherit;
+  border: 1.5px solid transparent;
   background:
+    linear-gradient(hsl(var(--card) / 0), hsl(var(--card) / 0)) padding-box,
     linear-gradient(
       135deg,
-      hsl(280 70% 65% / 0.25) 0%,
-      hsl(200 80% 60% / 0.3) 25%,
-      hsl(340 70% 60% / 0.25) 50%,
-      hsl(170 70% 55% / 0.3) 75%,
-      hsl(280 70% 65% / 0.25) 100%
-    );
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  padding: 1.5px;
-  opacity: 0.3;
-  transition: opacity 0.4s ease;
-}
-
-.holo-card:hover::after {
-  opacity: 1;
-  animation: holo-border 4s linear infinite;
+      hsl(280 88% 74% / 0.96) 0%,
+      hsl(200 90% 68% / 0.96) 22%,
+      hsl(56 95% 76% / 0.92) 44%,
+      hsl(332 86% 70% / 0.96) 68%,
+      hsl(158 82% 66% / 0.94) 84%,
+      hsl(280 88% 74% / 0.96) 100%
+    ) border-box;
+  background-size: 220% 220%;
+  background-position: 0% 50%;
+  opacity: 0.88;
+  filter: saturate(1.16) brightness(1.05);
+  animation: holo-border 7s linear infinite;
+  transition: opacity 0.35s ease, filter 0.35s ease, transform 0.35s ease;
 }
 
 .holo-card:hover {
   box-shadow:
-    0 8px 32px -8px hsl(280 60% 60% / 0.15),
-    0 16px 48px -12px hsl(200 70% 55% / 0.12),
-    0 0 20px -5px hsl(340 60% 60% / 0.1);
+    0 1px 0 hsl(var(--background) / 0.82) inset,
+    0 18px 38px -18px hsl(280 70% 58% / 0.32),
+    0 26px 54px -28px hsl(196 82% 56% / 0.22),
+    0 0 0 1px hsl(var(--primary) / 0.18);
 }
 
-@keyframes holo-shift {
+.holo-card:hover::before {
+  opacity: 0.95;
+  transform: scale(1.015);
+  filter: saturate(1.18) brightness(1.06);
+}
+
+.holo-card:hover::after {
+  opacity: 1;
+  filter: saturate(1.22) brightness(1.1);
+  transform: scale(1.002);
+}
+
+@keyframes holo-sheen {
   0% {
-    background-position: 0% 0%;
-    filter: hue-rotate(0deg);
+    background-position: 0% 18%;
+    filter: saturate(1.05) hue-rotate(0deg);
   }
   50% {
-    filter: hue-rotate(30deg);
+    background-position: 65% 50%;
+    filter: saturate(1.14) hue-rotate(12deg);
   }
   100% {
-    background-position: 100% 100%;
-    filter: hue-rotate(-20deg);
+    background-position: 100% 82%;
+    filter: saturate(1.08) hue-rotate(-10deg);
   }
 }
 
 @keyframes holo-border {
   0% {
-    filter: hue-rotate(0deg);
+    background-position: 0% 50%;
+    filter: saturate(1.14) hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: saturate(1.2) hue-rotate(18deg);
   }
   100% {
-    filter: hue-rotate(360deg);
+    background-position: 0% 50%;
+    filter: saturate(1.14) hue-rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .holo-card::before,
+  .holo-card::after {
+    animation: none;
   }
 }
