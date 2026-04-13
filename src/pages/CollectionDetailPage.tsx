@@ -378,6 +378,14 @@ export default function CollectionDetailPage() {
                   {isSelectionMode ? "Selecionando" : "Selecionar"}
                 </Button>
               )}
+              <div className="hidden sm:block">
+                <LayoutPopover
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  gridColumns={gridColumns}
+                  setGridColumns={setGridColumns}
+                />
+              </div>
               <p className="text-sm text-muted-foreground">
                 {filteredProducts.length === products.length ? `${products.length} produtos` : `${filteredProducts.length} de ${products.length}`}
               </p>
@@ -388,18 +396,49 @@ export default function CollectionDetailPage() {
           {products.length > 0 ? (
             <div className="space-y-4">
               {filteredProducts.length > 0 ? (
-                <ProductGrid
-                  products={productsWithVariant}
-                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                  isInCompare={isInCompare}
-                  onToggleCompare={toggleCompare}
-                  canAddToCompare={canAddMore}
-                  selectionMode={isSelectionMode}
-                  selectedIds={selectedIds}
-                  onToggleSelect={toggleSelect}
-                />
+                viewMode === "table" ? (
+                  <ProductTableView
+                    products={productsWithVariant}
+                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
+                    isInCompare={isInCompare}
+                    onToggleCompare={toggleCompare}
+                    canAddToCompare={canAddMore}
+                    selectionMode={isSelectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelect={toggleSelect}
+                  />
+                ) : viewMode === "list" ? (
+                  <div className="space-y-1.5">
+                    {productsWithVariant.map((product) => (
+                      <ProductListItem
+                        key={product.id}
+                        product={product}
+                        onClick={() => navigate(`/produto/${product.id}`)}
+                        isFavorited={isFavorite(product.id)}
+                        onToggleFavorite={toggleFavorite}
+                        isInCompare={isInCompare(product.id)}
+                        onToggleCompare={toggleCompare}
+                        canAddToCompare={canAddMore}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <ProductGrid
+                    products={productsWithVariant}
+                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
+                    isInCompare={isInCompare}
+                    onToggleCompare={toggleCompare}
+                    canAddToCompare={canAddMore}
+                    columns={gridColumns}
+                    selectionMode={isSelectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelect={toggleSelect}
+                  />
+                )
               ) : (
                 <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
                   <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
