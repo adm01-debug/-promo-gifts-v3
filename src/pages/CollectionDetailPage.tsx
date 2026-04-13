@@ -74,6 +74,8 @@ export default function CollectionDetailPage() {
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectionModeActive, setSelectionModeActive] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
 
   // --- Local collection lookup ---
   const localCollection = useMemo(() => collections.find((c) => c.id === id), [collections, id]);
