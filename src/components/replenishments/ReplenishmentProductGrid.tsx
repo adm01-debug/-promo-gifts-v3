@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { useVirtualizer } from "@tanstack/react-virtual";
 import { Button } from "@/components/ui/button";
 import { Package, AlertTriangle } from "lucide-react";
 import { useReplenishmentsWithDetails } from "@/hooks/useReplenishments";
@@ -10,43 +9,17 @@ import { BulkActionBar } from "@/components/products/BulkActionBar";
 import { BulkVariantWizard } from "@/components/catalog/BulkVariantWizard";
 import { BulkAddToCartModal } from "@/components/catalog/BulkAddToCartModal";
 import { AddToCollectionModal } from "@/components/collections/AddToCollectionModal";
-import { ProductListItem } from "@/components/products/ProductListItem";
-import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
-import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { ReplenishmentGridCard, ReplenishmentTableView } from "./ReplenishmentCards";
+import { ReplenishmentTableView } from "./ReplenishmentCards";
 import { ReplenishmentToolbar } from "./ReplenishmentToolbar";
-
-// ─── Column count to numeric ─────────────────────────────────────
-function colsToNum(cols: ColumnCount): number {
-  return typeof cols === 'number' ? cols : 5;
-}
+import { VirtualizedReplenishmentGrid } from "./VirtualizedReplenishmentGrid";
+import { VirtualizedReplenishmentList } from "./VirtualizedReplenishmentList";
+import { getGridColsClass, getGridGapClass } from "./VirtualizedReplenishmentGrid";
 
 type ViewMode = "grid" | "list" | "table";
 type SortMode = "name" | "price-asc" | "price-desc" | "newest" | "stock";
-
-// ─── Grid Utilities ──────────────────────────────────────────────
-
-function getGridColsClass(cols: ColumnCount): string {
-  const map: Record<ColumnCount, string> = {
-    3: "grid-cols-2 sm:grid-cols-3",
-    4: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4",
-    5: "grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5",
-    6: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6",
-    8: "grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8",
-  };
-  return map[cols] ?? map[5];
-}
-
-function getGridGapClass(cols: ColumnCount): string {
-  if (cols >= 8) return "gap-x-4 gap-y-8";
-  if (cols >= 6) return "gap-x-6 gap-y-8";
-  return "gap-x-8 gap-y-8";
-}
-
-// ─── Loading Progress Hook ───────────────────────────────────────
 
 function useLoadingProgress(isLoading: boolean): number {
   const [progress, setProgress] = useState(0);
@@ -73,8 +46,6 @@ function useLoadingProgress(isLoading: boolean): number {
   return progress;
 }
 
-// ─── Main Component ──────────────────────────────────────────────
-
 export function ReplenishmentProductGrid() {
   const navigate = useNavigate();
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
@@ -88,8 +59,6 @@ export function ReplenishmentProductGrid() {
   const { data: replenishments, isLoading, isFetching, error } = useReplenishmentsWithDetails({ limit: 200 });
   const products = replenishments ?? [];
   const loadingProgress = useLoadingProgress(isLoading);
-
-  // ─── Derived Data ────────────────────────────────────────────
 
   const { suppliers, categories } = useMemo(() => {
     const supMap = new Map<string, { id: string; name: string; count: number }>();
@@ -130,16 +99,12 @@ export function ReplenishmentProductGrid() {
     return filtered;
   }, [products, selectedSupplier, selectedCategory, sortMode, searchQuery]);
 
-  // ─── Selection ───────────────────────────────────────────────
-
   const sel = useReplenishmentsSelectionMode({ selectionMode, filteredProducts });
   const hasActiveFilters = selectedSupplier !== "all" || selectedCategory !== "all" || searchQuery.trim() !== "";
 
   const handleProductClick = useCallback((id: string) => navigate(`/produto/${id}`), [navigate]);
   const clearFilters = useCallback(() => { setSelectedSupplier("all"); setSelectedCategory("all"); setSearchQuery(""); }, []);
   const toggleSelectionMode = useCallback(() => { setSelectionMode(prev => { if (prev) sel.clearSelection(); return !prev; }); }, [sel]);
-
-  // ─── Favorites & Compare ────────────────────────────────────
 
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, addToCompare, removeFromCompare, canAdd: canAddToCompare } = useComparisonStore();
@@ -156,8 +121,6 @@ export function ReplenishmentProductGrid() {
     return map;
   }, [filteredProducts]);
 
-  // ─── Render Content ──────────────────────────────────────────
-
   const renderContent = () => {
     if (isLoading && products.length === 0) {
       return (
@@ -169,7 +132,6 @@ export function ReplenishmentProductGrid() {
           <div className="w-64 h-1.5 bg-muted/50 rounded-full overflow-hidden mb-4" role="progressbar" aria-valuenow={Math.round(loadingProgress)} aria-valuemin={0} aria-valuemax={100}>
             <div className="h-full bg-gradient-to-r from-primary/60 to-primary rounded-full transition-all duration-300" style={{ width: `${loadingProgress}%` }} />
           </div>
-          {/* Skeleton placeholders to reserve layout space and prevent CLS */}
           <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
             {Array.from({ length: 10 }).map((_, i) => (
               <div key={i} className="rounded-xl border border-border/30 overflow-hidden animate-pulse">
@@ -238,7 +200,6 @@ export function ReplenishmentProductGrid() {
       );
     }
 
-    // Virtualized Grid
     return (
       <VirtualizedReplenishmentGrid
         products={filteredProducts}
@@ -304,187 +265,6 @@ export function ReplenishmentProductGrid() {
       <BulkVariantWizard open={sel.variantWizardOpen} onOpenChange={sel.setVariantWizardOpen} products={sel.selectedProducts} mode={sel.wizardMode} onComplete={sel.handleWizardComplete} />
       <BulkAddToCartModal open={sel.cartModalOpen} onOpenChange={sel.setCartModalOpen} products={sel.bulkCartProducts} variantSelections={sel.wizardSelections} onDone={sel.clearSelection} />
       <AddToCollectionModal open={sel.collectionModalOpen} onOpenChange={sel.setCollectionModalOpen} productId={sel.firstSelectedId} productName={sel.firstSelectedProduct?.product_name ?? ""} />
-    </div>
-  );
-}
-
-// ─── Virtualized Grid Component ──────────────────────────────────
-
-interface VirtualizedGridProps {
-  products: import("@/hooks/useReplenishments").ReplenishmentWithDetails[];
-  gridColumns: ColumnCount;
-  selectionMode: boolean;
-  selectedIds: Set<string>;
-  onToggleSelect: (id: string) => void;
-  onProductClick: (id: string) => void;
-}
-
-function VirtualizedReplenishmentGrid({
-  products,
-  gridColumns,
-  selectionMode,
-  selectedIds,
-  onToggleSelect,
-  onProductClick,
-}: VirtualizedGridProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
-  const numCols = Math.min(colsToNum(gridColumns), products.length);
-  const rowCount = Math.ceil(products.length / numCols);
-
-  const virtualizer = useVirtualizer({
-    count: rowCount,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 340,
-    overscan: 3,
-  });
-
-  const effectiveCols = Math.min(gridColumns, products.length) as ColumnCount;
-
-  return (
-    <div
-      ref={parentRef}
-      className="overflow-auto"
-      style={{ maxHeight: "calc(100vh - 280px)" }}
-      role="list"
-      aria-label="Grade de produtos repostos"
-    >
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: "100%",
-          position: "relative",
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const startIdx = virtualRow.index * numCols;
-          const rowProducts = products.slice(startIdx, startIdx + numCols);
-
-          return (
-            <div
-              key={virtualRow.key}
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-              className={`grid ${getGridColsClass(effectiveCols)} ${getGridGapClass(effectiveCols)}`}
-            >
-              {rowProducts.map((product) => (
-                <div key={product.replenishment_id} role="listitem">
-                  <ReplenishmentGridCard
-                    product={product}
-                    onClick={() => onProductClick(product.product_id)}
-                    selectionMode={selectionMode}
-                    isSelected={selectedIds.has(product.product_id)}
-                    onToggleSelect={() => onToggleSelect(product.product_id)}
-                  />
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-// ─── Virtualized List Component ──────────────────────────────────
-
-interface VirtualizedListProps {
-  products: import("@/hooks/useReplenishments").ReplenishmentWithDetails[];
-  productMap: Map<string, ReturnType<typeof replenishmentToProduct>>;
-  selectionMode: boolean;
-  selectedIds: Set<string>;
-  onToggleSelect: (id: string) => void;
-  onProductClick: (id: string) => void;
-  isFavorite: (id: string) => boolean;
-  toggleFavorite: (id: string) => void;
-  isInCompare: (id: string) => boolean;
-  onToggleCompare: (id: string) => { added: boolean; isFull: boolean };
-  canAddToCompare: boolean;
-}
-
-function VirtualizedReplenishmentList({
-  products,
-  productMap,
-  selectionMode,
-  selectedIds,
-  onToggleSelect,
-  onProductClick,
-  isFavorite,
-  toggleFavorite,
-  isInCompare,
-  onToggleCompare,
-  canAddToCompare,
-}: VirtualizedListProps) {
-  const parentRef = useRef<HTMLDivElement>(null);
-
-  const virtualizer = useVirtualizer({
-    count: products.length,
-    getScrollElement: () => parentRef.current,
-    estimateSize: () => 80,
-    overscan: 8,
-  });
-
-  return (
-    <div
-      ref={parentRef}
-      className="overflow-auto"
-      style={{ maxHeight: "calc(100vh - 280px)" }}
-      role="list"
-      aria-label="Lista de produtos repostos"
-    >
-      <div
-        style={{
-          height: `${virtualizer.getTotalSize()}px`,
-          width: "100%",
-          position: "relative",
-        }}
-      >
-        {virtualizer.getVirtualItems().map((virtualRow) => {
-          const item = products[virtualRow.index];
-          const prod = productMap.get(item.product_id);
-          if (!prod) return null;
-          const isSelected = selectedIds.has(item.product_id);
-
-          return (
-            <div
-              key={virtualRow.key}
-              role="listitem"
-              style={{
-                position: "absolute",
-                top: 0,
-                left: 0,
-                width: "100%",
-                height: `${virtualRow.size}px`,
-                transform: `translateY(${virtualRow.start}px)`,
-              }}
-            >
-              <div className={cn("flex items-center gap-1", isSelected && "ring-2 ring-primary rounded-xl")}>
-                {selectionMode && (
-                  <div className="flex-shrink-0 ml-1">
-                    <SelectionCheckbox checked={isSelected} onChange={() => onToggleSelect(item.product_id)} size="md" aria-label={`Selecionar ${item.product_name}`} />
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <ProductListItem
-                    product={prod}
-                    onClick={() => selectionMode ? onToggleSelect(item.product_id) : onProductClick(item.product_id)}
-                    isFavorited={isFavorite(item.product_id)}
-                    onToggleFavorite={toggleFavorite}
-                    isInCompare={isInCompare(item.product_id)}
-                    onToggleCompare={onToggleCompare}
-                    canAddToCompare={canAddToCompare}
-                  />
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
     </div>
   );
 }

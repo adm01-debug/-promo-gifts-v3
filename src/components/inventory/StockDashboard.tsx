@@ -1,27 +1,18 @@
 import { useState, useMemo } from "react";
-import { 
-  Package, 
-  AlertTriangle, 
-  TrendingDown, 
-  TrendingUp,
+import {
+  Package,
+  TrendingDown,
   RefreshCw,
   Search,
   ArrowUpDown,
   X,
   Truck,
-  AlertCircle,
   CheckCircle2,
   XCircle,
   Palette,
   Loader2,
+  AlertCircle,
 } from "lucide-react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -34,148 +25,32 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { cn } from "@/lib/utils";
 import { useVariantStock } from "@/hooks/useVariantStock";
 import { VariantStockTable } from "./VariantStockTable";
 import { SupplierRiskPanel } from "./SupplierRiskPanel";
-import { StockStatus, StockAlert } from "@/types/stock";
+import { StatCard } from "./StockStatCard";
+import { AlertCard } from "./StockAlertCard";
+import { OutOfStockDialog, LowStockDialog } from "./StockAlertDialogs";
+import type { StockStatus } from "@/types/stock";
 
-// ============================================
-// COMPONENTES AUXILIARES
-// ============================================
-
-// Status config — used only for filter dropdown labels
 const STATUS_CONFIG: Record<StockStatus, { label: string; icon: React.ReactNode }> = {
   in_stock: { label: 'Em Estoque', icon: <CheckCircle2 className="h-4 w-4" /> },
   low_stock: { label: 'Estoque Baixo', icon: <TrendingDown className="h-4 w-4" /> },
-  critical: { label: 'Crítico', icon: <AlertTriangle className="h-4 w-4" /> },
+  critical: { label: 'Crítico', icon: <Package className="h-4 w-4" /> },
   out_of_stock: { label: 'Sem Estoque', icon: <XCircle className="h-4 w-4" /> },
-  overstocked: { label: 'Excesso', icon: <TrendingUp className="h-4 w-4" /> },
+  overstocked: { label: 'Excesso', icon: <Package className="h-4 w-4" /> },
   incoming: { label: 'Chegando', icon: <Truck className="h-4 w-4" /> },
 };
-
-function StatCard({ 
-  title, 
-  value, 
-  icon, 
-  trend, 
-  variant = 'default',
-  onClick,
-  clickHint,
-}: { 
-  title: string; 
-  value: number | string; 
-  icon: React.ReactNode;
-  trend?: { value: number; label: string };
-  variant?: 'default' | 'success' | 'warning' | 'error';
-  onClick?: () => void;
-  clickHint?: string;
-}) {
-  const variantStyles = {
-    default: 'bg-card',
-    success: 'bg-success/5 border-success/20',
-    warning: 'bg-warning/5 border-warning/20',
-    error: 'bg-destructive/5 border-destructive/20',
-  };
-
-  const isClickable = !!onClick;
-
-  return (
-    <Card 
-      className={cn(
-        "relative overflow-hidden transition-all duration-200", 
-        variantStyles[variant],
-        isClickable && "cursor-pointer hover:shadow-md",
-        isClickable && variant === 'error' && "hover:border-destructive/40",
-        isClickable && variant === 'warning' && "hover:border-warning/40",
-      )} 
-      role={isClickable ? "button" : "status"}
-      tabIndex={isClickable ? 0 : undefined}
-      aria-label={`${title}: ${value}${clickHint ? `. ${clickHint}` : ''}`}
-      onClick={onClick}
-      onKeyDown={isClickable ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick?.(); } } : undefined}
-    >
-      <CardContent className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tabular-nums">{value}</p>
-            {trend && (
-              <p className={cn(
-                "text-xs flex items-center gap-1",
-                trend.value >= 0 ? "text-success" : "text-destructive"
-              )}>
-                {trend.value >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                {trend.label}
-              </p>
-            )}
-          </div>
-          <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center" aria-hidden="true">
-            {icon}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-function AlertCard({ alert, onDismiss }: { alert: StockAlert; onDismiss: () => void }) {
-  const severityStyles = {
-    info: 'border-primary/30 bg-primary/5',
-    warning: 'border-warning/30 bg-warning/5',
-    error: 'border-destructive/30 bg-destructive/5',
-  };
-
-  const severityIcons = {
-    info: <AlertCircle className="h-5 w-5 text-primary" />,
-    warning: <AlertTriangle className="h-5 w-5 text-warning" />,
-    error: <XCircle className="h-5 w-5 text-destructive" />,
-  };
-
-  return (
-    <div
-      className={cn("flex items-start gap-3 p-3 rounded-lg border", severityStyles[alert.severity])}
-      role="alert"
-    >
-      <span aria-hidden="true">{severityIcons[alert.severity]}</span>
-      <div className="flex-1 min-w-0">
-        <p className="font-medium text-sm truncate">{alert.productName}</p>
-        <p className="text-xs text-muted-foreground">{alert.message}</p>
-        <p className="text-xs text-muted-foreground mt-1">SKU: {alert.productSku}</p>
-      </div>
-      <Button variant="ghost" size="icon" className="h-6 w-6" onClick={onDismiss} aria-label={`Dispensar alerta de ${alert.productName}`}>
-        <X className="h-3 w-3" />
-      </Button>
-    </div>
-  );
-}
-
-// ============================================
-// COMPONENTE PRINCIPAL
-// ============================================
 
 export function StockDashboard() {
   const [outOfStockDialogOpen, setOutOfStockDialogOpen] = useState(false);
   const [lowStockDialogOpen, setLowStockDialogOpen] = useState(false);
   const {
-    isLoading,
-    isFetching,
-    loadingProgress,
-    productStocks,
-    allProductStocks,
-    summary,
-    alerts,
-    criticalAlerts,
-    filters,
-    futureStock,
-    fetchStockData,
-    updateFilter,
-    resetFilters,
-    dismissAlert,
-    dismissAlertsBySeverity,
+    isLoading, isFetching, loadingProgress, productStocks, allProductStocks,
+    summary, alerts, criticalAlerts, filters, futureStock,
+    fetchStockData, updateFilter, resetFilters, dismissAlert, dismissAlertsBySeverity,
   } = useVariantStock();
 
-  // Memoize warning alerts to avoid 3x filter in render
   const warningAlerts = useMemo(() => alerts.filter(a => a.severity === 'warning'), [alerts]);
   const infoAlerts = useMemo(() => alerts.filter(a => a.severity === 'info'), [alerts]);
 
@@ -192,9 +67,7 @@ export function StockDashboard() {
           )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-24" />
-          ))}
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
         </div>
         <Skeleton className="h-96" />
       </div>
@@ -212,175 +85,52 @@ export function StockDashboard() {
             <Package className="h-6 w-6 text-primary" aria-hidden="true" />
             Dashboard de Estoque
           </h2>
-          <p className="text-muted-foreground text-sm mt-1">
-            Visão geral do estoque em tempo real
-          </p>
+          <p className="text-muted-foreground text-sm mt-1">Visão geral do estoque em tempo real</p>
         </div>
-        <Button
-          variant="outline"
-          onClick={fetchStockData}
-          className="gap-2"
-          disabled={isFetching}
-          aria-label={isFetching ? "Atualizando estoque..." : "Atualizar dados de estoque"}
-        >
-          {isFetching ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
+        <Button variant="outline" onClick={fetchStockData} className="gap-2" disabled={isFetching}
+          aria-label={isFetching ? "Atualizando estoque..." : "Atualizar dados de estoque"}>
+          {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
           {isFetching ? "Atualizando..." : "Atualizar"}
         </Button>
       </div>
 
-      {/* Dialog de Alertas Sem Estoque */}
-      <Dialog open={outOfStockDialogOpen} onOpenChange={setOutOfStockDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[85vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Alertas Críticos ({criticalAlerts.length})
-            </DialogTitle>
-            <DialogDescription>
-              Produtos sem estoque ou em nível crítico que precisam de atenção imediata.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={() => dismissAlertsBySeverity('error')}
-              aria-label="Dispensar todos os alertas críticos"
-            >
-              <X className="h-3.5 w-3.5" />
-              Limpar Todos
-            </Button>
-          </div>
-          <ScrollArea className="max-h-[60vh]">
-            {criticalAlerts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {criticalAlerts.map(alert => (
-                  <AlertCard 
-                    key={alert.id} 
-                    alert={alert} 
-                    onDismiss={() => dismissAlert(alert.id)} 
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <CheckCircle2 className="h-12 w-12 mb-3 text-success" />
-                <p className="font-medium">Nenhum alerta crítico</p>
-                <p className="text-sm">Todos os produtos estão com estoque disponível.</p>
-              </div>
-            )}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
+      {/* Alert Dialogs */}
+      <OutOfStockDialog open={outOfStockDialogOpen} onOpenChange={setOutOfStockDialogOpen}
+        alerts={criticalAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('error')} />
+      <LowStockDialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}
+        alerts={warningAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('warning')} />
 
-      {/* Dialog de Alertas Estoque Baixo */}
-      <Dialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}>
-        <DialogContent className="max-w-5xl max-h-[85vh]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-warning">
-              <TrendingDown className="h-5 w-5" />
-              Alertas de Estoque Baixo ({warningAlerts.length})
-            </DialogTitle>
-            <DialogDescription>
-              Produtos com estoque abaixo do mínimo ou com previsão de esgotamento.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="flex justify-end">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-              onClick={() => dismissAlertsBySeverity('warning')}
-              aria-label="Dispensar todos os alertas de estoque baixo"
-            >
-              <X className="h-3.5 w-3.5" />
-              Limpar Todos
-            </Button>
-          </div>
-          <ScrollArea className="max-h-[60vh]">
-            {warningAlerts.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-                {warningAlerts.map(alert => (
-                  <AlertCard 
-                    key={alert.id} 
-                    alert={alert} 
-                    onDismiss={() => dismissAlert(alert.id)} 
-                  />
-                ))}
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
-                <CheckCircle2 className="h-12 w-12 mb-3 text-success" />
-                <p className="font-medium">Nenhum alerta de estoque baixo</p>
-                <p className="text-sm">Todos os produtos estão com níveis adequados.</p>
-              </div>
-            )}
-          </ScrollArea>
-        </DialogContent>
-      </Dialog>
-
-      {/* Cards de Resumo */}
+      {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-        <StatCard
-          title="Total de Produtos"
-          value={summary.totalProducts.toLocaleString('pt-BR')}
-          icon={<Package className="h-6 w-6 text-primary" />}
-        />
-        <StatCard
-          title="Em Estoque"
-          value={summary.productsInStock.toLocaleString('pt-BR')}
-          icon={<CheckCircle2 className="h-6 w-6 text-success" />}
-          variant="success"
-        />
-        <StatCard
-          title="Estoque Baixo"
-          value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
-          icon={<TrendingDown className="h-6 w-6 text-warning" />}
-          variant="warning"
+        <StatCard title="Total de Produtos" value={summary.totalProducts.toLocaleString('pt-BR')}
+          icon={<Package className="h-6 w-6 text-primary" />} />
+        <StatCard title="Em Estoque" value={summary.productsInStock.toLocaleString('pt-BR')}
+          icon={<CheckCircle2 className="h-6 w-6 text-success" />} variant="success" />
+        <StatCard title="Estoque Baixo" value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
+          icon={<TrendingDown className="h-6 w-6 text-warning" />} variant="warning"
           onClick={warningAlerts.length > 0 ? () => setLowStockDialogOpen(true) : undefined}
-          clickHint={warningAlerts.length > 0 ? "Clique para ver alertas" : undefined}
-        />
-        <StatCard
-          title="Sem Estoque"
-          value={summary.productsOutOfStock.toLocaleString('pt-BR')}
-          icon={<XCircle className="h-6 w-6 text-destructive" />}
-          variant="error"
+          clickHint={warningAlerts.length > 0 ? "Clique para ver alertas" : undefined} />
+        <StatCard title="Sem Estoque" value={summary.productsOutOfStock.toLocaleString('pt-BR')}
+          icon={<XCircle className="h-6 w-6 text-destructive" />} variant="error"
           onClick={criticalAlerts.length > 0 ? () => setOutOfStockDialogOpen(true) : undefined}
-          clickHint={criticalAlerts.length > 0 ? "Clique para ver alertas" : undefined}
-        />
-        <StatCard
-          title="Estoque Futuro"
+          clickHint={criticalAlerts.length > 0 ? "Clique para ver alertas" : undefined} />
+        <StatCard title="Estoque Futuro"
           value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
-          icon={<Truck className="h-6 w-6 text-primary" />}
-        />
+          icon={<Truck className="h-6 w-6 text-primary" />} />
       </div>
 
-      {/* Painel de Risco de Fornecedor */}
       <SupplierRiskPanel products={allProductStocks} />
 
-      {/* Filtros */}
+      {/* Filters */}
       <Card>
         <CardContent className="p-4">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" aria-hidden="true" />
-              <Input
-                placeholder="Buscar por nome ou SKU..."
-                value={filters.search}
-                onChange={(e) => updateFilter('search', e.target.value)}
-                className="pl-9"
-                aria-label="Buscar produtos no estoque"
-              />
+              <Input placeholder="Buscar por nome ou SKU..." value={filters.search}
+                onChange={(e) => updateFilter('search', e.target.value)} className="pl-9" aria-label="Buscar produtos no estoque" />
             </div>
-            <Select
-              value={filters.status}
-              onValueChange={(value) => updateFilter('status', value as StockStatus | 'all')}
-            >
+            <Select value={filters.status} onValueChange={(value) => updateFilter('status', value as StockStatus | 'all')}>
               <SelectTrigger className="w-full sm:w-44" aria-label="Filtrar por status de estoque">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
@@ -388,18 +138,12 @@ export function StockDashboard() {
                 <SelectItem value="all">Todos os Status</SelectItem>
                 {Object.entries(STATUS_CONFIG).map(([value, config]) => (
                   <SelectItem key={value} value={value}>
-                    <span className="flex items-center gap-2">
-                      {config.icon}
-                      {config.label}
-                    </span>
+                    <span className="flex items-center gap-2">{config.icon}{config.label}</span>
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            <Select
-              value={filters.sortBy}
-              onValueChange={(value) => updateFilter('sortBy', value as typeof filters.sortBy)}
-            >
+            <Select value={filters.sortBy} onValueChange={(value) => updateFilter('sortBy', value as typeof filters.sortBy)}>
               <SelectTrigger className="w-full sm:w-44" aria-label="Ordenar produtos">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Ordenar" />
@@ -420,7 +164,7 @@ export function StockDashboard() {
         </CardContent>
       </Card>
 
-      {/* Tabela de Estoque por Variação */}
+      {/* Stock Table */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
@@ -429,9 +173,7 @@ export function StockDashboard() {
               Estoque por Cor/Variação ({productStocks.length} produtos)
             </span>
           </CardTitle>
-          <CardDescription>
-            Visualização detalhada do estoque segmentado por cores e variações
-          </CardDescription>
+          <CardDescription>Visualização detalhada do estoque segmentado por cores e variações</CardDescription>
         </CardHeader>
         <CardContent>
           <ScrollArea className="h-[min(600px,_60vh)]">
@@ -440,7 +182,7 @@ export function StockDashboard() {
         </CardContent>
       </Card>
 
-      {/* Alertas Gerais (apenas info — warning e error já estão nos dialogs) */}
+      {/* Info Alerts */}
       {infoAlerts.length > 0 && (
         <Card>
           <CardHeader>
@@ -449,30 +191,18 @@ export function StockDashboard() {
                 <AlertCircle className="h-5 w-5" aria-hidden="true" />
                 Outros Alertas ({infoAlerts.length})
               </CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
-                onClick={() => dismissAlertsBySeverity('info')}
-                aria-label="Dispensar todos os alertas informativos"
-              >
-                <X className="h-3.5 w-3.5" />
-                Limpar Todos
+              <Button variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                onClick={() => dismissAlertsBySeverity('info')} aria-label="Dispensar todos os alertas informativos">
+                <X className="h-3.5 w-3.5" />Limpar Todos
               </Button>
             </div>
           </CardHeader>
           <CardContent>
             <ScrollArea className="max-h-60">
               <div className="space-y-2">
-                {infoAlerts
-                  .slice(0, 10)
-                  .map(alert => (
-                    <AlertCard 
-                      key={alert.id} 
-                      alert={alert} 
-                      onDismiss={() => dismissAlert(alert.id)} 
-                    />
-                  ))}
+                {infoAlerts.slice(0, 10).map(alert => (
+                  <AlertCard key={alert.id} alert={alert} onDismiss={() => dismissAlert(alert.id)} />
+                ))}
               </div>
             </ScrollArea>
           </CardContent>
