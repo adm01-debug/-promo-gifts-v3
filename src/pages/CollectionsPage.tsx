@@ -6,6 +6,7 @@ import {
 } from "lucide-react";
 import { CollectionGridCard } from "@/components/collections/CollectionGridCard";
 import { CollectionListItem } from "@/components/collections/CollectionListItem";
+import { CollectionTableView } from "@/components/collections/CollectionTableView";
 import { CollectionFormDialog } from "@/components/collections/CollectionFormDialog";
 import { ExternalCollectionCard } from "@/components/collections/ExternalCollectionCard";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -197,32 +198,48 @@ export default function CollectionsPage() {
           </div>
 
           {filteredLocal.length > 0 ? (
-            <div className={gridClasses}>
-              {filteredLocal.map((collection, idx) => {
-                const products = getCollectionProducts(collection.id);
-                const updatedAgo = relativeTime(collection.updatedAt);
-                const isSelected = selectedCollectionIds.has(collection.id);
-                const sharedProps = {
-                  collection,
-                  isSelected,
-                  onToggleSelect: () => toggleSelectCollection(collection.id),
-                  onNavigate: () => navigate(`/colecoes/${collection.id}`),
-                  onEdit: () => openEdit(collection),
-                  onClone: () => handleClone(collection),
-                  onToggleFeatured: () => {
-                    updateCollection(collection.id, { isFeatured: !collection.isFeatured });
-                  },
-                  onDelete: () => setDeleteConfirm(collection.id),
-                  updatedAgo,
-                  index: idx,
-                };
+            viewMode === "table" ? (
+              <CollectionTableView
+                collections={filteredLocal}
+                getCollectionProducts={getCollectionProducts}
+                selectedCollectionIds={selectedCollectionIds}
+                isSelectionMode={isSelectionMode}
+                onToggleSelect={(id) => toggleSelectCollection(id)}
+                onNavigate={(id) => navigate(`/colecoes/${id}`)}
+                onEdit={(col) => openEdit(col)}
+                onClone={(col) => handleClone(col)}
+                onToggleFeatured={(col) => updateCollection(col.id, { isFeatured: !col.isFeatured })}
+                onDelete={(id) => setDeleteConfirm(id)}
+                relativeTime={relativeTime}
+              />
+            ) : (
+              <div className={gridClasses}>
+                {filteredLocal.map((collection, idx) => {
+                  const products = getCollectionProducts(collection.id);
+                  const updatedAgo = relativeTime(collection.updatedAt);
+                  const isSelected = selectedCollectionIds.has(collection.id);
+                  const sharedProps = {
+                    collection,
+                    isSelected,
+                    onToggleSelect: () => toggleSelectCollection(collection.id),
+                    onNavigate: () => navigate(`/colecoes/${collection.id}`),
+                    onEdit: () => openEdit(collection),
+                    onClone: () => handleClone(collection),
+                    onToggleFeatured: () => {
+                      updateCollection(collection.id, { isFeatured: !collection.isFeatured });
+                    },
+                    onDelete: () => setDeleteConfirm(collection.id),
+                    updatedAgo,
+                    index: idx,
+                  };
 
-                if (viewMode === "list") {
-                  return <CollectionListItem key={collection.id} previewImage={products[0]?.images?.[0]} {...sharedProps} />;
-                }
-                return <CollectionGridCard key={collection.id} products={products} isSelectionMode={isSelectionMode} {...sharedProps} />;
-              })}
-            </div>
+                  if (viewMode === "list") {
+                    return <CollectionListItem key={collection.id} previewImage={products[0]?.images?.[0]} {...sharedProps} />;
+                  }
+                  return <CollectionGridCard key={collection.id} products={products} isSelectionMode={isSelectionMode} {...sharedProps} />;
+                })}
+              </div>
+            )
           ) : localCollections.length > 0 && searchQuery ? (
             <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
               <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />

@@ -167,6 +167,7 @@ export function useCollectionsPageState() {
 
   const gridClasses = useMemo(() => {
     if (viewMode === "list") return "flex flex-col gap-2";
+    if (viewMode === "table") return "";
     const colMap: Record<ColumnCount, string> = {
       3: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4",
       4: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4",
