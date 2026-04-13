@@ -222,7 +222,7 @@ export function CollectionGridCard({
       </div>
 
       {/* ── Footer ── */}
-      <div className="p-4 space-y-3">
+      <div className="p-4 space-y-3 bg-white/[0.04] border-t border-white/[0.06]">
         {/* Row 1: Icon + Title + Star */}
         <div className="flex items-center gap-3">
           <div
