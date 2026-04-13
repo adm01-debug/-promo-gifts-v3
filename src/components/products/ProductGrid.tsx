@@ -118,6 +118,9 @@ export function ProductGrid({
   hideCategoryBadges = false,
   activeColorFilter,
   columns = 5,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
 }: ProductGridProps) {
   const [isGridVisible, setIsGridVisible] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -168,6 +171,9 @@ export function ProductGrid({
           highlightColors={highlightColors}
           hideCategoryBadges={hideCategoryBadges}
           activeColorFilter={activeColorFilter}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={onToggleSelect}
         />
       ))}
     </div>
