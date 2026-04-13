@@ -147,8 +147,9 @@ export function CollectionGridCard({
       transition={{ delay: index * 0.035, type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
         "group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-300",
-        "bg-card border-[1.5px] border-border/20",
+        "bg-card/60 backdrop-blur-xl border-[1.5px] border-white/10",
         "hover:border-primary/40 hover:shadow-[0_16px_48px_-12px_hsl(var(--primary)/0.18)]",
+        "shadow-[inset_0_1px_0_0_hsl(var(--foreground)/0.06)]",
         isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10"
       )}
       onClick={onNavigate}
