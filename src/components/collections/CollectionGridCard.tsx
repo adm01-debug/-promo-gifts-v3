@@ -31,24 +31,18 @@ interface CollectionGridCardProps {
   index: number;
 }
 
-/* ── Divider lines between collage panels ── */
-function FrostSeams({ layout }: { layout: 2 | 3 | 4 }) {
-  const diagonalStyle: React.CSSProperties = {
-    clipPath: layout === 2
-      ? "polygon(49.7% 0, 50.3% 0, 40.3% 100%, 39.7% 100%)"
-      : "polygon(53.7% 0, 54.3% 0, 42.3% 100%, 41.7% 100%)",
-    background: "hsl(var(--background) / 0.9)",
-  };
-
-  const horizontalStyle: React.CSSProperties = {
-    clipPath: "polygon(0 54%, 100% 54%, 100% 54.5%, 0 54.5%)",
-    background: "hsl(var(--background) / 0.9)",
-  };
-
+function CollagePanel({ src, clipPath }: { src: string; clipPath: string }) {
   return (
-    <div className="absolute inset-0 z-[2] pointer-events-none">
-      <div className="absolute inset-0" style={diagonalStyle} />
-      {layout >= 3 && <div className="absolute inset-0" style={horizontalStyle} />}
+    <div
+      className="absolute inset-0 overflow-hidden will-change-transform [transform:translate3d(0,0,0)] [backface-visibility:hidden]"
+      style={{ clipPath, WebkitClipPath: clipPath }}
+    >
+      <img
+        src={src}
+        alt=""
+        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+        loading="lazy"
+      />
     </div>
   );
 }
@@ -68,13 +62,8 @@ function DynamicCollage({ images }: { images: string[] }) {
   if (count === 2) {
     return (
       <div className="absolute inset-0">
-        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 55% 0, 45% 100%, 0 100%)" }}>
-          <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(55% 0, 100% 0, 100% 100%, 45% 100%)" }}>
-          <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <FrostSeams layout={2} />
+        <CollagePanel src={images[0]} clipPath="polygon(-2px -2px, calc(56% + 2px) -2px, calc(46% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
+        <CollagePanel src={images[1]} clipPath="polygon(calc(54% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), calc(44% - 2px) calc(100% + 2px))" />
       </div>
     );
   }
@@ -82,16 +71,9 @@ function DynamicCollage({ images }: { images: string[] }) {
   if (count === 3) {
     return (
       <div className="absolute inset-0">
-        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 60% 0, 50% 55%, 0 55%)" }}>
-          <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(62% 0, 100% 0, 100% 55%, 52% 55%)" }}>
-          <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 57%, 100% 57%, 100% 100%, 0 100%)" }}>
-          <img src={images[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-        </div>
-        <FrostSeams layout={3} />
+        <CollagePanel src={images[0]} clipPath="polygon(-2px -2px, calc(61% + 2px) -2px, calc(51.5% + 2px) calc(56.5% + 2px), -2px calc(56.5% + 2px))" />
+        <CollagePanel src={images[1]} clipPath="polygon(calc(59% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(56.5% + 2px), calc(49.5% - 2px) calc(56.5% + 2px))" />
+        <CollagePanel src={images[2]} clipPath="polygon(-2px calc(54.5% - 2px), calc(100% + 2px) calc(54.5% - 2px), calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
       </div>
     );
   }
@@ -99,19 +81,10 @@ function DynamicCollage({ images }: { images: string[] }) {
   const display = images.slice(0, 4);
   return (
     <div className="absolute inset-0">
-      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 58% 0, 48% 52%, 0 52%)" }}>
-        <img src={display[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-      </div>
-      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(60% 0, 100% 0, 100% 52%, 50% 52%)" }}>
-        <img src={display[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-      </div>
-      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 54%, 48% 54%, 42% 100%, 0 100%)" }}>
-        <img src={display[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-      </div>
-      <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(50% 54%, 100% 54%, 100% 100%, 44% 100%)" }}>
-        <img src={display[3]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
-      </div>
-      <FrostSeams layout={4} />
+      <CollagePanel src={display[0]} clipPath="polygon(-2px -2px, calc(59% + 2px) -2px, calc(49.5% + 2px) calc(53.5% + 2px), -2px calc(53.5% + 2px))" />
+      <CollagePanel src={display[1]} clipPath="polygon(calc(57% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(53.5% + 2px), calc(47.5% - 2px) calc(53.5% + 2px))" />
+      <CollagePanel src={display[2]} clipPath="polygon(-2px calc(51.5% - 2px), calc(49.5% + 2px) calc(51.5% - 2px), calc(43.5% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
+      <CollagePanel src={display[3]} clipPath="polygon(calc(47.5% - 2px) calc(51.5% - 2px), calc(100% + 2px) calc(51.5% - 2px), calc(100% + 2px) calc(100% + 2px), calc(41.5% - 2px) calc(100% + 2px))" />
     </div>
   );
 }
