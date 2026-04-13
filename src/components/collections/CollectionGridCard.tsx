@@ -31,36 +31,29 @@ interface CollectionGridCardProps {
   index: number;
 }
 
-/* ── Frost seams between collage panels ── */
+/* ── Thin glass seam lines between collage panels ── */
 function FrostSeams({ layout }: { layout: 2 | 3 | 4 }) {
-  const verticalClip = layout === 2
-    ? "polygon(43% 0, 57% 0, 47% 100%, 33% 100%)"
-    : "polygon(46% 0, 62% 0, 42% 100%, 28% 100%)";
+  // Thin diagonal line (2px visual width via narrow clip)
+  const diagonalStyle: React.CSSProperties = {
+    clipPath: layout === 2
+      ? "polygon(49% 0, 51% 0, 41% 100%, 39% 100%)"
+      : "polygon(53% 0, 55% 0, 43% 100%, 41% 100%)",
+    background: "hsl(var(--background) / 0.55)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+  };
 
-  const showHorizontal = layout >= 3;
+  const horizontalStyle: React.CSSProperties = {
+    clipPath: "polygon(0 53.5%, 100% 53.5%, 100% 55%, 0 55%)",
+    background: "hsl(var(--background) / 0.55)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+  };
 
   return (
     <div className="absolute inset-0 z-[2] pointer-events-none">
-      <div
-        className="absolute inset-0"
-        style={{
-          clipPath: verticalClip,
-          background: "linear-gradient(180deg, hsl(var(--background) / 0.5) 0%, hsl(var(--background) / 0.12) 50%, hsl(var(--background) / 0.5) 100%)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-        }}
-      />
-      {showHorizontal && (
-        <div
-          className="absolute inset-0"
-          style={{
-            clipPath: "polygon(0 51%, 100% 51%, 100% 57%, 0 57%)",
-            background: "linear-gradient(90deg, hsl(var(--background) / 0.5) 0%, hsl(var(--background) / 0.12) 50%, hsl(var(--background) / 0.5) 100%)",
-            backdropFilter: "blur(8px)",
-            WebkitBackdropFilter: "blur(8px)",
-          }}
-        />
-      )}
+      <div className="absolute inset-0" style={diagonalStyle} />
+      {layout >= 3 && <div className="absolute inset-0" style={horizontalStyle} />}
     </div>
   );
 }
