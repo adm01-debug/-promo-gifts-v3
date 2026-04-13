@@ -101,8 +101,7 @@ export function CollectionGridCard({
       className={cn(
         "group relative rounded-2xl overflow-hidden cursor-pointer bg-card shadow-sm transition-all duration-500",
         "border-[1.5px] border-border/40 hover:border-primary/40",
-        isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10",
-        "holo-card"
+        isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10"
       )}
       onClick={onNavigate}
     >
