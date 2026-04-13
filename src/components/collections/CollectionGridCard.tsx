@@ -35,16 +35,14 @@ interface CollectionGridCardProps {
 function FrostSeams({ layout }: { layout: 2 | 3 | 4 }) {
   const diagonalStyle: React.CSSProperties = {
     clipPath: layout === 2
-      ? "polygon(49% 0, 51% 0, 41% 100%, 39% 100%)"
-      : "polygon(53% 0, 55% 0, 43% 100%, 41% 100%)",
-    background: "linear-gradient(180deg, hsl(var(--foreground) / 0.18), hsl(var(--foreground) / 0.34), hsl(var(--foreground) / 0.2))",
-    boxShadow: "inset 1px 0 0 hsl(var(--background) / 0.18), inset -1px 0 0 hsl(var(--background) / 0.08)",
+      ? "polygon(49.7% 0, 50.3% 0, 40.3% 100%, 39.7% 100%)"
+      : "polygon(53.7% 0, 54.3% 0, 42.3% 100%, 41.7% 100%)",
+    background: "hsl(var(--background) / 0.9)",
   };
 
   const horizontalStyle: React.CSSProperties = {
-    clipPath: "polygon(0 53.5%, 100% 53.5%, 100% 55%, 0 55%)",
-    background: "linear-gradient(90deg, hsl(var(--foreground) / 0.18), hsl(var(--foreground) / 0.34), hsl(var(--foreground) / 0.2))",
-    boxShadow: "inset 0 1px 0 hsl(var(--background) / 0.18), inset 0 -1px 0 hsl(var(--background) / 0.08)",
+    clipPath: "polygon(0 54%, 100% 54%, 100% 54.5%, 0 54.5%)",
+    background: "hsl(var(--background) / 0.9)",
   };
 
   return (
