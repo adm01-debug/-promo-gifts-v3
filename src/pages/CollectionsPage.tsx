@@ -95,29 +95,28 @@ export default function CollectionsPage() {
             <Plus className="h-3 w-3 mr-1" />
             Nova Coleção
           </Button>
-          {localCollections.length > 0 && (
-            <Button
-              size="sm"
-              variant={isSelectionMode ? "default" : "outline"}
-              className="h-8 px-3 text-xs gap-1.5"
-              onClick={() => {
-                if (isSelectionMode) {
-                  clearSelection();
-                } else {
-                  // Enter selection mode by selecting the first collection
-                  toggleSelectCollection(localCollections[0].id);
-                }
-              }}
-            >
-              <CheckSquare className="h-3.5 w-3.5" />
-              {isSelectionMode ? "Selecionando" : "Selecionar"}
-            </Button>
-          )}
           <div className="relative max-w-md flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input placeholder="Buscar coleções..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
           </div>
-          <div className="hidden sm:block ml-auto">
+          <div className="hidden sm:flex items-center gap-2 ml-auto">
+            {localCollections.length > 0 && (
+              <Button
+                size="sm"
+                variant={isSelectionMode ? "default" : "outline"}
+                className="h-8 px-3 text-xs gap-1.5"
+                onClick={() => {
+                  if (isSelectionMode) {
+                    clearSelection();
+                  } else {
+                    toggleSelectCollection(localCollections[0].id);
+                  }
+                }}
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                {isSelectionMode ? "Selecionando" : "Selecionar"}
+              </Button>
+            )}
             <LayoutPopover viewMode={viewMode} setViewMode={setViewMode} gridColumns={gridColumns} setGridColumns={setGridColumns} />
           </div>
         </div>
