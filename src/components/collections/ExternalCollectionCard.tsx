@@ -102,39 +102,45 @@ export function ExternalCollectionCard({
         <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-card/80 to-transparent" />
       </div>
 
-      <div className="p-4 flex items-start gap-3">
-        <div
-          className="w-10 h-10 rounded-lg flex items-center justify-center text-lg shrink-0"
-          style={{
-            backgroundColor: collection.color ? `${collection.color}20` : "hsl(var(--muted))",
-          }}
-        >
-          {collection.icon || "📁"}
-        </div>
-        <div className="min-w-0 flex-1">
-          <h3 className="font-display font-semibold text-foreground truncate">
-            {collection.name}
-          </h3>
-          {collection.description && (
-            <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">
-              {collection.description}
-            </p>
-          )}
-          <div className="flex items-center gap-2 mt-1.5 flex-wrap">
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              <Package className="h-3 w-3" />
-              {productCount ?? "…"} produtos
-            </p>
-            {collection.is_featured && (
-              <Badge
-                variant="secondary"
-                className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20"
-              >
-                <Star className="h-3 w-3 mr-0.5" />
-                Destaque
-              </Badge>
+      <div className="p-4 space-y-3">
+        <div className="flex items-center gap-3">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center text-lg shrink-0 shadow-md"
+            style={{
+              backgroundColor: collection.color || "hsl(var(--primary))",
+              color: "#fff",
+            }}
+          >
+            {collection.icon || "📁"}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-display font-bold text-base leading-tight text-foreground line-clamp-2">
+              {collection.name}
+            </h3>
+            {collection.description && (
+              <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">
+                {collection.description}
+              </p>
             )}
           </div>
+          {collection.is_featured && (
+            <Star className="h-4 w-4 text-primary fill-primary shrink-0" />
+          )}
+        </div>
+
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-muted/50 text-xs text-muted-foreground font-medium">
+            <Package className="h-3 w-3 text-primary" />
+            {productCount ?? "…"} produtos
+          </span>
+          {collection.is_featured && (
+            <Badge
+              variant="secondary"
+              className="text-[10px] px-1.5 py-0 bg-primary/10 text-primary border-primary/20"
+            >
+              Destaque
+            </Badge>
+          )}
         </div>
       </div>
 
