@@ -13,7 +13,14 @@
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
     "coverage": "vitest run --coverage",
-    "lint": "tsc --noEmit"
+    "lint": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
+    "prepare": "husky"
+  },
+  "lint-staged": {
+    "src/**/*.{ts,tsx}": ["prettier --write", "eslint --fix --max-warnings=0"],
+    "src/**/*.css": ["prettier --write"]
   },
   "dependencies": {
     "@dnd-kit/core": "^6.1.0",
