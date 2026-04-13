@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -14,234 +14,40 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { useQuotes, Quote } from "@/hooks/useQuotes";
-import { selectCrmById } from "@/lib/crm-db";
-
-import { generateProposalPDFv2, downloadPDF } from "@/utils/proposalPdfReactGenerator";
-import { ProposalHtmlTemplate, ProposalTemplateData } from "@/components/pdf/ProposalHtmlTemplate";
-import { useAuth } from "@/contexts/AuthContext";
+import { ProposalHtmlTemplate } from "@/components/pdf/ProposalHtmlTemplate";
 import { QuoteHistoryPanel } from "@/components/quotes/QuoteHistoryPanel";
-import { useQuoteApproval } from "@/hooks/useQuoteApproval";
 import { toast } from "sonner";
-
 import { QuoteStatusTimeline } from "@/components/quotes/QuoteStatusTimeline";
 import { QuoteValidityBanner } from "@/components/quotes/QuoteValidityBanner";
 import { QuoteConvertToOrder } from "@/components/quotes/QuoteConvertToOrder";
-
 import { QuoteMobileActionBar } from "@/components/quotes/QuoteMobileActionBar";
 import { QuoteCommentsSection } from "@/components/quotes/QuoteCommentsSection";
 import { QuoteApprovalLinkCard } from "@/components/quotes/QuoteApprovalLinkCard";
 import { QuoteVersionHistory } from "@/components/quotes/QuoteVersionHistory";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
-
 import { QuoteClientInfo } from "@/components/quotes/QuoteClientInfo";
 import { QuoteItemsTable } from "@/components/quotes/QuoteItemsTable";
 import { QuoteTotalsSummary } from "@/components/quotes/QuoteTotalsSummary";
-
-import {
-  formatCurrency as formatCurrencyHelper,
-  calcPersTotal,
-  formatCNPJ,
-  handleDownloadPDF as downloadPdfAction,
-  buildWhatsAppUrl,
-  handleSyncBitrix as syncBitrixAction,
-} from "./quote-view/QuoteActionHandlers";
-
 import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
-import { logger } from "@/lib/logger";
-
 import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
+import { useQuoteViewData } from "./quote-view/useQuoteViewData";
 
 const statusConfig = Object.fromEntries(
   Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, variant: v.badgeVariant }])
 ) as Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }>;
 
-function formatCurrency(value: number): string {
-  return formatCurrencyHelper(value);
-}
-
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { fetchQuote, logQuoteHistory, duplicateQuote } = useQuotes();
-  const { user, profile } = useAuth();
-  
-  const { generateApprovalLink, copyToClipboard, isGenerating } = useQuoteApproval();
-  const [quote, setQuote] = useState<Quote | null>(null);
-  const [isLoadingQuote, setIsLoadingQuote] = useState(true);
-  const [clientCnpj, setClientCnpj] = useState<string | undefined>(undefined);
-  const [bitrixCompanyId, setBitrixCompanyId] = useState<string | null>(null);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [approvalLink, setApprovalLink] = useState<string | null>(null);
-  const [showPresentation, setShowPresentation] = useState(false);
 
-  useEffect(() => {
-    if (id) loadQuote();
-  }, [id]);
+  const {
+    quote, setQuote, isLoadingQuote, clientCnpj,
+    isGeneratingPDF, isSyncing, approvalLink,
+    showPresentation, setShowPresentation, proposalData,
+    handleDownloadPDF, handleWhatsAppShare, handleShareLink,
+    handleSyncBitrix, fetchQuote, logQuoteHistory, duplicateQuote,
+  } = useQuoteViewData(id);
 
-  const loadQuote = async () => {
-    if (!id) return;
-    setIsLoadingQuote(true);
-    const data = await fetchQuote(id);
-    setQuote(data);
-    setIsLoadingQuote(false);
-    if (data?.client_id) {
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const company = await selectCrmById<any>("companies", data.client_id);
-        if (company?.cnpj) setClientCnpj(formatCNPJ(company.cnpj));
-        const bId = company?.bitrix_company_id ?? company?.bitrix_id;
-        if (bId) setBitrixCompanyId(String(bId));
-      } catch {
-        // Company not found
-      }
-    }
-  };
-
-  const proposalData: ProposalTemplateData | null = useMemo(() => {
-    if (!quote) return null;
-    const prodSub = (quote.items || []).reduce((s, i) => s + i.quantity * i.unit_price, 0);
-    const persSub = (quote.items || []).reduce((s, i) =>
-      s + (i.personalizations || []).reduce((ps: number, p: { total_cost?: number }) => ps + calcPersTotal(p.total_cost || 0, i.quantity), 0), 0
-    );
-    const fullSubtotal = prodSub + persSub;
-    const discountValue = quote.discount_percent
-      ? Math.round(fullSubtotal * (quote.discount_percent / 100) * 100) / 100
-      : (quote.discount_amount || 0);
-    const shipValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre") ? (quote.shipping_cost || 0) : 0;
-    const computedTotal = fullSubtotal - discountValue + shipValue;
-
-    return {
-      quoteNumber: (quote.quote_number || "").replace(/\s+/g, ""),
-      date: quote.created_at ? format(new Date(quote.created_at), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "",
-      validUntil: quote.valid_until ? format(new Date(quote.valid_until), "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : "30 dias",
-      client: {
-        name: quote.client_company || quote.client_name || "Não especificado",
-        phone: quote.client_phone || undefined,
-        company: quote.client_company || undefined,
-        contactName: quote.client_name || undefined,
-        cnpj: clientCnpj,
-      },
-      seller: {
-        name: profile?.full_name || user?.email || "Vendedor",
-        email: user?.email || undefined,
-        signatureUrl: profile?.signature_url || undefined,
-      },
-      items: quote.items?.map((item) => ({
-        name: item.product_name,
-        sku: item.product_sku || undefined,
-        supplier_sku: item.product_sku || undefined,
-        composedCode: item.product_sku
-          ? item.color_name ? `${item.product_sku}-${item.color_name}` : item.product_sku
-          : undefined,
-        colorHex: item.color_hex || undefined,
-        quantity: item.quantity,
-        unitPrice: item.unit_price,
-        color: item.color_name || undefined,
-        imageUrl: item.product_image_url || undefined,
-        bitrix_product_id: item.bitrix_product_id ?? null,
-        kit_group_id: item.kit_group_id || null,
-        kit_name: item.kit_name || null,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        personalizations: item.personalizations?.map((p: any) => ({
-          technique_name: p.technique_name || "Personalizacao",
-          colors_count: p.colors_count || 1,
-          width_cm: p.width_cm || undefined,
-          height_cm: p.height_cm || undefined,
-          area_cm2: p.area_cm2 || undefined,
-          unit_cost: p.unit_cost || 0,
-          setup_cost: p.setup_cost || 0,
-          total_cost: p.total_cost || 0,
-          notes: p.notes || undefined,
-        })) || [],
-      })) || [],
-      subtotal: fullSubtotal,
-      discount: discountValue || undefined,
-      shippingCost: quote.shipping_cost || undefined,
-      shippingType: quote.shipping_type || undefined,
-      total: computedTotal,
-      notes: quote.notes || undefined,
-      paymentTerms: quote.payment_terms || undefined,
-      deliveryTime: quote.delivery_time || undefined,
-    };
-  }, [quote, user, profile, clientCnpj]);
-
-  // ── Action Handlers ──
-  const handleDownloadPDF = async () => {
-    if (!proposalData) return;
-    setIsGeneratingPDF(true);
-    try {
-      const blob = await generateProposalPDFv2(proposalData, { isDraft: quote?.status === "draft" });
-      downloadPDF(blob, `proposta-${(quote?.quote_number || "sem-numero").replace(/\s+/g, "")}.pdf`);
-      toast.success("PDF gerado com sucesso!");
-    } catch {
-      toast.error("Erro ao gerar PDF");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
-  const handleGenerateApprovalLink = async () => {
-    if (!id) return;
-    const link = await generateApprovalLink(id);
-    if (link) setApprovalLink(link);
-  };
-
-  const handleWhatsAppShare = () => {
-    const lines = [
-      `📋 *Proposta Comercial ${quote?.quote_number || ""}*`,
-      "",
-      `💰 Valor Total: *${formatCurrency(quote?.total || 0)}*`,
-    ];
-    if (quote?.valid_until) {
-      lines.push(`📅 Válida até: ${format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR })}`);
-    }
-    if (approvalLink) {
-      lines.push("", `✅ Aprovar proposta: ${approvalLink}`);
-    }
-    lines.push("", "Qualquer dúvida, estou à disposição! 😊");
-    const message = encodeURIComponent(lines.join("\n"));
-    const phone = quote?.client_phone?.replace(/\D/g, "") || "";
-    const url = phone ? `https://wa.me/55${phone}?text=${message}` : `https://wa.me/?text=${message}`;
-    window.open(url, "_blank");
-    toast.success("WhatsApp aberto!");
-  };
-
-  const handleShareLink = async () => {
-    if (approvalLink) {
-      await copyToClipboard(approvalLink);
-    } else {
-      const link = await generateApprovalLink(id!);
-      if (link) {
-        setApprovalLink(link);
-        await copyToClipboard(link);
-      }
-    }
-  };
-
-  const handleSyncBitrix = async () => {
-    if (!quote || !proposalData) return;
-    setIsSyncing(true);
-    try {
-      const { syncQuoteToBitrix } = await import("./quote-view/QuoteBitrixSync");
-      const result = await syncQuoteToBitrix({
-        quote, proposalData, bitrixCompanyId, userEmail: user?.email,
-        logQuoteHistory,
-        onBitrixCompanyIdFound: (id) => setBitrixCompanyId(id),
-      });
-      if (result.success && result.updatedQuote) {
-        setQuote((prev) => prev ? { ...prev, ...result.updatedQuote } : prev);
-      }
-    } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "erro desconhecido";
-      toast.error("Erro ao sincronizar", { description: msg });
-    } finally {
-      setIsSyncing(false);
-    }
-  };
-
-  // ── Render ──
   if (isLoadingQuote) {
     return (
       <MainLayout>
@@ -276,7 +82,7 @@ export default function QuoteViewPage() {
     <>
     <MainLayout>
       <PageSEO title={`Orçamento ${quote.quote_number}`} description={`Visualização do orçamento ${quote.quote_number}`} path={`/orcamentos/${id}`} noIndex />
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in pb-24 md:pb-6 print:py-0 print:max-w-none print:px-0">
+      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in print:py-0 print:max-w-none print:px-0">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
@@ -384,11 +190,8 @@ export default function QuoteViewPage() {
               clientPhone={quote.client_phone}
               clientCnpj={clientCnpj}
             />
-
             <Separator />
-
             <QuoteItemsTable items={quote.items || []} />
-
             <QuoteTotalsSummary
               items={quote.items || []}
               discountPercent={quote.discount_percent}
@@ -397,7 +200,6 @@ export default function QuoteViewPage() {
               shippingCost={quote.shipping_cost}
             />
 
-            {/* Condições Comerciais */}
             {(quote.payment_terms || quote.delivery_time) && (
               <>
                 <Separator />
