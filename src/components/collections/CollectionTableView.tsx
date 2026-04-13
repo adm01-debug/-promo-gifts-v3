@@ -1,10 +1,11 @@
 /**
- * CollectionTableView — Table view for local collections.
+ * CollectionTableView — Table view for local collections with column sorting.
  */
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
 import {
   FolderOpen, MoreVertical, Pencil, Copy, Star,
-  Trash2, Package, Clock,
+  Trash2, Package, Clock, ArrowUp, ArrowDown, ArrowUpDown,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
@@ -15,6 +16,40 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { Collection } from "@/hooks/useCollections";
+
+type SortKey = "name" | "products" | "featured" | "updated";
+type SortDir = "asc" | "desc";
+
+interface SortHeaderProps {
+  label: string;
+  sortKey: SortKey;
+  currentKey: SortKey | null;
+  currentDir: SortDir;
+  onSort: (key: SortKey) => void;
+  className?: string;
+}
+
+function SortHeader({ label, sortKey, currentKey, currentDir, onSort, className }: SortHeaderProps) {
+  const isActive = currentKey === sortKey;
+  return (
+    <th
+      className={cn(
+        "px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors",
+        className
+      )}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {isActive ? (
+          currentDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </span>
+    </th>
+  );
+}
 
 interface CollectionTableRowProps {
   collection: Collection;
@@ -51,16 +86,9 @@ function CollectionTableRow({
       )}
       onClick={onNavigate}
     >
-      {/* Checkbox */}
       <td className="w-10 px-3 py-2.5" onClick={(e) => e.stopPropagation()}>
-        <SelectionCheckbox
-          isSelected={isSelected}
-          onToggle={onToggleSelect}
-          size="sm"
-        />
+        <SelectionCheckbox isSelected={isSelected} onToggle={onToggleSelect} size="sm" />
       </td>
-
-      {/* Icon + Name */}
       <td className="px-3 py-2.5">
         <div className="flex items-center gap-2.5">
           {previewImage ? (
@@ -81,23 +109,17 @@ function CollectionTableRow({
           </div>
         </div>
       </td>
-
-      {/* Products count */}
       <td className="px-3 py-2.5 text-center">
         <Badge variant="secondary" className="text-xs gap-1">
           <Package className="h-3 w-3" />
           {collection.productIds.length}
         </Badge>
       </td>
-
-      {/* Featured */}
       <td className="px-3 py-2.5 text-center">
         {collection.isFeatured && (
           <Star className="h-4 w-4 text-amber-500 fill-amber-500 mx-auto" />
         )}
       </td>
-
-      {/* Updated */}
       <td className="px-3 py-2.5 text-xs text-muted-foreground whitespace-nowrap">
         {updatedAgo && (
           <span className="flex items-center gap-1">
@@ -106,8 +128,6 @@ function CollectionTableRow({
           </span>
         )}
       </td>
-
-      {/* Actions */}
       <td className="px-3 py-2.5 text-right" onClick={(e) => e.stopPropagation()}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -156,21 +176,52 @@ export function CollectionTableView({
   onToggleSelect, onNavigate, onEdit, onClone, onToggleFeatured, onDelete,
   relativeTime,
 }: CollectionTableViewProps) {
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return collections;
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...collections].sort((a, b) => {
+      switch (sortKey) {
+        case "name":
+          return dir * a.name.localeCompare(b.name, "pt-BR");
+        case "products":
+          return dir * (a.productIds.length - b.productIds.length);
+        case "featured":
+          return dir * ((a.isFeatured ? 1 : 0) - (b.isFeatured ? 1 : 0));
+        case "updated":
+          return dir * ((a.updatedAt || "").localeCompare(b.updatedAt || ""));
+        default:
+          return 0;
+      }
+    });
+  }, [collections, sortKey, sortDir]);
+
   return (
     <div className="rounded-lg border border-border/50 overflow-hidden">
       <table className="w-full text-left">
         <thead>
           <tr className="bg-muted/30 border-b border-border/50">
             <th className="w-10 px-3 py-2" />
-            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Coleção</th>
-            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Produtos</th>
-            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Destaque</th>
-            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Atualizado</th>
+            <SortHeader label="Coleção" sortKey="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Produtos" sortKey="products" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+            <SortHeader label="Destaque" sortKey="featured" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
+            <SortHeader label="Atualizado" sortKey="updated" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
             <th className="px-3 py-2 w-12" />
           </tr>
         </thead>
         <tbody>
-          {collections.map((collection, idx) => (
+          {sorted.map((collection, idx) => (
             <CollectionTableRow
               key={collection.id}
               collection={collection}

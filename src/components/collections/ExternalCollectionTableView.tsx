@@ -1,12 +1,41 @@
 /**
- * ExternalCollectionTableView — Table view for catalog (external) collections.
+ * ExternalCollectionTableView — Table view for catalog (external) collections with sorting.
  */
+import { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { FolderOpen, Package, Copy } from "lucide-react";
+import { FolderOpen, Package, Copy, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ExternalCollection } from "@/hooks/useExternalCollections";
+
+type SortKey = "name" | "products";
+type SortDir = "asc" | "desc";
+
+function SortHeader({ label, sortKey, currentKey, currentDir, onSort, className }: {
+  label: string; sortKey: SortKey; currentKey: SortKey | null; currentDir: SortDir;
+  onSort: (key: SortKey) => void; className?: string;
+}) {
+  const isActive = currentKey === sortKey;
+  return (
+    <th
+      className={cn(
+        "px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors",
+        className
+      )}
+      onClick={() => onSort(sortKey)}
+    >
+      <span className="inline-flex items-center gap-1">
+        {label}
+        {isActive ? (
+          currentDir === "asc" ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />
+        ) : (
+          <ArrowUpDown className="h-3 w-3 opacity-40" />
+        )}
+      </span>
+    </th>
+  );
+}
 
 interface ExternalCollectionTableViewProps {
   collections: ExternalCollection[];
@@ -18,18 +47,48 @@ interface ExternalCollectionTableViewProps {
 export function ExternalCollectionTableView({
   collections, productCounts, onNavigate, onDuplicate,
 }: ExternalCollectionTableViewProps) {
+  const [sortKey, setSortKey] = useState<SortKey | null>(null);
+  const [sortDir, setSortDir] = useState<SortDir>("asc");
+
+  const handleSort = (key: SortKey) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("asc");
+    }
+  };
+
+  const sorted = useMemo(() => {
+    if (!sortKey) return collections;
+    const dir = sortDir === "asc" ? 1 : -1;
+    return [...collections].sort((a, b) => {
+      switch (sortKey) {
+        case "name":
+          return dir * a.name.localeCompare(b.name, "pt-BR");
+        case "products": {
+          const ca = productCounts?.get(a.id) ?? 0;
+          const cb = productCounts?.get(b.id) ?? 0;
+          return dir * (ca - cb);
+        }
+        default:
+          return 0;
+      }
+    });
+  }, [collections, sortKey, sortDir, productCounts]);
+
   return (
     <div className="rounded-lg border border-border/50 overflow-hidden">
       <table className="w-full text-left">
         <thead>
           <tr className="bg-muted/30 border-b border-border/50">
-            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">Coleção</th>
-            <th className="px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider text-center">Produtos</th>
+            <SortHeader label="Coleção" sortKey="name" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} />
+            <SortHeader label="Produtos" sortKey="products" currentKey={sortKey} currentDir={sortDir} onSort={handleSort} className="text-center" />
             <th className="px-3 py-2 w-20" />
           </tr>
         </thead>
         <tbody>
-          {collections.map((collection, idx) => {
+          {sorted.map((collection, idx) => {
             const count = productCounts?.get(collection.id);
             return (
               <motion.tr
