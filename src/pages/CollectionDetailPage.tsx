@@ -8,12 +8,14 @@ import { motion } from "framer-motion";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
+import { ProductTableView } from "@/components/products/ProductTableView";
+import { ProductListItem } from "@/components/products/ProductListItem";
+import { LayoutPopover } from "@/components/products/LayoutPopover";
+import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
 import { BulkSelectionBar } from "@/components/common/BulkSelectionBar";
-import { SortableProductItem } from "@/components/collections/SortableProductItem";
 import { CollectionDetailHeader } from "@/components/collections/CollectionDetailHeader";
 import {
   DropdownMenu,
@@ -27,19 +29,6 @@ import {
   useExternalCollections,
   useExternalCollectionProducts,
 } from "@/hooks/useExternalCollections";
-import {
-  DndContext,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-} from "@dnd-kit/core";
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  arrayMove,
-} from "@dnd-kit/sortable";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { PresentationMode } from "@/components/presentation/PresentationMode";
@@ -49,6 +38,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 type SortOption = "name" | "sku" | "added";
+type ViewMode = "grid" | "list" | "table";
 
 export default function CollectionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -69,6 +59,8 @@ export default function CollectionDetailPage() {
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectionModeActive, setSelectionModeActive] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("grid");
+  const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
 
   // --- Local collection lookup ---
   const localCollection = useMemo(() => collections.find((c) => c.id === id), [collections, id]);
@@ -193,21 +185,7 @@ export default function CollectionDetailPage() {
     });
   }, [collection, selectedIds, products, variantMap, navigate]);
 
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const handleDragEnd = useCallback(
-    (event: DragEndEvent) => {
-      const { active, over } = event;
-      if (!over || active.id === over.id || !id) return;
-      const oldIndex = products.findIndex((p) => p.id === active.id);
-      const newIndex = products.findIndex((p) => p.id === over.id);
-      if (oldIndex === -1 || newIndex === -1) return;
-      const newOrder = arrayMove(products.map((p) => p.id), oldIndex, newIndex);
-      reorderProducts(id, newOrder);
-      toast.success("Ordem atualizada");
-    },
-    [id, products, reorderProducts]
-  );
 
   // Filter + sort
   const filteredProducts = useMemo(() => {
@@ -371,6 +349,14 @@ export default function CollectionDetailPage() {
                   {isSelectionMode ? "Selecionando" : "Selecionar"}
                 </Button>
               )}
+              <div className="hidden sm:block">
+                <LayoutPopover
+                  viewMode={viewMode}
+                  setViewMode={setViewMode}
+                  gridColumns={gridColumns}
+                  setGridColumns={setGridColumns}
+                />
+              </div>
               <p className="text-sm text-muted-foreground">
                 {filteredProducts.length === products.length ? `${products.length} produtos` : `${filteredProducts.length} de ${products.length}`}
               </p>
@@ -381,18 +367,49 @@ export default function CollectionDetailPage() {
           {products.length > 0 ? (
             <div className="space-y-4">
               {filteredProducts.length > 0 ? (
-                <ProductGrid
-                  products={productsWithVariant}
-                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                  isFavorite={isFavorite}
-                  onToggleFavorite={toggleFavorite}
-                  isInCompare={isInCompare}
-                  onToggleCompare={toggleCompare}
-                  canAddToCompare={canAddMore}
-                  selectionMode={isSelectionMode}
-                  selectedIds={selectedIds}
-                  onToggleSelect={toggleSelect}
-                />
+                viewMode === "table" ? (
+                  <ProductTableView
+                    products={productsWithVariant}
+                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
+                    isInCompare={isInCompare}
+                    onToggleCompare={toggleCompare}
+                    canAddToCompare={canAddMore}
+                    selectionMode={isSelectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelect={toggleSelect}
+                  />
+                ) : viewMode === "list" ? (
+                  <div className="space-y-1.5">
+                    {productsWithVariant.map((product) => (
+                      <ProductListItem
+                        key={product.id}
+                        product={product}
+                        onClick={() => navigate(`/produto/${product.id}`)}
+                        isFavorited={isFavorite(product.id)}
+                        onToggleFavorite={toggleFavorite}
+                        isInCompare={isInCompare(product.id)}
+                        onToggleCompare={toggleCompare}
+                        canAddToCompare={canAddMore}
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <ProductGrid
+                    products={productsWithVariant}
+                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                    isFavorite={isFavorite}
+                    onToggleFavorite={toggleFavorite}
+                    isInCompare={isInCompare}
+                    onToggleCompare={toggleCompare}
+                    canAddToCompare={canAddMore}
+                    columns={gridColumns}
+                    selectionMode={isSelectionMode}
+                    selectedIds={selectedIds}
+                    onToggleSelect={toggleSelect}
+                  />
+                )
               ) : (
                 <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
                   <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
