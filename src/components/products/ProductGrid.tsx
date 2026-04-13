@@ -3,6 +3,8 @@ import type { Product } from "@/hooks/useProducts";
 import type { ActiveColorFilter } from "@/utils/color-image-resolver";
 import { useEffect, useState, useRef } from "react";
 import { useReducedMotion } from "@/hooks/useReducedMotion";
+import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { cn } from "@/lib/utils";
 
 export interface ProductGridProps {
   products: Product[];
@@ -19,6 +21,10 @@ export interface ProductGridProps {
   hideCategoryBadges?: boolean;
   activeColorFilter?: ActiveColorFilter | null;
   columns?: number;
+  /** Selection mode props */
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 }
 
 function ProductCardWrapper({ 
@@ -26,12 +32,18 @@ function ProductCardWrapper({
   index, 
   isVisible,
   hideCategoryBadges,
-  ...props 
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+  ...restProps 
 }: { 
   product: Product; 
   index: number; 
   isVisible: boolean;
   hideCategoryBadges?: boolean;
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 } & Omit<React.ComponentProps<typeof ProductCard>, 'product'>) {
   const reducedMotion = useReducedMotion();
   const [hasAnimated, setHasAnimated] = useState(reducedMotion);
@@ -45,17 +57,40 @@ function ProductCardWrapper({
     }
   }, [hasAnimated, index, reducedMotion]);
 
+  const isSelected = selectionMode && selectedIds?.has(product.id);
+
   return (
     <div
       ref={ref}
-      className={reducedMotion ? '' : `transition-all duration-500 ease-out ${
-        hasAnimated ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
-      }`}
+      className={cn(
+        reducedMotion ? '' : `transition-all duration-500 ease-out ${
+          hasAnimated ? 'opacity-100 translate-y-0 scale-100' : 'opacity-0 translate-y-8 scale-95'
+        }`,
+        "relative",
+        isSelected && "ring-2 ring-primary/40 rounded-xl"
+      )}
       style={reducedMotion ? undefined : {
         transitionDelay: hasAnimated ? '0ms' : `${Math.min(index * 80, 800)}ms`,
       }}
     >
-      <ProductCard product={product} hideCategoryBadges={hideCategoryBadges} {...props} />
+      {selectionMode && onToggleSelect && (
+        <div 
+          className="absolute top-2 left-2 z-20"
+          onClick={(e) => { e.stopPropagation(); onToggleSelect(product.id); }}
+        >
+          <SelectionCheckbox
+            checked={!!isSelected}
+            onChange={() => onToggleSelect(product.id)}
+            size="md"
+          />
+        </div>
+      )}
+      <ProductCard 
+        product={product} 
+        hideCategoryBadges={hideCategoryBadges} 
+        {...restProps}
+        onClick={selectionMode ? () => onToggleSelect?.(product.id) : restProps.onClick}
+      />
     </div>
   );
 }
@@ -83,6 +118,9 @@ export function ProductGrid({
   hideCategoryBadges = false,
   activeColorFilter,
   columns = 5,
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
 }: ProductGridProps) {
   const [isGridVisible, setIsGridVisible] = useState(false);
   const gridRef = useRef<HTMLDivElement>(null);
@@ -133,6 +171,9 @@ export function ProductGrid({
           highlightColors={highlightColors}
           hideCategoryBadges={hideCategoryBadges}
           activeColorFilter={activeColorFilter}
+          selectionMode={selectionMode}
+          selectedIds={selectedIds}
+          onToggleSelect={onToggleSelect}
         />
       ))}
     </div>
