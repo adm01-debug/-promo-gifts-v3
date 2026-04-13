@@ -40,11 +40,6 @@ export function CollectionDetailHeader({
 }: CollectionDetailHeaderProps) {
   return (
     <div className="flex flex-col gap-3">
-      <Button variant="ghost" className="w-fit -ml-2" onClick={onBack}>
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Voltar para coleções
-      </Button>
-
       <div className="flex items-start gap-4">
         <motion.div
           initial={{ scale: 0.8, opacity: 0 }}
