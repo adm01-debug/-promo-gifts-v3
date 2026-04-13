@@ -32,12 +32,18 @@ function ProductCardWrapper({
   index, 
   isVisible,
   hideCategoryBadges,
-  ...props 
+  selectionMode,
+  selectedIds,
+  onToggleSelect,
+  ...restProps 
 }: { 
   product: Product; 
   index: number; 
   isVisible: boolean;
   hideCategoryBadges?: boolean;
+  selectionMode?: boolean;
+  selectedIds?: Set<string>;
+  onToggleSelect?: (id: string) => void;
 } & Omit<React.ComponentProps<typeof ProductCard>, 'product'>) {
   const reducedMotion = useReducedMotion();
   const [hasAnimated, setHasAnimated] = useState(reducedMotion);
