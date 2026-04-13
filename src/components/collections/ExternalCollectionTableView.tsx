@@ -1,11 +1,11 @@
 /**
- * ExternalCollectionTableView — Table view for catalog (external) collections with sorting & search.
+ * ExternalCollectionTableView — Table view for catalog (external) collections with sorting.
  */
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { FolderOpen, Package, Copy, ArrowUp, ArrowDown, ArrowUpDown, Search, X, Filter } from "lucide-react";
+import { FolderOpen, Package, Copy, ArrowUp, ArrowDown, ArrowUpDown, Filter } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import type { ExternalCollection } from "@/hooks/useExternalCollections";
@@ -50,7 +50,6 @@ export function ExternalCollectionTableView({
 }: ExternalCollectionTableViewProps) {
   const [sortKey, setSortKey] = useState<SortKey | null>(null);
   const [sortDir, setSortDir] = useState<SortDir>("asc");
-  const [tableSearch, setTableSearch] = useState("");
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -61,20 +60,10 @@ export function ExternalCollectionTableView({
     }
   };
 
-  const filtered = useMemo(() => {
-    if (!tableSearch.trim()) return collections;
-    const q = tableSearch.toLowerCase();
-    return collections.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) ||
-        c.description?.toLowerCase().includes(q)
-    );
-  }, [collections, tableSearch]);
-
   const sorted = useMemo(() => {
-    if (!sortKey) return filtered;
+    if (!sortKey) return collections;
     const dir = sortDir === "asc" ? 1 : -1;
-    return [...filtered].sort((a, b) => {
+    return [...collections].sort((a, b) => {
       switch (sortKey) {
         case "name":
           return dir * a.name.localeCompare(b.name, "pt-BR");
@@ -87,38 +76,10 @@ export function ExternalCollectionTableView({
           return 0;
       }
     });
-  }, [filtered, sortKey, sortDir, productCounts]);
-
-  const hasSearch = tableSearch.trim() !== "";
+  }, [collections, sortKey, sortDir, productCounts]);
 
   return (
     <div className="space-y-2">
-      {/* Search Bar */}
-      <div className="flex items-center gap-2">
-        <div className="relative max-w-xs flex-1 min-w-[180px]">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-          <Input
-            placeholder="Filtrar coleções do catálogo..."
-            value={tableSearch}
-            onChange={(e) => setTableSearch(e.target.value)}
-            className="h-8 pl-8 pr-8 text-xs"
-          />
-          {tableSearch && (
-            <button
-              onClick={() => setTableSearch("")}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          )}
-        </div>
-        {hasSearch && (
-          <span className="text-xs text-muted-foreground">
-            {sorted.length} de {collections.length}
-          </span>
-        )}
-      </div>
-
       {/* Table */}
       <div className="rounded-lg border border-border/50 overflow-hidden">
         <table className="w-full text-left">
