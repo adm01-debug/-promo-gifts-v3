@@ -1,16 +1,16 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
-import { safeParseBody } from '../_shared/validate.ts';
-import { createClient } from "npm:@supabase/supabase-js@2.49.4";
+import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
 
-// CORS headers are now dynamic — use getCorsHeaders(req) inside the handler
-// See _shared/cors.ts for the centralized configuration
+const BodySchema = z.object({
+  endpoint: z.enum(['login', 'api', 'ai', 'approval']).default('api'),
+}).partial();
 
 // Rate limit configuration
 const RATE_LIMITS: Record<string, { maxRequests: number; windowMs: number }> = {
-  login: { maxRequests: 5, windowMs: 60 * 1000 }, // 5 per minute
-  api: { maxRequests: 100, windowMs: 60 * 1000 }, // 100 per minute
-  ai: { maxRequests: 20, windowMs: 60 * 1000 }, // 20 per minute
-  approval: { maxRequests: 5, windowMs: 60 * 1000 }, // 5 per minute
+  login: { maxRequests: 5, windowMs: 60 * 1000 },
+  api: { maxRequests: 100, windowMs: 60 * 1000 },
+  ai: { maxRequests: 20, windowMs: 60 * 1000 },
+  approval: { maxRequests: 5, windowMs: 60 * 1000 },
 };
 
 // In-memory store (note: resets on function cold start)
@@ -31,8 +31,22 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const body = await safeParseBody<{ endpoint?: string }>(req);
-    const endpoint = body?.endpoint || 'api';
+    let rawBody: unknown = {};
+    try {
+      rawBody = await req.json();
+    } catch {
+      // Empty body is fine — defaults apply
+    }
+
+    const parsed = BodySchema.safeParse(rawBody);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: "Validation failed", details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const endpoint = parsed.data.endpoint || 'api';
     const clientIP = getClientIP(req);
     const config = RATE_LIMITS[endpoint] || RATE_LIMITS.api;
     
@@ -61,7 +75,6 @@ Deno.serve(async (req) => {
     const retryAfter = Math.ceil((record.resetAt - now) / 1000);
 
     if (!allowed) {
-      // Log blocked request
       console.log(`Rate limit exceeded for ${clientIP} on ${endpoint}`);
       
       return new Response(
