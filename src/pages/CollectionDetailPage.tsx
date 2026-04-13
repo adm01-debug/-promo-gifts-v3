@@ -401,43 +401,6 @@ export default function CollectionDetailPage() {
                 </div>
               )}
 
-              {/* Management section — only for local collections */}
-              {!isExternal && (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <div className="flex items-center gap-3">
-                      <SelectionCheckbox
-                        checked={selectedIds.size === products.length && products.length > 0}
-                        onChange={toggleSelectAll}
-                        size="md"
-                      />
-                      <p className="text-sm font-medium text-muted-foreground">
-                        {selectedIds.size > 0
-                          ? `${selectedIds.size} selecionado(s)`
-                          : `Gerenciar produtos (${products.length}) — arraste para reordenar`}
-                      </p>
-                    </div>
-                  </div>
-                  <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                    <SortableContext items={products.map((p) => p.id)} strategy={verticalListSortingStrategy}>
-                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
-                        {products.map((product) => (
-                          <SortableProductItem
-                            key={product.id}
-                            product={product}
-                            variant={variantMap.get(product.id)}
-                            onRemove={() => handleRemoveFromCollection(product.id)}
-                            isSelected={selectedIds.has(product.id)}
-                            onToggleSelect={() => toggleSelect(product.id)}
-                            notes={getCollectionProductItems(id!).find((i) => i.productId === product.id)?.notes}
-                            onNotesChange={(notes) => updateProductNotes(id!, product.id, notes)}
-                          />
-                        ))}
-                      </div>
-                    </SortableContext>
-                  </DndContext>
-                </div>
-              )}
             </div>
           ) : (
             <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
