@@ -317,3 +317,97 @@
     transform: translateX(100%);
   }
 }
+
+/* ============================================
+   HOLOGRAPHIC / IRIDESCENT CARD EFFECT
+   ============================================ */
+.holo-card {
+  position: relative;
+}
+
+.holo-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      125deg,
+      transparent 0%,
+      hsl(280 80% 70% / 0.08) 15%,
+      hsl(200 90% 60% / 0.12) 30%,
+      transparent 45%,
+      hsl(340 80% 65% / 0.08) 60%,
+      hsl(170 80% 55% / 0.10) 75%,
+      transparent 100%
+    );
+  opacity: 0;
+  transition: opacity 0.5s ease;
+  mix-blend-mode: screen;
+}
+
+.holo-card:hover::before {
+  opacity: 1;
+  animation: holo-shift 3s ease-in-out infinite alternate;
+}
+
+.holo-card::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: 4;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    linear-gradient(
+      135deg,
+      hsl(280 70% 65% / 0.25) 0%,
+      hsl(200 80% 60% / 0.3) 25%,
+      hsl(340 70% 60% / 0.25) 50%,
+      hsl(170 70% 55% / 0.3) 75%,
+      hsl(280 70% 65% / 0.25) 100%
+    );
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  padding: 1.5px;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.holo-card:hover::after {
+  opacity: 1;
+  animation: holo-border 4s linear infinite;
+}
+
+.holo-card:hover {
+  box-shadow:
+    0 8px 32px -8px hsl(280 60% 60% / 0.15),
+    0 16px 48px -12px hsl(200 70% 55% / 0.12),
+    0 0 20px -5px hsl(340 60% 60% / 0.1);
+}
+
+@keyframes holo-shift {
+  0% {
+    background-position: 0% 0%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    filter: hue-rotate(30deg);
+  }
+  100% {
+    background-position: 100% 100%;
+    filter: hue-rotate(-20deg);
+  }
+}
+
+@keyframes holo-border {
+  0% {
+    filter: hue-rotate(0deg);
+  }
+  100% {
+    filter: hue-rotate(360deg);
+  }
+}
