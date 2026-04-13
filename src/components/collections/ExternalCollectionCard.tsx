@@ -75,7 +75,7 @@ export function ExternalCollectionCard({
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.05, type: "spring", stiffness: 400, damping: 25 }}
-      className="group relative rounded-2xl overflow-hidden cursor-pointer border-[1.5px] border-white/20 hover:border-white/30 transition-all duration-500 holo-card"
+      className="group relative rounded-2xl bg-card overflow-hidden cursor-pointer border-[1.5px] border-border/40 hover:border-primary/40 shadow-sm transition-all duration-500 holo-card"
       onClick={onNavigate}
     >
       <div

@@ -31,23 +31,20 @@ interface CollectionGridCardProps {
   index: number;
 }
 
-/* ── Thin glass seam lines between collage panels ── */
+/* ── Divider lines between collage panels ── */
 function FrostSeams({ layout }: { layout: 2 | 3 | 4 }) {
-  // Thin diagonal line (2px visual width via narrow clip)
   const diagonalStyle: React.CSSProperties = {
     clipPath: layout === 2
       ? "polygon(49% 0, 51% 0, 41% 100%, 39% 100%)"
       : "polygon(53% 0, 55% 0, 43% 100%, 41% 100%)",
-    background: "hsl(var(--background) / 0.55)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
+    background: "linear-gradient(180deg, hsl(var(--foreground) / 0.18), hsl(var(--foreground) / 0.34), hsl(var(--foreground) / 0.2))",
+    boxShadow: "inset 1px 0 0 hsl(var(--background) / 0.18), inset -1px 0 0 hsl(var(--background) / 0.08)",
   };
 
   const horizontalStyle: React.CSSProperties = {
     clipPath: "polygon(0 53.5%, 100% 53.5%, 100% 55%, 0 55%)",
-    background: "hsl(var(--background) / 0.55)",
-    backdropFilter: "blur(12px)",
-    WebkitBackdropFilter: "blur(12px)",
+    background: "linear-gradient(90deg, hsl(var(--foreground) / 0.18), hsl(var(--foreground) / 0.34), hsl(var(--foreground) / 0.2))",
+    boxShadow: "inset 0 1px 0 hsl(var(--background) / 0.18), inset 0 -1px 0 hsl(var(--background) / 0.08)",
   };
 
   return (
@@ -146,9 +143,8 @@ export function CollectionGridCard({
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.035, type: "spring", stiffness: 380, damping: 28 }}
       className={cn(
-        "group relative rounded-2xl overflow-hidden cursor-pointer transition-all duration-500",
-        "border-[1.5px] border-white/20",
-        "hover:border-white/30",
+        "group relative rounded-2xl overflow-hidden cursor-pointer bg-card shadow-sm transition-all duration-500",
+        "border-[1.5px] border-border/40 hover:border-primary/40",
         isSelected && "border-primary ring-2 ring-primary/25 shadow-lg shadow-primary/10",
         "holo-card"
       )}
@@ -172,7 +168,7 @@ export function CollectionGridCard({
               variant="ghost"
               size="icon"
               aria-label="Mais opções"
-              className="h-8 w-8 rounded-xl sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-card/80 backdrop-blur-xl hover:bg-card shadow-sm border border-border/20"
+              className="h-8 w-8 rounded-xl sm:opacity-0 sm:group-hover:opacity-100 transition-opacity bg-background/95 hover:bg-background shadow-sm border border-border/30"
               onClick={(e) => e.stopPropagation()}
             >
               <MoreVertical className="h-3.5 w-3.5" />
@@ -198,14 +194,14 @@ export function CollectionGridCard({
       </div>
 
       {/* ── Image area ── */}
-      <div className="aspect-[3/4] relative overflow-hidden bg-white/[0.03]">
+      <div className="aspect-[3/4] relative overflow-hidden bg-muted/20">
         {hasImages ? (
           <>
             <DynamicCollage images={allImages} />
 
             {/* Product count pill */}
             <div className="absolute top-3 right-14 sm:right-3 sm:group-hover:right-14 transition-all duration-200 z-[5]">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-card/90 backdrop-blur-xl text-foreground border border-border/20 shadow-sm">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold bg-background/95 text-foreground border border-border/30 shadow-sm">
                 <Package className="h-3 w-3 text-primary" />
                 {productCount}
               </span>
@@ -222,7 +218,7 @@ export function CollectionGridCard({
       </div>
 
       {/* ── Footer ── */}
-      <div className="p-4 space-y-3 bg-white/[0.06] backdrop-blur-md border-t border-white/10">
+      <div className="p-4 space-y-3 bg-card border-t border-border/20">
         {/* Row 1: Icon + Title + Star */}
         <div className="flex items-center gap-3">
           <div
