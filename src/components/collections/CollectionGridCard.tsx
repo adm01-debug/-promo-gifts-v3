@@ -31,6 +31,40 @@ interface CollectionGridCardProps {
   index: number;
 }
 
+/* ── Frost seams between collage panels ── */
+function FrostSeams({ layout }: { layout: 2 | 3 | 4 }) {
+  const verticalClip = layout === 2
+    ? "polygon(43% 0, 57% 0, 47% 100%, 33% 100%)"
+    : "polygon(46% 0, 62% 0, 42% 100%, 28% 100%)";
+
+  const showHorizontal = layout >= 3;
+
+  return (
+    <div className="absolute inset-0 z-[2] pointer-events-none">
+      <div
+        className="absolute inset-0"
+        style={{
+          clipPath: verticalClip,
+          background: "linear-gradient(180deg, hsl(var(--background) / 0.5) 0%, hsl(var(--background) / 0.12) 50%, hsl(var(--background) / 0.5) 100%)",
+          backdropFilter: "blur(8px)",
+          WebkitBackdropFilter: "blur(8px)",
+        }}
+      />
+      {showHorizontal && (
+        <div
+          className="absolute inset-0"
+          style={{
+            clipPath: "polygon(0 51%, 100% 51%, 100% 57%, 0 57%)",
+            background: "linear-gradient(90deg, hsl(var(--background) / 0.5) 0%, hsl(var(--background) / 0.12) 50%, hsl(var(--background) / 0.5) 100%)",
+            backdropFilter: "blur(8px)",
+            WebkitBackdropFilter: "blur(8px)",
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
 /* ── Dynamic Collage ── */
 function DynamicCollage({ images }: { images: string[] }) {
   const count = images.length;
@@ -46,14 +80,13 @@ function DynamicCollage({ images }: { images: string[] }) {
   if (count === 2) {
     return (
       <div className="absolute inset-0">
-        {/* Left - diagonal cut */}
         <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 55% 0, 45% 100%, 0 100%)" }}>
           <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
-        {/* Right */}
         <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(55% 0, 100% 0, 100% 100%, 45% 100%)" }}>
           <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
+        <FrostSeams layout={2} />
       </div>
     );
   }
@@ -61,42 +94,36 @@ function DynamicCollage({ images }: { images: string[] }) {
   if (count === 3) {
     return (
       <div className="absolute inset-0">
-        {/* Top-left big */}
         <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 60% 0, 50% 55%, 0 55%)" }}>
           <img src={images[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
-        {/* Top-right */}
         <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(62% 0, 100% 0, 100% 55%, 52% 55%)" }}>
           <img src={images[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
-        {/* Bottom full */}
         <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 57%, 100% 57%, 100% 100%, 0 100%)" }}>
           <img src={images[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
         </div>
+        <FrostSeams layout={3} />
       </div>
     );
   }
 
-  // 4+ images → editorial grid with diagonal accents
   const display = images.slice(0, 4);
   return (
     <div className="absolute inset-0">
-      {/* Top-left large */}
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 0, 58% 0, 48% 52%, 0 52%)" }}>
         <img src={display[0]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
-      {/* Top-right */}
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(60% 0, 100% 0, 100% 52%, 50% 52%)" }}>
         <img src={display[1]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
-      {/* Bottom-left */}
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(0 54%, 48% 54%, 42% 100%, 0 100%)" }}>
         <img src={display[2]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
-      {/* Bottom-right */}
       <div className="absolute inset-0 overflow-hidden" style={{ clipPath: "polygon(50% 54%, 100% 54%, 100% 100%, 44% 100%)" }}>
         <img src={display[3]} alt="" className="absolute inset-0 w-full h-full object-cover" loading="lazy" />
       </div>
+      <FrostSeams layout={4} />
     </div>
   );
 }
