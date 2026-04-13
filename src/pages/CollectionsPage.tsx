@@ -7,6 +7,7 @@ import {
 import { CollectionGridCard } from "@/components/collections/CollectionGridCard";
 import { CollectionListItem } from "@/components/collections/CollectionListItem";
 import { CollectionTableView } from "@/components/collections/CollectionTableView";
+import { ExternalCollectionTableView } from "@/components/collections/ExternalCollectionTableView";
 import { CollectionFormDialog } from "@/components/collections/CollectionFormDialog";
 import { ExternalCollectionCard } from "@/components/collections/ExternalCollectionCard";
 import { MainLayout } from "@/components/layout/MainLayout";
@@ -280,21 +281,32 @@ export default function CollectionsPage() {
                 {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-64 rounded-xl" />)}
               </div>
             ) : (
-              <div className={gridClasses}>
-                {filteredExternal.map((collection, idx) => (
-                  <ExternalCollectionCard
-                    key={collection.id}
-                    collection={collection}
-                    productCount={externalProductCounts?.get(collection.id)}
-                    viewMode={viewMode === "list" ? "list" : "grid"}
-                    onNavigate={() => navigate(`/colecoes/${collection.id}`)}
-                    onDuplicate={() => {
-                      createCollection(collection.name, collection.description || undefined, collection.color || defaultColors[0], collection.icon || defaultIcons[0]);
-                    }}
-                    index={idx}
-                  />
-                ))}
-              </div>
+              viewMode === "table" ? (
+                <ExternalCollectionTableView
+                  collections={filteredExternal}
+                  productCounts={externalProductCounts}
+                  onNavigate={(id) => navigate(`/colecoes/${id}`)}
+                  onDuplicate={(col) => {
+                    createCollection(col.name, col.description || undefined, col.color || defaultColors[0], col.icon || defaultIcons[0]);
+                  }}
+                />
+              ) : (
+                <div className={gridClasses}>
+                  {filteredExternal.map((collection, idx) => (
+                    <ExternalCollectionCard
+                      key={collection.id}
+                      collection={collection}
+                      productCount={externalProductCounts?.get(collection.id)}
+                      viewMode={viewMode === "list" ? "list" : "grid"}
+                      onNavigate={() => navigate(`/colecoes/${collection.id}`)}
+                      onDuplicate={() => {
+                        createCollection(collection.name, collection.description || undefined, collection.color || defaultColors[0], collection.icon || defaultIcons[0]);
+                      }}
+                      index={idx}
+                    />
+                  ))}
+                </div>
+              )
             )}
           </div>
         )}
