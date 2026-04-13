@@ -416,6 +416,8 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
+    const crm = createClient(CRM_URL, CRM_KEY);
+
     // Validate body with Zod schema
     let rawBody: unknown;
     try { rawBody = await req.json(); } catch {
