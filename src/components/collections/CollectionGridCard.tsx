@@ -34,8 +34,8 @@ interface CollectionGridCardProps {
 function CollagePanel({ src, clipPath }: { src: string; clipPath: string }) {
   return (
     <div
-      className="absolute -inset-px overflow-hidden will-change-transform [transform:translateZ(0)]"
-      style={{ clipPath }}
+      className="absolute inset-0 overflow-hidden will-change-transform [transform:translate3d(0,0,0)] [backface-visibility:hidden]"
+      style={{ clipPath, WebkitClipPath: clipPath }}
     >
       <img
         src={src}
@@ -62,8 +62,8 @@ function DynamicCollage({ images }: { images: string[] }) {
   if (count === 2) {
     return (
       <div className="absolute inset-0">
-        <CollagePanel src={images[0]} clipPath="polygon(0 0, 56% 0, 46% 100%, 0 100%)" />
-        <CollagePanel src={images[1]} clipPath="polygon(54% 0, 100% 0, 100% 100%, 44% 100%)" />
+        <CollagePanel src={images[0]} clipPath="polygon(-2px -2px, calc(56% + 2px) -2px, calc(46% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
+        <CollagePanel src={images[1]} clipPath="polygon(calc(54% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), calc(44% - 2px) calc(100% + 2px))" />
       </div>
     );
   }
@@ -71,9 +71,9 @@ function DynamicCollage({ images }: { images: string[] }) {
   if (count === 3) {
     return (
       <div className="absolute inset-0">
-        <CollagePanel src={images[0]} clipPath="polygon(0 0, 61% 0, 51.5% 56.5%, 0 56.5%)" />
-        <CollagePanel src={images[1]} clipPath="polygon(59% 0, 100% 0, 100% 56.5%, 49.5% 56.5%)" />
-        <CollagePanel src={images[2]} clipPath="polygon(0 54.5%, 100% 54.5%, 100% 100%, 0 100%)" />
+        <CollagePanel src={images[0]} clipPath="polygon(-2px -2px, calc(61% + 2px) -2px, calc(51.5% + 2px) calc(56.5% + 2px), -2px calc(56.5% + 2px))" />
+        <CollagePanel src={images[1]} clipPath="polygon(calc(59% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(56.5% + 2px), calc(49.5% - 2px) calc(56.5% + 2px))" />
+        <CollagePanel src={images[2]} clipPath="polygon(-2px calc(54.5% - 2px), calc(100% + 2px) calc(54.5% - 2px), calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
       </div>
     );
   }
@@ -81,10 +81,10 @@ function DynamicCollage({ images }: { images: string[] }) {
   const display = images.slice(0, 4);
   return (
     <div className="absolute inset-0">
-      <CollagePanel src={display[0]} clipPath="polygon(0 0, 59% 0, 49.5% 53.5%, 0 53.5%)" />
-      <CollagePanel src={display[1]} clipPath="polygon(57% 0, 100% 0, 100% 53.5%, 47.5% 53.5%)" />
-      <CollagePanel src={display[2]} clipPath="polygon(0 51.5%, 49.5% 51.5%, 43.5% 100%, 0 100%)" />
-      <CollagePanel src={display[3]} clipPath="polygon(47.5% 51.5%, 100% 51.5%, 100% 100%, 41.5% 100%)" />
+      <CollagePanel src={display[0]} clipPath="polygon(-2px -2px, calc(59% + 2px) -2px, calc(49.5% + 2px) calc(53.5% + 2px), -2px calc(53.5% + 2px))" />
+      <CollagePanel src={display[1]} clipPath="polygon(calc(57% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(53.5% + 2px), calc(47.5% - 2px) calc(53.5% + 2px))" />
+      <CollagePanel src={display[2]} clipPath="polygon(-2px calc(51.5% - 2px), calc(49.5% + 2px) calc(51.5% - 2px), calc(43.5% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
+      <CollagePanel src={display[3]} clipPath="polygon(calc(47.5% - 2px) calc(51.5% - 2px), calc(100% + 2px) calc(51.5% - 2px), calc(100% + 2px) calc(100% + 2px), calc(41.5% - 2px) calc(100% + 2px))" />
     </div>
   );
 }
