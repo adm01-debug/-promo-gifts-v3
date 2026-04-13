@@ -31,60 +31,45 @@ interface CollectionGridCardProps {
   index: number;
 }
 
-function CollagePanel({ src, clipPath }: { src: string; clipPath: string }) {
-  return (
-    <div
-      className="absolute inset-0 overflow-hidden will-change-transform [transform:translate3d(0,0,0)] [backface-visibility:hidden]"
-      style={{ clipPath, WebkitClipPath: clipPath }}
-    >
-      <img
-        src={src}
-        alt=""
-        className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
-        loading="lazy"
-      />
-    </div>
-  );
-}
-
-/* ── Dynamic Collage ── */
+/* ── Dynamic Collage — simple grid, no clip-path ── */
 function DynamicCollage({ images }: { images: string[] }) {
   const count = images.length;
+  const imgClass = "w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]";
 
   if (count === 1) {
     return (
       <div className="absolute inset-0">
-        <img src={images[0]} alt="" className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]" loading="lazy" />
+        <img src={images[0]} alt="" className={imgClass} loading="lazy" />
       </div>
     );
   }
 
   if (count === 2) {
     return (
-      <div className="absolute inset-0">
-        <CollagePanel src={images[0]} clipPath="polygon(-2px -2px, calc(56% + 2px) -2px, calc(46% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
-        <CollagePanel src={images[1]} clipPath="polygon(calc(54% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), calc(44% - 2px) calc(100% + 2px))" />
+      <div className="absolute inset-0 grid grid-cols-2 gap-0">
+        <div className="overflow-hidden"><img src={images[0]} alt="" className={imgClass} loading="lazy" /></div>
+        <div className="overflow-hidden"><img src={images[1]} alt="" className={imgClass} loading="lazy" /></div>
       </div>
     );
   }
 
   if (count === 3) {
     return (
-      <div className="absolute inset-0">
-        <CollagePanel src={images[0]} clipPath="polygon(-2px -2px, calc(61% + 2px) -2px, calc(51.5% + 2px) calc(56.5% + 2px), -2px calc(56.5% + 2px))" />
-        <CollagePanel src={images[1]} clipPath="polygon(calc(59% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(56.5% + 2px), calc(49.5% - 2px) calc(56.5% + 2px))" />
-        <CollagePanel src={images[2]} clipPath="polygon(-2px calc(54.5% - 2px), calc(100% + 2px) calc(54.5% - 2px), calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
+      <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-0">
+        <div className="overflow-hidden row-span-2"><img src={images[0]} alt="" className={imgClass} loading="lazy" /></div>
+        <div className="overflow-hidden"><img src={images[1]} alt="" className={imgClass} loading="lazy" /></div>
+        <div className="overflow-hidden"><img src={images[2]} alt="" className={imgClass} loading="lazy" /></div>
       </div>
     );
   }
 
   const display = images.slice(0, 4);
   return (
-    <div className="absolute inset-0">
-      <CollagePanel src={display[0]} clipPath="polygon(-2px -2px, calc(59% + 2px) -2px, calc(49.5% + 2px) calc(53.5% + 2px), -2px calc(53.5% + 2px))" />
-      <CollagePanel src={display[1]} clipPath="polygon(calc(57% - 2px) -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(53.5% + 2px), calc(47.5% - 2px) calc(53.5% + 2px))" />
-      <CollagePanel src={display[2]} clipPath="polygon(-2px calc(51.5% - 2px), calc(49.5% + 2px) calc(51.5% - 2px), calc(43.5% + 2px) calc(100% + 2px), -2px calc(100% + 2px))" />
-      <CollagePanel src={display[3]} clipPath="polygon(calc(47.5% - 2px) calc(51.5% - 2px), calc(100% + 2px) calc(51.5% - 2px), calc(100% + 2px) calc(100% + 2px), calc(41.5% - 2px) calc(100% + 2px))" />
+    <div className="absolute inset-0 grid grid-cols-2 grid-rows-2 gap-0">
+      <div className="overflow-hidden"><img src={display[0]} alt="" className={imgClass} loading="lazy" /></div>
+      <div className="overflow-hidden"><img src={display[1]} alt="" className={imgClass} loading="lazy" /></div>
+      <div className="overflow-hidden"><img src={display[2]} alt="" className={imgClass} loading="lazy" /></div>
+      <div className="overflow-hidden"><img src={display[3]} alt="" className={imgClass} loading="lazy" /></div>
     </div>
   );
 }
