@@ -48,6 +48,14 @@ export default function QuoteViewPage() {
   const [adminNotes, setAdminNotes] = useState("");
   const [isResponding, setIsResponding] = useState(false);
 
+  const {
+    quote, setQuote, isLoadingQuote, clientCnpj,
+    isGeneratingPDF, isSyncing, approvalLink,
+    showPresentation, setShowPresentation, proposalData,
+    handleDownloadPDF, handleWhatsAppShare, handleShareLink,
+    handleSyncBitrix, fetchQuote, logQuoteHistory, duplicateQuote,
+  } = useQuoteViewData(id);
+
   const handleAdminResponse = useCallback(async (approved: boolean) => {
     if (!approvalRequest) return;
     setIsResponding(true);
@@ -60,14 +68,6 @@ export default function QuoteViewPage() {
     }
     setIsResponding(false);
   }, [approvalRequest, adminNotes, respondToApproval, id, fetchQuote, setQuote]);
-
-  const {
-    quote, setQuote, isLoadingQuote, clientCnpj,
-    isGeneratingPDF, isSyncing, approvalLink,
-    showPresentation, setShowPresentation, proposalData,
-    handleDownloadPDF, handleWhatsAppShare, handleShareLink,
-    handleSyncBitrix, fetchQuote, logQuoteHistory, duplicateQuote,
-  } = useQuoteViewData(id);
 
   useEffect(() => {
     if (id && quote?.status === "pending_approval") {
