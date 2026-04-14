@@ -42,10 +42,24 @@ const statusConfig = Object.fromEntries(
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getApprovalStatus } = useDiscountApproval();
+  const { getApprovalStatus, respondToApproval } = useDiscountApproval();
+  const { isAdmin } = useAuth();
   const [approvalRequest, setApprovalRequest] = useState<DiscountApprovalRequest | null>(null);
+  const [adminNotes, setAdminNotes] = useState("");
+  const [isResponding, setIsResponding] = useState(false);
 
-  const {
+  const handleAdminResponse = useCallback(async (approved: boolean) => {
+    if (!approvalRequest) return;
+    setIsResponding(true);
+    const ok = await respondToApproval(approvalRequest.id, approved, adminNotes || undefined);
+    if (ok && id) {
+      const updated = await fetchQuote(id);
+      setQuote(updated);
+      setApprovalRequest(null);
+      setAdminNotes("");
+    }
+    setIsResponding(false);
+  }, [approvalRequest, adminNotes, respondToApproval, id, fetchQuote, setQuote]);
     quote, setQuote, isLoadingQuote, clientCnpj,
     isGeneratingPDF, isSyncing, approvalLink,
     showPresentation, setShowPresentation, proposalData,
