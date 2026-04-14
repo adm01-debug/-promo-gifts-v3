@@ -240,14 +240,45 @@ export function useQuoteBuilderState() {
     window.history.replaceState({}, document.title);
   }, [location.state]);
 
-  // ── Pre-fill from product detail page (query params) ──
+  // ── Pre-fill from URL params (single product or bulk items[]) ──
   useEffect(() => {
     if (isEditMode) return;
-    // Support both "product_id" (canonical) and "productId" (legacy from cards)
-    const productId = searchParams.get("product_id") || searchParams.get("productId");
-    if (!productId) return;
     // Avoid duplicating if items already exist (e.g. restored draft)
     if (items.length > 0) return;
+
+    // ── Bulk: items[] JSON array from catalog/filter selection ──
+    const rawItems = searchParams.getAll("items[]");
+    if (rawItems.length > 0) {
+      try {
+        const parsedItems: QuoteItem[] = rawItems.map(raw => {
+          const p = JSON.parse(raw);
+          return {
+            product_id: p.product_id || "",
+            product_name: p.product_name || "",
+            product_sku: p.product_sku || "",
+            product_image_url: p.product_image || undefined,
+            quantity: Math.max(1, p.quantity || 1),
+            unit_price: parseFloat(p.product_price || "0"),
+            color_name: p.color_name || undefined,
+            color_hex: p.color_hex || undefined,
+            personalizations: [],
+          };
+        });
+        if (parsedItems.length > 0) {
+          setItems(parsedItems);
+          setActiveItemIndex(0);
+          toast.success(`${parsedItems.length} produto${parsedItems.length > 1 ? 's' : ''} adicionado${parsedItems.length > 1 ? 's' : ''} ao orçamento`);
+          window.history.replaceState({}, document.title, location.pathname);
+          return;
+        }
+      } catch {
+        console.warn("Failed to parse items[] params");
+      }
+    }
+
+    // ── Single product: product_id param ──
+    const productId = searchParams.get("product_id") || searchParams.get("productId");
+    if (!productId) return;
     const productName = searchParams.get("product_name") || "";
     const colorName = searchParams.get("color_name") || undefined;
     const colorHex = searchParams.get("color_hex") || undefined;
