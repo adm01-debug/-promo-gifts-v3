@@ -443,7 +443,7 @@ export function useQuoteBuilderState() {
   }, [maxDiscountPercent, discountType, discountValue, subtotal]);
 
   // ── Save ──
-  const handleSaveQuote = useCallback(async (status: "draft" | "pending" | "pending_approval" = "draft") => {
+  const handleSaveQuote = useCallback(async (status: "draft" | "pending" | "pending_approval" = "draft", sellerNotes?: string) => {
     if (status === "draft") {
       if (!isDraftValid) { toast.error("Selecione uma empresa para salvar o rascunho."); return; }
     } else if (!isFormValid) {
@@ -468,12 +468,12 @@ export function useQuoteBuilderState() {
     if (isEditMode && quoteId) { result = await updateQuote(quoteId, quoteData, items); }
     else { result = await createQuote(quoteData, items); }
 
-    // If pending_approval, create approval request
+    // If pending_approval, create approval request with seller notes
     if (result && status === "pending_approval" && maxDiscountPercent != null) {
       const effectivePercent = discountType === "percent"
         ? discountValue
         : subtotal > 0 ? (discountValue / subtotal) * 100 : 0;
-      await requestApproval(result.id, effectivePercent, maxDiscountPercent);
+      await requestApproval(result.id, effectivePercent, maxDiscountPercent, sellerNotes);
     }
 
     if (result) navigate(`/orcamentos/${result.id}`);

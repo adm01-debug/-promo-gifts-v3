@@ -2,11 +2,17 @@
  * QuoteBuilderSummaryColumn — Coluna 3: Resumo com cards de itens, desconto e CTAs
  */
 
+import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
+} from "@/components/ui/dialog";
 import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/hooks/useQuotes";
@@ -30,7 +36,7 @@ interface Props {
   formatCurrency: (v: number) => string;
   calculateItemPersonalizationTotal: (item: QuoteItem) => number;
   calculateItemTotal: (item: QuoteItem) => number;
-  onSave: (status: "draft" | "pending" | "pending_approval") => void;
+  onSave: (status: "draft" | "pending" | "pending_approval", sellerNotes?: string) => void;
   maxDiscountPercent?: number | null;
   isDiscountExceeded?: boolean;
 }
@@ -43,6 +49,15 @@ export function QuoteBuilderSummaryColumn({
   calculateItemPersonalizationTotal, calculateItemTotal, onSave,
   maxDiscountPercent, isDiscountExceeded,
 }: Props) {
+  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
+  const [sellerNotes, setSellerNotes] = useState("");
+
+  const handleRequestApproval = () => {
+    onSave("pending_approval", sellerNotes);
+    setApprovalDialogOpen(false);
+    setSellerNotes("");
+  };
+
   return (
     <div className="lg:col-span-4">
       <div className="sticky top-24">
@@ -79,8 +94,7 @@ export function QuoteBuilderSummaryColumn({
                       <div className="flex items-start gap-3">
                         <div className="shrink-0">
                           {item.product_image_url ? (
-                            
-<img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-lg bg-muted"  loading="lazy" />
+                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-lg bg-muted" loading="lazy" />
                           ) : (
                             <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                               <Package className="h-5 w-5 text-muted-foreground" />
@@ -242,7 +256,12 @@ export function QuoteBuilderSummaryColumn({
             )}
 
             {isDiscountExceeded ? (
-              <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20" onClick={() => onSave("pending_approval")} disabled={quotesLoading || !isFormValid}>
+              <Button
+                size="lg"
+                className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20"
+                onClick={() => setApprovalDialogOpen(true)}
+                disabled={quotesLoading || !isFormValid}
+              >
                 {quotesLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Shield className="h-5 w-5" />}
                 Solicitar Aprovação
               </Button>
@@ -259,6 +278,63 @@ export function QuoteBuilderSummaryColumn({
           </div>
         </div>
       </div>
+
+      {/* Approval Request Dialog */}
+      <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Shield className="h-5 w-5 text-amber-500" />
+              Solicitar Aprovação de Desconto
+            </DialogTitle>
+            <DialogDescription>
+              O desconto de <span className="font-semibold text-foreground">{discountType === "percent" ? `${discountValue}%` : formatCurrency(discountValue)}</span> excede
+              seu limite de <span className="font-semibold text-foreground">{maxDiscountPercent}%</span>. Justifique o motivo para o administrador.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            {/* Visual comparison */}
+            <div className="rounded-xl bg-muted/50 border border-border/40 p-3 space-y-2">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Seu Limite</p>
+                  <p className="text-sm font-semibold mt-0.5">{maxDiscountPercent}%</p>
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">Solicitado</p>
+                  <p className="text-sm font-bold text-amber-500 mt-0.5">{discountType === "percent" ? `${discountValue}%` : formatCurrency(discountValue)}</p>
+                </div>
+              </div>
+              <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+                <div className="absolute inset-y-0 left-0 rounded-full bg-emerald-500/40" style={{ width: `${Math.min(maxDiscountPercent || 0, 100)}%` }} />
+                <div className="absolute inset-y-0 left-0 rounded-full bg-amber-500" style={{ width: `${Math.min(discountType === "percent" ? discountValue : 0, 100)}%` }} />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Justificativa <span className="text-muted-foreground font-normal">(opcional)</span></Label>
+              <Textarea
+                value={sellerNotes}
+                onChange={(e) => setSellerNotes(e.target.value)}
+                placeholder="Ex: Cliente estratégico, pedido de grande volume, negociação especial..."
+                rows={3}
+                autoFocus
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setApprovalDialogOpen(false)}>Cancelar</Button>
+            <Button
+              className="gap-1.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white"
+              onClick={handleRequestApproval}
+              disabled={quotesLoading}
+            >
+              {quotesLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Shield className="h-4 w-4" />}
+              Enviar para Aprovação
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
