@@ -395,13 +395,19 @@ export default function AdminDiscountApprovalsPage() {
                                   {req.status === "pending" ? "Pendente" : req.status === "approved" ? "Aprovado" : "Rejeitado"}
                                 </Badge>
                                 {req.quote && (
-                                  <span className="text-sm font-mono font-semibold text-foreground">{req.quote.quote_number}</span>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-6 px-2 text-sm font-mono font-semibold text-foreground hover:text-primary gap-1"
+                                    onClick={() => navigate(`/orcamentos/${req.quote_id}`)}
+                                  >
+                                    {req.quote.quote_number}
+                                    <Eye className="h-3 w-3" />
+                                  </Button>
                                 )}
-                                {req.responded_at && (
-                                  <span className="text-xs text-muted-foreground ml-auto">
-                                    {format(new Date(req.responded_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
-                                  </span>
-                                )}
+                                <span className="text-xs text-muted-foreground ml-auto tabular-nums">
+                                  {format(new Date(req.created_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                                </span>
                               </div>
 
                               {/* Info Grid */}
