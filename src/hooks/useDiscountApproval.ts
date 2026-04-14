@@ -135,7 +135,7 @@ export function useDiscountApproval() {
 
       // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
       const newStatus = approved ? "pending" : "draft";
-      await Promise.all([
+      const [quoteUpdateResult, historyResult] = await Promise.all([
         supabase
           .from("quotes")
           .update({ status: newStatus })
@@ -156,6 +156,13 @@ export function useDiscountApproval() {
             metadata: { admin_notes: adminNotes || null, status: approved ? "approved" : "rejected" },
           }),
       ]);
+
+      if (quoteUpdateResult.error) {
+        console.error("Failed to update quote status:", quoteUpdateResult.error);
+      }
+      if (historyResult.error) {
+        console.error("Failed to log quote history:", historyResult.error);
+      }
 
       // Notify the seller
       await supabase.from("workspace_notifications").insert({
