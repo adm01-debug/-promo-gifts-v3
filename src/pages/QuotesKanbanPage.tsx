@@ -186,6 +186,10 @@ export default function QuotesKanbanPage() {
             <span>Rascunho → Pendente/Enviado</span>
           </div>
           <div className="flex items-center gap-2">
+            <div className="w-3 h-3 rounded bg-amber-500/50" />
+            <span>Aguardando Aprovação (desconto acima do limite)</span>
+          </div>
+          <div className="flex items-center gap-2">
             <div className="w-3 h-3 rounded bg-warning/50" />
             <span>Pendente → Rascunho/Enviado/Expirado</span>
           </div>

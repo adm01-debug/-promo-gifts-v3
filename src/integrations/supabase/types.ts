@@ -361,6 +361,59 @@ export type Database = {
         }
         Relationships: []
       }
+      discount_approval_requests: {
+        Row: {
+          admin_id: string | null
+          admin_notes: string | null
+          created_at: string
+          id: string
+          max_allowed_percent: number
+          quote_id: string
+          requested_discount_percent: number
+          responded_at: string | null
+          seller_id: string
+          seller_notes: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_id?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          max_allowed_percent: number
+          quote_id: string
+          requested_discount_percent: number
+          responded_at?: string | null
+          seller_id: string
+          seller_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_id?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          id?: string
+          max_allowed_percent?: number
+          quote_id?: string
+          requested_discount_percent?: number
+          responded_at?: string | null
+          seller_id?: string
+          seller_notes?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "discount_approval_requests_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expert_conversations: {
         Row: {
           client_id: string | null
@@ -1836,6 +1889,36 @@ export type Database = {
           seller_id?: string
           status?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      seller_discount_limits: {
+        Row: {
+          created_at: string
+          id: string
+          max_discount_percent: number
+          notes: string | null
+          set_by: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          max_discount_percent?: number
+          notes?: string | null
+          set_by: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          max_discount_percent?: number
+          notes?: string | null
+          set_by?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
