@@ -1,4 +1,4 @@
-import { Check, Clock, Eye, FileText, RefreshCw, Send, Shield, ThumbsDown, ThumbsUp, AlertTriangle } from "lucide-react";
+import { Check, Clock, Eye, FileText, RefreshCw, Send, ThumbsDown, ThumbsUp, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -12,21 +12,20 @@ interface QuoteStatusTimelineProps {
 }
 
 const steps = [
-  { key: "draft",              label: "Rascunho",              icon: FileText },
-  { key: "pending_approval",   label: "Aprovação Desconto",    icon: Shield },
-  { key: "pending",            label: "Pendente",              icon: Clock },
-  { key: "syncing",            label: "Sincronizando",         icon: RefreshCw },
-  { key: "sent",               label: "Enviado",               icon: Send },
+  { key: "draft",       label: "Rascunho",      icon: FileText },
+  { key: "pending",     label: "Pendente",       icon: Clock },
+  { key: "syncing",     label: "Sincronizando",  icon: RefreshCw },
+  { key: "sent",        label: "Enviado",        icon: Send },
 ];
 
+// Pending = idx 1, Syncing = idx 2, Sent = idx 3
 const statusOrder: Record<string, number> = {
-  draft:             0,
-  pending_approval:  1,
-  pending:           2,
-  sent:              5,
-  approved:          5,
-  rejected:          5,
-  expired:           5,
+  draft:    0,
+  pending:  1,
+  sent:     4, // além do último step → todos marcados como concluídos
+  approved: 4,
+  rejected: 4,
+  expired:  4,
 };
 
 function formatTs(ts?: string) {
@@ -45,28 +44,20 @@ export function QuoteStatusTimeline({
   clientResponseAt,
   isSyncing = false,
 }: QuoteStatusTimelineProps) {
-  const isPendingApproval = status === "pending_approval";
-  // Compute current index based on filtered steps
-  const activeSteps = isPendingApproval ? steps : steps.filter(s => s.key !== "pending_approval");
-  const stepIdx = activeSteps.findIndex(s => s.key === status);
-  const baseIdx = stepIdx >= 0 ? stepIdx : (statusOrder[status] != null ? Math.min(statusOrder[status], activeSteps.length) : 0);
-  const syncIdx = activeSteps.findIndex(s => s.key === "syncing");
-  const currentIdx = isSyncing && syncIdx >= 0 ? syncIdx : baseIdx;
+  // While syncing, force current index to 2 (Sincronizando)
+  const baseIdx = statusOrder[status] ?? 0;
+  const currentIdx = isSyncing ? 2 : baseIdx;
 
   const isRejected = status === "rejected";
   const isExpired  = status === "expired";
   const isFinalNegative = isRejected || isExpired;
 
-  // Filter out pending_approval step if not relevant to this quote
-  const relevantSteps = isPendingApproval || status === "pending_approval"
-    ? steps
-    : steps.filter(s => s.key !== "pending_approval");
-
-  const displaySteps = relevantSteps.map((step, idx) => {
-    if (idx === relevantSteps.length - 1 && isRejected) {
+  const displaySteps = steps.map((step, idx) => {
+    // Last step adapts to rejected/expired when status demands it
+    if (idx === steps.length - 1 && isRejected) {
       return { key: "rejected", label: "Rejeitado", icon: ThumbsDown };
     }
-    if (idx === relevantSteps.length - 1 && isExpired) {
+    if (idx === steps.length - 1 && isExpired) {
       return { key: "expired", label: "Expirado", icon: AlertTriangle };
     }
     return step;
@@ -95,8 +86,7 @@ export function QuoteStatusTimeline({
                 className={cn(
                   "w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all",
                   isCompleted && "bg-primary border-primary text-primary-foreground",
-                  isCurrent && isPendingApproval && step.key === "pending_approval" && "border-amber-500 bg-amber-500/10 text-amber-500 ring-2 ring-amber-500/20",
-                  isCurrent && !isFinalNegative && !isSync && !isPendingApproval && "border-primary bg-primary/10 text-primary ring-2 ring-primary/20",
+                  isCurrent && !isFinalNegative && !isSync && "border-primary bg-primary/10 text-primary ring-2 ring-primary/20",
                   isCurrent && isSync && "border-success bg-primary/10 text-primary ring-2 ring-primary/20",
                   isCurrent && isRejected && "border-destructive bg-destructive/10 text-destructive ring-2 ring-destructive/20",
                   isCurrent && isExpired && "border-muted-foreground bg-muted text-muted-foreground ring-2 ring-muted-foreground/20",

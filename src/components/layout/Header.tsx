@@ -20,7 +20,6 @@ import { useOnboardingContext } from "@/contexts/OnboardingContext";
 
 import { StockAlertsIndicator } from "@/components/inventory/StockAlertsIndicator";
 import { NotificationBell } from "@/components/notifications/NotificationDrawer";
-import { DiscountApprovalHeaderBadge } from "@/components/admin/DiscountApprovalHeaderBadge";
 
 import { GlobalSearchPalette } from "@/components/search/GlobalSearchPalette";
 import { CartHeaderButton } from "@/components/cart/CartHeaderButton";
@@ -126,7 +125,6 @@ export function Header({ onMenuToggle, searchQuery, onSearchChange }: HeaderProp
           {/* ── Cluster 1: Transacional (carrinho, notificações, alertas) ── */}
           <div className="flex items-center gap-0.5">
             <CartHeaderButton />
-            <DiscountApprovalHeaderBadge />
             <NotificationBell />
             <div className="hidden md:block">
               <StockAlertsIndicator />

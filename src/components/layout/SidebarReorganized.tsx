@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Package,
@@ -39,7 +38,6 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
@@ -147,37 +145,6 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   });
   const { isAdmin } = useAuth();
 
-  // Pending discount approval count for admin badge
-  const { data: pendingApprovalCount } = useQuery({
-    queryKey: ["pending-discount-approvals-count"],
-    queryFn: async () => {
-      const { count } = await supabase
-        .from("discount_approval_requests")
-        .select("*", { count: "exact", head: true })
-        .eq("status", "pending");
-      return count || 0;
-    },
-    enabled: isAdmin,
-    refetchInterval: 30_000,
-    staleTime: 15_000,
-  });
-
-  // Inject badge into navGroups dynamically
-  const enrichedNavGroups = useMemo(() => {
-    if (!isAdmin || !pendingApprovalCount) return navGroups;
-    return navGroups.map(group => {
-      if (group.id !== "admin") return group;
-      return {
-        ...group,
-        items: group.items.map(item =>
-          item.href === "/admin/aprovacoes-desconto"
-            ? { ...item, badge: pendingApprovalCount }
-            : item
-        ),
-      };
-    });
-  }, [isAdmin, pendingApprovalCount]);
-
   // Auto-open only the group containing the active route, collapse others
   useEffect(() => {
     const newState: Record<string, boolean> = {};
@@ -233,8 +200,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   };
 
   const filteredGroups = useMemo(
-    () => enrichedNavGroups.filter((g) => !g.adminOnly || isAdmin),
-    [isAdmin, enrichedNavGroups]
+    () => navGroups.filter((g) => !g.adminOnly || isAdmin),
+    [isAdmin]
   );
 
   return (

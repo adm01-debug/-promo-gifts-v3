@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ArrowLeft, Copy, CreditCard, Edit2, Eye, FileText, History, Loader2, Monitor, MoreHorizontal, Package, RefreshCw, Shield, Truck, Undo2 } from "lucide-react";
+import { ArrowLeft, Check, Copy, CreditCard, Edit2, Eye, FileText, History, Loader2, Monitor, MoreHorizontal, Package, RefreshCw, Shield, Truck, Undo2, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -32,6 +32,8 @@ import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
 import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 import { useQuoteViewData } from "./quote-view/useQuoteViewData";
 import { useDiscountApproval, type DiscountApprovalRequest } from "@/hooks/useDiscountApproval";
+import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
 
 const statusConfig = Object.fromEntries(
   Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, variant: v.badgeVariant }])
@@ -40,8 +42,11 @@ const statusConfig = Object.fromEntries(
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { getApprovalStatus } = useDiscountApproval();
+  const { getApprovalStatus, respondToApproval } = useDiscountApproval();
+  const { isAdmin } = useAuth();
   const [approvalRequest, setApprovalRequest] = useState<DiscountApprovalRequest | null>(null);
+  const [adminNotes, setAdminNotes] = useState("");
+  const [isResponding, setIsResponding] = useState(false);
 
   const {
     quote, setQuote, isLoadingQuote, clientCnpj,
@@ -50,6 +55,19 @@ export default function QuoteViewPage() {
     handleDownloadPDF, handleWhatsAppShare, handleShareLink,
     handleSyncBitrix, fetchQuote, logQuoteHistory, duplicateQuote,
   } = useQuoteViewData(id);
+
+  const handleAdminResponse = useCallback(async (approved: boolean) => {
+    if (!approvalRequest) return;
+    setIsResponding(true);
+    const ok = await respondToApproval(approvalRequest.id, approved, adminNotes || undefined);
+    if (ok && id) {
+      const updated = await fetchQuote(id);
+      setQuote(updated);
+      setApprovalRequest(null);
+      setAdminNotes("");
+    }
+    setIsResponding(false);
+  }, [approvalRequest, adminNotes, respondToApproval, id, fetchQuote, setQuote]);
 
   useEffect(() => {
     if (id && quote?.status === "pending_approval") {
@@ -110,7 +128,6 @@ export default function QuoteViewPage() {
           </div>
 
           <div className="flex items-center gap-2">
-            {quote.status !== "pending_approval" && (
             <div className="hidden md:flex items-center gap-2">
               <QuoteConvertToOrder quoteId={id!} status={quote.status} onConverted={() => { if (id) fetchQuote(id).then(setQuote); }} />
               <Button onClick={handleSyncBitrix} disabled={isSyncing} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -118,9 +135,7 @@ export default function QuoteViewPage() {
                 {isSyncing ? "Sincronizando..." : "Sincronizar"}
               </Button>
             </div>
-            )}
 
-            {quote.status !== "pending_approval" && (
             <PdfGenerationDialog
               proposalData={proposalData}
               quoteNumber={quote.quote_number}
@@ -131,7 +146,6 @@ export default function QuoteViewPage() {
               onShareLink={handleShareLink}
               trigger={<Button className="gap-2"><Eye className="h-4 w-4" /> Preview Proposta</Button>}
             />
-            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -194,21 +208,60 @@ export default function QuoteViewPage() {
 
         {/* Discount Approval Banner */}
         {quote.status === "pending_approval" && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3 print:hidden">
-            <div className="p-2 rounded-lg bg-amber-500/15 shrink-0">
-              <Shield className="h-5 w-5 text-amber-500" />
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-4 space-y-3 print:hidden">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/15 shrink-0">
+                <Shield className="h-5 w-5 text-amber-500" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-amber-600">Aguardando aprovação de desconto</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {approvalRequest
+                    ? `Desconto de ${approvalRequest.requested_discount_percent}% solicitado (limite: ${approvalRequest.max_allowed_percent}%). ${approvalRequest.seller_notes ? `Justificativa: "${approvalRequest.seller_notes}"` : "Aguardando decisão do administrador."}`
+                    : "Este orçamento está aguardando a aprovação do administrador para o desconto aplicado."}
+                </p>
+              </div>
+              <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 shrink-0">
+                <Shield className="h-3 w-3" /> Pendente
+              </Badge>
             </div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm text-amber-600">Aguardando aprovação de desconto</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {approvalRequest
-                  ? `Desconto de ${approvalRequest.requested_discount_percent}% solicitado (limite: ${approvalRequest.max_allowed_percent}%). Aguardando decisão do administrador.`
-                  : "Este orçamento está aguardando a aprovação do administrador para o desconto aplicado."}
-              </p>
-            </div>
-            <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 shrink-0">
-              <Shield className="h-3 w-3" /> Pendente
-            </Badge>
+
+            {/* Admin inline approve/reject */}
+            {isAdmin && approvalRequest && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 pt-2 border-t border-amber-500/20">
+                <div className="flex-1 w-full sm:w-auto">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Observação do admin (opcional)</label>
+                  <Textarea
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="Motivo da decisão..."
+                    className="h-16 text-sm resize-none"
+                    disabled={isResponding}
+                  />
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={isResponding}
+                    onClick={() => handleAdminResponse(false)}
+                    className="gap-1.5"
+                  >
+                    {isResponding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                    Rejeitar
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={isResponding}
+                    onClick={() => handleAdminResponse(true)}
+                    className="gap-1.5 bg-success hover:bg-success/90 text-success-foreground"
+                  >
+                    {isResponding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    Aprovar Desconto
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

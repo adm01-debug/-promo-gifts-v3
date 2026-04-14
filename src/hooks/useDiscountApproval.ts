@@ -60,17 +60,6 @@ export function useDiscountApproval() {
         });
       if (error) throw error;
 
-      // Log in quote history
-      await supabase.from("quote_history").insert({
-        quote_id: quoteId,
-        user_id: user.id,
-        action: "discount_approval_requested",
-        description: `Solicitação de desconto de ${requestedPercent}% (limite: ${maxAllowedPercent}%)`,
-        field_changed: "discount",
-        new_value: `${requestedPercent}%`,
-        metadata: { seller_notes: sellerNotes || null },
-      });
-
       // Notify all admins
       const { data: adminRoles } = await supabase
         .from("user_roles")
@@ -129,27 +118,10 @@ export function useDiscountApproval() {
 
       // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
       const newStatus = approved ? "pending" : "draft";
-      await Promise.all([
-        supabase
-          .from("quotes")
-          .update({ status: newStatus })
-          .eq("id", typedReq.quote_id),
-        // Log in quote history for auditability
-        supabase
-          .from("quote_history")
-          .insert({
-            quote_id: typedReq.quote_id,
-            user_id: user.id,
-            action: approved ? "discount_approved" : "discount_rejected",
-            description: approved
-              ? `Desconto de ${typedReq.requested_discount_percent}% aprovado pelo admin`
-              : `Desconto de ${typedReq.requested_discount_percent}% rejeitado pelo admin`,
-            field_changed: "discount",
-            old_value: `${typedReq.max_allowed_percent}%`,
-            new_value: `${typedReq.requested_discount_percent}%`,
-            metadata: { admin_notes: adminNotes || null, status: approved ? "approved" : "rejected" },
-          }),
-      ]);
+      await supabase
+        .from("quotes")
+        .update({ status: newStatus })
+        .eq("id", typedReq.quote_id);
 
       // Notify the seller
       await supabase.from("workspace_notifications").insert({

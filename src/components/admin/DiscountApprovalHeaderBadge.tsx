@@ -1,6 +1,7 @@
+import { useEffect } from "react";
 import { Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
@@ -8,12 +9,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 
+const QUERY_KEY = ["pending-discount-approvals-count"];
+
 export function DiscountApprovalHeaderBadge() {
   const { isAdmin } = useAuth();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const { data: count = 0 } = useQuery({
-    queryKey: ["pending-discount-approvals-count"],
+    queryKey: QUERY_KEY,
     queryFn: async () => {
       const { count } = await supabase
         .from("discount_approval_requests")
@@ -22,9 +26,25 @@ export function DiscountApprovalHeaderBadge() {
       return count || 0;
     },
     enabled: isAdmin,
-    refetchInterval: 30_000,
+    refetchInterval: 60_000,
     staleTime: 15_000,
   });
+
+  // Realtime: invalidate on any change
+  useEffect(() => {
+    if (!isAdmin) return;
+    const channel = supabase
+      .channel("discount-approvals-badge")
+      .on("postgres_changes", {
+        event: "*",
+        schema: "public",
+        table: "discount_approval_requests",
+      }, () => {
+        queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [isAdmin, queryClient]);
 
   if (!isAdmin || count === 0) return null;
 

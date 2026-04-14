@@ -1,2 +1,0 @@
-DROP TRIGGER IF EXISTS trg_notify_discount_approval ON public.discount_approval_requests;
-DROP TRIGGER IF EXISTS trg_validate_discount_status ON public.discount_approval_requests;
