@@ -1,11 +1,11 @@
 /**
  * StockFilterToolbar — Advanced filter bar for Stock Dashboard
- * Filters: search, category, supplier, color, status, min quantity needed, alerts-only
+ * Uses same FilterSection architecture as Super Filtro
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  Search, X, Building2, FolderTree, Palette, PackageCheck,
-  ShoppingCart, AlertTriangle, SlidersHorizontal, Sparkles, ChevronDown,
+  Search, X, Building2, Palette, PackageCheck, Package,
+  ShoppingCart, AlertTriangle, SlidersHorizontal, Sparkles, LayoutGrid, Filter, Truck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,13 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { StockCategoryTreeSelect } from "./StockCategoryTreeSelect";
 import { InlineColorGroupFilter } from "@/components/filters/InlineColorGroupFilter";
+import { ExternalCategoryFilter } from "@/components/filters/ExternalCategoryFilter";
+import { DebouncedPriceInput } from "@/components/filters/DebouncedPriceInput";
+import { FilterSection } from "@/components/filters/filter-panel/FilterSection";
 import type { StockFilters, StockStatus } from "@/types/stock";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -59,7 +59,20 @@ export function StockFilterToolbar({
 }: StockFilterToolbarProps) {
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
-  const [colorsOpen, setColorsOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<string[]>([]);
+
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+  // Section active counts
+  const sectionCounts = useMemo(() => ({
+    cores: (filters.colorGroup ? 1 : 0) + (filters.colorName ? 1 : 0),
+    categorias: filters.categoryId ? 1 : 0,
+    estoque: (filters.minQuantityNeeded && filters.minQuantityNeeded > 0) ? 1 : 0,
+    fornecedores: filters.supplierId ? 1 : 0,
+    ordenacao: filters.sortBy !== 'stock_quantity' ? 1 : 0,
+  }), [filters]);
 
   // Debounce search
   useEffect(() => {
@@ -110,121 +123,147 @@ export function StockFilterToolbar({
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
-            <ScrollArea className="max-h-[70vh]">
-              <div className="p-4 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-sm flex items-center gap-2">
-                    <SlidersHorizontal className="h-4 w-4" />
-                    Filtros Avançados
-                  </h4>
-                  {activeFiltersCount > 0 && (
-                    <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs h-7 text-muted-foreground">
-                      Limpar tudo
-                    </Button>
-                  )}
-                </div>
-                <Separator />
-
-                {/* Category Filter — Full Tree */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <FolderTree className="h-3.5 w-3.5 text-primary" />
-                    Categoria
-                  </Label>
-                  <StockCategoryTreeSelect
-                    value={filters.categoryId}
-                    onChange={(id, name) => onUpdateFilter('categoryId', id || undefined)}
-                  />
-                </div>
-
-                {/* Supplier Filter */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <Building2 className="h-3.5 w-3.5 text-primary" />
-                    Fornecedor
-                  </Label>
-                  <Select
-                    value={filters.supplierId || '__all__'}
-                    onValueChange={(v) => onUpdateFilter('supplierId', v === '__all__' ? undefined : v)}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Todos os fornecedores" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-48 overflow-y-auto">
-                      <SelectItem value="__all__" className="text-xs">Todos ({totalProducts})</SelectItem>
-                      {suppliers.map(s => (
-                        <SelectItem key={s.name} value={s.name} className="text-xs">
-                          {s.name} ({s.count})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Color Filter — Collapsible Visual Swatches */}
-                <div className="space-y-1.5">
-                  <button
-                    type="button"
-                    onClick={() => setColorsOpen(prev => !prev)}
-                    className="w-full flex items-center justify-between text-xs font-medium hover:text-foreground transition-colors"
-                  >
-                    <span className="flex items-center gap-1.5">
-                      <Palette className="h-3.5 w-3.5 text-primary" />
-                      Cores
-                      {filters.colorGroup && (
-                        <Badge variant="secondary" className="text-[10px] h-4 px-1">{filters.colorGroup}</Badge>
-                      )}
-                    </span>
-                    <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", colorsOpen && "rotate-180")} />
-                  </button>
-                  {colorsOpen && (
-                    <InlineColorGroupFilter
-                      selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
-                      onChange={(sel) => {
-                        const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
-                        onUpdateFilter('colorGroup', selected);
-                        onUpdateFilter('colorName', undefined);
-                      }}
-                      showNuances={false}
-                      showVariations={false}
-                    />
-                  )}
-                </div>
-
-                <Separator />
-
-                {/* Alerts only toggle */}
-                <div className="flex items-center justify-between">
-                  <Label className="text-xs flex items-center gap-1.5 cursor-pointer">
-                    <AlertTriangle className="h-3.5 w-3.5 text-warning" />
-                    Somente com alertas
-                  </Label>
-                  <Switch
-                    checked={filters.showOnlyWithAlerts}
-                    onCheckedChange={(v) => onUpdateFilter('showOnlyWithAlerts', v)}
-                  />
-                </div>
-
-                {/* Sort */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs text-muted-foreground">Ordenar por</Label>
-                  <Select
-                    value={filters.sortBy}
-                    onValueChange={(v) => onUpdateFilter('sortBy', v as StockFilters['sortBy'])}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="stock_quantity" className="text-xs">Menor Estoque</SelectItem>
-                      <SelectItem value="name" className="text-xs">Nome (A-Z)</SelectItem>
-                      <SelectItem value="available_stock" className="text-xs">Disponibilidade</SelectItem>
-                      <SelectItem value="days_remaining" className="text-xs">Dias Restantes</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
+              {/* Header */}
+              <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
+                <h4 className="font-semibold text-sm flex items-center gap-2">
+                  <SlidersHorizontal className="h-4 w-4" />
+                  Filtros Avançados
+                </h4>
+                {activeFiltersCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs h-7 text-muted-foreground">
+                    Limpar tudo
+                  </Button>
+                )}
               </div>
-            </ScrollArea>
+
+              {/* FilterSection: Cores */}
+              <FilterSection
+                id="cores"
+                title="Cores"
+                icon={<Palette className="h-4 w-4" />}
+                openSections={openSections}
+                onToggle={toggleSection}
+                activeCount={sectionCounts.cores}
+                activeSummary={filters.colorGroup || filters.colorName}
+              >
+                <InlineColorGroupFilter
+                  selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
+                  onChange={(sel) => {
+                    const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
+                    onUpdateFilter('colorGroup', selected);
+                    onUpdateFilter('colorName', undefined);
+                  }}
+                  showNuances={false}
+                  showVariations={false}
+                />
+              </FilterSection>
+
+              {/* FilterSection: Categorias */}
+              <FilterSection
+                id="categorias"
+                title="Categorias"
+                icon={<LayoutGrid className="h-4 w-4" />}
+                openSections={openSections}
+                onToggle={toggleSection}
+                activeCount={sectionCounts.categorias}
+                activeSummary={filters.categoryId}
+              >
+                <ExternalCategoryFilter
+                  selectedCategories={filters.categoryId ? [filters.categoryId] : []}
+                  onCategoriesChange={(cats) => onUpdateFilter('categoryId', cats.length > 0 ? cats[cats.length - 1] : undefined)}
+                  compact
+                />
+              </FilterSection>
+
+              {/* FilterSection: Estoque */}
+              <FilterSection
+                id="estoque"
+                title="Estoque"
+                icon={<Package className="h-4 w-4" />}
+                openSections={openSections}
+                onToggle={toggleSection}
+                activeCount={sectionCounts.estoque}
+                activeSummary={filters.minQuantityNeeded ? `≥${filters.minQuantityNeeded}` : undefined}
+              >
+                <div className="px-1">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="text-muted-foreground text-xs whitespace-nowrap">Mínimo por cor</span>
+                    <DebouncedPriceInput
+                      value={filters.minQuantityNeeded || ''}
+                      onChange={(v) => onUpdateFilter('minQuantityNeeded', v > 0 ? v : undefined)}
+                      fallback={0}
+                      placeholder="Ex: 500"
+                      min={0}
+                      className={filters.minQuantityNeeded && filters.minQuantityNeeded > 0 ? 'border-orange/60' : ''}
+                    />
+                    <span className="text-muted-foreground text-xs">un.</span>
+                  </div>
+                </div>
+              </FilterSection>
+
+              {/* FilterSection: Fornecedores */}
+              <FilterSection
+                id="fornecedores"
+                title="Fornecedores"
+                icon={<Truck className="h-4 w-4" />}
+                openSections={openSections}
+                onToggle={toggleSection}
+                activeCount={sectionCounts.fornecedores}
+                activeSummary={filters.supplierId}
+              >
+                <Select
+                  value={filters.supplierId || '__all__'}
+                  onValueChange={(v) => onUpdateFilter('supplierId', v === '__all__' ? undefined : v)}
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue placeholder="Todos os fornecedores" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-48 overflow-y-auto">
+                    <SelectItem value="__all__" className="text-xs">Todos ({totalProducts})</SelectItem>
+                    {suppliers.map(s => (
+                      <SelectItem key={s.name} value={s.name} className="text-xs">
+                        {s.name} ({s.count})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FilterSection>
+
+              {/* Alerts toggle */}
+              <div className="flex items-center justify-between px-3 py-2.5 border-t border-border/40">
+                <Label className="text-xs flex items-center gap-1.5 cursor-pointer">
+                  <AlertTriangle className="h-3.5 w-3.5 text-warning" />
+                  Somente com alertas
+                </Label>
+                <Switch
+                  checked={filters.showOnlyWithAlerts}
+                  onCheckedChange={(v) => onUpdateFilter('showOnlyWithAlerts', v)}
+                />
+              </div>
+
+              {/* FilterSection: Ordenação */}
+              <FilterSection
+                id="ordenacao"
+                title="Ordenar por"
+                icon={<Filter className="h-4 w-4" />}
+                openSections={openSections}
+                onToggle={toggleSection}
+              >
+                <Select
+                  value={filters.sortBy}
+                  onValueChange={(v) => onUpdateFilter('sortBy', v as StockFilters['sortBy'])}
+                >
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="stock_quantity">Menor Estoque</SelectItem>
+                    <SelectItem value="name">Nome (A-Z)</SelectItem>
+                    <SelectItem value="available_stock">Disponibilidade</SelectItem>
+                    <SelectItem value="days_remaining">Dias Restantes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </FilterSection>
+            </div>
           </PopoverContent>
         </Popover>
 
@@ -300,8 +339,8 @@ export function StockFilterToolbar({
           >
             {filters.categoryId && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
-                <FolderTree className="h-3 w-3" />
-                {filters.categoryId}
+                <LayoutGrid className="h-3 w-3" />
+                Categoria
                 <button onClick={() => onUpdateFilter('categoryId', undefined)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
