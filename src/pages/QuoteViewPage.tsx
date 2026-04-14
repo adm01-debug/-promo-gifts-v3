@@ -110,6 +110,7 @@ export default function QuoteViewPage() {
           </div>
 
           <div className="flex items-center gap-2">
+            {quote.status !== "pending_approval" && (
             <div className="hidden md:flex items-center gap-2">
               <QuoteConvertToOrder quoteId={id!} status={quote.status} onConverted={() => { if (id) fetchQuote(id).then(setQuote); }} />
               <Button onClick={handleSyncBitrix} disabled={isSyncing} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
@@ -117,7 +118,9 @@ export default function QuoteViewPage() {
                 {isSyncing ? "Sincronizando..." : "Sincronizar"}
               </Button>
             </div>
+            )}
 
+            {quote.status !== "pending_approval" && (
             <PdfGenerationDialog
               proposalData={proposalData}
               quoteNumber={quote.quote_number}
@@ -128,6 +131,7 @@ export default function QuoteViewPage() {
               onShareLink={handleShareLink}
               trigger={<Button className="gap-2"><Eye className="h-4 w-4" /> Preview Proposta</Button>}
             />
+            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
