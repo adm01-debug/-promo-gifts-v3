@@ -5,8 +5,8 @@ import {
   calculateAvailableStock,
   aggregateVariantsToProduct,
   defaultStockFilters,
-} from "../stock";
-import type { VariantStock } from "../stock";
+} from "@/types/stock";
+import type { VariantStock } from "@/types/stock";
 
 describe("calculateStockStatus", () => {
   it("returns out_of_stock when current is 0", () => {
