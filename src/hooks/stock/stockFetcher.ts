@@ -275,7 +275,13 @@ export async function fetchAndProcessStockData(): Promise<{
     }
 
     const aggregated = aggregateVariantsToProduct(variants);
-    return { productId: product.id, productName: product.name, productSku: product.sku || '', ...aggregated };
+    const categoryName = product.category_id ? categoryMap.get(product.category_id) : undefined;
+    const supplierName = product.supplier_id ? supplierMap.get(product.supplier_id) : (product.brand || undefined);
+    return {
+      productId: product.id, productName: product.name, productSku: product.sku || '',
+      categoryName, supplierName,
+      ...aggregated,
+    };
   });
 
   const alerts = generateStockAlerts(summaries);
