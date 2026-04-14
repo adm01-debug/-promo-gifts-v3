@@ -92,36 +92,7 @@ export function StockFilterToolbar({
     <div className="space-y-3">
       {/* Row 1: Search + Quick Filters */}
       <div className="flex flex-col sm:flex-row gap-2">
-        {/* Search */}
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar produto, SKU ou cor..."
-            value={localSearch}
-            onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-9 pr-8"
-          />
-          {localSearch && (
-            <button onClick={() => setLocalSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
-              <X className="h-4 w-4" />
-            </button>
-          )}
-        </div>
-
-        {/* Smart Quantity Filter */}
-        <div className="relative w-full sm:w-48">
-          <ShoppingCart className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="number"
-            placeholder="Preciso de X un..."
-            value={quantityInput}
-            onChange={(e) => setQuantityInput(e.target.value)}
-            className="pl-9"
-            min={0}
-          />
-        </div>
-
-        {/* Advanced Filters Popover */}
+        {/* 1. Advanced Filters Popover */}
         <Popover>
           <PopoverTrigger asChild>
             <Button variant="outline" size="default" className="gap-2 relative">
@@ -134,7 +105,7 @@ export function StockFilterToolbar({
               )}
             </Button>
           </PopoverTrigger>
-          <PopoverContent className="w-80 p-4 space-y-4" align="end">
+          <PopoverContent className="w-80 p-4 space-y-4" align="start">
             <div className="flex items-center justify-between">
               <h4 className="font-semibold text-sm flex items-center gap-2">
                 <SlidersHorizontal className="h-4 w-4" />
@@ -252,6 +223,35 @@ export function StockFilterToolbar({
             </div>
           </PopoverContent>
         </Popover>
+
+        {/* 2. Search */}
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar produto, SKU ou cor..."
+            value={localSearch}
+            onChange={(e) => setLocalSearch(e.target.value)}
+            className="pl-9 pr-8"
+          />
+          {localSearch && (
+            <button onClick={() => setLocalSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="h-4 w-4" />
+            </button>
+          )}
+        </div>
+
+        {/* 3. Smart Quantity Filter (Tiragem) */}
+        <div className="relative w-full sm:w-48">
+          <ShoppingCart className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            type="number"
+            placeholder="Preciso de X un..."
+            value={quantityInput}
+            onChange={(e) => setQuantityInput(e.target.value)}
+            className="pl-9"
+            min={0}
+          />
+        </div>
 
         {activeFiltersCount > 0 && (
           <Button variant="ghost" onClick={handleReset} size="icon" className="shrink-0">
