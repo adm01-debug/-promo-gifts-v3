@@ -89,6 +89,23 @@ export function StockDashboard() {
           icon={<Truck className="h-6 w-6 text-primary" />} />
       </div>
 
+      {/* Advanced Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <StockFilterToolbar
+            filters={filters}
+            onUpdateFilter={updateFilter}
+            onResetFilters={resetFilters}
+            categories={availableCategories}
+            suppliers={availableSuppliers}
+            colors={allColors}
+            colorGroups={availableColorGroups}
+            totalProducts={allProductStocks.length}
+            filteredCount={productStocks.length}
+          />
+        </CardContent>
+      </Card>
+
       <SupplierRiskPanel products={allProductStocks} />
 
       {/* Stock Table */}
