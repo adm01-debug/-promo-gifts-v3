@@ -63,8 +63,8 @@ const columns: Column[] = [
     id: "pending_approval" as QuoteStatus,
     title: "Aguardando Aprovação",
     icon: AlertTriangle,
-    color: "text-warning",
-    bgColor: "bg-amber-500/10",
+    color: "text-amber-500",
+    bgColor: "bg-gradient-to-b from-amber-500/15 to-amber-500/5",
   },
   {
     id: "pending",
