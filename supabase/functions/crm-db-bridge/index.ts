@@ -417,6 +417,8 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
+    console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length})`);
+
     const crm = createClient(CRM_URL, CRM_KEY);
 
     // Validate body with Zod schema
