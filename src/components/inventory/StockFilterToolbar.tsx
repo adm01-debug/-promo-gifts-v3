@@ -14,8 +14,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover, PopoverContent, PopoverTrigger,
+  Popover, PopoverContent, PopoverTrigger, PopoverClose,
 } from "@/components/ui/popover";
+import { RotateCcw, Diamond } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
