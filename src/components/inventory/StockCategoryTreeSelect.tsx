@@ -201,7 +201,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
