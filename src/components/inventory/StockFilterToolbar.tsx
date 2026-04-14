@@ -61,8 +61,9 @@ export function StockFilterToolbar({
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
   const [openSections, setOpenSections] = useState<string[]>([]);
 
+  // Accordion behavior: only one section open at a time
   const toggleSection = (id: string) => {
-    setOpenSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+    setOpenSections(prev => prev.includes(id) ? [] : [id]);
   };
 
   // Section active counts
