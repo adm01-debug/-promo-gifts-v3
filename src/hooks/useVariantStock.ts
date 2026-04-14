@@ -69,6 +69,43 @@ export function useVariantStock() {
     };
   }, [productStocks, alerts]);
 
+  // Extract unique categories and suppliers for filter dropdowns
+  const availableCategories = useMemo(() => {
+    const map = new Map<string, number>();
+    productStocks.forEach(p => {
+      const cat = p.categoryName || 'Sem categoria';
+      map.set(cat, (map.get(cat) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [productStocks]);
+
+  const availableSuppliers = useMemo(() => {
+    const map = new Map<string, number>();
+    productStocks.forEach(p => {
+      const sup = p.supplierName || 'Sem fornecedor';
+      map.set(sup, (map.get(sup) || 0) + 1);
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [productStocks]);
+
+  const availableColorGroups = useMemo(() => {
+    const map = new Map<string, number>();
+    productStocks.forEach(p => {
+      p.variants.forEach(v => {
+        if (v.colorName && v.colorName !== 'Padrão') {
+          map.set(v.colorName, (map.get(v.colorName) || 0) + 1);
+        }
+      });
+    });
+    return Array.from(map.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count);
+  }, [productStocks]);
+
   const filteredProducts = useMemo(() => {
     let items = [...productStocks];
 
@@ -91,8 +128,22 @@ export function useVariantStock() {
       );
     }
 
-    if (filters.categoryId) items = items.filter(p => p.categoryName === filters.categoryId);
-    if (filters.colorName) items = items.filter(p => p.variants.some(v => v.colorName === filters.colorName));
+    if (filters.categoryId) {
+      items = items.filter(p => p.categoryName === filters.categoryId);
+    }
+
+    if (filters.supplierId) {
+      items = items.filter(p => p.supplierName === filters.supplierId);
+    }
+
+    if (filters.colorName) {
+      items = items.filter(p => p.variants.some(v => v.colorName === filters.colorName));
+    }
+
+    if (filters.minQuantityNeeded && filters.minQuantityNeeded > 0) {
+      items = items.filter(p => p.totalAvailableStock >= filters.minQuantityNeeded!);
+    }
+
     if (filters.showOnlyWithAlerts) {
       const ids = new Set(alerts.map(a => a.productId));
       items = items.filter(p => ids.has(p.productId));
