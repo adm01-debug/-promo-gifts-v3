@@ -49,20 +49,6 @@ export function StockDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-display font-bold flex items-center gap-2">
-            <Package className="h-6 w-6 text-primary" />
-            Dashboard de Estoque
-          </h2>
-          <p className="text-muted-foreground text-sm mt-1">Visão geral do estoque em tempo real</p>
-        </div>
-        <Button variant="outline" onClick={fetchStockData} className="gap-2" disabled={isFetching}>
-          {isFetching ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
-          {isFetching ? "Atualizando..." : "Atualizar"}
-        </Button>
-      </div>
 
       {/* Alert Dialogs */}
       <OutOfStockDialog open={outOfStockDialogOpen} onOpenChange={setOutOfStockDialogOpen}
