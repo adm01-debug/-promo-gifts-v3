@@ -299,8 +299,9 @@ export function QuoteKanbanBoard({ quotes }: QuoteKanbanBoardProps) {
   }, [quotes]);
 
   const totalsByStatus = useMemo(() => {
-    const totals: Record<QuoteStatus, number> = {
+    const totals: Record<string, number> = {
       draft: 0,
+      pending_approval: 0,
       pending: 0,
       sent: 0,
       approved: 0,
@@ -309,10 +310,12 @@ export function QuoteKanbanBoard({ quotes }: QuoteKanbanBoardProps) {
     };
 
     quotes.forEach((quote) => {
-      totals[quote.status] += quote.total || 0;
+      if (totals[quote.status] !== undefined) {
+        totals[quote.status] += quote.total || 0;
+      }
     });
 
-    return totals;
+    return totals as Record<QuoteStatus, number>;
   }, [quotes]);
 
   const handleDragStart = (event: DragStartEvent) => {
