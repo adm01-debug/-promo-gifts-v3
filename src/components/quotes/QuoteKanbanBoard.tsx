@@ -63,8 +63,8 @@ const columns: Column[] = [
     id: "pending_approval" as QuoteStatus,
     title: "Aguardando Aprovação",
     icon: AlertTriangle,
-    color: "text-warning",
-    bgColor: "bg-amber-500/10",
+    color: "text-amber-500",
+    bgColor: "bg-gradient-to-b from-amber-500/15 to-amber-500/5",
   },
   {
     id: "pending",
@@ -123,7 +123,8 @@ function QuoteCard({ quote, isDragging }: QuoteCardProps) {
       className={cn(
         "cursor-grab active:cursor-grabbing transition-all duration-200",
         "bg-card hover:bg-accent/50 border-border/50",
-        isDragging && "opacity-50 shadow-lg ring-2 ring-primary"
+        isDragging && "opacity-50 shadow-lg ring-2 ring-primary",
+        quote.status === "pending_approval" && "border-amber-500/40 ring-1 ring-amber-500/10"
       )}
     >
       <CardContent className="p-3 space-y-2">

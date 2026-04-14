@@ -34,6 +34,7 @@ import {
   Crosshair,
   ChevronsDownUp,
   Settings,
+  Percent,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -116,6 +117,7 @@ const navGroups: NavGroup[] = [
         { icon: Truck, label: "Fornecedores", href: "/admin/cadastros?tab=suppliers" },
         { icon: Palette, label: "Gravação", href: "/admin/cadastros?tab=personalizacao" },
       ]},
+      { icon: Percent, label: "Descontos", href: "/admin/aprovacoes-desconto", adminOnly: true },
       { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
       { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", adminOnly: true },
       { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },

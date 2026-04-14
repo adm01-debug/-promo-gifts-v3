@@ -1,7 +1,8 @@
 /**
  * AdminDiscountApprovalsPage — Gestão de limites de desconto + fila de aprovações
+ * Design 10/10 com stats cards, filtros, animações e layout premium
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,11 +13,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
 import {
@@ -29,13 +32,19 @@ import {
   AlertTriangle,
   Edit,
   Trash2,
-  Plus,
-  DollarSign,
+  Search,
+  TrendingUp,
+  ArrowRight,
+  Sparkles,
+  Filter,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { useSellerDiscountLimits, type SellerDiscountLimit } from "@/hooks/useSellerDiscountLimits";
 import { useDiscountApproval, type DiscountApprovalWithQuote } from "@/hooks/useDiscountApproval";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 interface SellerProfile {
   user_id: string;
@@ -44,11 +53,15 @@ interface SellerProfile {
   role: string | null;
 }
 
+type ApprovalFilter = "all" | "pending" | "approved" | "rejected";
+
 export default function AdminDiscountApprovalsPage() {
   const { limits, isLoading: limitsLoading, fetchAllLimits, setLimit, deleteLimit } = useSellerDiscountLimits();
   const { pendingRequests, isLoading: requestsLoading, fetchPendingRequests, respondToApproval } = useDiscountApproval();
 
   const [sellers, setSellers] = useState<SellerProfile[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [approvalFilter, setApprovalFilter] = useState<ApprovalFilter>("all");
   const [editDialog, setEditDialog] = useState<{ open: boolean; userId: string; name: string; currentLimit: number; notes: string }>({ open: false, userId: "", name: "", currentLimit: 5, notes: "" });
   const [respondDialog, setRespondDialog] = useState<{ open: boolean; request: DiscountApprovalWithQuote | null; action: "approve" | "reject" | null; notes: string }>({ open: false, request: null, action: null, notes: "" });
 
@@ -88,34 +101,96 @@ export default function AdminDiscountApprovalsPage() {
   };
 
   const getLimitForSeller = (userId: string) => limits.find(l => l.user_id === userId);
-  const pendingCount = pendingRequests.filter(r => r.status === "pending").length;
+
+  // Stats
+  const stats = useMemo(() => {
+    const pendingCount = pendingRequests.filter(r => r.status === "pending").length;
+    const approvedCount = pendingRequests.filter(r => r.status === "approved").length;
+    const rejectedCount = pendingRequests.filter(r => r.status === "rejected").length;
+    const sellersWithLimit = limits.length;
+    const avgLimit = limits.length > 0 ? limits.reduce((s, l) => s + l.max_discount_percent, 0) / limits.length : 0;
+    return { pendingCount, approvedCount, rejectedCount, sellersWithLimit, avgLimit };
+  }, [pendingRequests, limits]);
+
+  // Filtered sellers
+  const filteredSellers = useMemo(() => {
+    if (!searchTerm) return sellers;
+    const term = searchTerm.toLowerCase();
+    return sellers.filter(s =>
+      (s.full_name || "").toLowerCase().includes(term) ||
+      (s.email || "").toLowerCase().includes(term)
+    );
+  }, [sellers, searchTerm]);
+
+  // Filtered approvals
+  const filteredApprovals = useMemo(() => {
+    if (approvalFilter === "all") return pendingRequests;
+    return pendingRequests.filter(r => r.status === approvalFilter);
+  }, [pendingRequests, approvalFilter]);
 
   const formatCurrency = (v: number) => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(v);
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 12 },
+    visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.05, duration: 0.3 } }),
+  };
 
   return (
     <MainLayout>
       <PageSEO title="Gestão de Descontos" description="Gerencie limites de desconto e aprovações" path="/admin/aprovacoes-desconto" noIndex />
 
       <div className="space-y-6">
-        <div>
-          <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2">
-            <Shield className="h-6 w-6 text-primary" />
-            Gestão de Descontos
-          </h1>
-          <p className="text-muted-foreground">Defina limites de desconto por vendedor e gerencie solicitações de aprovação</p>
+        {/* Hero Header */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-display text-2xl font-bold text-foreground flex items-center gap-2.5">
+              <div className="p-2 rounded-xl bg-primary/10">
+                <Shield className="h-5 w-5 text-primary" />
+              </div>
+              Gestão de Descontos
+            </h1>
+            <p className="text-muted-foreground mt-1">Defina limites de desconto por vendedor e gerencie solicitações de aprovação</p>
+          </div>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: "Pendentes", value: stats.pendingCount, icon: Clock, color: "text-amber-500", bg: "bg-amber-500/10", border: stats.pendingCount > 0 ? "border-amber-500/30" : "border-border/50" },
+            { label: "Aprovados", value: stats.approvedCount, icon: CheckCircle, color: "text-emerald-500", bg: "bg-emerald-500/10", border: "border-border/50" },
+            { label: "Rejeitados", value: stats.rejectedCount, icon: XCircle, color: "text-destructive", bg: "bg-destructive/10", border: "border-border/50" },
+            { label: "Com Limite", value: stats.sellersWithLimit, icon: Users, color: "text-primary", bg: "bg-primary/10", border: "border-border/50", suffix: `/ ${sellers.length}` },
+          ].map((stat, i) => (
+            <motion.div key={stat.label} custom={i} initial="hidden" animate="visible" variants={cardVariants}>
+              <Card className={cn("border", stat.border)}>
+                <CardContent className="p-4 flex items-center gap-3">
+                  <div className={cn("p-2 rounded-lg shrink-0", stat.bg)}>
+                    <stat.icon className={cn("h-4 w-4", stat.color)} />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold tabular-nums leading-none">
+                      {stat.value}
+                      {stat.suffix && <span className="text-sm font-normal text-muted-foreground">{stat.suffix}</span>}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5">{stat.label}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          ))}
         </div>
 
         <Tabs defaultValue="limits" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="limits" className="gap-2">
+          <TabsList className="h-10">
+            <TabsTrigger value="limits" className="gap-2 px-4">
               <Percent className="h-4 w-4" /> Limites
             </TabsTrigger>
-            <TabsTrigger value="approvals" className="gap-2 relative">
+            <TabsTrigger value="approvals" className="gap-2 px-4 relative">
               <Clock className="h-4 w-4" /> Aprovações
-              {pendingCount > 0 && (
-                <Badge className="ml-1 h-5 min-w-[20px] px-1 text-[10px] bg-warning text-warning-foreground">
-                  {pendingCount}
-                </Badge>
+              {stats.pendingCount > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center h-5 min-w-[20px] px-1.5 rounded-full text-[10px] font-bold bg-amber-500 text-white animate-pulse">
+                  {stats.pendingCount}
+                </span>
               )}
             </TabsTrigger>
           </TabsList>
@@ -124,77 +199,114 @@ export default function AdminDiscountApprovalsPage() {
           <TabsContent value="limits" className="space-y-4">
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base flex items-center gap-2">
-                  <Users className="h-4 w-4" />
-                  Limites de Desconto por Vendedor
-                </CardTitle>
+                <div className="flex items-center justify-between gap-3">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    Limites de Desconto por Vendedor
+                  </CardTitle>
+                  <div className="relative w-64">
+                    <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+                    <Input
+                      placeholder="Buscar vendedor..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="h-8 pl-8 text-sm"
+                    />
+                  </div>
+                </div>
+                {stats.avgLimit > 0 && (
+                  <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+                    <TrendingUp className="h-3 w-3" />
+                    Média de limite: <span className="font-semibold">{stats.avgLimit.toFixed(1)}%</span>
+                  </p>
+                )}
               </CardHeader>
               <CardContent>
                 {limitsLoading ? (
                   <div className="space-y-3">
-                    {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-14 w-full" />)}
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-14 w-full rounded-xl" />)}
                   </div>
                 ) : (
-                  <div className="space-y-2">
-                    {sellers.map(seller => {
-                      const limit = getLimitForSeller(seller.user_id);
-                      return (
-                        <div key={seller.user_id} className="flex items-center justify-between p-3 rounded-lg border border-border/50 hover:border-border transition-colors">
-                          <div className="flex items-center gap-3">
-                            <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                              {(seller.full_name || seller.email || "?")[0].toUpperCase()}
-                            </div>
-                            <div>
-                              <p className="font-medium text-sm">{seller.full_name || seller.email}</p>
-                              <p className="text-xs text-muted-foreground">{seller.email}</p>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-3">
-                            {limit ? (
-                              <Badge variant="secondary" className="gap-1 tabular-nums">
-                                <Percent className="h-3 w-3" />
-                                {limit.max_discount_percent}% máx
-                              </Badge>
-                            ) : (
-                              <Badge variant="outline" className="text-muted-foreground">
-                                Sem limite definido
-                              </Badge>
-                            )}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8"
-                              onClick={() => setEditDialog({
-                                open: true,
-                                userId: seller.user_id,
-                                name: seller.full_name || seller.email || "",
-                                currentLimit: limit?.max_discount_percent || 5,
-                                notes: limit?.notes || "",
-                              })}
+                  <ScrollArea className="max-h-[500px]">
+                    <div className="space-y-2 pr-2">
+                      <AnimatePresence mode="popLayout">
+                        {filteredSellers.map((seller, idx) => {
+                          const limit = getLimitForSeller(seller.user_id);
+                          return (
+                            <motion.div
+                              key={seller.user_id}
+                              layout
+                              initial={{ opacity: 0, x: -10 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              exit={{ opacity: 0, x: 10 }}
+                              transition={{ delay: idx * 0.02 }}
+                              className="flex items-center justify-between p-3 rounded-xl border border-border/50 hover:border-primary/30 hover:bg-primary/[0.02] transition-all group"
                             >
-                              <Edit className="h-3.5 w-3.5" />
-                            </Button>
-                            {limit && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 text-destructive hover:text-destructive"
-                                onClick={async () => {
-                                  await deleteLimit(limit.id);
-                                  fetchAllLimits();
-                                }}
-                              >
-                                <Trash2 className="h-3.5 w-3.5" />
-                              </Button>
-                            )}
-                          </div>
+                              <div className="flex items-center gap-3">
+                                <div className={cn(
+                                  "h-9 w-9 rounded-full flex items-center justify-center font-bold text-sm transition-colors",
+                                  limit ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"
+                                )}>
+                                  {(seller.full_name || seller.email || "?")[0].toUpperCase()}
+                                </div>
+                                <div>
+                                  <p className="font-medium text-sm">{seller.full_name || seller.email}</p>
+                                  <p className="text-xs text-muted-foreground">{seller.email}</p>
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {limit ? (
+                                  <Badge variant="secondary" className="gap-1 tabular-nums font-semibold">
+                                    <Percent className="h-3 w-3" />
+                                    {limit.max_discount_percent}% máx
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="text-muted-foreground font-normal">
+                                    Sem limite definido
+                                  </Badge>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0 opacity-50 group-hover:opacity-100 transition-opacity"
+                                  onClick={() => setEditDialog({
+                                    open: true,
+                                    userId: seller.user_id,
+                                    name: seller.full_name || seller.email || "",
+                                    currentLimit: limit?.max_discount_percent || 5,
+                                    notes: limit?.notes || "",
+                                  })}
+                                >
+                                  <Edit className="h-3.5 w-3.5" />
+                                </Button>
+                                {limit && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-8 w-8 p-0 text-destructive opacity-50 group-hover:opacity-100 transition-opacity hover:text-destructive"
+                                    onClick={async () => {
+                                      await deleteLimit(limit.id);
+                                      fetchAllLimits();
+                                    }}
+                                  >
+                                    <Trash2 className="h-3.5 w-3.5" />
+                                  </Button>
+                                )}
+                              </div>
+                            </motion.div>
+                          );
+                        })}
+                      </AnimatePresence>
+                      {filteredSellers.length === 0 && (
+                        <div className="text-center py-10 space-y-2">
+                          <Search className="h-8 w-8 mx-auto text-muted-foreground/30" />
+                          <p className="text-sm text-muted-foreground">
+                            {searchTerm ? "Nenhum vendedor encontrado para esta busca" : "Nenhum vendedor cadastrado"}
+                          </p>
                         </div>
-                      );
-                    })}
-                    {sellers.length === 0 && (
-                      <p className="text-center text-muted-foreground py-8">Nenhum vendedor encontrado</p>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  </ScrollArea>
                 )}
               </CardContent>
             </Card>
@@ -202,97 +314,164 @@ export default function AdminDiscountApprovalsPage() {
 
           {/* === APPROVALS TAB === */}
           <TabsContent value="approvals" className="space-y-4">
+            {/* Filter bar */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              {(["all", "pending", "approved", "rejected"] as ApprovalFilter[]).map(f => (
+                <Button
+                  key={f}
+                  size="sm"
+                  variant={approvalFilter === f ? "default" : "outline"}
+                  className={cn("h-7 text-xs gap-1.5", approvalFilter === f && f === "pending" && "bg-amber-500 hover:bg-amber-600 text-white")}
+                  onClick={() => setApprovalFilter(f)}
+                >
+                  {f === "all" && "Todos"}
+                  {f === "pending" && <><Clock className="h-3 w-3" /> Pendentes</>}
+                  {f === "approved" && <><CheckCircle className="h-3 w-3" /> Aprovados</>}
+                  {f === "rejected" && <><XCircle className="h-3 w-3" /> Rejeitados</>}
+                  <span className="ml-0.5 tabular-nums">
+                    ({f === "all" ? pendingRequests.length : pendingRequests.filter(r => r.status === f).length})
+                  </span>
+                </Button>
+              ))}
+            </div>
+
             {requestsLoading ? (
               <div className="space-y-3">
-                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-32 w-full" />)}
+                {[...Array(3)].map((_, i) => <Skeleton key={i} className="h-36 w-full rounded-xl" />)}
               </div>
-            ) : pendingRequests.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <CheckCircle className="h-10 w-10 mx-auto mb-3 text-success/50" />
-                  <p className="font-medium">Nenhuma solicitação pendente</p>
-                  <p className="text-sm text-muted-foreground">Todas as solicitações foram respondidas</p>
+            ) : filteredApprovals.length === 0 ? (
+              <Card className="border-dashed">
+                <CardContent className="py-14 text-center space-y-3">
+                  <div className="mx-auto w-14 h-14 rounded-full bg-emerald-500/10 flex items-center justify-center">
+                    <CheckCircle className="h-7 w-7 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-base">
+                      {approvalFilter === "all" ? "Nenhuma solicitação" : `Nenhuma solicitação ${approvalFilter === "pending" ? "pendente" : approvalFilter === "approved" ? "aprovada" : "rejeitada"}`}
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      {approvalFilter === "pending" ? "Todas as solicitações foram respondidas" : "Não há registros para este filtro"}
+                    </p>
+                  </div>
                 </CardContent>
               </Card>
             ) : (
               <div className="space-y-3">
-                {pendingRequests.map(req => (
-                  <Card key={req.id} className={cn(
-                    "transition-colors",
-                    req.status === "pending" && "border-warning/50 bg-warning/5"
-                  )}>
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1 space-y-2">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <Badge variant={req.status === "pending" ? "default" : req.status === "approved" ? "secondary" : "destructive"} className="gap-1">
-                              {req.status === "pending" && <Clock className="h-3 w-3" />}
-                              {req.status === "approved" && <CheckCircle className="h-3 w-3" />}
-                              {req.status === "rejected" && <XCircle className="h-3 w-3" />}
-                              {req.status === "pending" ? "Pendente" : req.status === "approved" ? "Aprovado" : "Rejeitado"}
-                            </Badge>
-                            {req.quote && (
-                              <span className="text-sm font-mono font-medium">{req.quote.quote_number}</span>
+                <AnimatePresence mode="popLayout">
+                  {filteredApprovals.map((req, idx) => (
+                    <motion.div
+                      key={req.id}
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      transition={{ delay: idx * 0.03 }}
+                    >
+                      <Card className={cn(
+                        "transition-all hover:shadow-md",
+                        req.status === "pending" && "border-amber-500/40 bg-amber-500/[0.03]",
+                        req.status === "approved" && "border-emerald-500/30",
+                        req.status === "rejected" && "border-destructive/20"
+                      )}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between gap-4">
+                            <div className="flex-1 space-y-3">
+                              {/* Status + Quote Number */}
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <Badge
+                                  variant="secondary"
+                                  className={cn("gap-1 font-semibold",
+                                    req.status === "pending" && "bg-amber-500/15 text-amber-600 border-amber-500/30",
+                                    req.status === "approved" && "bg-emerald-500/15 text-emerald-600 border-emerald-500/30",
+                                    req.status === "rejected" && "bg-destructive/15 text-destructive border-destructive/30",
+                                  )}
+                                >
+                                  {req.status === "pending" && <Clock className="h-3 w-3" />}
+                                  {req.status === "approved" && <CheckCircle className="h-3 w-3" />}
+                                  {req.status === "rejected" && <XCircle className="h-3 w-3" />}
+                                  {req.status === "pending" ? "Pendente" : req.status === "approved" ? "Aprovado" : "Rejeitado"}
+                                </Badge>
+                                {req.quote && (
+                                  <span className="text-sm font-mono font-semibold text-foreground">{req.quote.quote_number}</span>
+                                )}
+                                {req.responded_at && (
+                                  <span className="text-xs text-muted-foreground ml-auto">
+                                    {format(new Date(req.responded_at), "dd/MM 'às' HH:mm", { locale: ptBR })}
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Info Grid */}
+                              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <InfoCell label="Vendedor" value={req.seller?.full_name || "—"} />
+                                <InfoCell label="Cliente" value={req.quote?.client_name || req.quote?.client_company || "—"} />
+                                <InfoCell label="Solicitado" value={`${req.requested_discount_percent}%`} valueClass="text-amber-500 font-bold" />
+                                <InfoCell label="Limite" value={`${req.max_allowed_percent}%`} />
+                              </div>
+
+                              {/* Discount Visual Comparison */}
+                              <div className="relative h-2 rounded-full bg-muted overflow-hidden">
+                                <div
+                                  className="absolute inset-y-0 left-0 rounded-full bg-emerald-500/50 transition-all"
+                                  style={{ width: `${Math.min(req.max_allowed_percent, 100)}%` }}
+                                />
+                                <div
+                                  className={cn(
+                                    "absolute inset-y-0 left-0 rounded-full transition-all",
+                                    req.requested_discount_percent > req.max_allowed_percent ? "bg-amber-500" : "bg-emerald-500"
+                                  )}
+                                  style={{ width: `${Math.min(req.requested_discount_percent, 100)}%` }}
+                                />
+                              </div>
+
+                              {/* Total + Notes */}
+                              {req.quote && (
+                                <div className="flex items-center gap-3 text-sm">
+                                  <span className="text-muted-foreground">Total do orçamento:</span>
+                                  <span className="font-bold text-foreground tabular-nums">{formatCurrency(req.quote.total)}</span>
+                                </div>
+                              )}
+                              {req.seller_notes && (
+                                <div className="rounded-lg bg-muted/50 border border-border/40 px-3 py-2 text-sm">
+                                  <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wide">Nota do vendedor</span>
+                                  <p className="mt-0.5 text-foreground/80">{req.seller_notes}</p>
+                                </div>
+                              )}
+                              {req.admin_notes && (
+                                <div className="rounded-lg bg-primary/5 border border-primary/20 px-3 py-2 text-sm">
+                                  <span className="font-semibold text-xs text-primary uppercase tracking-wide">Nota do admin</span>
+                                  <p className="mt-0.5 text-foreground/80">{req.admin_notes}</p>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Action Buttons */}
+                            {req.status === "pending" && (
+                              <div className="flex flex-col gap-2 shrink-0">
+                                <Button
+                                  size="sm"
+                                  className="gap-1.5 bg-emerald-500 hover:bg-emerald-600 text-white shadow-sm"
+                                  onClick={() => setRespondDialog({ open: true, request: req, action: "approve", notes: "" })}
+                                >
+                                  <CheckCircle className="h-3.5 w-3.5" /> Aprovar
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  className="gap-1.5"
+                                  onClick={() => setRespondDialog({ open: true, request: req, action: "reject", notes: "" })}
+                                >
+                                  <XCircle className="h-3.5 w-3.5" /> Rejeitar
+                                </Button>
+                              </div>
                             )}
                           </div>
-                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                            <div>
-                              <p className="text-xs text-muted-foreground">Vendedor</p>
-                              <p className="font-medium">{req.seller?.full_name || "—"}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Cliente</p>
-                              <p className="font-medium">{req.quote?.client_name || req.quote?.client_company || "—"}</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Desconto Solicitado</p>
-                              <p className="font-bold text-warning">{req.requested_discount_percent}%</p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Limite Autorizado</p>
-                              <p className="font-medium">{req.max_allowed_percent}%</p>
-                            </div>
-                          </div>
-                          {req.quote && (
-                            <div className="flex items-center gap-4 text-sm">
-                              <span className="text-muted-foreground">Total: <span className="font-semibold text-foreground">{formatCurrency(req.quote.total)}</span></span>
-                            </div>
-                          )}
-                          {req.seller_notes && (
-                            <p className="text-sm text-muted-foreground bg-muted/50 rounded-lg px-3 py-2">
-                              <span className="font-medium">Nota do vendedor:</span> {req.seller_notes}
-                            </p>
-                          )}
-                          {req.admin_notes && (
-                            <p className="text-sm bg-primary/5 rounded-lg px-3 py-2">
-                              <span className="font-medium">Nota do admin:</span> {req.admin_notes}
-                            </p>
-                          )}
-                        </div>
-                        {req.status === "pending" && (
-                          <div className="flex flex-col gap-2 shrink-0">
-                            <Button
-                              size="sm"
-                              variant="success"
-                              className="gap-1"
-                              onClick={() => setRespondDialog({ open: true, request: req, action: "approve", notes: "" })}
-                            >
-                              <CheckCircle className="h-3.5 w-3.5" /> Aprovar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              className="gap-1"
-                              onClick={() => setRespondDialog({ open: true, request: req, action: "reject", notes: "" })}
-                            >
-                              <XCircle className="h-3.5 w-3.5" /> Rejeitar
-                            </Button>
-                          </div>
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        </CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </AnimatePresence>
               </div>
             )}
           </TabsContent>
@@ -304,21 +483,35 @@ export default function AdminDiscountApprovalsPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <Percent className="h-5 w-5" />
-              Limite de Desconto — {editDialog.name}
+              <Percent className="h-5 w-5 text-primary" />
+              Limite de Desconto
             </DialogTitle>
+            <DialogDescription>
+              Defina o desconto máximo para <span className="font-semibold text-foreground">{editDialog.name}</span>
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="space-y-2">
               <Label>Desconto Máximo (%)</Label>
-              <Input
-                type="number"
-                min={0}
-                max={100}
-                step={0.5}
-                value={editDialog.currentLimit}
-                onChange={(e) => setEditDialog(prev => ({ ...prev, currentLimit: parseFloat(e.target.value) || 0 }))}
-              />
+              <div className="relative">
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  step={0.5}
+                  value={editDialog.currentLimit}
+                  onChange={(e) => setEditDialog(prev => ({ ...prev, currentLimit: parseFloat(e.target.value) || 0 }))}
+                  className="pr-8 text-lg font-semibold"
+                />
+                <Percent className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+              {/* Visual slider */}
+              <div className="h-2 rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-primary transition-all duration-300"
+                  style={{ width: `${Math.min(editDialog.currentLimit, 100)}%` }}
+                />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Notas (opcional)</Label>
@@ -332,7 +525,10 @@ export default function AdminDiscountApprovalsPage() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditDialog(prev => ({ ...prev, open: false }))}>Cancelar</Button>
-            <Button onClick={handleSetLimit}>Salvar Limite</Button>
+            <Button onClick={handleSetLimit} className="gap-1.5">
+              <CheckCircle className="h-4 w-4" />
+              Salvar Limite
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -343,26 +539,46 @@ export default function AdminDiscountApprovalsPage() {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               {respondDialog.action === "approve" ? (
-                <><CheckCircle className="h-5 w-5 text-success" /> Aprovar Desconto</>
+                <><CheckCircle className="h-5 w-5 text-emerald-500" /> Aprovar Desconto</>
               ) : (
                 <><XCircle className="h-5 w-5 text-destructive" /> Rejeitar Desconto</>
               )}
             </DialogTitle>
+            <DialogDescription>
+              {respondDialog.action === "approve"
+                ? "O vendedor poderá aplicar o desconto solicitado ao orçamento."
+                : "O vendedor será notificado e deverá ajustar o desconto."
+              }
+            </DialogDescription>
           </DialogHeader>
           {respondDialog.request && (
             <div className="space-y-4 py-2">
-              <div className="rounded-lg bg-muted/50 p-3 space-y-1 text-sm">
-                <p><span className="font-medium">Orçamento:</span> {respondDialog.request.quote?.quote_number}</p>
-                <p><span className="font-medium">Vendedor:</span> {respondDialog.request.seller?.full_name}</p>
-                <p><span className="font-medium">Desconto:</span> {respondDialog.request.requested_discount_percent}% (limite: {respondDialog.request.max_allowed_percent}%)</p>
+              <div className="rounded-xl bg-muted/50 border border-border/40 p-4 space-y-2">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <InfoCell label="Orçamento" value={respondDialog.request.quote?.quote_number || "—"} />
+                  <InfoCell label="Vendedor" value={respondDialog.request.seller?.full_name || "—"} />
+                  <InfoCell label="Desconto solicitado" value={`${respondDialog.request.requested_discount_percent}%`} valueClass="text-amber-500 font-bold" />
+                  <InfoCell label="Limite autorizado" value={`${respondDialog.request.max_allowed_percent}%`} />
+                </div>
+                {/* Visual bar */}
+                <div className="relative h-2 rounded-full bg-muted overflow-hidden mt-1">
+                  <div className="absolute inset-y-0 left-0 rounded-full bg-emerald-500/40" style={{ width: `${Math.min(respondDialog.request.max_allowed_percent, 100)}%` }} />
+                  <div className="absolute inset-y-0 left-0 rounded-full bg-amber-500" style={{ width: `${Math.min(respondDialog.request.requested_discount_percent, 100)}%` }} />
+                </div>
+                <div className="flex items-center justify-between text-[10px] text-muted-foreground tabular-nums">
+                  <span>0%</span>
+                  <span>{respondDialog.request.max_allowed_percent}% (limite)</span>
+                  <span>100%</span>
+                </div>
               </div>
               <div className="space-y-2">
-                <Label>Notas (opcional)</Label>
+                <Label>{respondDialog.action === "reject" ? "Motivo da rejeição" : "Notas (opcional)"}</Label>
                 <Textarea
                   value={respondDialog.notes}
                   onChange={(e) => setRespondDialog(prev => ({ ...prev, notes: e.target.value }))}
-                  placeholder={respondDialog.action === "reject" ? "Motivo da rejeição..." : "Observações..."}
+                  placeholder={respondDialog.action === "reject" ? "Explique o motivo da rejeição..." : "Observações..."}
                   rows={3}
+                  autoFocus
                 />
               </div>
             </div>
@@ -370,14 +586,32 @@ export default function AdminDiscountApprovalsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRespondDialog(prev => ({ ...prev, open: false }))}>Cancelar</Button>
             <Button
-              variant={respondDialog.action === "approve" ? "success" : "destructive"}
+              className={cn(
+                "gap-1.5",
+                respondDialog.action === "approve" && "bg-emerald-500 hover:bg-emerald-600 text-white",
+              )}
+              variant={respondDialog.action === "reject" ? "destructive" : "default"}
               onClick={handleRespond}
             >
-              {respondDialog.action === "approve" ? "Confirmar Aprovação" : "Confirmar Rejeição"}
+              {respondDialog.action === "approve" ? (
+                <><CheckCircle className="h-4 w-4" /> Confirmar Aprovação</>
+              ) : (
+                <><XCircle className="h-4 w-4" /> Confirmar Rejeição</>
+              )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
     </MainLayout>
+  );
+}
+
+/** Reusable info cell */
+function InfoCell({ label, value, valueClass }: { label: string; value: string; valueClass?: string }) {
+  return (
+    <div>
+      <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wider">{label}</p>
+      <p className={cn("text-sm font-medium mt-0.5 truncate", valueClass)}>{value}</p>
+    </div>
   );
 }
