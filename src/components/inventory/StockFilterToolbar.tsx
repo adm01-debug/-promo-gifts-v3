@@ -59,6 +59,7 @@ export function StockFilterToolbar({
 }: StockFilterToolbarProps) {
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
+  const [colorsOpen, setColorsOpen] = useState(false);
 
   // Debounce search
   useEffect(() => {
