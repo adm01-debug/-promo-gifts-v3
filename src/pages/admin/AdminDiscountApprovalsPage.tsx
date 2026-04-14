@@ -38,6 +38,7 @@ import {
   ArrowRight,
   Sparkles,
   Filter,
+  Eye,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
