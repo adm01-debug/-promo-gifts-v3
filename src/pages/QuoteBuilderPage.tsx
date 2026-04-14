@@ -346,6 +346,8 @@ export default function QuoteBuilderPage() {
             calculateItemPersonalizationTotal={s.calculateItemPersonalizationTotal}
             calculateItemTotal={s.calculateItemTotal}
             onSave={s.handleSaveQuote}
+            maxDiscountPercent={s.maxDiscountPercent}
+            isDiscountExceeded={s.isDiscountExceeded}
           />
         </div>
       </div>
