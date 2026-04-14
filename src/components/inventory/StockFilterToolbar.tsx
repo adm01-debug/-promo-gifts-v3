@@ -61,8 +61,9 @@ export function StockFilterToolbar({
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
   const [openSections, setOpenSections] = useState<string[]>([]);
 
+  // Accordion behavior: only one section open at a time
   const toggleSection = (id: string) => {
-    setOpenSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+    setOpenSections(prev => prev.includes(id) ? [] : [id]);
   };
 
   // Section active counts
@@ -147,19 +148,17 @@ export function StockFilterToolbar({
                 activeCount={sectionCounts.cores}
                 activeSummary={filters.colorGroup || filters.colorName}
               >
-                <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
-                  <InlineColorGroupFilter
-                    selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
-                    onChange={(sel) => {
-                      const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
-                      onUpdateFilter('colorGroup', selected);
-                      onUpdateFilter('colorName', undefined);
-                    }}
-                    showNuances={false}
-                    showVariations={false}
-                    swatchSize="sm"
-                  />
-                </div>
+                <InlineColorGroupFilter
+                  selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
+                  onChange={(sel) => {
+                    const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
+                    onUpdateFilter('colorGroup', selected);
+                    onUpdateFilter('colorName', undefined);
+                  }}
+                  showNuances={false}
+                  showVariations={false}
+                  swatchSize="sm"
+                />
               </FilterSection>
 
               {/* FilterSection: Categorias */}
