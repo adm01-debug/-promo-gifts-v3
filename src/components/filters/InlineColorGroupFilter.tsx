@@ -114,6 +114,7 @@ interface InlineColorGroupFilterProps {
   onChange: (selection: ColorFilterSelection) => void;
   showNuances?: boolean;
   showVariations?: boolean;
+  swatchSize?: 'sm' | 'md' | 'lg';
 }
 
 export function InlineColorGroupFilter({
@@ -121,6 +122,7 @@ export function InlineColorGroupFilter({
   onChange,
   showNuances = true,
   showVariations = true,
+  swatchSize = 'md',
 }: InlineColorGroupFilterProps) {
   const { data: colorData, isLoading } = useColorSystem();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
@@ -182,7 +184,11 @@ export function InlineColorGroupFilter({
       <div className="space-y-3">
         {/* Swatches grid */}
         <div 
-          className="flex flex-wrap gap-2.5 max-h-[8.4rem] overflow-y-auto overscroll-contain pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
+          className={cn(
+            "flex flex-wrap gap-2 overflow-y-auto overscroll-contain pr-1 scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent",
+            swatchSize === 'sm' ? "gap-1.5" : "gap-2.5",
+            swatchSize === 'sm' ? "max-h-[6rem]" : "max-h-[8.4rem]"
+          )}
           style={{ scrollbarWidth: 'thin', scrollbarGutter: 'stable' }}
         >
           {colorData.groups.map(group => (
@@ -192,6 +198,7 @@ export function InlineColorGroupFilter({
               isSelected={selection.groups.includes(group.slug)}
               onClick={() => toggleGroup(group.slug)}
               label={group.name}
+              size={swatchSize}
               hasVariations={showVariations && groupsWithVariations.has(group.id)}
               isExpanded={expandedGroups.has(group.id)}
               onExpandToggle={() => toggleExpand(group.id)}
