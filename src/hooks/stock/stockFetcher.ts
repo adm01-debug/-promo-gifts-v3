@@ -158,7 +158,19 @@ export async function fetchAndProcessStockData(): Promise<{
     fetchPaginatedFromBridge<ExternalSupplierSource>(
       'variant_supplier_sources', 'id,variant_id,supplier_id,supplier_sku,quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at', 1000, 100000, { is_active: true }
     ),
+    fetchPaginatedFromBridge<{ id: string; name: string }>(
+      'categories', 'id,name', 1000, 100000
+    ),
+    fetchPaginatedFromBridge<{ id: string; name: string; code?: string }>(
+      'suppliers', 'id,name,code', 1000, 100000
+    ),
   ]);
+
+  // Build lookup maps for category and supplier names
+  const categoryMap = new Map<string, string>();
+  allCategories.forEach(c => categoryMap.set(c.id, c.name));
+  const supplierMap = new Map<string, string>();
+  allSuppliers.forEach(s => supplierMap.set(s.id, s.name));
 
   logger.log(`[Stock] Carregados: ${allProducts.length} produtos, ${allVariants.length} variantes, ${allSupplierSources.length} sources`);
 
