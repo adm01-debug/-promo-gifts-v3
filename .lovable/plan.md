@@ -1,59 +1,132 @@
 
 
-# Plano: Módulo "Reposição" — Espelho do Módulo Novidades
+# Plano: Gestão de Descontos com Aprovação — Módulo Orçamentos
 
-## Objetivo
-Criar o módulo `/reposicao` com layout, arquitetura e funcionalidades idênticas ao `/novidades`, focado em produtos que foram **repostos** (estoque atualizado) nos últimos 30 dias.
+## Resumo
 
-## Critério de Detecção de Reposição
-Um produto é considerado "reposição" quando:
-- `updated_at` está nos últimos 30 dias **E**
-- `updated_at` é pelo menos 1 dia após `created_at` (descarta produtos recém-criados, que são "novidades")
-- Isso captura produtos cujo estoque foi atualizado pelo fornecedor
+Implementar um sistema onde o admin define o **limite máximo de desconto (%)** por vendedor. Quando um orçamento excede esse limite, ele entra em status "pendente de aprovação" e só pode ser enviado ao cliente após a aprovação do admin.
 
-## Arquivos a Criar
+## Arquitetura
 
-### 1. Hook de dados — `src/hooks/useReplenishments.ts`
-Espelho do `useNovelties.ts` com:
-- `ReplenishmentWithDetails` (mesma interface que `NoveltyWithDetails`, com campos adaptados: `replenished_at` em vez de `detected_at`)
-- `useReplenishmentsWithDetails()` — busca produtos com `updated_at >= 30 dias` e `updated_at > created_at + 1d`
-- `useReplenishmentStats()` — KPIs: repostos hoje, 7 dias, 15 dias, top fornecedor, total ativo
-- `useReplenishmentCount()` — contagem para badge no sidebar
-- Enriquecimento idêntico (categorias + fornecedores)
+```text
+┌─────────────────┐     ┌──────────────────┐     ┌─────────────────────┐
+│  Admin Panel     │     │  Quote Builder    │     │  Approval Queue     │
+│  (Limites %)     │────▶│  (Validação)      │────▶│  (Admin aprova/     │
+│  por vendedor    │     │  discount > max?  │     │   rejeita)          │
+└─────────────────┘     └──────────────────┘     └─────────────────────┘
+```
 
-### 2. Hook de seleção — `src/hooks/useReplenishmentsSelectionMode.ts`
-Cópia adaptada do `useNoveltiesSelectionMode.ts`, referenciando `ReplenishmentWithDetails`.
+## 1. Banco de Dados
 
-### 3. Componentes — `src/components/replenishments/`
-- **`ReplenishmentStatsCards.tsx`** — KPIs (Repostos Hoje / 7d / 15d / Top Fornecedor / Total Ativo). Ícones adaptados (RefreshCw em vez de Sparkles).
-- **`ReplenishmentProductGrid.tsx`** — Grid/Lista/Tabela com toolbar, filtros, busca, seleção em lote. Espelho do `NoveltyProductGrid.tsx`.
-- **`ReplenishmentCards.tsx`** — Cards grid/tabela com badge "Reposição Xd" em vez de "Novidade Xd".
-- **`RecentReplenishmentsWidget.tsx`** — Sidebar widget "Repostos Recentes" (espelho do `ExpiringNoveltiesWidget`).
+### Tabela: `seller_discount_limits`
+```sql
+CREATE TABLE seller_discount_limits (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  max_discount_percent NUMERIC NOT NULL DEFAULT 5,
+  set_by UUID NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE(user_id)
+);
+```
+- RLS: Admin pode CRUD tudo; vendedor pode ler o próprio limite.
 
-### 4. Badge — `src/components/products/ReplenishmentBadge.tsx`
-Badge dinâmico com cores baseadas na recência da reposição (mesmo padrão do `NoveltyBadge` mas com tom azul/info em vez de verde/success).
+### Tabela: `discount_approval_requests`
+```sql
+CREATE TABLE discount_approval_requests (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  quote_id UUID NOT NULL,
+  seller_id UUID NOT NULL,
+  requested_discount_percent NUMERIC NOT NULL,
+  max_allowed_percent NUMERIC NOT NULL,
+  status TEXT NOT NULL DEFAULT 'pending',  -- pending | approved | rejected
+  admin_id UUID,
+  admin_notes TEXT,
+  seller_notes TEXT,
+  responded_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+```
+- RLS: Vendedor lê/cria os próprios; Admin lê/atualiza todos.
+- Validation trigger para `status IN ('pending','approved','rejected')`.
 
-### 5. Página — `src/pages/ReplenishmentsPage.tsx`
-Layout idêntico ao `NoveltiesPage.tsx`:
-- StatsCards no topo
-- Grid principal + Widget sidebar
+### Alteração: tabela `quotes`
+- Novo status válido no trigger `validate_status_fields`: adicionar `'pending_approval'` à lista de status permitidos.
 
-### 6. Integração
+## 2. Backend (Hooks & Lógica)
 
-- **Sidebar** (`SidebarReorganized.tsx`): Adicionar item "Reposição" com ícone `RefreshCw` logo abaixo de "Novidades"
-- **Router** (`App.tsx`): Rota `/reposicao` → `ReplenishmentsPage`
-- **Skeleton** (`SkeletonLoaders.tsx`): Incluir `/reposicao` no fallback de catálogo
+### `useSellerDiscountLimits.ts`
+- **Para admin**: CRUD dos limites de todos os vendedores.
+- **Para vendedor**: leitura do próprio limite (`max_discount_percent`).
 
-## Diferenças Visuais vs Novidades
-- Cor tema: **azul/info** em vez de verde/success
-- Ícone principal: `RefreshCw` em vez de `Sparkles`/`Zap`
-- Badge: "Reposição 3 dias" em vez de "Novidade 3 dias"
-- Widget sidebar: "Repostos Recentes" com borda azul
+### `useDiscountApproval.ts`
+- `requestApproval(quoteId, requestedPercent, sellerNotes)` — cria registro na fila.
+- `respondToApproval(requestId, approved, adminNotes)` — admin aprova/rejeita; atualiza status do orçamento.
+- `getPendingApprovals()` — lista para o admin.
+- `getApprovalStatus(quoteId)` — status para o vendedor.
 
-## Arquivos Modificados
-- `src/components/layout/SidebarReorganized.tsx` — novo item no menu
-- `src/App.tsx` — nova rota lazy
-- `src/components/layout/SkeletonLoaders.tsx` — fallback
+### Modificação em `useQuoteBuilderState.ts`
+- Buscar o limite do vendedor logado ao montar.
+- No momento do save: se `discountPercent > maxAllowed` → salvar com status `pending_approval` em vez de `draft` e criar automaticamente um `discount_approval_request`.
+- Exibir alerta visual no builder quando o desconto excede o limite.
 
-## Total: ~10 arquivos (7 novos + 3 modificados)
+## 3. Interface — Admin
+
+### Painel de Limites de Desconto (dentro de `/admin` ou `/configuracoes`)
+- Tabela com todos os vendedores + limite atual + botão editar.
+- Formulário inline para ajustar o `max_discount_percent` por vendedor.
+- Opção de definir limite padrão para novos vendedores.
+
+### Fila de Aprovações de Desconto
+- Acessível via `/admin/aprovacoes-desconto` ou aba dedicada.
+- Cards/tabela mostrando: orçamento, vendedor, cliente, desconto solicitado vs. permitido, notas.
+- Botões "Aprovar" e "Rejeitar" com campo de notas.
+- Ao aprovar: status do orçamento muda de `pending_approval` → `draft` (vendedor pode enviar).
+- Ao rejeitar: status → `draft` + notificação ao vendedor para ajustar.
+
+## 4. Interface — Vendedor
+
+### No Quote Builder (coluna de resumo)
+- Badge mostrando o limite autorizado: "Seu limite: até X%".
+- Quando digita desconto > limite:
+  - Input fica com borda amarela/warning.
+  - Tooltip: "Desconto acima do autorizado (X%). Será enviado para aprovação."
+  - Botão de salvar muda label: "Salvar e Solicitar Aprovação".
+- Após envio, orçamento aparece com badge `Aguardando Aprovação` no Kanban e na lista.
+
+### Notificações
+- Reutilizar o sistema existente (`workspace_notifications`):
+  - Admin recebe notificação quando vendedor solicita aprovação.
+  - Vendedor recebe notificação quando admin aprova/rejeita.
+
+## 5. Integração no Kanban
+
+- Nova coluna ou badge no status `pending_approval` com cor âmbar/warning.
+- Transições permitidas: `pending_approval` → `draft` (após aprovação ou rejeição).
+
+## 6. Arquivos a Criar/Modificar
+
+### Novos (~8 arquivos)
+1. **Migration SQL** — tabelas + RLS + trigger de validação
+2. `src/hooks/useSellerDiscountLimits.ts`
+3. `src/hooks/useDiscountApproval.ts`
+4. `src/components/admin/SellerDiscountLimitsPanel.tsx` — gestão de limites
+5. `src/components/admin/DiscountApprovalQueue.tsx` — fila de aprovações
+6. `src/pages/AdminDiscountApprovalsPage.tsx` — página da fila
+
+### Modificados (~6 arquivos)
+1. `src/hooks/useQuoteBuilderState.ts` — validação de limite + status
+2. `src/components/quotes/QuoteBuilderSummaryColumn.tsx` — UI de warning
+3. `src/components/quotes/QuoteKanbanBoard.tsx` — coluna/badge pending_approval
+4. `src/pages/QuotesKanbanPage.tsx` — legenda atualizada
+5. `src/App.tsx` — rota admin
+6. `src/components/layout/SidebarReorganized.tsx` — menu admin (se necessário)
+
+## 7. Segurança
+- Apenas admins podem alterar limites e responder aprovações (RLS + `has_role`).
+- Vendedores nunca podem auto-aprovar descontos acima do limite.
+- O status `pending_approval` impede o envio do orçamento ao cliente até aprovação.
 
