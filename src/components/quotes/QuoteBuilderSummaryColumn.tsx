@@ -153,11 +153,21 @@ export function QuoteBuilderSummaryColumn({
 
           {/* Discount */}
           {items.length > 0 && (
-            <div className="px-4 pt-3 space-y-2">
+          <div className="px-4 pt-3 space-y-2.5">
               {maxDiscountPercent != null && (
-                <div className="flex items-center gap-1.5 text-xs">
-                  <Shield className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-muted-foreground">Seu limite: até <span className="font-semibold">{maxDiscountPercent}%</span></span>
+                <div className={cn(
+                  "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors",
+                  isDiscountExceeded ? "bg-amber-500/10 border border-amber-500/30" : "bg-muted/50"
+                )}>
+                  <Shield className={cn("h-3.5 w-3.5 shrink-0", isDiscountExceeded ? "text-amber-500" : "text-muted-foreground")} />
+                  <span className="text-muted-foreground">
+                    Seu limite: <span className={cn("font-bold", isDiscountExceeded ? "text-amber-500" : "text-foreground")}>{maxDiscountPercent}%</span>
+                  </span>
+                  {isDiscountExceeded && (
+                    <Badge variant="secondary" className="ml-auto text-[9px] h-4 bg-amber-500/15 text-amber-600 border-amber-500/30 gap-0.5 font-semibold">
+                      <AlertTriangle className="h-2.5 w-2.5" /> Excedido
+                    </Badge>
+                  )}
                 </div>
               )}
               <div className="flex items-center gap-2">
@@ -174,15 +184,21 @@ export function QuoteBuilderSummaryColumn({
                   value={discountValue || ""}
                   onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
                   placeholder="Desconto"
-                  className={cn("h-8 text-sm", isDiscountExceeded && "border-warning ring-1 ring-warning/30")}
+                  className={cn(
+                    "h-8 text-sm transition-all",
+                    isDiscountExceeded && "border-amber-500 ring-2 ring-amber-500/20 bg-amber-500/[0.03]"
+                  )}
                 />
               </div>
               {isDiscountExceeded && (
-                <div className="flex items-center gap-1.5 rounded-md bg-warning/10 border border-warning/30 px-2.5 py-1.5">
-                  <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0" />
-                  <span className="text-[11px] text-warning font-medium">
-                    Desconto acima do autorizado ({maxDiscountPercent}%). Será enviado para aprovação do admin.
-                  </span>
+                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2">
+                  <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                  <div>
+                    <p className="text-xs text-amber-600 font-semibold">Desconto acima do autorizado</p>
+                    <p className="text-[11px] text-amber-600/80 mt-0.5">
+                      O orçamento será enviado para aprovação do administrador antes de poder ser finalizado.
+                    </p>
+                  </div>
                 </div>
               )}
               {discountAmount > 0 && !isDiscountExceeded && (
