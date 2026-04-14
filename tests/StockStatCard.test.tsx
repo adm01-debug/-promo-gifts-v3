@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { StatCard } from "../StockStatCard";
+import { StatCard } from "@/components/inventory/StockStatCard";
 import { Package } from "lucide-react";
 
 describe("StockStatCard", () => {

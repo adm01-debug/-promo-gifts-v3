@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { StockFilterToolbar } from "../StockFilterToolbar";
+import { StockFilterToolbar } from "@/components/inventory/StockFilterToolbar";
 import type { StockFilters } from "@/types/stock";
 import { defaultStockFilters } from "@/types/stock";
 
