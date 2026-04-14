@@ -1,11 +1,11 @@
 /**
  * StockFilterToolbar — Advanced filter bar for Stock Dashboard
- * Filters: search, category, supplier, color, status, min quantity needed, alerts-only
+ * Uses same FilterSection architecture as Super Filtro
  */
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  Search, X, Building2, FolderTree, Palette, PackageCheck,
-  ShoppingCart, AlertTriangle, SlidersHorizontal, Sparkles, ChevronDown,
+  Search, X, Building2, Palette, PackageCheck, Package,
+  ShoppingCart, AlertTriangle, SlidersHorizontal, Sparkles, LayoutGrid, Filter, Truck,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -16,13 +16,13 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger,
 } from "@/components/ui/popover";
-import { Separator } from "@/components/ui/separator";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { StockCategoryTreeSelect } from "./StockCategoryTreeSelect";
 import { InlineColorGroupFilter } from "@/components/filters/InlineColorGroupFilter";
+import { ExternalCategoryFilter } from "@/components/filters/ExternalCategoryFilter";
+import { DebouncedPriceInput } from "@/components/filters/DebouncedPriceInput";
+import { FilterSection } from "@/components/filters/filter-panel/FilterSection";
 import type { StockFilters, StockStatus } from "@/types/stock";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -59,7 +59,7 @@ export function StockFilterToolbar({
 }: StockFilterToolbarProps) {
   const [localSearch, setLocalSearch] = useState(filters.search);
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
-  const [colorsOpen, setColorsOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<string[]>([]);
 
   // Debounce search
   useEffect(() => {
