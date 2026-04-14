@@ -276,8 +276,7 @@ export function StockFilterToolbar({
                 Reset
               </Button>
               <PopoverClose asChild>
-                <Button variant="outline" size="sm" className="flex-1 h-8 text-xs gap-1.5">
-                  <Diamond className="h-3.5 w-3.5" />
+                <Button variant="outline" size="sm" className="flex-1 h-8 text-xs">
                   Fechar
                 </Button>
               </PopoverClose>
