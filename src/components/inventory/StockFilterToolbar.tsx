@@ -161,22 +161,34 @@ export function StockFilterToolbar({
                   </Select>
                 </div>
 
-                {/* Color Filter — Visual Swatches (same as Super Filtro) */}
+                {/* Color Filter — Collapsible Visual Swatches */}
                 <div className="space-y-1.5">
-                  <Label className="text-xs flex items-center gap-1.5">
-                    <Palette className="h-3.5 w-3.5 text-primary" />
-                    Cores
-                  </Label>
-                  <InlineColorGroupFilter
-                    selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
-                    onChange={(sel) => {
-                      const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
-                      onUpdateFilter('colorGroup', selected);
-                      onUpdateFilter('colorName', undefined);
-                    }}
-                    showNuances={false}
-                    showVariations={false}
-                  />
+                  <button
+                    type="button"
+                    onClick={() => setColorsOpen(prev => !prev)}
+                    className="w-full flex items-center justify-between text-xs font-medium hover:text-foreground transition-colors"
+                  >
+                    <span className="flex items-center gap-1.5">
+                      <Palette className="h-3.5 w-3.5 text-primary" />
+                      Cores
+                      {filters.colorGroup && (
+                        <Badge variant="secondary" className="text-[10px] h-4 px-1">{filters.colorGroup}</Badge>
+                      )}
+                    </span>
+                    <ChevronDown className={cn("h-3.5 w-3.5 text-muted-foreground transition-transform", colorsOpen && "rotate-180")} />
+                  </button>
+                  {colorsOpen && (
+                    <InlineColorGroupFilter
+                      selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
+                      onChange={(sel) => {
+                        const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
+                        onUpdateFilter('colorGroup', selected);
+                        onUpdateFilter('colorName', undefined);
+                      }}
+                      showNuances={false}
+                      showVariations={false}
+                    />
+                  )}
                 </div>
 
                 <Separator />
