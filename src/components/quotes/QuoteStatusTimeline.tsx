@@ -1,4 +1,4 @@
-import { Check, Clock, Eye, FileText, RefreshCw, Send, ThumbsDown, ThumbsUp, AlertTriangle } from "lucide-react";
+import { Check, Clock, Eye, FileText, RefreshCw, Send, Shield, ThumbsDown, ThumbsUp, AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -12,20 +12,21 @@ interface QuoteStatusTimelineProps {
 }
 
 const steps = [
-  { key: "draft",       label: "Rascunho",      icon: FileText },
-  { key: "pending",     label: "Pendente",       icon: Clock },
-  { key: "syncing",     label: "Sincronizando",  icon: RefreshCw },
-  { key: "sent",        label: "Enviado",        icon: Send },
+  { key: "draft",              label: "Rascunho",              icon: FileText },
+  { key: "pending_approval",   label: "Aprovação Desconto",    icon: Shield },
+  { key: "pending",            label: "Pendente",              icon: Clock },
+  { key: "syncing",            label: "Sincronizando",         icon: RefreshCw },
+  { key: "sent",               label: "Enviado",               icon: Send },
 ];
 
-// Pending = idx 1, Syncing = idx 2, Sent = idx 3
 const statusOrder: Record<string, number> = {
-  draft:    0,
-  pending:  1,
-  sent:     4, // além do último step → todos marcados como concluídos
-  approved: 4,
-  rejected: 4,
-  expired:  4,
+  draft:             0,
+  pending_approval:  1,
+  pending:           2,
+  sent:              5,
+  approved:          5,
+  rejected:          5,
+  expired:           5,
 };
 
 function formatTs(ts?: string) {
