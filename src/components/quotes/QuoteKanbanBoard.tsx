@@ -279,8 +279,9 @@ export function QuoteKanbanBoard({ quotes }: QuoteKanbanBoardProps) {
   );
 
   const quotesByStatus = useMemo(() => {
-    const grouped: Record<QuoteStatus, Quote[]> = {
+    const grouped: Record<string, Quote[]> = {
       draft: [],
+      pending_approval: [],
       pending: [],
       sent: [],
       approved: [],
@@ -294,7 +295,7 @@ export function QuoteKanbanBoard({ quotes }: QuoteKanbanBoardProps) {
       }
     });
 
-    return grouped;
+    return grouped as Record<QuoteStatus, Quote[]>;
   }, [quotes]);
 
   const totalsByStatus = useMemo(() => {
