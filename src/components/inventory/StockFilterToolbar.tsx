@@ -61,6 +61,19 @@ export function StockFilterToolbar({
   const [quantityInput, setQuantityInput] = useState(filters.minQuantityNeeded?.toString() || '');
   const [openSections, setOpenSections] = useState<string[]>([]);
 
+  const toggleSection = (id: string) => {
+    setOpenSections(prev => prev.includes(id) ? prev.filter(s => s !== id) : [...prev, id]);
+  };
+
+  // Section active counts
+  const sectionCounts = useMemo(() => ({
+    cores: (filters.colorGroup ? 1 : 0) + (filters.colorName ? 1 : 0),
+    categorias: filters.categoryId ? 1 : 0,
+    estoque: (filters.minQuantityNeeded && filters.minQuantityNeeded > 0) ? 1 : 0,
+    fornecedores: filters.supplierId ? 1 : 0,
+    ordenacao: filters.sortBy !== 'stock_quantity' ? 1 : 0,
+  }), [filters]);
+
   // Debounce search
   useEffect(() => {
     const t = setTimeout(() => onUpdateFilter('search', localSearch), 300);
