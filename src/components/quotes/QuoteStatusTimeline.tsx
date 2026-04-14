@@ -45,9 +45,10 @@ export function QuoteStatusTimeline({
   clientResponseAt,
   isSyncing = false,
 }: QuoteStatusTimelineProps) {
-  // While syncing, force current index to 2 (Sincronizando)
+  // While syncing, force current index to 3 (Sincronizando)
   const baseIdx = statusOrder[status] ?? 0;
-  const currentIdx = isSyncing ? 2 : baseIdx;
+  const currentIdx = isSyncing ? 3 : baseIdx;
+  const isPendingApproval = status === "pending_approval";
 
   const isRejected = status === "rejected";
   const isExpired  = status === "expired";
