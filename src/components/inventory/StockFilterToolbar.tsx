@@ -120,28 +120,16 @@ export function StockFilterToolbar({
             </div>
             <Separator />
 
-            {/* Category Filter */}
+            {/* Category Filter — Full Tree */}
             <div className="space-y-1.5">
               <Label className="text-xs flex items-center gap-1.5">
                 <FolderTree className="h-3.5 w-3.5 text-primary" />
                 Categoria
               </Label>
-              <Select
-                value={filters.categoryId || '__all__'}
-                onValueChange={(v) => onUpdateFilter('categoryId', v === '__all__' ? undefined : v)}
-              >
-                <SelectTrigger className="h-8 text-xs">
-                  <SelectValue placeholder="Todas as categorias" />
-                </SelectTrigger>
-                <SelectContent className="max-h-60">
-                  <SelectItem value="__all__" className="text-xs">Todas ({totalProducts})</SelectItem>
-                  {categories.map(c => (
-                    <SelectItem key={c.name} value={c.name} className="text-xs">
-                      {c.name} ({c.count})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <StockCategoryTreeSelect
+                value={filters.categoryId}
+                onChange={(id, name) => onUpdateFilter('categoryId', id || undefined)}
+              />
             </div>
 
             {/* Supplier Filter */}
