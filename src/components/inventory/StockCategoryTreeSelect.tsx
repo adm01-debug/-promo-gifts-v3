@@ -173,7 +173,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
       </div>
 
       {/* Tree */}
-      <ScrollArea className="max-h-52">
+      <div className="h-52 overflow-y-auto border border-border/40 rounded-md scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
         <div className="space-y-0.5">
           {/* "Todas" option */}
           <div
@@ -201,7 +201,7 @@ export function StockCategoryTreeSelect({ value, onChange }: StockCategoryTreeSe
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
