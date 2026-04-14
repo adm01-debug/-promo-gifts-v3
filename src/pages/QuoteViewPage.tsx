@@ -208,21 +208,60 @@ export default function QuoteViewPage() {
 
         {/* Discount Approval Banner */}
         {quote.status === "pending_approval" && (
-          <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3 print:hidden">
-            <div className="p-2 rounded-lg bg-amber-500/15 shrink-0">
-              <Shield className="h-5 w-5 text-amber-500" />
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-4 space-y-3 print:hidden">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-amber-500/15 shrink-0">
+                <Shield className="h-5 w-5 text-amber-500" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-sm text-amber-600">Aguardando aprovação de desconto</p>
+                <p className="text-xs text-muted-foreground mt-0.5">
+                  {approvalRequest
+                    ? `Desconto de ${approvalRequest.requested_discount_percent}% solicitado (limite: ${approvalRequest.max_allowed_percent}%). ${approvalRequest.seller_notes ? `Justificativa: "${approvalRequest.seller_notes}"` : "Aguardando decisão do administrador."}`
+                    : "Este orçamento está aguardando a aprovação do administrador para o desconto aplicado."}
+                </p>
+              </div>
+              <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 shrink-0">
+                <Shield className="h-3 w-3" /> Pendente
+              </Badge>
             </div>
-            <div className="flex-1">
-              <p className="font-semibold text-sm text-amber-600">Aguardando aprovação de desconto</p>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                {approvalRequest
-                  ? `Desconto de ${approvalRequest.requested_discount_percent}% solicitado (limite: ${approvalRequest.max_allowed_percent}%). Aguardando decisão do administrador.`
-                  : "Este orçamento está aguardando a aprovação do administrador para o desconto aplicado."}
-              </p>
-            </div>
-            <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 shrink-0">
-              <Shield className="h-3 w-3" /> Pendente
-            </Badge>
+
+            {/* Admin inline approve/reject */}
+            {isAdmin && approvalRequest && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3 pt-2 border-t border-amber-500/20">
+                <div className="flex-1 w-full sm:w-auto">
+                  <label className="text-xs font-medium text-muted-foreground mb-1 block">Observação do admin (opcional)</label>
+                  <Textarea
+                    value={adminNotes}
+                    onChange={(e) => setAdminNotes(e.target.value)}
+                    placeholder="Motivo da decisão..."
+                    className="h-16 text-sm resize-none"
+                    disabled={isResponding}
+                  />
+                </div>
+                <div className="flex gap-2 shrink-0">
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={isResponding}
+                    onClick={() => handleAdminResponse(false)}
+                    className="gap-1.5"
+                  >
+                    {isResponding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <X className="h-3.5 w-3.5" />}
+                    Rejeitar
+                  </Button>
+                  <Button
+                    size="sm"
+                    disabled={isResponding}
+                    onClick={() => handleAdminResponse(true)}
+                    className="gap-1.5 bg-success hover:bg-success/90 text-success-foreground"
+                  >
+                    {isResponding ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
+                    Aprovar Desconto
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
