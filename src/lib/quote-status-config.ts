@@ -27,9 +27,10 @@ export const QUOTE_STATUS_CONFIG: Record<string, QuoteStatusConfig> = {
   pending_approval: {
     label: "Aguardando Aprovação",
     color: "hsl(38, 92%, 50%)",
-    badgeVariant: "outline" as const,
+    badgeVariant: "outline",
     badgeClassName: "bg-amber-500/15 text-amber-600 border-amber-500/30",
     icon: "shield",
+  },
   pending: {
     label: "Pendente",
     color: "hsl(var(--warning))",
