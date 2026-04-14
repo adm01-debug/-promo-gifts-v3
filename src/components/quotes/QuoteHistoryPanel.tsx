@@ -15,10 +15,7 @@ import {
   Upload,
   FileText,
   AlertTriangle,
-  Zap,
-  Shield,
-  ShieldCheck,
-  ShieldX,
+  Zap
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -42,10 +39,6 @@ const actionIcons: Record<string, React.ReactNode> = {
   sync_pdf_error: <AlertTriangle className="h-4 w-4" />,
   sync_success: <CheckCircle className="h-4 w-4" />,
   sync_error: <XCircle className="h-4 w-4" />,
-  // Discount approval events
-  discount_approval_requested: <Shield className="h-4 w-4" />,
-  discount_approved: <ShieldCheck className="h-4 w-4" />,
-  discount_rejected: <ShieldX className="h-4 w-4" />,
 };
 
 const actionColors: Record<string, string> = {
@@ -61,10 +54,6 @@ const actionColors: Record<string, string> = {
   sync_pdf_error: "bg-warning/10 text-warning border-warning/20",
   sync_success: "bg-primary/10 text-primary border-primary/30",
   sync_error: "bg-destructive/10 text-destructive border-destructive/20",
-  // Discount approval events
-  discount_approval_requested: "bg-amber-500/10 text-amber-600 border-amber-500/20",
-  discount_approved: "bg-success/10 text-success border-success/20",
-  discount_rejected: "bg-destructive/10 text-destructive border-destructive/20",
 };
 
 export function QuoteHistoryPanel({ quoteId }: QuoteHistoryPanelProps) {
