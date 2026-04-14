@@ -7,6 +7,7 @@
  */
 
 import { useState, useMemo, useRef, useCallback } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { Search, Package, X, SearchX, ArrowLeft, AlertTriangle, Loader2 } from "lucide-react";
