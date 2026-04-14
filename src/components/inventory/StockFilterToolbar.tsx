@@ -16,7 +16,7 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger, PopoverClose,
 } from "@/components/ui/popover";
-import { RotateCcw, Diamond } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
