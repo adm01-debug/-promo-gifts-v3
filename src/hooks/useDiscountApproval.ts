@@ -115,20 +115,28 @@ export function useDiscountApproval() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
+      const requests = (data || []) as DiscountApprovalRequest[];
 
-      // Enrich with quote and seller info
-      const enriched: DiscountApprovalWithQuote[] = [];
-      for (const req of (data || [])) {
-        const [quoteRes, sellerRes] = await Promise.all([
-          supabase.from("quotes").select("quote_number, client_name, client_company, total, subtotal").eq("id", req.quote_id).maybeSingle(),
-          supabase.from("profiles").select("full_name, email").eq("user_id", req.seller_id).maybeSingle(),
-        ]);
-        enriched.push({
-          ...(req as DiscountApprovalRequest),
-          quote: quoteRes.data || undefined,
-          seller: sellerRes.data || undefined,
-        });
-      }
+      if (requests.length === 0) { setPendingRequests([]); return; }
+
+      // Batch fetch quotes and sellers in parallel (no N+1)
+      const quoteIds = [...new Set(requests.map(r => r.quote_id))];
+      const sellerIds = [...new Set(requests.map(r => r.seller_id))];
+
+      const [quotesRes, sellersRes] = await Promise.all([
+        supabase.from("quotes").select("id, quote_number, client_name, client_company, total, subtotal").in("id", quoteIds),
+        supabase.from("profiles").select("user_id, full_name, email").in("user_id", sellerIds),
+      ]);
+
+      const quotesMap = new Map((quotesRes.data || []).map(q => [q.id, q]));
+      const sellersMap = new Map((sellersRes.data || []).map(s => [s.user_id, s]));
+
+      const enriched: DiscountApprovalWithQuote[] = requests.map(req => ({
+        ...req,
+        quote: quotesMap.get(req.quote_id) || undefined,
+        seller: sellersMap.get(req.seller_id) || undefined,
+      }));
+
       setPendingRequests(enriched);
     } catch (err) {
       console.error("Error fetching approval requests:", err);
