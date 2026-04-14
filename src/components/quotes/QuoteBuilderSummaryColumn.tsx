@@ -242,9 +242,9 @@ export function QuoteBuilderSummaryColumn({
             )}
 
             {isDiscountExceeded ? (
-              <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg" onClick={() => onSave("pending_approval")} disabled={quotesLoading || !isFormValid}>
+              <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20" onClick={() => onSave("pending_approval")} disabled={quotesLoading || !isFormValid}>
                 {quotesLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Shield className="h-5 w-5" />}
-                Salvar e Solicitar Aprovação
+                Solicitar Aprovação
               </Button>
             ) : (
               <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" onClick={() => onSave("pending")} disabled={quotesLoading || !isFormValid}>
