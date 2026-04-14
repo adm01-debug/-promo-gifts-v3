@@ -24,6 +24,12 @@ export const QUOTE_STATUS_CONFIG: Record<string, QuoteStatusConfig> = {
     badgeVariant: "secondary",
     badgeClassName: "bg-warning/10 text-warning border-warning/40 border-dashed",
   },
+  pending_approval: {
+    label: "Aguardando Aprovação",
+    color: "hsl(38, 92%, 50%)",
+    badgeVariant: "outline" as const,
+    badgeClassName: "bg-amber-500/15 text-amber-600 border-amber-500/30",
+    icon: "shield",
   pending: {
     label: "Pendente",
     color: "hsl(var(--warning))",
