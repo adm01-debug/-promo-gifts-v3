@@ -45,10 +45,13 @@ export function QuoteStatusTimeline({
   clientResponseAt,
   isSyncing = false,
 }: QuoteStatusTimelineProps) {
-  // While syncing, force current index to 3 (Sincronizando)
-  const baseIdx = statusOrder[status] ?? 0;
-  const currentIdx = isSyncing ? 3 : baseIdx;
   const isPendingApproval = status === "pending_approval";
+  // Compute current index based on filtered steps
+  const activeSteps = isPendingApproval ? steps : steps.filter(s => s.key !== "pending_approval");
+  const stepIdx = activeSteps.findIndex(s => s.key === status);
+  const baseIdx = stepIdx >= 0 ? stepIdx : (statusOrder[status] != null ? Math.min(statusOrder[status], activeSteps.length) : 0);
+  const syncIdx = activeSteps.findIndex(s => s.key === "syncing");
+  const currentIdx = isSyncing && syncIdx >= 0 ? syncIdx : baseIdx;
 
   const isRejected = status === "rejected";
   const isExpired  = status === "expired";
