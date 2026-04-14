@@ -34,6 +34,7 @@ import {
   Crosshair,
   ChevronsDownUp,
   Settings,
+  Percent,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
