@@ -339,8 +339,8 @@ export function StockFilterToolbar({
           >
             {filters.categoryId && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
-                <FolderTree className="h-3 w-3" />
-                {filters.categoryId}
+                <LayoutGrid className="h-3 w-3" />
+                Categoria
                 <button onClick={() => onUpdateFilter('categoryId', undefined)} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
