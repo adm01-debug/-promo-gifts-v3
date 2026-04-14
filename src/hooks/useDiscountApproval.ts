@@ -60,6 +60,17 @@ export function useDiscountApproval() {
         });
       if (error) throw error;
 
+      // Log in quote history
+      await supabase.from("quote_history").insert({
+        quote_id: quoteId,
+        user_id: user.id,
+        action: "discount_approval_requested",
+        description: `Solicitação de desconto de ${requestedPercent}% (limite: ${maxAllowedPercent}%)`,
+        field_changed: "discount",
+        new_value: `${requestedPercent}%`,
+        metadata: { seller_notes: sellerNotes || null },
+      });
+
       // Notify all admins
       const { data: adminRoles } = await supabase
         .from("user_roles")
