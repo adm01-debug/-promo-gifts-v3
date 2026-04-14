@@ -26,6 +26,9 @@ interface ExternalProductWithVariants {
   min_quantity?: number;
   stock_quantity?: number;
   updated_at?: string;
+  category_id?: string;
+  supplier_id?: string;
+  brand?: string;
 }
 
 interface ExternalVariantStock {
@@ -145,9 +148,9 @@ export async function fetchAndProcessStockData(): Promise<{
   alerts: StockAlert[];
   futureStock: FutureStockEntry[];
 }> {
-  const [allProducts, allVariants, allSupplierSources] = await Promise.all([
+  const [allProducts, allVariants, allSupplierSources, allCategories, allSuppliers] = await Promise.all([
     fetchPaginatedFromBridge<ExternalProductWithVariants>(
-      'products', 'id,name,sku,min_quantity,stock_quantity,updated_at', 1000, 100000, { active: true }
+      'products', 'id,name,sku,min_quantity,stock_quantity,updated_at,category_id,supplier_id,brand', 1000, 100000, { active: true }
     ),
     fetchPaginatedFromBridge<ExternalVariantStock>(
       'product_variants', 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at', 1000, 100000, { is_active: true }
