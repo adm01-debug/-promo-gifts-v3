@@ -60,6 +60,12 @@ export function useDiscountApproval() {
         });
       if (error) throw error;
 
+      // Set quote status to pending_approval so UI shows correct state
+      await supabase
+        .from("quotes")
+        .update({ status: "pending_approval" })
+        .eq("id", quoteId);
+
       // Log in quote history
       await supabase.from("quote_history").insert({
         quote_id: quoteId,
