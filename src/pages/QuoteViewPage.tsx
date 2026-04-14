@@ -40,6 +40,8 @@ const statusConfig = Object.fromEntries(
 export default function QuoteViewPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { getApprovalStatus } = useDiscountApproval();
+  const [approvalRequest, setApprovalRequest] = useState<DiscountApprovalRequest | null>(null);
 
   const {
     quote, setQuote, isLoadingQuote, clientCnpj,
@@ -48,6 +50,12 @@ export default function QuoteViewPage() {
     handleDownloadPDF, handleWhatsAppShare, handleShareLink,
     handleSyncBitrix, fetchQuote, logQuoteHistory, duplicateQuote,
   } = useQuoteViewData(id);
+
+  useEffect(() => {
+    if (id && quote?.status === "pending_approval") {
+      getApprovalStatus(id).then(setApprovalRequest);
+    }
+  }, [id, quote?.status, getApprovalStatus]);
 
   if (isLoadingQuote) {
     return (
