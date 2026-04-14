@@ -120,6 +120,7 @@ export default function QuoteViewPage() {
             </div>
             )}
 
+            {quote.status !== "pending_approval" && (
             <PdfGenerationDialog
               proposalData={proposalData}
               quoteNumber={quote.quote_number}
@@ -130,6 +131,7 @@ export default function QuoteViewPage() {
               onShareLink={handleShareLink}
               trigger={<Button className="gap-2"><Eye className="h-4 w-4" /> Preview Proposta</Button>}
             />
+            )}
 
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
