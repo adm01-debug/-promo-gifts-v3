@@ -188,6 +188,26 @@ export default function QuoteViewPage() {
           <QuoteValidityBanner validUntil={quote.valid_until} status={quote.status} />
         </div>
 
+        {/* Discount Approval Banner */}
+        {quote.status === "pending_approval" && (
+          <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.06] px-4 py-3 flex items-center gap-3 print:hidden">
+            <div className="p-2 rounded-lg bg-amber-500/15 shrink-0">
+              <Shield className="h-5 w-5 text-amber-500" />
+            </div>
+            <div className="flex-1">
+              <p className="font-semibold text-sm text-amber-600">Aguardando aprovação de desconto</p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {approvalRequest
+                  ? `Desconto de ${approvalRequest.requested_discount_percent}% solicitado (limite: ${approvalRequest.max_allowed_percent}%). Aguardando decisão do administrador.`
+                  : "Este orçamento está aguardando a aprovação do administrador para o desconto aplicado."}
+              </p>
+            </div>
+            <Badge variant="secondary" className="bg-amber-500/15 text-amber-600 border-amber-500/30 gap-1 shrink-0">
+              <Shield className="h-3 w-3" /> Pendente
+            </Badge>
+          </div>
+        )}
+
         {/* Quote Content */}
         <Card className="print:hidden">
           <Separator />
