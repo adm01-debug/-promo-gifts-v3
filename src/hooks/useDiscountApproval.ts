@@ -90,8 +90,8 @@ export function useDiscountApproval() {
         .single();
       if (updateError) throw updateError;
 
-      // Update quote status
-      const newStatus = approved ? "draft" : "draft";
+      // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
+      const newStatus = approved ? "pending" : "draft";
       await supabase
         .from("quotes")
         .update({ status: newStatus })
