@@ -126,17 +126,12 @@ export function StockFilterToolbar({
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
             <div className="max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
-              {/* Header */}
               <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtros Avançados
                 </h4>
-                {activeFiltersCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs h-7 text-muted-foreground">
-                    Limpar tudo
-                  </Button>
-                )}
+                <span className="text-[11px] text-muted-foreground">Refine sua busca</span>
               </div>
 
               {/* FilterSection: Cores */}
