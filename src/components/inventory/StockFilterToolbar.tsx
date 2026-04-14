@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { StockCategoryTreeSelect } from "./StockCategoryTreeSelect";
+import { InlineColorGroupFilter } from "@/components/filters/InlineColorGroupFilter";
 import type { StockFilters, StockStatus } from "@/types/stock";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -78,7 +79,7 @@ export function StockFilterToolbar({
     filters.status !== 'all',
     !!filters.categoryId,
     !!filters.supplierId,
-    !!filters.colorName,
+    !!filters.colorName || !!filters.colorGroup,
     !!filters.minQuantityNeeded && filters.minQuantityNeeded > 0,
     filters.showOnlyWithAlerts,
     !!filters.search,
@@ -159,26 +160,22 @@ export function StockFilterToolbar({
                   </Select>
                 </div>
 
-                {/* Color Filter */}
+                {/* Color Filter — Visual Swatches (same as Super Filtro) */}
                 <div className="space-y-1.5">
                   <Label className="text-xs flex items-center gap-1.5">
                     <Palette className="h-3.5 w-3.5 text-primary" />
-                    Cor
+                    Cores
                   </Label>
-                  <Select
-                    value={filters.colorName || '__all__'}
-                    onValueChange={(v) => onUpdateFilter('colorName', v === '__all__' ? undefined : v)}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Todas as cores" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      <SelectItem value="__all__" className="text-xs">Todas as cores</SelectItem>
-                      {colors.map(c => (
-                        <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <InlineColorGroupFilter
+                    selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
+                    onChange={(sel) => {
+                      const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
+                      onUpdateFilter('colorGroup', selected);
+                      onUpdateFilter('colorName', undefined);
+                    }}
+                    showNuances={false}
+                    showVariations={false}
+                  />
                 </div>
 
                 <Separator />
@@ -306,11 +303,11 @@ export function StockFilterToolbar({
                 </button>
               </Badge>
             )}
-            {filters.colorName && (
+            {(filters.colorName || filters.colorGroup) && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Palette className="h-3 w-3" />
-                {filters.colorName}
-                <button onClick={() => onUpdateFilter('colorName', undefined)} className="ml-0.5 hover:text-foreground">
+                {filters.colorName || filters.colorGroup}
+                <button onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
