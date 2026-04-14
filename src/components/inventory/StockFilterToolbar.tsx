@@ -303,11 +303,11 @@ export function StockFilterToolbar({
                 </button>
               </Badge>
             )}
-            {filters.colorName && (
+            {(filters.colorName || filters.colorGroup) && (
               <Badge variant="secondary" className="gap-1 text-xs pr-1">
                 <Palette className="h-3 w-3" />
-                {filters.colorName}
-                <button onClick={() => onUpdateFilter('colorName', undefined)} className="ml-0.5 hover:text-foreground">
+                {filters.colorName || filters.colorGroup}
+                <button onClick={() => { onUpdateFilter('colorName', undefined); onUpdateFilter('colorGroup', undefined); }} className="ml-0.5 hover:text-foreground">
                   <X className="h-3 w-3" />
                 </button>
               </Badge>
