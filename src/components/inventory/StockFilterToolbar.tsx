@@ -79,7 +79,7 @@ export function StockFilterToolbar({
     filters.status !== 'all',
     !!filters.categoryId,
     !!filters.supplierId,
-    !!filters.colorName,
+    !!filters.colorName || !!filters.colorGroup,
     !!filters.minQuantityNeeded && filters.minQuantityNeeded > 0,
     filters.showOnlyWithAlerts,
     !!filters.search,
