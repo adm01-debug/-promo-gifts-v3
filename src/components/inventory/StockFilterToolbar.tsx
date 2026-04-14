@@ -148,7 +148,7 @@ export function StockFilterToolbar({
                     <SelectTrigger className="h-8 text-xs">
                       <SelectValue placeholder="Todos os fornecedores" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
+                    <SelectContent className="max-h-48 overflow-y-auto">
                       <SelectItem value="__all__" className="text-xs">Todos ({totalProducts})</SelectItem>
                       {suppliers.map(s => (
                         <SelectItem key={s.name} value={s.name} className="text-xs">
