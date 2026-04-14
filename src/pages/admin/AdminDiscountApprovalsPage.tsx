@@ -3,6 +3,7 @@
  * Design 10/10 com stats cards, filtros, animações e layout premium
  */
 import { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
