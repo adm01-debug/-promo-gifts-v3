@@ -425,6 +425,21 @@ Deno.serve(async (req) => {
 
     console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length})`);
 
+    // DIAGNOSTIC: test raw REST call to verify key works
+    try {
+      const testUrl = `${CRM_URL}/rest/v1/companies?select=id&limit=1`;
+      const testResp = await fetch(testUrl, {
+        headers: {
+          'apikey': CRM_KEY,
+          'Authorization': `Bearer ${CRM_KEY}`,
+        },
+      });
+      const testBody = await testResp.text();
+      console.log(`[DIAG] Raw REST: status=${testResp.status}, body=${testBody.substring(0, 200)}`);
+    } catch (diagErr) {
+      console.error(`[DIAG] Raw REST error:`, diagErr);
+    }
+
     const crm = createClient(CRM_URL, CRM_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
     });
