@@ -118,10 +118,27 @@ export function useDiscountApproval() {
 
       // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
       const newStatus = approved ? "pending" : "draft";
-      await supabase
-        .from("quotes")
-        .update({ status: newStatus })
-        .eq("id", typedReq.quote_id);
+      await Promise.all([
+        supabase
+          .from("quotes")
+          .update({ status: newStatus })
+          .eq("id", typedReq.quote_id),
+        // Log in quote history for auditability
+        supabase
+          .from("quote_history")
+          .insert({
+            quote_id: typedReq.quote_id,
+            user_id: user.id,
+            action: approved ? "discount_approved" : "discount_rejected",
+            description: approved
+              ? `Desconto de ${typedReq.requested_discount_percent}% aprovado pelo admin`
+              : `Desconto de ${typedReq.requested_discount_percent}% rejeitado pelo admin`,
+            field_changed: "discount",
+            old_value: `${typedReq.max_allowed_percent}%`,
+            new_value: `${typedReq.requested_discount_percent}%`,
+            metadata: { admin_notes: adminNotes || null, status: approved ? "approved" : "rejected" },
+          }),
+      ]);
 
       // Notify the seller
       await supabase.from("workspace_notifications").insert({
