@@ -423,7 +423,9 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
-    console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length})`);
+    const CRM_ANON = Deno.env.get("CRM_SUPABASE_ANON_KEY") || "";
+    const keysMatch = CRM_SERVICE_KEY === CRM_ANON;
+    console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length}), anon_len=${CRM_ANON.length}, KEYS_MATCH=${keysMatch}, svc_last4=${CRM_KEY.slice(-4)}, anon_last4=${CRM_ANON.slice(-4)}`);
 
     // DIAGNOSTIC: test raw REST call to verify key works
     try {
