@@ -159,26 +159,22 @@ export function StockFilterToolbar({
                   </Select>
                 </div>
 
-                {/* Color Filter */}
+                {/* Color Filter — Visual Swatches (same as Super Filtro) */}
                 <div className="space-y-1.5">
                   <Label className="text-xs flex items-center gap-1.5">
                     <Palette className="h-3.5 w-3.5 text-primary" />
-                    Cor
+                    Cores
                   </Label>
-                  <Select
-                    value={filters.colorName || '__all__'}
-                    onValueChange={(v) => onUpdateFilter('colorName', v === '__all__' ? undefined : v)}
-                  >
-                    <SelectTrigger className="h-8 text-xs">
-                      <SelectValue placeholder="Todas as cores" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-60 overflow-y-auto">
-                      <SelectItem value="__all__" className="text-xs">Todas as cores</SelectItem>
-                      {colors.map(c => (
-                        <SelectItem key={c} value={c} className="text-xs">{c}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <InlineColorGroupFilter
+                    selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
+                    onChange={(sel) => {
+                      const selected = sel.groups.length > 0 ? sel.groups[sel.groups.length - 1] : undefined;
+                      onUpdateFilter('colorGroup', selected);
+                      onUpdateFilter('colorName', undefined);
+                    }}
+                    showNuances={false}
+                    showVariations={false}
+                  />
                 </div>
 
                 <Separator />
