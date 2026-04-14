@@ -20,6 +20,7 @@ import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { StockCategoryTreeSelect } from "./StockCategoryTreeSelect";
 import type { StockFilters, StockStatus } from "@/types/stock";
 import { motion, AnimatePresence } from "framer-motion";
 
