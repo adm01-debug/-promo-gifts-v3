@@ -347,11 +347,15 @@ async function handleDelete(crm: SupabaseClient, body: CrmQuery): Promise<Respon
 async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Response> {
   const { table, id, filters, select, orderBy, limit, offset, search, relations } = body;
   const selectFields = select || (relations ? `${select || "*"}, ${relations}` : "*");
+  
+  console.log(`[SELECT] table=${table}, selectFields=${selectFields}, filters=${JSON.stringify(filters)}, limit=${limit}`);
+  
   let query = crm.from(table).select(selectFields);
 
   if (id) {
     const { data, error } = await query.eq("id", id).single();
     if (error) {
+      console.error(`[SELECT] single error: code=${error.code}, message=${error.message}, details=${JSON.stringify(error)}`);
       if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
         return createOptionalSelectFallback(table, true);
       }
@@ -366,7 +370,9 @@ async function handleSelect(crm: SupabaseClient, body: CrmQuery): Promise<Respon
   if (limit) query = query.limit(limit);
   if (offset) query = query.range(offset, offset + (limit || 50) - 1);
 
-  const { data, error, count } = await query;
+  const { data, error, count, status, statusText } = await query;
+  console.log(`[SELECT] result: status=${status}, statusText=${statusText}, dataLength=${(data || []).length}, error=${error ? JSON.stringify(error) : 'none'}, count=${count}`);
+  
   if (error) {
     if (isOptionalQuoteTable(table) && isMissingTableError(error, table)) {
       return createOptionalSelectFallback(table, false);
@@ -417,7 +423,24 @@ Deno.serve(async (req) => {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
 
-    console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length})`);
+    const CRM_ANON = Deno.env.get("CRM_SUPABASE_ANON_KEY") || "";
+    const keysMatch = CRM_SERVICE_KEY === CRM_ANON;
+    console.log(`[crm-db-bridge] CRM_URL prefix: ${CRM_URL.substring(0, 30)}..., using ${CRM_SERVICE_KEY ? 'SERVICE_KEY' : 'ANON_KEY'} (len=${CRM_KEY.length}), anon_len=${CRM_ANON.length}, KEYS_MATCH=${keysMatch}, svc_last4=${CRM_KEY.slice(-4)}, anon_last4=${CRM_ANON.slice(-4)}`);
+
+    // DIAGNOSTIC: test raw REST call to verify key works
+    try {
+      const testUrl = `${CRM_URL}/rest/v1/companies?select=id&limit=1`;
+      const testResp = await fetch(testUrl, {
+        headers: {
+          'apikey': CRM_KEY,
+          'Authorization': `Bearer ${CRM_KEY}`,
+        },
+      });
+      const testBody = await testResp.text();
+      console.log(`[DIAG] Raw REST: status=${testResp.status}, body=${testBody.substring(0, 200)}`);
+    } catch (diagErr) {
+      console.error(`[DIAG] Raw REST error:`, diagErr);
+    }
 
     const crm = createClient(CRM_URL, CRM_KEY, {
       auth: { persistSession: false, autoRefreshToken: false },
