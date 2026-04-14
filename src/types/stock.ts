@@ -249,6 +249,9 @@ export interface StockFilters {
   colorGroup?: string;
   colorName?: string;
   
+  // Quantidade mínima necessária (smart filter)
+  minQuantityNeeded?: number;
+  
   // Busca
   search: string;
   

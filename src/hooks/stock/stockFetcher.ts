@@ -26,6 +26,9 @@ interface ExternalProductWithVariants {
   min_quantity?: number;
   stock_quantity?: number;
   updated_at?: string;
+  category_id?: string;
+  supplier_id?: string;
+  brand?: string;
 }
 
 interface ExternalVariantStock {
@@ -145,9 +148,9 @@ export async function fetchAndProcessStockData(): Promise<{
   alerts: StockAlert[];
   futureStock: FutureStockEntry[];
 }> {
-  const [allProducts, allVariants, allSupplierSources] = await Promise.all([
+  const [allProducts, allVariants, allSupplierSources, allCategories, allSuppliers] = await Promise.all([
     fetchPaginatedFromBridge<ExternalProductWithVariants>(
-      'products', 'id,name,sku,min_quantity,stock_quantity,updated_at', 1000, 100000, { active: true }
+      'products', 'id,name,sku,min_quantity,stock_quantity,updated_at,category_id,supplier_id,brand', 1000, 100000, { active: true }
     ),
     fetchPaginatedFromBridge<ExternalVariantStock>(
       'product_variants', 'id,product_id,sku,name,color_id,color_name,color_hex,color_code,stock_quantity,is_active,updated_at', 1000, 100000, { is_active: true }
@@ -155,7 +158,19 @@ export async function fetchAndProcessStockData(): Promise<{
     fetchPaginatedFromBridge<ExternalSupplierSource>(
       'variant_supplier_sources', 'id,variant_id,supplier_id,supplier_sku,quantity,next_quantity_1,next_date_1,next_quantity_2,next_date_2,next_quantity_3,next_date_3,is_active,updated_at', 1000, 100000, { is_active: true }
     ),
+    fetchPaginatedFromBridge<{ id: string; name: string }>(
+      'categories', 'id,name', 1000, 100000
+    ),
+    fetchPaginatedFromBridge<{ id: string; name: string; code?: string }>(
+      'suppliers', 'id,name,code', 1000, 100000
+    ),
   ]);
+
+  // Build lookup maps for category and supplier names
+  const categoryMap = new Map<string, string>();
+  allCategories.forEach(c => categoryMap.set(c.id, c.name));
+  const supplierMap = new Map<string, string>();
+  allSuppliers.forEach(s => supplierMap.set(s.id, s.name));
 
   logger.log(`[Stock] Carregados: ${allProducts.length} produtos, ${allVariants.length} variantes, ${allSupplierSources.length} sources`);
 
@@ -260,7 +275,13 @@ export async function fetchAndProcessStockData(): Promise<{
     }
 
     const aggregated = aggregateVariantsToProduct(variants);
-    return { productId: product.id, productName: product.name, productSku: product.sku || '', ...aggregated };
+    const categoryName = product.category_id ? categoryMap.get(product.category_id) : undefined;
+    const supplierName = product.supplier_id ? supplierMap.get(product.supplier_id) : (product.brand || undefined);
+    return {
+      productId: product.id, productName: product.name, productSku: product.sku || '',
+      categoryName, supplierName,
+      ...aggregated,
+    };
   });
 
   const alerts = generateStockAlerts(summaries);
