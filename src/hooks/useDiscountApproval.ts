@@ -101,7 +101,6 @@ export function useDiscountApproval() {
   ): Promise<boolean> => {
     if (!user) return false;
     try {
-      // Update the request
       const { data: request, error: updateError } = await supabase
         .from("discount_approval_requests")
         .update({
@@ -115,12 +114,26 @@ export function useDiscountApproval() {
         .single();
       if (updateError) throw updateError;
 
+      const typedReq = request as DiscountApprovalRequest;
+
       // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
       const newStatus = approved ? "pending" : "draft";
       await supabase
         .from("quotes")
         .update({ status: newStatus })
-        .eq("id", (request as DiscountApprovalRequest).quote_id);
+        .eq("id", typedReq.quote_id);
+
+      // Notify the seller
+      await supabase.from("workspace_notifications").insert({
+        user_id: typedReq.seller_id,
+        title: approved ? "Desconto aprovado ✅" : "Desconto rejeitado ❌",
+        message: approved
+          ? `Seu desconto de ${typedReq.requested_discount_percent}% foi aprovado. O orçamento está pronto para envio.`
+          : `Seu desconto de ${typedReq.requested_discount_percent}% foi rejeitado.${adminNotes ? ` Motivo: ${adminNotes}` : " Ajuste o desconto e tente novamente."}`,
+        type: approved ? "success" : "error",
+        category: "discount",
+        action_url: `/orcamentos/${typedReq.quote_id}`,
+      });
 
       toast.success(approved ? "Desconto aprovado!" : "Desconto rejeitado");
       return true;
