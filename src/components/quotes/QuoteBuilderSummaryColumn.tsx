@@ -154,6 +154,12 @@ export function QuoteBuilderSummaryColumn({
           {/* Discount */}
           {items.length > 0 && (
             <div className="px-4 pt-3 space-y-2">
+              {maxDiscountPercent != null && (
+                <div className="flex items-center gap-1.5 text-xs">
+                  <Shield className="h-3 w-3 text-muted-foreground" />
+                  <span className="text-muted-foreground">Seu limite: até <span className="font-semibold">{maxDiscountPercent}%</span></span>
+                </div>
+              )}
               <div className="flex items-center gap-2">
                 <Select value={discountType} onValueChange={(v) => setDiscountType(v as "percent" | "amount")}>
                   <SelectTrigger className="w-16 h-8 text-xs"><SelectValue /></SelectTrigger>
@@ -162,9 +168,24 @@ export function QuoteBuilderSummaryColumn({
                     <SelectItem value="amount">R$</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input type="number" min={0} step={discountType === "percent" ? 1 : 0.01} max={discountType === "percent" ? 100 : undefined} value={discountValue || ""} onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)} placeholder="Desconto" className="h-8 text-sm" />
+                <Input
+                  type="number" min={0} step={discountType === "percent" ? 1 : 0.01}
+                  max={discountType === "percent" ? 100 : undefined}
+                  value={discountValue || ""}
+                  onChange={(e) => setDiscountValue(parseFloat(e.target.value) || 0)}
+                  placeholder="Desconto"
+                  className={cn("h-8 text-sm", isDiscountExceeded && "border-warning ring-1 ring-warning/30")}
+                />
               </div>
-              {discountAmount > 0 && (
+              {isDiscountExceeded && (
+                <div className="flex items-center gap-1.5 rounded-md bg-warning/10 border border-warning/30 px-2.5 py-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0" />
+                  <span className="text-[11px] text-warning font-medium">
+                    Desconto acima do autorizado ({maxDiscountPercent}%). Será enviado para aprovação do admin.
+                  </span>
+                </div>
+              )}
+              {discountAmount > 0 && !isDiscountExceeded && (
                 <div className="flex justify-between text-xs text-destructive">
                   <span>Desconto aplicado</span>
                   <span className="font-semibold tabular-nums">-{formatCurrency(discountAmount)}</span>
@@ -204,10 +225,17 @@ export function QuoteBuilderSummaryColumn({
               </div>
             )}
 
-            <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" onClick={() => onSave("pending")} disabled={quotesLoading || !isFormValid}>
-              {quotesLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
-              {isEditMode ? "Salvar" : "Criar"}
-            </Button>
+            {isDiscountExceeded ? (
+              <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-lg" onClick={() => onSave("pending_approval")} disabled={quotesLoading || !isFormValid}>
+                {quotesLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Shield className="h-5 w-5" />}
+                Salvar e Solicitar Aprovação
+              </Button>
+            ) : (
+              <Button size="lg" className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-primary to-primary/80 shadow-lg shadow-primary/20" onClick={() => onSave("pending")} disabled={quotesLoading || !isFormValid}>
+                {quotesLoading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Send className="h-5 w-5" />}
+                {isEditMode ? "Salvar" : "Criar"}
+              </Button>
+            )}
             <Button variant="outline" className="w-full" onClick={() => onSave("draft")} disabled={quotesLoading || !isDraftValid}>
               {quotesLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
               {isEditMode ? "Salvar Alterações" : "Salvar Rascunho"}
