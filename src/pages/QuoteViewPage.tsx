@@ -32,6 +32,8 @@ import { PdfGenerationDialog } from "@/components/quotes/PdfGenerationDialog";
 import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 import { useQuoteViewData } from "./quote-view/useQuoteViewData";
 import { useDiscountApproval, type DiscountApprovalRequest } from "@/hooks/useDiscountApproval";
+import { useAuth } from "@/contexts/AuthContext";
+import { Textarea } from "@/components/ui/textarea";
 
 const statusConfig = Object.fromEntries(
   Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, variant: v.badgeVariant }])
