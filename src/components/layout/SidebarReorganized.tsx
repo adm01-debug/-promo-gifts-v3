@@ -233,8 +233,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   };
 
   const filteredGroups = useMemo(
-    () => navGroups.filter((g) => !g.adminOnly || isAdmin),
-    [isAdmin]
+    () => enrichedNavGroups.filter((g) => !g.adminOnly || isAdmin),
+    [isAdmin, enrichedNavGroups]
   );
 
   return (
