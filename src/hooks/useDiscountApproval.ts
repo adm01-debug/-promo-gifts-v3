@@ -59,6 +59,31 @@ export function useDiscountApproval() {
           seller_notes: sellerNotes || null,
         });
       if (error) throw error;
+
+      // Notify all admins
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (adminRoles && adminRoles.length > 0) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const sellerName = profile?.full_name || "Vendedor";
+        await supabase.from("workspace_notifications").insert(
+          adminRoles.map(a => ({
+            user_id: a.user_id,
+            title: "Solicitação de desconto",
+            message: `${sellerName} solicitou ${requestedPercent.toFixed(1)}% de desconto (limite: ${maxAllowedPercent}%)`,
+            type: "warning",
+            category: "discount",
+            action_url: "/admin/aprovacoes-desconto",
+          }))
+        );
+      }
+
       toast.success("Solicitação de aprovação enviada ao admin!");
       return true;
     } catch (err) {
