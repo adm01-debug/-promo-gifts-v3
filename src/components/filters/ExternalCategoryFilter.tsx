@@ -301,7 +301,7 @@ export function ExternalCategoryFilter({
 
       {/* Árvore de categorias */}
       <div 
-        className={cn("pr-2 overflow-y-auto overscroll-contain", compact ? "max-h-[40vh]" : "max-h-[55vh]")}
+        className={cn("pr-2 overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent", compact ? "max-h-52" : "max-h-[55vh]")}
         style={{ overscrollBehavior: 'contain' }}
       >
         <div className="space-y-0.5">
