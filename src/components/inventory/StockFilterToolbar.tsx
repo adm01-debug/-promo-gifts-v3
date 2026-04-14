@@ -14,8 +14,9 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import {
-  Popover, PopoverContent, PopoverTrigger,
+  Popover, PopoverContent, PopoverTrigger, PopoverClose,
 } from "@/components/ui/popover";
+import { RotateCcw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
@@ -125,17 +126,12 @@ export function StockFilterToolbar({
           </PopoverTrigger>
           <PopoverContent className="w-80 p-0" align="start">
             <div className="max-h-[70vh] overflow-y-auto overscroll-contain scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent">
-              {/* Header */}
               <div className="flex items-center justify-between px-3 py-2.5 border-b border-border/40">
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtros Avançados
                 </h4>
-                {activeFiltersCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={handleReset} className="text-xs h-7 text-muted-foreground">
-                    Limpar tudo
-                  </Button>
-                )}
+                <span className="text-[11px] text-muted-foreground">Refine sua busca</span>
               </div>
 
               {/* FilterSection: Cores */}
@@ -265,6 +261,25 @@ export function StockFilterToolbar({
                   </SelectContent>
                 </Select>
               </FilterSection>
+            </div>
+
+            {/* Footer: Reset + Fechar */}
+            <div className="flex items-center gap-2 px-3 py-2.5 border-t border-border/40 bg-background sticky bottom-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleReset}
+                disabled={activeFiltersCount === 0}
+                className="flex-1 h-8 text-xs gap-1.5 text-muted-foreground hover:text-foreground"
+              >
+                <RotateCcw className="h-3.5 w-3.5" />
+                Reset
+              </Button>
+              <PopoverClose asChild>
+                <Button variant="outline" size="sm" className="flex-1 h-8 text-xs">
+                  Fechar
+                </Button>
+              </PopoverClose>
             </div>
           </PopoverContent>
         </Popover>
