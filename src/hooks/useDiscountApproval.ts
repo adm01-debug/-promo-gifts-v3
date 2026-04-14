@@ -133,8 +133,8 @@ export function useDiscountApproval() {
 
       const typedReq = request as DiscountApprovalRequest;
 
-      // Update quote status: approved → draft (ready to edit/send), rejected → draft (needs adjustment)
-      const newStatus = "draft";
+      // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
+      const newStatus = approved ? "pending" : "draft";
       await Promise.all([
         supabase
           .from("quotes")
