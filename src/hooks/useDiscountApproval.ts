@@ -59,6 +59,31 @@ export function useDiscountApproval() {
           seller_notes: sellerNotes || null,
         });
       if (error) throw error;
+
+      // Notify all admins
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
+      if (adminRoles && adminRoles.length > 0) {
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name")
+          .eq("user_id", user.id)
+          .maybeSingle();
+        const sellerName = profile?.full_name || "Vendedor";
+        await supabase.from("workspace_notifications").insert(
+          adminRoles.map(a => ({
+            user_id: a.user_id,
+            title: "Solicitação de desconto",
+            message: `${sellerName} solicitou ${requestedPercent.toFixed(1)}% de desconto (limite: ${maxAllowedPercent}%)`,
+            type: "warning",
+            category: "discount",
+            action_url: "/admin/aprovacoes-desconto",
+          }))
+        );
+      }
+
       toast.success("Solicitação de aprovação enviada ao admin!");
       return true;
     } catch (err) {
@@ -76,7 +101,6 @@ export function useDiscountApproval() {
   ): Promise<boolean> => {
     if (!user) return false;
     try {
-      // Update the request
       const { data: request, error: updateError } = await supabase
         .from("discount_approval_requests")
         .update({
@@ -90,12 +114,26 @@ export function useDiscountApproval() {
         .single();
       if (updateError) throw updateError;
 
-      // Update quote status
-      const newStatus = approved ? "draft" : "draft";
+      const typedReq = request as DiscountApprovalRequest;
+
+      // Update quote status: approved → pending (ready to send), rejected → draft (needs adjustment)
+      const newStatus = approved ? "pending" : "draft";
       await supabase
         .from("quotes")
         .update({ status: newStatus })
-        .eq("id", (request as DiscountApprovalRequest).quote_id);
+        .eq("id", typedReq.quote_id);
+
+      // Notify the seller
+      await supabase.from("workspace_notifications").insert({
+        user_id: typedReq.seller_id,
+        title: approved ? "Desconto aprovado ✅" : "Desconto rejeitado ❌",
+        message: approved
+          ? `Seu desconto de ${typedReq.requested_discount_percent}% foi aprovado. O orçamento está pronto para envio.`
+          : `Seu desconto de ${typedReq.requested_discount_percent}% foi rejeitado.${adminNotes ? ` Motivo: ${adminNotes}` : " Ajuste o desconto e tente novamente."}`,
+        type: approved ? "success" : "error",
+        category: "discount",
+        action_url: `/orcamentos/${typedReq.quote_id}`,
+      });
 
       toast.success(approved ? "Desconto aprovado!" : "Desconto rejeitado");
       return true;
@@ -115,20 +153,28 @@ export function useDiscountApproval() {
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
+      const requests = (data || []) as DiscountApprovalRequest[];
 
-      // Enrich with quote and seller info
-      const enriched: DiscountApprovalWithQuote[] = [];
-      for (const req of (data || [])) {
-        const [quoteRes, sellerRes] = await Promise.all([
-          supabase.from("quotes").select("quote_number, client_name, client_company, total, subtotal").eq("id", req.quote_id).maybeSingle(),
-          supabase.from("profiles").select("full_name, email").eq("user_id", req.seller_id).maybeSingle(),
-        ]);
-        enriched.push({
-          ...(req as DiscountApprovalRequest),
-          quote: quoteRes.data || undefined,
-          seller: sellerRes.data || undefined,
-        });
-      }
+      if (requests.length === 0) { setPendingRequests([]); return; }
+
+      // Batch fetch quotes and sellers in parallel (no N+1)
+      const quoteIds = [...new Set(requests.map(r => r.quote_id))];
+      const sellerIds = [...new Set(requests.map(r => r.seller_id))];
+
+      const [quotesRes, sellersRes] = await Promise.all([
+        supabase.from("quotes").select("id, quote_number, client_name, client_company, total, subtotal").in("id", quoteIds),
+        supabase.from("profiles").select("user_id, full_name, email").in("user_id", sellerIds),
+      ]);
+
+      const quotesMap = new Map((quotesRes.data || []).map(q => [q.id, q]));
+      const sellersMap = new Map((sellersRes.data || []).map(s => [s.user_id, s]));
+
+      const enriched: DiscountApprovalWithQuote[] = requests.map(req => ({
+        ...req,
+        quote: quotesMap.get(req.quote_id) || undefined,
+        seller: sellersMap.get(req.seller_id) || undefined,
+      }));
+
       setPendingRequests(enriched);
     } catch (err) {
       console.error("Error fetching approval requests:", err);
