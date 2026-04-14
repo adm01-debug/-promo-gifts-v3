@@ -92,7 +92,8 @@ export function QuoteStatusTimeline({
                 className={cn(
                   "w-9 h-9 rounded-full flex items-center justify-center border-2 transition-all",
                   isCompleted && "bg-primary border-primary text-primary-foreground",
-                  isCurrent && !isFinalNegative && !isSync && "border-primary bg-primary/10 text-primary ring-2 ring-primary/20",
+                  isCurrent && isPendingApproval && step.key === "pending_approval" && "border-amber-500 bg-amber-500/10 text-amber-500 ring-2 ring-amber-500/20",
+                  isCurrent && !isFinalNegative && !isSync && !isPendingApproval && "border-primary bg-primary/10 text-primary ring-2 ring-primary/20",
                   isCurrent && isSync && "border-success bg-primary/10 text-primary ring-2 ring-primary/20",
                   isCurrent && isRejected && "border-destructive bg-destructive/10 text-destructive ring-2 ring-destructive/20",
                   isCurrent && isExpired && "border-muted-foreground bg-muted text-muted-foreground ring-2 ring-muted-foreground/20",
