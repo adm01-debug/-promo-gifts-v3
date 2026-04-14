@@ -6,7 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AlertTriangle, Edit, Loader2, Package, Save, Send, ShoppingCart, Trash2 } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/hooks/useQuotes";
 
@@ -29,7 +30,9 @@ interface Props {
   formatCurrency: (v: number) => string;
   calculateItemPersonalizationTotal: (item: QuoteItem) => number;
   calculateItemTotal: (item: QuoteItem) => number;
-  onSave: (status: "draft" | "pending") => void;
+  onSave: (status: "draft" | "pending" | "pending_approval") => void;
+  maxDiscountPercent?: number | null;
+  isDiscountExceeded?: boolean;
 }
 
 export function QuoteBuilderSummaryColumn({
@@ -38,6 +41,7 @@ export function QuoteBuilderSummaryColumn({
   discountAmount, total, isFormValid, isDraftValid, validationErrors,
   quotesLoading, isEditMode, formatCurrency,
   calculateItemPersonalizationTotal, calculateItemTotal, onSave,
+  maxDiscountPercent, isDiscountExceeded,
 }: Props) {
   return (
     <div className="lg:col-span-4">
