@@ -353,12 +353,13 @@ export function QuoteKanbanBoard({ quotes }: QuoteKanbanBoardProps) {
 
     if (targetStatus && targetStatus !== activeQuote.status) {
       // Validate status transitions
-      const validTransitions: Record<QuoteStatus, QuoteStatus[]> = {
+      const validTransitions: Record<string, QuoteStatus[]> = {
         draft: ["pending", "sent"],
+        pending_approval: ["draft"], // Admin approves/rejects → back to draft
         pending: ["draft", "sent", "expired"],
         sent: ["approved", "rejected", "pending", "expired"],
-        approved: ["sent"], // Can revert
-        rejected: ["sent"], // Can revert
+        approved: ["sent"],
+        rejected: ["sent"],
         expired: ["pending", "sent"],
       };
 
