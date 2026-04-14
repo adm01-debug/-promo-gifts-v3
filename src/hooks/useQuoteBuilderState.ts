@@ -430,19 +430,34 @@ export function useQuoteBuilderState() {
   const isFormValid = validationErrors.length === 0;
   const isDraftValid = !!clientId;
 
+  // ── Discount limit check ──
+  const isDiscountExceeded = useMemo(() => {
+    if (maxDiscountPercent == null) return false;
+    if (discountType === "percent") return discountValue > maxDiscountPercent;
+    // For amount type, calculate effective percent
+    if (subtotal > 0) {
+      const effectivePercent = (discountValue / subtotal) * 100;
+      return effectivePercent > maxDiscountPercent;
+    }
+    return false;
+  }, [maxDiscountPercent, discountType, discountValue, subtotal]);
+
   // ── Save ──
-  const handleSaveQuote = useCallback(async (status: "draft" | "pending" = "draft") => {
+  const handleSaveQuote = useCallback(async (status: "draft" | "pending" | "pending_approval" = "draft") => {
     if (status === "draft") {
       if (!isDraftValid) { toast.error("Selecione uma empresa para salvar o rascunho."); return; }
     } else if (!isFormValid) {
       const missing = validationErrors.map(e => QUOTE_FIELD_LABELS[e] || e).join(", ");
       toast.error(`Preencha os campos obrigatórios: ${missing}`); return;
     }
+
+    const effectiveStatus = status === "pending_approval" ? "pending_approval" : status;
+
     const quoteData = {
       client_id: clientId || undefined, client_name: contactInfo?.name || undefined,
       client_company: companyInfo?.name || undefined, client_cnpj: companyInfo?.cnpj || undefined,
       client_email: contactInfo?.email || undefined, client_phone: contactInfo?.phone || undefined,
-      status, discount_percent: discountType === "percent" ? discountValue : 0,
+      status: effectiveStatus, discount_percent: discountType === "percent" ? discountValue : 0,
       discount_amount: discountType === "amount" ? discountValue : 0,
       notes: notes || undefined, internal_notes: internalNotes || undefined,
       valid_until: validUntil || undefined, payment_terms: paymentTerms || undefined,
@@ -452,8 +467,17 @@ export function useQuoteBuilderState() {
     let result;
     if (isEditMode && quoteId) { result = await updateQuote(quoteId, quoteData, items); }
     else { result = await createQuote(quoteData, items); }
+
+    // If pending_approval, create approval request
+    if (result && status === "pending_approval" && maxDiscountPercent != null) {
+      const effectivePercent = discountType === "percent"
+        ? discountValue
+        : subtotal > 0 ? (discountValue / subtotal) * 100 : 0;
+      await requestApproval(result.id, effectivePercent, maxDiscountPercent);
+    }
+
     if (result) navigate(`/orcamentos/${result.id}`);
-  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote]);
+  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, subtotal, requestApproval]);
 
   const defaultTemplate = useMemo(() => templates.find(t => t.is_default), [templates]);
 
