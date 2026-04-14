@@ -57,6 +57,7 @@ interface SellerProfile {
 type ApprovalFilter = "all" | "pending" | "approved" | "rejected";
 
 export default function AdminDiscountApprovalsPage() {
+  const navigate = useNavigate();
   const { limits, isLoading: limitsLoading, fetchAllLimits, setLimit, deleteLimit } = useSellerDiscountLimits();
   const { pendingRequests, isLoading: requestsLoading, fetchPendingRequests, respondToApproval } = useDiscountApproval();
 
