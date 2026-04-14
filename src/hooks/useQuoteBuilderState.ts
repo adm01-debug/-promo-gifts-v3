@@ -504,6 +504,8 @@ export function useQuoteBuilderState() {
     completedSteps, filteredProducts, subtotal, discountAmount, total,
     validationErrors, isFormValid, isDraftValid,
     quotesLoading, templates, defaultTemplate,
+    // Discount limits
+    maxDiscountPercent, isDiscountExceeded,
     // Actions
     formatCurrency, calculateItemPersonalizationTotal, calculateItemTotal,
     toggleExpanded, handlePersonalizationsChange,
