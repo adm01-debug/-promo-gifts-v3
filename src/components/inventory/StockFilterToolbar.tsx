@@ -22,6 +22,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { StockCategoryTreeSelect } from "./StockCategoryTreeSelect";
+import { InlineColorGroupFilter } from "@/components/filters/InlineColorGroupFilter";
 import type { StockFilters, StockStatus } from "@/types/stock";
 import { motion, AnimatePresence } from "framer-motion";
 
