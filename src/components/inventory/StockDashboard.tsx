@@ -70,6 +70,23 @@ export function StockDashboard() {
       <LowStockDialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}
         alerts={warningAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('warning')} />
 
+      {/* Advanced Filters */}
+      <Card>
+        <CardContent className="p-4">
+          <StockFilterToolbar
+            filters={filters}
+            onUpdateFilter={updateFilter}
+            onResetFilters={resetFilters}
+            categories={availableCategories}
+            suppliers={availableSuppliers}
+            colors={allColors}
+            colorGroups={availableColorGroups}
+            totalProducts={allProductStocks.length}
+            filteredCount={productStocks.length}
+          />
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <StatCard title="Total de Produtos" value={summary.totalProducts.toLocaleString('pt-BR')}
@@ -90,23 +107,6 @@ export function StockDashboard() {
       </div>
 
       <SupplierRiskPanel products={allProductStocks} />
-
-      {/* Advanced Filters */}
-      <Card>
-        <CardContent className="p-4">
-          <StockFilterToolbar
-            filters={filters}
-            onUpdateFilter={updateFilter}
-            onResetFilters={resetFilters}
-            categories={availableCategories}
-            suppliers={availableSuppliers}
-            colors={allColors}
-            colorGroups={availableColorGroups}
-            totalProducts={allProductStocks.length}
-            filteredCount={productStocks.length}
-          />
-        </CardContent>
-      </Card>
 
       {/* Stock Table */}
       <Card>
