@@ -54,12 +54,16 @@ export function QuoteStatusTimeline({
   const isExpired  = status === "expired";
   const isFinalNegative = isRejected || isExpired;
 
-  const displaySteps = steps.map((step, idx) => {
-    // Last step adapts to rejected/expired when status demands it
-    if (idx === steps.length - 1 && isRejected) {
+  // Filter out pending_approval step if not relevant to this quote
+  const relevantSteps = isPendingApproval || status === "pending_approval"
+    ? steps
+    : steps.filter(s => s.key !== "pending_approval");
+
+  const displaySteps = relevantSteps.map((step, idx) => {
+    if (idx === relevantSteps.length - 1 && isRejected) {
       return { key: "rejected", label: "Rejeitado", icon: ThumbsDown };
     }
-    if (idx === steps.length - 1 && isExpired) {
+    if (idx === relevantSteps.length - 1 && isExpired) {
       return { key: "expired", label: "Expirado", icon: AlertTriangle };
     }
     return step;
