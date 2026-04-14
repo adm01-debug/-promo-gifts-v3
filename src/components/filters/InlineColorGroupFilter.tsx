@@ -114,6 +114,7 @@ interface InlineColorGroupFilterProps {
   onChange: (selection: ColorFilterSelection) => void;
   showNuances?: boolean;
   showVariations?: boolean;
+  swatchSize?: 'sm' | 'md' | 'lg';
 }
 
 export function InlineColorGroupFilter({
@@ -121,6 +122,7 @@ export function InlineColorGroupFilter({
   onChange,
   showNuances = true,
   showVariations = true,
+  swatchSize = 'md',
 }: InlineColorGroupFilterProps) {
   const { data: colorData, isLoading } = useColorSystem();
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());

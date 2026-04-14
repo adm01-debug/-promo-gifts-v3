@@ -147,7 +147,7 @@ export function StockFilterToolbar({
                 activeCount={sectionCounts.cores}
                 activeSummary={filters.colorGroup || filters.colorName}
               >
-                <div className="max-h-[7rem] overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
+                <div className="max-h-28 overflow-y-auto scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent pr-1">
                   <InlineColorGroupFilter
                     selection={{ groups: filters.colorGroup ? [filters.colorGroup] : [], variations: [], nuances: [] }}
                     onChange={(sel) => {
