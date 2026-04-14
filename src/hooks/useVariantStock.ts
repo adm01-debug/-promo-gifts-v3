@@ -204,6 +204,7 @@ export function useVariantStock() {
     isLoading, isFetching, loadingProgress,
     productStocks: filteredProducts, allProductStocks: productStocks,
     summary, alerts, criticalAlerts, futureStock, filters, allColors,
+    availableCategories, availableSuppliers, availableColorGroups,
     fetchStockData, updateFilter, resetFilters, dismissAlert,
     dismissAllAlerts, dismissAlertsBySeverity, setFilters,
     getProductStock, getColorStock,
