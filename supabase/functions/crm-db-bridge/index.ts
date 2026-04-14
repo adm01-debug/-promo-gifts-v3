@@ -411,7 +411,8 @@ Deno.serve(async (req) => {
     if (auth.error) return auth.error;
 
     const CRM_URL = Deno.env.get("CRM_SUPABASE_URL");
-    const CRM_KEY = Deno.env.get("CRM_SUPABASE_ANON_KEY");
+    const CRM_SERVICE_KEY = Deno.env.get("CRM_SUPABASE_SERVICE_KEY");
+    const CRM_KEY = CRM_SERVICE_KEY || Deno.env.get("CRM_SUPABASE_ANON_KEY");
     if (!CRM_URL || !CRM_KEY) {
       return jsonResponse({ error: "CRM database credentials not configured" }, 500);
     }
