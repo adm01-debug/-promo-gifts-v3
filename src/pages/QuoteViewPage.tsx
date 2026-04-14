@@ -60,6 +60,8 @@ export default function QuoteViewPage() {
     }
     setIsResponding(false);
   }, [approvalRequest, adminNotes, respondToApproval, id, fetchQuote, setQuote]);
+
+  const {
     quote, setQuote, isLoadingQuote, clientCnpj,
     isGeneratingPDF, isSyncing, approvalLink,
     showPresentation, setShowPresentation, proposalData,
