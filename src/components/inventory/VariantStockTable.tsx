@@ -1,4 +1,5 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -11,6 +12,8 @@ import {
   TrendingDown,
   TrendingUp,
   ChevronLeft,
+  ExternalLink,
+  ShoppingCart,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -144,7 +147,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
       <TableCell className={cn(isNested && "pl-12")}>
         <ColorSwatch hex={variant.colorHex} name={variant.colorName} />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden md:table-cell">
         <span className="text-xs font-mono text-muted-foreground">
           {variant.variantSku}
         </span>
@@ -165,10 +168,10 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
           </span>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         <StockProgressBar current={variant.currentStock} min={variant.minStock} max={variant.maxStock} />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden lg:table-cell">
         {variant.reservedStock > 0 ? (
           <TooltipProvider>
             <Tooltip>
@@ -187,7 +190,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
           {variant.availableStock}
         </span>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden md:table-cell">
         {variant.inTransitStock > 0 ? (
           <TooltipProvider>
             <Tooltip>
@@ -204,7 +207,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
         )}
       </TableCell>
       <TableCell><StockStatusBadge status={variant.status} /></TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         {variant.daysUntilStockout !== undefined ? (
           <TooltipProvider>
             <Tooltip>
@@ -238,10 +241,12 @@ function ProductRow({ product, isExpanded, onToggle }: {
   isExpanded: boolean;
   onToggle: () => void;
 }) {
+  const navigate = useNavigate();
+
   return (
     <>
       <TableRow 
-        className={cn("cursor-pointer hover:bg-muted/50 transition-colors", isExpanded && "bg-muted/30")}
+        className={cn("cursor-pointer hover:bg-muted/50 transition-colors group", isExpanded && "bg-muted/30")}
         onClick={onToggle}
       >
         <TableCell>
@@ -257,7 +262,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
             </div>
           </div>
         </TableCell>
-        <TableCell>
+        <TableCell className="hidden md:table-cell">
           <div className="flex gap-1 flex-wrap">
             {product.availableColors.slice(0, 5).map((color, idx) => (
               <TooltipProvider key={idx}>
@@ -285,12 +290,12 @@ function ProductRow({ product, isExpanded, onToggle }: {
             <span className="text-xs text-muted-foreground">/ {product.totalMinStock} mín</span>
           </div>
         </TableCell>
-        <TableCell><StockProgressBar current={product.totalCurrentStock} min={product.totalMinStock} /></TableCell>
-        <TableCell>
+        <TableCell className="hidden sm:table-cell"><StockProgressBar current={product.totalCurrentStock} min={product.totalMinStock} /></TableCell>
+        <TableCell className="hidden lg:table-cell">
           {product.totalReservedStock > 0 ? <span className="text-sm text-warning">-{product.totalReservedStock}</span> : '-'}
         </TableCell>
         <TableCell><span className="font-medium">{product.totalAvailableStock}</span></TableCell>
-        <TableCell>
+        <TableCell className="hidden md:table-cell">
           {product.totalInTransitStock > 0 ? (
             <span className="text-sm text-primary/80 flex items-center gap-1">
               <Truck className="h-3 w-3" />+{product.totalInTransitStock}
@@ -298,8 +303,8 @@ function ProductRow({ product, isExpanded, onToggle }: {
           ) : '-'}
         </TableCell>
         <TableCell><StockStatusBadge status={product.overallStatus} /></TableCell>
-        <TableCell>
-          <div className="flex gap-1">
+        <TableCell className="hidden sm:table-cell">
+          <div className="flex items-center gap-1">
             {product.variantsCritical > 0 && (
               <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
                 {product.variantsCritical} crítico
@@ -310,6 +315,41 @@ function ProductRow({ product, isExpanded, onToggle }: {
                 {product.variantsOutOfStock} esgotado
               </Badge>
             )}
+            {/* Quick Actions */}
+            <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.productId}`); }}
+                      aria-label={`Ver produto ${product.productName}`}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Ver produto</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/orcamentos/novo?productId=${product.productId}&productName=${encodeURIComponent(product.productName)}`); }}
+                      aria-label={`Criar orçamento para ${product.productName}`}
+                    >
+                      <ShoppingCart className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Criar orçamento</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </TableCell>
       </TableRow>
@@ -339,7 +379,21 @@ interface VariantStockTableProps {
 export function VariantStockTable({ products, className }: VariantStockTableProps) {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(0);
+  const [searchParams] = useSearchParams();
   
+  // Deep link: auto-expand product from URL ?product=ID
+  useEffect(() => {
+    const productId = searchParams.get('product');
+    if (productId) {
+      const idx = products.findIndex(p => p.productId === productId);
+      if (idx >= 0) {
+        const page = Math.floor(idx / PAGE_SIZE);
+        setCurrentPage(page);
+        setExpandedProducts(new Set([productId]));
+      }
+    }
+  }, [searchParams, products]);
+
   // Reset page when products change (e.g. filter applied)
   const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages - 1);
@@ -381,19 +435,19 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
         </div>
       </div>
       
-      <div className="rounded-lg border overflow-hidden">
-        <Table>
-          <TableHeader>
+      <div className="rounded-lg border overflow-x-auto">
+        <Table className="min-w-[700px]">
+          <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow className="bg-muted/50">
               <TableHead className="w-[250px]">Produto / Cor</TableHead>
-              <TableHead className="w-[150px]">Cores</TableHead>
+              <TableHead className="w-[100px] hidden md:table-cell">Cores</TableHead>
               <TableHead>Estoque</TableHead>
-              <TableHead className="w-[100px]">Nível</TableHead>
-              <TableHead>Reservado</TableHead>
+              <TableHead className="w-[100px] hidden sm:table-cell">Nível</TableHead>
+              <TableHead className="hidden lg:table-cell">Reservado</TableHead>
               <TableHead>Disponível</TableHead>
-              <TableHead>Em Trânsito</TableHead>
+              <TableHead className="hidden md:table-cell">Em Trânsito</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Alertas</TableHead>
+              <TableHead className="hidden sm:table-cell">Alertas</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

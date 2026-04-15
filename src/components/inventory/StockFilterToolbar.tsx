@@ -318,30 +318,7 @@ export function StockFilterToolbar({
         )}
       </div>
 
-      {/* Row 2: Status Quick Chips */}
-      <div className="flex flex-wrap gap-1.5">
-        {STATUS_OPTIONS.map(opt => (
-          <button
-            key={opt.value}
-            onClick={() => onUpdateFilter('status', opt.value)}
-            className={cn(
-              "inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-all",
-              filters.status === opt.value
-                ? opt.value === 'critical' || opt.value === 'out_of_stock'
-                  ? "bg-destructive/15 text-destructive ring-1 ring-destructive/30"
-                  : opt.value === 'low_stock'
-                    ? "bg-warning/15 text-warning ring-1 ring-warning/30"
-                    : opt.value === 'in_stock'
-                      ? "bg-success/15 text-success ring-1 ring-success/30"
-                      : "bg-primary/15 text-primary ring-1 ring-primary/30"
-                : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-            )}
-          >
-            {opt.icon}
-            {opt.label}
-          </button>
-        ))}
-      </div>
+      {/* Status chips removed — StatCards above handle status filtering */}
 
       {/* Active Filters Badges */}
       <AnimatePresence>
