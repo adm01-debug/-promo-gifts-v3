@@ -21,12 +21,29 @@ export function StockDashboard() {
   const [outOfStockDialogOpen, setOutOfStockDialogOpen] = useState(false);
   const [lowStockDialogOpen, setLowStockDialogOpen] = useState(false);
   const [riskPanelOpen, setRiskPanelOpen] = useState(true);
+  const { toast } = useToast();
+  const prevCriticalCountRef = useRef<number | null>(null);
   const {
     isLoading, isFetching, loadingProgress, productStocks, allProductStocks,
     summary, alerts, criticalAlerts, filters, futureStock, allColors,
     availableCategories, availableSuppliers, availableColorGroups,
     fetchStockData, updateFilter, resetFilters, dismissAlert, dismissAlertsBySeverity,
   } = useVariantStock();
+
+  // Toast when new critical alerts appear after refresh
+  useEffect(() => {
+    if (isLoading) return;
+    const count = criticalAlerts.length;
+    if (prevCriticalCountRef.current !== null && count > prevCriticalCountRef.current) {
+      const newCount = count - prevCriticalCountRef.current;
+      toast({
+        title: `⚠️ ${newCount} novo${newCount > 1 ? 's' : ''} alerta${newCount > 1 ? 's' : ''} crítico${newCount > 1 ? 's' : ''}`,
+        description: "Produtos sem estoque ou em nível crítico detectados.",
+        variant: "destructive",
+      });
+    }
+    prevCriticalCountRef.current = count;
+  }, [criticalAlerts.length, isLoading, toast]);
 
   const warningAlerts = useMemo(() => alerts.filter(a => a.severity === 'warning'), [alerts]);
   const infoAlerts = useMemo(() => alerts.filter(a => a.severity === 'info'), [alerts]);
