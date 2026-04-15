@@ -88,12 +88,14 @@ export function StockDashboard() {
           icon={<Package className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'all'}
           onClick={() => updateFilter('status', 'all')}
-          clickHint="Mostrar todos os produtos" />
+          clickHint="Mostrar todos os produtos"
+          trend={{ value: summary.totalVariants, label: `${summary.totalVariants.toLocaleString('pt-BR')} variações` }} />
         <StatCard title="Em Estoque" value={summary.productsInStock.toLocaleString('pt-BR')}
           icon={<CheckCircle2 className="h-6 w-6 text-success" />} variant="success"
           isActive={filters.status === 'in_stock'}
           onClick={() => updateFilter('status', filters.status === 'in_stock' ? 'all' : 'in_stock')}
-          clickHint="Filtrar produtos em estoque" />
+          clickHint="Filtrar produtos em estoque"
+          trend={summary.totalProducts > 0 ? { value: 1, label: `${Math.round((summary.productsInStock / summary.totalProducts) * 100)}% do total` } : undefined} />
         <StatCard title="Estoque Baixo" value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />} variant="warning"
           isActive={filters.status === 'low_stock' || filters.status === 'critical'}
@@ -101,7 +103,8 @@ export function StockDashboard() {
             updateFilter('status', filters.status === 'low_stock' ? 'all' : 'low_stock');
             if (warningAlerts.length > 0) setLowStockDialogOpen(true);
           }}
-          clickHint="Filtrar produtos com estoque baixo" />
+          clickHint="Filtrar produtos com estoque baixo"
+          trend={summary.productsCritical > 0 ? { value: -1, label: `${summary.productsCritical} críticos` } : undefined} />
         <StatCard title="Sem Estoque" value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />} variant="error"
           isActive={filters.status === 'out_of_stock'}
@@ -109,13 +112,15 @@ export function StockDashboard() {
             updateFilter('status', filters.status === 'out_of_stock' ? 'all' : 'out_of_stock');
             if (criticalAlerts.length > 0) setOutOfStockDialogOpen(true);
           }}
-          clickHint="Filtrar produtos sem estoque" />
+          clickHint="Filtrar produtos sem estoque"
+          trend={summary.criticalAlerts > 0 ? { value: -1, label: `${summary.criticalAlerts} alertas ativos` } : undefined} />
         <StatCard title="Estoque Futuro"
           value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
           icon={<Truck className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'incoming'}
           onClick={() => updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming')}
-          clickHint="Filtrar produtos com estoque futuro" />
+          clickHint="Filtrar produtos com estoque futuro"
+          trend={futureStock.length > 0 ? { value: 1, label: 'reposições previstas' } : undefined} />
       </div>
 
       {/* Active Filter Badge */}
