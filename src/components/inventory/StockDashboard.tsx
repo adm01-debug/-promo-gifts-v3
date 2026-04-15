@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import {
   Package, TrendingDown, RefreshCw, Truck, CheckCircle2, XCircle, Palette, Loader2, AlertCircle, X,
-  ChevronDown, ChevronRight,
+  ChevronDown, ChevronRight, Clock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
