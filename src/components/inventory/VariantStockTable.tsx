@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { 
   ChevronDown, 
@@ -14,9 +14,12 @@ import {
   ChevronLeft,
   ExternalLink,
   ShoppingCart,
+  Search,
+  X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import {
   Table,
@@ -128,12 +131,25 @@ function StockProgressBar({ current, min }: { current: number; min: number; max?
     'bg-success';
   
   return (
-    <div className="w-24">
-      <Progress 
-        value={percentage} 
-        className={cn("h-2", progressColor)} 
-      />
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="w-24 cursor-help">
+            <Progress 
+              value={percentage} 
+              className={cn("h-2", progressColor)} 
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">
+            <span className="font-semibold">{Math.round(percentage)}%</span> do mínimo
+            <br />
+            {current.toLocaleString('pt-BR')} / {min.toLocaleString('pt-BR')} un.
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
@@ -306,14 +322,49 @@ function ProductRow({ product, isExpanded, onToggle }: {
         <TableCell className="hidden sm:table-cell">
           <div className="flex items-center gap-1">
             {product.variantsCritical > 0 && (
-              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
-                {product.variantsCritical} crítico
-              </Badge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20 gap-0.5">
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      {product.variantsCritical} crítico
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{product.variantsCritical} variante(s) em nível crítico — considere solicitar reposição urgente</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {product.variantsOutOfStock > 0 && (
-              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
-                {product.variantsOutOfStock} esgotado
-              </Badge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20 gap-0.5">
+                      <XCircle className="h-2.5 w-2.5" />
+                      {product.variantsOutOfStock} esgotado
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{product.variantsOutOfStock} variante(s) sem estoque — produto indisponível nestas cores</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {product.totalInTransitStock > 0 && product.variantsOutOfStock > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 gap-0.5">
+                      <Truck className="h-2.5 w-2.5" />
+                      reposição
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">+{product.totalInTransitStock} un. em trânsito — reposição a caminho</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {/* Quick Actions */}
             <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -379,7 +430,9 @@ interface VariantStockTableProps {
 export function VariantStockTable({ products, className }: VariantStockTableProps) {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(0);
+  const [inlineSearch, setInlineSearch] = useState('');
   const [searchParams] = useSearchParams();
+  const prevProductsLenRef = useRef(products.length);
   
   // Deep link: auto-expand product from URL ?product=ID
   useEffect(() => {
@@ -394,15 +447,33 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
     }
   }, [searchParams, products]);
 
-  // Reset page when products change (e.g. filter applied)
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  // Reset page when product list changes (filter applied)
+  useEffect(() => {
+    if (prevProductsLenRef.current !== products.length) {
+      setCurrentPage(0);
+      prevProductsLenRef.current = products.length;
+    }
+  }, [products.length]);
+
+  // Inline search filtering
+  const searchedProducts = useMemo(() => {
+    if (!inlineSearch.trim()) return products;
+    const q = inlineSearch.toLowerCase();
+    return products.filter(p =>
+      p.productName.toLowerCase().includes(q) ||
+      p.productSku.toLowerCase().includes(q) ||
+      p.variants.some(v => v.colorName?.toLowerCase().includes(q) || v.variantSku?.toLowerCase().includes(q))
+    );
+  }, [products, inlineSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(searchedProducts.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages - 1);
   if (safePage !== currentPage) setCurrentPage(safePage);
 
   const paginatedProducts = useMemo(() => {
     const start = safePage * PAGE_SIZE;
-    return products.slice(start, start + PAGE_SIZE);
-  }, [products, safePage]);
+    return searchedProducts.slice(start, start + PAGE_SIZE);
+  }, [searchedProducts, safePage]);
 
   const toggleProduct = (productId: string) => {
     setExpandedProducts(prev => {
@@ -418,20 +489,37 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
   
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center justify-between">
-        {/* Pagination info */}
-        <div className="text-xs text-muted-foreground">
-          {products.length > PAGE_SIZE ? (
-            <>
-              Mostrando {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, products.length)} de {products.length} produtos
-            </>
-          ) : (
-            <>{products.length} produtos</>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        {/* Inline Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar na tabela..."
+            value={inlineSearch}
+            onChange={e => { setInlineSearch(e.target.value); setCurrentPage(0); }}
+            className="pl-8 h-8 text-sm"
+          />
+          {inlineSearch && (
+            <button type="button" onClick={() => setInlineSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="h-3 w-3" />
+            </button>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={expandAll}>Expandir Todos</Button>
-          <Button variant="ghost" size="sm" onClick={collapseAll}>Recolher Todos</Button>
+
+        <div className="flex items-center gap-2">
+          {/* Pagination info */}
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {searchedProducts.length > PAGE_SIZE ? (
+              <>
+                {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, searchedProducts.length)} de {searchedProducts.length}
+              </>
+            ) : (
+              <>{searchedProducts.length} produtos</>
+            )}
+          </span>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={expandAll}>Expandir Todos</Button>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={collapseAll}>Recolher Todos</Button>
         </div>
       </div>
       

@@ -16,6 +16,9 @@ import {
 import {
   Popover, PopoverContent, PopoverTrigger, PopoverClose,
 } from "@/components/ui/popover";
+import {
+  Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { RotateCcw } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -299,17 +302,29 @@ export function StockFilterToolbar({
         </div>
 
         {/* 3. Smart Quantity Filter (Tiragem) */}
-        <div className="relative w-full sm:w-48">
-          <ShoppingCart className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="number"
-            placeholder="Preciso de X un..."
-            value={quantityInput}
-            onChange={(e) => setQuantityInput(e.target.value)}
-            className="pl-9"
-            min={0}
-          />
-        </div>
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="relative w-full sm:w-48">
+                <ShoppingCart className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  type="number"
+                  placeholder="Preciso de X un..."
+                  value={quantityInput}
+                  onChange={(e) => setQuantityInput(e.target.value)}
+                  className="pl-9"
+                  min={0}
+                />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent side="bottom" className="max-w-[250px]">
+              <p className="text-xs">
+                <strong>Filtro de tiragem:</strong> mostra apenas produtos com estoque disponível ≥ a quantidade informada. 
+                Ideal para verificar se há estoque suficiente para um pedido.
+              </p>
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
 
         {activeFiltersCount > 0 && (
           <Button variant="ghost" onClick={handleReset} size="icon" className="shrink-0">
