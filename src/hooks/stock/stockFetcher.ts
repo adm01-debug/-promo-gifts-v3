@@ -234,7 +234,7 @@ export async function fetchAndProcessStockData(): Promise<{
           if (supplierSource.next_quantity_1) inTransitStock += supplierSource.next_quantity_1;
           if (supplierSource.next_quantity_2) inTransitStock += supplierSource.next_quantity_2;
           if (supplierSource.next_quantity_3) inTransitStock += supplierSource.next_quantity_3;
-          futureEntries.push(...buildFutureEntries(supplierSource, product.id, pv.id, pv.color_name || undefined));
+          futureEntries.push(...buildFutureEntries(supplierSource, product.id, pv.id, pv.color_name || undefined, product.name, product.sku));
         }
 
         const availableStock = calculateAvailableStock(currentStock, reservedStock);
