@@ -27,6 +27,19 @@ export function StockDashboard() {
   const warningAlerts = useMemo(() => alerts.filter(a => a.severity === 'warning'), [alerts]);
   const infoAlerts = useMemo(() => alerts.filter(a => a.severity === 'info'), [alerts]);
 
+  const activeFilterLabel = useMemo(() => {
+    switch (filters.status) {
+      case 'in_stock': return 'Em Estoque';
+      case 'low_stock': return 'Estoque Baixo';
+      case 'critical': return 'Estoque Crítico';
+      case 'out_of_stock': return 'Sem Estoque';
+      case 'incoming': return 'Estoque Futuro';
+      default: return null;
+    }
+  }, [filters.status]);
+
+  const isFiltered = filters.status !== 'all';
+
   if (isLoading) {
     return (
       <div className="space-y-6 p-6" aria-live="polite" aria-busy="true">
@@ -46,19 +59,6 @@ export function StockDashboard() {
       </div>
     );
   }
-
-  const activeFilterLabel = useMemo(() => {
-    switch (filters.status) {
-      case 'in_stock': return 'Em Estoque';
-      case 'low_stock': return 'Estoque Baixo';
-      case 'critical': return 'Estoque Crítico';
-      case 'out_of_stock': return 'Sem Estoque';
-      case 'incoming': return 'Estoque Futuro';
-      default: return null;
-    }
-  }, [filters.status]);
-
-  const isFiltered = filters.status !== 'all';
 
   return (
     <div className="space-y-6">
