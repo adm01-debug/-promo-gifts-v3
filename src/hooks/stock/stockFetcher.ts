@@ -125,12 +125,8 @@ export async function fetchPaginatedFromBridge<T extends { id: string }>(
     if (totalCount === null && records.length === 0) break;
   }
 
-  logger.log(`[Stock] ${table}: carregados ${all.length}/${totalCount ?? '?'} registros em ${Math.ceil(offset / Math.max(1, all.length > 0 ? records_per_page(all.length, offset) : 1))} páginas`);
+  logger.log(`[Stock] ${table}: carregados ${all.length}/${totalCount ?? '?'} registros`);
   return all;
-}
-
-function records_per_page(total: number, offset: number): number {
-  return offset > 0 ? Math.ceil(total / Math.ceil(offset / total)) : total;
 }
 
 // ============================================
