@@ -133,12 +133,12 @@ export function StockDashboard() {
           clickHint="Filtrar produtos sem estoque"
           trend={summary.criticalAlerts > 0 ? { value: -1, label: `${summary.criticalAlerts} alertas ativos` } : undefined} />
         <StatCard title="Estoque Futuro"
-          value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
+          value={futureStock.length > 0 ? futureStock.reduce((sum, f) => sum + (f.expectedQuantity || 0), 0) : 0}
           icon={<Truck className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'incoming'}
           onClick={() => updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming')}
           clickHint="Filtrar produtos com estoque futuro"
-          trend={futureStock.length > 0 ? { value: 1, label: 'reposições previstas' } : undefined} />
+          trend={futureStock.length > 0 ? { value: 1, label: `${futureStock.length} reposições previstas` } : undefined} />
       </div>
 
       {/* Active Filter Badge */}
