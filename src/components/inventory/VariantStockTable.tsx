@@ -322,14 +322,49 @@ function ProductRow({ product, isExpanded, onToggle }: {
         <TableCell className="hidden sm:table-cell">
           <div className="flex items-center gap-1">
             {product.variantsCritical > 0 && (
-              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
-                {product.variantsCritical} crítico
-              </Badge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20 gap-0.5">
+                      <AlertTriangle className="h-2.5 w-2.5" />
+                      {product.variantsCritical} crítico
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{product.variantsCritical} variante(s) em nível crítico — considere solicitar reposição urgente</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {product.variantsOutOfStock > 0 && (
-              <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
-                {product.variantsOutOfStock} esgotado
-              </Badge>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20 gap-0.5">
+                      <XCircle className="h-2.5 w-2.5" />
+                      {product.variantsOutOfStock} esgotado
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">{product.variantsOutOfStock} variante(s) sem estoque — produto indisponível nestas cores</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {product.totalInTransitStock > 0 && product.variantsOutOfStock > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/20 gap-0.5">
+                      <Truck className="h-2.5 w-2.5" />
+                      reposição
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">+{product.totalInTransitStock} un. em trânsito — reposição a caminho</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
             {/* Quick Actions */}
             <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
