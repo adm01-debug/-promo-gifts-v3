@@ -168,10 +168,10 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
           </span>
         </div>
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden sm:table-cell">
         <StockProgressBar current={variant.currentStock} min={variant.minStock} max={variant.maxStock} />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden lg:table-cell">
         {variant.reservedStock > 0 ? (
           <TooltipProvider>
             <Tooltip>
