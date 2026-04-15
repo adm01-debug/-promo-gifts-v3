@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -10,6 +10,7 @@ import {
   XCircle,
   TrendingDown,
   TrendingUp,
+  ChevronLeft,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -28,17 +29,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
 import { 
   ProductStockSummary, 
   VariantStock, 
   StockStatus,
-  ColorStockInfo,
 } from '@/types/stock';
 
 // ============================================
@@ -120,7 +115,7 @@ function ColorSwatch({ hex, name }: { hex?: string; name?: string }) {
   );
 }
 
-function StockProgressBar({ current, min, max }: { current: number; min: number; max?: number }) {
+function StockProgressBar({ current, min }: { current: number; min: number; max?: number }) {
   const percentage = min > 0 ? Math.min((current / min) * 100, 100) : (current > 0 ? 100 : 0);
   
   const progressColor = 
@@ -143,12 +138,7 @@ function StockProgressBar({ current, min, max }: { current: number; min: number;
 // LINHA DE VARIANTE (COR/TAMANHO)
 // ============================================
 
-interface VariantRowProps {
-  variant: VariantStock;
-  isNested?: boolean;
-}
-
-function VariantRow({ variant, isNested = false }: VariantRowProps) {
+function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNested?: boolean }) {
   return (
     <TableRow className={cn(isNested && "bg-muted/30")}>
       <TableCell className={cn(isNested && "pl-12")}>
@@ -176,24 +166,16 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
         </div>
       </TableCell>
       <TableCell>
-        <StockProgressBar 
-          current={variant.currentStock} 
-          min={variant.minStock}
-          max={variant.maxStock}
-        />
+        <StockProgressBar current={variant.currentStock} min={variant.minStock} max={variant.maxStock} />
       </TableCell>
       <TableCell>
         {variant.reservedStock > 0 ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
-                <span className="text-sm text-warning">
-                  -{variant.reservedStock}
-                </span>
+                <span className="text-sm text-warning">-{variant.reservedStock}</span>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>{variant.reservedStock} unidades reservadas em pedidos</p>
-              </TooltipContent>
+              <TooltipContent><p>{variant.reservedStock} unidades reservadas em pedidos</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
@@ -201,10 +183,7 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
         )}
       </TableCell>
       <TableCell>
-        <span className={cn(
-          "font-medium",
-            variant.availableStock <= 0 ? "text-destructive" : "text-foreground"
-        )}>
+        <span className={cn("font-medium", variant.availableStock <= 0 ? "text-destructive" : "text-foreground")}>
           {variant.availableStock}
         </span>
       </TableCell>
@@ -214,22 +193,17 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
             <Tooltip>
               <TooltipTrigger>
                 <span className="text-sm text-primary/80 flex items-center gap-1">
-                  <Truck className="h-3 w-3" />
-                  +{variant.inTransitStock}
+                  <Truck className="h-3 w-3" />+{variant.inTransitStock}
                 </span>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>{variant.inTransitStock} unidades em trânsito</p>
-              </TooltipContent>
+              <TooltipContent><p>{variant.inTransitStock} unidades em trânsito</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
           <span className="text-muted-foreground">-</span>
         )}
       </TableCell>
-      <TableCell>
-        <StockStatusBadge status={variant.status} />
-      </TableCell>
+      <TableCell><StockStatusBadge status={variant.status} /></TableCell>
       <TableCell>
         {variant.daysUntilStockout !== undefined ? (
           <TooltipProvider>
@@ -241,13 +215,10 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
                   variant.daysUntilStockout <= 14 ? "text-warning" :
                   "text-muted-foreground"
                 )}>
-                  <Clock className="h-3 w-3" />
-                  {variant.daysUntilStockout}d
+                  <Clock className="h-3 w-3" />{variant.daysUntilStockout}d
                 </div>
               </TooltipTrigger>
-              <TooltipContent>
-                <p>Previsão de esgotamento em {variant.daysUntilStockout} dias</p>
-              </TooltipContent>
+              <TooltipContent><p>Previsão de esgotamento em {variant.daysUntilStockout} dias</p></TooltipContent>
             </Tooltip>
           </TooltipProvider>
         ) : (
@@ -262,35 +233,24 @@ function VariantRow({ variant, isNested = false }: VariantRowProps) {
 // LINHA DO PRODUTO (EXPANSÍVEL)
 // ============================================
 
-interface ProductRowProps {
+function ProductRow({ product, isExpanded, onToggle }: {
   product: ProductStockSummary;
   isExpanded: boolean;
   onToggle: () => void;
-}
-
-function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
+}) {
   return (
     <>
       <TableRow 
-        className={cn(
-          "cursor-pointer hover:bg-muted/50 transition-colors",
-          isExpanded && "bg-muted/30"
-        )}
+        className={cn("cursor-pointer hover:bg-muted/50 transition-colors", isExpanded && "bg-muted/30")}
         onClick={onToggle}
       >
         <TableCell>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" aria-label={isExpanded ? `Recolher ${product.productName}` : `Expandir ${product.productName}`} className="h-6 w-6">
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
+              {isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
             </Button>
             <div className="flex flex-col">
-              <span className="font-medium truncate max-w-[200px]">
-                {product.productName}
-              </span>
+              <span className="font-medium truncate max-w-[200px]">{product.productName}</span>
               <span className="text-xs text-muted-foreground">
                 {product.productSku} • {product.totalVariants} {product.totalVariants === 1 ? 'variação' : 'variações'}
               </span>
@@ -304,10 +264,7 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
                 <Tooltip>
                   <TooltipTrigger>
                     <div 
-                      className={cn(
-                        "h-5 w-5 rounded-full border shadow-sm",
-                        color.status === 'out_of_stock' && "opacity-30"
-                      )}
+                      className={cn("h-5 w-5 rounded-full border shadow-sm", color.status === 'out_of_stock' && "opacity-30")}
                       style={{ backgroundColor: color.colorHex || '#ccc' }}
                     />
                   </TooltipTrigger>
@@ -318,45 +275,29 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
               </TooltipProvider>
             ))}
             {product.availableColors.length > 5 && (
-              <span className="text-xs text-muted-foreground ml-1">
-                +{product.availableColors.length - 5}
-              </span>
+              <span className="text-xs text-muted-foreground ml-1">+{product.availableColors.length - 5}</span>
             )}
           </div>
         </TableCell>
         <TableCell>
           <div className="flex items-center gap-2">
             <span className="font-semibold">{product.totalCurrentStock}</span>
-            <span className="text-xs text-muted-foreground">
-              / {product.totalMinStock} mín
-            </span>
+            <span className="text-xs text-muted-foreground">/ {product.totalMinStock} mín</span>
           </div>
         </TableCell>
+        <TableCell><StockProgressBar current={product.totalCurrentStock} min={product.totalMinStock} /></TableCell>
         <TableCell>
-          <StockProgressBar 
-            current={product.totalCurrentStock} 
-            min={product.totalMinStock}
-          />
+          {product.totalReservedStock > 0 ? <span className="text-sm text-warning">-{product.totalReservedStock}</span> : '-'}
         </TableCell>
-        <TableCell>
-          {product.totalReservedStock > 0 ? (
-            <span className="text-sm text-warning">-{product.totalReservedStock}</span>
-          ) : '-'}
-        </TableCell>
-        <TableCell>
-          <span className="font-medium">{product.totalAvailableStock}</span>
-        </TableCell>
+        <TableCell><span className="font-medium">{product.totalAvailableStock}</span></TableCell>
         <TableCell>
           {product.totalInTransitStock > 0 ? (
             <span className="text-sm text-primary/80 flex items-center gap-1">
-              <Truck className="h-3 w-3" />
-              +{product.totalInTransitStock}
+              <Truck className="h-3 w-3" />+{product.totalInTransitStock}
             </span>
           ) : '-'}
         </TableCell>
-        <TableCell>
-          <StockStatusBadge status={product.overallStatus} />
-        </TableCell>
+        <TableCell><StockStatusBadge status={product.overallStatus} /></TableCell>
         <TableCell>
           <div className="flex gap-1">
             {product.variantsCritical > 0 && (
@@ -373,13 +314,18 @@ function ProductRow({ product, isExpanded, onToggle }: ProductRowProps) {
         </TableCell>
       </TableRow>
       
-      {/* Linhas expandidas das variações */}
       {isExpanded && product.variants.map(variant => (
         <VariantRow key={variant.id} variant={variant} isNested />
       ))}
     </>
   );
 }
+
+// ============================================
+// PAGINAÇÃO
+// ============================================
+
+const PAGE_SIZE = 50;
 
 // ============================================
 // TABELA PRINCIPAL
@@ -392,36 +338,47 @@ interface VariantStockTableProps {
 
 export function VariantStockTable({ products, className }: VariantStockTableProps) {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
+  const [currentPage, setCurrentPage] = useState(0);
   
+  // Reset page when products change (e.g. filter applied)
+  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  const safePage = Math.min(currentPage, totalPages - 1);
+  if (safePage !== currentPage) setCurrentPage(safePage);
+
+  const paginatedProducts = useMemo(() => {
+    const start = safePage * PAGE_SIZE;
+    return products.slice(start, start + PAGE_SIZE);
+  }, [products, safePage]);
+
   const toggleProduct = (productId: string) => {
     setExpandedProducts(prev => {
       const next = new Set(prev);
-      if (next.has(productId)) {
-        next.delete(productId);
-      } else {
-        next.add(productId);
-      }
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
       return next;
     });
   };
   
-  const expandAll = () => {
-    setExpandedProducts(new Set(products.map(p => p.productId)));
-  };
-  
-  const collapseAll = () => {
-    setExpandedProducts(new Set());
-  };
+  const expandAll = () => setExpandedProducts(new Set(paginatedProducts.map(p => p.productId)));
+  const collapseAll = () => setExpandedProducts(new Set());
   
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex justify-end gap-2">
-        <Button variant="ghost" size="sm" onClick={expandAll}>
-          Expandir Todos
-        </Button>
-        <Button variant="ghost" size="sm" onClick={collapseAll}>
-          Recolher Todos
-        </Button>
+      <div className="flex items-center justify-between">
+        {/* Pagination info */}
+        <div className="text-xs text-muted-foreground">
+          {products.length > PAGE_SIZE ? (
+            <>
+              Mostrando {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, products.length)} de {products.length} produtos
+            </>
+          ) : (
+            <>{products.length} produtos</>
+          )}
+        </div>
+        <div className="flex gap-2">
+          <Button variant="ghost" size="sm" onClick={expandAll}>Expandir Todos</Button>
+          <Button variant="ghost" size="sm" onClick={collapseAll}>Recolher Todos</Button>
+        </div>
       </div>
       
       <div className="rounded-lg border overflow-hidden">
@@ -440,8 +397,8 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
             </TableRow>
           </TableHeader>
           <TableBody>
-            {products.length > 0 ? (
-              products.map(product => (
+            {paginatedProducts.length > 0 ? (
+              paginatedProducts.map(product => (
                 <ProductRow 
                   key={product.productId}
                   product={product}
@@ -460,6 +417,57 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
           </TableBody>
         </Table>
       </div>
+
+      {/* Pagination controls */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-2 pt-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.max(0, p - 1))}
+            disabled={safePage === 0}
+            className="gap-1"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Anterior
+          </Button>
+          <div className="flex items-center gap-1">
+            {Array.from({ length: Math.min(totalPages, 7) }, (_, i) => {
+              let pageNum: number;
+              if (totalPages <= 7) {
+                pageNum = i;
+              } else if (safePage < 3) {
+                pageNum = i;
+              } else if (safePage > totalPages - 4) {
+                pageNum = totalPages - 7 + i;
+              } else {
+                pageNum = safePage - 3 + i;
+              }
+              return (
+                <Button
+                  key={pageNum}
+                  variant={pageNum === safePage ? "default" : "ghost"}
+                  size="sm"
+                  className="h-8 w-8 p-0"
+                  onClick={() => setCurrentPage(pageNum)}
+                >
+                  {pageNum + 1}
+                </Button>
+              );
+            })}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setCurrentPage(p => Math.min(totalPages - 1, p + 1))}
+            disabled={safePage >= totalPages - 1}
+            className="gap-1"
+          >
+            Próximo
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
