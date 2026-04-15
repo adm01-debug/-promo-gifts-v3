@@ -147,7 +147,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
       <TableCell className={cn(isNested && "pl-12")}>
         <ColorSwatch hex={variant.colorHex} name={variant.colorName} />
       </TableCell>
-      <TableCell>
+      <TableCell className="hidden md:table-cell">
         <span className="text-xs font-mono text-muted-foreground">
           {variant.variantSku}
         </span>
