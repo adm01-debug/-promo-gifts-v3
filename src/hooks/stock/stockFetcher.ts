@@ -137,7 +137,9 @@ function buildFutureEntries(
   supplierSource: ExternalSupplierSource,
   productId: string,
   variantId: string,
-  colorName?: string
+  colorName?: string,
+  productName?: string,
+  productSku?: string
 ): FutureStockEntry[] {
   const entries: FutureStockEntry[] = [];
   const pairs = [
@@ -149,7 +151,8 @@ function buildFutureEntries(
     if (q && d) {
       entries.push({
         id: `${supplierSource.id}-${suffix}`, productId, variantId,
-        colorName, expectedQuantity: q, expectedDate: d,
+        colorName, productName, productSku,
+        expectedQuantity: q, expectedDate: d,
         source: 'purchase_order', status,
         createdAt: supplierSource.updated_at || new Date().toISOString(),
         updatedAt: supplierSource.updated_at || new Date().toISOString(),
