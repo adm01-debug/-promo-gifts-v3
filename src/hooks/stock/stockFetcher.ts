@@ -81,11 +81,18 @@ export async function fetchPaginatedFromBridge<T extends { id: string }>(
   const all: T[] = [];
   let offset = 0;
   let lastFirstId: string | undefined;
+  let totalCount: number | null = null;
 
   while (all.length < maxRecords) {
-    const { data, error } = await supabase.functions.invoke('external-db-bridge', {
-      body: { table, operation: 'select', select, limit: pageSize, offset, filters },
-    });
+    // Always request countMode on first page to know total records
+    const body: Record<string, unknown> = {
+      table, operation: 'select', select, limit: pageSize, offset, filters,
+    };
+    if (offset === 0) {
+      body.countMode = 'exact';
+    }
+
+    const { data, error } = await supabase.functions.invoke('external-db-bridge', { body });
 
     if (error) {
       console.error(`[Stock] Erro ao buscar ${table}:`, error);
@@ -94,6 +101,11 @@ export async function fetchPaginatedFromBridge<T extends { id: string }>(
 
     const records = (data?.data?.records ?? []) as T[];
     const count = data?.data?.count as number | null;
+
+    // Capture total count from first request
+    if (offset === 0 && count !== null) {
+      totalCount = count;
+    }
 
     if (records.length === 0) break;
 
@@ -106,11 +118,19 @@ export async function fetchPaginatedFromBridge<T extends { id: string }>(
     all.push(...records);
     offset += records.length;
 
-    if (count !== null && offset >= count) break;
-    if (records.length < pageSize) break;
+    // Use totalCount (from first page) to know when we're done
+    if (totalCount !== null && offset >= totalCount) break;
+    // Fallback: if no count available and we got fewer than we got last time, stop
+    // NOTE: Do NOT compare against pageSize since the bridge may cap the actual limit
+    if (totalCount === null && records.length === 0) break;
   }
 
+  logger.log(`[Stock] ${table}: carregados ${all.length}/${totalCount ?? '?'} registros em ${Math.ceil(offset / Math.max(1, all.length > 0 ? records_per_page(all.length, offset) : 1))} páginas`);
   return all;
+}
+
+function records_per_page(total: number, offset: number): number {
+  return offset > 0 ? Math.ceil(total / Math.ceil(offset / total)) : total;
 }
 
 // ============================================
