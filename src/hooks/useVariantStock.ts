@@ -165,6 +165,13 @@ export function useVariantStock() {
       items = items.filter(p => p.variants.some(v => v.colorName === filters.colorName));
     }
 
+    if (filters.colorGroup) {
+      const groupLower = filters.colorGroup.toLowerCase();
+      items = items.filter(p =>
+        p.variants.some(v => v.colorName?.toLowerCase().includes(groupLower))
+      );
+    }
+
     if (filters.minQuantityNeeded && filters.minQuantityNeeded > 0) {
       items = items.filter(p => p.totalAvailableStock >= filters.minQuantityNeeded!);
     }
