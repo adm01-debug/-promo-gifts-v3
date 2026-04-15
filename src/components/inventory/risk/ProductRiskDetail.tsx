@@ -3,6 +3,7 @@
  * Extracted from SupplierRiskPanel for SRP compliance.
  */
 import { useMemo, useState } from "react";
+import { Maximize2, Minimize2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   ResponsiveContainer,
