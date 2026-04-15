@@ -262,7 +262,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
             </div>
           </div>
         </TableCell>
-        <TableCell>
+        <TableCell className="hidden md:table-cell">
           <div className="flex gap-1 flex-wrap">
             {product.availableColors.slice(0, 5).map((color, idx) => (
               <TooltipProvider key={idx}>
@@ -290,12 +290,12 @@ function ProductRow({ product, isExpanded, onToggle }: {
             <span className="text-xs text-muted-foreground">/ {product.totalMinStock} mín</span>
           </div>
         </TableCell>
-        <TableCell><StockProgressBar current={product.totalCurrentStock} min={product.totalMinStock} /></TableCell>
-        <TableCell>
+        <TableCell className="hidden sm:table-cell"><StockProgressBar current={product.totalCurrentStock} min={product.totalMinStock} /></TableCell>
+        <TableCell className="hidden lg:table-cell">
           {product.totalReservedStock > 0 ? <span className="text-sm text-warning">-{product.totalReservedStock}</span> : '-'}
         </TableCell>
         <TableCell><span className="font-medium">{product.totalAvailableStock}</span></TableCell>
-        <TableCell>
+        <TableCell className="hidden md:table-cell">
           {product.totalInTransitStock > 0 ? (
             <span className="text-sm text-primary/80 flex items-center gap-1">
               <Truck className="h-3 w-3" />+{product.totalInTransitStock}
