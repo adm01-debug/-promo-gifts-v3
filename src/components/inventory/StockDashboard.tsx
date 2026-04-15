@@ -66,7 +66,7 @@ export function StockDashboard() {
         <StatCard title="Em Estoque" value={summary.productsInStock.toLocaleString('pt-BR')}
           icon={<CheckCircle2 className="h-6 w-6 text-success" />} variant="success"
           isActive={filters.status === 'in_stock'}
-          onClick={() => updateFilter('status', 'in_stock')}
+          onClick={() => updateFilter('status', filters.status === 'in_stock' ? 'all' : 'in_stock')}
           clickHint="Filtrar produtos em estoque" />
         <StatCard title="Estoque Baixo" value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />} variant="warning"

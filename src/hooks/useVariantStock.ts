@@ -112,6 +112,8 @@ export function useVariantStock() {
     if (filters.status !== 'all') {
       items = items.filter(p => {
         if (p.overallStatus === filters.status) return true;
+        // "low_stock" filter should also include "critical" products
+        if (filters.status === 'low_stock' && p.overallStatus === 'critical') return true;
         if (filters.status === 'incoming') {
           return p.totalInTransitStock > 0 || p.variants.some(v => v.status === 'incoming' || v.inTransitStock > 0);
         }
