@@ -303,7 +303,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
           ) : '-'}
         </TableCell>
         <TableCell><StockStatusBadge status={product.overallStatus} /></TableCell>
-        <TableCell>
+        <TableCell className="hidden sm:table-cell">
           <div className="flex items-center gap-1">
             {product.variantsCritical > 0 && (
               <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
