@@ -146,7 +146,18 @@ export function StockDashboard() {
         </CardContent>
       </Card>
 
-      <SupplierRiskPanel products={allProductStocks} />
+      {/* Collapsible Risk Panel */}
+      <div className="space-y-0">
+        <button
+          type="button"
+          onClick={() => setRiskPanelOpen(prev => !prev)}
+          className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
+        >
+          {riskPanelOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          Painel de Risco do Fornecedor
+        </button>
+        {riskPanelOpen && <SupplierRiskPanel products={allProductStocks} />}
+      </div>
 
       {/* Stock Table */}
       <Card>
