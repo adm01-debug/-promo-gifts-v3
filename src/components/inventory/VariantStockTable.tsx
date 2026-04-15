@@ -208,6 +208,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
       </TableCell>
       <TableCell><StockStatusBadge status={variant.status} /></TableCell>
       <TableCell className="hidden sm:table-cell">
+        {variant.daysUntilStockout !== undefined ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
