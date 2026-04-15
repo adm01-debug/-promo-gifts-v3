@@ -85,12 +85,18 @@ export function StockDashboard() {
         <StatCard title="Estoque Baixo" value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />} variant="warning"
           isActive={filters.status === 'low_stock' || filters.status === 'critical'}
-          onClick={() => updateFilter('status', filters.status === 'low_stock' ? 'all' : 'low_stock')}
+          onClick={() => {
+            updateFilter('status', filters.status === 'low_stock' ? 'all' : 'low_stock');
+            if (warningAlerts.length > 0) setLowStockDialogOpen(true);
+          }}
           clickHint="Filtrar produtos com estoque baixo" />
         <StatCard title="Sem Estoque" value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />} variant="error"
           isActive={filters.status === 'out_of_stock'}
-          onClick={() => updateFilter('status', filters.status === 'out_of_stock' ? 'all' : 'out_of_stock')}
+          onClick={() => {
+            updateFilter('status', filters.status === 'out_of_stock' ? 'all' : 'out_of_stock');
+            if (criticalAlerts.length > 0) setOutOfStockDialogOpen(true);
+          }}
           clickHint="Filtrar produtos sem estoque" />
         <StatCard title="Estoque Futuro"
           value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
