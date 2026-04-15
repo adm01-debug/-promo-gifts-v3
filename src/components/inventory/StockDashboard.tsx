@@ -140,8 +140,11 @@ export function StockDashboard() {
           value={futureStock.length > 0 ? futureStock.reduce((sum, f) => sum + (f.expectedQuantity || 0), 0) : 0}
           icon={<Truck className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'incoming'}
-          onClick={() => updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming')}
-          clickHint="Filtrar produtos com estoque futuro"
+          onClick={() => {
+            updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming');
+            if (futureStock.length > 0) setFutureStockDialogOpen(true);
+          }}
+          clickHint="Ver previsões de reposição"
           trend={futureStock.length > 0 ? { value: 1, label: `${futureStock.length} reposições previstas` } : undefined} />
       </div>
 
