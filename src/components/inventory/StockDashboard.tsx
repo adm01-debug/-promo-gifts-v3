@@ -16,10 +16,12 @@ import { StatCard } from "./StockStatCard";
 import { AlertCard } from "./StockAlertCard";
 import { OutOfStockDialog, LowStockDialog } from "./StockAlertDialogs";
 import { StockFilterToolbar } from "./StockFilterToolbar";
+import { FutureStockDialog } from "./FutureStockDialog";
 
 export function StockDashboard() {
   const [outOfStockDialogOpen, setOutOfStockDialogOpen] = useState(false);
   const [lowStockDialogOpen, setLowStockDialogOpen] = useState(false);
+  const [futureStockDialogOpen, setFutureStockDialogOpen] = useState(false);
   const [riskPanelOpen, setRiskPanelOpen] = useState(true);
   const { toast } = useToast();
   const prevCriticalCountRef = useRef<number | null>(null);
@@ -89,6 +91,8 @@ export function StockDashboard() {
         alerts={criticalAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('error')} />
       <LowStockDialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}
         alerts={warningAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('warning')} />
+      <FutureStockDialog open={futureStockDialogOpen} onOpenChange={setFutureStockDialogOpen}
+        entries={futureStock} />
 
       {/* Header with timestamp */}
       <div className="flex items-center justify-between">
@@ -136,8 +140,11 @@ export function StockDashboard() {
           value={futureStock.length > 0 ? futureStock.reduce((sum, f) => sum + (f.expectedQuantity || 0), 0) : 0}
           icon={<Truck className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'incoming'}
-          onClick={() => updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming')}
-          clickHint="Filtrar produtos com estoque futuro"
+          onClick={() => {
+            updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming');
+            if (futureStock.length > 0) setFutureStockDialogOpen(true);
+          }}
+          clickHint="Ver previsões de reposição"
           trend={futureStock.length > 0 ? { value: 1, label: `${futureStock.length} reposições previstas` } : undefined} />
       </div>
 

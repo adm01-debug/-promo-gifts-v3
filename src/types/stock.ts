@@ -121,6 +121,8 @@ export interface ColorStockInfo {
 export interface FutureStockEntry {
   id: string;
   productId: string;
+  productName?: string;
+  productSku?: string;
   variantId?: string;
   colorName?: string;
   

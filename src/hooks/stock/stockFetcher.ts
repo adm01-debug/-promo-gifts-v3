@@ -137,7 +137,9 @@ function buildFutureEntries(
   supplierSource: ExternalSupplierSource,
   productId: string,
   variantId: string,
-  colorName?: string
+  colorName?: string,
+  productName?: string,
+  productSku?: string
 ): FutureStockEntry[] {
   const entries: FutureStockEntry[] = [];
   const pairs = [
@@ -149,7 +151,8 @@ function buildFutureEntries(
     if (q && d) {
       entries.push({
         id: `${supplierSource.id}-${suffix}`, productId, variantId,
-        colorName, expectedQuantity: q, expectedDate: d,
+        colorName, productName, productSku,
+        expectedQuantity: q, expectedDate: d,
         source: 'purchase_order', status,
         createdAt: supplierSource.updated_at || new Date().toISOString(),
         updatedAt: supplierSource.updated_at || new Date().toISOString(),
@@ -231,7 +234,7 @@ export async function fetchAndProcessStockData(): Promise<{
           if (supplierSource.next_quantity_1) inTransitStock += supplierSource.next_quantity_1;
           if (supplierSource.next_quantity_2) inTransitStock += supplierSource.next_quantity_2;
           if (supplierSource.next_quantity_3) inTransitStock += supplierSource.next_quantity_3;
-          futureEntries.push(...buildFutureEntries(supplierSource, product.id, pv.id, pv.color_name || undefined));
+          futureEntries.push(...buildFutureEntries(supplierSource, product.id, pv.id, pv.color_name || undefined, product.name, product.sku));
         }
 
         const availableStock = calculateAvailableStock(currentStock, reservedStock);
