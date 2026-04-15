@@ -11,6 +11,7 @@ interface StatCardProps {
   variant?: 'default' | 'success' | 'warning' | 'error';
   onClick?: () => void;
   clickHint?: string;
+  isActive?: boolean;
 }
 
 const variantStyles = {
