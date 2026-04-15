@@ -423,7 +423,7 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
       
       <div className="rounded-lg border overflow-hidden">
         <Table>
-          <TableHeader>
+          <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow className="bg-muted/50">
               <TableHead className="w-[250px]">Produto / Cor</TableHead>
               <TableHead className="w-[150px]">Cores</TableHead>
