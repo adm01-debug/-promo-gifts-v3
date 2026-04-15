@@ -241,6 +241,8 @@ function ProductRow({ product, isExpanded, onToggle }: {
   isExpanded: boolean;
   onToggle: () => void;
 }) {
+  const navigate = useNavigate();
+
   return (
     <>
       <TableRow 
@@ -302,7 +304,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
         </TableCell>
         <TableCell><StockStatusBadge status={product.overallStatus} /></TableCell>
         <TableCell>
-          <div className="flex gap-1">
+          <div className="flex items-center gap-1">
             {product.variantsCritical > 0 && (
               <Badge variant="outline" className="text-xs bg-destructive/10 text-destructive border-destructive/20">
                 {product.variantsCritical} crítico
@@ -313,6 +315,41 @@ function ProductRow({ product, isExpanded, onToggle }: {
                 {product.variantsOutOfStock} esgotado
               </Badge>
             )}
+            {/* Quick Actions */}
+            <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.productId}`); }}
+                      aria-label={`Ver produto ${product.productName}`}
+                    >
+                      <ExternalLink className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Ver produto</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6"
+                      onClick={(e) => { e.stopPropagation(); navigate(`/orcamentos/novo?productId=${product.productId}&productName=${encodeURIComponent(product.productName)}`); }}
+                      aria-label={`Criar orçamento para ${product.productName}`}
+                    >
+                      <ShoppingCart className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Criar orçamento</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
           </div>
         </TableCell>
       </TableRow>
