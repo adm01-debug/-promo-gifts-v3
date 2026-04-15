@@ -47,6 +47,19 @@ export function StockDashboard() {
     );
   }
 
+  const activeFilterLabel = useMemo(() => {
+    switch (filters.status) {
+      case 'in_stock': return 'Em Estoque';
+      case 'low_stock': return 'Estoque Baixo';
+      case 'critical': return 'Estoque Crítico';
+      case 'out_of_stock': return 'Sem Estoque';
+      case 'incoming': return 'Estoque Futuro';
+      default: return null;
+    }
+  }, [filters.status]);
+
+  const isFiltered = filters.status !== 'all';
+
   return (
     <div className="space-y-6">
 
@@ -86,6 +99,27 @@ export function StockDashboard() {
           clickHint="Filtrar produtos com estoque futuro" />
       </div>
 
+      {/* Active Filter Badge */}
+      {isFiltered && (
+        <div className="flex items-center gap-2 animate-fade-in">
+          <span className="text-sm text-muted-foreground">Filtro ativo:</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 border border-primary/20 px-3 py-1 text-sm font-medium text-primary">
+            {activeFilterLabel}
+            <button
+              type="button"
+              onClick={() => updateFilter('status', 'all')}
+              className="ml-0.5 rounded-full p-0.5 hover:bg-primary/20 transition-colors"
+              aria-label="Remover filtro"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </span>
+          <span className="text-xs text-muted-foreground">
+            ({productStocks.length} de {allProductStocks.length} produtos)
+          </span>
+        </div>
+      )}
+
       {/* Advanced Filters */}
       <Card>
         <CardContent className="p-4">
@@ -111,8 +145,28 @@ export function StockDashboard() {
           <CardTitle className="flex items-center justify-between">
             <span className="flex items-center gap-2">
               <Palette className="h-5 w-5" />
-              Estoque por Cor/Variação ({productStocks.length} produtos)
+              Estoque por Cor/Variação
+              {isFiltered ? (
+                <span className="text-base font-normal text-muted-foreground">
+                  ({productStocks.length} de {allProductStocks.length} produtos)
+                </span>
+              ) : (
+                <span className="text-base font-normal text-muted-foreground">
+                  ({productStocks.length} produtos)
+                </span>
+              )}
             </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={fetchStockData}
+              disabled={isFetching}
+              className="gap-1.5"
+              aria-label="Atualizar dados de estoque"
+            >
+              <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+              {isFetching ? 'Atualizando...' : 'Atualizar'}
+            </Button>
           </CardTitle>
           <CardDescription>Visualização detalhada do estoque segmentado por cores e variações</CardDescription>
         </CardHeader>
