@@ -46,25 +46,48 @@ export function useVariantStock() {
   }, [queryClient]);
 
   const summary = useMemo((): StockDashboardSummary => {
-    const allVariants = productStocks.flatMap(p => p.variants);
+    // Single-loop aggregation for O(n) instead of O(8n)
+    let totalVariants = 0;
+    let productsInStock = 0, productsLowStock = 0, productsCritical = 0, productsOutOfStock = 0;
+    let variantsInStock = 0, variantsLowStock = 0, variantsCritical = 0, variantsOutOfStock = 0;
+    let daysSum = 0;
+    const colorSet = new Set<string>();
+
+    for (const p of productStocks) {
+      switch (p.overallStatus) {
+        case 'in_stock': productsInStock++; break;
+        case 'low_stock': productsLowStock++; break;
+        case 'critical': productsCritical++; break;
+        case 'out_of_stock': productsOutOfStock++; break;
+      }
+      for (const v of p.variants) {
+        totalVariants++;
+        if (v.colorName) colorSet.add(v.colorName);
+        daysSum += v.daysUntilStockout || 0;
+        switch (v.status) {
+          case 'in_stock': variantsInStock++; break;
+          case 'low_stock': variantsLowStock++; break;
+          case 'critical': variantsCritical++; break;
+          case 'out_of_stock': variantsOutOfStock++; break;
+        }
+      }
+    }
+
+    let criticalAlerts = 0;
+    for (const a of alerts) { if (a.severity === 'error') criticalAlerts++; }
+
     return {
       totalProducts: productStocks.length,
-      totalVariants: allVariants.length,
-      totalColors: new Set(allVariants.map(v => v.colorName).filter(Boolean)).size,
-      productsInStock: productStocks.filter(p => p.overallStatus === 'in_stock').length,
-      productsLowStock: productStocks.filter(p => p.overallStatus === 'low_stock').length,
-      productsCritical: productStocks.filter(p => p.overallStatus === 'critical').length,
-      productsOutOfStock: productStocks.filter(p => p.overallStatus === 'out_of_stock').length,
-      variantsInStock: allVariants.filter(v => v.status === 'in_stock').length,
-      variantsLowStock: allVariants.filter(v => v.status === 'low_stock').length,
-      variantsCritical: allVariants.filter(v => v.status === 'critical').length,
-      variantsOutOfStock: allVariants.filter(v => v.status === 'out_of_stock').length,
+      totalVariants,
+      totalColors: colorSet.size,
+      productsInStock, productsLowStock, productsCritical, productsOutOfStock,
+      variantsInStock, variantsLowStock, variantsCritical, variantsOutOfStock,
       totalStockValue: 0,
       totalAvailableValue: 0,
-      averageDaysOfStock: allVariants.reduce((sum, v) => sum + (v.daysUntilStockout || 0), 0) / Math.max(1, allVariants.length),
+      averageDaysOfStock: daysSum / Math.max(1, totalVariants),
       stockTurnoverRate: 0,
       totalAlerts: alerts.length,
-      criticalAlerts: alerts.filter(a => a.severity === 'error').length,
+      criticalAlerts,
       incomingStockValue: 0,
     };
   }, [productStocks, alerts]);
@@ -172,12 +195,7 @@ export function useVariantStock() {
   const criticalAlerts = useMemo(() => alerts.filter(a => a.severity === 'error'), [alerts]);
 
   const updateFilter = useCallback(<K extends keyof StockFilters>(key: K, value: StockFilters[K]) => {
-    console.log('[StockFilter] updateFilter called:', key, '=', value);
-    setFilters(prev => {
-      const next = { ...prev, [key]: value };
-      console.log('[StockFilter] New filters state:', next);
-      return next;
-    });
+    setFilters(prev => ({ ...prev, [key]: value }));
   }, []);
 
   const resetFilters = useCallback(() => setFilters(defaultStockFilters), []);
