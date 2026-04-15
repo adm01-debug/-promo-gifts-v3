@@ -19,6 +19,7 @@ import { StockFilterToolbar } from "./StockFilterToolbar";
 export function StockDashboard() {
   const [outOfStockDialogOpen, setOutOfStockDialogOpen] = useState(false);
   const [lowStockDialogOpen, setLowStockDialogOpen] = useState(false);
+  const [riskPanelOpen, setRiskPanelOpen] = useState(true);
   const {
     isLoading, isFetching, loadingProgress, productStocks, allProductStocks,
     summary, alerts, criticalAlerts, filters, futureStock, allColors,
