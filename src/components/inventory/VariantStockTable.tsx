@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   ChevronDown, 
   ChevronRight, 
@@ -11,6 +12,8 @@ import {
   TrendingDown,
   TrendingUp,
   ChevronLeft,
+  ExternalLink,
+  ShoppingCart,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
