@@ -16,9 +16,9 @@ interface StatCardProps {
 
 const variantStyles = {
   default: 'bg-card',
-  success: 'bg-success/5 border-success/20',
-  warning: 'bg-warning/5 border-warning/20',
-  error: 'bg-destructive/5 border-destructive/20',
+  success: 'bg-success/5 border-success/20 hover:bg-success/10',
+  warning: 'bg-warning/5 border-warning/20 hover:bg-warning/10',
+  error: 'bg-destructive/5 border-destructive/20 hover:bg-destructive/10',
 };
 
 export function StatCard({ title, value, icon, trend, variant = 'default', onClick, clickHint, isActive }: StatCardProps) {
@@ -27,12 +27,14 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
   return (
     <Card
       className={cn(
-        "relative overflow-hidden transition-all duration-200",
+        "relative overflow-hidden transition-all duration-300 ease-out",
         variantStyles[variant],
-        isClickable && "cursor-pointer hover:shadow-md",
+        isClickable && "cursor-pointer hover:shadow-md active:scale-[0.97]",
         isClickable && variant === 'error' && "hover:border-destructive/40",
         isClickable && variant === 'warning' && "hover:border-warning/40",
-        isActive && "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg",
+        isClickable && variant === 'success' && "hover:border-success/40",
+        isActive && "ring-2 ring-offset-2 ring-offset-background shadow-lg scale-[1.02]",
+        isActive && variant === 'default' && "ring-primary",
         isActive && variant === 'success' && "ring-success",
         isActive && variant === 'warning' && "ring-warning",
         isActive && variant === 'error' && "ring-destructive",
