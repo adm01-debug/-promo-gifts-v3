@@ -1,6 +1,36 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import { cn } from "@/lib/utils";
+
+// Animated counter hook
+function useCountUp(target: number, duration = 600) {
+  const [value, setValue] = useState(target);
+  const prevRef = useRef(target);
+
+  useEffect(() => {
+    const from = prevRef.current;
+    const to = target;
+    prevRef.current = target;
+    if (from === to) return;
+
+    const start = performance.now();
+    let raf: number;
+
+    const step = (now: number) => {
+      const elapsed = now - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(from + (to - from) * eased));
+      if (progress < 1) raf = requestAnimationFrame(step);
+    };
+
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+
+  return value;
+}
 
 interface StatCardProps {
   title: string;
@@ -39,6 +69,16 @@ const variantStyles = {
 export function StatCard({ title, value, icon, trend, variant = 'default', onClick, clickHint, isActive }: StatCardProps) {
   const styles = variantStyles[variant];
 
+  // Parse numeric value for animation
+  const numericValue = typeof value === 'string' ? parseInt(value.replace(/\D/g, ''), 10) : value;
+  const isNumeric = typeof numericValue === 'number' && !isNaN(numericValue) && typeof value !== 'string' || (typeof value === 'string' && /^\d/.test(value));
+  const animatedValue = useCountUp(isNumeric ? numericValue : 0);
+  
+  // Format the display value
+  const displayValue = isNumeric
+    ? animatedValue.toLocaleString('pt-BR')
+    : value;
+
   return (
     <button
       type="button"
@@ -64,7 +104,7 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
         <div className="flex items-center justify-between">
           <div className="space-y-1 text-left">
             <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tabular-nums">{value}</p>
+            <p className="text-2xl font-bold tabular-nums">{displayValue}</p>
             {trend && (
               <p className={cn(
                 "text-xs flex items-center gap-1",
