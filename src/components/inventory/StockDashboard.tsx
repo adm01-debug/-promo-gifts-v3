@@ -56,23 +56,34 @@ export function StockDashboard() {
       <LowStockDialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}
         alerts={warningAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('warning')} />
 
-      {/* Summary Cards */}
+      {/* Summary Cards — clickable filters */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <StatCard title="Total de Produtos" value={summary.totalProducts.toLocaleString('pt-BR')}
-          icon={<Package className="h-6 w-6 text-primary" />} />
+          icon={<Package className="h-6 w-6 text-primary" />}
+          isActive={filters.status === 'all'}
+          onClick={() => updateFilter('status', 'all')}
+          clickHint="Mostrar todos os produtos" />
         <StatCard title="Em Estoque" value={summary.productsInStock.toLocaleString('pt-BR')}
-          icon={<CheckCircle2 className="h-6 w-6 text-success" />} variant="success" />
+          icon={<CheckCircle2 className="h-6 w-6 text-success" />} variant="success"
+          isActive={filters.status === 'in_stock'}
+          onClick={() => updateFilter('status', 'in_stock')}
+          clickHint="Filtrar produtos em estoque" />
         <StatCard title="Estoque Baixo" value={(summary.productsLowStock + summary.productsCritical).toLocaleString('pt-BR')}
           icon={<TrendingDown className="h-6 w-6 text-warning" />} variant="warning"
-          onClick={warningAlerts.length > 0 ? () => setLowStockDialogOpen(true) : undefined}
-          clickHint={warningAlerts.length > 0 ? "Clique para ver alertas" : undefined} />
+          isActive={filters.status === 'low_stock' || filters.status === 'critical'}
+          onClick={() => updateFilter('status', filters.status === 'low_stock' ? 'all' : 'low_stock')}
+          clickHint="Filtrar produtos com estoque baixo" />
         <StatCard title="Sem Estoque" value={summary.productsOutOfStock.toLocaleString('pt-BR')}
           icon={<XCircle className="h-6 w-6 text-destructive" />} variant="error"
-          onClick={criticalAlerts.length > 0 ? () => setOutOfStockDialogOpen(true) : undefined}
-          clickHint={criticalAlerts.length > 0 ? "Clique para ver alertas" : undefined} />
+          isActive={filters.status === 'out_of_stock'}
+          onClick={() => updateFilter('status', filters.status === 'out_of_stock' ? 'all' : 'out_of_stock')}
+          clickHint="Filtrar produtos sem estoque" />
         <StatCard title="Estoque Futuro"
           value={futureStock.length > 0 ? `${futureStock.length} previsões` : '-'}
-          icon={<Truck className="h-6 w-6 text-primary" />} />
+          icon={<Truck className="h-6 w-6 text-primary" />}
+          isActive={filters.status === 'incoming'}
+          onClick={() => updateFilter('status', filters.status === 'incoming' ? 'all' : 'incoming')}
+          clickHint="Filtrar produtos com estoque futuro" />
       </div>
 
       {/* Advanced Filters */}

@@ -11,6 +11,7 @@ interface StatCardProps {
   variant?: 'default' | 'success' | 'warning' | 'error';
   onClick?: () => void;
   clickHint?: string;
+  isActive?: boolean;
 }
 
 const variantStyles = {
@@ -20,7 +21,7 @@ const variantStyles = {
   error: 'bg-destructive/5 border-destructive/20',
 };
 
-export function StatCard({ title, value, icon, trend, variant = 'default', onClick, clickHint }: StatCardProps) {
+export function StatCard({ title, value, icon, trend, variant = 'default', onClick, clickHint, isActive }: StatCardProps) {
   const isClickable = !!onClick;
 
   return (
@@ -31,6 +32,10 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
         isClickable && "cursor-pointer hover:shadow-md",
         isClickable && variant === 'error' && "hover:border-destructive/40",
         isClickable && variant === 'warning' && "hover:border-warning/40",
+        isActive && "ring-2 ring-primary ring-offset-2 ring-offset-background shadow-lg",
+        isActive && variant === 'success' && "ring-success",
+        isActive && variant === 'warning' && "ring-warning",
+        isActive && variant === 'error' && "ring-destructive",
       )}
       role={isClickable ? "button" : "status"}
       tabIndex={isClickable ? 0 : undefined}
