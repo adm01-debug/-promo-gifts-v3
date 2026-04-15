@@ -435,19 +435,19 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
         </div>
       </div>
       
-      <div className="rounded-lg border overflow-hidden">
-        <Table>
+      <div className="rounded-lg border overflow-x-auto">
+        <Table className="min-w-[700px]">
           <TableHeader className="sticky top-0 z-10 bg-background">
             <TableRow className="bg-muted/50">
               <TableHead className="w-[250px]">Produto / Cor</TableHead>
-              <TableHead className="w-[150px]">Cores</TableHead>
+              <TableHead className="w-[100px] hidden md:table-cell">Cores</TableHead>
               <TableHead>Estoque</TableHead>
-              <TableHead className="w-[100px]">Nível</TableHead>
-              <TableHead>Reservado</TableHead>
+              <TableHead className="w-[100px] hidden sm:table-cell">Nível</TableHead>
+              <TableHead className="hidden lg:table-cell">Reservado</TableHead>
               <TableHead>Disponível</TableHead>
-              <TableHead>Em Trânsito</TableHead>
+              <TableHead className="hidden md:table-cell">Em Trânsito</TableHead>
               <TableHead>Status</TableHead>
-              <TableHead>Alertas</TableHead>
+              <TableHead className="hidden sm:table-cell">Alertas</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
