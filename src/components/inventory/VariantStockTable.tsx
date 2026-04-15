@@ -191,6 +191,7 @@ function VariantRow({ variant, isNested = false }: { variant: VariantStock; isNe
         </span>
       </TableCell>
       <TableCell className="hidden md:table-cell">
+        {variant.inTransitStock > 0 ? (
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
