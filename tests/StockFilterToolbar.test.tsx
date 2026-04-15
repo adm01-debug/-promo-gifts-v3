@@ -88,13 +88,14 @@ describe("StockFilterToolbar", () => {
     expect(screen.getByText("2")).toBeInTheDocument();
   });
 
-  it("shows active filter badges with category name", () => {
+  it("shows active filter count badge when category is set", () => {
     const activeFilters: StockFilters = {
       ...defaultStockFilters,
       categoryId: "Canetas",
     };
     render(<StockFilterToolbar {...defaultProps} filters={activeFilters} />);
-    expect(screen.getByText("Canetas")).toBeInTheDocument();
+    // Category filter increments the badge count
+    expect(screen.getByText("1")).toBeInTheDocument();
   });
 
   it("shows filtered count when filters are active", () => {
