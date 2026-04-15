@@ -91,6 +91,8 @@ export function StockDashboard() {
         alerts={criticalAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('error')} />
       <LowStockDialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}
         alerts={warningAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('warning')} />
+      <FutureStockDialog open={futureStockDialogOpen} onOpenChange={setFutureStockDialogOpen}
+        entries={futureStock} />
 
       {/* Header with timestamp */}
       <div className="flex items-center justify-between">
