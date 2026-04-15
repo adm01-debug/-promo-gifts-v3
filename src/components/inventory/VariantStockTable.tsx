@@ -131,12 +131,25 @@ function StockProgressBar({ current, min }: { current: number; min: number; max?
     'bg-success';
   
   return (
-    <div className="w-24">
-      <Progress 
-        value={percentage} 
-        className={cn("h-2", progressColor)} 
-      />
-    </div>
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <div className="w-24 cursor-help">
+            <Progress 
+              value={percentage} 
+              className={cn("h-2", progressColor)} 
+            />
+          </div>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p className="text-xs">
+            <span className="font-semibold">{Math.round(percentage)}%</span> do mínimo
+            <br />
+            {current.toLocaleString('pt-BR')} / {min.toLocaleString('pt-BR')} un.
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
 
