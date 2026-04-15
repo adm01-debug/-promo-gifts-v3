@@ -395,7 +395,9 @@ interface VariantStockTableProps {
 export function VariantStockTable({ products, className }: VariantStockTableProps) {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(0);
+  const [inlineSearch, setInlineSearch] = useState('');
   const [searchParams] = useSearchParams();
+  const prevProductsLenRef = useRef(products.length);
   
   // Deep link: auto-expand product from URL ?product=ID
   useEffect(() => {
@@ -410,15 +412,33 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
     }
   }, [searchParams, products]);
 
-  // Reset page when products change (e.g. filter applied)
-  const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
+  // Reset page when product list changes (filter applied)
+  useEffect(() => {
+    if (prevProductsLenRef.current !== products.length) {
+      setCurrentPage(0);
+      prevProductsLenRef.current = products.length;
+    }
+  }, [products.length]);
+
+  // Inline search filtering
+  const searchedProducts = useMemo(() => {
+    if (!inlineSearch.trim()) return products;
+    const q = inlineSearch.toLowerCase();
+    return products.filter(p =>
+      p.productName.toLowerCase().includes(q) ||
+      p.productSku.toLowerCase().includes(q) ||
+      p.variants.some(v => v.colorName?.toLowerCase().includes(q) || v.variantSku?.toLowerCase().includes(q))
+    );
+  }, [products, inlineSearch]);
+
+  const totalPages = Math.max(1, Math.ceil(searchedProducts.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages - 1);
   if (safePage !== currentPage) setCurrentPage(safePage);
 
   const paginatedProducts = useMemo(() => {
     const start = safePage * PAGE_SIZE;
-    return products.slice(start, start + PAGE_SIZE);
-  }, [products, safePage]);
+    return searchedProducts.slice(start, start + PAGE_SIZE);
+  }, [searchedProducts, safePage]);
 
   const toggleProduct = (productId: string) => {
     setExpandedProducts(prev => {
@@ -434,20 +454,37 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
   
   return (
     <div className={cn("space-y-2", className)}>
-      <div className="flex items-center justify-between">
-        {/* Pagination info */}
-        <div className="text-xs text-muted-foreground">
-          {products.length > PAGE_SIZE ? (
-            <>
-              Mostrando {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, products.length)} de {products.length} produtos
-            </>
-          ) : (
-            <>{products.length} produtos</>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        {/* Inline Search */}
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <Input
+            placeholder="Buscar na tabela..."
+            value={inlineSearch}
+            onChange={e => { setInlineSearch(e.target.value); setCurrentPage(0); }}
+            className="pl-8 h-8 text-sm"
+          />
+          {inlineSearch && (
+            <button type="button" onClick={() => setInlineSearch('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
+              <X className="h-3 w-3" />
+            </button>
           )}
         </div>
-        <div className="flex gap-2">
-          <Button variant="ghost" size="sm" onClick={expandAll}>Expandir Todos</Button>
-          <Button variant="ghost" size="sm" onClick={collapseAll}>Recolher Todos</Button>
+
+        <div className="flex items-center gap-2">
+          {/* Pagination info */}
+          <span className="text-xs text-muted-foreground whitespace-nowrap">
+            {searchedProducts.length > PAGE_SIZE ? (
+              <>
+                {safePage * PAGE_SIZE + 1}–{Math.min((safePage + 1) * PAGE_SIZE, searchedProducts.length)} de {searchedProducts.length}
+              </>
+            ) : (
+              <>{searchedProducts.length} produtos</>
+            )}
+          </span>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={expandAll}>Expandir Todos</Button>
+          <Button variant="ghost" size="sm" className="h-7 text-xs" onClick={collapseAll}>Recolher Todos</Button>
         </div>
       </div>
       
