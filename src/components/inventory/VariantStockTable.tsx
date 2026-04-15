@@ -246,7 +246,7 @@ function ProductRow({ product, isExpanded, onToggle }: {
   return (
     <>
       <TableRow 
-        className={cn("cursor-pointer hover:bg-muted/50 transition-colors", isExpanded && "bg-muted/30")}
+        className={cn("cursor-pointer hover:bg-muted/50 transition-colors group", isExpanded && "bg-muted/30")}
         onClick={onToggle}
       >
         <TableCell>
