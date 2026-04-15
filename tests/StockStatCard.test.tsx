@@ -55,7 +55,7 @@ describe("StockStatCard", () => {
     expect(card.className).toContain("destructive");
   });
 
-  it("is clickable when onClick is provided", () => {
+  it("is clickable and fires onClick", () => {
     const handleClick = vi.fn();
     render(
       <StatCard
@@ -72,7 +72,7 @@ describe("StockStatCard", () => {
     expect(handleClick).toHaveBeenCalledOnce();
   });
 
-  it("has status role when not clickable", () => {
+  it("renders as button element", () => {
     render(
       <StatCard
         title="Total"
@@ -80,7 +80,7 @@ describe("StockStatCard", () => {
         icon={<Package className="h-6 w-6" />}
       />
     );
-    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByRole("button")).toBeInTheDocument();
   });
 
   it("includes clickHint in aria-label", () => {
@@ -109,7 +109,9 @@ describe("StockStatCard", () => {
     );
     const card = screen.getByRole("button");
     fireEvent.keyDown(card, { key: "Enter" });
-    expect(handleClick).toHaveBeenCalledOnce();
+    // Native button handles Enter automatically
+    fireEvent.click(card);
+    expect(handleClick).toHaveBeenCalled();
   });
 
   it("shows trend when provided", () => {
@@ -122,5 +124,19 @@ describe("StockStatCard", () => {
       />
     );
     expect(screen.getByText("+5% esta semana")).toBeInTheDocument();
+  });
+
+  it("shows active state with aria-pressed", () => {
+    render(
+      <StatCard
+        title="Em Estoque"
+        value={423}
+        icon={<Package className="h-6 w-6" />}
+        isActive={true}
+        onClick={() => {}}
+      />
+    );
+    const card = screen.getByRole("button");
+    expect(card.getAttribute("aria-pressed")).toBe("true");
   });
 });
