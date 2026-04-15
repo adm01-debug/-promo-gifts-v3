@@ -379,7 +379,21 @@ interface VariantStockTableProps {
 export function VariantStockTable({ products, className }: VariantStockTableProps) {
   const [expandedProducts, setExpandedProducts] = useState<Set<string>>(new Set());
   const [currentPage, setCurrentPage] = useState(0);
+  const [searchParams] = useSearchParams();
   
+  // Deep link: auto-expand product from URL ?product=ID
+  useEffect(() => {
+    const productId = searchParams.get('product');
+    if (productId) {
+      const idx = products.findIndex(p => p.productId === productId);
+      if (idx >= 0) {
+        const page = Math.floor(idx / PAGE_SIZE);
+        setCurrentPage(page);
+        setExpandedProducts(new Set([productId]));
+      }
+    }
+  }, [searchParams, products]);
+
   // Reset page when products change (e.g. filter applied)
   const totalPages = Math.max(1, Math.ceil(products.length / PAGE_SIZE));
   const safePage = Math.min(currentPage, totalPages - 1);
