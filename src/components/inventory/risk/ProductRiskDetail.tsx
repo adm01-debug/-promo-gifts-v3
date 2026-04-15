@@ -257,26 +257,37 @@ export function ProductRiskDetail({ productId, productName, productSku }: Produc
       </div>
 
       {/* Period + Chart */}
-      <Tabs value={period} onValueChange={setPeriod}>
-        <TabsList className="h-6 flex-wrap">
-          {['15','30','60','90','120','180'].map(p => (
-            <TabsTrigger key={p} value={p} className="text-[10px] px-2 h-4">{p}d</TabsTrigger>
-          ))}
-        </TabsList>
-      </Tabs>
+      <div className="flex items-center justify-between">
+        <Tabs value={period} onValueChange={setPeriod}>
+          <TabsList className="h-6 flex-wrap">
+            {['15','30','60','90','120','180'].map(p => (
+              <TabsTrigger key={p} value={p} className="text-[10px] px-2 h-4">{p}d</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6"
+          onClick={() => setChartExpanded(prev => !prev)}
+          aria-label={chartExpanded ? "Minimizar gráfico" : "Expandir gráfico"}
+        >
+          {chartExpanded ? <Minimize2 className="h-3.5 w-3.5" /> : <Maximize2 className="h-3.5 w-3.5" />}
+        </Button>
+      </div>
 
-      <div className="h-[140px] sm:h-[160px] w-full">
+      <div className={cn("w-full transition-all duration-300", chartExpanded ? "h-[320px]" : "h-[140px] sm:h-[160px]")}>
         <ResponsiveContainer width="100%" height="100%">
           <ComposedChart data={chartData} margin={{ top: 5, right: 5, left: 0, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis dataKey="dateFormatted" tick={{ fontSize: 9 }} className="fill-muted-foreground" interval="preserveStartEnd" />
-            <YAxis yAxisId="stock" tick={{ fontSize: 9 }} className="fill-muted-foreground" width={40} />
+            <XAxis dataKey="dateFormatted" tick={{ fontSize: chartExpanded ? 10 : 9 }} className="fill-muted-foreground" interval="preserveStartEnd" />
+            <YAxis yAxisId="stock" tick={{ fontSize: chartExpanded ? 10 : 9 }} className="fill-muted-foreground" width={40} />
             <YAxis yAxisId="flow" orientation="right" hide />
             <Tooltip content={<RiskTooltip />} />
-            <Legend wrapperStyle={{ fontSize: '9px', paddingTop: '2px' }} iconSize={6} formatter={(value: string) => <span className="text-muted-foreground text-[9px]">{value}</span>} />
+            <Legend wrapperStyle={{ fontSize: chartExpanded ? '10px' : '9px', paddingTop: '2px' }} iconSize={chartExpanded ? 8 : 6} formatter={(value: string) => <span className="text-muted-foreground text-[9px]">{value}</span>} />
             <Area yAxisId="stock" type="monotone" dataKey="stockClose" stroke="hsl(var(--primary))" fill="hsl(var(--primary) / 0.15)" strokeWidth={1.5} name="Estoque" dot={false} activeDot={{ r: 3 }} />
-            <Bar yAxisId="flow" dataKey="depleted" fill="hsl(var(--destructive) / 0.4)" name="Saída" radius={[2, 2, 0, 0]} barSize={3} />
-            <Bar yAxisId="flow" dataKey="restocked" fill="hsl(var(--primary) / 0.4)" name="Reposição" radius={[2, 2, 0, 0]} barSize={3} />
+            <Bar yAxisId="flow" dataKey="depleted" fill="hsl(var(--destructive) / 0.4)" name="Saída" radius={[2, 2, 0, 0]} barSize={chartExpanded ? 5 : 3} />
+            <Bar yAxisId="flow" dataKey="restocked" fill="hsl(var(--primary) / 0.4)" name="Reposição" radius={[2, 2, 0, 0]} barSize={chartExpanded ? 5 : 3} />
           </ComposedChart>
         </ResponsiveContainer>
       </div>
