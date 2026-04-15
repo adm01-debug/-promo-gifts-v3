@@ -72,6 +72,16 @@ export function StockDashboard() {
       <LowStockDialog open={lowStockDialogOpen} onOpenChange={setLowStockDialogOpen}
         alerts={warningAlerts} onDismiss={dismissAlert} onDismissAll={() => dismissAlertsBySeverity('warning')} />
 
+      {/* Header with timestamp */}
+      <div className="flex items-center justify-between">
+        <h2 className="text-lg font-semibold">Visão Geral</h2>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <Clock className="h-3.5 w-3.5" />
+          Última atualização: {new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+          {isFetching && <Loader2 className="h-3 w-3 animate-spin" />}
+        </div>
+      </div>
+
       {/* Summary Cards — clickable filters */}
       <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
         <StatCard title="Total de Produtos" value={summary.totalProducts.toLocaleString('pt-BR')}
