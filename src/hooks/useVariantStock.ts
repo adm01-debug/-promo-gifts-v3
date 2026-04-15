@@ -172,7 +172,12 @@ export function useVariantStock() {
   const criticalAlerts = useMemo(() => alerts.filter(a => a.severity === 'error'), [alerts]);
 
   const updateFilter = useCallback(<K extends keyof StockFilters>(key: K, value: StockFilters[K]) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    console.log('[StockFilter] updateFilter called:', key, '=', value);
+    setFilters(prev => {
+      const next = { ...prev, [key]: value };
+      console.log('[StockFilter] New filters state:', next);
+      return next;
+    });
   }, []);
 
   const resetFilters = useCallback(() => setFilters(defaultStockFilters), []);
