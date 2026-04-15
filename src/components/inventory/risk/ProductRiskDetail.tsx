@@ -65,6 +65,7 @@ interface ProductRiskDetailProps {
 export function ProductRiskDetail({ productId, productName, productSku }: ProductRiskDetailProps) {
   const navigate = useNavigate();
   const [period, setPeriod] = useState<string>('30');
+  const [chartExpanded, setChartExpanded] = useState(false);
   const days = Number(period);
 
   const {
