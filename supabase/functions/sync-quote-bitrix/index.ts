@@ -20,7 +20,7 @@ const SyncQuoteBitrixSchema = z.object({
   bitrixCompanyId: z.string().max(50).optional(),
   sellerEmail: z.string().email().max(255).optional(),
   shippingType: z.string().max(50).optional(),
-  shippingCost: z.number().nonneg().optional(),
+  shippingCost: z.number().nonnegative().optional(),
 });
 
 Deno.serve(async (req) => {
