@@ -105,6 +105,18 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
+    id: "analytics",
+    label: "Análises",
+    icon: BarChart3,
+    defaultOpen: false,
+    items: [
+      { icon: BarChart3, label: "Dashboard BI", href: "/bi" },
+      { icon: Star, label: "Performance", href: "/performance" },
+      { icon: Activity, label: "Tendências", href: "/tendencias" },
+      { icon: DollarSign, label: "Comissões", href: "/comissoes" },
+    ],
+  },
+  {
     id: "admin",
     label: "Admin",
     icon: ShieldCheck,

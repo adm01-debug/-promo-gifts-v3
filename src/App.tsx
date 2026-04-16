@@ -82,7 +82,9 @@ const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
+const SellerPerformanceDashboard = lazyWithRetry(() => import("./pages/SellerPerformanceDashboard"));
 const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
+const CommissionsPage = lazyWithRetry(() => import("./pages/CommissionsPage"));
 
 // System Pages
 const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"));
@@ -218,7 +220,9 @@ const App = () => {
                               <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                               <Route path="/admin/aprovacoes-desconto" element={<AdminDiscountApprovalsPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
+                              <Route path="/performance" element={<SellerPerformanceDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
+                              <Route path="/comissoes" element={<CommissionsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                             </Route>
