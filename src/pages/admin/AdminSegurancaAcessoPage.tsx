@@ -18,9 +18,10 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity } from "lucide-react";
+import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { SecurityAnalytics } from "@/components/admin/security/SecurityAnalytics";
 
 interface BotLog {
   id: string;
@@ -178,12 +179,17 @@ export default function AdminSegurancaAcessoPage() {
           <StatCard label="Bloqueios ativos" value={stats.activeBlocks} icon={<Clock className="h-4 w-4 text-warning" />} valueClass="text-warning" />
         </div>
 
-        <Tabs defaultValue="bots" className="w-full">
+        <Tabs defaultValue="analytics" className="w-full">
           <TabsList>
+            <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
             <TabsTrigger value="ips">Allow/Block IPs ({ipList.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <SecurityAnalytics botLogs={botLogs} onBlockIp={(ip) => quickAddIp(ip, "block")} />
+          </TabsContent>
 
           <TabsContent value="bots">
             <Card>
