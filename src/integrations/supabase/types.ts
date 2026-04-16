@@ -125,6 +125,54 @@ export type Database = {
         }
         Relationships: []
       }
+      art_file_attachments: {
+        Row: {
+          created_at: string
+          file_extension: string | null
+          file_path: string
+          file_size_bytes: number | null
+          file_url: string
+          id: string
+          mime_type: string | null
+          mockup_id: string | null
+          notes: string | null
+          original_name: string
+          quote_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          file_extension?: string | null
+          file_path: string
+          file_size_bytes?: number | null
+          file_url: string
+          id?: string
+          mime_type?: string | null
+          mockup_id?: string | null
+          notes?: string | null
+          original_name: string
+          quote_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          file_extension?: string | null
+          file_path?: string
+          file_size_bytes?: number | null
+          file_url?: string
+          id?: string
+          mime_type?: string | null
+          mockup_id?: string | null
+          notes?: string | null
+          original_name?: string
+          quote_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       bot_detection_log: {
         Row: {
           blocked: boolean
@@ -905,6 +953,57 @@ export type Database = {
           technique_id?: string | null
           technique_name?: string | null
           updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      mockup_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_favorite: boolean
+          name: string
+          personalization_areas: Json
+          product_id: string | null
+          product_name: string | null
+          technique_id: string | null
+          technique_name: string | null
+          thumbnail_url: string | null
+          updated_at: string
+          usage_count: number
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_favorite?: boolean
+          name: string
+          personalization_areas?: Json
+          product_id?: string | null
+          product_name?: string | null
+          technique_id?: string | null
+          technique_name?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          usage_count?: number
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_favorite?: boolean
+          name?: string
+          personalization_areas?: Json
+          product_id?: string | null
+          product_name?: string | null
+          technique_id?: string | null
+          technique_name?: string | null
+          thumbnail_url?: string | null
+          updated_at?: string
+          usage_count?: number
           user_id?: string
         }
         Relationships: []
