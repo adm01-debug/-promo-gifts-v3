@@ -529,6 +529,16 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const userId = auth.userId;
 
+    // Anti-scraping/abuse protection
+    const protection = await runBotProtection(req, {
+      endpoint: 'expert-chat',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${userId}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
+
     // Rate limit: 20 req/min por usuário
     const rl = await applyRateLimit(req, rateLimiters.ai, () => userId);
     if (rl) {
