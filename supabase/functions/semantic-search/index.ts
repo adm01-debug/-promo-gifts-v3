@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { query } = parsed.data;
+    const { query, products: productsForRank, limit: rankLimit } = parsed.data;
 
     // Periodic cleanup
     if (Date.now() - lastCleanup > CLEANUP_INTERVAL) {
