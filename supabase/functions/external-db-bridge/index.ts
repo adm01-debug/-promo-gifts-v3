@@ -1015,7 +1015,13 @@ function getExternalClient(corsHeaders: Record<string, string>) {
   const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
   const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
   if (!externalUrl || !externalKey) {
-    return jsonResponse({ error: 'Banco externo não configurado' }, 500, corsHeaders);
+    // Graceful fallback: return empty payload (200) instead of 500 to prevent UI crashes
+    console.warn('[external-db-bridge] EXTERNAL_SUPABASE_URL/KEY not configured — returning empty payload');
+    return jsonResponse(
+      { records: [], data: [], count: 0, _unconfigured: true, _message: 'Banco externo não configurado' },
+      200,
+      corsHeaders,
+    );
   }
   return createClient(externalUrl, externalKey, {
     db: { schema: 'public' },
