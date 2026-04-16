@@ -4,6 +4,7 @@ import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { SYSTEM_PROMPT, VOICE_COMMAND_TOOL, TOOL_CHOICE } from './systemPrompt.ts';
 import { parseAiResponse } from './parseAiResponse.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 const TranscriptSchema = z.object({
   transcript: z.string().min(1, 'transcript cannot be empty').max(1000, 'transcript too long'),
@@ -24,6 +25,15 @@ Deno.serve(async (req) => {
     } catch (authErr) {
       return authErrorResponse(authErr, corsHeaders);
     }
+
+    const protection = await runBotProtection(req, {
+      endpoint: 'voice-agent',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${authUserId}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {

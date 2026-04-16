@@ -2,6 +2,7 @@ import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -11,6 +12,14 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
+    const protection = await runBotProtection(req, {
+      endpoint: 'generate-product-seo',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${auth.userId}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
     const ProductSeoSchema = z.object({
       product: z.object({
         name: z.string().trim().min(1, 'Nome do produto é obrigatório').max(255),

@@ -2,6 +2,7 @@ import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts'
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -13,6 +14,14 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
+    const protection = await runBotProtection(req, {
+      endpoint: 'generate-ad-prompt',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${user.id}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 

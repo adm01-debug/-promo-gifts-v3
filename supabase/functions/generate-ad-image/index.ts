@@ -2,6 +2,7 @@ import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts'
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 const BodySchema = z.object({
   productImageUrl: z.string().url(),
@@ -29,6 +30,15 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
+    // Anti-scraping/abuse protection (image generation is expensive)
+    const protection = await runBotProtection(req, {
+      endpoint: 'generate-ad-image',
+      maxRequests: 10,
+      windowSeconds: 60,
+      blockSeconds: 3600,
+      customIdentifier: `user:${user.id}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");

@@ -1,5 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -9,11 +10,22 @@ Deno.serve(async (req) => {
 
   try {
     // Authenticate user
+    let userId: string;
     try {
-      await authenticateRequest(req);
+      const authResult = await authenticateRequest(req);
+      userId = authResult.userId;
     } catch (authErr) {
       return authErrorResponse(authErr, corsHeaders);
     }
+
+    const protection = await runBotProtection(req, {
+      endpoint: 'elevenlabs-scribe-token',
+      maxRequests: 20,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${userId}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
 
     const ELEVENLABS_API_KEY = Deno.env.get('ELEVENLABS_API_KEY');
     if (!ELEVENLABS_API_KEY) {

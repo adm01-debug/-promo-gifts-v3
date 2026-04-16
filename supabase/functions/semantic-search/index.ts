@@ -111,6 +111,16 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
+    // Anti-scraping (UA blacklist + IP rate limit + bot logging)
+    const protection = await runBotProtection(req, {
+      endpoint: 'semantic-search',
+      maxRequests: 120,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${auth.userId}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
+
     // Rate limit: 100 req/min por usuário (busca pode ser intensa)
     const rl = await applyRateLimit(req, rateLimiters.search, () => auth.userId);
     if (rl) {

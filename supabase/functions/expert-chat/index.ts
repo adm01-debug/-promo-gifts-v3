@@ -4,6 +4,7 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 // ============================================
 // SCHEMAS
