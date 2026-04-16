@@ -16,6 +16,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { OrderStatusTimeline } from "@/components/orders/OrderStatusTimeline";
+import { OrderFulfillmentManager } from "@/components/orders/OrderFulfillmentManager";
 
 const statusConfig: Record<string, { label: string; color: string }> = {
   pending: { label: "Pendente", color: "bg-warning/20 text-warning border-warning/30" },
@@ -160,6 +162,8 @@ export default function OrderDetailPage() {
           </div>
         </div>
 
+        <OrderStatusTimeline status={order.status} />
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
@@ -235,37 +239,8 @@ export default function OrderDetailPage() {
               </CardContent>
             </Card>
 
-            {/* Tracking */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-lg">
-                  <Truck className="h-5 w-5 text-primary" />
-                  Rastreio e Envio
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-end gap-3">
-                  <div className="flex-1">
-                    <Label htmlFor="tracking">Código de Rastreio</Label>
-                    <Input
-                      id="tracking"
-                      value={trackingNumber}
-                      onChange={(e) => setTrackingNumber(e.target.value)}
-                      placeholder="Ex: BR123456789BR"
-                      className="mt-1"
-                    />
-                  </div>
-                  <Button onClick={updateTracking} disabled={isSaving} size="sm">
-                    Salvar
-                  </Button>
-                </div>
-                {order.shipping_type && (
-                  <p className="text-sm text-muted-foreground mt-3">
-                    Tipo de frete: <span className="font-medium">{order.shipping_type.toUpperCase()}</span>
-                  </p>
-                )}
-              </CardContent>
-            </Card>
+            {/* Logística */}
+            <OrderFulfillmentManager order={order} />
           </div>
 
           {/* Sidebar */}
