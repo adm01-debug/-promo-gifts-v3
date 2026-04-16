@@ -179,12 +179,17 @@ export default function AdminSegurancaAcessoPage() {
           <StatCard label="Bloqueios ativos" value={stats.activeBlocks} icon={<Clock className="h-4 w-4 text-warning" />} valueClass="text-warning" />
         </div>
 
-        <Tabs defaultValue="bots" className="w-full">
+        <Tabs defaultValue="analytics" className="w-full">
           <TabsList>
+            <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
             <TabsTrigger value="ips">Allow/Block IPs ({ipList.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="analytics">
+            <SecurityAnalytics botLogs={botLogs} onBlockIp={(ip) => quickAddIp(ip, "block")} />
+          </TabsContent>
 
           <TabsContent value="bots">
             <Card>
