@@ -274,8 +274,7 @@ export default function QuoteBuilderPage() {
                 availableProducts={s.filteredProducts.slice(0, 50).map(p => ({
                   id: p.id,
                   name: p.name,
-                  category: p.category || "Geral",
-                  tags: p.tags,
+                  category: "Brindes",
                 }))}
                 addedProductIds={s.items.map(i => i.product_id)}
                 onAddProduct={(productId) => {
