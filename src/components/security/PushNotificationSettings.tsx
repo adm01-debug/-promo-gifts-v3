@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { usePushNotifications } from '@/hooks/usePushNotifications';
+import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Bell, 
@@ -19,13 +19,15 @@ import {
 } from 'lucide-react';
 
 export function PushNotificationSettings() {
-  const { 
-    isSupported, 
-    isEnabled, 
-    permission, 
-    requestPermission,
-    showSecurityAlert 
-  } = usePushNotifications();
+  const {
+    push: {
+      isSupported,
+      isEnabled,
+      permission,
+      requestPermission,
+      showSecurityAlert,
+    },
+  } = useNotifications();
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
 

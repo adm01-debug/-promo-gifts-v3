@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useWorkspaceNotifications, type WorkspaceNotification } from "@/hooks/useWorkspaceNotifications";
+import { useNotifications, type WorkspaceNotification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
@@ -79,7 +79,7 @@ function NotificationItem({
 
 export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, clearAll } =
-    useWorkspaceNotifications();
+    useNotifications();
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
   const prevCountRef = React.useRef(unreadCount);
