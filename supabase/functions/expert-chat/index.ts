@@ -4,6 +4,7 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from "npm:zod@3.23.8";
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 // ============================================
 // SCHEMAS
@@ -527,6 +528,16 @@ Deno.serve(async (req) => {
   try {
     const auth = await authenticateRequest(req);
     const userId = auth.userId;
+
+    // Anti-scraping/abuse protection
+    const protection = await runBotProtection(req, {
+      endpoint: 'expert-chat',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${userId}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
 
     // Rate limit: 20 req/min por usuário
     const rl = await applyRateLimit(req, rateLimiters.ai, () => userId);

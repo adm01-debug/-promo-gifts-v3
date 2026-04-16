@@ -3,6 +3,7 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -13,6 +14,16 @@ Deno.serve(async (req) => {
   try {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
+
+    // Anti-scraping (UA blacklist + IP rate limit + bot logging)
+    const protection = await runBotProtection(req, {
+      endpoint: 'visual-search',
+      maxRequests: 20,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+      customIdentifier: `user:${user.id}`,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
 
     // Rate limit: 20 req/min por usuário
     const rl = await applyRateLimit(req, rateLimiters.ai, () => user.id);
