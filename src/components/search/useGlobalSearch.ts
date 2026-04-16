@@ -17,17 +17,20 @@ import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
+export type SearchResultType = "product" | "client" | "quote" | "order" | "collection" | "kit" | "mockup" | "art_file";
+
 export interface SearchResult {
   id: string;
   title: string;
   subtitle?: string;
-  type: "product" | "client" | "quote" | "order";
+  type: SearchResultType;
   href: string;
   metadata?: Record<string, unknown>;
 }
 
 export interface SearchIntent {
-  type: "product" | "client" | "quote" | "order" | "mixed";
+  type: SearchResultType | "mixed";
+  entities?: SearchResultType[];
   filters: {
     category?: string;
     color?: string;
