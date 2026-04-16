@@ -113,6 +113,28 @@ export async function runBotProtection(
     }
   };
 
+  // 0. Manual allowlist/blocklist check (admin overrides)
+  try {
+    const { data: ipAccess } = await admin.rpc('check_ip_access', { _ip: ip });
+    if (ipAccess === 'block') {
+      await logBlock('manual_blocklist', true, { ip });
+      return {
+        allowed: false,
+        blockResponse: new Response(
+          JSON.stringify({ error: 'Forbidden', message: 'Access denied' }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        ),
+      };
+    }
+    if (ipAccess === 'allow') {
+      // Skip all subsequent checks for trusted IPs
+      return { allowed: true };
+    }
+  } catch (err) {
+    console.error('[bot-protection] IP access check failed:', err);
+    // Fail open
+  }
+
   // 1. Bot UA check
   const botCheck = detectBot(ua);
   const allowSearch = opts.allowSearchBots !== false;
