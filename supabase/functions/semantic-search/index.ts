@@ -2,6 +2,7 @@ import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
+import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 
 // ========================================
 // CACHE IMPLEMENTATION - TTL 5 minutes
