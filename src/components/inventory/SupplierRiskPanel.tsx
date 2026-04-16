@@ -174,17 +174,24 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-warning" aria-hidden="true" />
+              <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
+                <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
+              </div>
               Risco de Ruptura no Fornecedor
+              {globalCounts.critical > 0 && (
+                <Badge variant="destructive" className="text-[10px] animate-pulse">
+                  {globalCounts.critical} crítico{globalCounts.critical > 1 ? 's' : ''}
+                </Badge>
+              )}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="mt-1">
               Monitore produtos com risco de acabar no fornecedor — antecipe compras e evite perder vendas
             </CardDescription>
           </div>
           {lastUpdated && (
             <span className="text-[10px] text-muted-foreground flex items-center gap-1" aria-label={`Última atualização: ${lastUpdated}`}>
               <Clock className="h-3 w-3" aria-hidden="true" />
-              Atualizado: {lastUpdated}
+              {lastUpdated}
             </span>
           )}
         </div>
