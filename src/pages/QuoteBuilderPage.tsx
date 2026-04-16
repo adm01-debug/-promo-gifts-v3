@@ -271,18 +271,10 @@ export default function QuoteBuilderPage() {
                 clientName={s.companyInfo?.name || s.contactInfo?.name}
                 clientCompany={s.companyInfo?.name}
                 clientIndustry={s.companyInfo?.ramo_atividade}
-                availableProducts={s.filteredProducts.slice(0, 50).map(p => ({
-                  id: p.id,
-                  name: p.name,
-                  category: "Brindes",
-                }))}
                 addedProductIds={s.items.map(i => i.product_id)}
-                onAddProduct={(productId) => {
-                  const product = s.filteredProducts.find(p => p.id === productId);
-                  if (product) {
-                    s.setSelectedProductForColor(product);
-                    s.setProductSearchOpen(true);
-                  }
+                onAddProduct={(productId, productName) => {
+                  s.setProductSearch(productName);
+                  s.setProductSearchOpen(true);
                 }}
               />
             </div>
