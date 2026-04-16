@@ -2745,7 +2745,17 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      search_products_semantic: {
+        Args: { _limit?: number; _products: Json; _query: string }
+        Returns: {
+          matched_field: string
+          product_id: string
+          score: number
+        }[]
+      }
       seed_discount_test_users: { Args: never; Returns: Json }
+      show_limit: { Args: never; Returns: number }
+      show_trgm: { Args: { "": string }; Returns: string[] }
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
