@@ -208,11 +208,29 @@ export function useGlobalSearch() {
   }, []);
 
   // ── Semantic search ──
+  const abortRef = useRef<AbortController | null>(null);
   const performSemanticSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim() || searchQuery.length < 3) { setResults([]); setSearchIntent(null); return; }
+
+    // ── Cache hit ──
+    const cached = searchCache.get(searchQuery);
+    if (cached) {
+      setResults(cached);
+      setIsSearching(false);
+      setIsAIProcessing(false);
+      return;
+    }
+
+    // ── Cancel any in-flight request ──
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const startedAt = performance.now();
     setIsSearching(true); setIsAIProcessing(true);
     try {
       const { data: aiResponse } = await supabase.functions.invoke("semantic-search", { body: { query: searchQuery } });
+      if (controller.signal.aborted) return;
       setIsAIProcessing(false);
 
       let intent: SearchIntent = { type: "mixed", filters: {}, keywords: searchQuery.split(" ").filter(w => w.length > 2), originalQuery: searchQuery };
