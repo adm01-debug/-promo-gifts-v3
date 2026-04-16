@@ -3,6 +3,7 @@ import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 const ClientSchema = z.object({
   name: z.string().trim().min(1).max(255),
@@ -34,6 +35,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Anti-scraping: bot UA check + rate limit por IP (camada externa antes do auth)
+    const protection = await runBotProtection(req, {
+      endpoint: 'ai-recommendations',
+      maxRequests: 60,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
+
     // Auth guard: require authenticated user
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
