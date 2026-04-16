@@ -91,6 +91,43 @@ export function StockDashboard() {
     [futureStock]
   );
 
+  // Export CSV
+  const handleExportCSV = () => {
+    const data = productStocks.flatMap(p =>
+      p.variants.map(v => ({
+        produto: p.productName,
+        sku: p.productSku,
+        cor: v.colorName || 'Sem cor',
+        sku_variante: v.variantSku,
+        estoque_atual: v.currentStock,
+        estoque_minimo: v.minStock,
+        reservado: v.reservedStock,
+        disponivel: v.availableStock,
+        em_transito: v.inTransitStock,
+        status: v.status,
+        dias_ate_esgotamento: v.daysUntilStockout ?? '',
+      }))
+    );
+
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+    const csv = [
+      headers.join(';'),
+      ...data.map(row => headers.map(h => row[h as keyof typeof row]).join(';')),
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `estoque_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({ title: '📊 Exportação concluída', description: `${data.length} registros exportados.` });
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6 p-6" aria-live="polite" aria-busy="true">
