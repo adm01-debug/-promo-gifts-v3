@@ -120,6 +120,10 @@ Deno.serve(async (req: Request) => {
             response: tokenData.response,
             response_notes: tokenData.response_notes,
             responded_at: tokenData.responded_at,
+            signer_name: tokenData.signer_name,
+            signer_document: tokenData.signer_document,
+            signature_hash: tokenData.signature_hash,
+            signed_at: tokenData.signed_at,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
