@@ -8,10 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   CheckCircle, XCircle, User, Phone, Mail, Loader2,
-  CreditCard, Calendar, Clock,
+  CreditCard, Calendar, Clock, ShieldCheck, AlertCircle,
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -30,7 +32,7 @@ export default function PublicQuoteApprovalPage() {
   if (state.isExpired) return <ExpiredScreen />;
   if (state.alreadyResponded) return <AlreadyRespondedScreen data={state.alreadyResponded} />;
   if (state.error || !state.data) return <ErrorScreen error={state.error} />;
-  if (state.submitted) return <SubmittedScreen response={state.submitted} />;
+  if (state.submitted) return <SubmittedScreen response={state.submitted} receipt={state.signatureReceipt} />;
 
   const { quote, seller } = state.data;
   const items = quote.items || [];
@@ -167,18 +169,64 @@ export default function PublicQuoteApprovalPage() {
           </Card>
         )}
 
-        {/* Response Section */}
+        {/* Response Section with Electronic Signature */}
         <Card className="border-2 border-primary/30 bg-primary/5">
           <CardHeader className="pb-3">
-            <CardTitle className="text-lg">Responder Proposta</CardTitle>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <ShieldCheck className="h-5 w-5 text-primary" />
+              Responder e assinar proposta
+            </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* E-signature fields */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="signer-name" className="text-xs font-medium">
+                  Nome completo <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="signer-name"
+                  placeholder="Seu nome completo"
+                  value={state.signerName}
+                  onChange={(e) => state.setSignerName(e.target.value)}
+                  className="bg-background"
+                  autoComplete="name"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="signer-doc" className="text-xs font-medium">
+                  CPF ou CNPJ <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  id="signer-doc"
+                  placeholder="000.000.000-00"
+                  value={state.signerDocument}
+                  onChange={(e) => state.setSignerDocument(e.target.value)}
+                  className="bg-background"
+                  inputMode="numeric"
+                />
+              </div>
+            </div>
+
             <Textarea
               placeholder="Observações ou comentários (opcional)..."
               value={state.responseNotes}
               onChange={(e) => state.setResponseNotes(e.target.value)}
               className="min-h-[80px] resize-none bg-background"
             />
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed flex items-start gap-1.5">
+              <ShieldCheck className="h-3.5 w-3.5 text-success mt-0.5 shrink-0" />
+              Ao clicar em <strong>Aprovar</strong>, você assina eletronicamente esta proposta. Serão registrados seu nome, documento, IP, navegador, data/hora e um hash de integridade — com validade jurídica conforme MP 2.200-2/2001.
+            </p>
+
+            {state.signatureError && (
+              <div className="flex items-start gap-2 text-sm text-destructive bg-destructive/10 border border-destructive/30 rounded-md p-2.5">
+                <AlertCircle className="h-4 w-4 mt-0.5 shrink-0" />
+                <span>{state.signatureError}</span>
+              </div>
+            )}
+
             <div className="flex flex-col sm:flex-row gap-3">
               <Button
                 onClick={() => state.handleResponse("approved")}
@@ -186,7 +234,7 @@ export default function PublicQuoteApprovalPage() {
                 className="flex-1 h-12 text-base bg-success hover:bg-success/90 text-success-foreground"
               >
                 {state.isSubmitting ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : <CheckCircle className="h-5 w-5 mr-2" />}
-                Aprovar Proposta
+                Aprovar e Assinar
               </Button>
               <Button
                 onClick={() => state.handleResponse("rejected")}

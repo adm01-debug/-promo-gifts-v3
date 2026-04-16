@@ -1398,6 +1398,12 @@ export type Database = {
           response: string | null
           response_notes: string | null
           seller_id: string
+          signature_hash: string | null
+          signed_at: string | null
+          signer_document: string | null
+          signer_ip: string | null
+          signer_name: string | null
+          signer_user_agent: string | null
           status: string
           token: string
           updated_at: string
@@ -1414,6 +1420,12 @@ export type Database = {
           response?: string | null
           response_notes?: string | null
           seller_id: string
+          signature_hash?: string | null
+          signed_at?: string | null
+          signer_document?: string | null
+          signer_ip?: string | null
+          signer_name?: string | null
+          signer_user_agent?: string | null
           status?: string
           token?: string
           updated_at?: string
@@ -1430,6 +1442,12 @@ export type Database = {
           response?: string | null
           response_notes?: string | null
           seller_id?: string
+          signature_hash?: string | null
+          signed_at?: string | null
+          signer_document?: string | null
+          signer_ip?: string | null
+          signer_name?: string | null
+          signer_user_agent?: string | null
           status?: string
           token?: string
           updated_at?: string
@@ -2400,6 +2418,12 @@ export type Database = {
           response: string | null
           response_notes: string | null
           seller_id: string
+          signature_hash: string | null
+          signed_at: string | null
+          signer_document: string | null
+          signer_ip: string | null
+          signer_name: string | null
+          signer_user_agent: string | null
           status: string
           token: string
           updated_at: string

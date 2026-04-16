@@ -9,11 +9,25 @@ const corsHeaders = {
 };
 
 const GetQuoteSchema = z.object({
-  action: z.enum(["get_quote", "submit_response"]),
+  action: z.enum(["get_quote", "respond", "submit_response"]),
   token: z.string().min(1, "Token é obrigatório").max(200),
   response: z.enum(["approved", "rejected"]).optional(),
   response_notes: z.string().max(2000).optional(),
+  signer_name: z.string().min(3).max(200).optional(),
+  signer_document: z.string().min(11).max(20).optional(),
 });
+
+// SHA-256 helper for signature integrity
+async function sha256Hex(data: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function getClientIpFromReq(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "unknown";
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
@@ -64,7 +78,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    const { action, token, response, response_notes } = parsed.data;
+    const { action, token, response, response_notes, signer_name, signer_document } = parsed.data;
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -106,6 +120,10 @@ Deno.serve(async (req: Request) => {
             response: tokenData.response,
             response_notes: tokenData.response_notes,
             responded_at: tokenData.responded_at,
+            signer_name: tokenData.signer_name,
+            signer_document: tokenData.signer_document,
+            signature_hash: tokenData.signature_hash,
+            signed_at: tokenData.signed_at,
           }),
           { headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
@@ -193,7 +211,7 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (action === "respond") {
+    if (action === "respond" || action === "submit_response") {
       if (!token || !response) {
         return new Response(
           JSON.stringify({ error: "Token e resposta são obrigatórios" }),
@@ -201,11 +219,21 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      if (!["approved", "rejected"].includes(response)) {
-        return new Response(
-          JSON.stringify({ error: "Resposta inválida" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      // Approval requires e-signature (name + document)
+      if (response === "approved") {
+        const docDigits = (signer_document || "").replace(/\D/g, "");
+        if (!signer_name || signer_name.trim().length < 3) {
+          return new Response(
+            JSON.stringify({ error: "Nome completo é obrigatório para assinar a aprovação." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+        if (docDigits.length !== 11 && docDigits.length !== 14) {
+          return new Response(
+            JSON.stringify({ error: "CPF (11 dígitos) ou CNPJ (14 dígitos) válido é obrigatório." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
 
       // Fetch token
@@ -230,15 +258,34 @@ Deno.serve(async (req: Request) => {
         );
       }
 
-      // Update token with response
+      const nowIso = new Date().toISOString();
+      const clientIp = getClientIpFromReq(req);
+      const userAgent = req.headers.get("user-agent")?.slice(0, 500) || null;
+
+      // Compute signature hash for integrity (only for approval)
+      let signatureHash: string | null = null;
+      const docDigits = (signer_document || "").replace(/\D/g, "");
+      if (response === "approved") {
+        signatureHash = await sha256Hex(
+          [token, signer_name?.trim(), docDigits, nowIso, clientIp, tokenData.quote_id].join("|")
+        );
+      }
+
+      // Update token with response + signature
       await supabase
         .from("quote_approval_tokens")
         .update({
-          responded_at: new Date().toISOString(),
+          responded_at: nowIso,
           response,
           response_notes: response_notes || null,
           status: "responded",
-          updated_at: new Date().toISOString(),
+          updated_at: nowIso,
+          signer_name: response === "approved" ? signer_name?.trim() : null,
+          signer_document: response === "approved" ? docDigits : null,
+          signer_ip: clientIp,
+          signer_user_agent: userAgent,
+          signature_hash: signatureHash,
+          signed_at: response === "approved" ? nowIso : null,
         })
         .eq("id", tokenData.id);
 
@@ -248,18 +295,27 @@ Deno.serve(async (req: Request) => {
         .update({
           status: response,
           client_response: response,
-          client_response_at: new Date().toISOString(),
+          client_response_at: nowIso,
           client_response_notes: response_notes || null,
         })
         .eq("id", tokenData.quote_id);
 
-      // Log history in CRM
+      // Log history in CRM with signature evidence
       await crmClient.from("quote_history").insert({
         quote_id: tokenData.quote_id,
         user_id: tokenData.seller_id,
         action: `client_${response}`,
         description: `Cliente ${response === "approved" ? "aprovou" : "rejeitou"} o orçamento${response_notes ? `: ${response_notes}` : ""}`,
-        metadata: { via: "public_link", client_name: tokenData.client_name },
+        metadata: {
+          via: "public_link",
+          client_name: tokenData.client_name,
+          signer_name: response === "approved" ? signer_name?.trim() : null,
+          signer_document: response === "approved" ? docDigits : null,
+          signer_ip: clientIp,
+          signer_user_agent: userAgent,
+          signature_hash: signatureHash,
+          signed_at: response === "approved" ? nowIso : null,
+        },
       });
 
       // Create notification for seller
@@ -267,16 +323,27 @@ Deno.serve(async (req: Request) => {
         await supabase.from("workspace_notifications").insert({
           user_id: tokenData.seller_id,
           title: response === "approved" ? "🎉 Orçamento aprovado!" : "❌ Orçamento rejeitado",
-          message: `${tokenData.client_name || "Cliente"} ${response === "approved" ? "aprovou" : "rejeitou"} o orçamento.${response_notes ? ` Obs: ${response_notes}` : ""}`,
-          type: "quote_approval",
+          message: `${signer_name?.trim() || tokenData.client_name || "Cliente"} ${response === "approved" ? "aprovou e assinou" : "rejeitou"} o orçamento.${response_notes ? ` Obs: ${response_notes}` : ""}`,
+          type: response === "approved" ? "success" : "warning",
           category: "quotes",
+          action_url: "/orcamentos",
         });
       } catch (_) {
         // Notification is optional — don't block the response flow
       }
 
       return new Response(
-        JSON.stringify({ success: true, response }),
+        JSON.stringify({
+          success: true,
+          response,
+          signature: response === "approved" ? {
+            signer_name: signer_name?.trim(),
+            signer_document: docDigits,
+            signed_at: nowIso,
+            signature_hash: signatureHash,
+            signer_ip: clientIp,
+          } : null,
+        }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
