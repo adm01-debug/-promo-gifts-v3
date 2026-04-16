@@ -14,6 +14,14 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
+    // Rate limit: 20 req/min por usuário
+    const rl = await applyRateLimit(req, rateLimiters.ai, () => user.id);
+    if (rl) {
+      const headers = new Headers(rl.headers);
+      Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+      return new Response(rl.body, { status: rl.status, headers });
+    }
+
     const ImageSchema = z.object({
       imageBase64: z.string().min(10, 'Image is required').max(10_000_000, 'Image too large'),
     });
