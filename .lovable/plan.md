@@ -1,38 +1,55 @@
 
-## Plano de execução — Sprint 1 (Trends Module)
+Sprint 1 já foi concluído e validado. Agora executo Sprints 2-4 sequencialmente, um item por vez, sem pausas, até atingir 10/10.
 
-Foco em **alto impacto / baixo esforço** primeiro, com validação visual ao final.
+## Sprint 2 — Conversão & UX Avançada
 
-### 1. Algoritmo de Trending Score
-- Criar helper `calculateTrendingScore()` em `src/lib/trending-score.ts`: razão `views_recent / avg_baseline` com decay temporal.
-- Integrar no `useTrendingProducts` para reordenar por crescimento (não só volume).
+**2.1 Filtros persistentes na URL** — `?range=30d&tab=products` para compartilhamento e deep-linking.
+**2.2 Comparação temporal lado-a-lado** — toggle "vs período anterior" em todos os gráficos (linha pontilhada do período passado sobreposta).
+**2.3 Heatmap de horário/dia da semana** — quando os clientes mais buscam/visualizam (matriz 7×24).
+**2.4 Top categorias em alta** — agregação por categoria com mesmo trending score.
+**2.5 Export CSV/PDF** — botão de exportação dos rankings e KPIs.
 
-### 2. Deltas % nos KPI Cards
-- Buscar período anterior (mesmos N dias deslocados).
-- Calcular `delta = (atual - anterior) / anterior * 100`.
-- Exibir badge ▲/▼ colorido em cada um dos 4 stat cards.
+## Sprint 3 — IA & Inteligência
 
-### 3. Card "Demanda Reprimida" (0 resultados)
-- Query em `search_analytics` filtrando `results_count = 0`.
-- Novo componente `UnmetDemandCard.tsx` — Top 10 termos sem resultado, com CTA "Cadastrar produto".
+**3.1 Insights Narrativos via IA** — card no topo com 3 bullets gerados por `google/gemini-2.5-flash` (Lovable AI): "O que mudou", "Por quê", "Próxima ação".
+**3.2 Forecast de tendência** — projeção 7d à frente nos gráficos (regressão linear simples no client + intervalo de confiança).
+**3.3 Anomaly detection** — destacar dias/produtos com picos >2σ acima da média.
+**3.4 Edge function `trends-insights`** — agrega dados e chama Lovable AI Gateway.
 
-### 4. Funil de Conversão Visual
-- Componente `ConversionFunnel.tsx`: Search → View → Quote → Order.
-- Barras horizontais com taxa de drop-off entre etapas.
+## Sprint 4 — Personalização & Polimento
 
-### 5. Inline Actions nos rankings
-- Adicionar botões "Criar Orçamento" e "Ver Detalhes" direto nas linhas de produtos trending (sem precisar navegar).
+**4.1 Visões por papel** — Admin vê tudo; Vendedor vê só seus clientes/orçamentos.
+**4.2 Drill-down em qualquer KPI** — clicar em "Visualizações" abre modal com detalhamento.
+**4.3 Salvamento de views** — usuário salva combinação de filtros como "Minha visão semanal".
+**4.4 Real-time badge** — indicador "ao vivo" com contador de eventos dos últimos 5min via Realtime.
+**4.5 Onboarding tour** — first-visit tooltip explicando cada métrica.
 
-### 6. Fix técnico — classes Tailwind dinâmicas
-- Mapear cores estaticamente (`COLOR_MAP`) para evitar purge JIT em produção.
+## Ordem de execução (1 por vez, com validação visual ao final de cada Sprint)
 
-### 7. Validação E2E
-- Navegar para `/tendencias`, capturar screenshots dos 4 KPIs com deltas, do novo card de demanda reprimida e do funil.
-- Conferir console logs (sem erros) e network (queries < 2s).
+1. **2.1** URL params  → 2. **2.2** Comparação temporal  → 3. **2.3** Heatmap  → 4. **2.4** Categorias em alta  → 5. **2.5** Export
+6. Validar Sprint 2 (`/tendencias` screenshot + console)
+7. **3.4** Edge function `trends-insights`  → 8. **3.1** Card narrativo  → 9. **3.2** Forecast  → 10. **3.3** Anomalias
+11. Validar Sprint 3
+12. **4.1** Visões por papel  → 13. **4.2** Drill-down  → 14. **4.3** Saved views  → 15. **4.4** Real-time badge  → 16. **4.5** Tour
+17. Validação E2E final + atualizar memória
 
-### Arquivos a criar/editar
-- **Novos:** `src/lib/trending-score.ts`, `src/components/intelligence/UnmetDemandCard.tsx`, `src/components/intelligence/ConversionFunnel.tsx`
-- **Editar:** `src/pages/TrendsPage.tsx`, `src/hooks/useCommercialIntelligence.ts`, componentes de KPI da Trends
+## Arquivos principais
 
-### Sprints 2–4 (depois)
-Funil avançado, IA narrativa, forecasts, personalização por papel — ficam para próximos turnos após validar Sprint 1.
+**Novos:**
+- `src/hooks/useUrlState.ts` (genérico para URL persistence)
+- `src/components/intelligence/TrendsHeatmap.tsx`
+- `src/components/intelligence/TopCategoriesCard.tsx`
+- `src/components/intelligence/TrendsInsightsCard.tsx`
+- `src/components/intelligence/TrendsForecastChart.tsx`
+- `src/components/intelligence/SavedViewsManager.tsx`
+- `src/components/intelligence/RealtimeBadge.tsx`
+- `src/components/intelligence/TrendsTour.tsx`
+- `src/lib/trends-export.ts` (CSV+PDF)
+- `src/lib/forecast.ts` (regressão linear + anomaly)
+- `supabase/functions/trends-insights/index.ts`
+
+**Editar:** `src/pages/TrendsPage.tsx`, `src/pages/trends/TrendsCharts.tsx`, `src/pages/trends/TrendsKpiCards.tsx`
+
+**Migration:** tabela `saved_trends_views` (id, user_id, name, filters_jsonb, created_at) com RLS.
+
+Sem perguntas. Sem pausas. Executo tudo até 10/10.
