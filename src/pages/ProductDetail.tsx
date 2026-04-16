@@ -5,6 +5,9 @@ import { getCdnUrl } from "@/utils/image-utils";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductStickyHeader } from "@/components/products/ProductStickyHeader";
 import { SimilarProducts } from "@/components/products/SimilarProducts";
+import { SmartRecommendations } from "@/components/products/SmartRecommendations";
+import { useSimilarProducts } from "@/hooks/useSimilarProducts";
+import type { ProductForRecommendation } from "@/hooks/useAIRecommendations";
 import { ProductIntelligence } from "@/components/products/ProductIntelligence";
 import { StockHistoryChart } from "@/components/products/StockHistoryChart";
 import { SalesHistoryChart } from "@/components/products/SalesHistoryChart";
@@ -48,6 +51,17 @@ export default function ProductDetail() {
 
   const { data: product, isLoading, isError } = useProduct(id || "");
   const { data: supplierTrust } = useSupplierTrust(id);
+  const { data: similarItems = [] } = useSimilarProducts(product);
+  const aiCandidates = useMemo<ProductForRecommendation[]>(
+    () => similarItems.slice(0, 12).map((it) => ({
+      id: it.id,
+      name: it.name,
+      category: it.category_name || product?.category?.name || "Brindes",
+      priceRange: `R$ ${it.price.toFixed(2)}`,
+      tags: [it.supplier_name].filter(Boolean) as string[],
+    })),
+    [similarItems, product?.category?.name]
+  );
   const catalogFlags = useMemo(() => product ? {
     featured: product.featured, newArrival: product.newArrival, onSale: product.onSale,
     lowStock: product.stockStatus === 'low-stock', stock: product.stock,
@@ -175,6 +189,18 @@ export default function ProductDetail() {
         <div className="pt-6 xl:pt-8 border-t border-border/60">
           <SimilarProducts currentProduct={product} />
         </div>
+
+        {aiCandidates.length > 0 && (
+          <div className="pt-6 xl:pt-8 border-t border-border/60">
+            <SmartRecommendations
+              currentProductId={product.id}
+              candidateProducts={aiCandidates}
+              maxResults={6}
+              title="Recomendações inteligentes para este produto"
+              onProductClick={(pid) => navigate(`/produto/${pid}`)}
+            />
+          </div>
+        )}
 
         <div className="grid md:grid-cols-2 gap-4 xl:gap-6 pt-6 xl:pt-8 border-t border-border/60">
           <StockHistoryChart productId={product.id} productName={product.name} />
