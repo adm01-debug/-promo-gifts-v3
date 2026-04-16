@@ -17,17 +17,20 @@ import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
+export type SearchResultType = "product" | "client" | "quote" | "order" | "collection" | "kit" | "mockup" | "art_file";
+
 export interface SearchResult {
   id: string;
   title: string;
   subtitle?: string;
-  type: "product" | "client" | "quote" | "order";
+  type: SearchResultType;
   href: string;
   metadata?: Record<string, unknown>;
 }
 
 export interface SearchIntent {
-  type: "product" | "client" | "quote" | "order" | "mixed";
+  type: SearchResultType | "mixed";
+  entities?: SearchResultType[];
   filters: {
     category?: string;
     color?: string;
@@ -288,7 +291,7 @@ export function useGlobalSearch() {
         } catch { /* silent */ }
       }
 
-      if (intent.type === "order" || intent.type === "mixed") {
+      if (intent.type === "order" || intent.type === "mixed" || intent.entities?.includes("order")) {
         let orderQuery = supabase.from("orders").select("id, order_number, status, total, client_name, organization_id").limit(5);
         // RLS enforces org isolation, but add explicit filter for defense-in-depth
         const { data: orders } = await orderQuery;
@@ -306,6 +309,64 @@ export function useGlobalSearch() {
             });
           });
         }
+      }
+
+      const term = (intent.keywords.join(" ") || searchQuery).toLowerCase();
+      const wants = (t: SearchResultType) => intent.type === t || intent.type === "mixed" || intent.entities?.includes(t);
+
+      // Collections
+      if (wants("collection")) {
+        try {
+          const { data } = await supabase.from("collections").select("id, name, description, icon").ilike("name", `%${term}%`).limit(5);
+          (data || []).forEach(c => allResults.push({
+            id: c.id, title: c.name, subtitle: c.description || "Coleção",
+            type: "collection", href: `/colecoes/${c.id}`, metadata: { icon: c.icon },
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Custom kits
+      if (wants("kit")) {
+        try {
+          const { data } = await supabase.from("custom_kits").select("id, name, status, total_price, kit_quantity").ilike("name", `%${term}%`).limit(5);
+          (data || []).forEach(k => allResults.push({
+            id: k.id, title: k.name,
+            subtitle: `${k.status} • ${k.kit_quantity}x • ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(k.total_price || 0)}`,
+            type: "kit", href: `/kits/${k.id}`,
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Mockups
+      if (wants("mockup")) {
+        try {
+          const { data } = await supabase.from("generated_mockups")
+            .select("id, product_name, client_name, technique_name, created_at")
+            .or(`product_name.ilike.%${term}%,client_name.ilike.%${term}%,technique_name.ilike.%${term}%`)
+            .order("created_at", { ascending: false }).limit(5);
+          (data || []).forEach(m => allResults.push({
+            id: m.id, title: m.product_name || "Mockup",
+            subtitle: `${m.client_name || "Sem cliente"} • ${m.technique_name || "—"}`,
+            type: "mockup", href: `/mockups/${m.id}`,
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Art files
+      if (wants("art_file")) {
+        try {
+          const { data } = await supabase.from("art_file_attachments")
+            .select("id, original_name, notes, file_url, quote_id")
+            .or(`original_name.ilike.%${term}%,notes.ilike.%${term}%`)
+            .order("created_at", { ascending: false }).limit(5);
+          (data || []).forEach(a => allResults.push({
+            id: a.id, title: a.original_name,
+            subtitle: a.notes || "Arquivo de arte",
+            type: "art_file",
+            href: a.quote_id ? `/orcamentos/${a.quote_id}` : a.file_url,
+            metadata: { file_url: a.file_url },
+          }));
+        } catch { /* silent */ }
       }
 
       setResults(allResults);

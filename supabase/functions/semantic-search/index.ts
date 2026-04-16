@@ -123,8 +123,11 @@ const searchCache = new TTLCache<SearchIntent>(5 * 60 * 1000, 1000);
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL = 60 * 1000;
 
+type EntityType = 'product' | 'client' | 'quote' | 'order' | 'collection' | 'kit' | 'mockup' | 'art_file' | 'mixed';
+
 interface SearchIntent {
-  type: 'product' | 'client' | 'quote' | 'order' | 'mixed';
+  type: EntityType;
+  entities?: EntityType[]; // multiple targets when mixed
   filters: {
     category?: string;
     color?: string;
@@ -239,7 +242,11 @@ TIPOS DE BUSCA:
 - client: busca por clientes (empresas, pessoas)
 - quote: busca por orçamentos
 - order: busca por pedidos
-- mixed: busca geral em múltiplas entidades
+- collection: busca por coleções/wishlists do usuário
+- kit: busca por kits personalizados (custom_kits)
+- mockup: busca por mockups gerados
+- art_file: busca por arquivos de arte/anexos
+- mixed: busca geral em múltiplas entidades (use entities[] para listar)
 
 FILTROS POSSÍVEIS:
 - category: categoria do produto (ex: canecas, camisetas, mochilas, escritório)
@@ -278,7 +285,8 @@ Responda APENAS com JSON válido no formato especificado.`;
               parameters: {
                 type: "object",
                 properties: {
-                  type: { type: "string", enum: ["product", "client", "quote", "order", "mixed"] },
+                  type: { type: "string", enum: ["product", "client", "quote", "order", "collection", "kit", "mockup", "art_file", "mixed"] },
+                  entities: { type: "array", items: { type: "string", enum: ["product", "client", "quote", "order", "collection", "kit", "mockup", "art_file"] } },
                   filters: {
                     type: "object",
                     properties: {
