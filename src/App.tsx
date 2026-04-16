@@ -222,6 +222,7 @@ const App = () => {
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/performance" element={<SellerPerformanceDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
+                              <Route path="/comissoes" element={<CommissionsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                             </Route>
