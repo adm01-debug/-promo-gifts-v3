@@ -129,8 +129,18 @@ Deno.serve(async (req) => {
       return new Response(rl.body, { status: rl.status, headers });
     }
 
+    const ProductForRankSchema = z.object({
+      id: z.string().min(1),
+      name: z.string().optional().default(''),
+      description: z.string().optional().default(''),
+      tags: z.array(z.string()).optional().default([]),
+      category: z.string().optional().default(''),
+    });
+
     const SearchSchema = z.object({
       query: z.string().trim().min(2, 'Query too short').max(500, 'Query too long'),
+      products: z.array(ProductForRankSchema).max(500).optional(),
+      limit: z.number().int().min(1).max(100).optional().default(20),
     });
 
     let rawBody: unknown;
