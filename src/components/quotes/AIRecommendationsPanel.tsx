@@ -46,7 +46,6 @@ export function AIRecommendationsPanel({
         name: p.name,
         category: p.category_name || "Brindes",
         description: p.short_description || undefined,
-        tags: p.tags || undefined,
       })) as ProductForRecommendation[];
     },
     staleTime: 10 * 60 * 1000,
