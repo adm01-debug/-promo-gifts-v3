@@ -1,27 +1,26 @@
 /**
  * AIRecommendationsPanel — Painel de recomendações IA no fluxo de orçamento.
- * Usa o perfil do cliente + produtos disponíveis para sugerir itens relevantes.
+ * Carrega produtos automaticamente e usa o perfil do cliente para sugerir itens.
  */
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Sparkles, Loader2, RefreshCw, Plus, Lightbulb, AlertCircle } from "lucide-react";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { useAIRecommendations, type ClientProfile, type ProductForRecommendation, type Recommendation } from "@/hooks/useAIRecommendations";
 import { motion, AnimatePresence } from "framer-motion";
+import { useQuery } from "@tanstack/react-query";
 
 interface AIRecommendationsPanelProps {
   clientName?: string;
   clientCompany?: string;
   clientIndustry?: string;
-  /** Products available for recommendation (catalog subset) */
-  availableProducts?: ProductForRecommendation[];
-  /** Called when user wants to add a recommended product */
-  onAddProduct?: (productId: string) => void;
   /** Already-added product IDs to filter out */
   addedProductIds?: string[];
+  /** Called when user wants to add a recommended product by ID */
+  onAddProduct?: (productId: string, productName: string) => void;
   className?: string;
 }
 
@@ -29,23 +28,46 @@ export function AIRecommendationsPanel({
   clientName,
   clientCompany,
   clientIndustry,
-  availableProducts = [],
-  onAddProduct,
   addedProductIds = [],
+  onAddProduct,
   className,
 }: AIRecommendationsPanelProps) {
   const { recommendations, insights, isLoading, error, fetchRecommendations, clearCache } = useAIRecommendations();
   const [hasRequested, setHasRequested] = useState(false);
 
-  const canRequest = !!clientName && availableProducts.length > 0;
+  // Pre-load a sample of products for recommendations
+  const { data: catalogProducts } = useQuery({
+    queryKey: ["ai-rec-catalog-sample"],
+    queryFn: async () => {
+      const { fetchPromobrindProducts } = await import("@/lib/external-db");
+      const products = await fetchPromobrindProducts({ limit: 80 });
+      return products.map((p) => ({
+        id: p.id,
+        name: p.name,
+        category: p.category_name || "Brindes",
+        description: p.short_description || undefined,
+        tags: p.tags || undefined,
+      })) as ProductForRecommendation[];
+    },
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const canRequest = !!clientName && (catalogProducts?.length ?? 0) > 0;
 
   const filteredRecommendations = useMemo(
     () => recommendations.filter((r) => !addedProductIds.includes(r.productId)),
     [recommendations, addedProductIds]
   );
 
-  const handleRequest = async () => {
-    if (!clientName || availableProducts.length === 0) return;
+  // Map productId -> name from catalog for display
+  const productNameMap = useMemo(() => {
+    const map = new Map<string, string>();
+    catalogProducts?.forEach((p) => map.set(p.id, p.name));
+    return map;
+  }, [catalogProducts]);
+
+  const handleRequest = useCallback(async () => {
+    if (!clientName || !catalogProducts?.length) return;
 
     const client: ClientProfile = {
       name: clientName,
@@ -53,14 +75,14 @@ export function AIRecommendationsPanel({
       industry: clientIndustry,
     };
 
-    await fetchRecommendations(client, availableProducts);
+    await fetchRecommendations(client, catalogProducts);
     setHasRequested(true);
-  };
+  }, [clientName, clientCompany, clientIndustry, catalogProducts, fetchRecommendations]);
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     clearCache();
     await handleRequest();
-  };
+  }, [clearCache, handleRequest]);
 
   // Collapsed state — not yet requested
   if (!hasRequested && !isLoading) {
@@ -146,8 +168,9 @@ export function AIRecommendationsPanel({
                 <RecommendationCard
                   key={rec.productId}
                   recommendation={rec}
+                  productName={productNameMap.get(rec.productId) || rec.productId}
                   index={i}
-                  onAdd={() => onAddProduct?.(rec.productId)}
+                  onAdd={() => onAddProduct?.(rec.productId, productNameMap.get(rec.productId) || rec.productId)}
                 />
               ))}
             </div>
@@ -175,10 +198,12 @@ export function AIRecommendationsPanel({
 
 function RecommendationCard({
   recommendation,
+  productName,
   index,
   onAdd,
 }: {
   recommendation: Recommendation;
+  productName: string;
   index: number;
   onAdd: () => void;
 }) {
@@ -200,7 +225,7 @@ function RecommendationCard({
         {Math.round(recommendation.score * 100)}%
       </Badge>
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-medium truncate">{recommendation.productId}</p>
+        <p className="text-xs font-medium truncate">{productName}</p>
         <p className="text-[11px] text-muted-foreground line-clamp-2 mt-0.5">{recommendation.reason}</p>
       </div>
       <Tooltip>
