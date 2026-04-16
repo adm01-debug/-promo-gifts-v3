@@ -129,24 +129,43 @@ function StockProgressBar({ current, min }: { current: number; min: number; max?
     current <= min * 0.25 ? 'bg-destructive' :
     current <= min ? 'bg-warning' :
     'bg-success';
+
+  const statusLabel = 
+    current <= 0 ? 'Esgotado' :
+    current <= min * 0.25 ? 'Crítico' :
+    current <= min ? 'Baixo' :
+    'OK';
   
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <div className="w-24 cursor-help">
+          <div className="w-28 cursor-help space-y-0.5">
             <Progress 
               value={percentage} 
               className={cn("h-2", progressColor)} 
             />
+            <div className="flex justify-between">
+              <span className={cn("text-[9px] tabular-nums", percentage <= 25 ? "text-destructive" : percentage <= 100 ? "text-warning" : "text-success")}>
+                {Math.round(percentage)}%
+              </span>
+              <span className="text-[9px] text-muted-foreground">{statusLabel}</span>
+            </div>
           </div>
         </TooltipTrigger>
         <TooltipContent>
-          <p className="text-xs">
-            <span className="font-semibold">{Math.round(percentage)}%</span> do mínimo
-            <br />
-            {current.toLocaleString('pt-BR')} / {min.toLocaleString('pt-BR')} un.
-          </p>
+          <div className="text-xs space-y-1">
+            <p><span className="font-semibold">{Math.round(percentage)}%</span> do estoque mínimo</p>
+            <p className="text-muted-foreground">
+              Atual: <strong>{current.toLocaleString('pt-BR')}</strong> / Mínimo: <strong>{min.toLocaleString('pt-BR')}</strong> un.
+            </p>
+            {current <= min && current > 0 && (
+              <p className="text-warning">⚠️ Abaixo do nível mínimo — considere reabastecer</p>
+            )}
+            {current <= 0 && (
+              <p className="text-destructive">🚨 Sem estoque — reposição urgente necessária</p>
+            )}
+          </div>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -550,9 +569,18 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                  <Package className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                  <p>Nenhum produto encontrado</p>
+                <TableCell colSpan={9} className="text-center py-16 text-muted-foreground">
+                  <div className="flex flex-col items-center">
+                    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                      <Package className="h-8 w-8 opacity-30" />
+                    </div>
+                    <p className="font-semibold text-foreground mb-1">Nenhum produto encontrado</p>
+                    <p className="text-sm max-w-xs">
+                      {inlineSearch
+                        ? `Nenhum resultado para "${inlineSearch}". Tente outro termo.`
+                        : 'Ajuste os filtros para visualizar os produtos.'}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}

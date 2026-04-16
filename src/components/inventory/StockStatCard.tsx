@@ -100,22 +100,35 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
       aria-label={`${title}: ${value}${clickHint ? `. ${clickHint}` : ''}`}
       aria-pressed={isActive}
     >
+      {/* Active indicator line */}
+      {isActive && (
+        <div className={cn(
+          "absolute top-0 left-0 right-0 h-0.5",
+          variant === 'success' && "bg-success",
+          variant === 'warning' && "bg-warning",
+          variant === 'error' && "bg-destructive",
+          variant === 'default' && "bg-primary",
+        )} />
+      )}
       <div className="p-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1 text-left">
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold tabular-nums">{displayValue}</p>
+            <p className="text-xs text-muted-foreground font-medium">{title}</p>
+            <p className="text-2xl font-bold tabular-nums tracking-tight">{displayValue}</p>
             {trend && (
               <p className={cn(
                 "text-xs flex items-center gap-1",
                 trend.value >= 0 ? "text-success" : "text-destructive"
               )}>
                 {trend.value >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                {trend.label}
+                <span className="truncate">{trend.label}</span>
               </p>
             )}
           </div>
-          <div className="h-12 w-12 rounded-full bg-muted/50 flex items-center justify-center shrink-0" aria-hidden="true">
+          <div className={cn(
+            "h-11 w-11 rounded-full flex items-center justify-center shrink-0 transition-colors",
+            isActive ? "bg-background shadow-sm" : "bg-muted/50",
+          )} aria-hidden="true">
             {icon}
           </div>
         </div>

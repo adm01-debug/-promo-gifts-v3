@@ -2,11 +2,18 @@ import { useState, useMemo, useEffect, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Package, TrendingDown, RefreshCw, Truck, CheckCircle2, XCircle, Palette, Loader2, AlertCircle, X,
-  ChevronDown, ChevronRight, Clock,
+  ChevronDown, ChevronRight, Clock, BarChart3, Shield,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVariantStock } from "@/hooks/useVariantStock";
@@ -25,12 +32,18 @@ export function StockDashboard() {
   const [riskPanelOpen, setRiskPanelOpen] = useState(true);
   const { toast } = useToast();
   const prevCriticalCountRef = useRef<number | null>(null);
+  const lastRefreshRef = useRef<Date>(new Date());
   const {
     isLoading, isFetching, loadingProgress, productStocks, allProductStocks,
     summary, alerts, criticalAlerts, filters, futureStock, allColors,
     availableCategories, availableSuppliers, availableColorGroups,
     fetchStockData, updateFilter, resetFilters, dismissAlert, dismissAlertsBySeverity,
   } = useVariantStock();
+
+  // Track last refresh time
+  useEffect(() => {
+    if (!isFetching) lastRefreshRef.current = new Date();
+  }, [isFetching]);
 
   // Toast when new critical alerts appear after refresh
   useEffect(() => {
@@ -63,28 +76,57 @@ export function StockDashboard() {
 
   const isFiltered = filters.status !== 'all';
 
+  // Health score calculation
+  const healthScore = useMemo(() => {
+    if (summary.totalProducts === 0) return 100;
+    const healthy = summary.productsInStock;
+    return Math.round((healthy / summary.totalProducts) * 100);
+  }, [summary]);
+
+  const healthColor = healthScore >= 80 ? 'text-success' : healthScore >= 50 ? 'text-warning' : 'text-destructive';
+
+  // Future stock total
+  const futureStockTotal = useMemo(
+    () => futureStock.reduce((sum, f) => sum + (f.expectedQuantity || 0), 0),
+    [futureStock]
+  );
+
   if (isLoading) {
     return (
       <div className="space-y-6 p-6" aria-live="polite" aria-busy="true">
         <div className="flex flex-col items-center justify-center py-12">
-          <Package className="h-12 w-12 text-primary animate-pulse mb-4" />
-          <p className="text-lg font-medium mb-2">Carregando estoque...</p>
+          <div className="relative">
+            <Package className="h-12 w-12 text-primary animate-pulse mb-4" />
+            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary animate-ping" />
+          </div>
+          <p className="text-lg font-semibold mb-1">Carregando estoque...</p>
           {loadingProgress && (
-            <p className="text-sm text-muted-foreground">
-              {loadingProgress.step} ({loadingProgress.current}/{loadingProgress.total})
-            </p>
+            <div className="flex flex-col items-center gap-1">
+              <p className="text-sm text-muted-foreground">
+                {loadingProgress.step}
+              </p>
+              <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-primary rounded-full transition-all duration-300"
+                  style={{ width: `${(loadingProgress.current / loadingProgress.total) * 100}%` }}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground tabular-nums">
+                {loadingProgress.current}/{loadingProgress.total}
+              </p>
+            </div>
           )}
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-24" />)}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-28 rounded-lg" />)}
         </div>
-        <Skeleton className="h-96" />
+        <Skeleton className="h-96 rounded-lg" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
 
       {/* Alert Dialogs */}
       <OutOfStockDialog open={outOfStockDialogOpen} onOpenChange={setOutOfStockDialogOpen}
@@ -94,18 +136,51 @@ export function StockDashboard() {
       <FutureStockDialog open={futureStockDialogOpen} onOpenChange={setFutureStockDialogOpen}
         entries={futureStock} />
 
-      {/* Header with timestamp */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-lg font-semibold">Visão Geral</h2>
+      {/* Header with Health Score */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+        <div className="flex items-center gap-3">
+          <h2 className="text-lg font-semibold">Visão Geral</h2>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    "gap-1 text-xs font-semibold",
+                    healthScore >= 80 && "bg-success/10 border-success/20 text-success",
+                    healthScore >= 50 && healthScore < 80 && "bg-warning/10 border-warning/20 text-warning",
+                    healthScore < 50 && "bg-destructive/10 border-destructive/20 text-destructive",
+                  )}
+                >
+                  <Shield className="h-3 w-3" />
+                  Saúde: {healthScore}%
+                </Badge>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-xs max-w-[200px]">
+                  Índice de saúde do estoque: {summary.productsInStock} de {summary.totalProducts} produtos com estoque adequado.
+                  {healthScore < 50 && ' ⚠️ Atenção: muitos produtos precisam de reposição.'}
+                </p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          {criticalAlerts.length > 0 && (
+            <Badge variant="destructive" className="gap-1 text-xs animate-pulse cursor-pointer"
+              onClick={() => setOutOfStockDialogOpen(true)}>
+              <AlertCircle className="h-3 w-3" />
+              {criticalAlerts.length} alertas
+            </Badge>
+          )}
+        </div>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <Clock className="h-3.5 w-3.5" />
-          Última atualização: {new Date().toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
-          {isFetching && <Loader2 className="h-3 w-3 animate-spin" />}
+          {lastRefreshRef.current.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}
+          {isFetching && <Loader2 className="h-3 w-3 animate-spin text-primary" />}
         </div>
       </div>
 
       {/* Summary Cards — clickable filters */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3">
         <StatCard title="Total de Produtos" value={summary.totalProducts.toLocaleString('pt-BR')}
           icon={<Package className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'all'}
@@ -137,7 +212,7 @@ export function StockDashboard() {
           clickHint="Filtrar produtos sem estoque"
           trend={summary.criticalAlerts > 0 ? { value: -1, label: `${summary.criticalAlerts} alertas ativos` } : undefined} />
         <StatCard title="Estoque Futuro"
-          value={futureStock.length > 0 ? futureStock.reduce((sum, f) => sum + (f.expectedQuantity || 0), 0) : 0}
+          value={futureStockTotal}
           icon={<Truck className="h-6 w-6 text-primary" />}
           isActive={filters.status === 'incoming'}
           onClick={() => {
@@ -188,21 +263,22 @@ export function StockDashboard() {
 
       {/* Stock Table */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center justify-between">
-            <span className="flex items-center gap-2">
-              <Palette className="h-5 w-5" />
-              Estoque por Cor/Variação
-              {isFiltered ? (
-                <span className="text-base font-normal text-muted-foreground">
-                  ({productStocks.length} de {allProductStocks.length} produtos)
-                </span>
-              ) : (
-                <span className="text-base font-normal text-muted-foreground">
-                  ({productStocks.length} produtos)
-                </span>
-              )}
-            </span>
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2 text-base">
+                <Palette className="h-5 w-5" />
+                Estoque por Cor/Variação
+                <Badge variant="secondary" className="text-xs font-normal ml-1">
+                  {isFiltered
+                    ? `${productStocks.length} de ${allProductStocks.length}`
+                    : `${productStocks.length} produtos`}
+                </Badge>
+              </CardTitle>
+              <CardDescription className="mt-1">
+                Visualização detalhada do estoque segmentado por cores e variações
+              </CardDescription>
+            </div>
             <Button
               variant="outline"
               size="sm"
@@ -214,10 +290,9 @@ export function StockDashboard() {
               <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
               {isFetching ? 'Atualizando...' : 'Atualizar'}
             </Button>
-          </CardTitle>
-          <CardDescription>Visualização detalhada do estoque segmentado por cores e variações</CardDescription>
+          </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           <ScrollArea className="h-[min(600px,_60vh)]">
             <VariantStockTable products={productStocks} />
           </ScrollArea>
@@ -232,6 +307,7 @@ export function StockDashboard() {
           className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors mb-2"
         >
           {riskPanelOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          <BarChart3 className="h-4 w-4" />
           Painel de Risco do Fornecedor
         </button>
         {riskPanelOpen && <SupplierRiskPanel products={allProductStocks} />}

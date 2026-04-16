@@ -117,11 +117,11 @@ export function StockFilterToolbar({
         {/* 1. Advanced Filters Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="default" className="gap-2 relative">
+            <Button variant="outline" size="default" className={cn("gap-2 relative", activeFiltersCount > 0 && "border-primary/50 bg-primary/5")}>
               <SlidersHorizontal className="h-4 w-4" />
               <span className="hidden sm:inline">Filtros</span>
               {activeFiltersCount > 0 && (
-                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5">
+                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5 animate-in zoom-in-50">
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -134,6 +134,11 @@ export function StockFilterToolbar({
                 <h4 className="font-semibold text-sm flex items-center gap-2">
                   <SlidersHorizontal className="h-4 w-4" />
                   Filtros Avançados
+                  {activeFiltersCount > 0 && (
+                    <span className="text-xs text-muted-foreground font-normal">
+                      ({filteredCount} de {totalProducts})
+                    </span>
+                  )}
                 </h4>
                 <div className="flex items-center gap-1.5">
                   <Button
