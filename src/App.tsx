@@ -81,6 +81,10 @@ const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"))
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
 const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
+// Clients (CRM) Pages
+const ClientsPage = lazyWithRetry(() => import("./pages/ClientsPage"));
+const ClientDetailPage = lazyWithRetry(() => import("./pages/ClientDetailPage"));
+
 
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
@@ -259,6 +263,10 @@ const App = () => {
                             {/* Orders */}
                             <Route path="/pedidos" element={<OrdersPage />} />
                             <Route path="/pedidos/:id" element={<OrderDetailPage />} />
+
+                            {/* Clients (CRM) */}
+                            <Route path="/clientes" element={<ClientsPage />} />
+                            <Route path="/clientes/:id" element={<ClientDetailPage />} />
 
                             {/* Redirects legados */}
                             <Route path="/perfil" element={<Navigate to="/admin/usuarios" replace />} />
