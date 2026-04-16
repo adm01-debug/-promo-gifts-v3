@@ -9,11 +9,25 @@ const corsHeaders = {
 };
 
 const GetQuoteSchema = z.object({
-  action: z.enum(["get_quote", "submit_response"]),
+  action: z.enum(["get_quote", "respond", "submit_response"]),
   token: z.string().min(1, "Token é obrigatório").max(200),
   response: z.enum(["approved", "rejected"]).optional(),
   response_notes: z.string().max(2000).optional(),
+  signer_name: z.string().min(3).max(200).optional(),
+  signer_document: z.string().min(11).max(20).optional(),
 });
+
+// SHA-256 helper for signature integrity
+async function sha256Hex(data: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, "0")).join("");
+}
+
+function getClientIpFromReq(req: Request): string {
+  const xff = req.headers.get("x-forwarded-for");
+  if (xff) return xff.split(",")[0].trim();
+  return req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "unknown";
+}
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
