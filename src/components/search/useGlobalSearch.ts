@@ -532,11 +532,16 @@ export function useGlobalSearch() {
 
       // ── Telemetry (fire-and-forget) ──
       const latencyMs = Math.round(performance.now() - startedAt);
-      void supabase.from("search_analytics").insert({
-        search_term: searchQuery.toLowerCase().trim().slice(0, 200),
-        results_count: finalResults.length,
-        filters_used: { latency_ms: latencyMs, intent_type: intent.type },
-      }).then(() => undefined, () => undefined);
+      void supabase.auth.getUser().then(({ data }) => {
+        const sellerId = data.user?.id;
+        if (!sellerId) return;
+        return supabase.from("search_analytics").insert({
+          seller_id: sellerId,
+          search_term: searchQuery.toLowerCase().trim().slice(0, 200),
+          results_count: finalResults.length,
+          filters_used: { latency_ms: latencyMs, intent_type: intent.type },
+        }).then(() => undefined, () => undefined);
+      }, () => undefined);
     } catch {
       setIsAIProcessing(false);
     } finally {
