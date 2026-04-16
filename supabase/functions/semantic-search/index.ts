@@ -1,9 +1,46 @@
+import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+
+// ========================================
+// PG_TRGM RE-RANK via RPC search_products_semantic
+// ========================================
+interface RankResult {
+  product_id: string;
+  score: number;
+  matched_field: string;
+}
+
+async function rerankProducts(
+  query: string,
+  products: Array<{ id: string; name?: string; description?: string; tags?: string[]; category?: string }>,
+  limit: number,
+): Promise<RankResult[]> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !serviceKey) return [];
+    const client = createClient(url, serviceKey);
+    const { data, error } = await client.rpc("search_products_semantic", {
+      _query: query,
+      _products: products,
+      _limit: limit,
+    });
+    if (error) {
+      console.warn("[rerank] RPC error:", error.message);
+      return [];
+    }
+    return (data ?? []) as RankResult[];
+  } catch (e) {
+    console.warn("[rerank] exception:", (e as Error).message);
+    return [];
+  }
+}
+
 
 // ========================================
 // CACHE IMPLEMENTATION - TTL 5 minutes
