@@ -2,11 +2,13 @@
  * useGlobalSearch — Hook that encapsulates all search logic for GlobalSearchPalette.
  * Extracted to reduce the component from 1033 to ~300 lines (UI only).
  */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { searchCache } from "./searchCache";
+import { pushRecentSearch } from "./EmptySearchState";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
 import { useDebounce } from "@/hooks/useDebounce";
