@@ -120,16 +120,20 @@ function KpiCard({ label, value, sub, icon: Icon, variant = 'default' }: {
     warning: 'bg-warning/5 border-warning/15',
   };
   const iconStyles = {
-    default: 'text-muted-foreground',
-    primary: 'text-primary',
-    success: 'text-success',
-    warning: 'text-warning',
+    default: 'text-muted-foreground bg-muted/50',
+    primary: 'text-primary bg-primary/10',
+    success: 'text-success bg-success/10',
+    warning: 'text-warning bg-warning/10',
   };
 
   return (
-    <div className={cn("rounded-lg border p-3 text-center transition-all", styles[variant])}>
-      <Icon className={cn("h-4 w-4 mx-auto mb-1", iconStyles[variant])} />
-      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+    <div className={cn("rounded-xl border p-3 transition-all hover:shadow-sm", styles[variant])}>
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", iconStyles[variant])}>
+          <Icon className="h-3.5 w-3.5" />
+        </div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
+      </div>
       <p className="text-xl font-bold tabular-nums">{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</p>
       {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
     </div>
@@ -394,9 +398,36 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
           />
         </div>
 
+        {/* Confirmation progress bar */}
+        {stats.totalUnits > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Confirmação de Reposição</span>
+              <span className="font-medium tabular-nums text-success">
+                {Math.round((stats.confirmedUnits / stats.totalUnits) * 100)}% confirmado
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden flex">
+              <div
+                className="h-full bg-success rounded-l-full transition-all duration-500"
+                style={{ width: `${(stats.confirmedUnits / stats.totalUnits) * 100}%` }}
+              />
+              <div
+                className="h-full bg-primary/60 transition-all duration-500"
+                style={{ width: `${(stats.inTransitUnits / stats.totalUnits) * 100}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success" />Confirmado</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary/60" />Em trânsito</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-muted" />Pendente</span>
+            </div>
+          </div>
+        )}
+
         {/* Overdue alert */}
         {stats.overdueCount > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>
               <strong>{stats.overdueCount}</strong> {stats.overdueCount === 1 ? 'reposição atrasada' : 'reposições atrasadas'} — verifique com o fornecedor.

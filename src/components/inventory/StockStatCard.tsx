@@ -19,7 +19,6 @@ function useCountUp(target: number, duration = 600) {
     const step = (now: number) => {
       const elapsed = now - start;
       const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
       setValue(Math.round(from + (to - from) * eased));
       if (progress < 1) raf = requestAnimationFrame(step);
@@ -41,40 +40,55 @@ interface StatCardProps {
   onClick?: () => void;
   clickHint?: string;
   isActive?: boolean;
+  subtitle?: string;
 }
 
 const variantStyles = {
   default: {
     base: 'bg-card border-border',
-    hover: 'hover:bg-muted/50',
+    hover: 'hover:bg-muted/50 hover:shadow-md',
     active: 'ring-primary',
+    iconBg: 'bg-primary/10',
+    iconColor: 'text-primary',
+    accentLine: 'bg-primary',
+    glowColor: 'shadow-primary/5',
   },
   success: {
     base: 'bg-success/5 border-success/20',
-    hover: 'hover:bg-success/10 hover:border-success/40',
+    hover: 'hover:bg-success/10 hover:border-success/40 hover:shadow-md',
     active: 'ring-success',
+    iconBg: 'bg-success/15',
+    iconColor: 'text-success',
+    accentLine: 'bg-success',
+    glowColor: 'shadow-success/10',
   },
   warning: {
     base: 'bg-warning/5 border-warning/20',
-    hover: 'hover:bg-warning/10 hover:border-warning/40',
+    hover: 'hover:bg-warning/10 hover:border-warning/40 hover:shadow-md',
     active: 'ring-warning',
+    iconBg: 'bg-warning/15',
+    iconColor: 'text-warning',
+    accentLine: 'bg-warning',
+    glowColor: 'shadow-warning/10',
   },
   error: {
     base: 'bg-destructive/5 border-destructive/20',
-    hover: 'hover:bg-destructive/10 hover:border-destructive/40',
+    hover: 'hover:bg-destructive/10 hover:border-destructive/40 hover:shadow-md',
     active: 'ring-destructive',
+    iconBg: 'bg-destructive/15',
+    iconColor: 'text-destructive',
+    accentLine: 'bg-destructive',
+    glowColor: 'shadow-destructive/10',
   },
 };
 
-export function StatCard({ title, value, icon, trend, variant = 'default', onClick, clickHint, isActive }: StatCardProps) {
+export function StatCard({ title, value, icon, trend, variant = 'default', onClick, clickHint, isActive, subtitle }: StatCardProps) {
   const styles = variantStyles[variant];
 
-  // Parse numeric value for animation
   const numericValue = typeof value === 'string' ? parseInt(value.replace(/\D/g, ''), 10) : value;
   const isNumeric = typeof numericValue === 'number' && !isNaN(numericValue) && typeof value !== 'string' || (typeof value === 'string' && /^\d/.test(value));
   const animatedValue = useCountUp(isNumeric ? numericValue : 0);
   
-  // Format the display value
   const displayValue = isNumeric
     ? animatedValue.toLocaleString('pt-BR')
     : value;
@@ -88,7 +102,7 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
         onClick?.();
       }}
       className={cn(
-        "relative w-full overflow-hidden rounded-lg border text-left shadow-sm",
+        "group relative w-full overflow-hidden rounded-xl border text-left",
         "transition-all duration-300 ease-out",
         styles.base,
         onClick && "cursor-pointer",
@@ -96,28 +110,29 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
         "active:scale-[0.97]",
         isActive && "ring-2 ring-offset-2 ring-offset-background shadow-lg scale-[1.02]",
         isActive && styles.active,
+        isActive && styles.glowColor,
       )}
       aria-label={`${title}: ${value}${clickHint ? `. ${clickHint}` : ''}`}
       aria-pressed={isActive}
     >
-      {/* Active indicator line */}
-      {isActive && (
-        <div className={cn(
-          "absolute top-0 left-0 right-0 h-0.5",
-          variant === 'success' && "bg-success",
-          variant === 'warning' && "bg-warning",
-          variant === 'error' && "bg-destructive",
-          variant === 'default' && "bg-primary",
-        )} />
-      )}
+      {/* Top accent line */}
+      <div className={cn(
+        "absolute top-0 left-0 right-0 h-[3px] transition-all duration-300",
+        styles.accentLine,
+        isActive ? "opacity-100" : "opacity-0 group-hover:opacity-60",
+      )} />
+
       <div className="p-4">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1 text-left">
-            <p className="text-xs text-muted-foreground font-medium">{title}</p>
+        <div className="flex items-center justify-between gap-3">
+          <div className="space-y-1 text-left min-w-0 flex-1">
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">{title}</p>
             <p className="text-2xl font-bold tabular-nums tracking-tight">{displayValue}</p>
+            {subtitle && (
+              <p className="text-[10px] text-muted-foreground/70 truncate">{subtitle}</p>
+            )}
             {trend && (
               <p className={cn(
-                "text-xs flex items-center gap-1",
+                "text-xs flex items-center gap-1 font-medium",
                 trend.value >= 0 ? "text-success" : "text-destructive"
               )}>
                 {trend.value >= 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
@@ -126,13 +141,21 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
             )}
           </div>
           <div className={cn(
-            "h-11 w-11 rounded-full flex items-center justify-center shrink-0 transition-colors",
-            isActive ? "bg-background shadow-sm" : "bg-muted/50",
+            "h-12 w-12 rounded-xl flex items-center justify-center shrink-0 transition-all duration-300",
+            isActive ? `${styles.iconBg} shadow-sm` : "bg-muted/50 group-hover:scale-110",
+            styles.iconColor,
           )} aria-hidden="true">
             {icon}
           </div>
         </div>
       </div>
+
+      {/* Click hint on hover */}
+      {clickHint && onClick && (
+        <div className="absolute bottom-0 left-0 right-0 text-center text-[9px] text-muted-foreground/0 group-hover:text-muted-foreground/60 transition-colors pb-1">
+          {clickHint}
+        </div>
+      )}
     </button>
   );
 }

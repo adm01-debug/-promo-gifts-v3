@@ -146,35 +146,40 @@ export function StockDashboard() {
   };
 
   if (isLoading) {
+    const pct = loadingProgress ? Math.round((loadingProgress.current / loadingProgress.total) * 100) : 0;
     return (
       <div className="space-y-6 p-6" aria-live="polite" aria-busy="true">
-        <div className="flex flex-col items-center justify-center py-12">
-          <div className="relative">
-            <Package className="h-12 w-12 text-primary animate-pulse mb-4" />
+        <div className="flex flex-col items-center justify-center py-16">
+          <div className="relative mb-6">
+            <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <Package className="h-10 w-10 text-primary animate-pulse" />
+            </div>
             <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary animate-ping" />
           </div>
-          <p className="text-lg font-semibold mb-1">Carregando estoque...</p>
+          <p className="text-lg font-semibold mb-1">Sincronizando estoque</p>
+          <p className="text-sm text-muted-foreground mb-4">Conectando ao fornecedor e processando dados...</p>
           {loadingProgress && (
-            <div className="flex flex-col items-center gap-1">
-              <p className="text-sm text-muted-foreground">
-                {loadingProgress.step}
-              </p>
-              <div className="w-48 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
+              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                 <div
-                  className="h-full bg-primary rounded-full transition-all duration-300"
-                  style={{ width: `${(loadingProgress.current / loadingProgress.total) * 100}%` }}
+                  className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-500 ease-out"
+                  style={{ width: `${pct}%` }}
                 />
               </div>
-              <p className="text-xs text-muted-foreground tabular-nums">
-                {loadingProgress.current}/{loadingProgress.total}
-              </p>
+              <div className="flex items-center justify-between w-full">
+                <p className="text-xs text-muted-foreground">{loadingProgress.step}</p>
+                <p className="text-xs font-medium tabular-nums text-primary">{pct}%</p>
+              </div>
             </div>
           )}
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-28 rounded-lg" />)}
+          {[1, 2, 3, 4, 5].map(i => (
+            <Skeleton key={i} className="h-28 rounded-xl" />
+          ))}
         </div>
-        <Skeleton className="h-96 rounded-lg" />
+        <Skeleton className="h-12 rounded-xl" />
+        <Skeleton className="h-96 rounded-xl" />
       </div>
     );
   }

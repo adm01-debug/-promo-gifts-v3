@@ -16,6 +16,7 @@ import {
   ShoppingCart,
   Search,
   X,
+  Copy,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -385,8 +386,27 @@ function ProductRow({ product, isExpanded, onToggle }: {
                 </Tooltip>
               </TooltipProvider>
             )}
-            {/* Quick Actions */}
-            <div className="flex gap-0.5 ml-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* Quick Actions on Hover */}
+            <div className="flex gap-0.5 ml-auto opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 hover:bg-muted"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigator.clipboard.writeText(product.productSku);
+                      }}
+                      aria-label={`Copiar SKU ${product.productSku}`}
+                    >
+                      <Copy className="h-3 w-3" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent><p className="text-xs">Copiar SKU</p></TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
