@@ -67,7 +67,7 @@ export const nonEmptyString = z.string().trim().min(1, 'Cannot be empty');
 export const positiveInt = z.number().int().positive();
 
 /** Non-negative number (for prices, quantities) */
-export const nonNegativeNumber = z.number().nonneg();
+export const nonNegativeNumber = z.number().nonnegative();
 
 /** Email */
 export const emailSchema = z.string().email().max(255);
