@@ -113,6 +113,7 @@ const navGroups: NavGroup[] = [
       { icon: BarChart3, label: "Dashboard BI", href: "/bi" },
       { icon: Star, label: "Performance", href: "/performance" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
+      { icon: DollarSign, label: "Comissões", href: "/comissoes" },
     ],
   },
   {
