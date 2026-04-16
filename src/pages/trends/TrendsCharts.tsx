@@ -119,16 +119,63 @@ export function ProductsTabContent({ topProducts, isLoading }: ProductsTabProps)
           ) : topProducts && topProducts.length > 0 ? (
             <div className="space-y-3 max-h-[300px] overflow-y-auto">
               {topProducts.map((product, index) => (
-                <div key={product.id} className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors cursor-pointer" role="button" tabIndex={0} onClick={() => product.id && navigate(`/produto/${product.id}`)} onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && product.id) { e.preventDefault(); navigate(`/produto/${product.id}`); } }} aria-label={`Ver produto ${product.name}`}>
-                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm">{index + 1}</div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-foreground truncate">{product.name}</p>
+                <div
+                  key={product.id}
+                  className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group"
+                >
+                  <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary font-bold text-sm shrink-0">
+                    {index < 3 ? ['🥇','🥈','🥉'][index] : index + 1}
+                  </div>
+                  <div
+                    className="flex-1 min-w-0 cursor-pointer"
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => product.id && navigate(`/produto/${product.id}`)}
+                    onKeyDown={(e) => { if ((e.key === 'Enter' || e.key === ' ') && product.id) { e.preventDefault(); navigate(`/produto/${product.id}`); } }}
+                    aria-label={`Ver produto ${product.name}`}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <p className="font-medium text-foreground truncate">{product.name}</p>
+                      {product.trendingScore !== undefined && product.trendingScore > 1.3 && (
+                        <Badge variant="outline" className="text-[9px] h-4 px-1 bg-success/10 text-success border-success/30 shrink-0">
+                          <TrendingUp className="h-2.5 w-2.5 mr-0.5" />
+                          {Math.round((product.trendingScore - 1) * 100)}%
+                        </Badge>
+                      )}
+                      {product.classification === 'new' && (
+                        <Badge variant="outline" className="text-[9px] h-4 px-1 bg-primary/10 text-primary border-primary/30 shrink-0">
+                          <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                          NOVO
+                        </Badge>
+                      )}
+                    </div>
                     {product.sku && <p className="text-xs text-muted-foreground">SKU: {product.sku}</p>}
                   </div>
-                  <div className="flex gap-1.5 flex-wrap justify-end">
+                  <div className="flex gap-1.5 flex-wrap justify-end shrink-0">
                     <Badge variant="secondary" className="text-xs"><Eye className="h-3 w-3 mr-1" />{product.views}</Badge>
                     {product.compares > 0 && <Badge variant="outline" className="text-xs">Comp: {product.compares}</Badge>}
-                    {product.favorites > 0 && <Badge variant="outline" className="text-xs text-primary">♥ {product.favorites}</Badge>}
+                  </div>
+                  <div className="flex gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={(e) => { e.stopPropagation(); if (product.id) navigate(`/orcamentos/novo?produto=${product.id}`); }}
+                      title="Criar orçamento"
+                      aria-label="Criar orçamento com este produto"
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      className="h-8 w-8"
+                      onClick={(e) => { e.stopPropagation(); if (product.id) navigate(`/produto/${product.id}`); }}
+                      title="Ver detalhes"
+                      aria-label="Ver detalhes do produto"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Button>
                   </div>
                 </div>
               ))}
