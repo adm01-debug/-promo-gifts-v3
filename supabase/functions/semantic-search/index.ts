@@ -110,6 +110,14 @@ Deno.serve(async (req) => {
     // Authenticate
     const auth = await authenticateRequest(req);
 
+    // Rate limit: 100 req/min por usuário (busca pode ser intensa)
+    const rl = await applyRateLimit(req, rateLimiters.search, () => auth.userId);
+    if (rl) {
+      const headers = new Headers(rl.headers);
+      Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+      return new Response(rl.body, { status: rl.status, headers });
+    }
+
     const SearchSchema = z.object({
       query: z.string().trim().min(2, 'Query too short').max(500, 'Query too long'),
     });
