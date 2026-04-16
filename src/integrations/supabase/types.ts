@@ -125,6 +125,42 @@ export type Database = {
         }
         Relationships: []
       }
+      bot_detection_log: {
+        Row: {
+          blocked: boolean
+          created_at: string
+          detection_reason: string
+          endpoint: string
+          id: string
+          ip_address: string
+          metadata: Json | null
+          request_count: number | null
+          user_agent: string | null
+        }
+        Insert: {
+          blocked?: boolean
+          created_at?: string
+          detection_reason: string
+          endpoint: string
+          id?: string
+          ip_address: string
+          metadata?: Json | null
+          request_count?: number | null
+          user_agent?: string | null
+        }
+        Update: {
+          blocked?: boolean
+          created_at?: string
+          detection_reason?: string
+          endpoint?: string
+          id?: string
+          ip_address?: string
+          metadata?: Json | null
+          request_count?: number | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       cart_templates: {
         Row: {
           created_at: string
@@ -1784,6 +1820,39 @@ export type Database = {
           },
         ]
       }
+      request_rate_limits: {
+        Row: {
+          blocked_until: string | null
+          created_at: string
+          endpoint: string
+          id: string
+          identifier: string
+          request_count: number
+          updated_at: string
+          window_start: string
+        }
+        Insert: {
+          blocked_until?: string | null
+          created_at?: string
+          endpoint: string
+          id?: string
+          identifier: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Update: {
+          blocked_until?: string | null
+          created_at?: string
+          endpoint?: string
+          id?: string
+          identifier?: string
+          request_count?: number
+          updated_at?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       role_permissions: {
         Row: {
           created_at: string
@@ -2267,7 +2336,18 @@ export type Database = {
         Returns: Json
       }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
+      check_rate_limit: {
+        Args: {
+          _block_duration_seconds?: number
+          _endpoint: string
+          _identifier: string
+          _max_requests?: number
+          _window_seconds?: number
+        }
+        Returns: Json
+      }
       cleanup_old_notifications: { Args: never; Returns: undefined }
+      cleanup_rate_limits: { Args: never; Returns: undefined }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: string

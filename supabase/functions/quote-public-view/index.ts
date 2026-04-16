@@ -1,5 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "../_shared/zod-validate.ts";
+import { runBotProtection } from "../_shared/bot-protection.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -20,6 +21,16 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    // Anti-scraping: 30 req/min por IP, bloqueio 1h. Protege contra brute-force de tokens.
+    const protection = await runBotProtection(req, {
+      endpoint: 'quote-public-view',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 3600,
+      allowSearchBots: false,  // orçamentos não devem ser indexados
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
+
     // Safely parse body — GET requests have no body
     let rawBody: Record<string, unknown> = {};
     if (req.method === "POST" || req.method === "PUT") {
