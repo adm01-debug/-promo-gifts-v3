@@ -83,6 +83,11 @@ function makeBuilder(table: string, results: Record<string, unknown> = {}) {
   return builder;
 }
 
+// Hoisted holder so the vi.mock factory (which is hoisted to top) can read it
+const hoisted = vi.hoisted(() => ({
+  fromImpl: ((_table: string) => ({})) as (table: string) => unknown,
+}));
+
 const mockFrom = vi.fn((table: string) => {
   switch (table) {
     case "discount_approval_requests":
@@ -113,8 +118,11 @@ const mockFrom = vi.fn((table: string) => {
   }
 });
 
+// Wire after definition
+hoisted.fromImpl = (table: string) => mockFrom(table);
+
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: mockFrom },
+  supabase: { from: (table: string) => hoisted.fromImpl(table) },
 }));
 
 vi.mock("@/contexts/AuthContext", () => {
