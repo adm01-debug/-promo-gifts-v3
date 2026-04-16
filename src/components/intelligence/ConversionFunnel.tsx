@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Filter, Search, Eye, FileText, ShoppingBag, ArrowDown } from "lucide-react";
 import { subDays } from "date-fns";
-import { cn } from "@/lib/utils";
 
 interface ConversionFunnelProps {
   days: number;
@@ -19,8 +18,34 @@ interface FunnelStage {
   label: string;
   icon: typeof Search;
   count: number;
-  colorClass: string;
+  bgClass: string;     // estático para Tailwind JIT
+  bgSoftClass: string;
+  iconClass: string;
 }
+
+// Mapa estático de cores (evita purge JIT)
+const STAGE_STYLES = {
+  searches: {
+    bgClass: "bg-chart-2/15",
+    bgSoftClass: "bg-chart-2/30",
+    iconClass: "text-chart-2",
+  },
+  views: {
+    bgClass: "bg-primary/15",
+    bgSoftClass: "bg-primary/30",
+    iconClass: "text-primary",
+  },
+  quotes: {
+    bgClass: "bg-chart-3/15",
+    bgSoftClass: "bg-chart-3/30",
+    iconClass: "text-chart-3",
+  },
+  orders: {
+    bgClass: "bg-success/15",
+    bgSoftClass: "bg-success/30",
+    iconClass: "text-success",
+  },
+} as const;
 
 export function ConversionFunnel({ days }: ConversionFunnelProps) {
   const since = subDays(new Date(), days).toISOString();
@@ -47,10 +72,10 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
   });
 
   const stages: FunnelStage[] = [
-    { key: "searches", label: "Buscas", icon: Search, count: data?.searches ?? 0, colorClass: "bg-chart-2" },
-    { key: "views", label: "Visualizações", icon: Eye, count: data?.views ?? 0, colorClass: "bg-primary" },
-    { key: "quotes", label: "Orçamentos", icon: FileText, count: data?.quotes ?? 0, colorClass: "bg-chart-3" },
-    { key: "orders", label: "Pedidos", icon: ShoppingBag, count: data?.orders ?? 0, colorClass: "bg-success" },
+    { key: "searches", label: "Buscas", icon: Search, count: data?.searches ?? 0, ...STAGE_STYLES.searches },
+    { key: "views", label: "Visualizações", icon: Eye, count: data?.views ?? 0, ...STAGE_STYLES.views },
+    { key: "quotes", label: "Orçamentos", icon: FileText, count: data?.quotes ?? 0, ...STAGE_STYLES.quotes },
+    { key: "orders", label: "Pedidos", icon: ShoppingBag, count: data?.orders ?? 0, ...STAGE_STYLES.orders },
   ];
 
   const maxCount = Math.max(...stages.map(s => s.count), 1);
@@ -90,29 +115,25 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
                     <div className="flex items-center gap-2 ml-2 my-1 text-[10px] text-muted-foreground">
                       <ArrowDown className="h-3 w-3" />
                       <span>
-                        {conversionRate !== null
-                          ? `${conversionRate}% conversão`
-                          : "—"}
+                        {conversionRate !== null ? `${conversionRate}% conversão` : "—"}
                       </span>
                       {dropoff !== null && dropoff > 0 && (
                         <span className="text-destructive/70">· -{dropoff}% drop-off</span>
                       )}
                     </div>
                   )}
-                  <div className="relative">
-                    <div
-                      className={cn("h-12 rounded-lg flex items-center px-3 transition-all", stage.colorClass, "/15")}
-                      style={{ width: `${widthPercent}%`, minWidth: "180px" }}
-                    >
-                      <div className={cn("p-1.5 rounded-md mr-3", stage.colorClass, "/30")}>
-                        <Icon className={cn("h-4 w-4 text-foreground")} />
-                      </div>
-                      <div className="flex-1">
-                        <p className="text-xs font-medium leading-none">{stage.label}</p>
-                        <p className="text-base font-bold leading-tight mt-0.5">
-                          {stage.count.toLocaleString("pt-BR")}
-                        </p>
-                      </div>
+                  <div
+                    className={`h-12 rounded-lg flex items-center px-3 transition-all ${stage.bgClass}`}
+                    style={{ width: `${widthPercent}%`, minWidth: "180px" }}
+                  >
+                    <div className={`p-1.5 rounded-md mr-3 ${stage.bgSoftClass}`}>
+                      <Icon className={`h-4 w-4 ${stage.iconClass}`} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium leading-none">{stage.label}</p>
+                      <p className="text-base font-bold leading-tight mt-0.5">
+                        {stage.count.toLocaleString("pt-BR")}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -126,7 +147,7 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
             <div className="flex items-center justify-between text-xs">
               <span className="text-muted-foreground">Conversão total (busca → pedido):</span>
               <span className="font-bold text-success">
-                {data.searches > 0 ? ((data.orders / data.searches) * 100).toFixed(2) : "0"}%
+                {((data.orders / data.searches) * 100).toFixed(2)}%
               </span>
             </div>
           </div>
