@@ -265,6 +265,92 @@ export type Database = {
         }
         Relationships: []
       }
+      commission_entries: {
+        Row: {
+          commission_amount: number
+          commission_percent: number
+          created_at: string
+          id: string
+          notes: string | null
+          order_id: string | null
+          order_total: number
+          paid_at: string | null
+          seller_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          commission_amount?: number
+          commission_percent: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          order_total?: number
+          paid_at?: string | null
+          seller_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          notes?: string | null
+          order_id?: string | null
+          order_total?: number
+          paid_at?: string | null
+          seller_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_entries_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commission_rules: {
+        Row: {
+          commission_percent: number
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          max_order_value: number | null
+          min_order_value: number | null
+          seller_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          max_order_value?: number | null
+          min_order_value?: number | null
+          seller_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          commission_percent?: number
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          max_order_value?: number | null
+          min_order_value?: number | null
+          seller_id?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       component_media: {
         Row: {
           component_id: string
@@ -475,34 +561,46 @@ export type Database = {
       }
       follow_up_reminders: {
         Row: {
+          completed_at: string | null
           created_at: string
           id: string
+          is_completed: boolean
           is_sent: boolean
+          notes: string | null
           quote_id: string
           reminder_type: string
           scheduled_for: string
           seller_id: string
           sent_at: string | null
+          title: string | null
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           id?: string
+          is_completed?: boolean
           is_sent?: boolean
+          notes?: string | null
           quote_id: string
           reminder_type?: string
           scheduled_for: string
           seller_id: string
           sent_at?: string | null
+          title?: string | null
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           id?: string
+          is_completed?: boolean
           is_sent?: boolean
+          notes?: string | null
           quote_id?: string
           reminder_type?: string
           scheduled_for?: string
           seller_id?: string
           sent_at?: string | null
+          title?: string | null
         }
         Relationships: []
       }
