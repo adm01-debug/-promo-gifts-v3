@@ -134,6 +134,7 @@ const navGroups: NavGroup[] = [
         { icon: Palette, label: "Gravação", href: "/admin/cadastros?tab=personalizacao" },
       ]},
       { icon: Percent, label: "Descontos", href: "/admin/aprovacoes-desconto", adminOnly: true },
+      { icon: DollarSign, label: "Comissões", href: "/admin/comissoes", adminOnly: true },
       { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
       { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", adminOnly: true },
       { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },

@@ -60,6 +60,7 @@ const AdminExternalDbPage = lazyWithRetry(() => import("./pages/admin/AdminExter
 const AdminVideoVariantsPage = lazyWithRetry(() => import("./pages/admin/AdminVideoVariantsPage"));
 const AdminAiUsagePage = lazyWithRetry(() => import("./pages/admin/AdminAiUsagePage"));
 const AdminDiscountApprovalsPage = lazyWithRetry(() => import("./pages/admin/AdminDiscountApprovalsPage"));
+const AdminCommissionsPage = lazyWithRetry(() => import("./pages/admin/AdminCommissionsPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
@@ -220,6 +221,7 @@ const App = () => {
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
                               <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                               <Route path="/admin/aprovacoes-desconto" element={<AdminDiscountApprovalsPage />} />
+                              <Route path="/admin/comissoes" element={<AdminCommissionsPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/performance" element={<SellerPerformanceDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />

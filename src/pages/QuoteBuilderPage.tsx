@@ -265,6 +265,7 @@ export default function QuoteBuilderPage() {
                     </div>
                   )}
               </div>
+              </div>
 
               {/* AI Recommendations */}
               <AIRecommendationsPanel
