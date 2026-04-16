@@ -21,6 +21,7 @@ import {
   Edit, AlertTriangle, Calendar as CalendarIcon,
 } from "lucide-react";
 import { toast } from "sonner";
+import { AIRecommendationsPanel } from "@/components/quotes/AIRecommendationsPanel";
 import { format, addDays } from "date-fns";
 
 import { QuoteTemplateSelector } from "@/components/quotes/QuoteTemplateSelector";
@@ -263,8 +264,19 @@ export default function QuoteBuilderPage() {
                       </div>
                     </div>
                   )}
-                </div>
               </div>
+
+              {/* AI Recommendations */}
+              <AIRecommendationsPanel
+                clientName={s.companyInfo?.name || s.contactInfo?.name}
+                clientCompany={s.companyInfo?.name}
+                clientIndustry={s.companyInfo?.ramo_atividade}
+                addedProductIds={s.items.map(i => i.product_id)}
+                onAddProduct={(productId, productName) => {
+                  s.setProductSearch(productName);
+                  s.setProductSearchOpen(true);
+                }}
+              />
             </div>
           </div>
 
