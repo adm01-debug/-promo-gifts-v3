@@ -19,13 +19,15 @@ import {
 } from 'lucide-react';
 
 export function PushNotificationSettings() {
-  const { 
-    isSupported, 
-    isEnabled, 
-    permission, 
-    requestPermission,
-    showSecurityAlert 
-  } = usePushNotifications();
+  const {
+    push: {
+      isSupported,
+      isEnabled,
+      permission,
+      requestPermission,
+      showSecurityAlert,
+    },
+  } = useNotifications();
   const { toast } = useToast();
   const [isRequesting, setIsRequesting] = useState(false);
 
