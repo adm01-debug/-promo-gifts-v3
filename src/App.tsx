@@ -219,6 +219,7 @@ const App = () => {
                               <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                               <Route path="/admin/aprovacoes-desconto" element={<AdminDiscountApprovalsPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
+                              <Route path="/performance" element={<SellerPerformanceDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
