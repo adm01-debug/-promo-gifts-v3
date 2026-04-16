@@ -2,7 +2,7 @@
  * GlobalSearchPalette — High-contrast black redesign
  * Helper components extracted to GlobalSearchHelpers.tsx
  */
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect, useCallback } from "react";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
   CommandItem, CommandList, CommandSeparator,
@@ -19,6 +19,8 @@ import { useGlobalSearch } from "./useGlobalSearch";
 import { typeConfig } from "./search-types";
 import { GlobalSearchIdleState } from "./GlobalSearchIdleState";
 import { paletteItemStateClass, NavCard, staggerStyle, type QuickAction } from "./GlobalSearchHelpers";
+import { HighlightMatch } from "./HighlightMatch";
+import { EmptySearchState } from "./EmptySearchState";
 
 const LazyVoiceOverlay = lazy(() => import("./VoiceSearchOverlayConnected"));
 
