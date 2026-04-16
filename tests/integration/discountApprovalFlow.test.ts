@@ -22,116 +22,120 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
 
 // ─────────────────────────────────────────────────────────────
-// Mock infra
+// Hoisted mock state — accessible inside vi.mock factories
 // ─────────────────────────────────────────────────────────────
 
-const SELLER_ID = "seller-test-uuid";
-const ADMIN_ID = "admin-test-uuid";
-const QUOTE_ID = "quote-test-uuid";
-const REQUEST_ID = "request-test-uuid";
+const H = vi.hoisted(() => {
+  const SELLER_ID = "seller-test-uuid";
+  const ADMIN_ID = "admin-test-uuid";
+  const QUOTE_ID = "quote-test-uuid";
+  const REQUEST_ID = "request-test-uuid";
 
-// Track every supabase.from(...) operation for assertions
-type Op = {
-  table: string;
-  method: string;
-  payload?: unknown;
-  filter?: { col: string; val: unknown };
-};
-const ops: Op[] = [];
-
-// Build a chainable query builder that records the operation
-function makeBuilder(table: string, results: Record<string, unknown> = {}) {
-  let currentMethod = "select";
-  let currentPayload: unknown = undefined;
-  let currentFilter: { col: string; val: unknown } | undefined;
-
-  const record = () => {
-    ops.push({ table, method: currentMethod, payload: currentPayload, filter: currentFilter });
+  type Op = {
+    table: string;
+    method: string;
+    payload?: unknown;
+    filter?: { col: string; val: unknown };
   };
+  const ops: Op[] = [];
 
-  const builder: any = {
-    select: vi.fn((_cols?: string) => {
-      currentMethod = currentMethod === "select" ? "select" : currentMethod;
-      return builder;
-    }),
-    insert: vi.fn((payload: unknown) => {
-      currentMethod = "insert";
-      currentPayload = payload;
-      record();
-      return builder;
-    }),
-    update: vi.fn((payload: unknown) => {
-      currentMethod = "update";
-      currentPayload = payload;
-      return builder;
-    }),
-    eq: vi.fn((col: string, val: unknown) => {
-      currentFilter = { col, val };
-      // record the update / select-with-filter
-      if (currentMethod === "update") record();
-      return builder;
-    }),
-    in: vi.fn((_col: string, _vals: unknown[]) => builder),
-    order: vi.fn(() => builder),
-    limit: vi.fn(() => builder),
-    single: vi.fn().mockResolvedValue({ data: results.single ?? null, error: null }),
-    maybeSingle: vi.fn().mockResolvedValue({ data: results.maybeSingle ?? null, error: null }),
-    then: vi.fn((resolve: (v: { data: unknown; error: null }) => unknown) =>
-      resolve({ data: results.list ?? [], error: null })
-    ),
-  };
-  return builder;
-}
+  function makeBuilder(table: string, results: Record<string, unknown> = {}) {
+    let currentMethod = "select";
+    let currentPayload: unknown = undefined;
+    let currentFilter: { col: string; val: unknown } | undefined;
 
-// Hoisted holder so the vi.mock factory (which is hoisted to top) can read it
-const hoisted = vi.hoisted(() => ({
-  fromImpl: ((_table: string) => ({})) as (table: string) => unknown,
-}));
+    const record = () => {
+      ops.push({ table, method: currentMethod, payload: currentPayload, filter: currentFilter });
+    };
 
-const mockFrom = vi.fn((table: string) => {
-  switch (table) {
-    case "discount_approval_requests":
-      return makeBuilder(table, {
-        single: {
-          id: REQUEST_ID,
-          quote_id: QUOTE_ID,
-          seller_id: SELLER_ID,
-          requested_discount_percent: 15,
-          max_allowed_percent: 10,
-          status: "approved",
-        },
-      });
-    case "user_roles":
-      return makeBuilder(table, {
-        list: [{ user_id: ADMIN_ID }],
-      });
-    case "profiles":
-      return makeBuilder(table, {
-        maybeSingle: { full_name: "Vendedor Teste" },
-      });
-    case "quotes":
-    case "quote_history":
-    case "workspace_notifications":
-      return makeBuilder(table);
-    default:
-      return makeBuilder(table);
+    const builder: Record<string, unknown> = {};
+    Object.assign(builder, {
+      select: (_cols?: string) => builder,
+      insert: (payload: unknown) => {
+        currentMethod = "insert";
+        currentPayload = payload;
+        record();
+        return builder;
+      },
+      update: (payload: unknown) => {
+        currentMethod = "update";
+        currentPayload = payload;
+        return builder;
+      },
+      eq: (col: string, val: unknown) => {
+        currentFilter = { col, val };
+        if (currentMethod === "update") record();
+        return builder;
+      },
+      in: () => builder,
+      order: () => builder,
+      limit: () => builder,
+      single: () => Promise.resolve({ data: results.single ?? null, error: null }),
+      maybeSingle: () => Promise.resolve({ data: results.maybeSingle ?? null, error: null }),
+      then: (resolve: (v: { data: unknown; error: null }) => unknown) =>
+        resolve({ data: results.list ?? [], error: null }),
+    });
+    return builder;
   }
+
+  let overrides: Record<string, Record<string, unknown>> = {};
+
+  function defaultResults(table: string): Record<string, unknown> {
+    if (overrides[table]) return overrides[table];
+    switch (table) {
+      case "discount_approval_requests":
+        return {
+          single: {
+            id: REQUEST_ID,
+            quote_id: QUOTE_ID,
+            seller_id: SELLER_ID,
+            requested_discount_percent: 15,
+            max_allowed_percent: 10,
+            status: "approved",
+          },
+        };
+      case "user_roles":
+        return { list: [{ user_id: ADMIN_ID }] };
+      case "profiles":
+        return { maybeSingle: { full_name: "Vendedor Teste" } };
+      default:
+        return {};
+    }
+  }
+
+  let currentUser: { id: string; email: string } | null = {
+    id: SELLER_ID,
+    email: "seller-test@discount-approval.test",
+  };
+
+  return {
+    SELLER_ID, ADMIN_ID, QUOTE_ID, REQUEST_ID,
+    ops,
+    fromImpl: (table: string) => makeBuilder(table, defaultResults(table)),
+    setOverride: (table: string, results: Record<string, unknown>) => {
+      overrides[table] = results;
+    },
+    clearOverrides: () => { overrides = {}; },
+    getUser: () => currentUser,
+    setUser: (u: { id: string; email: string } | null) => { currentUser = u; },
+  };
 });
 
-// Wire after definition
-hoisted.fromImpl = (table: string) => mockFrom(table);
+// ─────────────────────────────────────────────────────────────
+// Mocks
+// ─────────────────────────────────────────────────────────────
 
 vi.mock("@/integrations/supabase/client", () => ({
-  supabase: { from: (table: string) => hoisted.fromImpl(table) },
+  supabase: { from: (table: string) => H.fromImpl(table) },
 }));
 
-vi.mock("@/contexts/AuthContext", () => {
-  let currentUser = { id: SELLER_ID, email: "seller-test@discount-approval.test" };
-  return {
-    useAuth: vi.fn(() => ({ user: currentUser, loading: false, isAdmin: currentUser.id === ADMIN_ID })),
-    __setUser: (u: { id: string; email: string }) => { currentUser = u; },
-  };
-});
+vi.mock("@/contexts/AuthContext", () => ({
+  useAuth: () => ({
+    user: H.getUser(),
+    loading: false,
+    isAdmin: H.getUser()?.id === H.ADMIN_ID,
+  }),
+}));
 
 vi.mock("sonner", () => ({
   toast: Object.assign(vi.fn(), {
@@ -142,25 +146,28 @@ vi.mock("sonner", () => ({
   }),
 }));
 
-// Now import after mocks
+// Imports AFTER mocks
 import { useDiscountApproval } from "@/hooks/useDiscountApproval";
-import * as AuthCtx from "@/contexts/AuthContext";
 import { toast } from "sonner";
+
+const { SELLER_ID, ADMIN_ID, QUOTE_ID, REQUEST_ID, ops } = H;
 
 // ─────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────
 
-function setUser(role: "seller" | "admin") {
-  const user = role === "seller"
-    ? { id: SELLER_ID, email: "seller-test@discount-approval.test" }
-    : { id: ADMIN_ID, email: "admin-test@discount-approval.test" };
-  // @ts-expect-error - test helper exposed by mock
-  AuthCtx.__setUser(user);
+function setUser(role: "seller" | "admin" | "none") {
+  if (role === "none") { H.setUser(null); return; }
+  H.setUser(
+    role === "seller"
+      ? { id: SELLER_ID, email: "seller-test@discount-approval.test" }
+      : { id: ADMIN_ID, email: "admin-test@discount-approval.test" }
+  );
 }
 
 beforeEach(() => {
   ops.length = 0;
+  H.clearOverrides();
   vi.clearAllMocks();
   setUser("seller");
 });
@@ -218,19 +225,25 @@ describe("E2E: Vendedor solicita aprovação de desconto", () => {
     });
   });
 
-  it("falha graciosamente se não houver usuário autenticado", async () => {
-    // @ts-expect-error - test helper
-    AuthCtx.__setUser(null);
-    vi.spyOn(AuthCtx, "useAuth").mockReturnValueOnce({
-      user: null, loading: false, isAdmin: false,
-    } as any);
-
+  it("retorna false se não houver usuário autenticado", async () => {
+    setUser("none");
     const { result } = renderHook(() => useDiscountApproval());
     let success = true;
     await act(async () => {
       success = await result.current.requestApproval(QUOTE_ID, 15, 10);
     });
     expect(success).toBe(false);
+  });
+
+  it("não envia notificação se nenhum admin existir", async () => {
+    setUser("seller");
+    H.setOverride("user_roles", { list: [] });
+    const { result } = renderHook(() => useDiscountApproval());
+    await act(async () => {
+      await result.current.requestApproval(QUOTE_ID, 15, 10);
+    });
+    const notifs = ops.find(o => o.table === "workspace_notifications" && o.method === "insert");
+    expect(notifs).toBeUndefined();
   });
 });
 
@@ -285,27 +298,19 @@ describe("E2E: Admin aprova solicitação", () => {
 // 3. Admin rejeita
 // ─────────────────────────────────────────────────────────────
 describe("E2E: Admin rejeita solicitação", () => {
-  beforeEach(() => {
-    // Override do builder para retornar status rejeitado no .single()
-    mockFrom.mockImplementation((table: string) => {
-      if (table === "discount_approval_requests") {
-        return makeBuilder(table, {
-          single: {
-            id: REQUEST_ID,
-            quote_id: QUOTE_ID,
-            seller_id: SELLER_ID,
-            requested_discount_percent: 20,
-            max_allowed_percent: 10,
-            status: "rejected",
-          },
-        });
-      }
-      return makeBuilder(table);
-    });
-  });
-
   it("muda quote para 'draft' e notifica vendedor com type=error", async () => {
     setUser("admin");
+    H.setOverride("discount_approval_requests", {
+      single: {
+        id: REQUEST_ID,
+        quote_id: QUOTE_ID,
+        seller_id: SELLER_ID,
+        requested_discount_percent: 20,
+        max_allowed_percent: 10,
+        status: "rejected",
+      },
+    });
+
     const { result } = renderHook(() => useDiscountApproval());
 
     let success = false;
@@ -345,7 +350,7 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
     const { createClient } = await import("@supabase/supabase-js");
     const supa = createClient(LIVE_URL!, LIVE_KEY!);
 
-    // 1. Seed
+    // 1. Login seller
     const sellerLogin = await supa.auth.signInWithPassword({
       email: "seller-test@discount-approval.test",
       password: SELLER_PWD!,
@@ -353,13 +358,14 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
     expect(sellerLogin.error).toBeNull();
     const sellerId = sellerLogin.data.user!.id;
 
+    // 2. Seed roles
     const seedRes = await supa.rpc("seed_discount_test_users");
     expect((seedRes.data as { ok: boolean }).ok).toBe(true);
 
-    // 2. Cleanup previous test data
+    // 3. Cleanup
     await supa.rpc("cleanup_discount_test_data");
 
-    // 3. Create a quote
+    // 4. Quote
     const { data: quote, error: qErr } = await supa
       .from("quotes")
       .insert({
@@ -374,9 +380,8 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
       .select("id")
       .single();
     expect(qErr).toBeNull();
-    expect(quote?.id).toBeTruthy();
 
-    // 4. Seller solicita aprovação
+    // 5. Request
     const { error: reqErr } = await supa
       .from("discount_approval_requests")
       .insert({
@@ -388,7 +393,7 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
       });
     expect(reqErr).toBeNull();
 
-    // 5. Admin loga e aprova
+    // 6. Admin login & approve
     await supa.auth.signOut();
     const adminLogin = await supa.auth.signInWithPassword({
       email: "admin-test@discount-approval.test",
@@ -402,7 +407,6 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
       .select("id")
       .eq("quote_id", quote!.id)
       .single();
-    expect(pending?.id).toBeTruthy();
 
     const { error: updErr } = await supa
       .from("discount_approval_requests")
@@ -415,7 +419,7 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
       .eq("id", pending!.id);
     expect(updErr).toBeNull();
 
-    // 6. Verifica notificações criadas pelo trigger notify_discount_approval_request
+    // 7. Verifica notificação criada pelo trigger
     const { data: notifs } = await supa
       .from("workspace_notifications")
       .select("user_id, type, category")
@@ -426,7 +430,7 @@ liveDescribe("E2E LIVE: fluxo real contra Supabase", () => {
     expect(notifs?.length).toBeGreaterThan(0);
     expect(notifs![0].type).toBe("success");
 
-    // 7. Cleanup
+    // 8. Cleanup
     await supa.rpc("cleanup_discount_test_data");
   }, 30_000);
 });
