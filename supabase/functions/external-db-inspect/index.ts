@@ -68,7 +68,8 @@ Deno.serve(async (req) => {
     const externalUrl = Deno.env.get('EXTERNAL_SUPABASE_URL');
     const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
     if (!externalUrl || !externalKey) {
-      return jsonResponse({ error: 'Banco externo não configurado' }, 500);
+      console.warn('[external-db-inspect] EXTERNAL_SUPABASE_URL/KEY not configured — returning empty payload');
+      return jsonResponse({ data: [], records: [], count: 0, _unconfigured: true, _message: 'Banco externo não configurado' }, 200);
     }
 
     const externalSupabase = createClient(externalUrl, externalKey);
