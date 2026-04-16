@@ -153,17 +153,14 @@ export function GlobalSearchPalette() {
             </div>
           )}
 
-          {/* Empty state */}
-          {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 gap-4 animate-in fade-in-0 zoom-in-95 duration-300">
-              <div className="h-16 w-16 rounded-2xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
-                <Search className="h-7 w-7 [color:hsl(var(--command-text-subtle))]" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm [color:hsl(var(--command-text-muted))]">Nenhum resultado para "<span className="font-semibold text-foreground">{s.query}</span>"</p>
-                <p className="text-[11px] [color:hsl(var(--command-text-subtle))] mt-1.5">Tente termos diferentes ou mais curtos</p>
-              </div>
-            </div>
+          {/* Empty state — intelligent */}
+          {!s.isSearching && s.query.length >= 2 && s.results.length === 0 && (
+            <EmptySearchState
+              query={s.query}
+              onAction={handleEmptyAction}
+              onRefine={handleEmptyRefine}
+              onPickRecent={handleEmptyPickRecent}
+            />
           )}
 
           {/* Short query hint */}
