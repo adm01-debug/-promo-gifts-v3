@@ -48,20 +48,16 @@ describe("StockFilterToolbar", () => {
     expect(screen.getByPlaceholderText("Preciso de X un...")).toBeInTheDocument();
   });
 
-  it("renders all status chips", () => {
+  it("renders Filtros button (status chips moved to StatCards)", () => {
     render(<StockFilterToolbar {...defaultProps} />);
-    expect(screen.getByText("Todos")).toBeInTheDocument();
-    expect(screen.getByText("Em Estoque")).toBeInTheDocument();
-    expect(screen.getByText("Baixo")).toBeInTheDocument();
-    expect(screen.getByText("Crítico")).toBeInTheDocument();
-    expect(screen.getByText("Esgotado")).toBeInTheDocument();
-    expect(screen.getByText("Chegando")).toBeInTheDocument();
+    // Status chips were removed — StatCards handle status filtering now
+    expect(screen.getByText("Filtros")).toBeInTheDocument();
   });
 
-  it("calls onUpdateFilter when status chip is clicked", () => {
+  it("renders search and quantity inputs", () => {
     render(<StockFilterToolbar {...defaultProps} />);
-    fireEvent.click(screen.getByText("Baixo"));
-    expect(defaultProps.onUpdateFilter).toHaveBeenCalledWith("status", "low_stock");
+    expect(screen.getByPlaceholderText("Buscar produto, SKU ou cor...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Preciso de X un...")).toBeInTheDocument();
   });
 
   it("debounces search input", async () => {
