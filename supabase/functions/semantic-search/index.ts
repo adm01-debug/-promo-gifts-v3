@@ -1,9 +1,46 @@
+import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { callAiWithTracking, QuotaExceededError } from '../_shared/ai-usage.ts';
 import { z } from '../_shared/zod-validate.ts';
 import { rateLimiters, applyRateLimit } from '../_shared/rate-limiter.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+
+// ========================================
+// PG_TRGM RE-RANK via RPC search_products_semantic
+// ========================================
+interface RankResult {
+  product_id: string;
+  score: number;
+  matched_field: string;
+}
+
+async function rerankProducts(
+  query: string,
+  products: Array<{ id: string; name?: string; description?: string; tags?: string[]; category?: string }>,
+  limit: number,
+): Promise<RankResult[]> {
+  try {
+    const url = Deno.env.get("SUPABASE_URL");
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!url || !serviceKey) return [];
+    const client = createClient(url, serviceKey);
+    const { data, error } = await client.rpc("search_products_semantic", {
+      _query: query,
+      _products: products,
+      _limit: limit,
+    });
+    if (error) {
+      console.warn("[rerank] RPC error:", error.message);
+      return [];
+    }
+    return (data ?? []) as RankResult[];
+  } catch (e) {
+    console.warn("[rerank] exception:", (e as Error).message);
+    return [];
+  }
+}
+
 
 // ========================================
 // CACHE IMPLEMENTATION - TTL 5 minutes
@@ -129,8 +166,18 @@ Deno.serve(async (req) => {
       return new Response(rl.body, { status: rl.status, headers });
     }
 
+    const ProductForRankSchema = z.object({
+      id: z.string().min(1),
+      name: z.string().optional().default(''),
+      description: z.string().optional().default(''),
+      tags: z.array(z.string()).optional().default([]),
+      category: z.string().optional().default(''),
+    });
+
     const SearchSchema = z.object({
       query: z.string().trim().min(2, 'Query too short').max(500, 'Query too long'),
+      products: z.array(ProductForRankSchema).max(500).optional(),
+      limit: z.number().int().min(1).max(100).optional().default(20),
     });
 
     let rawBody: unknown;
@@ -150,7 +197,7 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
-    const { query } = parsed.data;
+    const { query, products: productsForRank, limit: rankLimit } = parsed.data;
 
     // Periodic cleanup
     if (Date.now() - lastCleanup > CLEANUP_INTERVAL) {
@@ -166,8 +213,11 @@ Deno.serve(async (req) => {
     if (cachedResult) {
       const stats = searchCache.getStats();
       console.log(`[Cache HIT] Query: "${query}" | Stats: ${JSON.stringify(stats)}`);
+      const rankings = productsForRank?.length
+        ? await rerankProducts(query, productsForRank, rankLimit)
+        : [];
       return new Response(
-        JSON.stringify({ success: true, intent: cachedResult, cached: true, cacheStats: stats }),
+        JSON.stringify({ success: true, intent: cachedResult, rankings, cached: true, cacheStats: stats }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -287,8 +337,12 @@ Responda APENAS com JSON válido no formato especificado.`;
     const stats = searchCache.getStats();
     console.log(`[Cache SET] Query: "${query}" | Cache size: ${stats.size} | Hit rate: ${stats.hitRate}`);
 
+    const rankings = productsForRank?.length
+      ? await rerankProducts(query, productsForRank, rankLimit)
+      : [];
+
     return new Response(
-      JSON.stringify({ success: true, intent: searchIntent, cached: false, cacheStats: stats }),
+      JSON.stringify({ success: true, intent: searchIntent, rankings, cached: false, cacheStats: stats }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
