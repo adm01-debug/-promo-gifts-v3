@@ -19,6 +19,15 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
+    const protection = await runBotProtection(req, {
+      endpoint: 'kit-public-view',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 3600,
+      allowSearchBots: false,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
+
     let rawBody: Record<string, unknown> = {};
     if (req.method === "POST" || req.method === "PUT") {
       try {
