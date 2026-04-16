@@ -1,8 +1,8 @@
-import { useState, useMemo, useEffect, useRef } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import {
   Package, TrendingDown, RefreshCw, Truck, CheckCircle2, XCircle, Palette, Loader2, AlertCircle, X,
-  ChevronDown, ChevronRight, Clock, BarChart3, Shield,
+  ChevronDown, ChevronRight, Clock, BarChart3, Shield, Download,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -44,6 +44,23 @@ export function StockDashboard() {
   useEffect(() => {
     if (!isFetching) lastRefreshRef.current = new Date();
   }, [isFetching]);
+
+  // Keyboard shortcut: Ctrl+Shift+R to refresh stock data
+  const handleRefresh = useCallback(() => {
+    if (!isFetching && !isLoading) fetchStockData();
+  }, [isFetching, isLoading, fetchStockData]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+        e.preventDefault();
+        handleRefresh();
+        toast({ title: '🔄 Atualizando estoque...', description: 'Atalho: Ctrl+Shift+R' });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleRefresh, toast]);
 
   // Toast when new critical alerts appear after refresh
   useEffect(() => {
@@ -90,6 +107,43 @@ export function StockDashboard() {
     () => futureStock.reduce((sum, f) => sum + (f.expectedQuantity || 0), 0),
     [futureStock]
   );
+
+  // Export CSV
+  const handleExportCSV = () => {
+    const data = productStocks.flatMap(p =>
+      p.variants.map(v => ({
+        produto: p.productName,
+        sku: p.productSku,
+        cor: v.colorName || 'Sem cor',
+        sku_variante: v.variantSku,
+        estoque_atual: v.currentStock,
+        estoque_minimo: v.minStock,
+        reservado: v.reservedStock,
+        disponivel: v.availableStock,
+        em_transito: v.inTransitStock,
+        status: v.status,
+        dias_ate_esgotamento: v.daysUntilStockout ?? '',
+      }))
+    );
+
+    if (data.length === 0) return;
+
+    const headers = Object.keys(data[0]);
+    const csv = [
+      headers.join(';'),
+      ...data.map(row => headers.map(h => row[h as keyof typeof row]).join(';')),
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `estoque_${new Date().toISOString().slice(0, 10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    toast({ title: '📊 Exportação concluída', description: `${data.length} registros exportados.` });
+  };
 
   if (isLoading) {
     return (
@@ -279,17 +333,39 @@ export function StockDashboard() {
                 Visualização detalhada do estoque segmentado por cores e variações
               </CardDescription>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={fetchStockData}
-              disabled={isFetching}
-              className="gap-1.5"
-              aria-label="Atualizar dados de estoque"
-            >
-              <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
-              {isFetching ? 'Atualizando...' : 'Atualizar'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={handleExportCSV}
+                      disabled={productStocks.length === 0}
+                      className="gap-1.5"
+                      aria-label="Exportar estoque em CSV"
+                    >
+                      <Download className="h-4 w-4" />
+                      <span className="hidden sm:inline">Exportar</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p className="text-xs">Exportar dados filtrados em CSV</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={fetchStockData}
+                disabled={isFetching}
+                className="gap-1.5"
+                aria-label="Atualizar dados de estoque"
+              >
+                <RefreshCw className={cn("h-4 w-4", isFetching && "animate-spin")} />
+                {isFetching ? 'Atualizando...' : 'Atualizar'}
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0">

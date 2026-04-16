@@ -145,14 +145,23 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-warning" aria-hidden="true" />
+            <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
+              <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
+            </div>
             Risco de Ruptura no Fornecedor
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-            <Package className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Carregue os dados de estoque para visualizar o painel de risco</p>
+          <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+            <div className="h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center">
+              <Package className="h-7 w-7 text-muted-foreground/40" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground mb-1">Sem dados disponíveis</p>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Carregue os dados de estoque para visualizar a análise de risco por fornecedor.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -165,17 +174,24 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <ShieldAlert className="h-5 w-5 text-warning" aria-hidden="true" />
+              <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
+                <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
+              </div>
               Risco de Ruptura no Fornecedor
+              {globalCounts.critical > 0 && (
+                <Badge variant="destructive" className="text-[10px] animate-pulse">
+                  {globalCounts.critical} crítico{globalCounts.critical > 1 ? 's' : ''}
+                </Badge>
+              )}
             </CardTitle>
-            <CardDescription>
+            <CardDescription className="mt-1">
               Monitore produtos com risco de acabar no fornecedor — antecipe compras e evite perder vendas
             </CardDescription>
           </div>
           {lastUpdated && (
             <span className="text-[10px] text-muted-foreground flex items-center gap-1" aria-label={`Última atualização: ${lastUpdated}`}>
               <Clock className="h-3 w-3" aria-hidden="true" />
-              Atualizado: {lastUpdated}
+              {lastUpdated}
             </span>
           )}
         </div>
