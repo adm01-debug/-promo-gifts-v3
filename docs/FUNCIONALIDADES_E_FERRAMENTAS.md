@@ -538,11 +538,11 @@
 ### 9.1 Sistema de Notificações
 | Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
 |----------------|-------------------|-------------------------|
-| Hook Principal | `src/hooks/useNotifications.ts` | Supabase |
+| Serviço Principal | `src/services/notificationService.ts` | Supabase |
 | Edge Function Send | `supabase/functions/send-notification/index.ts` | Deno |
 | Edge Function Cleanup | `supabase/functions/cleanup-notifications/index.ts` | Deno |
 | Edge Function Digest | `supabase/functions/send-digest/index.ts` | Deno |
-| Tabela: `notifications` | Supabase Database | PostgreSQL |
+| Tabela: `workspace_notifications` | Supabase Database | PostgreSQL |
 
 ### 9.2 Notificações Push
 | Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
