@@ -54,9 +54,10 @@ Deno.serve(async (req) => {
     const externalKey = Deno.env.get('EXTERNAL_SUPABASE_SERVICE_KEY');
 
     if (!externalUrl || !externalKey) {
+      console.warn('[commemorative-dates] EXTERNAL_SUPABASE_URL/KEY not configured — returning empty payload');
       return new Response(
-        JSON.stringify({ error: 'Banco externo não configurado' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ data: [], records: [], count: 0, _unconfigured: true, _message: 'Banco externo não configurado' }),
+        { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
