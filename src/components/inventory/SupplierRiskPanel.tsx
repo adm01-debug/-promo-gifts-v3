@@ -145,14 +145,23 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
-            <ShieldAlert className="h-5 w-5 text-warning" aria-hidden="true" />
+            <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
+              <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
+            </div>
             Risco de Ruptura no Fornecedor
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col items-center justify-center py-8 text-center gap-2">
-            <Package className="h-8 w-8 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground">Carregue os dados de estoque para visualizar o painel de risco</p>
+          <div className="flex flex-col items-center justify-center py-12 text-center gap-3">
+            <div className="h-14 w-14 rounded-full bg-muted/50 flex items-center justify-center">
+              <Package className="h-7 w-7 text-muted-foreground/40" />
+            </div>
+            <div>
+              <p className="font-semibold text-foreground mb-1">Sem dados disponíveis</p>
+              <p className="text-sm text-muted-foreground max-w-xs">
+                Carregue os dados de estoque para visualizar a análise de risco por fornecedor.
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
