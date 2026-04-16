@@ -2292,6 +2292,33 @@ export type Database = {
         }
         Relationships: []
       }
+      search_analytics: {
+        Row: {
+          created_at: string
+          id: string
+          results_count: number
+          search_context: string | null
+          search_term: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          results_count?: number
+          search_context?: string | null
+          search_term: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          results_count?: number
+          search_context?: string | null
+          search_term?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       seller_cart_items: {
         Row: {
           cart_id: string
