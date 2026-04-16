@@ -337,8 +337,12 @@ Responda APENAS com JSON válido no formato especificado.`;
     const stats = searchCache.getStats();
     console.log(`[Cache SET] Query: "${query}" | Cache size: ${stats.size} | Hit rate: ${stats.hitRate}`);
 
+    const rankings = productsForRank?.length
+      ? await rerankProducts(query, productsForRank, rankLimit)
+      : [];
+
     return new Response(
-      JSON.stringify({ success: true, intent: searchIntent, cached: false, cacheStats: stats }),
+      JSON.stringify({ success: true, intent: searchIntent, rankings, cached: false, cacheStats: stats }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
