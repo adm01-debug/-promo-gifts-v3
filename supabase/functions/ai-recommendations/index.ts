@@ -38,6 +38,14 @@ Deno.serve(async (req) => {
     const auth = await authenticateRequest(req);
     const user = { id: auth.userId };
 
+    // Rate limit: 20 req/min por usuário
+    const rl = await applyRateLimit(req, rateLimiters.ai, () => user.id);
+    if (rl) {
+      const headers = new Headers(rl.headers);
+      Object.entries(corsHeaders).forEach(([k, v]) => headers.set(k, v));
+      return new Response(rl.body, { status: rl.status, headers });
+    }
+
     let rawBody: unknown;
     try {
       rawBody = await req.json();
