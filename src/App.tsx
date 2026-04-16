@@ -85,6 +85,7 @@ const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
 const SellerPerformanceDashboard = lazyWithRetry(() => import("./pages/SellerPerformanceDashboard"));
 const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
 const CommissionsPage = lazyWithRetry(() => import("./pages/CommissionsPage"));
+const CommercialAgendaPage = lazyWithRetry(() => import("./pages/CommercialAgendaPage"));
 
 // System Pages
 const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"));
@@ -223,6 +224,7 @@ const App = () => {
                               <Route path="/performance" element={<SellerPerformanceDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
                               <Route path="/comissoes" element={<CommissionsPage />} />
+                              <Route path="/agenda" element={<CommercialAgendaPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />
                             </Route>
