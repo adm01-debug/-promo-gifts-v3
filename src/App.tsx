@@ -84,6 +84,7 @@ const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
 const SellerPerformanceDashboard = lazyWithRetry(() => import("./pages/SellerPerformanceDashboard"));
 const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
+const CommissionsPage = lazyWithRetry(() => import("./pages/CommissionsPage"));
 
 // System Pages
 const SystemStatusPage = lazyWithRetry(() => import("./pages/SystemStatusPage"));
