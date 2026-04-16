@@ -569,9 +569,18 @@ export function VariantStockTable({ products, className }: VariantStockTableProp
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={9} className="text-center py-12 text-muted-foreground">
-                  <Package className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                  <p>Nenhum produto encontrado</p>
+                <TableCell colSpan={9} className="text-center py-16 text-muted-foreground">
+                  <div className="flex flex-col items-center">
+                    <div className="h-16 w-16 rounded-full bg-muted/50 flex items-center justify-center mb-4">
+                      <Package className="h-8 w-8 opacity-30" />
+                    </div>
+                    <p className="font-semibold text-foreground mb-1">Nenhum produto encontrado</p>
+                    <p className="text-sm max-w-xs">
+                      {inlineSearch
+                        ? `Nenhum resultado para "${inlineSearch}". Tente outro termo.`
+                        : 'Ajuste os filtros para visualizar os produtos.'}
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             )}
