@@ -561,34 +561,46 @@ export type Database = {
       }
       follow_up_reminders: {
         Row: {
+          completed_at: string | null
           created_at: string
           id: string
+          is_completed: boolean
           is_sent: boolean
+          notes: string | null
           quote_id: string
           reminder_type: string
           scheduled_for: string
           seller_id: string
           sent_at: string | null
+          title: string | null
         }
         Insert: {
+          completed_at?: string | null
           created_at?: string
           id?: string
+          is_completed?: boolean
           is_sent?: boolean
+          notes?: string | null
           quote_id: string
           reminder_type?: string
           scheduled_for: string
           seller_id: string
           sent_at?: string | null
+          title?: string | null
         }
         Update: {
+          completed_at?: string | null
           created_at?: string
           id?: string
+          is_completed?: boolean
           is_sent?: boolean
+          notes?: string | null
           quote_id?: string
           reminder_type?: string
           scheduled_for?: string
           seller_id?: string
           sent_at?: string | null
+          title?: string | null
         }
         Relationships: []
       }
