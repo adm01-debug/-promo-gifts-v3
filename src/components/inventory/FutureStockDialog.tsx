@@ -398,9 +398,36 @@ export function FutureStockDialog({ open, onOpenChange, entries }: FutureStockDi
           />
         </div>
 
+        {/* Confirmation progress bar */}
+        {stats.totalUnits > 0 && (
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-xs">
+              <span className="text-muted-foreground">Confirmação de Reposição</span>
+              <span className="font-medium tabular-nums text-success">
+                {Math.round((stats.confirmedUnits / stats.totalUnits) * 100)}% confirmado
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden flex">
+              <div
+                className="h-full bg-success rounded-l-full transition-all duration-500"
+                style={{ width: `${(stats.confirmedUnits / stats.totalUnits) * 100}%` }}
+              />
+              <div
+                className="h-full bg-primary/60 transition-all duration-500"
+                style={{ width: `${(stats.inTransitUnits / stats.totalUnits) * 100}%` }}
+              />
+            </div>
+            <div className="flex items-center gap-4 text-[10px] text-muted-foreground">
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success" />Confirmado</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary/60" />Em trânsito</span>
+              <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-muted" />Pendente</span>
+            </div>
+          </div>
+        )}
+
         {/* Overdue alert */}
         {stats.overdueCount > 0 && (
-          <div className="flex items-center gap-2 px-3 py-2 rounded-md bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>
               <strong>{stats.overdueCount}</strong> {stats.overdueCount === 1 ? 'reposição atrasada' : 'reposições atrasadas'} — verifique com o fornecedor.
