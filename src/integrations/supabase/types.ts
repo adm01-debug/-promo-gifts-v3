@@ -1344,6 +1344,56 @@ export type Database = {
         }
         Relationships: []
       }
+      product_component_locations: {
+        Row: {
+          component_id: string
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          location_code: string
+          location_name: string
+          max_height_cm: number | null
+          max_width_cm: number | null
+          sort_order: number | null
+          updated_at: string
+        }
+        Insert: {
+          component_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          location_code: string
+          location_name: string
+          max_height_cm?: number | null
+          max_width_cm?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Update: {
+          component_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          location_code?: string
+          location_name?: string
+          max_height_cm?: number | null
+          max_width_cm?: number | null
+          sort_order?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_component_locations_component_id_fkey"
+            columns: ["component_id"]
+            isOneToOne: false
+            referencedRelation: "product_components"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       product_components: {
         Row: {
           component_code: string
@@ -1442,6 +1492,51 @@ export type Database = {
           id?: string
           is_active?: boolean
           updated_at?: string
+        }
+        Relationships: []
+      }
+      product_sync_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          error_message: string | null
+          id: string
+          payload: Json | null
+          records_failed: number
+          records_inserted: number
+          records_processed: number
+          records_updated: number
+          source: string
+          status: string
+          triggered_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          records_failed?: number
+          records_inserted?: number
+          records_processed?: number
+          records_updated?: number
+          source: string
+          status?: string
+          triggered_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          error_message?: string | null
+          id?: string
+          payload?: Json | null
+          records_failed?: number
+          records_inserted?: number
+          records_processed?: number
+          records_updated?: number
+          source?: string
+          status?: string
+          triggered_by?: string | null
         }
         Relationships: []
       }
