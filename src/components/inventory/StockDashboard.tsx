@@ -45,6 +45,23 @@ export function StockDashboard() {
     if (!isFetching) lastRefreshRef.current = new Date();
   }, [isFetching]);
 
+  // Keyboard shortcut: Ctrl+Shift+R to refresh stock data
+  const handleRefresh = useCallback(() => {
+    if (!isFetching && !isLoading) fetchStockData();
+  }, [isFetching, isLoading, fetchStockData]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+        e.preventDefault();
+        handleRefresh();
+        toast({ title: '🔄 Atualizando estoque...', description: 'Atalho: Ctrl+Shift+R' });
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [handleRefresh, toast]);
+
   // Toast when new critical alerts appear after refresh
   useEffect(() => {
     if (isLoading) return;
