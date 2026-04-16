@@ -120,16 +120,20 @@ function KpiCard({ label, value, sub, icon: Icon, variant = 'default' }: {
     warning: 'bg-warning/5 border-warning/15',
   };
   const iconStyles = {
-    default: 'text-muted-foreground',
-    primary: 'text-primary',
-    success: 'text-success',
-    warning: 'text-warning',
+    default: 'text-muted-foreground bg-muted/50',
+    primary: 'text-primary bg-primary/10',
+    success: 'text-success bg-success/10',
+    warning: 'text-warning bg-warning/10',
   };
 
   return (
-    <div className={cn("rounded-lg border p-3 text-center transition-all", styles[variant])}>
-      <Icon className={cn("h-4 w-4 mx-auto mb-1", iconStyles[variant])} />
-      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+    <div className={cn("rounded-xl border p-3 transition-all hover:shadow-sm", styles[variant])}>
+      <div className="flex items-center gap-2 mb-2">
+        <div className={cn("h-7 w-7 rounded-lg flex items-center justify-center", iconStyles[variant])}>
+          <Icon className="h-3.5 w-3.5" />
+        </div>
+        <p className="text-[10px] text-muted-foreground uppercase tracking-wider font-medium">{label}</p>
+      </div>
       <p className="text-xl font-bold tabular-nums">{typeof value === 'number' ? value.toLocaleString('pt-BR') : value}</p>
       {sub && <p className="text-[10px] text-muted-foreground mt-0.5">{sub}</p>}
     </div>
