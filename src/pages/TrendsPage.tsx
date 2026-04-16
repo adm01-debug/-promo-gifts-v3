@@ -1,19 +1,30 @@
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { untypedFrom } from "@/lib/supabase-untyped";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Search, Package, Calendar, RefreshCw } from "lucide-react";
+import { TrendingUp, Search, Package, Calendar, RefreshCw, Download, Layers } from "lucide-react";
 import { format, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { ActivityChart, ProductsTabContent, SearchesTabContent } from "./trends/TrendsCharts";
+import { ProductsTabContent, SearchesTabContent } from "./trends/TrendsCharts";
 import { TrendsKpiCards } from "./trends/TrendsKpiCards";
 import { UnmetDemandCard } from "@/components/intelligence/UnmetDemandCard";
 import { ConversionFunnel } from "@/components/intelligence/ConversionFunnel";
+import { TrendsHeatmap } from "@/components/intelligence/TrendsHeatmap";
+import { TopCategoriesCard } from "@/components/intelligence/TopCategoriesCard";
+import { TrendsInsightsCard } from "@/components/intelligence/TrendsInsightsCard";
+import { TrendsForecastChart } from "@/components/intelligence/TrendsForecastChart";
+import { SavedViewsManager } from "@/components/intelligence/SavedViewsManager";
+import { RealtimeBadge } from "@/components/intelligence/RealtimeBadge";
+import { TrendsTour } from "@/components/intelligence/TrendsTour";
 import { calculateTrendingScore } from "@/lib/trending-score";
+import { useUrlState, useUrlBoolean } from "@/hooks/useUrlState";
+import { exportTrendsCsv } from "@/lib/trends-export";
+import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 
 type DateRange = "7d" | "30d" | "90d";
 
@@ -55,30 +66,39 @@ interface AggregatedSearch {
 }
 
 export default function TrendsPage() {
-  const [dateRange, setDateRange] = useState<DateRange>("30d");
-  const days = RANGE_TO_DAYS[dateRange];
+  const { user, canManage } = useAuth();
+  const { toast } = useToast();
+  const [dateRange, setDateRange] = useUrlState<DateRange>("range", "30d");
+  const [activeTab, setActiveTab] = useUrlState<string>("tab", "products");
+  const [showCompare, setShowCompare] = useUrlBoolean("cmp", false);
+  const [showForecast, setShowForecast] = useUrlBoolean("fc", false);
+  const days = RANGE_TO_DAYS[dateRange] ?? 30;
 
-  // Janelas: período atual + período anterior (para deltas)
+  // Vendedores (não-managers) só veem seus próprios eventos.
+  const sellerScope = canManage ? null : user?.id ?? null;
+  const scopeKey = sellerScope ?? "all";
+
   const { sinceCurrent, sincePrevious, recentCutoff } = useMemo(() => {
     const now = new Date();
     return {
       sinceCurrent: subDays(now, days).toISOString(),
       sincePrevious: subDays(now, days * 2).toISOString(),
-      // Para trending score: "recente" = últimos 1/3 da janela
       recentCutoff: subDays(now, Math.max(Math.floor(days / 3), 1)).toISOString(),
     };
   }, [days]);
 
   // ============================================
-  // Top Products (com trending score)
+  // Top Products
   // ============================================
   const { data: topProducts, isLoading: loadingProducts, refetch: refetchProducts } = useQuery({
-    queryKey: ["trends-products", dateRange],
+    queryKey: ["trends-products", dateRange, scopeKey],
     queryFn: async (): Promise<AggregatedProduct[]> => {
-      const { data, error } = await untypedFrom("product_views")
-        .select("product_id, product_name, product_sku, view_type, created_at")
+      let q = untypedFrom("product_views")
+        .select("product_id, product_name, product_sku, view_type, created_at, seller_id")
         .gte("created_at", sincePrevious)
         .order("created_at", { ascending: false });
+      if (sellerScope) q = q.eq("seller_id", sellerScope);
+      const { data, error } = await q;
       if (error) throw error;
 
       const productMap = new Map<string, AggregatedProduct>();
@@ -92,12 +112,9 @@ export default function TrendsPage() {
         const isRecent = view.created_at >= recentCutoff;
 
         const existing = productMap.get(key) ?? {
-          id: key,
-          name: view.product_name ?? "Produto",
-          sku: view.product_sku ?? undefined,
+          id: key, name: view.product_name ?? "Produto", sku: view.product_sku ?? undefined,
           views: 0, details: 0, compares: 0, favorites: 0,
-          recentViews: 0, baselineViews: 0,
-          trendingScore: 0, classification: 'stable' as const,
+          recentViews: 0, baselineViews: 0, trendingScore: 0, classification: 'stable' as const,
         };
 
         if (isInCurrentWindow) {
@@ -112,40 +129,33 @@ export default function TrendsPage() {
         productMap.set(key, existing);
       });
 
-      // Calcula trending score
       const enriched = Array.from(productMap.values()).map(p => {
         const score = calculateTrendingScore({
-          recentCount: p.recentViews,
-          baselineCount: p.baselineViews,
-          recentDays,
-          baselineDays,
-          totalVolume: p.views,
+          recentCount: p.recentViews, baselineCount: p.baselineViews,
+          recentDays, baselineDays, totalVolume: p.views,
         });
         return { ...p, trendingScore: score.score, classification: score.classification };
       });
 
-      // Ordena por score combinado: trending score * log(volume + 1)
       return enriched
         .filter(p => p.views > 0)
-        .sort((a, b) => {
-          const aScore = a.trendingScore * Math.log(a.views + 1);
-          const bScore = b.trendingScore * Math.log(b.views + 1);
-          return bScore - aScore;
-        })
+        .sort((a, b) => b.trendingScore * Math.log(b.views + 1) - a.trendingScore * Math.log(a.views + 1))
         .slice(0, 10);
     },
   });
 
   // ============================================
-  // Top Searches (atual + anterior)
+  // Top Searches
   // ============================================
   const { data: searchesData, isLoading: loadingSearches, refetch: refetchSearches } = useQuery({
-    queryKey: ["trends-searches", dateRange],
+    queryKey: ["trends-searches", dateRange, scopeKey],
     queryFn: async () => {
-      const { data, error } = await untypedFrom("search_analytics")
-        .select("search_term, results_count, created_at")
+      let q = untypedFrom("search_analytics")
+        .select("search_term, results_count, created_at, seller_id")
         .gte("created_at", sincePrevious)
         .order("created_at", { ascending: false });
+      if (sellerScope) q = q.eq("seller_id", sellerScope);
+      const { data, error } = await q;
       if (error) throw error;
 
       const current = new Map<string, { count: number; totalResults: number }>();
@@ -167,76 +177,87 @@ export default function TrendsPage() {
       });
 
       const currentArr: AggregatedSearch[] = Array.from(current.entries())
-        .map(([term, d]) => ({
-          term,
-          count: d.count,
-          totalResults: d.totalResults,
-          avgResults: d.count > 0 ? Math.round(d.totalResults / d.count) : 0,
-        }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10);
+        .map(([term, d]) => ({ term, count: d.count, totalResults: d.totalResults,
+          avgResults: d.count > 0 ? Math.round(d.totalResults / d.count) : 0 }))
+        .sort((a, b) => b.count - a.count).slice(0, 10);
 
-      return { current: currentArr, previousMap: previous, allCurrent: Array.from(current.values()) };
+      return { current: currentArr };
     },
   });
 
   const topSearches = searchesData?.current;
 
   // ============================================
-  // Daily activity
+  // Daily activity (atual + anterior para comparação)
   // ============================================
-  const { data: dailyTrends, isLoading: loadingDaily } = useQuery({
-    queryKey: ["trends-daily", dateRange],
+  const { data: dailyData, isLoading: loadingDaily } = useQuery({
+    queryKey: ["trends-daily", dateRange, scopeKey],
     queryFn: async () => {
+      const buildQ = (table: string, since: string) => {
+        let q = untypedFrom(table).select("created_at, seller_id").gte("created_at", since);
+        if (sellerScope) q = q.eq("seller_id", sellerScope);
+        return q;
+      };
       const [{ data: views, error: ve }, { data: searches, error: se }] = await Promise.all([
-        untypedFrom("product_views").select("created_at").gte("created_at", sinceCurrent),
-        untypedFrom("search_analytics").select("created_at").gte("created_at", sinceCurrent),
+        buildQ("product_views", sincePrevious),
+        buildQ("search_analytics", sincePrevious),
       ]);
       if (ve || se) throw ve || se;
-      const dayMap = new Map<string, { date: string; views: number; searches: number }>();
+
+      // Buckets atual + anterior (mesmo número de dias)
+      const cur = new Map<string, { date: string; views: number; searches: number }>();
+      const prev = new Map<string, { views: number; searches: number }>();
       for (let i = days - 1; i >= 0; i--) {
         const d = format(subDays(new Date(), i), "yyyy-MM-dd");
-        dayMap.set(d, { date: d, views: 0, searches: 0 });
+        cur.set(d, { date: d, views: 0, searches: 0 });
+      }
+      for (let i = days - 1; i >= 0; i--) {
+        const d = format(subDays(new Date(), days + i), "yyyy-MM-dd");
+        prev.set(d, { views: 0, searches: 0 });
       }
       views?.forEach((v: { created_at: string }) => {
         const d = format(new Date(v.created_at), "yyyy-MM-dd");
-        const e = dayMap.get(d); if (e) e.views += 1;
+        const c = cur.get(d); if (c) { c.views += 1; return; }
+        const p = prev.get(d); if (p) p.views += 1;
       });
       searches?.forEach((s: { created_at: string }) => {
         const d = format(new Date(s.created_at), "yyyy-MM-dd");
-        const e = dayMap.get(d); if (e) e.searches += 1;
+        const c = cur.get(d); if (c) { c.searches += 1; return; }
+        const p = prev.get(d); if (p) p.searches += 1;
       });
-      return Array.from(dayMap.values()).map(d => ({
-        ...d,
-        dateLabel: format(new Date(d.date), "dd/MM", { locale: ptBR }),
-      }));
+      const current = Array.from(cur.values()).map(d => ({ ...d, dateLabel: format(new Date(d.date), "dd/MM", { locale: ptBR }) }));
+      const previous = Array.from(prev.values()).map(p => ({ date: "", views: p.views, searches: p.searches }));
+      return { current, previous };
     },
   });
 
   // ============================================
-  // KPIs atuais e anteriores (para deltas)
+  // KPIs (atuais + anteriores)
   // ============================================
   const { data: kpiSnapshot } = useQuery({
-    queryKey: ["trends-kpi-snapshot", dateRange],
+    queryKey: ["trends-kpi-snapshot", dateRange, scopeKey],
     queryFn: async () => {
+      const buildQ = (table: string, fields: string) => {
+        let q = untypedFrom(table).select(fields).gte("created_at", sincePrevious);
+        if (sellerScope) q = q.eq("seller_id", sellerScope);
+        return q;
+      };
       const [{ data: vAll }, { data: sAll }] = await Promise.all([
-        untypedFrom("product_views").select("product_id, product_name, created_at").gte("created_at", sincePrevious),
-        untypedFrom("search_analytics").select("search_term, created_at").gte("created_at", sincePrevious),
+        buildQ("product_views", "product_id, product_name, created_at, seller_id"),
+        buildQ("search_analytics", "search_term, created_at, seller_id"),
       ]);
       const split = (
         rows: Array<{ created_at: string }>,
-        keyFn: (r: any) => string | null, // eslint-disable-line @typescript-eslint/no-explicit-any
+        keyFn: (r: any) => string | null,
       ) => {
         let curTotal = 0, prevTotal = 0;
         const curUnique = new Set<string>(), prevUnique = new Set<string>();
         rows?.forEach(r => {
           const k = keyFn(r);
           if (r.created_at >= sinceCurrent) {
-            curTotal += 1;
-            if (k) curUnique.add(k);
+            curTotal += 1; if (k) curUnique.add(k);
           } else {
-            prevTotal += 1;
-            if (k) prevUnique.add(k);
+            prevTotal += 1; if (k) prevUnique.add(k);
           }
         });
         return { curTotal, prevTotal, curUnique: curUnique.size, prevUnique: prevUnique.size };
@@ -244,18 +265,8 @@ export default function TrendsPage() {
       const v = split(vAll ?? [], (r) => r.product_id || r.product_name);
       const s = split(sAll ?? [], (r) => (r.search_term ?? "").toLowerCase());
       return {
-        current: {
-          totalViews: v.curTotal,
-          totalSearches: s.curTotal,
-          uniqueProducts: v.curUnique,
-          uniqueSearches: s.curUnique,
-        },
-        previous: {
-          totalViews: v.prevTotal,
-          totalSearches: s.prevTotal,
-          uniqueProducts: v.prevUnique,
-          uniqueSearches: s.prevUnique,
-        },
+        current: { totalViews: v.curTotal, totalSearches: s.curTotal, uniqueProducts: v.curUnique, uniqueSearches: s.curUnique },
+        previous: { totalViews: v.prevTotal, totalSearches: s.prevTotal, uniqueProducts: v.prevUnique, uniqueSearches: s.prevUnique },
       };
     },
   });
@@ -265,21 +276,52 @@ export default function TrendsPage() {
 
   const handleRefresh = () => { refetchProducts(); refetchSearches(); };
 
+  const handleExportProducts = () => {
+    if (!topProducts?.length) {
+      toast({ title: "Sem dados", description: "Nada para exportar ainda.", variant: "destructive" });
+      return;
+    }
+    exportTrendsCsv("tendencias_produtos", topProducts.map(p => ({
+      Produto: p.name, SKU: p.sku ?? "", Visualizações: p.views,
+      Detalhes: p.details, Comparações: p.compares,
+      "Crescimento %": p.classification === 'new' ? "NOVO" : Math.round((p.trendingScore - 1) * 100),
+      Classificação: p.classification,
+    })));
+    toast({ title: "Exportado", description: "Arquivo CSV baixado." });
+  };
+
+  const handleExportSearches = () => {
+    if (!topSearches?.length) {
+      toast({ title: "Sem dados", description: "Nada para exportar ainda.", variant: "destructive" });
+      return;
+    }
+    exportTrendsCsv("tendencias_buscas", topSearches.map(s => ({
+      Termo: s.term, Buscas: s.count, "Resultados médios": s.avgResults,
+    })));
+    toast({ title: "Exportado", description: "Arquivo CSV baixado." });
+  };
+
   return (
     <MainLayout>
       <PageSEO title="Tendências" description="Analise tendências de produtos e buscas." path="/tendencias" noIndex />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
-              <TrendingUp className="h-7 w-7 text-primary" />
-              Análise de Tendências
-            </h1>
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+                <TrendingUp className="h-7 w-7 text-primary" />
+                Análise de Tendências
+              </h1>
+              <RealtimeBadge />
+            </div>
             <p className="text-muted-foreground mt-1">
-              Crescimento, conversão e demanda reprimida em tempo real
+              {canManage
+                ? "Crescimento, conversão e demanda reprimida em tempo real"
+                : "Suas vendas, suas buscas, sua atividade"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <SavedViewsManager />
             <Select value={dateRange} onValueChange={(v) => setDateRange(v as DateRange)}>
               <SelectTrigger className="w-[140px]"><Calendar className="h-4 w-4 mr-2" /><SelectValue /></SelectTrigger>
               <SelectContent>
@@ -292,22 +334,51 @@ export default function TrendsPage() {
           </div>
         </div>
 
-        {/* KPIs com deltas */}
+        {/* IA — só para managers */}
+        {canManage && <TrendsInsightsCard days={days} />}
+
+        {/* KPIs */}
         <TrendsKpiCards current={kpiCurrent} previous={kpiPrevious} />
 
-        {/* Funil + Demanda Reprimida */}
+        {/* Funil + Demanda */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ConversionFunnel days={days} />
           <UnmetDemandCard days={days} />
         </div>
 
-        <ActivityChart dailyTrends={dailyTrends} isLoading={loadingDaily} />
+        {/* Forecast Chart com toggles vs anterior + previsão + anomalias */}
+        <TrendsForecastChart
+          dailyTrends={dailyData?.current}
+          previousTrends={dailyData?.previous}
+          isLoading={loadingDaily}
+          showForecast={showForecast}
+          onToggleForecast={setShowForecast}
+          showCompare={showCompare}
+          onToggleCompare={setShowCompare}
+        />
 
-        <Tabs defaultValue="products" className="space-y-4">
-          <TabsList>
-            <TabsTrigger value="products" className="gap-2"><Package className="h-4 w-4" />Produtos em alta</TabsTrigger>
-            <TabsTrigger value="searches" className="gap-2"><Search className="h-4 w-4" />Termos mais buscados</TabsTrigger>
-          </TabsList>
+        {/* Heatmap + Top Categorias */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <TrendsHeatmap days={days} />
+          <TopCategoriesCard days={days} />
+        </div>
+
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <div className="flex items-center justify-between gap-2 flex-wrap">
+            <TabsList>
+              <TabsTrigger value="products" className="gap-2"><Package className="h-4 w-4" />Produtos em alta</TabsTrigger>
+              <TabsTrigger value="searches" className="gap-2"><Search className="h-4 w-4" />Termos mais buscados</TabsTrigger>
+            </TabsList>
+            <Button
+              variant="outline"
+              size="sm"
+              className="gap-1.5"
+              onClick={activeTab === "products" ? handleExportProducts : handleExportSearches}
+            >
+              <Download className="h-3.5 w-3.5" />
+              Exportar CSV
+            </Button>
+          </div>
           <TabsContent value="products" className="space-y-4">
             <ProductsTabContent topProducts={topProducts} isLoading={loadingProducts} />
           </TabsContent>
@@ -316,6 +387,7 @@ export default function TrendsPage() {
           </TabsContent>
         </Tabs>
       </div>
+      <TrendsTour />
     </MainLayout>
   );
 }
