@@ -192,8 +192,14 @@ export function GlobalSearchPalette() {
                       <Icon className={cn("h-4.5 w-4.5", config.color.replace("bg-", "text-"))} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate text-[13px]">{result.title}</p>
-                      {result.subtitle && <p className="text-[11px] [color:hsl(var(--command-text-muted))] truncate mt-0.5">{result.subtitle}</p>}
+                      <p className="font-medium truncate text-[13px]">
+                        <HighlightMatch text={result.title} query={s.query} />
+                      </p>
+                      {result.subtitle && (
+                        <p className="text-[11px] [color:hsl(var(--command-text-muted))] truncate mt-0.5">
+                          <HighlightMatch text={result.subtitle} query={s.query} highlightClassName="bg-primary/15 text-primary font-semibold rounded-sm px-0.5" />
+                        </p>
+                      )}
                     </div>
                     <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-lg [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))] font-medium">{config.label}</Badge>
                     <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
