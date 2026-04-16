@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 const BodySchema = z.object({
   mode: z.enum(['tables', 'columns']).default('tables'),
@@ -23,6 +24,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Anti-scraping: bot UA check + rate limit por IP (camada externa antes do auth)
+    const protection = await runBotProtection(req, {
+      endpoint: 'external-db-inspect',
+      maxRequests: 30,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+    }, corsHeadersRef.current);
+    if (!protection.allowed) return protection.blockResponse!;
+
     // Auth guard: require authenticated admin user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader?.startsWith('Bearer ')) {

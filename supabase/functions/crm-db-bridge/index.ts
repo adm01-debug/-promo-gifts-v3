@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "https://esm.sh/zod@3.23.8";
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 // ============================================
 // CORS
@@ -413,6 +414,15 @@ Deno.serve(async (req) => {
   }
 
   try {
+    // Anti-scraping: bot UA check + rate limit por IP (camada externa antes do auth)
+    const protection = await runBotProtection(req, {
+      endpoint: 'crm-db-bridge',
+      maxRequests: 120,
+      windowSeconds: 60,
+      blockSeconds: 1800,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
+
     const auth = await authenticateRequest(req);
     if (auth.error) return auth.error;
 
