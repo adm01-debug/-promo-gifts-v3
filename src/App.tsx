@@ -82,6 +82,7 @@ const OrderDetailPage = lazyWithRetry(() => import("./pages/OrderDetailPage"));
 
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
+const SellerPerformanceDashboard = lazyWithRetry(() => import("./pages/SellerPerformanceDashboard"));
 const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
 
 // System Pages
