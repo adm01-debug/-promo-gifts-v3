@@ -538,7 +538,7 @@
 ### 9.1 Sistema de Notificações
 | Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
 |----------------|-------------------|-------------------------|
-| Hook Principal | `src/hooks/useNotifications.ts` | Supabase |
+| Serviço Principal | `src/services/notificationService.ts` | Supabase |
 | Edge Function Send | `supabase/functions/send-notification/index.ts` | Deno |
 | Edge Function Cleanup | `supabase/functions/cleanup-notifications/index.ts` | Deno |
 | Edge Function Digest | `supabase/functions/send-digest/index.ts` | Deno |
