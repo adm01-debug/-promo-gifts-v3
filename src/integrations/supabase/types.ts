@@ -2380,6 +2380,7 @@ export type Database = {
         }
         Returns: Json
       }
+      cleanup_discount_test_data: { Args: never; Returns: Json }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       create_organization_with_owner: {
@@ -2440,6 +2441,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      seed_discount_test_users: { Args: never; Returns: Json }
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
