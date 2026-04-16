@@ -17,7 +17,7 @@ import type { VoiceAgentAction } from "@/hooks/voice/types";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 import type { ExternalProduct } from "@/types/external-db";
 
-export type SearchResultType = "product" | "client" | "quote" | "order" | "collection" | "kit" | "mockup" | "art_file";
+export type SearchResultType = "product" | "client" | "quote" | "order" | "collection" | "kit" | "mockup" | "art_file" | "cart_template" | "reminder" | "conversation" | "magic_up" | "category" | "component" | "media";
 
 export interface SearchResult {
   id: string;
@@ -365,6 +365,116 @@ export function useGlobalSearch() {
             type: "art_file",
             href: a.quote_id ? `/orcamentos/${a.quote_id}` : a.file_url,
             metadata: { file_url: a.file_url },
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Cart templates
+      if (wants("cart_template")) {
+        try {
+          const { data } = await supabase.from("cart_templates")
+            .select("id, name, description, items")
+            .or(`name.ilike.%${term}%,description.ilike.%${term}%`).limit(5);
+          (data || []).forEach(t => {
+            const itemCount = Array.isArray(t.items) ? t.items.length : 0;
+            allResults.push({
+              id: t.id, title: t.name,
+              subtitle: `${itemCount} ${itemCount === 1 ? "item" : "itens"} • ${t.description || "Template de carrinho"}`,
+              type: "cart_template", href: `/carrinho?template=${t.id}`,
+            });
+          });
+        } catch { /* silent */ }
+      }
+
+      // Follow-up reminders
+      if (wants("reminder")) {
+        try {
+          const { data } = await supabase.from("follow_up_reminders")
+            .select("id, title, notes, scheduled_for, is_completed, quote_id")
+            .or(`title.ilike.%${term}%,notes.ilike.%${term}%`)
+            .order("scheduled_for", { ascending: true }).limit(5);
+          (data || []).forEach(r => allResults.push({
+            id: r.id, title: r.title || "Lembrete",
+            subtitle: `${r.is_completed ? "✅ Concluído" : "⏰ Pendente"} • ${new Date(r.scheduled_for).toLocaleDateString("pt-BR")}${r.notes ? " • " + r.notes.slice(0, 40) : ""}`,
+            type: "reminder", href: r.quote_id ? `/orcamentos/${r.quote_id}` : "/orcamentos",
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Expert conversations
+      if (wants("conversation")) {
+        try {
+          const { data } = await supabase.from("expert_conversations")
+            .select("id, title, updated_at")
+            .ilike("title", `%${term}%`)
+            .order("updated_at", { ascending: false }).limit(5);
+          (data || []).forEach(c => allResults.push({
+            id: c.id, title: c.title || "Conversa sem título",
+            subtitle: `Última atualização: ${new Date(c.updated_at).toLocaleDateString("pt-BR")}`,
+            type: "conversation", href: `/expert?conversation=${c.id}`,
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Magic Up generations
+      if (wants("magic_up")) {
+        try {
+          const { data } = await supabase.from("magic_up_generations")
+            .select("id, client_name, product_name, scene_title, scene_category, generated_image_url, created_at")
+            .or(`client_name.ilike.%${term}%,product_name.ilike.%${term}%,scene_title.ilike.%${term}%,scene_category.ilike.%${term}%`)
+            .order("created_at", { ascending: false }).limit(5);
+          (data || []).forEach(m => allResults.push({
+            id: m.id, title: m.scene_title || m.product_name || "Magic Up",
+            subtitle: `${m.client_name || "Sem cliente"} • ${m.product_name || ""}${m.scene_category ? " • " + m.scene_category : ""}`,
+            type: "magic_up", href: `/magic-up`,
+            metadata: { image_url: m.generated_image_url },
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Categories (catalog shortcut)
+      if (wants("category")) {
+        try {
+          const { data } = await supabase.from("category_icons")
+            .select("id, category_name, description, icon")
+            .eq("is_active", true)
+            .or(`category_name.ilike.%${term}%,description.ilike.%${term}%`).limit(5);
+          (data || []).forEach(c => allResults.push({
+            id: c.id, title: c.category_name,
+            subtitle: c.description || "Filtrar catálogo por esta categoria",
+            type: "category", href: `/?category=${encodeURIComponent(c.category_name)}`,
+            metadata: { icon: c.icon },
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Product components
+      if (wants("component")) {
+        try {
+          const { data } = await supabase.from("product_components")
+            .select("id, component_code, component_name, product_id, is_personalizable")
+            .eq("is_active", true)
+            .or(`component_name.ilike.%${term}%,component_code.ilike.%${term}%`).limit(5);
+          (data || []).forEach(c => allResults.push({
+            id: c.id, title: c.component_name,
+            subtitle: `Código: ${c.component_code}${c.is_personalizable ? " • Personalizável" : ""}`,
+            type: "component", href: `/produto/${c.product_id}`,
+          }));
+        } catch { /* silent */ }
+      }
+
+      // Component media
+      if (wants("media")) {
+        try {
+          const { data } = await supabase.from("component_media")
+            .select("id, title, media_type, url, product_id")
+            .ilike("title", `%${term}%`)
+            .order("created_at", { ascending: false }).limit(5);
+          (data || []).forEach(m => allResults.push({
+            id: m.id, title: m.title || "Mídia sem título",
+            subtitle: `${m.media_type === "video" ? "🎬 Vídeo" : "🖼️ Imagem"} • Componente`,
+            type: "media", href: m.product_id ? `/produto/${m.product_id}` : m.url,
+            metadata: { url: m.url },
           }));
         } catch { /* silent */ }
       }

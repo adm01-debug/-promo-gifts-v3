@@ -123,7 +123,7 @@ const searchCache = new TTLCache<SearchIntent>(5 * 60 * 1000, 1000);
 let lastCleanup = Date.now();
 const CLEANUP_INTERVAL = 60 * 1000;
 
-type EntityType = 'product' | 'client' | 'quote' | 'order' | 'collection' | 'kit' | 'mockup' | 'art_file' | 'mixed';
+type EntityType = 'product' | 'client' | 'quote' | 'order' | 'collection' | 'kit' | 'mockup' | 'art_file' | 'cart_template' | 'reminder' | 'conversation' | 'magic_up' | 'category' | 'component' | 'media' | 'mixed';
 
 interface SearchIntent {
   type: EntityType;
@@ -246,7 +246,22 @@ TIPOS DE BUSCA:
 - kit: busca por kits personalizados (custom_kits)
 - mockup: busca por mockups gerados
 - art_file: busca por arquivos de arte/anexos
+- cart_template: templates de carrinho salvos pelo vendedor
+- reminder: lembretes de follow-up de orçamentos
+- conversation: conversas com o assistente IA (Expert)
+- magic_up: gerações Magic Up (cenas publicitárias)
+- category: categorias do catálogo (atalho de filtro)
+- component: componentes de produto (peças personalizáveis)
+- media: mídias de componentes (imagens/vídeos)
 - mixed: busca geral em múltiplas entidades (use entities[] para listar)
+
+EXEMPLOS ADICIONAIS:
+- "lembrete do orçamento da empresa X" → type: reminder, filters: { clientName: "X" }
+- "conversas sobre estampa silk" → type: conversation, keywords: ["estampa","silk"]
+- "magic up cliente Y praia" → type: magic_up, filters: { clientName: "Y" }, keywords: ["praia"]
+- "categoria canecas" → type: category, keywords: ["canecas"]
+- "componente alça mochila" → type: component, keywords: ["alça","mochila"]
+- "template carrinho corporativo" → type: cart_template, keywords: ["corporativo"]
 
 FILTROS POSSÍVEIS:
 - category: categoria do produto (ex: canecas, camisetas, mochilas, escritório)
@@ -285,8 +300,8 @@ Responda APENAS com JSON válido no formato especificado.`;
               parameters: {
                 type: "object",
                 properties: {
-                  type: { type: "string", enum: ["product", "client", "quote", "order", "collection", "kit", "mockup", "art_file", "mixed"] },
-                  entities: { type: "array", items: { type: "string", enum: ["product", "client", "quote", "order", "collection", "kit", "mockup", "art_file"] } },
+                  type: { type: "string", enum: ["product", "client", "quote", "order", "collection", "kit", "mockup", "art_file", "cart_template", "reminder", "conversation", "magic_up", "category", "component", "media", "mixed"] },
+                  entities: { type: "array", items: { type: "string", enum: ["product", "client", "quote", "order", "collection", "kit", "mockup", "art_file", "cart_template", "reminder", "conversation", "magic_up", "category", "component", "media"] } },
                   filters: {
                     type: "object",
                     properties: {
