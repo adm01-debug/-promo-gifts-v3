@@ -34,6 +34,38 @@ const quickActions: QuickAction[] = [
 export function GlobalSearchPalette() {
   const s = useGlobalSearch();
 
+  // ── Power-user keyboard shortcuts ──
+  // 1-9: jump to Nth result · Cmd/Ctrl+Enter: open in new tab
+  useEffect(() => {
+    if (!s.open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        const first = s.results[0];
+        if (first?.href) {
+          e.preventDefault();
+          window.open(first.href, "_blank", "noopener,noreferrer");
+        }
+        return;
+      }
+      if (/^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+        const idx = parseInt(e.key, 10) - 1;
+        const result = s.results[idx];
+        if (result) {
+          e.preventDefault();
+          s.handleSelect(result.href);
+        }
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [s.open, s.results, s.handleSelect]);
+
+  const handleEmptyAction = useCallback((href: string) => s.handleSelect(href), [s.handleSelect]);
+  const handleEmptyRefine = useCallback(() => s.setQuery(""), [s.setQuery]);
+  const handleEmptyPickRecent = useCallback((term: string) => s.setQuery(term), [s.setQuery]);
+
   return (
     <>
       {/* ── Trigger ── */}
