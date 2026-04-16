@@ -709,6 +709,39 @@ export type Database = {
         }
         Relationships: []
       }
+      ip_access_control: {
+        Row: {
+          created_at: string
+          created_by: string
+          expires_at: string | null
+          id: string
+          ip_address: string
+          list_type: string
+          reason: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          expires_at?: string | null
+          id?: string
+          ip_address: string
+          list_type: string
+          reason?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          expires_at?: string | null
+          id?: string
+          ip_address?: string
+          list_type?: string
+          reason?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       kit_share_tokens: {
         Row: {
           client_email: string | null
@@ -2336,6 +2369,7 @@ export type Database = {
         Returns: Json
       }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
+      check_ip_access: { Args: { _ip: string }; Returns: string }
       check_rate_limit: {
         Args: {
           _block_duration_seconds?: number
