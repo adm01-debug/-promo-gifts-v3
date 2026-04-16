@@ -213,8 +213,11 @@ Deno.serve(async (req) => {
     if (cachedResult) {
       const stats = searchCache.getStats();
       console.log(`[Cache HIT] Query: "${query}" | Stats: ${JSON.stringify(stats)}`);
+      const rankings = productsForRank?.length
+        ? await rerankProducts(query, productsForRank, rankLimit)
+        : [];
       return new Response(
-        JSON.stringify({ success: true, intent: cachedResult, cached: true, cacheStats: stats }),
+        JSON.stringify({ success: true, intent: cachedResult, rankings, cached: true, cacheStats: stats }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
