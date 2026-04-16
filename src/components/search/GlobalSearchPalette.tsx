@@ -248,7 +248,7 @@ export function GlobalSearchPalette() {
 
         {/* Premium Footer */}
         <div className="flex items-center justify-between px-5 py-2.5 border-t [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)),hsl(var(--command-surface-raised)))] select-none">
-          <div className="flex items-center gap-5 text-[11px] [color:hsl(var(--command-text-subtle))]">
+          <div className="flex items-center gap-4 text-[11px] [color:hsl(var(--command-text-subtle))]">
             <span className="inline-flex items-center gap-1.5">
               <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">↵</kbd>
               <span>Selecionar</span>
@@ -256,6 +256,14 @@ export function GlobalSearchPalette() {
             <span className="inline-flex items-center gap-1.5">
               <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">↑↓</kbd>
               <span>Navegar</span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">1-9</kbd>
+              <span>Saltar</span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">⌘↵</kbd>
+              <span>Nova aba</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">ESC</kbd>
