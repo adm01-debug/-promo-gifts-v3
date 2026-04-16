@@ -28,7 +28,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
 
 const fulfillmentConfig: Record<string, { label: string; color: string }> = {
   unfulfilled: { label: "Não Processado", color: "bg-warning/20 text-warning border-warning/30" },
-  partial: { label: "Parcial", color: "bg-orange/20 text-orange border-orange/30" },
+  partial: { label: "Parcial", color: "bg-warning/15 text-warning/80 border-warning/25" },
   fulfilled: { label: "Completo", color: "bg-primary/20 text-primary border-primary/30" },
 };
 
@@ -275,7 +275,7 @@ export default function OrderDetailPage() {
               <CardHeader>
                 <CardTitle className="text-lg">Gerenciar Status</CardTitle>
               </CardHeader>
-              <CardContent className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+              <CardContent className="space-y-3">
                 <div>
                   <Label>Status do Pedido</Label>
                   <Select value={order.status} onValueChange={updateStatus} disabled={isSaving}>
