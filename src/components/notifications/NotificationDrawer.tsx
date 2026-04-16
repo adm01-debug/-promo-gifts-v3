@@ -12,7 +12,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { useWorkspaceNotifications, type WorkspaceNotification } from "@/hooks/useWorkspaceNotifications";
+import { useNotifications, type WorkspaceNotification } from "@/hooks/useNotifications";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
