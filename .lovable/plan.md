@@ -1,78 +1,38 @@
 
-Vou criar o módulo **Business Intelligence** dentro de Ferramentas — uma central de inteligência comercial 360° por cliente, combinando histórico real (quando disponível) + dados mockados estratégicos + recomendações empíricas por ramo de atividade.
+Módulo BI entregue. Próximo vetor 10/10 para o BI: **substituir mocks de afinidade por dados reais agregados** + **adicionar imagens reais de produtos** nas sugestões, transformando o módulo de "didático com mocks" em "operacional com dados reais sempre que existirem".
 
-## Conceito UX — "BI Vendedor"
+## Sprint — BI: Real Data Layer (Fase 1)
 
-Tela única e densa, com seleção de cliente no topo e 4 zonas de inteligência abaixo. Tudo visualmente didático para o vendedor agir em segundos.
+### 1. Afinidade real do cliente via `quotes` (não orders)
+Pivô estratégico: o sistema já tem **volume de orçamentos** (`quotes` + `quote_items`), enquanto `orders` ainda está vazio. Vou usar `quote_items` como proxy de "interesse confirmado" do cliente:
+- Nova RPC `get_client_category_affinity(_client_id uuid, _limit int)`: agrega `quote_items` JOIN `quotes` (status IN aprovado/enviado/aceito) WHERE `client_id = _client_id`, agrupa por `category` (campo já existe em quote_items), retorna top 5 com `count`, `total_revenue`.
+- Atualizar `useClientAffinity.ts`: chamar RPC; se retornar ≥1 categoria → `isMock: false`. Se vazio → fallback mock atual.
 
-## Arquitetura da Página
+### 2. Sugestões com produtos reais do catálogo
+Para cada categoria afim retornada, buscar 3 produtos via `external-db-bridge` (`products` table, filter por `main_category_id` matching). Reaproveitar lógica do `useSimilarProducts`.
+- Hook novo: `useCategoryProductSuggestions(categoryName, limit=3)` → resolve `category` slug → query catálogo externo.
+- `BIProductCard` ganha props opcionais `imageUrl`, `productId`, `productSlug` → quando presentes, renderiza imagem real e CTA "Ver produto" leva ao `/produto/{slug}`.
 
-### Topo — Seletor de Cliente
-- Combobox `ClientPicker` (reaproveita `companies` do CRM, filtro `is_customer: true`).
-- Ao selecionar: mostra card-resumo do cliente (nome fantasia, CNPJ, **ramo de atividade**, cidade, último contato).
-- Empty state didático antes da seleção: "Selecione um cliente para gerar inteligência comercial personalizada".
+### 3. Tendência setorial real
+Nova RPC `get_industry_top_products(_ramo text, _days int)`:
+- JOIN `quote_items` + `quotes` + `companies` (via `crm-db-bridge`? não — `client_id` em quotes referencia companies do CRM externo. Solução: aceitar `_company_ids uuid[]` como parâmetro, resolvido client-side a partir de `useCrmCompanies({ ramo })`).
+- Agrega por `product_id`/`product_name`, ordena por `units_sold DESC`, top 10.
+- Atualizar `useIndustryTrends.ts`: 1) buscar IDs de companies do mesmo ramo via CRM, 2) chamar RPC com array. Vazio → fallback mock.
 
-### Zona 1 — Visão 360° do Cliente
-3 KPIs lado a lado:
-- **LTV** (soma de pedidos válidos) — usa `useClientOrdersHistory` real, fallback mock.
-- **Ticket Médio** — real ou mock.
-- **Última Compra** — data + dias atrás, badge colorido (verde <30d / âmbar 30-90d / vermelho >90d).
-- Mini-timeline com últimos 5 pedidos (real ou mock).
+### 4. UX dos badges "Simulado"
+- Badge agora mostra contagem real quando híbrido: ex. "3 categorias reais + 2 sugeridas".
+- Quando `isMock: false` → badge verde "Dados reais · últimos 90 dias".
 
-### Zona 2 — "O Que Esse Cliente Gosta" (Personal Affinity)
-- Top 5 categorias mais compradas pelo cliente.
-- **Produtos similares ao histórico**: para cada categoria preferida, busca 3 produtos via `external-db-bridge` (`products` table, filtro por `main_category_id`). Reaproveita lógica de `useSimilarProducts`.
-- Card visual com imagem, nome, preço, badge "Cliente já comprou X vezes desta categoria".
+### 5. Memória
+- Atualizar `mem://features/business-intelligence-module.md`: documentar pivô para `quotes` como fonte (orders ainda imaturo), listar RPCs novas e como evoluir para `orders` quando amadurecer.
 
-### Zona 3 — "Tendência do Setor" (Industry Intelligence)
-- Baseado em `companies.ramo_atividade` do cliente selecionado.
-- **Top 10 produtos vendidos por TODOS os vendedores para empresas do mesmo ramo** nos últimos 90 dias.
-- Query agregada em `orders` + `order_items` + join com `companies` por ramo.
-- Mock fallback: mapa empírico ramo → categorias (Seguros → garrafas/canetas premium, Farmacêutico → blocos/agendas, Tecnologia → mochilas/eletrônicos, Construção → kits ferramentas, etc).
-- Card "Vendedores estão vendendo isso para Seguradoras" com ranking.
+## Arquivos
+- **Migration:** RPCs `get_client_category_affinity`, `get_industry_top_products` (SECURITY DEFINER, search_path=public, validar `auth.uid()` via `quotes.user_id`).
+- **Editar:** `src/hooks/bi/useClientAffinity.ts`, `src/hooks/bi/useIndustryTrends.ts`, `src/components/bi/BIProductCard.tsx` (props imagem/link), `src/components/bi/ClientAffinityProducts.tsx` (badge dinâmico), `src/components/bi/IndustryTrendingProducts.tsx` (badge dinâmico).
+- **Novo:** `src/hooks/bi/useCategoryProductSuggestions.ts`.
+- **Sem mudança** em página principal, seletor, overview360, recomendações empíricas.
 
-### Zona 4 — Recomendações Empíricas por Ramo
-- Curadoria fixa (mockada inicialmente, editável por admin no futuro): mapa `INDUSTRY_RECOMMENDATIONS` em `src/lib/bi/industryRecommendations.ts`.
-- Para cada ramo, lista de 5-8 categorias/produtos "que combinam".
-- Diferenciado visualmente das recomendações de dados reais (badge "Sugestão do especialista").
-
-### Ações em cada produto recomendado
-- Botão "Adicionar ao Orçamento" → leva para `/orcamentos/novo?clientId=X&productIds=...`
-- Botão "Ver detalhes" → `/produto/{id}`
-- Botão "WhatsApp" → compartilha com cliente
-
-## Implementação
-
-### Arquivos novos
-- `src/pages/BusinessIntelligencePage.tsx` — página principal
-- `src/components/bi/ClientSelector.tsx` — combobox de clientes
-- `src/components/bi/ClientOverview360.tsx` — KPIs + timeline
-- `src/components/bi/ClientAffinityProducts.tsx` — Zona 2
-- `src/components/bi/IndustryTrendingProducts.tsx` — Zona 3
-- `src/components/bi/EmpiricalRecommendations.tsx` — Zona 4
-- `src/components/bi/BIProductCard.tsx` — card unificado de produto recomendado
-- `src/hooks/bi/useClientBI.ts` — orquestra LTV + ticket + última compra (real + mock)
-- `src/hooks/bi/useClientAffinity.ts` — categorias preferidas + produtos similares
-- `src/hooks/bi/useIndustryTrends.ts` — agregação por ramo (real + mock)
-- `src/lib/bi/industryRecommendations.ts` — mapa empírico ramo→categorias
-- `src/lib/bi/mockData.ts` — dados mockados realistas para fallback
-
-### Editar
-- `src/App.tsx` — rota `/ferramentas/bi`
-- `src/components/layout/Sidebar.tsx` (ou onde está "Ferramentas") — adicionar item "Business Intelligence" com ícone `Brain`/`TrendingUp`
-- `mem://index.md` — referência ao novo módulo
-
-### Sem migration neste sprint
-Tudo lê de tabelas existentes (`companies`, `orders`, `order_items`, `products`). Quando o sistema de pedidos amadurecer, mocks viram queries reais sem mudar UI.
-
-### Padrões aplicados
-- `MainLayout` + `PageSEO` + `max-w-[1920px]` (Layout Routes Pattern).
-- Cards com `rounded-xl`, `border-[1.5px]`, `font-display`.
-- Skeletons sofisticados durante loading.
-- Badge "Dados simulados · em breve dados reais" nos blocos com mock, para transparência.
-- A11y: `role="button"`, `tabIndex={0}` em cards clicáveis.
-
-## Fora de escopo (follow-up)
-- Editor admin para `industryRecommendations` (hoje hardcoded).
-- Export PDF do dossiê do cliente.
+## Fora de escopo (próximos sprints)
 - Comparativo "este cliente vs média do setor".
+- Export PDF do dossiê.
+- Editor admin de `INDUSTRY_RECOMMENDATIONS`.
