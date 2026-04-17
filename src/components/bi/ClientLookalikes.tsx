@@ -9,9 +9,11 @@ import { selectCrm } from "@/lib/crm-db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Package, Sparkles } from "lucide-react";
+import { Users, Package, Sparkles, Tag } from "lucide-react";
 import { useClientBI } from "@/hooks/bi/useClientBI";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 
 interface Props {
   clientId: string;
