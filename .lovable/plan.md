@@ -1,26 +1,37 @@
 
-# Status: "Performance Comercial" já está removida ✅
 
-A remoção solicitada **já foi executada** na resposta anterior aprovada. Verifiquei agora e confirmo:
+O usuário está em `/admin/performance` (Performance Runtime — Web Vitals) e pede para executar "todas as melhorias listadas até 10/10". Pelo contexto recente, o roadmap principal de hardening (`mem://infrastructure/hardening-roadmap`) já está em **10/10 ✅** (28/28 melhorias completas — Ondas 1, 2 e 3 todas fechadas, incluindo Sentry, circuit breaker, RLS tests, ADRs, etc.).
 
-## O que foi confirmado removido
-- ❌ `src/pages/SellerPerformanceDashboard.tsx` — não existe mais
-- ❌ `src/hooks/useSellerPerformance.ts` — não existe mais
-- ❌ Rota `/performance` em `src/App.tsx` — removida
-- ❌ Item "Performance" (ícone Star) na sidebar — removido
+O eixo BI também acabou de fechar a Onda 7 (mapa de categorias no PDF/PPTX/página pública + drill-down focus). E o último ciclo recente foi a remoção da "Performance Comercial" + hotfix do `RangeError`.
 
-Busca global por `SellerPerformance`, `useSellerPerformance` e `path="/performance"` retorna **zero resultados**.
+Não há uma "lista pendente" explícita aberta agora. Para chegar de fato ao próximo patamar real de excelência no eixo onde o usuário está olhando (**`/admin/performance`** — Web Vitals Runtime), proponho uma **Onda final de polish do Performance Runtime Dashboard**, que é o que está literalmente na tela dele agora e ainda tem lacunas observáveis vs. ferramentas de mercado (Vercel Analytics, SpeedCurve).
 
-## O que permanece (intencionalmente — é outra feature)
-- ✅ `/admin/performance` → **Performance Runtime** (Core Web Vitals: LCP/INP/CLS) — admin only, dashboard técnico de performance da aplicação, não tem relação com performance de vendedor
-- Arquivos preservados: `src/pages/admin/PerformanceDashboard.tsx`, item "Performance Runtime" na sidebar admin, edge function `web-vitals-regression-check`
+## Onda Performance Runtime 10/10 — 5 itens atômicos
 
-## Documentação
-- `docs/PERFORMANCE_AUDIT.md` é sobre N+1 queries (não Performance Comercial) — sem alteração necessária
-- Memória do projeto também só referencia `/admin/performance` (Web Vitals) — sem alteração necessária
-- Único texto remanescente "performance comercial" é no SEO description de `QuotesDashboardPage` ("…métricas e performance comercial dos seus orçamentos") — uso genérico da expressão, não é a feature deletada
+1. **Filtro por dispositivo (mobile/desktop/tablet)** — `web_vitals` já armazena `user_agent`. Adicionar parâmetro `device_filter` na RPC `get_web_vitals_summary` + segmented control no header do dashboard. Detecção via regex no UA (mobile/tablet/desktop). Permite isolar regressões mobile-only (caso clássico).
 
-## Conclusão
-**Nada a executar.** A feature está totalmente removida. Caso você esteja vendo o item ainda na navegação, é cache do navegador — basta dar um hard refresh (Ctrl+Shift+R).
+2. **Filtro por rota (URL pattern)** — combobox no header listando top 20 URLs do período; ao selecionar, filtra todos os widgets (KPIs + distribuição + trend + slowest pages). RPC já tem `page_url`; basta adicionar parâmetro `url_filter` opcional.
 
-Se preferir que eu também remova a frase "performance comercial" do SEO de `QuotesDashboardPage.tsx` para evitar qualquer ambiguidade, é só confirmar.
+3. **Comparação de períodos (delta vs período anterior)** — adicionar nos KPI cards um indicador `▲ +12%` ou `▼ -8%` comparando p75 atual vs janela imediatamente anterior do mesmo tamanho. Cor verde se melhorou, vermelha se regrediu. RPC retorna 2 conjuntos: atual e anterior.
+
+4. **Export CSV do dashboard** — botão "Exportar CSV" no header que baixa um `.csv` com todas as amostras filtradas (timestamp, metric, value, rating, page_url, device). Útil para análise offline e auditoria.
+
+5. **Histórico de alertas de regressão** — nova seção colapsável "Regressões detectadas (últimos 30d)" mostrando timeline das notificações geradas pelo cron `web-vitals-regression-check` (consulta `workspace_notifications` com `category=performance`). Cada item: data, métrica, delta%, link para `/admin/performance` no período da regressão.
+
+## Arquivos
+
+**Backend (1 migration):**
+- RPC `get_web_vitals_summary` — adicionar params `device_filter`, `url_filter`, `compare_previous` e retornar bloco `previous_percentiles` + `top_urls`
+
+**Frontend (8 arquivos):**
+- `src/hooks/useWebVitalsSummary.ts` — propagar novos filtros + chave de cache
+- `src/pages/admin/PerformanceDashboard.tsx` — header com device toggle, URL combobox, botão CSV, seção de regressões
+- `src/components/admin/performance/VitalsKpiGrid.tsx` — exibir delta vs período anterior
+- `src/components/admin/performance/DeviceFilterToggle.tsx` *(novo)*
+- `src/components/admin/performance/UrlFilterCombobox.tsx` *(novo)*
+- `src/components/admin/performance/RegressionHistorySection.tsx` *(novo)*
+- `src/lib/web-vitals-csv-export.ts` *(novo — geração do CSV client-side)*
+- `docs/PERFORMANCE.md` — documentar novos filtros + export
+
+Sem nova edge function, sem nova tabela. Encerra o eixo Performance Runtime em 10/10.
+
