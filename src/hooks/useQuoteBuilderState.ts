@@ -104,6 +104,8 @@ export function useQuoteBuilderState() {
   const [validUntil, setValidUntil] = useState(format(addDays(new Date(), 7), "yyyy-MM-dd"));
   const [discountType, setDiscountType] = useState<"percent" | "amount">("percent");
   const [discountValue, setDiscountValue] = useState(0);
+  /** Margem de negociação interna 0–50%. Default 0 (desligado). */
+  const [negotiationMarkup, setNegotiationMarkup] = useState(0);
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [items, setItems] = useState<QuoteItem[]>([]);
