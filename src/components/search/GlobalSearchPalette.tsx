@@ -124,9 +124,9 @@ export function GlobalSearchPalette() {
             <div className="flex flex-wrap items-center gap-2 px-4 py-3 mx-2 mt-3 rounded-xl border [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)))] animate-in fade-in-0 slide-in-from-top-1 duration-200">
               <div className="h-6 w-6 rounded-lg bg-primary/12 flex items-center justify-center"><Brain className="h-3.5 w-3.5 text-primary" /></div>
               <span className="text-[11px] font-semibold [color:hsl(var(--command-text-muted))]">Entendi:</span>
-              {s.searchIntent.type !== "mixed" && (
+              {s.searchIntent.type !== "mixed" && typeConfig[s.searchIntent.type] && (
                 <Badge variant="outline" className="text-[11px] h-5.5 rounded-lg font-semibold [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))]">
-                  {{ product: "Produtos", client: "Clientes", quote: "Orçamentos", order: "Pedidos" }[s.searchIntent.type]}
+                  {typeConfig[s.searchIntent.type].label}s
                 </Badge>
               )}
               {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{s.searchIntent.filters.category}</Badge>}
