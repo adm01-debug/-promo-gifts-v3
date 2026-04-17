@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
+import { fetchWithBreaker, CircuitOpenError } from "../_shared/external-fetch.ts";
 
 const BitrixSyncSchema = z.object({
   action: z.enum([
