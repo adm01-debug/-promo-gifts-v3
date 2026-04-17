@@ -145,6 +145,42 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
           </div>
         </div>
 
+        {/* Chips de categoria — protagonismo do eixo categoria */}
+        {categoryChips.length > 1 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mr-1">
+              Categorias:
+            </span>
+            <button
+              type="button"
+              onClick={() => setActiveCategory(null)}
+              className={cn(
+                "px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors",
+                activeCategory === null
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background hover:bg-muted border-border text-foreground",
+              )}
+            >
+              Todas ({totalCount})
+            </button>
+            {categoryChips.map((c) => (
+              <button
+                key={c.label}
+                type="button"
+                onClick={() => setActiveCategory(c.label === activeCategory ? null : c.label)}
+                className={cn(
+                  "px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors",
+                  activeCategory === c.label
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background hover:bg-muted border-border text-foreground",
+                )}
+              >
+                {c.label} ({c.count})
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Top 3 oportunidades como hero cards */}
         {topOpportunities.length > 0 && !onlyOpportunities && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-1">
