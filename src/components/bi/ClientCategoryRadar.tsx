@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Radar,
   TrendingUp,
@@ -30,6 +31,8 @@ import {
   ArrowRight,
   Package,
   Users,
+  HelpCircle,
+  Focus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +42,7 @@ import {
   type IndustryCategoryAggregate,
 } from "@/hooks/bi/useIndustryCategoryTrends";
 import type { BICategorySlug } from "@/lib/bi/categoryResolver";
+import { useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
 
 interface Props {
   clientId: string;
@@ -104,6 +108,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
   const client = useClientCategoryAffinity(clientId);
   const industry = useIndustryCategoryTrends(ramoAtividade);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { focusedSlug, setFocus } = useBICategoryFocus();
 
   const rows = useMemo<MergedRow[]>(() => {
     const map = new Map<string, MergedRow>();
@@ -190,13 +195,43 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
               <Radar className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h2 className="font-display font-bold text-base sm:text-lg leading-tight">
-                Categorias que importam para {clientName || "este cliente"}
-              </h2>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-display font-bold text-base sm:text-lg leading-tight">
+                  Mapa de Categorias — {clientName || "este cliente"}
+                </h2>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Como o mapa funciona"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <HelpCircle className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
+                      <p className="font-semibold mb-1">Como ler este mapa</p>
+                      <p className="mb-1.5">
+                        <span className="font-medium">GAP:</span> categoria que move ≥8% do setor mas
+                        representa &lt;5% das compras do cliente — oportunidade clara.
+                      </p>
+                      <p className="mb-1.5">
+                        <span className="font-medium">Tendência ↑↓:</span> compara receita dos últimos
+                        90 dias contra os 90 anteriores.
+                      </p>
+                      <p>
+                        <span className="font-medium">Origem:</span>{" "}
+                        {isMock ? "dados simulados (cliente sem histórico)" : "100% baseado em pedidos reais"}.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Comparação direta: o que o cliente compra × o que o setor{" "}
                 {ramoAtividade && <span className="font-medium">({ramoAtividade}) </span>}
-                costuma comprar
+                costuma comprar. Clique em uma categoria para focar todo o painel nela.
               </p>
             </div>
           </div>
@@ -235,6 +270,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
             {rows.map((row) => {
               const meta = STATUS_META[row.status];
               const isOpen = expanded === row.slug;
+              const isFocused = focusedSlug === row.slug;
               const max = Math.max(row.clientShare, row.industryShare, 1);
               return (
                 <Collapsible
@@ -245,7 +281,9 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                   <div
                     className={cn(
                       "rounded-xl border-[1.5px] bg-background/70 backdrop-blur transition-all",
-                      isOpen ? "border-primary/40 shadow-sm" : "border-border hover:border-primary/30",
+                      isFocused
+                        ? "border-violet-500 ring-2 ring-violet-500/30 shadow-md"
+                        : isOpen ? "border-primary/40 shadow-sm" : "border-border hover:border-primary/30",
                     )}
                   >
                     <CollapsibleTrigger asChild>
@@ -402,17 +440,26 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                           </div>
                         )}
 
-                        <Button
-                          size="sm"
-                          variant={row.status === "gap" ? "default" : "outline"}
-                          className="w-full gap-1.5"
-                          onClick={() => handleDrillDown(row)}
-                        >
-                          {row.status === "gap"
-                            ? `Criar orçamento explorando ${row.label}`
-                            : `Reabrir ${row.label} no orçamento`}
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <Button
+                            size="sm"
+                            variant={isFocused ? "default" : "outline"}
+                            className={cn("gap-1.5", isFocused && "bg-violet-600 hover:bg-violet-700 text-white")}
+                            onClick={() => setFocus(isFocused ? null : row.slug, isFocused ? null : row.label)}
+                          >
+                            <Focus className="h-3.5 w-3.5" />
+                            {isFocused ? "Remover foco" : "Focar painel nesta categoria"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={row.status === "gap" ? "default" : "outline"}
+                            className="gap-1.5"
+                            onClick={() => handleDrillDown(row)}
+                          >
+                            {row.status === "gap" ? "Explorar no orçamento" : "Reabrir no orçamento"}
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     </CollapsibleContent>
                   </div>

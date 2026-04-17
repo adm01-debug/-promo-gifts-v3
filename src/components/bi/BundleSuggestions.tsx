@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package2, ShoppingBasket, TrendingUp, Layers } from "lucide-react";
 import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
 
 interface Props {
   clientId: string;
@@ -30,6 +31,7 @@ interface BundleRow {
 
 export function BundleSuggestions({ clientId }: Props) {
   const affinity = useClientCategoryAffinity(clientId);
+  const { focusedSlug } = useBICategoryFocus();
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
   // Categorias com pelo menos 1 produto real conhecido (para servir de âncora)
@@ -39,11 +41,15 @@ export function BundleSuggestions({ clientId }: Props) {
   );
 
   const activeCategory = useMemo(() => {
+    // Foco global ganha prioridade sobre seleção local
+    if (focusedSlug) {
+      return selectableCategories.find((c) => c.slug === focusedSlug) ?? selectableCategories[0] ?? null;
+    }
     if (selectedSlug) {
       return selectableCategories.find((c) => c.slug === selectedSlug) ?? selectableCategories[0] ?? null;
     }
     return selectableCategories[0] ?? null;
-  }, [selectedSlug, selectableCategories]);
+  }, [selectedSlug, selectableCategories, focusedSlug]);
 
   const anchorProduct = activeCategory?.topProducts[0] ?? null;
   const anchorId = anchorProduct?.productId ?? null;

@@ -1,13 +1,15 @@
 /**
  * ChurnRiskBanner — alerta de risco de churn no topo do BI.
  * Só aparece quando severity === "high" ou "medium".
+ * Inclui linha de "última categoria comprada" para dar gancho de reativação.
  */
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Phone } from "lucide-react";
+import { AlertTriangle, Phone, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useChurnRisk } from "@/hooks/bi/useChurnRisk";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
 
 interface Props {
   clientId: string;
@@ -17,9 +19,15 @@ interface Props {
 
 export function ChurnRiskBanner({ clientId, clientName, clientPhone }: Props) {
   const risk = useChurnRisk(clientId);
+  const cats = useClientCategoryAffinity(clientId);
   if (!risk.atRisk) return null;
 
   const isHigh = risk.severity === "high";
+  const favorite = cats.favorite;
+  const reactivationHook =
+    favorite && risk.daysSinceLastOrder != null
+      ? `Última categoria forte: "${favorite.label}" (${favorite.revenueSharePct.toFixed(0)}% do histórico) — gancho natural de reativação.`
+      : null;
 
   return (
     <Card
@@ -59,6 +67,12 @@ export function ChurnRiskBanner({ clientId, clientName, clientPhone }: Props) {
           {risk.reason && (
             <p className="text-xs text-muted-foreground mt-1 leading-relaxed">{risk.reason}</p>
           )}
+          {reactivationHook && (
+            <p className="text-xs text-foreground/70 mt-1 leading-relaxed inline-flex items-center gap-1">
+              <Layers className="h-3 w-3 text-violet-500" />
+              {reactivationHook}
+            </p>
+          )}
           <p className="text-xs text-foreground/80 mt-1.5 font-medium">
             ➜ {risk.suggestedAction}
           </p>
@@ -72,7 +86,9 @@ export function ChurnRiskBanner({ clientId, clientName, clientPhone }: Props) {
           >
             <a
               href={`https://wa.me/${clientPhone.replace(/\D/g, "")}?text=${encodeURIComponent(
-                `Olá ${clientName}! Tudo bem? Faz um tempo que não conversamos — preparei algumas novidades para você.`,
+                favorite
+                  ? `Olá ${clientName}! Tudo bem? Faz um tempo que não conversamos — preparei novidades em ${favorite.label} para você.`
+                  : `Olá ${clientName}! Tudo bem? Faz um tempo que não conversamos — preparei algumas novidades para você.`,
               )}`}
               target="_blank"
               rel="noopener noreferrer"
@@ -86,3 +102,4 @@ export function ChurnRiskBanner({ clientId, clientName, clientPhone }: Props) {
     </Card>
   );
 }
+

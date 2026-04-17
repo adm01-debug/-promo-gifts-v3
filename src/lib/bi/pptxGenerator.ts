@@ -9,6 +9,7 @@ import type { ClientAffinityResult } from "@/hooks/bi/useClientAffinity";
 import type { IndustryTrendsResult } from "@/hooks/bi/useIndustryTrends";
 import type { SeasonalityResult } from "@/hooks/bi/useClientSeasonality";
 import type { ClientVsIndustryResult } from "@/hooks/bi/useClientVsIndustry";
+import type { CategorySection } from "@/lib/bi/executive-summary";
 
 interface Args {
   clientName: string;
@@ -19,6 +20,7 @@ interface Args {
   trends: IndustryTrendsResult | null;
   seasonality: SeasonalityResult;
   vs: ClientVsIndustryResult;
+  categorySection?: CategorySection | null;
 }
 
 const fmtBRL = (v: number) =>
@@ -59,6 +61,7 @@ export async function generateBIPptx({
   trends,
   seasonality,
   vs,
+  categorySection,
 }: Args): Promise<void> {
   const pptx = new PptxGenJS();
   pptx.layout = "LAYOUT_WIDE"; // 13.33 x 7.5
@@ -319,6 +322,98 @@ export async function generateBIPptx({
   s5.addText("Promo Gifts · Business Analytic", {
     x: 0.8, y: 7.05, w: 12, h: 0.3, fontSize: 9, color: C.muted, align: "center", charSpacing: 2,
   });
+
+  // ====================== SLIDE 6 — MAPA DE CATEGORIAS ======================
+  if (categorySection?.hasData) {
+    const s6 = pptx.addSlide();
+    s6.background = { color: C.bgLight };
+    s6.addShape("rect", { x: 0, y: 0, w: 13.33, h: 0.5, fill: { color: C.primary } });
+
+    s6.addText("MAPA DE CATEGORIAS", {
+      x: 0.8, y: 0.7, w: 12, h: 0.4,
+      fontSize: 11, color: C.primary, bold: true, charSpacing: 3,
+    });
+    s6.addText("Cliente × Setor — onde concentrar esforço comercial", {
+      x: 0.8, y: 1.05, w: 12, h: 0.5,
+      fontSize: 18, color: C.text, bold: true,
+    });
+    if (categorySection.isMock) {
+      s6.addText("Dados parcialmente simulados", {
+        x: 10.5, y: 0.7, w: 2.5, h: 0.3,
+        fontSize: 9, color: C.warn, italic: true, align: "right",
+      });
+    }
+
+    // Tabela: Categoria | Cliente % | Setor % | Tendência
+    const headerRow = [
+      { text: "Categoria", options: { bold: true, color: "FFFFFF", fill: { color: C.primary }, fontSize: 11 } },
+      { text: "Cliente", options: { bold: true, color: "FFFFFF", fill: { color: C.primary }, fontSize: 11, align: "center" as const } },
+      { text: "Setor", options: { bold: true, color: "FFFFFF", fill: { color: C.primary }, fontSize: 11, align: "center" as const } },
+      { text: "Tendência", options: { bold: true, color: "FFFFFF", fill: { color: C.primary }, fontSize: 11, align: "center" as const } },
+    ];
+    const trendSymbol = (t: string) =>
+      t === "up" ? "▲" : t === "down" ? "▼" : t === "stable" ? "■" : "—";
+    const trendColor = (t: string) =>
+      t === "up" ? C.good : t === "down" ? C.bad : C.muted;
+    const dataRows = categorySection.rows.slice(0, 6).map((r) => [
+      { text: r.label, options: { fontSize: 11, color: C.text } },
+      { text: `${r.clientSharePct.toFixed(0)}%`, options: { fontSize: 11, color: C.text, align: "center" as const, bold: true } },
+      { text: `${r.industrySharePct.toFixed(0)}%`, options: { fontSize: 11, color: C.muted, align: "center" as const } },
+      {
+        text: `${trendSymbol(r.trend)} ${r.deltaPct != null ? `${r.deltaPct > 0 ? "+" : ""}${Math.round(r.deltaPct)}%` : "—"}`,
+        options: { fontSize: 11, color: trendColor(r.trend), align: "center" as const, bold: true },
+      },
+    ]);
+
+    s6.addTable([headerRow, ...dataRows], {
+      x: 0.8, y: 1.7, w: 7.5, colW: [3.0, 1.5, 1.5, 1.5],
+      border: { type: "solid", color: "E2E8F0", pt: 1 },
+      rowH: 0.4,
+    });
+
+    // Box "Oportunidades GAP" (lado direito)
+    s6.addShape("rect", {
+      x: 8.6, y: 1.7, w: 4.0, h: 3.6,
+      fill: { color: "FAF5FF" }, line: { color: C.primary, width: 1.5 },
+    });
+    s6.addText("⚡ OPORTUNIDADES GAP", {
+      x: 8.8, y: 1.85, w: 3.6, h: 0.35,
+      fontSize: 11, color: C.primary, bold: true, charSpacing: 2,
+    });
+    if (categorySection.gaps.length === 0) {
+      s6.addText("Sem GAPs relevantes — cliente alinhado ao mix do setor.", {
+        x: 8.8, y: 2.3, w: 3.6, h: 1.5,
+        fontSize: 12, color: C.muted, italic: true, valign: "top",
+      });
+    } else {
+      const gapBullets = categorySection.gaps.slice(0, 4).map((g) => ({
+        text: `${g.label} — ${g.industrySharePct.toFixed(0)}% do setor`,
+        options: { bullet: { code: "25CF" }, fontSize: 12, color: C.text, paraSpaceAfter: 6 },
+      }));
+      s6.addText(gapBullets, {
+        x: 8.8, y: 2.3, w: 3.6, h: 2.9,
+        valign: "top",
+      });
+    }
+
+    // Insight no rodapé
+    s6.addShape("rect", {
+      x: 0.8, y: 5.6, w: 11.7, h: 1.3,
+      fill: { color: C.bg }, line: { color: C.accent, width: 1.5 },
+    });
+    s6.addText("💡 INSIGHT", {
+      x: 1.0, y: 5.75, w: 11.3, h: 0.3,
+      fontSize: 10, color: C.accent, bold: true, charSpacing: 2,
+    });
+    s6.addText(categorySection.insight, {
+      x: 1.0, y: 6.05, w: 11.3, h: 0.85,
+      fontSize: 13, color: "FFFFFF", italic: true, valign: "top",
+    });
+
+    s6.addText("Promo Gifts · Business Analytic — Mapa de Categorias", {
+      x: 0.8, y: 7.05, w: 12, h: 0.3, fontSize: 9, color: C.muted, align: "center", charSpacing: 2,
+    });
+  }
 
   // ====================== EXPORT ======================
   const safeName = clientName.replace(/[^\w\sÀ-ú-]/g, "").replace(/\s+/g, "-").slice(0, 60);

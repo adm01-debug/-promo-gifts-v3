@@ -6,8 +6,9 @@ import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, Share2, HelpCircle, Loader2 } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, Share2, HelpCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { BICategoryFocusProvider, useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -242,48 +243,52 @@ export default function BusinessIntelligencePage() {
 
         {/* Zonas de inteligência */}
         {clientId && (
-          <div className="space-y-4">
-            {/* HERO — Health Score + insight cross-zona + CTA */}
-            <ClientHealthHero
-              clientId={clientId}
-              ramoAtividade={ramoAtividade}
-              clientName={clientName}
-              data-tour="health-hero"
-            />
-            <div data-tour="health-hero" />
-
-            <div data-tour="churn-banner">
-              <ChurnRiskBanner
-                clientId={clientId}
-                clientName={clientName}
-                clientPhone={clientPhone}
-              />
-            </div>
-
-            {/* PROTAGONISTA — Eixo CATEGORIA: cliente × setor */}
-            <div data-tour="category-radar">
-              <ClientCategoryRadar
+          <BICategoryFocusProvider>
+            <div className="space-y-4">
+              {/* HERO — Health Score + insight cross-zona + CTA */}
+              <ClientHealthHero
                 clientId={clientId}
                 ramoAtividade={ramoAtividade}
                 clientName={clientName}
+                data-tour="health-hero"
               />
-            </div>
+              <div data-tour="health-hero" />
 
-            <ClientOverview360 clientId={clientId} />
-            <div data-tour="orders-timeline">
-              <EnrichedOrdersTimeline clientId={clientId} />
-            </div>
+              <div data-tour="churn-banner">
+                <ChurnRiskBanner
+                  clientId={clientId}
+                  clientName={clientName}
+                  clientPhone={clientPhone}
+                />
+              </div>
 
-            <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
-            <ClientAffinityProducts clientId={clientId} />
-            <BundleSuggestions clientId={clientId} />
-            <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
-            <div data-tour="seasonality">
-              <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
+              {/* PROTAGONISTA — Eixo CATEGORIA: cliente × setor */}
+              <div data-tour="category-radar">
+                <ClientCategoryRadar
+                  clientId={clientId}
+                  ramoAtividade={ramoAtividade}
+                  clientName={clientName}
+                />
+              </div>
+
+              <CategoryFocusBar />
+
+              <ClientOverview360 clientId={clientId} />
+              <div data-tour="orders-timeline">
+                <EnrichedOrdersTimeline clientId={clientId} />
+              </div>
+
+              <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
+              <ClientAffinityProducts clientId={clientId} />
+              <BundleSuggestions clientId={clientId} />
+              <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
+              <div data-tour="seasonality">
+                <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
+              </div>
+              <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
+              <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
             </div>
-            <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
-            <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
-          </div>
+          </BICategoryFocusProvider>
         )}
       </div>
 
@@ -310,5 +315,27 @@ export default function BusinessIntelligencePage() {
         </>
       )}
     </MainLayout>
+  );
+}
+
+/**
+ * CategoryFocusBar — barra fina logo abaixo do Radar exibida quando há
+ * categoria focada. Mostra qual está em foco e permite limpar.
+ */
+function CategoryFocusBar() {
+  const { focusedSlug, focusedLabel, clear } = useBICategoryFocus();
+  if (!focusedSlug) return null;
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg border-[1.5px] border-violet-500/40 bg-violet-500/5">
+      <div className="flex items-center gap-2 text-sm">
+        <Tag className="h-4 w-4 text-violet-600" />
+        <span className="text-muted-foreground">Painel focado em:</span>
+        <span className="font-semibold text-violet-700 dark:text-violet-300">{focusedLabel ?? focusedSlug}</span>
+      </div>
+      <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>
+        <X className="h-3.5 w-3.5" />
+        Limpar foco
+      </Button>
+    </div>
   );
 }
