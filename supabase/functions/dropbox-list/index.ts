@@ -1,5 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { z } from "https://esm.sh/zod@3.23.8";
+import { fetchWithBreaker, CircuitOpenError } from '../_shared/external-fetch.ts';
 
 const BodySchema = z.object({
   path: z.string().max(1000).default(''),

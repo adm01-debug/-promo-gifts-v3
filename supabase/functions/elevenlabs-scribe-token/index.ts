@@ -1,6 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { fetchWithBreaker, CircuitOpenError } from '../_shared/external-fetch.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);

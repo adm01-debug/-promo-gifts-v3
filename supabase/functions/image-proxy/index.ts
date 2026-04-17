@@ -1,5 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { fetchWithBreaker, CircuitOpenError } from '../_shared/external-fetch.ts';
 
 // Allowed external domains for proxying
 const ALLOWED_DOMAINS = [
