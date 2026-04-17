@@ -4,6 +4,7 @@
  */
 import { supabase } from '@/integrations/supabase/client';
 import { logger } from '@/lib/logger';
+import { captureException } from '@/lib/sentry';
 
 interface ErrorReport {
   message: string;
@@ -68,6 +69,9 @@ function scheduleFlush() {
 }
 
 export function reportError(error: Error, metadata?: Record<string, unknown>) {
+  // Forward to Sentry (no-op if DSN not configured)
+  captureException(error, metadata);
+
   const report: ErrorReport = {
     message: error.message,
     stack: error.stack,
