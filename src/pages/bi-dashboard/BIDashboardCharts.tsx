@@ -9,7 +9,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { format, parseISO } from "date-fns";
+import { format, parseISO, isValid } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 
@@ -229,7 +229,7 @@ export function RecentProductsCard({ metrics, isLoading }: ChartsSectionProps) {
                 </div>
                 <div className="text-right flex items-center gap-3">
                   <span className="font-semibold text-sm text-primary">{formatCurrency(product.price)}</span>
-                  <Badge variant="outline" className="text-xs">{format(parseISO(product.created_at), "dd/MM/yyyy", { locale: ptBR })}</Badge>
+                  <Badge variant="outline" className="text-xs">{(() => { if (!product.created_at) return "—"; const d = parseISO(product.created_at); return isValid(d) ? format(d, "dd/MM/yyyy", { locale: ptBR }) : "—"; })()}</Badge>
                 </div>
               </div>
             ))}
