@@ -30,7 +30,10 @@ import { cn } from "@/lib/utils";
 import { useClientHealthScore } from "@/hooks/bi/useClientHealthScore";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 import { ConfirmQuoteSuggestionsModal, type SuggestionItem } from "./ConfirmQuoteSuggestionsModal";
+import { Star, Target as TargetIcon } from "lucide-react";
 
 interface Props {
   clientId: string;
@@ -81,7 +84,19 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
   const health = useClientHealthScore(clientId, ramoAtividade);
   const affinity = useClientAffinity(clientId);
   const trends = useIndustryTrends(ramoAtividade);
+  const clientCats = useClientCategoryAffinity(clientId);
+  const industryCats = useIndustryCategoryTrends(ramoAtividade);
   const [open, setOpen] = useState(false);
+
+  // Categoria favorita do cliente (top 1 por receita)
+  const favoriteCategory = clientCats.favorite;
+  // Categoria-oportunidade: setor compra muito, cliente quase nada
+  const opportunityCategory = useMemo(() => {
+    const clientSlugs = new Set(clientCats.categories.map((c) => c.slug));
+    return industryCats.categories
+      .filter((ic) => ic.revenueSharePct >= 8 && !clientSlugs.has(ic.slug))
+      .sort((a, b) => b.revenueSharePct - a.revenueSharePct)[0] ?? null;
+  }, [clientCats.categories, industryCats.categories]);
 
   const styles = TIER_STYLES[health.tier];
   const Icon = styles.icon;
