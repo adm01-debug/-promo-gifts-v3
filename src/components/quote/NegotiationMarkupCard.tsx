@@ -81,7 +81,7 @@ export function NegotiationMarkupCard({
                   </TooltipContent>
                 </Tooltip>
               </div>
-              <Badge variant="outline" className="mt-1 gap-1 text-[9px] h-4 bg-amber-500/10 text-amber-700 border-amber-500/30 dark:text-amber-400">
+              <Badge variant="outline" className="mt-1 gap-1 text-[9px] h-4 bg-warning/10 text-warning border-warning/30">
                 <EyeOff className="h-2.5 w-2.5" /> Uso interno
               </Badge>
             </div>
@@ -127,7 +127,7 @@ export function NegotiationMarkupCard({
                     <span className="text-muted-foreground">Desconto:</span>
                     <span className={cn(
                       "font-bold tabular-nums",
-                      isOverLimit ? "text-amber-600 dark:text-amber-400" : "text-emerald-600 dark:text-emerald-400"
+                      isOverLimit ? "text-warning" : "text-success"
                     )}>
                       {realDiscountPercent.toFixed(1)}%
                     </span>
@@ -160,17 +160,17 @@ export function NegotiationMarkupCard({
             {/* Status badge */}
             {maxDiscountPercent != null && (
               isOverLimit ? (
-                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-2.5 py-1.5">
-                  <AlertTriangle className="h-3.5 w-3.5 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-amber-700 dark:text-amber-300 leading-snug">
+                <div className="flex items-start gap-2 rounded-lg bg-warning/10 border border-warning/30 px-2.5 py-1.5">
+                  <AlertTriangle className="h-3.5 w-3.5 text-warning shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-warning leading-snug">
                     Mesmo com markup, o desconto real ({realDiscountPercent.toFixed(1)}%) excede sua alçada de {maxDiscountPercent}%.
                     Será necessária aprovação do administrador.
                   </p>
                 </div>
               ) : realFitsLimit && apparentDiscountPercent > maxDiscountPercent ? (
-                <div className="flex items-start gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-1.5">
-                  <ShieldCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                  <p className="text-[10px] text-emerald-700 dark:text-emerald-300 leading-snug">
+                <div className="flex items-start gap-2 rounded-lg bg-success/10 border border-success/30 px-2.5 py-1.5">
+                  <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0 mt-0.5" />
+                  <p className="text-[10px] text-success leading-snug">
                     Cliente percebe <strong>{apparentDiscountPercent.toFixed(1)}%</strong> de desconto, mas o real é
                     apenas <strong>{realDiscountPercent.toFixed(1)}%</strong> — dentro da sua alçada de {maxDiscountPercent}%.
                   </p>
