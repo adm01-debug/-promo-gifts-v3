@@ -1,0 +1,75 @@
+/**
+ * ClientAffinityProducts — Zona 2: "O que esse cliente gosta"
+ */
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Heart, Sparkles } from "lucide-react";
+import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
+import { BIProductCard } from "./BIProductCard";
+
+interface Props {
+  clientId: string;
+}
+
+export function ClientAffinityProducts({ clientId }: Props) {
+  const { data, isLoading } = useClientAffinity(clientId);
+
+  return (
+    <Card className="border-[1.5px]">
+      <CardContent className="p-5 space-y-4">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Heart className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <h2 className="font-display font-semibold">O que esse cliente gosta</h2>
+              <p className="text-xs text-muted-foreground">Categorias preferidas + produtos similares</p>
+            </div>
+          </div>
+          {data?.isMock && (
+            <Badge variant="outline" className="gap-1 border-amber-500/50 text-amber-700 dark:text-amber-300 text-[10px]">
+              <Sparkles className="h-3 w-3" /> Simulado
+            </Badge>
+          )}
+        </div>
+
+        {isLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {[1, 2, 3].map((i) => <Skeleton key={i} className="h-44 rounded-xl" />)}
+          </div>
+        ) : (
+          <div className="space-y-5">
+            {data?.categories.slice(0, 3).map((cat) => (
+              <div key={cat.category}>
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="font-medium text-sm">
+                    {cat.category}{" "}
+                    <span className="text-muted-foreground font-normal text-xs">
+                      · {cat.count} compras
+                    </span>
+                  </h3>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {cat.suggestions.map((s) => (
+                    <BIProductCard
+                      key={s.name}
+                      name={s.name}
+                      category={cat.category}
+                      priceFrom={s.priceFrom}
+                      priceTo={s.priceTo}
+                      reason={s.reason}
+                      variant="affinity"
+                      clientId={clientId}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
