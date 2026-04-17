@@ -11,6 +11,7 @@ import type { ClientAffinityResult } from "@/hooks/bi/useClientAffinity";
 import type { IndustryTrendsResult } from "@/hooks/bi/useIndustryTrends";
 import type { SeasonalityResult } from "@/hooks/bi/useClientSeasonality";
 import type { IndustryRecommendation } from "@/lib/bi/industryRecommendations";
+import type { CategorySection } from "@/lib/bi/executive-summary";
 
 export interface DossierClient {
   name: string;
@@ -27,8 +28,9 @@ export interface DossierData {
   vsIndustry: ClientVsIndustryResult;
   affinity: ClientAffinityResult;
   industryTrends: IndustryTrendsResult;
-  seasonality: SeasonalityResult;
+  seasonality?: SeasonalityResult;
   empiricalRec: IndustryRecommendation;
+  categorySection?: CategorySection;
 }
 
 const PRIMARY: [number, number, number] = [124, 58, 237]; // violet-600
