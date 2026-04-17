@@ -12,6 +12,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductsTabContent, SearchesTabContent } from "./trends/TrendsCharts";
 import { TrendsKpiCards } from "./trends/TrendsKpiCards";
 import { UnmetDemandCard } from "@/components/intelligence/UnmetDemandCard";
+import { HotSearchesCard } from "@/components/intelligence/HotSearchesCard";
 import { ConversionFunnel } from "@/components/intelligence/ConversionFunnel";
 import { TrendsHeatmap } from "@/components/intelligence/TrendsHeatmap";
 import { TopCategoriesCard } from "@/components/intelligence/TopCategoriesCard";
@@ -340,11 +341,14 @@ export default function TrendsPage() {
         {/* KPIs */}
         <TrendsKpiCards current={kpiCurrent} previous={kpiPrevious} />
 
-        {/* Funil + Demanda */}
+        {/* Funil + Demanda Reprimida */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ConversionFunnel days={days} />
           <UnmetDemandCard days={days} />
         </div>
+
+        {/* Buscas Quentes — interesse real do mercado */}
+        <HotSearchesCard days={days} />
 
         {/* Forecast Chart com toggles vs anterior + previsão + anomalias */}
         <TrendsForecastChart
