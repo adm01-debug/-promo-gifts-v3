@@ -16,6 +16,7 @@ import {
 import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/hooks/useQuotes";
+import { NegotiationMarkupCard } from "@/components/quote/NegotiationMarkupCard";
 
 interface Props {
   items: QuoteItem[];
@@ -48,6 +49,8 @@ export function QuoteBuilderSummaryColumn({
   quotesLoading, isEditMode, formatCurrency,
   calculateItemPersonalizationTotal, calculateItemTotal, onSave,
   maxDiscountPercent, isDiscountExceeded,
+  negotiationMarkup = 0, setNegotiationMarkup,
+  realSubtotal = 0, realDiscountPercent = 0,
 }: Props) {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [sellerNotes, setSellerNotes] = useState("");
