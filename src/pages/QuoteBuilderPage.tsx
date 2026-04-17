@@ -361,6 +361,10 @@ export default function QuoteBuilderPage() {
             onSave={s.handleSaveQuote}
             maxDiscountPercent={s.maxDiscountPercent}
             isDiscountExceeded={s.isDiscountExceeded}
+            negotiationMarkup={s.negotiationMarkup}
+            setNegotiationMarkup={s.setNegotiationMarkup}
+            realSubtotal={s.realSubtotal}
+            realDiscountPercent={s.realDiscountPercent}
           />
         </div>
       </div>
