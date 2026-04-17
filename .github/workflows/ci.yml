@@ -42,3 +42,13 @@ jobs:
       - name: Security audit
         run: npm audit --audit-level=high || true
         continue-on-error: true
+
+      - name: RLS policy tests (optional)
+        if: env.TEST_SELLER_PASSWORD != '' && env.TEST_ADMIN_PASSWORD != ''
+        env:
+          TEST_SELLER_PASSWORD: ${{ secrets.TEST_SELLER_PASSWORD }}
+          TEST_ADMIN_PASSWORD: ${{ secrets.TEST_ADMIN_PASSWORD }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+        run: npx vitest run tests/rls/ --reporter=verbose
+        continue-on-error: true
