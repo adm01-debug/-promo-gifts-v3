@@ -1,35 +1,83 @@
 
-# BI 10/10 — Refinamentos finais (Onda 5)
+# Fix urgente do build + Foco em CATEGORIAS no BI
 
-Tudo do plano original (Sprints 1+2+3 + Onda 4) já foi entregue: Health Hero, Churn Banner, Timeline enriquecida, Bundle, Lookalikes, Executive Summary + PPTX, Gap analysis, Share-of-Wallet, Toggle temporal, Sazonalidade preditiva, Skeletons especializados e cromática semântica.
+## Problema 1 — Build quebrado
+`BusinessIntelligencePage.tsx` tem **JSX duplicado** (linhas 282-291) após o fechamento correto do `MainLayout`. Causa: edição anterior duplicou bloco de zonas. **Fix:** remover linhas 282-291.
 
-Para fechar o 10/10 com excelência, restam **6 refinamentos de polish & diferenciação** identificados na auditoria original mas ainda não implementados:
+## Problema 2 — Foco estratégico em categorias
+Hoje o módulo BI mostra **produtos individuais** como ponto central (afinidade, tendência, lookalikes, bundles). O usuário pede que o **eixo principal seja a CATEGORIA** que o cliente / ramo costuma comprar — produtos viram desdobramento, não protagonista.
 
-## Itens restantes (executar 1 a 1, sem pausas)
+A estrutura `ramo_atividade` + `ramo_atividade_filhos` (segmentos) já existe, mas não está conectada ao BI. A categorização atual usa heurística regex sobre nome do produto (`deriveCategory`) — fraca e dispersa entre 3 hooks.
 
-1. **Notificações proativas de sazonalidade** — trigger no `notificationService` que dispara workspace_notification quando cliente entra a 7d de pico sazonal detectado pelo `useClientSeasonality`. Card "📅 Acme entra em pico em 7 dias" no sino.
+## Solução
 
-2. **Comparador de clientes (até 3)** — novo componente `ClientComparator.tsx` + rota `/ferramentas/bi/comparar`. Tabela lado-a-lado: Health Score, LTV, ticket, frequência, top categoria, próximo pico. CTA do BI principal: "Comparar com outro cliente".
+### A. Hotfix (1 edit)
+Remover bloco JSX duplicado em `BusinessIntelligencePage.tsx` linhas 282-291.
 
-3. **Link público assinado do dossiê** — edge function `bi-share-dossier` gera token JWT curto (7d) + página pública `/dossie/:token` read-only para gestor. Botão "Compartilhar" ao lado de PDF/PPTX.
+### B. Novo eixo "Categoria" no BI
 
-4. **Modo "Briefing pré-reunião" mobile-first** — refinar `BIBriefingMode` existente: layout 1 página otimizado para leitura no celular (Health Score grande, 3 talking points, 5 produtos, script de abertura), botão "Adicionar ao calendário (.ics)".
+**1. Hook unificado `useClientCategoryAffinity`** (novo)
+- Agrega `quote_items` por categoria (usando `category_id` real quando disponível em `products`, fallback para regex)
+- Retorna: ranking de categorias do cliente (qty, revenue, occurrences, % do total, tendência 90d vs 90d anteriores, top produtos da categoria)
+- Mesma estratégia dual real/mock já usada
 
-5. **Anomalia detectada inline** — badge "⚠ Pedido atípico" na timeline quando `ticket > avg + 2σ` ou `< avg - 2σ`. Tooltip explicando o desvio. Lógica em `useClientBI` (já tem orders).
+**2. Hook `useIndustryCategoryTrends`** (novo)
+- Agrega top produtos do ramo por categoria
+- Retorna: categorias mais compradas no setor + share-of-category dentro do ramo
 
-6. **Tour guiado primeira visita** — `BITourGuide.tsx` usando `react-joyride` (já no projeto) com 5 passos: Health Score → Churn Banner → Timeline → Sazonalidade → AI Copilot. Persiste em localStorage.
+**3. Componente novo `ClientCategoryRadar`** — Zona protagonista (substitui posição de destaque)
+   - **Topo:** "O que [Cliente] compra" — bar chart horizontal das top 5 categorias do cliente (% receita)
+   - **Direita:** "O que o setor compra" — mesmo formato para o ramo
+   - **Diff insight:** "Cliente compra 3x mais Garrafas que a média do setor · Não compra Eletrônicos (40% do setor faz)"
+   - Cada categoria expansível → revela top 3 produtos reais já comprados + 3 sugestões da mesma categoria
+   - Badge real/mock + drill-down para Quote Builder pré-filtrado por categoria
 
-## Detalhes técnicos
-- **Notificações**: usar `notificationService.send({type: 'bi_seasonal_peak'})`; cron diário verifica clientes do vendedor com pico em 7d.
-- **Comparador**: hook `useClientsComparison(ids: string[])` que paraleliza `useClientHealthScore` + `useClientBI` por cliente.
-- **Link público**: token assinado HMAC com `client_id + expires_at`; página renderiza versão estática do dossiê sem auth.
-- **Anomalia**: cálculo no `useClientBI`, retorna `orders.map(o => ({...o, isAnomaly: bool, deviation: number}))`.
-- **Tour**: `react-joyride` com `disableScrolling: false`, target via data-attrs nos componentes existentes.
+**4. Refactor de componentes existentes para gravitar em torno de categoria:**
+   - `ClientAffinityProducts`: já agrupa por categoria — promover título "Categorias preferidas do cliente" e dar mais peso visual a `cat.count` e `cat.revenue`
+   - `IndustryTrendingProducts`: adicionar agrupador por categoria no topo (chips clicáveis com contagem); produtos viram resultado do filtro
+   - `BundleSuggestions`: contextualizar "Produtos que combinam com a categoria favorita ([Categoria])"
+   - `ClientLookalikes`: adicionar coluna "Categorias em comum" no card de lookalike
+
+**5. Integração no `ClientHealthHero`**
+   - Adicionar linha "Categoria favorita: **Garrafas** (43% das compras)" abaixo do score
+   - "Categoria oportunidade (compra no setor, não em você): **Eletrônicos**" — link direto para nova zona
+
+### C. Reposição na página
+Nova ordem das zonas (todas dentro do bloco existente):
+1. ClientHealthHero (com info de categoria)
+2. ChurnRiskBanner
+3. **ClientCategoryRadar** ← NOVO protagonista
+4. ClientOverview360 + EnrichedOrdersTimeline
+5. ClientVsIndustryComparison
+6. ClientAffinityProducts (renomeado para "Produtos das categorias favoritas")
+7. BundleSuggestions
+8. IndustryTrendingProducts (com chips de categoria no topo)
+9. ClientSeasonalityHeatmap
+10. ClientLookalikes
+11. EmpiricalRecommendations
+
+### D. Categorização mais confiável
+Hoje 3 lugares têm `deriveCategory` por regex. Centralizar em `src/lib/bi/categoryResolver.ts`:
+- 1ª tentativa: `category_id` real do produto via `products.category_id` → `categories.name`
+- 2ª: heurística regex unificada (mesma lógica)
+- 3ª: "Outros"
 
 ## Arquivos
-**Criar:** `ClientComparator.tsx`, `useClientsComparison.ts`, `BITourGuide.tsx`, `ClientComparatorPage.tsx`, `bi-share-dossier/index.ts` (edge function), `PublicDossierPage.tsx`.
-**Editar:** `BusinessIntelligencePage.tsx` (botões Compartilhar/Comparar/Tour), `EnrichedOrdersTimeline.tsx` (badge anomalia), `useClientBI.ts` (cálculo σ), `BIBriefingMode.tsx` (mobile polish + .ics), `App.tsx` (rotas), `notificationService.ts` (tipo novo).
+**Editar:**
+- `src/pages/BusinessIntelligencePage.tsx` (remover duplicação + integrar ClientCategoryRadar + reordenar)
+- `src/hooks/bi/useClientAffinity.ts` (usar resolver central)
+- `src/hooks/bi/useIndustryTrends.ts` (idem)
+- `src/components/bi/ClientHealthHero.tsx` (linha de categoria favorita/oportunidade)
+- `src/components/bi/IndustryTrendingProducts.tsx` (chips de categoria no topo)
+- `src/components/bi/ClientAffinityProducts.tsx` (peso visual em categoria)
+- `src/components/bi/ClientLookalikes.tsx` (categorias em comum)
 
-Sem mudanças de schema. 1 edge function nova. ~10 arquivos tocados.
+**Criar:**
+- `src/lib/bi/categoryResolver.ts`
+- `src/hooks/bi/useClientCategoryAffinity.ts`
+- `src/hooks/bi/useIndustryCategoryTrends.ts`
+- `src/components/bi/ClientCategoryRadar.tsx`
 
-Aprovar → executo os 6 itens em sequência sem perguntar.
+Sem mudanças de schema. Sem novas edge functions. Build volta a passar com o item A; itens B-D entregam o foco em categoria pedido.
+
+Aprovado → executo: (1) hotfix do build, (2) resolver central + 2 hooks novos, (3) ClientCategoryRadar, (4) integrações nos componentes existentes, (5) integração no Hero, (6) reordenação da página.
