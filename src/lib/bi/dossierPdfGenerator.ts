@@ -388,6 +388,97 @@ export function generateBIDossierPDF(data: DossierData): Blob {
     },
   });
 
+  // ============ PÁGINA 5 — Sazonalidade ============
+  doc.addPage();
+  y = 22;
+  y = addSectionTitle(doc, "Sazonalidade Cliente × Setor", y);
+
+  const seas = data.seasonality;
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(9);
+  doc.setTextColor(...MUTED);
+  doc.text(
+    seas.isMock
+      ? `Padrão simulado (histórico real insuficiente — ${seas.monthsCovered} mês${seas.monthsCovered === 1 ? "" : "es"} cobertos).`
+      : `Janela de ${seas.windowMonths} meses · ${seas.monthsCovered} mês${seas.monthsCovered === 1 ? "" : "es"} com dados.`,
+    14,
+    y,
+  );
+  y += 5;
+
+  autoTable(doc, {
+    startY: y,
+    head: [["Mês", "Cliente (pedidos)", "Cliente (% ano)", "Setor (méd/empresa)", "Setor (% ano)"]],
+    body: seas.client.map((c, i) => {
+      const ind = seas.industry[i];
+      return [
+        c.monthLabel,
+        c.quotesCount > 0 ? String(c.quotesCount) : "—",
+        c.sharePercent > 0 ? `${c.sharePercent.toFixed(1)}%` : "—",
+        ind && ind.avgQuotesPerCompany > 0 ? ind.avgQuotesPerCompany.toFixed(1) : "—",
+        ind && ind.sharePercent > 0 ? `${ind.sharePercent.toFixed(1)}%` : "—",
+      ];
+    }),
+    theme: "grid",
+    headStyles: { fillColor: PRIMARY, textColor: 255, fontSize: 8.5 },
+    bodyStyles: { fontSize: 8 },
+    margin: { left: 14, right: 14 },
+    columnStyles: {
+      0: { fontStyle: "bold" },
+      1: { halign: "center" },
+      2: { halign: "right" },
+      3: { halign: "center" },
+      4: { halign: "right" },
+    },
+  });
+  y = doc.lastAutoTable.finalY + 6;
+
+  // Top 3 picos
+  if (seas.topClientMonths.length > 0) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...TEXT);
+    doc.text("Top 3 meses do cliente:", 14, y);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...MUTED);
+    doc.text(
+      seas.topClientMonths.map((c) => `${c.monthLabel} (${c.quotesCount})`).join("  ·  "),
+      55,
+      y,
+    );
+    y += 5;
+  }
+  if (seas.nextPeakMonth) {
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(...TEXT);
+    doc.text("Próximo pico:", 14, y);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(...MUTED);
+    const monthFull = ["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"][seas.nextPeakMonth - 1];
+    doc.text(
+      `${monthFull}${seas.daysToNextPeak === 0 ? " (estamos no mês de pico)" : ` em ${seas.daysToNextPeak} dia(s)`}`,
+      40,
+      y,
+    );
+    y += 6;
+  }
+
+  // Insight em destaque
+  if (seas.insight) {
+    doc.setFillColor(245, 243, 255);
+    doc.roundedRect(14, y, W - 28, 22, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PRIMARY);
+    doc.text("INSIGHT DE TIMING", 18, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...TEXT);
+    const wrapped = doc.splitTextToSize(seas.insight, W - 36);
+    doc.text(wrapped, 18, y + 12);
+  }
+
   addFooter(doc, generatedAt);
 
   return doc.output("blob");
