@@ -130,6 +130,21 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
           </Badge>
         </div>
 
+        {/* Categorias em comum entre cliente e setor */}
+        {sharedCategories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              <Tag className="h-3 w-3 inline mr-1" />
+              Categorias em comum:
+            </span>
+            {sharedCategories.map((label) => (
+              <Badge key={label} variant="secondary" className="text-[10px]">
+                {label}
+              </Badge>
+            ))}
+          </div>
+        )}
+
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {data.products.map((p) => (
             <div
