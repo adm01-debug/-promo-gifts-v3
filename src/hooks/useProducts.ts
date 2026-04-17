@@ -5,7 +5,7 @@
  * Types and utilities are extracted to dedicated modules but
  * re-exported here for backward compatibility with 29+ consumers.
  */
-import { useQuery, UseQueryOptions } from '@tanstack/react-query';
+import { useQuery, type UseQueryOptions } from '@tanstack/react-query';
 import { fetchPromobrindProducts, fetchPromobrindProductById } from '@/lib/external-db';
 
 // Re-export types (backward compat — consumers import from '@/hooks/useProducts')

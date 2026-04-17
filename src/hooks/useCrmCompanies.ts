@@ -5,7 +5,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { selectCrm, selectCrmById, searchCrm } from "@/lib/crm-db";
-import { CrmCompany, CrmCompanyFilters, CrmCustomer, toLegacyClient, getCompanyDisplayName, type LegacyClientFormat } from "@/types/crm";
+import { type CrmCompany, type CrmCompanyFilters, type CrmCustomer, toLegacyClient, getCompanyDisplayName, type LegacyClientFormat } from "@/types/crm";
 import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from "@/lib/bi/demoClient";
 
 /**

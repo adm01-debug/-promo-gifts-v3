@@ -4,7 +4,7 @@
  * Loads ~10x faster than useProducts (no color/variant enrichment).
  */
 import { useQuery, useInfiniteQuery, keepPreviousData } from '@tanstack/react-query';
-import { fetchPromobrindProductsLightweight, invokeBatchBridge, LightweightProduct } from '@/lib/external-db';
+import { fetchPromobrindProductsLightweight, invokeBatchBridge, type LightweightProduct } from '@/lib/external-db';
 
 // Re-export type for consumers
 export type { ProductLightweight } from '@/types/product-catalog';

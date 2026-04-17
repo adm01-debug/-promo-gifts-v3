@@ -96,7 +96,7 @@ export function useCustomKitPersistence() {
           .single();
         if (error) throw error;
         return data;
-      } else {
+      } 
         const { data, error } = await supabase
           .from('custom_kits')
           .insert(payload)
@@ -104,7 +104,7 @@ export function useCustomKitPersistence() {
           .single();
         if (error) throw error;
         return data;
-      }
+      
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: QUERY_KEY });

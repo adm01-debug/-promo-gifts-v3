@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
 import { Trash2, X, Download, RefreshCw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";

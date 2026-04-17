@@ -1,4 +1,4 @@
-import { Component, ErrorInfo, ReactNode } from 'react';
+import { Component, type ErrorInfo, type ReactNode } from 'react';
 import { AlertTriangle, RefreshCw, Home, Bug, ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
 import { logger } from '@/lib/logger';
 import { reportError } from '@/lib/error-reporter';

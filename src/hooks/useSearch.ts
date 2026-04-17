@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback, useContext } from "react";
 import Fuse from "fuse.js";
-import { Product } from "@/hooks/useProducts";
+import { type Product } from "@/hooks/useProducts";
 import { CATEGORIES, SUPPLIERS } from "@/data/mockData";
 import { ProductsContext } from "@/contexts/ProductsContext";
 import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";

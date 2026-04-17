@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { materialService, MaterialType, MaterialComplete } from "@/services/materialService";
+import { materialService, type MaterialType, type MaterialComplete } from "@/services/materialService";
 
 export interface UseMaterialTypesReturn {
   types: MaterialType[];

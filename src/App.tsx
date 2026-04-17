@@ -11,6 +11,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { ProtectedRoute } from "@/components/layout/ProtectedRoute";
 import { AdminRoute } from "@/components/layout/AdminRoute";
+import { DeprecatedRoute } from "@/components/layout/DeprecatedRoute";
 import { AppProviders } from "@/components/providers/AppProviders";
 import { RouteErrorBoundary } from "@/components/errors/RouteErrorBoundary";
 import { AccessibilityProvider, AriaLiveProvider } from "@/components/a11y";
@@ -226,7 +227,10 @@ const App = () => {
                               <Route path="/admin/external-db" element={<AdminExternalDbPage />} />
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
                               <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
-                              <Route path="/admin/aprovacoes-desconto" element={<Navigate to="/admin/usuarios?tab=discounts" replace />} />
+                              <Route path="/admin/aprovacoes-desconto" element={<DeprecatedRoute message="A gestão de descontos foi movida para a aba 'Descontos' em Usuários." redirectTo="/admin/usuarios?tab=discounts" />} />
+                              <Route path="/admin/performance" element={<DeprecatedRoute message="O módulo de Performance foi descontinuado. Use o BI Comercial para análises." redirectTo="/bi" />} />
+                              <Route path="/admin/performance-comercial" element={<DeprecatedRoute message="O módulo de Performance Comercial foi descontinuado. Use o BI Comercial para análises." redirectTo="/bi" />} />
+                              <Route path="/admin/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/admin/usuarios" />} />
                               <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
@@ -240,6 +244,7 @@ const App = () => {
                             <Route path="/admin/personalizacao" element={<Navigate to="/admin/cadastros" replace />} />
                             <Route path="/cadastro-produtos" element={<Navigate to="/admin/cadastros" replace />} />
                             <Route path="/cadastro-gravacao" element={<Navigate to="/admin/cadastros" replace />} />
+                            <Route path="/comissoes" element={<DeprecatedRoute message="O módulo de Comissões foi descontinuado nesta plataforma." redirectTo="/" />} />
 
                             {/* Tools */}
                             <Route path="/simulador" element={<SimuladorWizard />} />

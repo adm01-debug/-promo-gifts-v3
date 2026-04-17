@@ -4,7 +4,7 @@
  * Define staleTime, cacheTime e outras opções globais
  * com foco especial em dados de técnicas de personalização
  */
-import { QueryClient, DefaultOptions } from '@tanstack/react-query';
+import { QueryClient, type DefaultOptions } from '@tanstack/react-query';
 
 // ============================================
 // CONSTANTES DE CACHE (em milissegundos)

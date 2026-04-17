@@ -45,7 +45,7 @@ import {
   TrendingDown,
   DollarSign,
 } from "lucide-react";
-import { useQuotes, Quote } from "@/hooks/useQuotes";
+import { useQuotes, type Quote } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
 import { format, differenceInDays, isPast } from "date-fns";
 import { ptBR } from "date-fns/locale";

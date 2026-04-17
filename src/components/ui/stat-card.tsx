@@ -1,4 +1,4 @@
-import { LucideIcon } from "lucide-react";
+import { type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type StatVariant = "default" | "success" | "warning" | "danger" | "info" | "orange";

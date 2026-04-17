@@ -1,4 +1,4 @@
-import { ExternalTechnique } from "@/types/external-db";
+import { type ExternalTechnique } from "@/types/external-db";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalDb } from "@/lib/external-db";

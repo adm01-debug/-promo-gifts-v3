@@ -9,7 +9,7 @@ import { Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProductRegistration, ProductFormData } from "@/hooks/useProductRegistration";
+import { useProductRegistration, type ProductFormData } from "@/hooks/useProductRegistration";
 import { productFormSchema, type ProductFormSchema } from "./productFormTypes";
 import { BasicDataSection } from "./sections/BasicDataSection";
 import { MediaAttributesSection } from "./sections/MediaAttributesSection";

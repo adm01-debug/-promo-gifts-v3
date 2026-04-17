@@ -5,10 +5,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ProductStockSummary,
-  StockFilters,
-  StockDashboardSummary,
-  VariantStock,
+  type ProductStockSummary,
+  type StockFilters,
+  type StockDashboardSummary,
+  type VariantStock,
   defaultStockFilters,
 } from '@/types/stock';
 import { fetchAndProcessStockData } from './stock/stockFetcher';

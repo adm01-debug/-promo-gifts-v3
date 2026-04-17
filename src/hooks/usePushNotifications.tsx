@@ -43,9 +43,9 @@ export function usePushNotifications() {
       
       if (permission === 'granted') {
         return true;
-      } else {
+      } 
         return false;
-      }
+      
     } catch (error) {
       return false;
     }

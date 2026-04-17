@@ -1,7 +1,7 @@
 /**
  * Tipos compartilhados do painel de risco de fornecedor.
  */
-import { StockStatus, ProductStockSummary } from "@/types/stock";
+import { type StockStatus, type ProductStockSummary } from "@/types/stock";
 
 export type RiskSeverity = 'critical' | 'warning' | 'ok';
 

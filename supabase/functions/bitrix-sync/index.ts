@@ -1,6 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from "../_shared/external-fetch.ts";
 
 const BitrixSyncSchema = z.object({
   action: z.enum([
@@ -49,7 +50,7 @@ Deno.serve(async (req) => {
     switch (action) {
       case 'get_companies': {
         // Fetch companies/clients from Bitrix24
-        const response = await fetch(`${bitrixWebhookUrl}/crm.company.list`, {
+        const response = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.company.list`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -108,7 +109,7 @@ Deno.serve(async (req) => {
           throw new Error('Company ID is required');
         }
 
-        const response = await fetch(`${bitrixWebhookUrl}/crm.company.get`, {
+        const response = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.company.get`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: companyId }),
@@ -140,7 +141,7 @@ Deno.serve(async (req) => {
         // Search companies by name
         const query = data?.query || '';
         
-        const response = await fetch(`${bitrixWebhookUrl}/crm.company.list`, {
+        const response = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.company.list`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -176,7 +177,7 @@ Deno.serve(async (req) => {
           filter.STAGE_ID = data.status;
         }
 
-        const response = await fetch(`${bitrixWebhookUrl}/crm.deal.list`, {
+        const response = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.deal.list`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -235,7 +236,7 @@ Deno.serve(async (req) => {
           throw new Error('Deal ID is required');
         }
 
-        const response = await fetch(`${bitrixWebhookUrl}/crm.deal.productrows.get`, {
+        const response = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.deal.productrows.get`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ id: dealId }),
@@ -279,7 +280,7 @@ Deno.serve(async (req) => {
 
         try {
           // Get all companies
-          const companiesResponse = await fetch(`${bitrixWebhookUrl}/crm.company.list`, {
+          const companiesResponse = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.company.list`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -296,7 +297,7 @@ Deno.serve(async (req) => {
           console.log(`Fetched ${companiesData.result?.length || 0} companies`);
 
           // Get all deals
-          const dealsResponse = await fetch(`${bitrixWebhookUrl}/crm.deal.list`, {
+          const dealsResponse = await fetchWithBreaker("bitrix", `${bitrixWebhookUrl}/crm.deal.list`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -549,6 +550,9 @@ Deno.serve(async (req) => {
     );
 
   } catch (error: unknown) {
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Bitrix24 sync error:', errorMessage);
     return new Response(

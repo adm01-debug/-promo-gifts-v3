@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import { FilterState, defaultFilters } from "@/components/filters/FilterPanel";
+import { type FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { useProductsCatalog } from "@/hooks/useProductsLightweight";
 import { useDebounce } from "@/hooks/useDebounce";

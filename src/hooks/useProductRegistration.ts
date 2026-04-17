@@ -9,13 +9,13 @@ import {
   useExternalTags,
   useExternalSupplierColors,
   useExternalSupplierMaterials,
-  ExternalProduct,
-  ExternalCategory,
-  ExternalSupplier,
-  ExternalTechnique,
-  ExternalTag,
-  ExternalSupplierColor,
-  ExternalSupplierMaterial,
+  type ExternalProduct,
+  type ExternalCategory,
+  type ExternalSupplier,
+  type ExternalTechnique,
+  type ExternalTag,
+  type ExternalSupplierColor,
+  type ExternalSupplierMaterial,
 } from './useExternalDatabase';
 import { useAuditLog } from './useAuditLog';
 import { useProductImport } from './useProductRegistrationImport';

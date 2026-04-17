@@ -4,13 +4,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { useQuotes, Quote } from '@/hooks/useQuotes';
+import { useQuotes, type Quote } from '@/hooks/useQuotes';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuoteApproval } from '@/hooks/useQuoteApproval';
 import { selectCrmById } from '@/lib/crm-db';
 import { toast } from 'sonner';
 import { generateProposalPDFv2, downloadPDF } from '@/utils/proposalPdfReactGenerator';
-import { ProposalTemplateData } from '@/components/pdf/ProposalHtmlTemplate';
+import { type ProposalTemplateData } from '@/components/pdf/ProposalHtmlTemplate';
 import {
   formatCurrency as formatCurrencyHelper,
   calcPersTotal,
@@ -115,7 +115,7 @@ export function useQuoteViewData(id: string | undefined) {
           bitrix_product_id: item.bitrix_product_id ?? null,
           kit_group_id: item.kit_group_id || null,
           kit_name: item.kit_name || null,
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+           
           personalizations:
             item.personalizations?.map((p: any) => ({
               technique_name: p.technique_name || 'Personalizacao',

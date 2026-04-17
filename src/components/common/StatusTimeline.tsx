@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { 
-  Check, 
+  type Check, 
   Clock, 
   Package, 
   Truck, 

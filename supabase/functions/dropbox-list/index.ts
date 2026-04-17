@@ -1,5 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { z } from "https://esm.sh/zod@3.23.8";
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
 
 const BodySchema = z.object({
   path: z.string().max(1000).default(''),
@@ -48,7 +49,7 @@ Deno.serve(async (req) => {
     }
 
     // List files from Dropbox
-    const dropboxResponse = await fetch("https://api.dropboxapi.com/2/files/list_folder", {
+    const dropboxResponse = await fetchWithBreaker("dropbox", "https://api.dropboxapi.com/2/files/list_folder", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${accessToken}`,
@@ -81,8 +82,8 @@ Deno.serve(async (req) => {
         const pathLower = entry.path_lower as string;
         if (tag === "file" && /\.(jpg|jpeg|png|gif)$/i.test(name)) {
           try {
-            const thumbnailResponse = await fetch(
-              "https://content.dropboxapi.com/2/files/get_thumbnail_v2",
+            const thumbnailResponse = await fetchWithBreaker(
+              "dropbox", "https://content.dropboxapi.com/2/files/get_thumbnail_v2",
               {
                 method: "POST",
                 headers: {
@@ -119,6 +120,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const msg = error instanceof Error ? error.message : "Erro interno";
     console.error("Error in dropbox-list:", msg);
     return new Response(

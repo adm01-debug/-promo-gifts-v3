@@ -2,7 +2,7 @@ import { motion } from "framer-motion";
 import { toast } from "sonner";
 import { Send, Loader2, Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { RefObject } from "react";
+import { type RefObject } from "react";
 
 interface ChatInputBarProps {
   input: string;

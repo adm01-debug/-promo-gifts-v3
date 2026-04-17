@@ -1,5 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
 
 // Allowed external domains for proxying
 const ALLOWED_DOMAINS = [
@@ -82,7 +83,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const imageResponse = await fetch(imageUrl, {
+    const imageResponse = await fetchWithBreaker("image-cdn", imageUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; ImageProxy/1.0)',
         'Accept': 'image/*',
@@ -112,6 +113,9 @@ Deno.serve(async (req) => {
     });
   } catch (error) {
     console.error('Image proxy error:', error);
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     return new Response(JSON.stringify({ error: 'Internal server error' }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -144,10 +144,10 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
     if (canCalculate) {
       const timer = setTimeout(() => calculatePriceRef.current(), 400);
       return () => clearTimeout(timer);
-    } else {
+    } 
       setPriceData(null);
       onPriceCalculatedRef.current(area.area_id, null);
-    }
+    
   }, [canCalculate, numCores, larguraNum, alturaNum, quantity, area.area_id]);
 
   if (checkingDimensao) {

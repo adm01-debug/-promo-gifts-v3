@@ -16,7 +16,7 @@ import {
   FileText, Timer, Sparkles, TrendingUp,
   Lightbulb, History, MessageSquare, MoveRight,
 } from "lucide-react";
-import { SellerCart, CartStatus } from "@/hooks/useSellerCarts";
+import { type SellerCart, type CartStatus } from "@/hooks/useSellerCarts";
 import { differenceInDays, differenceInHours, formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ChevronDown } from "lucide-react";

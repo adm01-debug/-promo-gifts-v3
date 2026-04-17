@@ -5,7 +5,7 @@ import { untypedFrom } from "@/lib/supabase-untyped";
 import { invokeExternalDb } from "@/lib/external-db";
 import { toast } from "sonner";
 import {
-  useSensor, useSensors, PointerSensor, KeyboardSensor, DragEndEvent,
+  useSensor, useSensors, PointerSensor, KeyboardSensor, type DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { logger } from "@/lib/logger";

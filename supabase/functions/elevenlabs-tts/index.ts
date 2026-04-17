@@ -2,6 +2,7 @@ import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { z } from 'https://deno.land/x/zod@v3.22.4/mod.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
 
 const VALID_VOICE_IDS = [
   '5lrBPYY4YvMbKHTo8kvZ', // Chosen voice (default)
@@ -72,7 +73,8 @@ Deno.serve(async (req) => {
     // If voiceId provided but not in allowlist, still use it (custom voices)
     const selectedVoiceId = voiceId || '5lrBPYY4YvMbKHTo8kvZ';
 
-    const response = await fetch(
+    const response = await fetchWithBreaker(
+      "elevenlabs",
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}?output_format=mp3_22050_32`,
       {
         method: 'POST',
@@ -122,6 +124,9 @@ Deno.serve(async (req) => {
     });
   } catch (error: unknown) {
     console.error('TTS error:', error);
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: message }),

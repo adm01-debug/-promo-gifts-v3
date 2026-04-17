@@ -1,7 +1,7 @@
-import React, { createContext, useContext, ReactNode, useCallback } from "react";
-import { useCollections, Collection, CollectionVariantInfo, CollectionProductItem } from "@/hooks/useCollections";
+import React, { createContext, useContext, type ReactNode, useCallback } from "react";
+import { useCollections, type Collection, type CollectionVariantInfo, type CollectionProductItem } from "@/hooks/useCollections";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { Product } from "@/hooks/useProducts";
+import { type Product } from "@/hooks/useProducts";
 
 interface CollectionsContextType {
   collections: Collection[];

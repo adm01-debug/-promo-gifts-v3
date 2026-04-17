@@ -38,7 +38,7 @@ function drawHeader(doc: jsPDF, kitName: string, y: number, orgName?: string, or
   doc.rect(0, 0, 210, 36, 'F');
 
   // Org logo (if available, loaded as base64 previously)
-  let textStartX = 14;
+  const textStartX = 14;
 
   doc.setTextColor(...WHITE);
   doc.setFontSize(18);

@@ -1,5 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { z } from '../_shared/zod-validate.ts';
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
 
 // Mapping: seller email → Bitrix24 numeric seller_id
 const SELLER_EMAIL_MAP: Record<string, number> = {
@@ -276,7 +277,7 @@ Deno.serve(async (req) => {
     }));
 
     // ── 8. Call n8n webhook ──────────────────────────────────────────────────
-    const response = await fetch(webhookUrl, {
+    const response = await fetchWithBreaker("bitrix", webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -304,6 +305,9 @@ Deno.serve(async (req) => {
     });
 
   } catch (error: unknown) {
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const message = error instanceof Error ? error.message : String(error);
     console.error("sync-quote-bitrix error:", message);
     return new Response(

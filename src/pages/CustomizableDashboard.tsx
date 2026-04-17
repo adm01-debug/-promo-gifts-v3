@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { DndContext, DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, type DragEndEvent, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, arrayMove, rectSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { GripVertical, LayoutDashboard, TrendingUp, Users, ShoppingCart, Package, FileText, Target, Eye, EyeOff, RotateCcw, Save } from 'lucide-react';

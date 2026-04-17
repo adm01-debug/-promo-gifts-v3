@@ -1,7 +1,7 @@
 /**
  * Shared styles and constants for ProposalHtmlTemplate
  */
-import React from "react";
+import type React from "react";
 
 export const GREEN = "#00c853";
 export const GREEN_DARK = "#009e41";

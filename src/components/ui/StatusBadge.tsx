@@ -9,7 +9,7 @@ import {
   Send,
   Ban,
   Loader2,
-  LucideIcon 
+  type LucideIcon 
 } from "lucide-react";
 
 const statusBadgeVariants = cva(

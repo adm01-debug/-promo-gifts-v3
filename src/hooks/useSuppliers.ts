@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useExternalSuppliers, ExternalSupplier } from './useExternalDatabase';
+import { useExternalSuppliers, type ExternalSupplier } from './useExternalDatabase';
 
 export interface SupplierOption {
   id: string;

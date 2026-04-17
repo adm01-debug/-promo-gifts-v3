@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { BookmarkPlus } from "lucide-react";
-import { QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
+import { type QuoteTemplateItem } from "@/hooks/useQuoteTemplates";
 import { QuoteTemplateForm } from "./QuoteTemplateForm";
 
 interface SaveAsTemplateButtonProps {

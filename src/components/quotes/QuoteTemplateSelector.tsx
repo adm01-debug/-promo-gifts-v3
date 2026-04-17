@@ -9,7 +9,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { FileText } from "lucide-react";
-import { QuoteTemplate } from "@/hooks/useQuoteTemplates";
+import { type QuoteTemplate } from "@/hooks/useQuoteTemplates";
 import { QuoteTemplatesList } from "./QuoteTemplatesList";
 
 interface QuoteTemplateSelectorProps {

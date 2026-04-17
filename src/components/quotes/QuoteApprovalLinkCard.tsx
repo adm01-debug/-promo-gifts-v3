@@ -16,7 +16,7 @@ import {
   RefreshCw,
   Ban,
 } from "lucide-react";
-import { useQuoteApproval, ApprovalToken } from "@/hooks/useQuoteApproval";
+import { useQuoteApproval, type ApprovalToken } from "@/hooks/useQuoteApproval";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";

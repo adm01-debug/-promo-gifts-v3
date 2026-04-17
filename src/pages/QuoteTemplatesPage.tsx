@@ -4,7 +4,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { QuoteTemplatesList } from "@/components/quotes/QuoteTemplatesList";
 import { QuoteTemplateForm } from "@/components/quotes/QuoteTemplateForm";
 import { AdminTemplatesManager } from "@/components/quotes/AdminTemplatesManager";
-import { QuoteTemplate, useQuoteTemplates } from "@/hooks/useQuoteTemplates";
+import { type QuoteTemplate, useQuoteTemplates } from "@/hooks/useQuoteTemplates";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, FileText, Users } from "lucide-react";

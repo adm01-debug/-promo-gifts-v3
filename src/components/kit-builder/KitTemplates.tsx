@@ -3,7 +3,7 @@
  * Quick-start templates for common kit types
  */
 
-import { Gift, Star, Heart, Briefcase, PartyPopper, Sparkles } from 'lucide-react';
+import { type Gift, Star, Heart, Briefcase, PartyPopper, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';

@@ -2,7 +2,7 @@
  * useProductFormDraft — Auto-save / restore form drafts from localStorage
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { UseFormSetValue } from 'react-hook-form';
+import { type UseFormSetValue } from 'react-hook-form';
 import { toast } from 'sonner';
 import type { ProductFormData } from './ProductFormSchema';
 
