@@ -60,8 +60,15 @@ export interface ClientCategoryAffinityResult {
 
 function buildMockResult(): ClientCategoryAffinityResult {
   const totalRev = MOCK_CLIENT_STATS.topCategories.reduce((s, c) => s + c.revenue, 0) || 1;
-  const categories: CategoryAggregate[] = MOCK_CLIENT_STATS.topCategories.map((c) => {
+  // Mock: distribuir 60% receita "recente" e 40% "anterior" com leve variação determinística por slug
+  const categories: CategoryAggregate[] = MOCK_CLIENT_STATS.topCategories.map((c, i) => {
     const meta = resolveBICategory(c.category, c.category);
+    const recentBias = 0.55 + ((i % 3) - 1) * 0.12; // 0.43, 0.55, 0.67
+    const revenueRecent = c.revenue * recentBias;
+    const revenuePrevious = c.revenue * (1 - recentBias);
+    const deltaPct = revenuePrevious > 0 ? ((revenueRecent - revenuePrevious) / revenuePrevious) * 100 : null;
+    const trend: CategoryAggregate["trend"] =
+      deltaPct == null ? "stable" : deltaPct > 15 ? "up" : deltaPct < -15 ? "down" : "stable";
     return {
       slug: meta.slug,
       label: c.category,
@@ -69,6 +76,10 @@ function buildMockResult(): ClientCategoryAffinityResult {
       totalQuantity: c.count * 12,
       totalRevenue: c.revenue,
       revenueSharePct: (c.revenue / totalRev) * 100,
+      revenueRecent,
+      revenuePrevious,
+      deltaPct,
+      trend,
       topProducts: [],
     };
   });
