@@ -71,3 +71,67 @@ export function getMockIndustryTrends(ramo?: string | null): MockIndustryTrend[]
   }
   return base;
 }
+
+// ============ Sazonalidade mock (Cliente × Setor) ============
+
+export interface MockSeasonalityClientCell {
+  month: number;
+  monthLabel: string;
+  quotesCount: number;
+  totalRevenue: number;
+  avgTicket: number;
+  sharePercent: number;
+  intensity: number;
+}
+export interface MockSeasonalityIndustryCell {
+  month: number;
+  monthLabel: string;
+  avgQuotesPerCompany: number;
+  avgRevenuePerCompany: number;
+  sharePercent: number;
+  intensity: number;
+}
+
+const MONTH_LABELS_PT = [
+  "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+  "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+];
+
+/**
+ * Mock determinístico de sazonalidade.
+ * Padrão típico de brindes corporativos: picos em Mar/Abr (kits de boas-vindas pós-Carnaval),
+ * Jun (festas juninas/meio do ano), e Nov/Dez (final de ano + brindes natalinos).
+ */
+export function getMockSeasonality(): {
+  client: MockSeasonalityClientCell[];
+  industry: MockSeasonalityIndustryCell[];
+} {
+  const clientPattern = [3, 4, 8, 9, 5, 7, 4, 3, 5, 6, 9, 10]; // 12 meses
+  const industryPattern = [2.5, 3.2, 6.5, 7.0, 4.5, 5.8, 3.8, 3.2, 4.0, 5.0, 7.5, 8.5];
+
+  const totalClient = clientPattern.reduce((a, b) => a + b, 0);
+  const maxClient = Math.max(...clientPattern);
+  const totalInd = industryPattern.reduce((a, b) => a + b, 0);
+  const maxInd = Math.max(...industryPattern);
+
+  const client: MockSeasonalityClientCell[] = clientPattern.map((q, i) => ({
+    month: i + 1,
+    monthLabel: MONTH_LABELS_PT[i],
+    quotesCount: q,
+    totalRevenue: q * 3200, // ticket médio simulado
+    avgTicket: 3200,
+    sharePercent: (q / totalClient) * 100,
+    intensity: q / maxClient,
+  }));
+
+  const industry: MockSeasonalityIndustryCell[] = industryPattern.map((q, i) => ({
+    month: i + 1,
+    monthLabel: MONTH_LABELS_PT[i],
+    avgQuotesPerCompany: q,
+    avgRevenuePerCompany: q * 2800,
+    sharePercent: (q / totalInd) * 100,
+    intensity: q / maxInd,
+  }));
+
+  return { client, industry };
+}
