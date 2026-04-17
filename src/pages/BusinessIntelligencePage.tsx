@@ -11,6 +11,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClientSelector } from "@/components/bi/ClientSelector";
 import { ClientOverview360 } from "@/components/bi/ClientOverview360";
+import { ClientVsIndustryComparison } from "@/components/bi/ClientVsIndustryComparison";
 import { ClientAffinityProducts } from "@/components/bi/ClientAffinityProducts";
 import { IndustryTrendingProducts } from "@/components/bi/IndustryTrendingProducts";
 import { EmpiricalRecommendations } from "@/components/bi/EmpiricalRecommendations";
@@ -115,6 +116,7 @@ export default function BusinessIntelligencePage() {
         {clientId && (
           <div className="space-y-4">
             <ClientOverview360 clientId={clientId} />
+            <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
             <ClientAffinityProducts clientId={clientId} />
             <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
             <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
