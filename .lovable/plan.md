@@ -1,40 +1,58 @@
 
-O usuário pediu uma auditoria técnica exaustiva (22 dimensões, scorecard, plano de ação). Isso é trabalho de análise pesada read-only — vou explorar o codebase a fundo e entregar o relatório completo. Preciso confirmar escopo antes de gastar muitos tokens lendo arquivos.
+Vou executar autonomamente todas as melhorias da auditoria, **uma por vez, sequencialmente, sem pausas ou perguntas**, conforme preferência registrada. Cada melhoria será uma tarefa atômica auto-contida com critério de aceite verificável.
 
-# Plano — Auditoria Técnica 360° do Promo Gifts
+# Plano de Execução — Rumo ao 10/10
 
-## Objetivo
-Executar a auditoria nas **20 dimensões** do prompt, com nota 0-10, evidências (arquivo/linha), gaps e ações corretivas, culminando em scorecard, top-10 ROI e roadmap em 3 ondas.
+## Ondas de execução (28 melhorias totais)
 
-## Como vou executar (em modo default)
+### 🔴 ONDA 1 — Quick Wins (Impacto Alto / Esforço Baixo)
+1. **CI: Adicionar ESLint** ao `.github/workflows/ci.yml` (`npm run lint`)
+2. **HIBP**: Habilitar `password_hibp_enabled: true` via `configure_auth`
+3. **Storage RLS**: Hardenizar 4 buckets públicos — restringir UPDATE/DELETE por `name LIKE auth.uid()::text || '/%'`
+4. **PR Template**: Criar `.github/pull_request_template.md` com checklist
+5. **Dependabot**: Criar `.github/dependabot.yml` (npm semanal + GitHub Actions)
+6. **Security headers**: Adicionar `_headers` (CSP, HSTS, X-Frame, X-Content-Type, Referrer-Policy)
+7. **CHANGELOG.md**: Criar com versionamento semântico inicial
+8. **Coverage threshold**: Subir de 50% → 60% em `vitest.config.ts`
+9. **Husky pre-push**: Adicionar hook rodando `npm run test`
 
-### Fase 0 — Inventário (1 etapa)
-- `package.json`, `tsconfig*.json`, `vite.config.ts`, `eslint.config.js`, `vitest.config.ts`, `.github/workflows/*`, `supabase/config.toml`
-- Contagem: arquivos `src/**`, edge functions, tabelas (via `supabase--read_query` em `information_schema`), rotas (App.tsx), hooks, componentes
-- Memórias relevantes (`mem://architecture/*`, `mem://security/*`)
+### 🟠 ONDA 2 — Sprint 1 (Impacto Alto / Esforço Médio)
+10. **Zod em edge functions públicas**: Adicionar validação Zod em `image-proxy`, `cnpj-lookup`, `quote-public-view`, `github-fix-config`, `crm-db-bridge` (faltantes)
+11. **CORS restritivo**: Substituir `*` por allow-list (`promogifts.com.br`, preview URLs) em `_shared/cors.ts`
+12. **Sentry/Error tracking**: Integrar `@sentry/react` com DSN em `error-reporter.ts`
+13. **RLS policies "qual=true"**: Auditar e restringir as 13 policies permissivas
+14. **Optimistic locking**: Adicionar coluna `version INTEGER` em `quotes` e `orders` + trigger de incremento
+15. **API docs**: Gerar `docs/EDGE_FUNCTIONS.md` documentando 50 endpoints (path, auth, body schema, responses)
+16. **Web Vitals dashboard**: Criar tabela `web_vitals_metrics` + RPC + persistir CLS/LCP/INP
+17. **Rate limiting client-side**: Aplicar `check_rate_limit` em mais 5 edge functions críticas
+18. **MFA opcional**: UI + flow TOTP usando `supabase.auth.mfa.enroll()`
 
-### Fase 1 — Varredura por dimensão (5 blocos paralelos)
-1. **Arquitetura + Manutenibilidade + Qualidade de Código** — `src/` tree, top-20 arquivos por LOC, ESLint config, dead code, duplicações
-2. **Auth + Authz + Segurança** — `AuthContext`, `ProtectedRoute`, `AdminRoute`, RLS via `supabase--linter` + `pg_policies`, edge functions `_shared/auth.ts`, anti-scraping, headers, CORS
-3. **Banco + Data Integrity + Validação** — schema (`information_schema.tables/columns`), triggers, RPCs (já listadas), migrations, Zod em edge functions, constraints
-4. **CI/CD + Infra + Operações + Documentação** — `.github/workflows/`, `CONTRIBUTING.md`, `docs/RUNBOOK.md`, `docs/DEPLOYMENT.md`, `docs/SECURITY.md`, husky, secrets
-5. **Performance + Logging + Observabilidade + Testes + Tipagem + Lógica** — bundle/lazy, `logger.ts`, Sentry, `tests/`, coverage threshold (50% atual), `tsconfig` strict, edge function logs recentes
+### 🟡 ONDA 3 — Sprint 2 (Impacto Médio-Alto / Esforço Médio)
+19. **Refatorar top-10 arquivos > 500 LOC** (extrair sub-componentes/hooks)
+20. **Testes E2E Playwright**: 5 happy paths críticos (login, criar orçamento, aprovar desconto, gerar mockup, exportar pedido)
+21. **Testes RLS**: Suite completa em `tests/rls/` cobrindo 100% das tabelas com 3 personas (anon, vendedor, admin)
+22. **ADRs**: Criar `docs/adr/` com 5 decisões-chave (SSOT external DB, RLS-first, edge functions Zod, closed platform, Cloudflare Stream)
+23. **Onboarding guide**: `docs/ONBOARDING.md` (setup local em < 4h)
+24. **Dicionário de dados**: `docs/DATA_DICTIONARY.md` mapeando 63 tabelas
+25. **Bundle analyzer**: Adicionar `rollup-plugin-visualizer` + relatório no CI
+26. **N+1 audit**: EXPLAIN ANALYZE nas top-10 queries do hook `useExternalProducts`
+27. **Circuit breaker**: Implementar em `external-db-bridge` para CRM/Catálogo (degradação graciosa)
+28. **Post-mortem template**: `docs/POSTMORTEM_TEMPLATE.md` + atualizar `RUNBOOK.md`
 
-### Fase 2 — Consolidação
-- Scorecard tabular (20 linhas + ponderada)
-- Top-10 ações por ROI
-- Roadmap: 🔴 Quick Wins / 🟠 Sprint 1 / 🟡 Sprint 2 / 🟢 Backlog
-- Parágrafo final de maturidade
+## Modo de execução
+- **Sequencial** — uma melhoria por vez, validando antes de prosseguir
+- **Sem perguntas** — decisões técnicas tomadas com base em padrões já estabelecidos no projeto (memórias)
+- **Critério de aceite por item** — só avança após validar (lint passa, deploy ok, query retorna esperado)
+- **Sem alterar arquivos protegidos** (`client.ts`, `types.ts`, `.env`, `supabase/config.toml` project-level)
+- **Memórias atualizadas** ao final de cada onda
 
-## Premissas (corrija se errar)
-- Auditar as **20 dimensões** listadas no prompt (o título diz 22, o corpo lista 20 — vou cobrir as 20).
-- Foco no app Promo Gifts atual (não auditar Bitrix24/n8n externos, apenas pontos de integração que vivem no repo).
-- Modo **read-only**: nenhuma correção será aplicada — só relatório. Implementação vira sprint separada após você priorizar.
+## Premissas (não vou perguntar — vou aplicar)
+- CORS allow-list usará: `https://promogifts.com.br`, `https://*.lovable.app`, `http://localhost:*`
+- Sentry — vou solicitar `SENTRY_DSN` apenas no item #12 (única exceção, pois é credencial externa obrigatória)
+- MFA — apenas TOTP (não SMS, evita custo Twilio)
+- E2E Playwright — usuário de teste será criado via seed function existente
 
-## Entregável
-Um único relatório markdown estruturado em chat (Inventário → 20 dimensões → Scorecard → Top-10 → Roadmap → Nota final). Sem alterações no código.
+## Entregável final
+Após onda 3: relatório consolidado mostrando scorecard antes (7.8) → depois (esperado ≥9.5), com todos os arquivos criados/modificados e migrações aplicadas.
 
-## Custo estimado
-~25-35 tool calls de leitura (arquivos + queries SQL + logs). ~15 minutos de análise. Zero risco — read-only.
-
-Aprove para eu executar.
+**Aprove para eu iniciar a execução autônoma das 28 melhorias.**
