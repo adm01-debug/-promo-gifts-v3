@@ -5,18 +5,36 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import type { Quote, QuoteItem } from "./quoteTypes";
 
 export function calculateQuoteTotals(quote: Partial<Quote>, items: QuoteItem[]) {
-  const subtotal = items.reduce((sum, item) => {
+  // Subtotal real = soma direta dos itens + personalizações (sem markup)
+  const realSubtotal = items.reduce((sum, item) => {
     const baseTotal = item.quantity * item.unit_price;
     const persTotal = (item.personalizations || []).reduce((pSum, p) => pSum + (p.total_cost || 0), 0);
     return sum + baseTotal + persTotal;
   }, 0);
+
+  // Margem de negociação (clamp 0–50)
+  const markup = Math.min(50, Math.max(0, quote.negotiation_markup_percent || 0));
+
+  // Subtotal apresentado = subtotal real * (1 + markup/100). É o que o cliente vê e o que vai para o banco em `subtotal`.
+  const subtotal = markup > 0
+    ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100
+    : realSubtotal;
+
+  // Desconto APARENTE aplicado sobre subtotal apresentado
   const discountAmount = quote.discount_percent
     ? subtotal * (quote.discount_percent / 100)
     : (quote.discount_amount || 0);
   const shippingCostValue = (quote.shipping_type === "fob" || quote.shipping_type === "fob_pre")
     ? (quote.shipping_cost || 0) : 0;
   const total = subtotal - discountAmount + shippingCostValue;
-  return { subtotal, discountAmount, total };
+
+  // Desconto REAL: comparado ao subtotal real (usado para alçada)
+  const finalBeforeShipping = subtotal - discountAmount;
+  const realDiscountPercent = realSubtotal > 0
+    ? Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100
+    : 0;
+
+  return { subtotal, realSubtotal, discountAmount, total, realDiscountPercent, markup };
 }
 
 export function buildInsertPayload(
@@ -38,6 +56,7 @@ export function buildInsertPayload(
     discount_percent: quote.discount_percent || 0,
     discount_amount: totals.discountAmount,
     total: totals.total,
+    negotiation_markup_percent: quote.negotiation_markup_percent || 0,
     payment_terms: quote.payment_terms || null,
     delivery_time: quote.delivery_time || null,
     shipping_type: quote.shipping_type || null,
@@ -63,6 +82,7 @@ export function buildUpdatePayload(
     discount_percent: quote.discount_percent || 0,
     discount_amount: totals.discountAmount,
     total: totals.total,
+    negotiation_markup_percent: quote.negotiation_markup_percent || 0,
     payment_terms: quote.payment_terms || null,
     delivery_time: quote.delivery_time || null,
     shipping_type: quote.shipping_type || null,
