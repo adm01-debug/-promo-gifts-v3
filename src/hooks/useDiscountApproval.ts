@@ -66,16 +66,49 @@ export function useDiscountApproval() {
         .update({ status: "pending_approval" })
         .eq("id", quoteId);
 
-      // Log in quote history
+      // Buscar contexto do orçamento (markup + aparente) para auditoria e história
+      const { data: quoteCtx } = await supabase
+        .from("quotes")
+        .select("discount_percent, negotiation_markup_percent, real_discount_percent")
+        .eq("id", quoteId)
+        .maybeSingle();
+      const markup = Number(quoteCtx?.negotiation_markup_percent ?? 0);
+      const apparent = Number(quoteCtx?.discount_percent ?? 0);
+
+      // Log in quote history (incluindo flag de markup)
       await supabase.from("quote_history").insert({
         quote_id: quoteId,
         user_id: user.id,
         action: "discount_approval_requested",
-        description: `Solicitação de desconto de ${requestedPercent}% (limite: ${maxAllowedPercent}%)`,
+        description: markup > 0
+          ? `Solicitação de desconto REAL ${requestedPercent.toFixed(2)}% (aparente ${apparent.toFixed(1)}% com markup +${markup.toFixed(1)}%, limite ${maxAllowedPercent}%)`
+          : `Solicitação de desconto de ${requestedPercent}% (limite: ${maxAllowedPercent}%)`,
         field_changed: "discount",
         new_value: `${requestedPercent}%`,
-        metadata: { seller_notes: sellerNotes || null },
+        metadata: {
+          seller_notes: sellerNotes || null,
+          apparent_discount_percent: apparent,
+          real_discount_percent: requestedPercent,
+          negotiation_markup_percent: markup,
+        },
       });
+
+      // Audit trail dedicado quando há markup (visibilidade admin)
+      if (markup > 0) {
+        await supabase.from("admin_audit_log").insert({
+          user_id: user.id,
+          action: "quote_negotiation_markup_applied",
+          resource_type: "quote",
+          resource_id: quoteId,
+          details: {
+            negotiation_markup_percent: markup,
+            apparent_discount_percent: apparent,
+            real_discount_percent: requestedPercent,
+            max_allowed_percent: maxAllowedPercent,
+            context: "discount_approval_request",
+          },
+        });
+      }
 
       // Notify all admins
       const { data: adminRoles } = await supabase
@@ -89,11 +122,14 @@ export function useDiscountApproval() {
           .eq("user_id", user.id)
           .maybeSingle();
         const sellerName = profile?.full_name || "Vendedor";
+        const msg = markup > 0
+          ? `${sellerName} solicitou desconto real de ${requestedPercent.toFixed(2)}% (aparente ${apparent.toFixed(1)}% com markup +${markup.toFixed(1)}%, limite ${maxAllowedPercent}%)`
+          : `${sellerName} solicitou ${requestedPercent.toFixed(1)}% de desconto (limite: ${maxAllowedPercent}%)`;
         await supabase.from("workspace_notifications").insert(
           adminRoles.map(a => ({
             user_id: a.user_id,
             title: "Solicitação de desconto",
-            message: `${sellerName} solicitou ${requestedPercent.toFixed(1)}% de desconto (limite: ${maxAllowedPercent}%)`,
+            message: msg,
             type: "warning",
             category: "discount",
             action_url: "/admin/aprovacoes-desconto",
