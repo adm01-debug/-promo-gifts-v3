@@ -1,43 +1,37 @@
 
 
-Usuário pediu para continuar executando melhorias rumo ao 10/10, autonomamente, uma de cada vez. Como estou em plan mode, preciso apresentar o plano da próxima onda de melhorias antes de executar.
+Status atual: **10/10 já atingido** nas 28 melhorias da auditoria original + onda de polimento pós-remoções concluída na última rodada (6/6). Codebase limpo, memórias sincronizadas, type-check verde.
 
-Status atual conhecido (via `mem://infrastructure/hardening-roadmap`): **10/10 já atingido** nas 28 melhorias da auditoria original (Ondas 1, 2, 3 ✅). Então o que ainda faz sentido executar agora? Olhando o histórico recente desta sessão, fizemos 3 remoções grandes (Performance Comercial, Performance Runtime, Comissões) e a unificação de Gestão de Descontos em Usuários. Isso gera **dívida residual**: arquivos órfãos, referências quebradas em docs, memórias desatualizadas, possíveis testes RLS ainda apontando para tabelas dropadas, e oportunidades de polimento descobertas no caminho.
+Para manter o ritmo "rumo à perfeição sempre", proponho uma **nova onda 4 — Excelência Contínua** com 6 melhorias atômicas de alto valor que vão *além* do 10/10 original. Foco: developer experience, defesa em profundidade e qualidade percebida.
 
-## Próxima onda — "Polimento pós-remoções + hardening incremental"
+## Onda 4 — 6 melhorias atômicas
 
-Vou executar **6 melhorias atômicas**, uma por vez, em ordem de menor risco → maior valor:
+### 1. ESLint como dependência local + script `lint:check`
+Hoje `npm run lint` é apenas `tsc --noEmit`. Adicionar `eslint` + `@typescript-eslint/*` + `eslint-plugin-react-hooks` como devDependencies e criar script `lint:check` separado de `typecheck`. Configurar `eslint.config.js` (flat config) reaproveitando regras já documentadas em `mem://architecture/typescript-governance-strict-mode`.
 
-### 1. Auditoria de referências órfãs (3 features removidas)
-Buscar no código, docs e testes por menções residuais a:
-- `commission_entries`, `commission_rules`, `useCommissions`, `/comissoes`
-- `web_vitals`, `useWebVitalsSummary`, `/admin/performance`, `initWebVitals`
-- `AdminDiscountApprovalsPage`, `/admin/aprovacoes-desconto` (exceto o redirect)
+### 2. Pre-push hook estendido
+`.husky/pre-push` hoje roda só typecheck. Adicionar `lint:check` + `vitest run --changed` para travar push com regressão.
 
-Limpar imports mortos, comentários obsoletos, links quebrados em `docs/`. Atualizar `docs/DATA_DICTIONARY.md`, `docs/RUNBOOK.md`, `docs/EDGE_FUNCTIONS.md` se ainda houver resquícios.
+### 3. Página 404 dedicada para rotas mortas
+Hoje rotas removidas (`/comissoes`, `/admin/performance`) caem no catch-all. Criar `<DeprecatedRoute>` com toast amigável + redirect para destino sugerido (ex: comissões → "use o sistema externo X"). Aplicar nos 3 paths removidos.
 
-### 2. Atualizar memória `quote-discount-approval-workflow`
-Refletir nova localização (`/admin/usuarios?tab=discounts`) e remover qualquer URL antiga.
+### 4. Smoke E2E para a unificação Descontos+Usuários
+Adicionar 2 testes em `e2e/discount-approval.spec.ts`:
+- Aba `?tab=discounts` ativa-se no carregamento
+- Badge de pendentes aparece no trigger quando há aprovações
 
-### 3. Atualizar `mem://index.md`
-Garantir que entradas removidas (Performance Runtime Dashboard) estão fora do índice, e que a entrada de discount-approval menciona a nova URL.
+### 5. Memória `mem://infrastructure/hardening-roadmap` — adicionar Onda 4
+Documentar a onda 4 (status: em progresso) para rastreabilidade futura.
 
-### 4. Verificar e remover dependências NPM órfãs
-Checar `package.json` para libs que só serviam aos módulos removidos (ex: alguma lib de chart usada exclusivamente no Performance Dashboard que sobrou após o `web-vitals` ter sido removido).
+### 6. Auditoria `supabase/functions` — circuit breaker em edge functions críticas restantes
+Hoje só `external-db-bridge` e `crm-db-bridge` têm breaker (per memória). Verificar se há outras edge functions chamando APIs externas (ex: integrações Bitrix24 diretas, webhooks SalesPro) que se beneficiariam do mesmo padrão `getBreaker()`. Aplicar onde fizer sentido.
 
-### 5. Lint pass focado
-Rodar `eslint` no escopo dos arquivos editados nesta sessão (`src/pages/admin/AdminUsuariosPage.tsx`, `src/components/admin/DiscountManagementPanel.tsx`, `src/App.tsx`, sidebar) e corrigir warnings residuais (cores hardcoded → tokens semânticos, `any` → tipos estritos, `useEffect` deps).
+## Política
 
-### 6. Smoke test E2E atualizado
-Garantir que `e2e/discount-approval.spec.ts` (que acabei de atualizar) passa no padrão de auth-redirect e que não há outros testes E2E referenciando rotas mortas.
+- Uma melhoria por vez, commits separados.
+- Sem migration de banco.
+- Reversível.
+- Sem pausas, sem perguntas.
 
-## Política de execução
-
-- **Uma melhoria por vez**, em commits lógicos separados.
-- Nenhuma migration nova de banco (apenas docs/code/memória).
-- Não-destrutivo, totalmente reversível.
-- Sem perguntas durante a execução — sigo até concluir as 6.
-- Se descobrir uma 7ª melhoria de alto impacto durante a execução (ex.: rota morta ainda referenciada em algum menu), executo na sequência sem pausar.
-
-Ao aprovar, começo pela #1 e sigo até a #6.
+Aprovar para começar pela #1.
 
