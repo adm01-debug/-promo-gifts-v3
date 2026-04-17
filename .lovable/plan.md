@@ -1,45 +1,34 @@
 
-# Execução autônoma — Sprints 1, 2, 3 do BI 10/10
+# Finalização Sprint 2 + 3 + Polish — BI 10/10
 
-Vou executar todas as melhorias aprovadas sequencialmente, sem pausas. Os componentes de base já foram criados na rodada anterior (`ClientHealthHero`, `ChurnRiskBanner`, `EnrichedOrdersTimeline`, `BIBriefingMode`, `BIAiCopilot`, `ConfirmQuoteSuggestionsModal`, hooks `useClientHealthScore` e `useChurnRisk`, edge function `bi-copilot`). Falta integrar tudo na página + criar peças restantes.
+Continuação direta da execução autônoma. Já entregue: Health Hero, Churn Banner, Timeline enriquecida, Bundle, Lookalikes, Executive Summary + PPTX, integração na página.
 
-## Plano de execução (1 por vez)
+## Restantes (executar 1 a 1, sem pausas)
 
-### Bloco A — Integração Sprint 1 (narrativa executiva)
-1. Substituir header passivo por `ClientHealthHero` no topo da `BusinessIntelligencePage`
-2. Inserir `ChurnRiskBanner` logo abaixo (aparece só se risk médio/alto)
-3. Wire do CTA do hero → abrir `ConfirmQuoteSuggestionsModal` (modal de confirmação antes do Quote Builder)
-4. Adicionar botões "Briefing" e "Pergunte ao BI" no header (drawer + chat lateral)
+### Sprint 2 final
+1. **Gap analysis em `IndustryTrendingProducts`** — coluna "Cliente já compra?" (✓/✗) + filtro toggle "Só oportunidades" + top 3 viram hero cards com imagem maior e projeção de receita. Cruzar com `useClientAffinity`.
+2. **Share-of-Wallet em `ClientVsIndustryComparison`** — 5ª métrica clicável: `clienteLTV / (clienteLTV + avgSetorLTV*1.5)` capped 5–95%, com gap em R$ ("R$ X não capturado").
 
-### Bloco B — Sprint 2 (densidade & venda consultiva)
-5. Substituir "Últimos pedidos" por `EnrichedOrdersTimeline` na zona Visão 360°
-6. Adicionar Share-of-Wallet como 5ª métrica em `ClientVsIndustryComparison` (estimativa: LTV/(LTV+gap setor))
-7. Gap analysis em `IndustryTrendingProducts`: coluna "Cliente já compra?" + filtro "Só oportunidades" + top 3 como hero cards
-8. Bundle suggestions em `ClientAffinityProducts` (nova RPC `get_bundle_suggestions` já existe no DB) → seção "Compram juntos"
+### Sprint 3 final
+3. **Toggle "Trimestre atual vs anterior" em `ClientOverview360`** — switch no header das KPIs, variação % com setas verde/vermelho ao lado de LTV, ticket, frequência.
+4. **Sazonalidade preditiva em `ClientSeasonalityHeatmap`** — usar `projectForecast` de `src/lib/forecast.ts` (já existe) sobre série mensal, renderizar linha pontilhada para próximos 6 meses + card lateral "Próxima janela ideal: [mês]" com CTA "Agendar follow-up".
 
-### Bloco C — Sprint 3 (inteligência avançada)
-9. Toggle "Este trimestre vs anterior" em `ClientOverview360` (variação % com setas)
-10. Sazonalidade preditiva: linha pontilhada projetada (regressão linear simples) em `ClientSeasonalityHeatmap` + card "Próxima janela de campanha"
-11. Lookalikes: novo componente `ClientLookalikes` (clientes do mesmo ramo com ticket similar → produtos comprados por eles)
+### Polish (Onda 4)
+5. **Sistema cromático semântico aplicado** — varrer componentes BI e padronizar: verde=saúde/oportunidade, âmbar=atenção, vermelho=risco, violeta=sazonalidade, azul=info. Substituir badges amarelas "Simulado" por cinza discreto.
+6. **Skeletons com forma das zonas** — substituir `Skeleton h-32` genérico por estruturas que espelham o layout final (hero, timeline com dots, grid de produtos) reduzindo CLS percebido.
 
-### Bloco D — Polish (Onda 4)
-12. Sistema cromático semântico aplicado: verde=saúde, âmbar=atenção, vermelho=risco, violeta=sazonalidade
-13. Skeleton states com forma das zonas (não retângulo genérico)
-14. Botão "Copiar resumo executivo" (gera 3 parágrafos via `bi-copilot` ou template) + adicionar export `.pptx` ao lado do PDF
+## Detalhes técnicos
+- **Gap analysis**: `clientAlreadyBuys = new Set(affinity.products.map(p => p.productId))`; passar como prop ao `IndustryTrendingProducts`.
+- **Share-of-wallet**: já há heurística no plano anterior; reaproveitar `useClientVsIndustry` data.
+- **Toggle temporal**: dividir `useClientBI` em buckets de 90d (atual) vs 90d anteriores; calcular delta %.
+- **Predictive seasonality**: `linearRegression` sobre 12 meses → projetar 6; Recharts `LineChart` com `strokeDasharray` para forecast.
+- **Cromática**: tokens já existem em `index.css` (--success, --warning, --destructive); só substituir classes `text-amber-*` hardcoded por `text-warning` semantic.
+- **Skeletons**: criar `BISkeletons.tsx` com 5-6 variantes (HeroSkeleton, TimelineSkeleton, GridSkeleton, HeatmapSkeleton).
 
-## Detalhes técnicos chave
+## Arquivos
+**Editar:** `IndustryTrendingProducts.tsx`, `ClientVsIndustryComparison.tsx`, `ClientOverview360.tsx`, `ClientSeasonalityHeatmap.tsx`, `BusinessIntelligencePage.tsx` (props), `useClientBI.ts` (buckets temporais).
+**Criar:** `src/components/bi/BISkeletons.tsx`.
 
-- **Share-of-wallet**: estimativa heurística = `clienteLTV / (clienteLTV + (avgSetorLTV * 1.5))` capped 5-95%
-- **Gap analysis**: cruzar `useClientAffinity` produtos com `useIndustryTrends` → marca `clientAlreadyBuys` por `productId`
-- **Bundle**: chamar `supabase.rpc('get_bundle_suggestions', { _product_id })` para top produto do cliente
-- **Predictive seasonality**: regressão linear sobre últimos 12 meses de `quotes_count` → projetar próximos 6
-- **Lookalikes**: filtrar `selectCrm(companies)` por mesmo ramo + LTV ±30% → buscar `quote_items` agregados
-- **Copy executiva**: edge function nova `bi-executive-summary` usando Lovable AI Gateway (gemini-2.5-flash) com dados das 6 zonas
-- **PPTX export**: biblioteca `pptxgenjs` (cliente, sem edge function) — 5 slides espelhando o PDF
+Sem mudanças de schema. Sem novas edge functions. ~7 arquivos tocados.
 
-## Ordem de commits (atômicos, sem retrabalho)
-Cada item acima = 1 ou 2 arquivos editados/criados. Vou executar em sequência sem perguntar, com revisão visual mental após cada bloco. Se algo quebrar tipos, corrijo no mesmo turno.
-
-**Total estimado:** ~14 edições/criações de arquivos + 1 edge function nova. Sem mudanças de schema (todas as RPCs necessárias já existem).
-
-Aprovado → executo agora do item 1 ao 14 sequencialmente.
+Executar agora os 6 itens em sequência.
