@@ -28,13 +28,43 @@ const VALID_TABS = ["users", "password-reset", "discounts"] as const;
 type TabValue = (typeof VALID_TABS)[number];
 
 export default function AdminUsuariosPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { pendingCount } = usePasswordResetRequests();
   const {
     users, isLoading, updatingUserId,
     fetchUsers, handleRoleChange, handleCreateUser, handleDeleteUser, handleSaveEdit,
     handleAvatarUpload, handleRemoveAvatar,
   } = useUserManagement();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam ?? "")
+    ? (tabParam as TabValue)
+    : "users";
+  const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabValue);
+    const next = new URLSearchParams(searchParams);
+    if (value === "users") next.delete("tab");
+    else next.set("tab", value);
+    setSearchParams(next, { replace: true });
+  };
+
+  // Pending discount approvals badge
+  const { data: pendingDiscountCount = 0 } = useQuery({
+    queryKey: ["pending-discount-approvals-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("discount_approval_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count || 0;
+    },
+    enabled: isAdmin,
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -44,9 +74,9 @@ export default function AdminUsuariosPage() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const adminCount = users.filter((u) => u.role === "admin").length;
-  const managerCount = users.filter((u) => u.role === "manager").length;
-  const vendedorCount = users.filter((u) => u.role === "vendedor").length;
+  const adminCount = useMemo(() => users.filter((u) => u.role === "admin").length, [users]);
+  const managerCount = useMemo(() => users.filter((u) => u.role === "manager").length, [users]);
+  const vendedorCount = useMemo(() => users.filter((u) => u.role === "vendedor").length, [users]);
 
   const filteredUsers = users
     .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || "", "pt-BR", { sensitivity: "base" }))
