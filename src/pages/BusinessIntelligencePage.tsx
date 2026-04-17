@@ -6,7 +6,7 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, IdCard, Info } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ClientSelector } from "@/components/bi/ClientSelector";
@@ -74,7 +74,7 @@ export default function BusinessIntelligencePage() {
                 </div>
                 {company.cnpj && (
                   <div className="flex items-center gap-1.5 text-muted-foreground">
-                    <IdCard className="h-3.5 w-3.5" />
+                    <FileText className="h-3.5 w-3.5" />
                     <span className="text-xs">{company.cnpj}</span>
                   </div>
                 )}
