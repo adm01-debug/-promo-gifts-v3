@@ -53,6 +53,26 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
   const bi = useClientBI(clientId);
   const affinity = useClientAffinity(clientId);
   const trends = useIndustryTrends(ramoAtividade);
+  const catAffinity = useClientCategoryAffinity(clientId);
+  const catIndustry = useIndustryCategoryTrends(ramoAtividade);
+
+  // Top 2 categorias favoritas + 1 oportunidade GAP (setor compra muito, cliente nada)
+  const categoryHighlights = useMemo(() => {
+    const favorites = catAffinity.categories.slice(0, 2).map((c) => ({
+      label: c.label,
+      sharePct: Math.round(c.revenueSharePct),
+      trend: c.trend,
+      deltaPct: c.deltaPct,
+    }));
+    const clientSlugs = new Set(catAffinity.categories.map((c) => c.slug));
+    const gap = catIndustry.categories.find(
+      (ind) => !clientSlugs.has(ind.slug) && ind.revenueSharePct >= 8,
+    );
+    return {
+      favorites,
+      gap: gap ? { label: gap.label, sharePct: Math.round(gap.revenueSharePct) } : null,
+    };
+  }, [catAffinity.categories, catIndustry.categories]);
 
   const tierStyles = useMemo(() => {
     switch (health.tier) {
