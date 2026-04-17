@@ -231,6 +231,20 @@ export function QuoteBuilderSummaryColumn({
             </div>
           )}
 
+          {/* Negotiation Markup (uso interno) */}
+          {items.length > 0 && setNegotiationMarkup && (
+            <div className="px-4 pt-3">
+              <NegotiationMarkupCard
+                value={negotiationMarkup}
+                onChange={setNegotiationMarkup}
+                realSubtotal={realSubtotal}
+                apparentDiscountPercent={discountType === "percent" ? discountValue : (realSubtotal > 0 ? (discountValue / (realSubtotal * (1 + (negotiationMarkup || 0) / 100))) * 100 : 0)}
+                realDiscountPercent={realDiscountPercent}
+                maxDiscountPercent={maxDiscountPercent ?? null}
+              />
+            </div>
+          )}
+
           {/* Footer */}
           <div className="shrink-0 pt-3 mt-3 border-t border-border/50 px-4 pb-4 space-y-3">
             <div className="flex items-baseline justify-between gap-2">
