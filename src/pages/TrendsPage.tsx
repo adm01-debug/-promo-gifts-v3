@@ -12,6 +12,7 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductsTabContent, SearchesTabContent } from "./trends/TrendsCharts";
 import { TrendsKpiCards } from "./trends/TrendsKpiCards";
 import { UnmetDemandCard } from "@/components/intelligence/UnmetDemandCard";
+import { HotSearchesCard } from "@/components/intelligence/HotSearchesCard";
 import { ConversionFunnel } from "@/components/intelligence/ConversionFunnel";
 import { TrendsHeatmap } from "@/components/intelligence/TrendsHeatmap";
 import { TopCategoriesCard } from "@/components/intelligence/TopCategoriesCard";
