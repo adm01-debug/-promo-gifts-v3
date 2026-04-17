@@ -1,4 +1,5 @@
-import Fuse, { type IFuseOptions } from "fuse.js";
+import type Fuse from "fuse.js";
+import { type IFuseOptions } from "fuse.js";
 
 export interface SearchableProductLike {
   id: string;

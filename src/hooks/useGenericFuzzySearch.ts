@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import Fuse, { IFuseOptions } from 'fuse.js';
+import Fuse, { type IFuseOptions } from 'fuse.js';
 
 /**
  * Hook genérico de busca fuzzy tolerante a erros de digitação

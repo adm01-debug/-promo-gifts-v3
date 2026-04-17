@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PRODUCT_FIELDS, ColumnMapping } from "@/hooks/useProductRegistration";
+import { PRODUCT_FIELDS, type ColumnMapping } from "@/hooks/useProductRegistration";
 import { cn } from "@/lib/utils";
 import { Table as TableIcon } from "lucide-react";
 

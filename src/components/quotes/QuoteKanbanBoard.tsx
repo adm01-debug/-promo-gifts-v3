@@ -3,10 +3,10 @@ import confetti from "canvas-confetti";
 import { useNavigate } from "react-router-dom";
 import {
   DndContext,
-  DragEndEvent,
-  DragOverEvent,
+  type DragEndEvent,
+  type DragOverEvent,
   DragOverlay,
-  DragStartEvent,
+  type DragStartEvent,
   PointerSensor,
   useSensor,
   useSensors,
@@ -35,7 +35,7 @@ import {
   Building2,
   GripVertical,
 } from "lucide-react";
-import { Quote, useQuotes } from "@/hooks/useQuotes";
+import { type Quote, useQuotes } from "@/hooks/useQuotes";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";

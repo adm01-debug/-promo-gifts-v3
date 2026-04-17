@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import { PersonalizationArea } from "@/components/mockup/MultiAreaManager";
+import { type PersonalizationArea } from "@/components/mockup/MultiAreaManager";
 
 const LOCAL_STORAGE_KEY = "mockup_draft_v1";
 const AUTO_SAVE_DELAY = 2000; // 2 segundos de debounce

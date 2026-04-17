@@ -126,10 +126,10 @@ export function useExternalDatabase<T = Record<string, unknown>>(tableName: Exte
           isLoading: false 
         }));
         return result;
-      } else {
+      } 
         setState(prev => ({ ...prev, isLoading: false }));
         return data.data as T;
-      }
+      
     } catch (err) {
       const errorMessage = await extractFunctionErrorMessage(err);
       setState(prev => ({ ...prev, error: errorMessage, isLoading: false }));

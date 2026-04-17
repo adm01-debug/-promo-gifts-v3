@@ -71,8 +71,8 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
       const quoteIds = [...new Set((quoteItems || []).map(q => q.quote_id))];
       const orderIds = [...new Set((orderItems || []).map(o => o.order_id))];
 
-      let quotesMap: Record<string, { seller_id: string; status: string }> = {};
-      let ordersMap: Record<string, { seller_id: string; status: string }> = {};
+      const quotesMap: Record<string, { seller_id: string; status: string }> = {};
+      const ordersMap: Record<string, { seller_id: string; status: string }> = {};
 
       if (quoteIds.length > 0) {
         // G15 fix: only count quotes with relevant statuses (not drafts)
@@ -101,7 +101,7 @@ export function useSalesHistory(productId: string | undefined, days = 30) {
         ...Object.values(quotesMap).map(q => q.seller_id),
         ...Object.values(ordersMap).map(o => o.seller_id),
       ])];
-      let sellerNames: Record<string, string> = {};
+      const sellerNames: Record<string, string> = {};
       if (allSellerIds.length > 0) {
         const { data: profiles } = await supabase
           .from('profiles')

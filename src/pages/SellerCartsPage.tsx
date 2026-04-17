@@ -3,7 +3,7 @@
  * Decomposed: hook in useSellerCartsPage, sidebar in CartSidebar.
  */
 import { MainLayout } from "@/components/layout/MainLayout";
-import { CartStatus } from "@/hooks/useSellerCarts";
+import { type CartStatus } from "@/hooks/useSellerCarts";
 import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
 import { SortableCartItem } from "@/components/cart/SortableCartItem";
 import {

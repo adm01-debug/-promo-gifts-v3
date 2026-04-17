@@ -1,5 +1,5 @@
-import { motion, HTMLMotionProps } from "framer-motion";
-import { forwardRef, ReactNode } from "react";
+import { motion, type HTMLMotionProps } from "framer-motion";
+import { forwardRef, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 // Hover lift effect for cards

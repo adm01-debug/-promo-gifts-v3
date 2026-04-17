@@ -8,10 +8,10 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
 import { useExpertChatTts } from "./useExpertChatTts";
-import { useExpertConversations, ExpertConversation } from "@/hooks/useExpertConversations";
+import { useExpertConversations, type ExpertConversation } from "@/hooks/useExpertConversations";
 import {
-  FlowFilterState,
-  FlowFilterOptions,
+  type FlowFilterState,
+  type FlowFilterOptions,
   defaultFlowFilters,
   countActiveFilters,
   getActiveFilterLabels,

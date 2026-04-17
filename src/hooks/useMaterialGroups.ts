@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { materialService, MaterialGroup } from "@/services/materialService";
+import { materialService, type MaterialGroup } from "@/services/materialService";
 
 export interface UseMaterialGroupsReturn {
   groups: MaterialGroup[];

@@ -7,7 +7,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { useExternalCategoriesQuery, ExternalCategory } from "@/hooks/useExternalCategoriesQuery";
+import { useExternalCategoriesQuery, type ExternalCategory } from "@/hooks/useExternalCategoriesQuery";
 import { useCategoryIcons, getCategoryIcon } from "@/hooks/useCategoryIcons";
 
 interface ExternalCategoryFilterProps {

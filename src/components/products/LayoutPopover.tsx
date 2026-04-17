@@ -3,7 +3,7 @@ import { Settings2, LayoutGrid, List, Table2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
-import { ColumnSelector, ColumnCount } from "@/components/products/ColumnSelector";
+import { ColumnSelector, type ColumnCount } from "@/components/products/ColumnSelector";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 

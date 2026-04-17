@@ -14,7 +14,7 @@ type PostgrestFilterBuilder = ReturnType<ReturnType<SupabaseClient["from"]>["sel
  * Access a Supabase table that doesn't exist in the generated types.
  * Returns a fully typed query builder.
  */
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 export function untypedFrom(table: string): ReturnType<SupabaseClient["from"]> {
   return supabase.from(table as any);
 }

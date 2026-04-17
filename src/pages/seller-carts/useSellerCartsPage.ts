@@ -5,8 +5,8 @@
 import { useState, useCallback, useMemo, useRef, useEffect, useContext } from "react";
 import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { useSellerCartContext } from "@/contexts/SellerCartContext";
-import { SellerCart, CartStatus } from "@/hooks/useSellerCarts";
-import { useCartTemplates, CartTemplateItem } from "@/hooks/useCartTemplates";
+import { type SellerCart, CartStatus } from "@/hooks/useSellerCarts";
+import { useCartTemplates, type CartTemplateItem } from "@/hooks/useCartTemplates";
 import { ProductsContext } from "@/contexts/ProductsContext";
 import {
   recordAction, exportCartToCSV, exportCartToPDF, shareCartLink,
@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { showUndoToast } from "@/utils/undoToast";
 import { differenceInDays } from "date-fns";
 import {
-  KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent,
+  KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent,
 } from "@dnd-kit/core";
 import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 

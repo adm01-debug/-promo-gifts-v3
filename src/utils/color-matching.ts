@@ -19,9 +19,9 @@ function rgbToLab(r: number, g: number, b: number): [number, number, number] {
   bb = bb > 0.04045 ? Math.pow((bb + 0.055) / 1.055, 2.4) : bb / 12.92;
 
   // Linear RGB → XYZ (D65)
-  let x = (rr * 0.4124564 + gg * 0.3575761 + bb * 0.1804375) / 0.95047;
-  let y = (rr * 0.2126729 + gg * 0.7151522 + bb * 0.0721750);
-  let z = (rr * 0.0193339 + gg * 0.1191920 + bb * 0.9503041) / 1.08883;
+  const x = (rr * 0.4124564 + gg * 0.3575761 + bb * 0.1804375) / 0.95047;
+  const y = (rr * 0.2126729 + gg * 0.7151522 + bb * 0.0721750);
+  const z = (rr * 0.0193339 + gg * 0.1191920 + bb * 0.9503041) / 1.08883;
 
   // XYZ → Lab
   const f = (t: number) => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;

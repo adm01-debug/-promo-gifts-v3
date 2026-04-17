@@ -1,4 +1,4 @@
-import { ExternalProduct } from "@/types/external-db";
+import { type ExternalProduct } from "@/types/external-db";
 /**
  * Fetch products with full enrichment (colors, images, variants, suppliers).
  */
@@ -6,7 +6,7 @@ import { logger } from '@/lib/logger';
 import { invokeExternalDb, invokeBatchBridge } from './bridge';
 import type { BatchQuery, BatchResult, InvokeResult } from './bridge';
 import {
-  PromobrindProduct,
+  type PromobrindProduct,
   PRODUCT_SELECT_FIELDS_WITH_SALE,
   PRODUCT_SELECT_FIELDS_LEGACY,
   shouldFallbackSelect,

@@ -312,7 +312,7 @@ export function useGlobalSearch() {
       }
 
       if (intent.type === "order" || intent.type === "mixed" || intent.entities?.includes("order")) {
-        let orderQuery = supabase.from("orders").select("id, order_number, status, total, client_name, organization_id").limit(5);
+        const orderQuery = supabase.from("orders").select("id, order_number, status, total, client_name, organization_id").limit(5);
         // RLS enforces org isolation, but add explicit filter for defense-in-depth
         const { data: orders } = await orderQuery;
         if (orders) {

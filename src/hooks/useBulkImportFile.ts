@@ -3,7 +3,7 @@
  * for the BulkImportPanel component.
  */
 import { useState, useCallback, useRef } from 'react';
-import { PRODUCT_FIELDS, BulkImportRow, ColumnMapping } from '@/hooks/useProductRegistration';
+import { PRODUCT_FIELDS, type BulkImportRow, type ColumnMapping } from '@/hooks/useProductRegistration';
 
 const getXLSX = () => import('@e965/xlsx');
 import Papa from 'papaparse';

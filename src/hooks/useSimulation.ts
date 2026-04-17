@@ -1,4 +1,4 @@
-import { ExternalTechnique } from "@/types/external-db";
+import { type ExternalTechnique } from "@/types/external-db";
 // src/hooks/useSimulation.ts
 // Hook centralizado para lógica do simulador — refactored
 

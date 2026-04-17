@@ -6,7 +6,7 @@ import type { Product } from "@/hooks/useProducts";
 import type { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { FilterPanel, FilterState, defaultFilters } from "@/components/filters/FilterPanel";
+import { FilterPanel, type FilterState, defaultFilters } from "@/components/filters/FilterPanel";
 import { SORT_OPTIONS } from "@/constants/filters";
 import { PresetsBar } from "@/components/filters/PresetsBar";
 import { VirtualizedProductGrid } from "@/components/products/VirtualizedProductGrid";

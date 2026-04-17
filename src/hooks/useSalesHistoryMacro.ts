@@ -57,7 +57,7 @@ export function useSalesHistoryMacro(days = 30) {
         ...Object.values(quotesMap).map(q => q.seller_id),
         ...Object.values(ordersMap).map(o => o.seller_id),
       ])];
-      let sellerNames: Record<string, string> = {};
+      const sellerNames: Record<string, string> = {};
       if (allSellerIds.length > 0) {
         const { data: profiles } = await supabase.from('profiles').select('user_id, full_name').in('user_id', allSellerIds);
         for (const p of profiles || []) sellerNames[p.user_id] = p.full_name || 'Vendedor';

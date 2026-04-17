@@ -1,7 +1,7 @@
 /**
  * Types and constants for ProductEngravingSection
  */
-import React from 'react';
+import type React from 'react';
 import { Layers, MapPin, Paintbrush, Ruler } from 'lucide-react';
 import { TECHNIQUE_ICONS } from '@/types/gravacao';
 

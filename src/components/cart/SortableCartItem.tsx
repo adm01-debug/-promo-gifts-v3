@@ -21,7 +21,7 @@ import {
   MessageSquare, ChevronDown, Calculator, MoveRight, CopyPlus,
   AlertTriangle,
 } from "lucide-react";
-import { SellerCart, SellerCartItem } from "@/hooks/useSellerCarts";
+import { type SellerCart, type SellerCartItem } from "@/hooks/useSellerCarts";
 
 function formatCurrency(value: number) {
   return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

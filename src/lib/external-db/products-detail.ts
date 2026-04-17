@@ -5,7 +5,7 @@ import { logger } from '@/lib/logger';
 import { invokeExternalDb } from './bridge';
 import type { InvokeResult } from './bridge';
 import {
-  PromobrindProduct,
+  type PromobrindProduct,
   PRODUCT_SELECT_FIELDS_WITH_SALE,
   PRODUCT_SELECT_FIELDS_LEGACY,
   PRODUCT_SELECT_FIELDS_DETAIL,

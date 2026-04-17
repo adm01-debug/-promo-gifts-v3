@@ -4,9 +4,9 @@ import {
   useExternalTechniques, 
   useExternalSuppliers,
   useExternalDatabase,
-  ExternalCategory,
-  ExternalTechnique,
-  ExternalSupplier,
+  type ExternalCategory,
+  type ExternalTechnique,
+  type ExternalSupplier,
 } from './useExternalDatabase';
 
 // Re-exportar tipos e constantes dos novos arquivos

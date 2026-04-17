@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useMemo } from "react";
-import { FilterPreset, useFilterPresets } from "./FilterPresets";
-import { FilterState, defaultFilters } from "./FilterPanel";
+import { type FilterPreset, useFilterPresets } from "./FilterPresets";
+import { type FilterState, defaultFilters } from "./FilterPanel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";

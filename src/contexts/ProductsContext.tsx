@@ -1,5 +1,5 @@
-import React, { createContext, useContext, ReactNode, useMemo, useCallback, useState, useEffect, useRef } from "react";
-import { Product } from "@/hooks/useProducts";
+import React, { createContext, useContext, type ReactNode, useMemo, useCallback, useState, useEffect, useRef } from "react";
+import { type Product } from "@/hooks/useProducts";
 import { fetchPromobrindProducts } from "@/lib/external-db";
 
 // Re-use the same mapping logic from useProducts

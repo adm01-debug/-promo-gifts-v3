@@ -3,7 +3,7 @@ import { DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/di
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { FlowFilterState, getActiveFilterLabels } from "../FlowFilterPanel";
+import { type FlowFilterState, getActiveFilterLabels } from "../FlowFilterPanel";
 
 interface ChatHeaderProps {
   clientName?: string;

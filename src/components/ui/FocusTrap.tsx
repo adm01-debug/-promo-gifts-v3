@@ -3,7 +3,7 @@
  * Traps keyboard focus within a container for accessibility
  */
 
-import { useEffect, useRef, ReactNode, useCallback } from "react";
+import { useEffect, useRef, type ReactNode, useCallback } from "react";
 import { cn } from "@/lib/utils";
 
 interface FocusTrapProps {

@@ -2,8 +2,8 @@
  * CartSidebar — Summary panel for the active cart.
  * Extracted from SellerCartsPage for modularity.
  */
-import { SellerCart, CartStatus } from "@/hooks/useSellerCarts";
-import { CartTemplateItem } from "@/hooks/useCartTemplates";
+import { type SellerCart, CartStatus } from "@/hooks/useSellerCarts";
+import { type CartTemplateItem } from "@/hooks/useCartTemplates";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

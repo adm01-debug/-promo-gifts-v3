@@ -38,9 +38,9 @@ import {
 } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import { 
-  ProductStockSummary, 
-  VariantStock, 
-  StockStatus,
+  type ProductStockSummary, 
+  type VariantStock, 
+  type StockStatus,
 } from '@/types/stock';
 
 // ============================================

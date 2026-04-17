@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { Product } from "@/hooks/useProducts";
+import { type Product } from "@/hooks/useProducts";
 
 const LEGACY_STORAGE_KEY = "product-collections";
 

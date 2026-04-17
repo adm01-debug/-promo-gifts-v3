@@ -10,7 +10,7 @@ import {
 } from "./alert-dialog";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { AlertTriangle, Trash2, Info, HelpCircle, Loader2, LucideIcon } from "lucide-react";
+import { AlertTriangle, Trash2, Info, HelpCircle, Loader2, type LucideIcon } from "lucide-react";
 
 interface ConfirmDialogProps {
   open: boolean;
