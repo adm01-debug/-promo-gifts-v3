@@ -1,6 +1,6 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { z } from "https://esm.sh/zod@3.23.8";
-import { fetchWithBreaker, CircuitOpenError } from '../_shared/external-fetch.ts';
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
 
 const BodySchema = z.object({
   path: z.string().max(1000).default(''),
@@ -120,6 +120,9 @@ Deno.serve(async (req) => {
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: unknown) {
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const msg = error instanceof Error ? error.message : "Erro interno";
     console.error("Error in dropbox-list:", msg);
     return new Response(

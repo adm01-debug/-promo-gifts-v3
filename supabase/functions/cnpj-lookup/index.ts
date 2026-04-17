@@ -1,7 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
-import { fetchWithBreaker, CircuitOpenError } from "../_shared/external-fetch.ts";
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from "../_shared/external-fetch.ts";
 
 const CnpjBodySchema = z.object({
   cnpj: z.string().min(1, "CNPJ é obrigatório").transform(v => v.replace(/\D/g, "")).refine(v => v.length === 14, "CNPJ deve ter 14 dígitos"),
@@ -114,6 +114,9 @@ Deno.serve(async (req) => {
     });
   } catch (err) {
     console.error("cnpj-lookup error:", err);
+    if (err instanceof CircuitOpenError) {
+      return circuitOpenResponse(err, corsHeaders);
+    }
     const message = err instanceof Error ? err.message : "Erro desconhecido";
     return new Response(JSON.stringify({ error: message }), {
       status: 500,

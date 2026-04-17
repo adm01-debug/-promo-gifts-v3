@@ -1,7 +1,7 @@
 import { getCorsHeaders } from '../_shared/cors.ts';
 import { authenticateRequest, authErrorResponse } from '../_shared/auth.ts';
 import { runBotProtection } from '../_shared/bot-protection.ts';
-import { fetchWithBreaker, CircuitOpenError } from '../_shared/external-fetch.ts';
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from '../_shared/external-fetch.ts';
 
 Deno.serve(async (req) => {
   const corsHeaders = getCorsHeaders(req);
@@ -61,6 +61,9 @@ Deno.serve(async (req) => {
     );
   } catch (error: unknown) {
     console.error('Error generating scribe token:', error);
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const message = error instanceof Error ? error.message : 'Unknown error';
     return new Response(
       JSON.stringify({ error: message }),

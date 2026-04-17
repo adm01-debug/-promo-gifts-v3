@@ -1,7 +1,7 @@
 import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts';
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "npm:zod@3.23.8";
-import { fetchWithBreaker, CircuitOpenError } from "../_shared/external-fetch.ts";
+import { fetchWithBreaker, CircuitOpenError, circuitOpenResponse } from "../_shared/external-fetch.ts";
 
 const BitrixSyncSchema = z.object({
   action: z.enum([
@@ -550,6 +550,9 @@ Deno.serve(async (req) => {
     );
 
   } catch (error: unknown) {
+    if (error instanceof CircuitOpenError) {
+      return circuitOpenResponse(error, corsHeaders);
+    }
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     console.error('Bitrix24 sync error:', errorMessage);
     return new Response(
