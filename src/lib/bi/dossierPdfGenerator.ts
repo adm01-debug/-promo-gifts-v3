@@ -563,6 +563,7 @@ export function generateBIDossierPDF(data: DossierData): Blob {
     const wrapped = doc.splitTextToSize(seas.insight, W - 36);
     doc.text(wrapped, 18, y + 12);
   }
+  } // end if (seas)
 
   addFooter(doc, generatedAt);
 
