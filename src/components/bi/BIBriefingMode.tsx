@@ -129,12 +129,32 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
   }, [affinity.data, trends.data]);
 
   const summaryText = useMemo(() => {
+    const catLines: string[] = [];
+    if (categoryHighlights.favorites.length > 0) {
+      catLines.push(`🏷️ Categorias favoritas:`);
+      categoryHighlights.favorites.forEach((f) => {
+        const trendStr =
+          f.trend === "up" && f.deltaPct != null
+            ? ` (↑${Math.round(f.deltaPct)}% vs 90d ant.)`
+            : f.trend === "down" && f.deltaPct != null
+              ? ` (↓${Math.round(f.deltaPct)}% vs 90d ant.)`
+              : "";
+        catLines.push(`  • ${f.label} — ${f.sharePct}% das compras${trendStr}`);
+      });
+    }
+    if (categoryHighlights.gap) {
+      catLines.push(
+        `🎯 Oportunidade GAP: ${categoryHighlights.gap.label} — setor compra ${categoryHighlights.gap.sharePct}%, esse cliente ainda não.`,
+      );
+    }
+
     return [
       `📋 BRIEFING — ${clientName}`,
       `Score de saúde: ${health.score}/100 (${tierStyles.label})`,
       ``,
       `Diagnóstico: ${health.crossZoneInsight}`,
       ``,
+      ...(catLines.length > 0 ? [...catLines, ``] : []),
       `Próxima ação: ${health.nextActionLabel}`,
       `Detalhe: ${health.nextActionDetail}`,
       `Janela ideal: ${health.windowLabel}`,
@@ -145,7 +165,7 @@ export function BIBriefingMode({ open, onOpenChange, clientId, clientName, ramoA
       `🎯 Produtos para apresentar:`,
       ...products.map((p, i) => `  ${i + 1}. ${p.name} (${p.source})`),
     ].join("\n");
-  }, [clientName, health, products, tierStyles.label]);
+  }, [clientName, health, products, tierStyles.label, categoryHighlights]);
 
   const handleCopy = async () => {
     try {
