@@ -79,6 +79,9 @@ export default function ClientComparatorPage() {
                   Já em comparação: {clientIds.length} {clientIds.length === 1 ? "cliente" : "clientes"}.
                 </p>
               )}
+            </CardContent>
+          </Card>
+        )}
 
         <ClientComparator clientIds={clientIds} onRemove={removeClient} />
       </div>
