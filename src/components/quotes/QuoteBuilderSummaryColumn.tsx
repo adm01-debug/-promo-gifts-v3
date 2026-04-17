@@ -16,6 +16,7 @@ import {
 import { AlertTriangle, Edit, Loader2, Package, Percent, Save, Send, Shield, ShoppingCart, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { QuoteItem } from "@/hooks/useQuotes";
+import { NegotiationMarkupCard } from "@/components/quote/NegotiationMarkupCard";
 
 interface Props {
   items: QuoteItem[];
@@ -39,6 +40,10 @@ interface Props {
   onSave: (status: "draft" | "pending" | "pending_approval", sellerNotes?: string) => void;
   maxDiscountPercent?: number | null;
   isDiscountExceeded?: boolean;
+  negotiationMarkup?: number;
+  setNegotiationMarkup?: (v: number) => void;
+  realSubtotal?: number;
+  realDiscountPercent?: number;
 }
 
 export function QuoteBuilderSummaryColumn({
@@ -48,6 +53,8 @@ export function QuoteBuilderSummaryColumn({
   quotesLoading, isEditMode, formatCurrency,
   calculateItemPersonalizationTotal, calculateItemTotal, onSave,
   maxDiscountPercent, isDiscountExceeded,
+  negotiationMarkup = 0, setNegotiationMarkup,
+  realSubtotal = 0, realDiscountPercent = 0,
 }: Props) {
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [sellerNotes, setSellerNotes] = useState("");
@@ -221,6 +228,20 @@ export function QuoteBuilderSummaryColumn({
                   <span className="font-semibold tabular-nums">-{formatCurrency(discountAmount)}</span>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Negotiation Markup (uso interno) */}
+          {items.length > 0 && setNegotiationMarkup && (
+            <div className="px-4 pt-3">
+              <NegotiationMarkupCard
+                value={negotiationMarkup}
+                onChange={setNegotiationMarkup}
+                realSubtotal={realSubtotal}
+                apparentDiscountPercent={discountType === "percent" ? discountValue : (realSubtotal > 0 ? (discountValue / (realSubtotal * (1 + (negotiationMarkup || 0) / 100))) * 100 : 0)}
+                realDiscountPercent={realDiscountPercent}
+                maxDiscountPercent={maxDiscountPercent ?? null}
+              />
             </div>
           )}
 

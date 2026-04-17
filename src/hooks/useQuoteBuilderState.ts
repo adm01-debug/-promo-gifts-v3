@@ -104,6 +104,8 @@ export function useQuoteBuilderState() {
   const [validUntil, setValidUntil] = useState(format(addDays(new Date(), 7), "yyyy-MM-dd"));
   const [discountType, setDiscountType] = useState<"percent" | "amount">("percent");
   const [discountValue, setDiscountValue] = useState(0);
+  /** Margem de negociação interna 0–50%. Default 0 (desligado). */
+  const [negotiationMarkup, setNegotiationMarkup] = useState(0);
   const [notes, setNotes] = useState("");
   const [internalNotes, setInternalNotes] = useState("");
   const [items, setItems] = useState<QuoteItem[]>([]);
@@ -164,6 +166,7 @@ export function useQuoteBuilderState() {
         }
         if (quote.discount_percent && quote.discount_percent > 0) { setDiscountType("percent"); setDiscountValue(quote.discount_percent); }
         else if (quote.discount_amount && quote.discount_amount > 0) { setDiscountType("amount"); setDiscountValue(quote.discount_amount); }
+        if (typeof quote.negotiation_markup_percent === "number") setNegotiationMarkup(quote.negotiation_markup_percent);
         if (quote.payment_terms) setPaymentTerms(quote.payment_terms);
         if (quote.shipping_type) setShippingType(quote.shipping_type);
         if (quote.shipping_cost) setShippingCost(quote.shipping_cost);
@@ -331,9 +334,22 @@ export function useQuoteBuilderState() {
     return item.quantity * item.unit_price + calculateItemPersonalizationTotal(item);
   }, [calculateItemPersonalizationTotal]);
 
-  const subtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
+  // ── Subtotal real (sem markup) e apresentado (com markup) ──
+  const realSubtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
+  const markup = useMemo(() => Math.min(50, Math.max(0, negotiationMarkup || 0)), [negotiationMarkup]);
+  const subtotal = useMemo(
+    () => markup > 0 ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100 : realSubtotal,
+    [realSubtotal, markup]
+  );
   const discountAmount = useMemo(() => discountType === "percent" ? subtotal * (discountValue / 100) : discountValue, [subtotal, discountType, discountValue]);
   const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
+
+  // ── Desconto REAL (sobre subtotal real) — usado para alçada ──
+  const realDiscountPercent = useMemo(() => {
+    if (realSubtotal <= 0) return 0;
+    const finalBeforeShipping = Math.max(0, subtotal - discountAmount);
+    return Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100;
+  }, [realSubtotal, subtotal, discountAmount]);
 
   // ── Item actions ──
   const toggleExpanded = useCallback((index: number) => {
@@ -459,6 +475,7 @@ export function useQuoteBuilderState() {
       client_email: contactInfo?.email || undefined, client_phone: contactInfo?.phone || undefined,
       status: effectiveStatus, discount_percent: discountType === "percent" ? discountValue : 0,
       discount_amount: discountType === "amount" ? discountValue : 0,
+      negotiation_markup_percent: markup,
       notes: notes || undefined, internal_notes: internalNotes || undefined,
       valid_until: validUntil || undefined, payment_terms: paymentTerms || undefined,
       delivery_time: deliveryTime || undefined, shipping_type: shippingType || undefined,
@@ -468,16 +485,13 @@ export function useQuoteBuilderState() {
     if (isEditMode && quoteId) { result = await updateQuote(quoteId, quoteData, items); }
     else { result = await createQuote(quoteData, items); }
 
-    // If pending_approval, create approval request with seller notes
+    // If pending_approval, create approval request usando desconto REAL (não aparente)
     if (result && status === "pending_approval" && maxDiscountPercent != null) {
-      const effectivePercent = discountType === "percent"
-        ? discountValue
-        : subtotal > 0 ? (discountValue / subtotal) * 100 : 0;
-      await requestApproval(result.id, effectivePercent, maxDiscountPercent, sellerNotes);
+      await requestApproval(result.id, realDiscountPercent, maxDiscountPercent, sellerNotes);
     }
 
     if (result) navigate(`/orcamentos/${result.id}`);
-  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, subtotal, requestApproval]);
+  }, [isDraftValid, isFormValid, validationErrors, clientId, contactInfo, companyInfo, discountType, discountValue, markup, realDiscountPercent, notes, internalNotes, validUntil, paymentTerms, deliveryTime, shippingType, shippingCost, isEditMode, quoteId, items, navigate, updateQuote, createQuote, maxDiscountPercent, requestApproval]);
 
   const defaultTemplate = useMemo(() => templates.find(t => t.is_default), [templates]);
 
@@ -491,6 +505,7 @@ export function useQuoteBuilderState() {
     companyInfo, setCompanyInfo, contactInfo, setContactInfo,
     validityDays, setValidityDays, validUntil, setValidUntil,
     discountType, setDiscountType, discountValue, setDiscountValue,
+    negotiationMarkup, setNegotiationMarkup,
     notes, setNotes, internalNotes, setInternalNotes,
     items, setItems, quoteNumber, currentStatus,
     paymentTerms, setPaymentTerms, deliveryTime, setDeliveryTime,
@@ -501,7 +516,7 @@ export function useQuoteBuilderState() {
     templateApplied, setTemplateApplied,
     expandedItems, setExpandedItems, activeItemIndex, setActiveItemIndex,
     // Computed
-    completedSteps, filteredProducts, subtotal, discountAmount, total,
+    completedSteps, filteredProducts, subtotal, realSubtotal, discountAmount, total, realDiscountPercent,
     validationErrors, isFormValid, isDraftValid,
     quotesLoading, templates, defaultTemplate,
     // Discount limits

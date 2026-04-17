@@ -62,6 +62,12 @@ export interface Quote {
   shipping_method?: string;
   shipping_type?: string;
   shipping_cost?: number;
+  /** Margem de negociação interna 0–50% (default 0). Infla o subtotal apresentado para criar margem psicológica de desconto. NUNCA exposto ao cliente. */
+  negotiation_markup_percent?: number;
+  /** Subtotal real (sem markup). Calculado pelo trigger; somente leitura. */
+  real_subtotal?: number;
+  /** Desconto efetivo real vs real_subtotal (validado contra alçada). Somente leitura. */
+  real_discount_percent?: number;
   internal_notes?: string;
   valid_until?: string;
   bitrix_deal_id?: string;

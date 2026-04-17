@@ -2042,11 +2042,14 @@ export type Database = {
           id: string
           internal_notes: string | null
           is_latest_version: boolean
+          negotiation_markup_percent: number
           notes: string | null
           organization_id: string | null
           parent_quote_id: string | null
           payment_terms: string | null
           quote_number: string
+          real_discount_percent: number | null
+          real_subtotal: number | null
           seller_id: string
           sent_at: string | null
           shipping_cost: number | null
@@ -2079,11 +2082,14 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           is_latest_version?: boolean
+          negotiation_markup_percent?: number
           notes?: string | null
           organization_id?: string | null
           parent_quote_id?: string | null
           payment_terms?: string | null
           quote_number?: string
+          real_discount_percent?: number | null
+          real_subtotal?: number | null
           seller_id: string
           sent_at?: string | null
           shipping_cost?: number | null
@@ -2116,11 +2122,14 @@ export type Database = {
           id?: string
           internal_notes?: string | null
           is_latest_version?: boolean
+          negotiation_markup_percent?: number
           notes?: string | null
           organization_id?: string | null
           parent_quote_id?: string | null
           payment_terms?: string | null
           quote_number?: string
+          real_discount_percent?: number | null
+          real_subtotal?: number | null
           seller_id?: string
           sent_at?: string | null
           shipping_cost?: number | null
