@@ -2852,6 +2852,11 @@ export type Database = {
       }
       get_unread_count: { Args: never; Returns: number }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_web_vitals_regression: { Args: never; Returns: Json }
+      get_web_vitals_summary: {
+        Args: { days?: number; metric_filter?: string }
+        Returns: Json
+      }
       has_org_role: {
         Args: {
           _org_id: string
