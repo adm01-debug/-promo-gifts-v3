@@ -25,12 +25,16 @@ import {
   MessageSquare,
   Copy,
   Package,
+  Layers,
+  Target,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useClientHealthScore } from "@/hooks/bi/useClientHealthScore";
 import { useClientBI } from "@/hooks/bi/useClientBI";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 import { toast } from "sonner";
 
 interface Props {
