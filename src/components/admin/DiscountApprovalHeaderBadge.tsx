@@ -55,7 +55,7 @@ export function DiscountApprovalHeaderBadge() {
           variant="ghost"
           size="icon"
           className="relative h-9 w-9 rounded-full"
-          onClick={() => navigate("/admin/aprovacoes-desconto")}
+          onClick={() => navigate("/admin/usuarios?tab=discounts")}
           aria-label={`${count} aprovações de desconto pendentes`}
         >
           <Shield className="h-4 w-4 text-amber-500" />

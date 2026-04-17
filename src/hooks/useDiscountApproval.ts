@@ -132,7 +132,7 @@ export function useDiscountApproval() {
             message: msg,
             type: "warning",
             category: "discount",
-            action_url: "/admin/aprovacoes-desconto",
+            action_url: "/admin/usuarios?tab=discounts",
           }))
         );
       }
