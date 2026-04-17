@@ -53,8 +53,8 @@ interface QuoteData {
   seller_id?: string;
   seller_name?: string;
   status: string;
-  subtotal: number;
-  discount_percent: number;
+  subtotal: number;            // apresentado (com markup)
+  discount_percent: number;    // aparente (cliente vê)
   discount_amount: number;
   total: number;
   notes?: string;
@@ -65,6 +65,10 @@ interface QuoteData {
   shipping_cost?: number;
   items: QuoteItemData[];
   created_at: string;
+  // 🔒 Auditoria interna — NUNCA exibir ao cliente final no CRM
+  internal_real_subtotal?: number;
+  internal_real_discount_percent?: number;
+  internal_negotiation_markup_percent?: number;
 }
 
 interface QuoteItemData {
@@ -270,6 +274,10 @@ async function fetchQuoteFromCRM(quoteId: string): Promise<QuoteData | null> {
     payment_terms: quote.payment_terms, delivery_time: quote.delivery_time,
     shipping_type: quote.shipping_type, shipping_cost: Number(quote.shipping_cost || 0),
     items: formattedItems, created_at: quote.created_at,
+    // Campos internos para auditoria (CRM uso interno apenas)
+    internal_real_subtotal: quote.real_subtotal != null ? Number(quote.real_subtotal) : undefined,
+    internal_real_discount_percent: quote.real_discount_percent != null ? Number(quote.real_discount_percent) : undefined,
+    internal_negotiation_markup_percent: quote.negotiation_markup_percent != null ? Number(quote.negotiation_markup_percent) : undefined,
   };
 }
 

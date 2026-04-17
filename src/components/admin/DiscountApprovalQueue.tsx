@@ -21,7 +21,7 @@ export function DiscountApprovalQueue() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("discount_approval_requests")
-        .select("*, quotes:quote_id(quote_number, client_name, client_company, total)")
+        .select("*, quotes:quote_id(quote_number, client_name, client_company, total, subtotal, discount_percent, negotiation_markup_percent, real_subtotal, real_discount_percent)")
         .eq("status", "pending")
         .order("created_at", { ascending: true });
       if (error) throw error;
@@ -68,15 +68,36 @@ export function DiscountApprovalQueue() {
   return (
     <div className="space-y-3">
       {data.map((req) => {
-        const quote = (req as { quotes?: { quote_number?: string; client_name?: string; client_company?: string; total?: number } }).quotes;
+        const quote = (req as { quotes?: {
+          quote_number?: string;
+          client_name?: string;
+          client_company?: string;
+          total?: number;
+          subtotal?: number;
+          discount_percent?: number;
+          negotiation_markup_percent?: number;
+          real_subtotal?: number;
+          real_discount_percent?: number;
+        } }).quotes;
+        const markup = Number(quote?.negotiation_markup_percent ?? 0);
+        const apparent = Number(quote?.discount_percent ?? 0);
+        const realPct = Number(quote?.real_discount_percent ?? req.requested_discount_percent);
+        const hasMarkup = markup > 0;
         return (
           <Card key={req.id}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-base flex items-center justify-between">
+              <CardTitle className="text-base flex items-center justify-between gap-2 flex-wrap">
                 <span>Orçamento {quote?.quote_number ?? "—"}</span>
-                <Badge variant="destructive">
-                  {req.requested_discount_percent}% (limite {req.max_allowed_percent}%)
-                </Badge>
+                <div className="flex gap-1.5 flex-wrap">
+                  {hasMarkup && (
+                    <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                      Aparente {apparent.toFixed(1)}%
+                    </Badge>
+                  )}
+                  <Badge variant="destructive" title={hasMarkup ? `Real: ${realPct.toFixed(2)}% · Aparente: ${apparent.toFixed(1)}% · Markup: +${markup.toFixed(1)}%` : undefined}>
+                    {hasMarkup ? `Real ${realPct.toFixed(1)}%` : `${realPct.toFixed(1)}%`} (limite {req.max_allowed_percent}%)
+                  </Badge>
+                </div>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -84,6 +105,15 @@ export function DiscountApprovalQueue() {
                 Cliente: <strong>{quote?.client_name || quote?.client_company || "—"}</strong>
                 {quote?.total != null && <> · Total: <strong>R$ {Number(quote.total).toFixed(2)}</strong></>}
               </p>
+              {hasMarkup && (
+                <div className="text-xs bg-warning/5 border border-warning/20 rounded-md p-2 space-y-0.5">
+                  <p className="font-medium text-warning">⚠️ Margem de negociação aplicada (+{markup.toFixed(1)}%)</p>
+                  <p className="text-muted-foreground">
+                    Cliente vê subtotal R$ {Number(quote?.subtotal ?? 0).toFixed(2)} com {apparent.toFixed(1)}% off.
+                    Real: R$ {Number(quote?.real_subtotal ?? 0).toFixed(2)} → desconto efetivo <strong>{realPct.toFixed(2)}%</strong>.
+                  </p>
+                </div>
+              )}
               {req.seller_notes && (
                 <p className="text-sm bg-muted/40 rounded p-2">📝 {req.seller_notes}</p>
               )}

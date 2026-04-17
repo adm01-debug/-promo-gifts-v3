@@ -191,15 +191,39 @@ Deno.serve(async (req: Request) => {
       const shippingCost = shippingMatch && shippingMatch[2] ? parseFloat(shippingMatch[2]) : null;
       const cleanNotes = raw.replace(/\s*\|\|\|FRETE:.*?\|\|\|/g, "").trim() || null;
 
+      // ⚠️ WHITELIST: NUNCA expor markup/real_subtotal/real_discount ao cliente.
+      // Cliente vê apenas o subtotal apresentado (já inflado) e o desconto aparente.
+      const publicQuote = {
+        id: quote.id,
+        quote_number: quote.quote_number,
+        client_id: quote.client_id,
+        client_name: quote.client_name,
+        client_email: quote.client_email,
+        client_phone: quote.client_phone,
+        client_company: quote.client_company,
+        client_cnpj: quote.client_cnpj,
+        status: quote.status,
+        subtotal: quote.subtotal,                  // apresentado
+        discount_percent: quote.discount_percent,  // aparente
+        discount_amount: quote.discount_amount,
+        total: quote.total,
+        notes: quote.notes,
+        payment_terms: quote.payment_terms,
+        delivery_time: quote.delivery_time,
+        valid_until: quote.valid_until,
+        created_at: quote.created_at,
+        updated_at: quote.updated_at,
+        internal_notes: cleanNotes,
+        shipping_type: shippingType,
+        shipping_cost: shippingCost,
+        items: enrichedItems,
+        // ❌ EXCLUÍDOS: negotiation_markup_percent, real_subtotal, real_discount_percent,
+        //              internal_notes raw, seller_id, bitrix_*, synced_*
+      };
+
       return new Response(
         JSON.stringify({
-          quote: {
-            ...quote,
-            internal_notes: cleanNotes,
-            shipping_type: shippingType,
-            shipping_cost: shippingCost,
-            items: enrichedItems,
-          },
+          quote: publicQuote,
           seller: sellerProfile,
           token: {
             id: tokenData.id,

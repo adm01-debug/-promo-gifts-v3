@@ -10,17 +10,27 @@ import { TrendingUp, TrendingDown, Info } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 
 interface MarginInsightBadgeProps {
-  /** Margem do orçamento atual em %. Calculada por quem chama. */
+  /** Margem (ou desconto) aparente do orçamento atual em %. */
   currentMarginPercent: number;
+  /** Quando informado e > 0, o componente entra em "modo dual": exibe aparente vs real. */
+  realMarginPercent?: number;
+  /** Markup de negociação aplicado, em %. Quando > 0 ativa o modo dual. */
+  markupPercent?: number;
   className?: string;
 }
 
-export function MarginInsightBadge({ currentMarginPercent, className }: MarginInsightBadgeProps) {
+export function MarginInsightBadge({
+  currentMarginPercent,
+  realMarginPercent,
+  markupPercent,
+  className,
+}: MarginInsightBadgeProps) {
   const { user } = useAuth();
+  const dualMode = (markupPercent ?? 0) > 0 && realMarginPercent != null;
 
   const { data: median } = useQuery({
     queryKey: ["seller-margin-median", user?.id],
-    enabled: !!user?.id,
+    enabled: !!user?.id && !dualMode,
     queryFn: async (): Promise<number | null> => {
       // Aproximação: usa subtotal vs total de orçamentos convertidos do vendedor (proxy de margem)
       const { data, error } = await supabase
@@ -47,6 +57,37 @@ export function MarginInsightBadge({ currentMarginPercent, className }: MarginIn
     },
     staleTime: 1000 * 60 * 10,
   });
+
+  // Modo dual: mostra desconto APARENTE (cliente vê) vs REAL (alçada).
+  if (dualMode) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Badge
+              variant="outline"
+              className={`gap-1.5 bg-warning/10 text-warning border-warning/30 ${className ?? ""}`}
+            >
+              <Info className="h-3 w-3" />
+              <span className="text-[11px] font-medium">
+                Aparente {currentMarginPercent.toFixed(1)}% · Real {realMarginPercent!.toFixed(1)}%
+              </span>
+            </Badge>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="text-xs max-w-xs">
+            <p className="font-medium mb-1">Margem de negociação ativa</p>
+            <p className="text-muted-foreground">
+              Markup interno: <strong>+{markupPercent!.toFixed(1)}%</strong>
+              <br />
+              Cliente vê desconto de <strong>{currentMarginPercent.toFixed(1)}%</strong>
+              <br />
+              Desconto real (alçada): <strong>{realMarginPercent!.toFixed(2)}%</strong>
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
 
   if (median == null) return null;
 
