@@ -1,10 +1,11 @@
 /**
  * ClientAffinityProducts — Zona 2: "O que esse cliente gosta"
+ * Usa dados reais de quote_items quando existem; fallback mock caso contrário.
  */
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Heart, Sparkles } from "lucide-react";
+import { Heart, Sparkles, CheckCircle2 } from "lucide-react";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { BIProductCard } from "./BIProductCard";
 
@@ -25,14 +26,23 @@ export function ClientAffinityProducts({ clientId }: Props) {
             </div>
             <div>
               <h2 className="font-display font-semibold">O que esse cliente gosta</h2>
-              <p className="text-xs text-muted-foreground">Categorias preferidas + produtos similares</p>
+              <p className="text-xs text-muted-foreground">
+                {data?.isMock
+                  ? "Categorias preferidas + produtos similares"
+                  : `Baseado em ${data?.realProductsCount} produtos já orçados para este cliente`}
+              </p>
             </div>
           </div>
-          {data?.isMock && (
-            <Badge variant="outline" className="gap-1 border-amber-500/50 text-amber-700 dark:text-amber-300 text-[10px]">
-              <Sparkles className="h-3 w-3" /> Simulado
-            </Badge>
-          )}
+          {data &&
+            (data.isMock ? (
+              <Badge variant="outline" className="gap-1 border-amber-500/50 text-amber-700 dark:text-amber-300 text-[10px]">
+                <Sparkles className="h-3 w-3" /> Simulado
+              </Badge>
+            ) : (
+              <Badge variant="outline" className="gap-1 border-emerald-500/50 text-emerald-700 dark:text-emerald-300 text-[10px]">
+                <CheckCircle2 className="h-3 w-3" /> Dados reais
+              </Badge>
+            ))}
         </div>
 
         {isLoading ? (
@@ -62,6 +72,8 @@ export function ClientAffinityProducts({ clientId }: Props) {
                       reason={s.reason}
                       variant="affinity"
                       clientId={clientId}
+                      imageUrl={s.imageUrl}
+                      productId={s.productId}
                     />
                   ))}
                 </div>
