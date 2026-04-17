@@ -277,7 +277,7 @@ Deno.serve(async (req) => {
     }));
 
     // ── 8. Call n8n webhook ──────────────────────────────────────────────────
-    const response = await fetch(webhookUrl, {
+    const response = await fetchWithBreaker("bitrix", webhookUrl, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
