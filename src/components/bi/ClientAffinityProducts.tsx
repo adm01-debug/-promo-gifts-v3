@@ -7,7 +7,10 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, Sparkles, CheckCircle2 } from "lucide-react";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
+import { useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
+import { resolveBICategory } from "@/lib/bi/categoryResolver";
 import { BIProductCard } from "./BIProductCard";
+import { useMemo } from "react";
 
 interface Props {
   clientId: string;
@@ -15,6 +18,14 @@ interface Props {
 
 export function ClientAffinityProducts({ clientId }: Props) {
   const { data, isLoading } = useClientAffinity(clientId);
+  const { focusedSlug, focusedLabel } = useBICategoryFocus();
+
+  const visibleCategories = useMemo(() => {
+    const cats = data?.categories ?? [];
+    if (!focusedSlug) return cats.slice(0, 3);
+    const filtered = cats.filter((c) => resolveBICategory(c.suggestions[0]?.name ?? c.category, c.category).slug === focusedSlug);
+    return filtered.length > 0 ? filtered : cats.slice(0, 3);
+  }, [data, focusedSlug]);
 
   return (
     <Card className="border-[1.5px]">
@@ -51,7 +62,7 @@ export function ClientAffinityProducts({ clientId }: Props) {
           </div>
         ) : (
           <div className="space-y-5">
-            {data?.categories.slice(0, 3).map((cat) => (
+            {visibleCategories.map((cat) => (
               <div key={cat.category}>
                 <div className="flex items-center justify-between mb-2">
                   <h3 className="font-medium text-sm">

@@ -317,3 +317,25 @@ export default function BusinessIntelligencePage() {
     </MainLayout>
   );
 }
+
+/**
+ * CategoryFocusBar — barra fina logo abaixo do Radar exibida quando há
+ * categoria focada. Mostra qual está em foco e permite limpar.
+ */
+function CategoryFocusBar() {
+  const { focusedSlug, focusedLabel, clear } = useBICategoryFocus();
+  if (!focusedSlug) return null;
+  return (
+    <div className="flex items-center justify-between gap-3 px-4 py-2 rounded-lg border-[1.5px] border-violet-500/40 bg-violet-500/5">
+      <div className="flex items-center gap-2 text-sm">
+        <Tag className="h-4 w-4 text-violet-600" />
+        <span className="text-muted-foreground">Painel focado em:</span>
+        <span className="font-semibold text-violet-700 dark:text-violet-300">{focusedLabel ?? focusedSlug}</span>
+      </div>
+      <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>
+        <X className="h-3.5 w-3.5" />
+        Limpar foco
+      </Button>
+    </div>
+  );
+}

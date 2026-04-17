@@ -14,7 +14,8 @@ import {
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { ProductGridSkeleton } from "@/components/bi/BISkeletons";
-import { resolveBICategoryLabel } from "@/lib/bi/categoryResolver";
+import { resolveBICategory, resolveBICategoryLabel } from "@/lib/bi/categoryResolver";
+import { useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -44,8 +45,10 @@ function normalize(s: string): string {
 export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
   const { data, isLoading } = useIndustryTrends(ramoAtividade);
   const { data: affinity } = useClientAffinity(clientId);
+  const { focusedSlug, focusedLabel } = useBICategoryFocus();
   const [onlyOpportunities, setOnlyOpportunities] = useState(false);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const effectiveCategory = focusedLabel ?? activeCategory;
 
   // Set de assinaturas dos produtos que o cliente já compra (por id e por nome normalizado)
   const clientBuys = useMemo(() => {
@@ -75,15 +78,17 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
       const alreadyBuys =
         (t.productId && clientBuys.ids.has(t.productId)) ||
         clientBuys.names.has(normalize(t.productName));
-      const cat = resolveBICategoryLabel(t.productName, t.category);
-      return { ...t, alreadyBuys, resolvedCategory: cat };
+      const meta = resolveBICategory(t.productName, t.category);
+      return { ...t, alreadyBuys, resolvedCategory: meta.label, resolvedSlug: meta.slug };
     });
     let filtered = onlyOpportunities ? items.filter((t) => !t.alreadyBuys) : items;
-    if (activeCategory) {
-      filtered = filtered.filter((t) => t.resolvedCategory === activeCategory);
+    if (focusedSlug) {
+      filtered = filtered.filter((t) => t.resolvedSlug === focusedSlug);
+    } else if (effectiveCategory) {
+      filtered = filtered.filter((t) => t.resolvedCategory === effectiveCategory);
     }
     return { items, filtered };
-  }, [data, clientBuys, onlyOpportunities, activeCategory]);
+  }, [data, clientBuys, onlyOpportunities, effectiveCategory, focusedSlug]);
 
   const opportunities = enriched.items.filter((t) => !t.alreadyBuys);
   const topOpportunities = opportunities.slice(0, 3);
