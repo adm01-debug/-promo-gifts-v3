@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCog, Loader2, KeyRound, Plus, Search } from "lucide-react";
+import { Users, UserCog, Loader2, KeyRound, Plus, Search, Percent } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PasswordResetApproval } from "@/components/admin/PasswordResetApproval";
+import { DiscountManagementPanel } from "@/components/admin/DiscountManagementPanel";
 import { usePasswordResetRequests } from "@/hooks/usePasswordResetRequests";
 
 import { useUserManagement } from "@/components/admin/users/useUserManagement";
@@ -19,6 +23,9 @@ import { EditUserDialog } from "@/components/admin/users/EditUserDialog";
 import { CreateUserDialog } from "@/components/admin/users/CreateUserDialog";
 import { DeleteUserDialog } from "@/components/admin/users/DeleteUserDialog";
 import { type UserWithRole } from "@/components/admin/users/types";
+
+const VALID_TABS = ["users", "password-reset", "discounts"] as const;
+type TabValue = (typeof VALID_TABS)[number];
 
 export default function AdminUsuariosPage() {
   const { user } = useAuth();
