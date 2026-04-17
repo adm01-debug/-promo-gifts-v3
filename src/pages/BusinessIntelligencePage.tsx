@@ -279,16 +279,6 @@ export default function BusinessIntelligencePage() {
 
       {clientId && <BITourGuide force={tourForce} onClose={() => setTourForce(false)} />}
 
-            <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
-            <ClientAffinityProducts clientId={clientId} />
-            <BundleSuggestions clientId={clientId} />
-            <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
-            <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
-            <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
-            <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
-          </div>
-        )}
-      </div>
 
       {/* Drawers globais */}
       {clientId && (
