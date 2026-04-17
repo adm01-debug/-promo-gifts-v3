@@ -111,28 +111,50 @@ export function useClientCategoryAffinity(clientId?: string) {
     const rows = query.data ?? [];
     if (rows.length === 0) return buildMockResult();
 
+    const now = Date.now();
+    const NINETY_DAYS = 90 * 24 * 60 * 60 * 1000;
+    const recentCutoff = now - NINETY_DAYS;
+    const previousCutoff = now - 2 * NINETY_DAYS;
+
     const byCat = new Map<string, CategoryAggregate>();
     for (const r of rows) {
       const meta = resolveBICategory(r.product_name);
       const key = meta.slug;
-      const cur = byCat.get(key) ?? {
-        slug: meta.slug,
-        label: meta.label,
-        occurrences: 0,
-        totalQuantity: 0,
-        totalRevenue: 0,
-        revenueSharePct: 0,
-        topProducts: [],
-      };
+      const cur =
+        byCat.get(key) ??
+        ({
+          slug: meta.slug,
+          label: meta.label,
+          occurrences: 0,
+          totalQuantity: 0,
+          totalRevenue: 0,
+          revenueSharePct: 0,
+          revenueRecent: 0,
+          revenuePrevious: 0,
+          deltaPct: null,
+          trend: "stable" as const,
+          topProducts: [],
+        } satisfies CategoryAggregate);
+      const revenue = Number(r.total_revenue) || 0;
       cur.occurrences += Number(r.occurrences) || 0;
       cur.totalQuantity += Number(r.total_quantity) || 0;
-      cur.totalRevenue += Number(r.total_revenue) || 0;
+      cur.totalRevenue += revenue;
+
+      // Bucket temporal — usa last_quoted_at como aproximação (RPC não retorna histórico granular).
+      if (r.last_quoted_at) {
+        const ts = new Date(r.last_quoted_at).getTime();
+        if (!Number.isNaN(ts)) {
+          if (ts >= recentCutoff) cur.revenueRecent += revenue;
+          else if (ts >= previousCutoff) cur.revenuePrevious += revenue;
+        }
+      }
+
       cur.topProducts.push({
         productId: r.product_id,
         productName: r.product_name,
         imageUrl: r.product_image_url,
         quantity: Number(r.total_quantity) || 0,
-        revenue: Number(r.total_revenue) || 0,
+        revenue,
         avgPrice: Number(r.avg_unit_price) || 0,
       });
       byCat.set(key, cur);
@@ -140,11 +162,23 @@ export function useClientCategoryAffinity(clientId?: string) {
 
     const totalRev = Array.from(byCat.values()).reduce((s, c) => s + c.totalRevenue, 0) || 1;
     const categories = Array.from(byCat.values())
-      .map((c) => ({
-        ...c,
-        revenueSharePct: (c.totalRevenue / totalRev) * 100,
-        topProducts: c.topProducts.sort((a, b) => b.revenue - a.revenue).slice(0, 5),
-      }))
+      .map((c) => {
+        const deltaPct =
+          c.revenuePrevious > 0
+            ? ((c.revenueRecent - c.revenuePrevious) / c.revenuePrevious) * 100
+            : c.revenueRecent > 0
+              ? 100
+              : null;
+        const trend: CategoryAggregate["trend"] =
+          deltaPct == null ? "stable" : deltaPct > 15 ? "up" : deltaPct < -15 ? "down" : "stable";
+        return {
+          ...c,
+          revenueSharePct: (c.totalRevenue / totalRev) * 100,
+          deltaPct,
+          trend,
+          topProducts: c.topProducts.sort((a, b) => b.revenue - a.revenue).slice(0, 5),
+        };
+      })
       .sort((a, b) => b.totalRevenue - a.totalRevenue);
 
     return {
