@@ -195,13 +195,43 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
               <Radar className="h-5 w-5 text-primary" />
             </div>
             <div className="min-w-0">
-              <h2 className="font-display font-bold text-base sm:text-lg leading-tight">
-                Categorias que importam para {clientName || "este cliente"}
-              </h2>
+              <div className="flex items-center gap-1.5">
+                <h2 className="font-display font-bold text-base sm:text-lg leading-tight">
+                  Mapa de Categorias — {clientName || "este cliente"}
+                </h2>
+                <TooltipProvider delayDuration={150}>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        aria-label="Como o mapa funciona"
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <HelpCircle className="h-3.5 w-3.5" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs text-xs leading-relaxed">
+                      <p className="font-semibold mb-1">Como ler este mapa</p>
+                      <p className="mb-1.5">
+                        <span className="font-medium">GAP:</span> categoria que move ≥8% do setor mas
+                        representa &lt;5% das compras do cliente — oportunidade clara.
+                      </p>
+                      <p className="mb-1.5">
+                        <span className="font-medium">Tendência ↑↓:</span> compara receita dos últimos
+                        90 dias contra os 90 anteriores.
+                      </p>
+                      <p>
+                        <span className="font-medium">Origem:</span>{" "}
+                        {isMock ? "dados simulados (cliente sem histórico)" : "100% baseado em pedidos reais"}.
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Comparação direta: o que o cliente compra × o que o setor{" "}
                 {ramoAtividade && <span className="font-medium">({ramoAtividade}) </span>}
-                costuma comprar
+                costuma comprar. Clique em uma categoria para focar todo o painel nela.
               </p>
             </div>
           </div>
