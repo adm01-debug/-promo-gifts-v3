@@ -15,6 +15,7 @@ import { ClientVsIndustryComparison } from "@/components/bi/ClientVsIndustryComp
 import { ClientAffinityProducts } from "@/components/bi/ClientAffinityProducts";
 import { IndustryTrendingProducts } from "@/components/bi/IndustryTrendingProducts";
 import { EmpiricalRecommendations } from "@/components/bi/EmpiricalRecommendations";
+import { ExportDossierButton } from "@/components/bi/ExportDossierButton";
 import { useCrmCompany } from "@/hooks/useCrmCompanies";
 import { getCompanyDisplayName } from "@/types/crm";
 
@@ -57,6 +58,7 @@ export default function BusinessIntelligencePage() {
               </p>
             </div>
           </div>
+          {clientId && <ExportDossierButton clientId={clientId} />}
         </div>
 
         {/* Seletor de cliente */}
