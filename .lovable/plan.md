@@ -1,41 +1,28 @@
 
-Plano aprovado anteriormente — Busca Semântica 10/10. Executar sequencialmente:
+Busca semântica já está em 10/10 (15 entidades + cache LRU + re-rank pg_trgm + atalhos + telemetria + empty state inteligente). Próximo vetor de melhoria global do produto: **Inteligência Comercial & Insights Acionáveis** — aproveitar a telemetria de busca recém-adicionada + dados de orçamentos/pedidos para gerar valor visível ao vendedor.
 
-## Execução
+## Sprint Próximo — Inteligência Acionável 10/10
 
-**1. Migration RPC `search_records_rerank`**
-- `search_records_rerank(_query text, _candidates jsonb)` retorna `(id text, score real, matched_field text)` usando `GREATEST(similarity(label,q)*1.0, word_similarity(sublabel,q)*0.7)`.
+### 1. Card "Demanda Reprimida" (Trends)
+Consumir `search_analytics` (preenchido pela busca global) — top 10 termos com `results_count = 0` nos últimos 30 dias. Ação: "Adicionar ao catálogo" abre `/catalogo?q=termo`.
 
-**2. `src/components/search/searchCache.ts`**
-- LRU Map (max 50, TTL 60s) com `get/set/clear`. Chave = query normalizada lowercase trim.
+### 2. Card "Buscas Quentes" (Trends)
+Top 10 termos mais buscados (com resultados) — proxy de interesse real. Comparar vs período anterior, mostrar Δ%.
 
-**3. `useGlobalSearch.ts`**
-- Integrar cache no início do dispatcher.
-- `AbortController` para cancelar `Promise.all` em-flight quando nova query chega.
-- Após coletar `allResults`, chamar `search_records_rerank` para reordenar resultados de texto-rico (orçamentos, pedidos, conversas, lembretes).
-- Logar em `search_analytics` (query, results_count, latency_ms) — fire-and-forget.
+### 3. Notificação proativa de orçamentos parados
+Edge function diária (`pg_cron`) detecta orçamentos `status='enviado'` há 3+ dias sem interação → cria `workspace_notification` com CTA "Criar lembrete de follow-up".
 
-**4. `GlobalSearchPalette.tsx`**
-- Aplicar `<HighlightMatch text={result.label} query={query} />` em todos os 15 tipos (não só produtos).
-- Sublabel também com highlight.
+### 4. Insight de margem no Quote Builder
+Badge inline mostrando margem média do orçamento atual vs mediana histórica do vendedor. Verde se acima, âmbar se abaixo.
 
-**5. Atalhos de teclado**
-- Listener no palette: `Tab` cicla grupos (calcula próximo grupo via `typeConfig`), `1-9` salta para Nº resultado, `Cmd/Ctrl+Enter` abre em nova aba (`window.open(href, '_blank')`).
-- Adicionar dica visual no footer: `Tab grupos · 1-9 saltar · ⌘↵ nova aba`.
+### 5. Sugestão de bundle no carrinho
+Quando produto X é adicionado, RPC consulta `quote_items` históricos: "Vendedores que orçaram X também incluíram Y, Z (frequência ≥30%)". Card lateral com 1-clique pra adicionar.
 
-**6. `src/components/search/EmptySearchState.tsx`**
-- Quando `allResults.length === 0 && query.length >= 2`:
-  - 3 ações: "Buscar no catálogo externo" (→ `/catalogo?q=`), "Criar orçamento com este nome" (→ `/orcamentos/novo?client=`), "Refinar busca" (limpa input).
-  - Últimas 5 buscas do localStorage (`recent_global_searches`).
+### 6. Validação E2E
+Browser: abrir `/tendencias`, verificar 2 novos cards. Abrir `Ctrl+K`, buscar termo inexistente, conferir que aparece em "Demanda Reprimida" após refresh. Conferir sugestão de bundle no carrinho.
 
-**7. Validação E2E**
-- Browser: `Ctrl+K`, testar 4 queries (produto existente, "xyzz123" sem resultado, "lembrete urgente", "kits canecas azuis").
-- Capturar screenshot mostrando highlight + atalhos visíveis.
-- Console limpo, latência <800ms.
-- Atualizar `mem://features/catalog-search-and-relevance-v2` com cobertura final.
-
-## Arquivos
-- **Migration:** RPC `search_records_rerank`
-- **Novos:** `src/components/search/searchCache.ts`, `src/components/search/EmptySearchState.tsx`
-- **Editar:** `src/components/search/useGlobalSearch.ts`, `src/components/search/GlobalSearchPalette.tsx`
-- **Sem novas tabelas** (`search_analytics` reaproveitada do Sprint 1 do Trends)
+### Arquivos
+- **Novos:** `src/components/intelligence/UnmetDemandCard.tsx`, `src/components/intelligence/HotSearchesCard.tsx`, `src/components/quote/MarginInsightBadge.tsx`, `src/components/cart/BundleSuggestionCard.tsx`, `supabase/functions/detect-stalled-quotes/index.ts`
+- **Editar:** `src/pages/TrendsPage.tsx`, `src/components/quote/QuoteBuilderSummary.tsx`, `src/components/cart/CartContent.tsx`
+- **Migration:** RPC `get_unmet_demand(_days int)`, RPC `get_hot_searches(_days int)`, RPC `get_bundle_suggestions(_product_id uuid)`, pg_cron job para `detect-stalled-quotes`
+- **Sem novas tabelas** (tudo reaproveita `search_analytics`, `quotes`, `quote_items`, `workspace_notifications`)
