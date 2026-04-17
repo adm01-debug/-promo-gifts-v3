@@ -9,6 +9,7 @@ import type { ClientBI } from "@/hooks/bi/useClientBI";
 import type { ClientVsIndustryResult, MetricComparison } from "@/hooks/bi/useClientVsIndustry";
 import type { ClientAffinityResult } from "@/hooks/bi/useClientAffinity";
 import type { IndustryTrendsResult } from "@/hooks/bi/useIndustryTrends";
+import type { SeasonalityResult } from "@/hooks/bi/useClientSeasonality";
 import type { IndustryRecommendation } from "@/lib/bi/industryRecommendations";
 
 export interface DossierClient {
@@ -26,6 +27,7 @@ export interface DossierData {
   vsIndustry: ClientVsIndustryResult;
   affinity: ClientAffinityResult;
   industryTrends: IndustryTrendsResult;
+  seasonality: SeasonalityResult;
   empiricalRec: IndustryRecommendation;
 }
 
