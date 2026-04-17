@@ -25,8 +25,11 @@
 4. INVESTIGAR → Checar logs, métricas e banco de dados
 5. MITIGAR → Aplicar fix temporário se possível
 6. RESOLVER → Implementar correção definitiva
-7. POSTMORTEM → Documentar causa raiz e ações preventivas
+7. POSTMORTEM → Documentar usando [`docs/POSTMORTEM_TEMPLATE.md`](./POSTMORTEM_TEMPLATE.md)
 ```
+
+> **Pós-incidente obrigatório:** todo P0/P1 gera post-mortem em até 48h usando o template padrão. Arquivar em `docs/postmortems/YYYY-MM-DD-slug.md`.
+
 
 ---
 
