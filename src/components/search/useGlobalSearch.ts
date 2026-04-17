@@ -2,11 +2,13 @@
  * useGlobalSearch — Hook that encapsulates all search logic for GlobalSearchPalette.
  * Extracted to reduce the component from 1033 to ~300 lines (UI only).
  */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useOracleVoiceBridge } from "@/stores/oracleVoiceBridge";
 import Fuse from "fuse.js";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { searchCache } from "./searchCache";
+import { pushRecentSearch } from "./EmptySearchState";
 import { playTtsAudio } from "@/hooks/voice/playTtsAudio";
 import { processVoiceTranscript } from "@/hooks/voice/processTranscript";
 import { useDebounce } from "@/hooks/useDebounce";
@@ -206,11 +208,29 @@ export function useGlobalSearch() {
   }, []);
 
   // ── Semantic search ──
+  const abortRef = useRef<AbortController | null>(null);
   const performSemanticSearch = useCallback(async (searchQuery: string) => {
     if (!searchQuery.trim() || searchQuery.length < 3) { setResults([]); setSearchIntent(null); return; }
+
+    // ── Cache hit ──
+    const cached = searchCache.get(searchQuery);
+    if (cached) {
+      setResults(cached);
+      setIsSearching(false);
+      setIsAIProcessing(false);
+      return;
+    }
+
+    // ── Cancel any in-flight request ──
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    const startedAt = performance.now();
     setIsSearching(true); setIsAIProcessing(true);
     try {
       const { data: aiResponse } = await supabase.functions.invoke("semantic-search", { body: { query: searchQuery } });
+      if (controller.signal.aborted) return;
       setIsAIProcessing(false);
 
       let intent: SearchIntent = { type: "mixed", filters: {}, keywords: searchQuery.split(" ").filter(w => w.length > 2), originalQuery: searchQuery };
@@ -479,20 +499,67 @@ export function useGlobalSearch() {
         } catch { /* silent */ }
       }
 
-      setResults(allResults);
+      if (controller.signal.aborted) return;
+
+      // ── Re-rank text-rich entities via pg_trgm RPC ──
+      const RERANK_TYPES: SearchResultType[] = ["quote", "order", "conversation", "reminder"];
+      const candidates = allResults
+        .filter(r => RERANK_TYPES.includes(r.type))
+        .map(r => ({ id: r.id, label: r.title, sublabel: r.subtitle ?? "" }));
+
+      let finalResults = allResults;
+      if (candidates.length > 1) {
+        try {
+          const { data: ranked } = await supabase.rpc("search_records_rerank", {
+            _query: searchQuery,
+            _candidates: candidates,
+          });
+          if (ranked && Array.isArray(ranked) && ranked.length > 0) {
+            const scoreMap = new Map<string, number>();
+            (ranked as Array<{ id: string; score: number }>).forEach(r => scoreMap.set(r.id, r.score));
+            // Reorder only the rerank-eligible results, keep others in original order
+            const others = allResults.filter(r => !RERANK_TYPES.includes(r.type));
+            const reranked = allResults
+              .filter(r => RERANK_TYPES.includes(r.type))
+              .sort((a, b) => (scoreMap.get(b.id) ?? 0) - (scoreMap.get(a.id) ?? 0));
+            finalResults = [...others, ...reranked];
+          }
+        } catch { /* silent rerank failure */ }
+      }
+
+      setResults(finalResults);
+      searchCache.set(searchQuery, finalResults);
+
+      // ── Telemetry (fire-and-forget) ──
+      const latencyMs = Math.round(performance.now() - startedAt);
+      void supabase.auth.getUser().then(({ data }) => {
+        const sellerId = data.user?.id;
+        if (!sellerId) return;
+        return supabase.from("search_analytics").insert({
+          seller_id: sellerId,
+          search_term: searchQuery.toLowerCase().trim().slice(0, 200),
+          results_count: finalResults.length,
+          filters_used: { latency_ms: latencyMs, intent_type: intent.type },
+        }).then(() => undefined, () => undefined);
+      }, () => undefined);
     } catch {
       setIsAIProcessing(false);
     } finally {
-      setIsSearching(false);
+      if (!controller.signal.aborted) setIsSearching(false);
     }
   }, []);
 
   useEffect(() => { performSemanticSearch(debouncedQuery); }, [debouncedQuery, performSemanticSearch]);
 
   const handleSelect = useCallback((href: string, saveToHistory = true) => {
-    if (saveToHistory && query.trim()) addToHistory(query.trim());
+    if (saveToHistory && query.trim()) {
+      addToHistory(query.trim());
+      pushRecentSearch(query.trim());
+    }
     setOpen(false); setQuery(""); setResults([]); setSearchIntent(null); setTypingSuggestions([]);
-    navigate(href);
+    // Support external URLs (art_file fallback) and "_blank" via Cmd/Ctrl+Enter elsewhere
+    if (/^https?:\/\//.test(href)) window.open(href, "_blank", "noopener,noreferrer");
+    else navigate(href);
   }, [query, addToHistory, navigate]);
 
   const handleSuggestionClick = useCallback((suggestion: string) => { setQuery(suggestion); }, []);

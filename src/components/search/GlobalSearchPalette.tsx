@@ -2,7 +2,7 @@
  * GlobalSearchPalette — High-contrast black redesign
  * Helper components extracted to GlobalSearchHelpers.tsx
  */
-import React, { lazy, Suspense } from "react";
+import React, { lazy, Suspense, useEffect, useCallback } from "react";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput,
   CommandItem, CommandList, CommandSeparator,
@@ -19,6 +19,8 @@ import { useGlobalSearch } from "./useGlobalSearch";
 import { typeConfig } from "./search-types";
 import { GlobalSearchIdleState } from "./GlobalSearchIdleState";
 import { paletteItemStateClass, NavCard, staggerStyle, type QuickAction } from "./GlobalSearchHelpers";
+import { HighlightMatch } from "./HighlightMatch";
+import { EmptySearchState } from "./EmptySearchState";
 
 const LazyVoiceOverlay = lazy(() => import("./VoiceSearchOverlayConnected"));
 
@@ -31,6 +33,38 @@ const quickActions: QuickAction[] = [
 
 export function GlobalSearchPalette() {
   const s = useGlobalSearch();
+
+  // ── Power-user keyboard shortcuts ──
+  // 1-9: jump to Nth result · Cmd/Ctrl+Enter: open in new tab
+  useEffect(() => {
+    if (!s.open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+        const first = s.results[0];
+        if (first?.href) {
+          e.preventDefault();
+          window.open(first.href, "_blank", "noopener,noreferrer");
+        }
+        return;
+      }
+      if (/^[1-9]$/.test(e.key) && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        const target = e.target as HTMLElement | null;
+        if (target && (target.tagName === "INPUT" || target.tagName === "TEXTAREA")) return;
+        const idx = parseInt(e.key, 10) - 1;
+        const result = s.results[idx];
+        if (result) {
+          e.preventDefault();
+          s.handleSelect(result.href);
+        }
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [s.open, s.results, s.handleSelect]);
+
+  const handleEmptyAction = useCallback((href: string) => s.handleSelect(href), [s.handleSelect]);
+  const handleEmptyRefine = useCallback(() => s.setQuery(""), [s.setQuery]);
+  const handleEmptyPickRecent = useCallback((term: string) => s.setQuery(term), [s.setQuery]);
 
   return (
     <>
@@ -90,9 +124,9 @@ export function GlobalSearchPalette() {
             <div className="flex flex-wrap items-center gap-2 px-4 py-3 mx-2 mt-3 rounded-xl border [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)))] animate-in fade-in-0 slide-in-from-top-1 duration-200">
               <div className="h-6 w-6 rounded-lg bg-primary/12 flex items-center justify-center"><Brain className="h-3.5 w-3.5 text-primary" /></div>
               <span className="text-[11px] font-semibold [color:hsl(var(--command-text-muted))]">Entendi:</span>
-              {s.searchIntent.type !== "mixed" && (
+              {s.searchIntent.type !== "mixed" && typeConfig[s.searchIntent.type] && (
                 <Badge variant="outline" className="text-[11px] h-5.5 rounded-lg font-semibold [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))]">
-                  {{ product: "Produtos", client: "Clientes", quote: "Orçamentos", order: "Pedidos" }[s.searchIntent.type]}
+                  {typeConfig[s.searchIntent.type].label}s
                 </Badge>
               )}
               {s.searchIntent.filters.category && <Badge variant="secondary" className="text-[11px] h-5.5 rounded-lg [background-color:hsl(var(--command-accent))] [color:hsl(var(--command-text-muted))]">{s.searchIntent.filters.category}</Badge>}
@@ -119,17 +153,14 @@ export function GlobalSearchPalette() {
             </div>
           )}
 
-          {/* Empty state */}
-          {!s.isSearching && s.query.length >= 3 && s.results.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-16 gap-4 animate-in fade-in-0 zoom-in-95 duration-300">
-              <div className="h-16 w-16 rounded-2xl [background-color:hsl(var(--command-surface-raised))] flex items-center justify-center border [border-color:hsl(var(--command-border))]">
-                <Search className="h-7 w-7 [color:hsl(var(--command-text-subtle))]" />
-              </div>
-              <div className="text-center">
-                <p className="text-sm [color:hsl(var(--command-text-muted))]">Nenhum resultado para "<span className="font-semibold text-foreground">{s.query}</span>"</p>
-                <p className="text-[11px] [color:hsl(var(--command-text-subtle))] mt-1.5">Tente termos diferentes ou mais curtos</p>
-              </div>
-            </div>
+          {/* Empty state — intelligent */}
+          {!s.isSearching && s.query.length >= 2 && s.results.length === 0 && (
+            <EmptySearchState
+              query={s.query}
+              onAction={handleEmptyAction}
+              onRefine={handleEmptyRefine}
+              onPickRecent={handleEmptyPickRecent}
+            />
           )}
 
           {/* Short query hint */}
@@ -161,8 +192,14 @@ export function GlobalSearchPalette() {
                       <Icon className={cn("h-4.5 w-4.5", config.color.replace("bg-", "text-"))} />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate text-[13px]">{result.title}</p>
-                      {result.subtitle && <p className="text-[11px] [color:hsl(var(--command-text-muted))] truncate mt-0.5">{result.subtitle}</p>}
+                      <p className="font-medium truncate text-[13px]">
+                        <HighlightMatch text={result.title} query={s.query} />
+                      </p>
+                      {result.subtitle && (
+                        <p className="text-[11px] [color:hsl(var(--command-text-muted))] truncate mt-0.5">
+                          <HighlightMatch text={result.subtitle} query={s.query} highlightClassName="bg-primary/15 text-primary font-semibold rounded-sm px-0.5" />
+                        </p>
+                      )}
                     </div>
                     <Badge variant="outline" className="shrink-0 text-[10px] h-5 rounded-lg [border-color:hsl(var(--command-border-strong))] [background-color:hsl(var(--command-accent))] font-medium">{config.label}</Badge>
                     <ChevronRight className="h-3.5 w-3.5 [color:hsl(var(--command-text-subtle))]" />
@@ -211,7 +248,7 @@ export function GlobalSearchPalette() {
 
         {/* Premium Footer */}
         <div className="flex items-center justify-between px-5 py-2.5 border-t [border-color:hsl(var(--command-border))] [background:linear-gradient(90deg,hsl(var(--command-surface-raised)),hsl(var(--command-surface)),hsl(var(--command-surface-raised)))] select-none">
-          <div className="flex items-center gap-5 text-[11px] [color:hsl(var(--command-text-subtle))]">
+          <div className="flex items-center gap-4 text-[11px] [color:hsl(var(--command-text-subtle))]">
             <span className="inline-flex items-center gap-1.5">
               <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">↵</kbd>
               <span>Selecionar</span>
@@ -219,6 +256,14 @@ export function GlobalSearchPalette() {
             <span className="inline-flex items-center gap-1.5">
               <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">↑↓</kbd>
               <span>Navegar</span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">1-9</kbd>
+              <span>Saltar</span>
+            </span>
+            <span className="hidden md:inline-flex items-center gap-1.5">
+              <kbd className="inline-flex items-center justify-center h-[18px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">⌘↵</kbd>
+              <span>Nova aba</span>
             </span>
             <span className="inline-flex items-center gap-1.5">
               <kbd className="inline-flex items-center justify-center h-[18px] min-w-[20px] rounded-md [background-color:hsl(var(--command-accent))] border [border-color:hsl(var(--command-border))] font-mono text-[10px] leading-none px-1">ESC</kbd>

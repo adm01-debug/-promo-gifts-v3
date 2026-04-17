@@ -2807,6 +2807,14 @@ export type Database = {
           score: number
         }[]
       }
+      search_records_rerank: {
+        Args: { _candidates: Json; _query: string }
+        Returns: {
+          id: string
+          matched_field: string
+          score: number
+        }[]
+      }
       seed_discount_test_users: { Args: never; Returns: Json }
       show_limit: { Args: never; Returns: number }
       show_trgm: { Args: { "": string }; Returns: string[] }
