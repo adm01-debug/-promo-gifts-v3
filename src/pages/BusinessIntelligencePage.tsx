@@ -6,8 +6,9 @@ import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, Share2, HelpCircle, Loader2 } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, Share2, HelpCircle, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
+import { BICategoryFocusProvider, useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -242,48 +243,52 @@ export default function BusinessIntelligencePage() {
 
         {/* Zonas de inteligência */}
         {clientId && (
-          <div className="space-y-4">
-            {/* HERO — Health Score + insight cross-zona + CTA */}
-            <ClientHealthHero
-              clientId={clientId}
-              ramoAtividade={ramoAtividade}
-              clientName={clientName}
-              data-tour="health-hero"
-            />
-            <div data-tour="health-hero" />
-
-            <div data-tour="churn-banner">
-              <ChurnRiskBanner
-                clientId={clientId}
-                clientName={clientName}
-                clientPhone={clientPhone}
-              />
-            </div>
-
-            {/* PROTAGONISTA — Eixo CATEGORIA: cliente × setor */}
-            <div data-tour="category-radar">
-              <ClientCategoryRadar
+          <BICategoryFocusProvider>
+            <div className="space-y-4">
+              {/* HERO — Health Score + insight cross-zona + CTA */}
+              <ClientHealthHero
                 clientId={clientId}
                 ramoAtividade={ramoAtividade}
                 clientName={clientName}
+                data-tour="health-hero"
               />
-            </div>
+              <div data-tour="health-hero" />
 
-            <ClientOverview360 clientId={clientId} />
-            <div data-tour="orders-timeline">
-              <EnrichedOrdersTimeline clientId={clientId} />
-            </div>
+              <div data-tour="churn-banner">
+                <ChurnRiskBanner
+                  clientId={clientId}
+                  clientName={clientName}
+                  clientPhone={clientPhone}
+                />
+              </div>
 
-            <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
-            <ClientAffinityProducts clientId={clientId} />
-            <BundleSuggestions clientId={clientId} />
-            <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
-            <div data-tour="seasonality">
-              <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
+              {/* PROTAGONISTA — Eixo CATEGORIA: cliente × setor */}
+              <div data-tour="category-radar">
+                <ClientCategoryRadar
+                  clientId={clientId}
+                  ramoAtividade={ramoAtividade}
+                  clientName={clientName}
+                />
+              </div>
+
+              <CategoryFocusBar />
+
+              <ClientOverview360 clientId={clientId} />
+              <div data-tour="orders-timeline">
+                <EnrichedOrdersTimeline clientId={clientId} />
+              </div>
+
+              <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
+              <ClientAffinityProducts clientId={clientId} />
+              <BundleSuggestions clientId={clientId} />
+              <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
+              <div data-tour="seasonality">
+                <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
+              </div>
+              <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
+              <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
             </div>
-            <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
-            <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
-          </div>
+          </BICategoryFocusProvider>
         )}
       </div>
 
