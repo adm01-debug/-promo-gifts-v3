@@ -1,27 +1,23 @@
 
-# Hotfix — `RangeError: Invalid time value` no BIDashboard
+# Excluir "Performance Comercial" (/performance)
 
-## Causa raiz
-`src/pages/bi-dashboard/BIDashboardCharts.tsx` linha 232:
-```tsx
-<Badge>{format(parseISO(product.created_at), "dd/MM/yyyy", { locale: ptBR })}</Badge>
-```
-Quando `product.created_at` é `null`, `undefined` ou string inválida, `parseISO` retorna `Invalid Date` e `format()` lança `RangeError`. Isso quebra toda a página `/bi` via ErrorBoundary global.
+Será removido outro sistema fará o papel. **Mantém** `/admin/performance` (Web Vitals — feature distinta).
 
-## Fix
-Envolver a formatação em helper defensivo: tenta parsear; se inválido, devolve fallback `"—"`. Aplicar inline na linha 232.
+## O que será removido
 
-```tsx
-{(() => {
-  if (!product.created_at) return "—";
-  const d = parseISO(product.created_at);
-  return isValid(d) ? format(d, "dd/MM/yyyy", { locale: ptBR }) : "—";
-})()}
-```
+**Frontend / Backend de aplicação:**
+- `src/pages/SellerPerformanceDashboard.tsx` — deletar arquivo
+- `src/hooks/useSellerPerformance.ts` — deletar arquivo (era o "backend" — só agregava `quotes`/`orders` no client; nenhuma tabela ou edge function dedicada existe, nada a remover no Supabase)
 
-E adicionar `isValid` ao import existente de `date-fns`.
+**Roteamento / navegação:**
+- `src/App.tsx` — remover `import SellerPerformanceDashboard` (linha 95) e `<Route path="/performance" …>` (linha 238)
+- `src/components/layout/SidebarReorganized.tsx` — remover item `{ icon: Star, label: "Performance", href: "/performance" }` (linha 118)
 
-## Arquivo
-**Editar:** `src/pages/bi-dashboard/BIDashboardCharts.tsx` (1 import + 1 linha de JSX).
+**Documentação:**
+- Buscas em `docs/` e `.lovable/memory/` mostraram que **não existe** menção ao módulo "Performance Comercial / SellerPerformance". As únicas ocorrências de "performance" em docs/memória são sobre `/admin/performance` (Web Vitals runtime), que permanece. Logo, **nenhuma alteração em documentação é necessária**.
 
-Sem schema, sem dependências novas. Build volta a passar e a página `/bi` renderiza normalmente mesmo com produtos sem `created_at`.
+## Resumo de arquivos
+- **Excluir:** `src/pages/SellerPerformanceDashboard.tsx`, `src/hooks/useSellerPerformance.ts`
+- **Editar:** `src/App.tsx`, `src/components/layout/SidebarReorganized.tsx`
+
+Sem migrações de schema, sem edge functions a deletar.
