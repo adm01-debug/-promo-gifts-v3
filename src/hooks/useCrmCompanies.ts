@@ -6,6 +6,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { selectCrm, selectCrmById, searchCrm } from "@/lib/crm-db";
 import { CrmCompany, CrmCompanyFilters, CrmCustomer, toLegacyClient, getCompanyDisplayName, type LegacyClientFormat } from "@/types/crm";
+import { DEMO_CLIENT_ID, DEMO_COMPANY, isDemoClient } from "@/lib/bi/demoClient";
 
 /**
  * Lista empresas do CRM com filtros opcionais
@@ -52,6 +53,7 @@ export function useCrmCompany(id: string | null | undefined) {
     queryKey: ["crm-company", id],
     queryFn: async () => {
       if (!id) return null;
+      if (isDemoClient(id)) return DEMO_COMPANY as unknown as CrmCompany;
       return selectCrmById<CrmCompany>("companies", id);
     },
     enabled: !!id,

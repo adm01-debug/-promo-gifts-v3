@@ -7,6 +7,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { selectCrm } from "@/lib/crm-db";
 import { useClientBI } from "@/hooks/bi/useClientBI";
+import { isDemoClient } from "@/lib/bi/demoClient";
 import type { CrmCompany } from "@/types/crm";
 
 export type ComparisonClassification = "above" | "on_par" | "below" | "no_data";
@@ -89,6 +90,20 @@ export function useClientVsIndustry(
     enabled: !!ramoAtividade && !!clientId,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
+      // Demo: retorna benchmark mockado plausível
+      if (isDemoClient(clientId)) {
+        const mockRow: BenchmarkRow = {
+          total_clients_sampled: 24,
+          avg_ltv: 38500,
+          avg_ticket: 2850,
+          avg_quotes_per_client: 11,
+          avg_items_per_quote: 2.4,
+          top_product_name: "Garrafa Térmica Inox 500ml",
+          total_revenue: 924000,
+        };
+        return { rows: [mockRow], sampleSize: 24 };
+      }
+
       // 1) Resolver IDs de empresas do mesmo ramo, excluindo o próprio cliente
       const companies = await selectCrm<Pick<CrmCompany, "id">>("companies", {
         select: "id",
