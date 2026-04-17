@@ -1,12 +1,12 @@
 /**
  * Business Intelligence — Central de inteligência comercial 360° por cliente.
- * Dentro de Ferramentas. Combina dados reais (quando disponíveis) + mocks didáticos.
+ * Pós-Sprint 1+2+3: Health Score Hero · ChurnRiskBanner · Briefing · Copilot · Lookalikes.
  */
 import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,14 @@ import { IndustryTrendingProducts } from "@/components/bi/IndustryTrendingProduc
 import { ClientSeasonalityHeatmap } from "@/components/bi/ClientSeasonalityHeatmap";
 import { EmpiricalRecommendations } from "@/components/bi/EmpiricalRecommendations";
 import { ExportDossierButton } from "@/components/bi/ExportDossierButton";
+import { ClientHealthHero } from "@/components/bi/ClientHealthHero";
+import { ChurnRiskBanner } from "@/components/bi/ChurnRiskBanner";
+import { EnrichedOrdersTimeline } from "@/components/bi/EnrichedOrdersTimeline";
+import { BIBriefingMode } from "@/components/bi/BIBriefingMode";
+import { BIAiCopilot } from "@/components/bi/BIAiCopilot";
+import { ClientLookalikes } from "@/components/bi/ClientLookalikes";
+import { BundleSuggestions } from "@/components/bi/BundleSuggestions";
+import { ExecutiveSummaryButton } from "@/components/bi/ExecutiveSummaryButton";
 import { useCrmCompany } from "@/hooks/useCrmCompanies";
 import { getCompanyDisplayName } from "@/types/crm";
 
@@ -26,6 +34,8 @@ export default function BusinessIntelligencePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const initialClient = searchParams.get("clientId");
   const [clientId, setClientId] = useState<string | null>(initialClient);
+  const [briefingOpen, setBriefingOpen] = useState(false);
+  const [copilotOpen, setCopilotOpen] = useState(false);
 
   const handleSelect = (id: string | null) => {
     setClientId(id);
@@ -38,6 +48,14 @@ export default function BusinessIntelligencePage() {
 
   const { data: company } = useCrmCompany(clientId);
   const ramoAtividade = useMemo(() => company?.ramo_atividade ?? null, [company]);
+  const clientName = useMemo(
+    () => (company ? getCompanyDisplayName(company) : isDemoClient(clientId) ? "Acme Brindes (Demo)" : ""),
+    [company, clientId],
+  );
+  const clientPhone = useMemo(() => {
+    const c = company as { _deprecated_phone?: string | null; phones?: Array<{ phone_number?: string | null }> } | undefined;
+    return c?.phones?.[0]?.phone_number ?? c?._deprecated_phone ?? null;
+  }, [company]);
 
   return (
     <MainLayout>
@@ -48,7 +66,7 @@ export default function BusinessIntelligencePage() {
         noIndex
       />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-        {/* Header */}
+        {/* Header compacto */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-violet-500/25">
@@ -61,7 +79,30 @@ export default function BusinessIntelligencePage() {
               </p>
             </div>
           </div>
-          {clientId && <ExportDossierButton clientId={clientId} />}
+          {clientId && (
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setBriefingOpen(true)}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Briefing
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-violet-500/30 hover:bg-violet-500/10"
+                onClick={() => setCopilotOpen(true)}
+              >
+                <Bot className="h-4 w-4 text-violet-500" />
+                Pergunte ao BI
+              </Button>
+              <ExecutiveSummaryButton clientId={clientId} clientName={clientName} ramoAtividade={ramoAtividade} />
+              <ExportDossierButton clientId={clientId} />
+            </div>
+          )}
         </div>
 
         {/* Seletor de cliente */}
@@ -111,7 +152,7 @@ export default function BusinessIntelligencePage() {
               <h3 className="font-display font-semibold text-lg">Selecione um cliente</h3>
               <p className="text-sm text-muted-foreground max-w-md mx-auto">
                 Escolha uma empresa da sua carteira acima para gerar inteligência comercial personalizada:
-                histórico de compras, afinidade por categoria, tendências do setor e recomendações curadas.
+                Health Score, próxima ação sugerida, afinidade, tendências do setor, lookalikes e recomendações curadas.
               </p>
               <div className="pt-2">
                 <Button
@@ -123,7 +164,7 @@ export default function BusinessIntelligencePage() {
                   Visualizar com dados demo
                 </Button>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Cliente fictício "Acme Brindes" para preview das 6 zonas do BI
+                  Cliente fictício "Acme Brindes" para preview completo
                 </p>
               </div>
             </CardContent>
@@ -151,15 +192,54 @@ export default function BusinessIntelligencePage() {
         {/* Zonas de inteligência */}
         {clientId && (
           <div className="space-y-4">
+            {/* HERO — Health Score + insight cross-zona + CTA */}
+            <ClientHealthHero
+              clientId={clientId}
+              ramoAtividade={ramoAtividade}
+              clientName={clientName}
+            />
+
+            {/* Banner de churn (só aparece se médio/alto) */}
+            <ChurnRiskBanner
+              clientId={clientId}
+              clientName={clientName}
+              clientPhone={clientPhone}
+            />
+
+            {/* Visão 360° KPIs + Timeline enriquecida */}
             <ClientOverview360 clientId={clientId} />
+            <EnrichedOrdersTimeline clientId={clientId} />
+
             <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
             <ClientAffinityProducts clientId={clientId} />
+            <BundleSuggestions clientId={clientId} />
             <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
             <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
+            <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
             <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
           </div>
         )}
       </div>
+
+      {/* Drawers globais */}
+      {clientId && (
+        <>
+          <BIBriefingMode
+            open={briefingOpen}
+            onOpenChange={setBriefingOpen}
+            clientId={clientId}
+            clientName={clientName}
+            ramoAtividade={ramoAtividade}
+          />
+          <BIAiCopilot
+            open={copilotOpen}
+            onOpenChange={setCopilotOpen}
+            clientId={clientId}
+            clientName={clientName}
+            ramoAtividade={ramoAtividade}
+          />
+        </>
+      )}
     </MainLayout>
   );
 }

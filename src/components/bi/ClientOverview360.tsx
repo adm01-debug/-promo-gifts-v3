@@ -94,35 +94,7 @@ export function ClientOverview360({ clientId }: Props) {
         </Card>
       </div>
 
-      {/* Timeline */}
-      {bi.recentOrders.length > 0 && (
-        <Card className="border-[1.5px]">
-          <CardContent className="p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <ShoppingBag className="h-4 w-4 text-primary" />
-              <h3 className="font-display font-semibold text-sm">Últimos pedidos</h3>
-            </div>
-            <div className="relative pl-6">
-              <div className="absolute left-2 top-2 bottom-2 w-px bg-border" />
-              {bi.recentOrders.map((o, i) => (
-                <div key={o.id} className={cn("relative pb-4", i === bi.recentOrders.length - 1 && "pb-0")}>
-                  <div className="absolute -left-[18px] top-1.5 h-3 w-3 rounded-full bg-primary ring-4 ring-background" />
-                  <div className="flex items-baseline justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="font-medium text-sm">{o.id}</div>
-                      <div className="text-xs text-muted-foreground truncate">{o.productPreview}</div>
-                    </div>
-                    <div className="text-right shrink-0">
-                      <div className="font-semibold text-sm">{fmtBRL(o.total)}</div>
-                      <div className="text-xs text-muted-foreground">{fmtDate(o.date)}</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      {/* Timeline movida para EnrichedOrdersTimeline (componente próprio) */}
     </div>
   );
 }
