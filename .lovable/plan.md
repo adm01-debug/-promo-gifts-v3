@@ -1,83 +1,43 @@
 
-# Fix urgente do build + Foco em CATEGORIAS no BI
+# BI 10/10 — Refinamentos finais do eixo CATEGORIA (Onda 6)
 
-## Problema 1 — Build quebrado
-`BusinessIntelligencePage.tsx` tem **JSX duplicado** (linhas 282-291) após o fechamento correto do `MainLayout`. Causa: edição anterior duplicou bloco de zonas. **Fix:** remover linhas 282-291.
+A pivotagem para CATEGORIAS já foi entregue: `ClientCategoryRadar` (protagonista), `categoryResolver` central, hooks `useClientCategoryAffinity` + `useIndustryCategoryTrends`, integrações no Hero, Lookalikes, IndustryTrending e Affinity. Build verde.
 
-## Problema 2 — Foco estratégico em categorias
-Hoje o módulo BI mostra **produtos individuais** como ponto central (afinidade, tendência, lookalikes, bundles). O usuário pede que o **eixo principal seja a CATEGORIA** que o cliente / ramo costuma comprar — produtos viram desdobramento, não protagonista.
+Para fechar o 10/10 com excelência **mantendo o foco em CATEGORIA**, restam 6 refinamentos identificados:
 
-A estrutura `ramo_atividade` + `ramo_atividade_filhos` (segmentos) já existe, mas não está conectada ao BI. A categorização atual usa heurística regex sobre nome do produto (`deriveCategory`) — fraca e dispersa entre 3 hooks.
+## Itens a executar (1 a 1, sem pausas)
 
-## Solução
+1. **Tendência 90d vs 90d anteriores em `useClientCategoryAffinity`** — calcular delta % por categoria; expor `trend: "up" | "down" | "stable"` e `deltaPct`. Renderizar setas no `ClientCategoryRadar` (↑ verde / ↓ vermelho ao lado do label).
 
-### A. Hotfix (1 edit)
-Remover bloco JSX duplicado em `BusinessIntelligencePage.tsx` linhas 282-291.
+2. **Filtro de categoria no `BundleSuggestions`** — contextualizar título "Combos para a categoria favorita: [X]". Adicionar dropdown para o vendedor escolher outra categoria. Cruzar com `useClientCategoryAffinity.favorite`.
 
-### B. Novo eixo "Categoria" no BI
+3. **Coluna "Categoria" na `EnrichedOrdersTimeline`** — para cada pedido, derivar categoria dominante via `resolveBICategory` sobre os itens; badge colorida ao lado da data ("📦 Garrafas — 67% do pedido").
 
-**1. Hook unificado `useClientCategoryAffinity`** (novo)
-- Agrega `quote_items` por categoria (usando `category_id` real quando disponível em `products`, fallback para regex)
-- Retorna: ranking de categorias do cliente (qty, revenue, occurrences, % do total, tendência 90d vs 90d anteriores, top produtos da categoria)
-- Mesma estratégia dual real/mock já usada
+4. **Categorias no `BIBriefingMode` mobile** — adicionar bloco "Categorias-chave" entre Health Score e talking points: top 2 favoritas + 1 oportunidade GAP. Usuário leva pra reunião o que falar.
 
-**2. Hook `useIndustryCategoryTrends`** (novo)
-- Agrega top produtos do ramo por categoria
-- Retorna: categorias mais compradas no setor + share-of-category dentro do ramo
+5. **Categoria no `ClientComparator`** — coluna "Categoria favorita" + "Categoria oportunidade" lado-a-lado entre os 3 clientes comparados.
 
-**3. Componente novo `ClientCategoryRadar`** — Zona protagonista (substitui posição de destaque)
-   - **Topo:** "O que [Cliente] compra" — bar chart horizontal das top 5 categorias do cliente (% receita)
-   - **Direita:** "O que o setor compra" — mesmo formato para o ramo
-   - **Diff insight:** "Cliente compra 3x mais Garrafas que a média do setor · Não compra Eletrônicos (40% do setor faz)"
-   - Cada categoria expansível → revela top 3 produtos reais já comprados + 3 sugestões da mesma categoria
-   - Badge real/mock + drill-down para Quote Builder pré-filtrado por categoria
+6. **Export do dossiê com categoria** — incluir seção "Mapa de categorias" no PDF/PPTX (`buildExecutiveSummary`): tabela cliente vs setor + lista de GAPs prioritários. Página pública (`PublicDossierPage`) também.
 
-**4. Refactor de componentes existentes para gravitar em torno de categoria:**
-   - `ClientAffinityProducts`: já agrupa por categoria — promover título "Categorias preferidas do cliente" e dar mais peso visual a `cat.count` e `cat.revenue`
-   - `IndustryTrendingProducts`: adicionar agrupador por categoria no topo (chips clicáveis com contagem); produtos viram resultado do filtro
-   - `BundleSuggestions`: contextualizar "Produtos que combinam com a categoria favorita ([Categoria])"
-   - `ClientLookalikes`: adicionar coluna "Categorias em comum" no card de lookalike
-
-**5. Integração no `ClientHealthHero`**
-   - Adicionar linha "Categoria favorita: **Garrafas** (43% das compras)" abaixo do score
-   - "Categoria oportunidade (compra no setor, não em você): **Eletrônicos**" — link direto para nova zona
-
-### C. Reposição na página
-Nova ordem das zonas (todas dentro do bloco existente):
-1. ClientHealthHero (com info de categoria)
-2. ChurnRiskBanner
-3. **ClientCategoryRadar** ← NOVO protagonista
-4. ClientOverview360 + EnrichedOrdersTimeline
-5. ClientVsIndustryComparison
-6. ClientAffinityProducts (renomeado para "Produtos das categorias favoritas")
-7. BundleSuggestions
-8. IndustryTrendingProducts (com chips de categoria no topo)
-9. ClientSeasonalityHeatmap
-10. ClientLookalikes
-11. EmpiricalRecommendations
-
-### D. Categorização mais confiável
-Hoje 3 lugares têm `deriveCategory` por regex. Centralizar em `src/lib/bi/categoryResolver.ts`:
-- 1ª tentativa: `category_id` real do produto via `products.category_id` → `categories.name`
-- 2ª: heurística regex unificada (mesma lógica)
-- 3ª: "Outros"
+## Detalhes técnicos
+- **Trend 90d**: dividir `get_client_top_products` em 2 RPC calls (com `_days=90` e janela anterior) ou pós-processar `last_quoted_at` se já vier; preferir pós-processamento para evitar nova RPC.
+- **Categoria do pedido**: agregar `quote_items.product_name` por pedido → `resolveBICategory` → maior peso por receita.
+- **Briefing**: bloco compacto `<CategoryBriefBlock>` reusando `useClientCategoryAffinity` (cache compartilhado).
+- **Comparator**: estender `useClientsComparison` para chamar `useClientCategoryAffinity` por cliente.
+- **Dossiê**: nova função `buildCategorySection()` em `src/lib/bi/executive-summary.ts`; PDF (jsPDF autoTable) + PPTX (pptxgenjs table).
 
 ## Arquivos
 **Editar:**
-- `src/pages/BusinessIntelligencePage.tsx` (remover duplicação + integrar ClientCategoryRadar + reordenar)
-- `src/hooks/bi/useClientAffinity.ts` (usar resolver central)
-- `src/hooks/bi/useIndustryTrends.ts` (idem)
-- `src/components/bi/ClientHealthHero.tsx` (linha de categoria favorita/oportunidade)
-- `src/components/bi/IndustryTrendingProducts.tsx` (chips de categoria no topo)
-- `src/components/bi/ClientAffinityProducts.tsx` (peso visual em categoria)
-- `src/components/bi/ClientLookalikes.tsx` (categorias em comum)
+- `src/hooks/bi/useClientCategoryAffinity.ts` (delta 90d)
+- `src/components/bi/ClientCategoryRadar.tsx` (setas de tendência)
+- `src/components/bi/BundleSuggestions.tsx` (dropdown categoria)
+- `src/components/bi/EnrichedOrdersTimeline.tsx` (badge categoria)
+- `src/components/bi/BIBriefingMode.tsx` (bloco categorias)
+- `src/components/bi/ClientComparator.tsx` (colunas categoria)
+- `src/hooks/bi/useClientsComparison.ts` (incluir cats)
+- `src/lib/bi/executive-summary.ts` (seção categoria PDF/PPTX)
+- `src/pages/PublicDossierPage.tsx` (render seção categoria)
 
-**Criar:**
-- `src/lib/bi/categoryResolver.ts`
-- `src/hooks/bi/useClientCategoryAffinity.ts`
-- `src/hooks/bi/useIndustryCategoryTrends.ts`
-- `src/components/bi/ClientCategoryRadar.tsx`
+Sem mudanças de schema. Sem novas edge functions. ~9 arquivos tocados, 6 itens atômicos.
 
-Sem mudanças de schema. Sem novas edge functions. Build volta a passar com o item A; itens B-D entregam o foco em categoria pedido.
-
-Aprovado → executo: (1) hotfix do build, (2) resolver central + 2 hooks novos, (3) ClientCategoryRadar, (4) integrações nos componentes existentes, (5) integração no Hero, (6) reordenação da página.
+Aprovar → executo os 6 itens em sequência sem perguntar.
