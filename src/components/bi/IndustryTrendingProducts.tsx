@@ -45,6 +45,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
   const { data, isLoading } = useIndustryTrends(ramoAtividade);
   const { data: affinity } = useClientAffinity(clientId);
   const [onlyOpportunities, setOnlyOpportunities] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // Set de assinaturas dos produtos que o cliente já compra (por id e por nome normalizado)
   const clientBuys = useMemo(() => {
@@ -57,16 +58,32 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
     return { ids, names };
   }, [affinity]);
 
+  // Categorias presentes (chips) — derivadas via resolver central
+  const categoryChips = useMemo(() => {
+    const counts = new Map<string, number>();
+    (data?.trends ?? []).forEach((t) => {
+      const cat = resolveBICategoryLabel(t.productName, t.category);
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, count]) => ({ label, count }));
+  }, [data]);
+
   const enriched = useMemo(() => {
     const items = (data?.trends ?? []).map((t) => {
       const alreadyBuys =
         (t.productId && clientBuys.ids.has(t.productId)) ||
         clientBuys.names.has(normalize(t.productName));
-      return { ...t, alreadyBuys };
+      const cat = resolveBICategoryLabel(t.productName, t.category);
+      return { ...t, alreadyBuys, resolvedCategory: cat };
     });
-    const filtered = onlyOpportunities ? items.filter((t) => !t.alreadyBuys) : items;
+    let filtered = onlyOpportunities ? items.filter((t) => !t.alreadyBuys) : items;
+    if (activeCategory) {
+      filtered = filtered.filter((t) => t.resolvedCategory === activeCategory);
+    }
     return { items, filtered };
-  }, [data, clientBuys, onlyOpportunities]);
+  }, [data, clientBuys, onlyOpportunities, activeCategory]);
 
   const opportunities = enriched.items.filter((t) => !t.alreadyBuys);
   const topOpportunities = opportunities.slice(0, 3);
