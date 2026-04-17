@@ -83,6 +83,7 @@ export function useBIDossierExport(clientId: string | null): UseBIDossierExport 
           trends: [],
         },
         empiricalRec: resolveIndustryRecommendation(ramo),
+        categorySection: buildCategorySection(catAffinity, catIndustry),
       });
 
       const url = URL.createObjectURL(blob);
@@ -106,6 +107,8 @@ export function useBIDossierExport(clientId: string | null): UseBIDossierExport 
     vsIndustry,
     affinityQ.data,
     trendsQ.data,
+    catAffinity,
+    catIndustry,
     ramo,
   ]);
 

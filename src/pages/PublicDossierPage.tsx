@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Brain, ShieldCheck, AlertCircle, Clock } from "lucide-react";
 import { ClientHealthHero } from "@/components/bi/ClientHealthHero";
 import { ClientOverview360 } from "@/components/bi/ClientOverview360";
+import { ClientCategoryRadar } from "@/components/bi/ClientCategoryRadar";
 import { ClientSeasonalityHeatmap } from "@/components/bi/ClientSeasonalityHeatmap";
 import { ClientVsIndustryComparison } from "@/components/bi/ClientVsIndustryComparison";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -119,6 +120,11 @@ export default function PublicDossierPage() {
           clientName={payload.clientName}
         />
         <ClientOverview360 clientId={payload.clientId} />
+        <ClientCategoryRadar
+          clientId={payload.clientId}
+          ramoAtividade={payload.ramoAtividade}
+          clientName={payload.clientName}
+        />
         <ClientVsIndustryComparison clientId={payload.clientId} ramoAtividade={payload.ramoAtividade} />
         <ClientSeasonalityHeatmap clientId={payload.clientId} ramoAtividade={payload.ramoAtividade} />
       </main>
