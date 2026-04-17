@@ -2758,6 +2758,32 @@ export type Database = {
           product_name: string
         }[]
       }
+      get_client_top_products: {
+        Args: { _client_id: string; _limit?: number }
+        Returns: {
+          avg_unit_price: number
+          last_quoted_at: string
+          occurrences: number
+          product_id: string
+          product_image_url: string
+          product_name: string
+          total_quantity: number
+          total_revenue: number
+        }[]
+      }
+      get_industry_top_products: {
+        Args: { _company_ids: string[]; _days?: number; _limit?: number }
+        Returns: {
+          avg_unit_price: number
+          product_id: string
+          product_image_url: string
+          product_name: string
+          total_quantity: number
+          total_revenue: number
+          unique_clients: number
+          unique_sellers: number
+        }[]
+      }
       get_quote_token_by_value: {
         Args: { _token: string }
         Returns: {
