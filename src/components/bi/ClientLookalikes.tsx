@@ -9,9 +9,11 @@ import { selectCrm } from "@/lib/crm-db";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Users, Package, Sparkles } from "lucide-react";
+import { Users, Package, Sparkles, Tag } from "lucide-react";
 import { useClientBI } from "@/hooks/bi/useClientBI";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 
 interface Props {
   clientId: string;
@@ -33,6 +35,8 @@ const fmtBRL = (v: number) =>
 export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
   const bi = useClientBI(clientId);
   const affinity = useClientAffinity(clientId);
+  const clientCats = useClientCategoryAffinity(clientId);
+  const industryCats = useIndustryCategoryTrends(ramoAtividade);
 
   const ownProductIds = new Set(
     (affinity.data?.topProducts ?? [])
@@ -42,6 +46,15 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
   const ownProductNames = new Set(
     (affinity.data?.topProducts ?? []).map((p) => p.product_name.toLowerCase()),
   );
+
+  // Categorias em comum (cliente × setor) — interseção dos slugs
+  const sharedCategories = (() => {
+    const setorSlugs = new Set(industryCats.categories.map((c) => c.slug));
+    return clientCats.categories
+      .filter((c) => setorSlugs.has(c.slug))
+      .slice(0, 4)
+      .map((c) => c.label);
+  })();
 
   const { data, isLoading } = useQuery({
     queryKey: ["bi-lookalikes", clientId, ramoAtividade, bi.avgTicket],
@@ -116,6 +129,21 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
             <Sparkles className="h-3 w-3" /> Gap de oportunidade
           </Badge>
         </div>
+
+        {/* Categorias em comum entre cliente e setor */}
+        {sharedCategories.length > 0 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
+              <Tag className="h-3 w-3 inline mr-1" />
+              Categorias em comum:
+            </span>
+            {sharedCategories.map((label) => (
+              <Badge key={label} variant="secondary" className="text-[10px]">
+                {label}
+              </Badge>
+            ))}
+          </div>
+        )}
 
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
           {data.products.map((p) => (

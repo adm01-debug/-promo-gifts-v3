@@ -27,6 +27,7 @@ import { EnrichedOrdersTimeline } from "@/components/bi/EnrichedOrdersTimeline";
 import { BIBriefingMode } from "@/components/bi/BIBriefingMode";
 import { BIAiCopilot } from "@/components/bi/BIAiCopilot";
 import { ClientLookalikes } from "@/components/bi/ClientLookalikes";
+import { ClientCategoryRadar } from "@/components/bi/ClientCategoryRadar";
 import { BundleSuggestions } from "@/components/bi/BundleSuggestions";
 import { ExecutiveSummaryButton } from "@/components/bi/ExecutiveSummaryButton";
 import { BITourGuide } from "@/components/bi/BITourGuide";
@@ -259,6 +260,15 @@ export default function BusinessIntelligencePage() {
               />
             </div>
 
+            {/* PROTAGONISTA — Eixo CATEGORIA: cliente × setor */}
+            <div data-tour="category-radar">
+              <ClientCategoryRadar
+                clientId={clientId}
+                ramoAtividade={ramoAtividade}
+                clientName={clientName}
+              />
+            </div>
+
             <ClientOverview360 clientId={clientId} />
             <div data-tour="orders-timeline">
               <EnrichedOrdersTimeline clientId={clientId} />
@@ -279,16 +289,6 @@ export default function BusinessIntelligencePage() {
 
       {clientId && <BITourGuide force={tourForce} onClose={() => setTourForce(false)} />}
 
-            <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
-            <ClientAffinityProducts clientId={clientId} />
-            <BundleSuggestions clientId={clientId} />
-            <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
-            <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
-            <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
-            <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
-          </div>
-        )}
-      </div>
 
       {/* Drawers globais */}
       {clientId && (

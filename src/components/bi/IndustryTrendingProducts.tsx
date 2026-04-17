@@ -14,6 +14,7 @@ import {
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { ProductGridSkeleton } from "@/components/bi/BISkeletons";
+import { resolveBICategoryLabel } from "@/lib/bi/categoryResolver";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -44,6 +45,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
   const { data, isLoading } = useIndustryTrends(ramoAtividade);
   const { data: affinity } = useClientAffinity(clientId);
   const [onlyOpportunities, setOnlyOpportunities] = useState(false);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   // Set de assinaturas dos produtos que o cliente já compra (por id e por nome normalizado)
   const clientBuys = useMemo(() => {
@@ -56,16 +58,32 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
     return { ids, names };
   }, [affinity]);
 
+  // Categorias presentes (chips) — derivadas via resolver central
+  const categoryChips = useMemo(() => {
+    const counts = new Map<string, number>();
+    (data?.trends ?? []).forEach((t) => {
+      const cat = resolveBICategoryLabel(t.productName, t.category);
+      counts.set(cat, (counts.get(cat) ?? 0) + 1);
+    });
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([label, count]) => ({ label, count }));
+  }, [data]);
+
   const enriched = useMemo(() => {
     const items = (data?.trends ?? []).map((t) => {
       const alreadyBuys =
         (t.productId && clientBuys.ids.has(t.productId)) ||
         clientBuys.names.has(normalize(t.productName));
-      return { ...t, alreadyBuys };
+      const cat = resolveBICategoryLabel(t.productName, t.category);
+      return { ...t, alreadyBuys, resolvedCategory: cat };
     });
-    const filtered = onlyOpportunities ? items.filter((t) => !t.alreadyBuys) : items;
+    let filtered = onlyOpportunities ? items.filter((t) => !t.alreadyBuys) : items;
+    if (activeCategory) {
+      filtered = filtered.filter((t) => t.resolvedCategory === activeCategory);
+    }
     return { items, filtered };
-  }, [data, clientBuys, onlyOpportunities]);
+  }, [data, clientBuys, onlyOpportunities, activeCategory]);
 
   const opportunities = enriched.items.filter((t) => !t.alreadyBuys);
   const topOpportunities = opportunities.slice(0, 3);
@@ -126,6 +144,42 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
               ))}
           </div>
         </div>
+
+        {/* Chips de categoria — protagonismo do eixo categoria */}
+        {categoryChips.length > 1 && (
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium mr-1">
+              Categorias:
+            </span>
+            <button
+              type="button"
+              onClick={() => setActiveCategory(null)}
+              className={cn(
+                "px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors",
+                activeCategory === null
+                  ? "bg-primary text-primary-foreground border-primary"
+                  : "bg-background hover:bg-muted border-border text-foreground",
+              )}
+            >
+              Todas ({totalCount})
+            </button>
+            {categoryChips.map((c) => (
+              <button
+                key={c.label}
+                type="button"
+                onClick={() => setActiveCategory(c.label === activeCategory ? null : c.label)}
+                className={cn(
+                  "px-2.5 py-1 rounded-full text-[11px] font-medium border transition-colors",
+                  activeCategory === c.label
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-background hover:bg-muted border-border text-foreground",
+                )}
+              >
+                {c.label} ({c.count})
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Top 3 oportunidades como hero cards */}
         {topOpportunities.length > 0 && !onlyOpportunities && (

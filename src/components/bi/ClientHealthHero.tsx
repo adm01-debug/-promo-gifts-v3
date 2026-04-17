@@ -30,7 +30,10 @@ import { cn } from "@/lib/utils";
 import { useClientHealthScore } from "@/hooks/bi/useClientHealthScore";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 import { ConfirmQuoteSuggestionsModal, type SuggestionItem } from "./ConfirmQuoteSuggestionsModal";
+import { Star, Target as TargetIcon } from "lucide-react";
 
 interface Props {
   clientId: string;
@@ -81,7 +84,19 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
   const health = useClientHealthScore(clientId, ramoAtividade);
   const affinity = useClientAffinity(clientId);
   const trends = useIndustryTrends(ramoAtividade);
+  const clientCats = useClientCategoryAffinity(clientId);
+  const industryCats = useIndustryCategoryTrends(ramoAtividade);
   const [open, setOpen] = useState(false);
+
+  // Categoria favorita do cliente (top 1 por receita)
+  const favoriteCategory = clientCats.favorite;
+  // Categoria-oportunidade: setor compra muito, cliente quase nada
+  const opportunityCategory = useMemo(() => {
+    const clientSlugs = new Set(clientCats.categories.map((c) => c.slug));
+    return industryCats.categories
+      .filter((ic) => ic.revenueSharePct >= 8 && !clientSlugs.has(ic.slug))
+      .sort((a, b) => b.revenueSharePct - a.revenueSharePct)[0] ?? null;
+  }, [clientCats.categories, industryCats.categories]);
 
   const styles = TIER_STYLES[health.tier];
   const Icon = styles.icon;
@@ -203,6 +218,44 @@ export function ClientHealthHero({ clientId, ramoAtividade, clientName }: Props)
               <p className="text-sm leading-relaxed text-foreground/90">
                 {health.crossZoneInsight}
               </p>
+
+              {/* Categoria favorita + oportunidade */}
+              {(favoriteCategory || opportunityCategory) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {favoriteCategory && (
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                      <Star className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-medium text-emerald-700 dark:text-emerald-300 uppercase tracking-wider">
+                          Categoria favorita
+                        </div>
+                        <div className="text-xs font-semibold truncate">
+                          {favoriteCategory.label}{" "}
+                          <span className="text-muted-foreground font-normal">
+                            ({favoriteCategory.revenueSharePct.toFixed(0)}% do total)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  {opportunityCategory && (
+                    <div className="flex items-center gap-2 p-2.5 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                      <TargetIcon className="h-4 w-4 text-violet-600 dark:text-violet-400 shrink-0" />
+                      <div className="min-w-0">
+                        <div className="text-[10px] font-medium text-violet-700 dark:text-violet-300 uppercase tracking-wider">
+                          Oportunidade no setor
+                        </div>
+                        <div className="text-xs font-semibold truncate">
+                          {opportunityCategory.label}{" "}
+                          <span className="text-muted-foreground font-normal">
+                            (setor: {opportunityCategory.revenueSharePct.toFixed(0)}%)
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {/* Chips: ação · janela · script */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
