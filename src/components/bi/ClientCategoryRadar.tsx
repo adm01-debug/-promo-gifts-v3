@@ -21,6 +21,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
   Radar,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Target,
   Sparkles,
   CheckCircle2,
@@ -256,6 +258,33 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                             <span className="font-display font-semibold text-sm sm:text-base truncate">
                               {row.label}
                             </span>
+                            {row.clientCat?.trend === "up" && row.clientCat.deltaPct != null && (
+                              <span
+                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 tabular-nums shrink-0"
+                                title={`Receita 90d vs 90d anteriores: +${Math.round(row.clientCat.deltaPct)}%`}
+                              >
+                                <TrendingUp className="h-3 w-3" />
+                                +{Math.round(row.clientCat.deltaPct)}%
+                              </span>
+                            )}
+                            {row.clientCat?.trend === "down" && row.clientCat.deltaPct != null && (
+                              <span
+                                className="inline-flex items-center gap-0.5 text-[10px] font-semibold text-red-600 dark:text-red-400 tabular-nums shrink-0"
+                                title={`Receita 90d vs 90d anteriores: ${Math.round(row.clientCat.deltaPct)}%`}
+                              >
+                                <TrendingDown className="h-3 w-3" />
+                                {Math.round(row.clientCat.deltaPct)}%
+                              </span>
+                            )}
+                            {row.clientCat?.trend === "stable" && row.clientCat.deltaPct != null && (
+                              <span
+                                className="inline-flex items-center gap-0.5 text-[10px] text-muted-foreground tabular-nums shrink-0"
+                                title="Receita estável nos últimos 90d"
+                              >
+                                <Minus className="h-3 w-3" />
+                                estável
+                              </span>
+                            )}
                             <Badge variant="outline" className={cn("text-[10px] gap-1 shrink-0", meta.chip)}>
                               {meta.label}
                             </Badge>
