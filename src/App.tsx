@@ -60,7 +60,6 @@ const AdminExternalDbPage = lazyWithRetry(() => import("./pages/admin/AdminExter
 const AdminVideoVariantsPage = lazyWithRetry(() => import("./pages/admin/AdminVideoVariantsPage"));
 const AdminAiUsagePage = lazyWithRetry(() => import("./pages/admin/AdminAiUsagePage"));
 const AdminDiscountApprovalsPage = lazyWithRetry(() => import("./pages/admin/AdminDiscountApprovalsPage"));
-const AdminCommissionsPage = lazyWithRetry(() => import("./pages/admin/AdminCommissionsPage"));
 const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
 
 // Tools Pages
@@ -92,7 +91,6 @@ const ClientDetailPage = lazyWithRetry(() => import("./pages/ClientDetailPage"))
 // Analytics Pages
 const BIDashboard = lazyWithRetry(() => import("./pages/BIDashboard"));
 const TrendsPage = lazyWithRetry(() => import("./pages/TrendsPage"));
-const CommissionsPage = lazyWithRetry(() => import("./pages/CommissionsPage"));
 const CommercialAgendaPage = lazyWithRetry(() => import("./pages/CommercialAgendaPage"));
 
 // System Pages
@@ -229,11 +227,9 @@ const App = () => {
                               <Route path="/admin/video-variantes" element={<AdminVideoVariantsPage />} />
                               <Route path="/admin/consumo-ia" element={<AdminAiUsagePage />} />
                               <Route path="/admin/aprovacoes-desconto" element={<AdminDiscountApprovalsPage />} />
-                              <Route path="/admin/comissoes" element={<AdminCommissionsPage />} />
                               <Route path="/admin/seguranca-acesso" element={<AdminSegurancaAcessoPage />} />
                               <Route path="/bi" element={<BIDashboard />} />
                               <Route path="/tendencias" element={<TrendsPage />} />
-                              <Route path="/comissoes" element={<CommissionsPage />} />
                               <Route path="/agenda" element={<CommercialAgendaPage />} />
                               <Route path="/status" element={<SystemStatusPage />} />
                               <Route path="/external-db-test" element={<ExternalDatabaseTest />} />

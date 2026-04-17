@@ -32,8 +32,6 @@
 | `seller_discount_limits` | Limite por vendedor | `user_id`, `max_discount_percent` |
 | `orders` | Pedido (quote convertido) | `order_number` (PED-YY-XXXX), `quote_id`, `fulfillment_status`, `version` |
 | `order_items` | Itens do pedido | `order_id`, `product_id`, `quantity`, `unit_price` |
-| `commission_entries` | Comissões | `seller_id`, `order_id`, `commission_percent`, `commission_amount`, `status` |
-| `commission_rules` | Regras de comissão | `seller_id` (null = default), `min/max_order_value`, `commission_percent` |
 | `follow_up_reminders` | Lembretes | `quote_id`, `scheduled_for`, `is_completed` |
 
 ### 🎨 Kits & Mockups
@@ -96,7 +94,6 @@
 - `quotes` / `orders` → `increment_row_version` BEFORE UPDATE
 - `quotes` → `validate_quote_real_discount` BEFORE INSERT/UPDATE
 - `quotes` → `notify_quote_status_change` AFTER UPDATE
-- `orders` → `auto_create_commission_entry` AFTER INSERT
 - `discount_approval_requests` → `notify_discount_approval_request` AFTER INSERT/UPDATE
 - `quote_approval_tokens` → `generate_secure_token` BEFORE INSERT, `invalidate_used_approval_token` BEFORE UPDATE
 - `auth.users` → `handle_new_user` AFTER INSERT (cria profile + role default)

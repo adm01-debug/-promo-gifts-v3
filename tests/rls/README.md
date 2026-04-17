@@ -21,7 +21,6 @@ Cobertura: 3 personas × tabelas sensíveis.
 | `quotes` | ❌ | ✅ próprias | ✅ todas | ✅ |
 | `orders` | ❌ | ✅ próprias | ✅ todas | ❌ (via trigger quote→order) |
 | `discount_approval_requests` | ❌ | ✅ próprias | ✅ todas | ✅ |
-| `commission_entries` | ❌ | ✅ próprias | ✅ todas | ❌ (auto via trigger) |
 | `workspace_notifications` | ❌ | ✅ próprias | ✅ próprias | ❌ |
 | `user_roles` | ❌ | ✅ próprias | ✅ todas | ❌ |
 | `profiles` | ❌ | ✅ próprias | ✅ todas | ✅ próprias |
