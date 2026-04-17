@@ -63,6 +63,11 @@ export function handleCorsPreflightIfNeeded(req: Request): Response | null {
  * (webhooks, public quote views, public kit views).
  * Use sparingly — only for endpoints that MUST be accessible from any origin.
  */
+/**
+ * @deprecated Use getCorsHeaders(req) instead. Kept only for legacy webhooks
+ * that genuinely need wildcard access (e.g., third-party callbacks without Origin header).
+ * For all browser-facing endpoints, ALWAYS use getCorsHeaders(req).
+ */
 export const publicCorsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
