@@ -1167,6 +1167,7 @@ export type Database = {
           total: number | null
           tracking_number: string | null
           updated_at: string
+          version: number
         }
         Insert: {
           client_company?: string | null
@@ -1193,6 +1194,7 @@ export type Database = {
           total?: number | null
           tracking_number?: string | null
           updated_at?: string
+          version?: number
         }
         Update: {
           client_company?: string | null
@@ -1219,6 +1221,7 @@ export type Database = {
           total?: number | null
           tracking_number?: string | null
           updated_at?: string
+          version?: number
         }
         Relationships: [
           {
