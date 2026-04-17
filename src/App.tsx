@@ -76,6 +76,7 @@ const MockupHistoryPage = lazyWithRetry(() => import("./pages/MockupHistoryPage"
 const DropboxBrowserPage = lazyWithRetry(() => import("./pages/DropboxBrowserPage"));
 const CommercialIntelligencePage = lazyWithRetry(() => import("./pages/CommercialIntelligencePage"));
 const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"));
+const BusinessIntelligencePage = lazyWithRetry(() => import("./pages/BusinessIntelligencePage"));
 
 // Orders Pages
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
@@ -257,6 +258,7 @@ const App = () => {
                             <Route path="/mockups/historico" element={<MockupHistoryPage />} />
                             <Route path="/magic-up" element={<MagicUp />} />
                             <Route path="/inteligencia-comercial" element={<CommercialIntelligencePage />} />
+                            <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
                             <Route path="/match" element={<ProductMatchPage />} />
                             <Route path="/dropbox" element={<DropboxBrowserPage />} />
 

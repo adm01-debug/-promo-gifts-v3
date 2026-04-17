@@ -82,6 +82,7 @@ const navGroups: NavGroup[] = [
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
       { icon: Boxes, label: "Montador de Kits", href: "/montar-kit" },
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
+      { icon: Sparkles, label: "Business Intelligence", href: "/ferramentas/bi" },
       { icon: Crosshair, label: "Match", href: "/match" },
     ],
   },
