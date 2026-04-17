@@ -1,73 +1,79 @@
 
-Tarefa: bateria exaustiva de QA + correção de gaps em todo o sistema antes de produção. Sou READ-ONLY agora — exploro, mapeio falhas, e apresento plano de execução para aprovação.
+Entendi perfeitamente. O vendedor quer **inflar artificialmente o subtotal** (markup percebido) para que o desconto exibido pareça maior do que o real, mantendo o valor final dentro da margem permitida. Isso precisa coexistir com o sistema de alçada de desconto sem burlá-lo.
 
-## Estratégia de QA — 6 fases
+## Conceito UX — "Valor de Negociação"
 
-### Fase 1 — Inventário & Health Check (auditoria fria)
-- **Lint Supabase** (`supabase--linter`): RLS faltando, policies permissivas, indexes ausentes, search_path mutável.
-- **Security scan** (`security--run_security_scan` + `security--get_scan_results`): findings ativos.
-- **DB inspect** (`supabase--read_query`): contagem de tabelas órfãs, RPCs sem `SET search_path = public`, triggers quebrados, jobs `pg_cron` falhando (`cron.job_run_details` últimas 24h).
-- **Edge functions audit** (`supabase--analytics_query`): top 20 funções por erro 5xx nas últimas 24h, latência p95, taxa de timeout.
-- **Console/network do preview**: erros JS, requests 4xx/5xx, race conditions visíveis.
-- **TypeScript**: rodar `tsc --noEmit` (via exec na fase 2) para pegar erros silenciosos.
+Termo escolhido (testado mentalmente vs alternativas como "preço cheio inflacionado", "preço de catálogo", "âncora psicológica"):
+- **"Margem de Negociação"** — campo opcional que ajusta o `subtotal apresentado` para cima, criando espaço para um "desconto aparente" maior.
 
-### Fase 2 — Smoke tests automatizados (60+ cenários)
-Testar via `supabase--curl_edge_functions` cada edge function crítica com 3 payloads: válido, inválido (Zod), não-autenticado.
-- **Auth-gated** (~30 funções): `crm-db-bridge`, `external-db-bridge`, `magic-up-*`, `ai-recommendations`, `quote-*`, `semantic-search`, `trends-insights`, `process-queue`, `detect-stalled-quotes`.
-- **Públicas** (~5): `quote-public-view`, `image-proxy`, `get-visitor-info`.
-- **Webhooks/cron**: validar `pg_cron` jobs (limpeza notificações, stalled quotes, refresh MVs).
+### Modelo matemático
+```
+preco_real_unitario      = item.unit_price (do catálogo)
+markup_negociacao_pct    = quote.negotiation_markup_percent (NOVO, default 0)
+subtotal_real            = Σ(qty × unit_price) + personalizações
+subtotal_apresentado     = subtotal_real × (1 + markup_negociacao_pct/100)
+desconto_aparente_pct    = quote.discount_percent (o que o cliente vê)
+desconto_real_pct        = 1 - (subtotal_apresentado × (1 - desconto_aparente/100)) / subtotal_real
 
-### Fase 3 — Fluxos E2E críticos (browser, 8 jornadas)
-1. Login + redirect.
-2. Catálogo: filtros (cor/categoria/preço), busca, paginação infinita, comparar.
-3. Carrinho: adicionar variante, sugestão de bundle, remover, salvar template.
-4. Quote Builder: 4 etapas, desconto + alçada, margem badge, gerar PDF, enviar.
-5. Quote público: visualizar token, assinatura eletrônica, aprovar.
-6. Pedidos: conversão de quote, edição.
-7. Magic Up: gerar mockup com logo, salvar, regenerar.
-8. Trends: filtros URL, comparação temporal, export CSV/PDF.
-9. **Ctrl+K**: busca semântica nas 15 entidades, atalhos 1-9, empty state, cache.
-10. Notificações: stalled quote, polling 30s, mark as read.
+VALIDAÇÃO ALÇADA: desconto_real_pct ≤ seller.max_discount_percent
+```
 
-### Fase 4 — Edge cases & fuzzing
-- Inputs malformados (SQL injection, XSS, payloads gigantes, UTF-8 bizarro).
-- Rate limiting (`bot-protection`): simular 100 req/min em endpoint público.
-- RLS bypass attempts: tentar SELECT/INSERT em tabela alheia com user comum.
-- Privilege escalation: vendedor tentando acessar `/admin/*`.
-- Race conditions: 2 abas simultâneas editando mesmo orçamento.
-- Offline/timeout: external-db-bridge com `EXTERNAL_SUPABASE_URL` ausente (já visto nos logs!).
-- Imagens quebradas, vídeos sem `cloudflare_status=ready`.
-- Quotes com 0 itens, com 500 itens, com desconto >100%.
+Exemplo:
+- Real: R$100, vendedor pode dar 5%, quer aparentar 15%
+- Markup negociação: +11.76% → subtotal apresentado R$111.76
+- Aplica 15% desconto → R$95.00 final
+- Desconto REAL: 5% ✅ dentro da alçada
 
-### Fase 5 — Correções (priorizado por severidade)
-**P0 (blocker prod):**
-- `external-db-bridge`: `EXTERNAL_SUPABASE_URL/KEY not configured` aparecendo em massa nos logs → verificar secrets + fallback gracioso.
-- `ProductCardSkeleton`: warning "Function components cannot be given refs" → adicionar `forwardRef`.
-- Qualquer RLS missing/policy permissiva achada na Fase 1.
-- Edge functions sem JWT validation que expõem dados sensíveis.
+## Implementação
 
-**P1 (alto):**
-- search_path mutável em RPCs (já há padrão `SET search_path = public`).
-- Edge functions com erro 5xx recorrente.
-- Memory leaks / unbounded queries.
+### 1. Migration
+- Adicionar coluna `quotes.negotiation_markup_percent NUMERIC(5,2) DEFAULT 0 CHECK (>=0 AND <=50)`
+- Adicionar `quotes.real_subtotal NUMERIC` (subtotal sem markup, para auditoria)
+- Adicionar `quotes.real_discount_percent NUMERIC` (desconto efetivo real, para alçada)
+- Trigger `validate_quote_real_discount()`: calcula `real_discount_percent` no BEFORE INSERT/UPDATE e bloqueia se exceder limite do vendedor (consulta `seller_discount_limits`).
+- Atualizar `discount_approval_requests` workflow para usar `real_discount_percent` em vez de `discount_percent` aparente.
 
-**P2 (médio):**
-- Acessibilidade (aria-labels, roles).
-- Performance (queries N+1, falta de index).
-- UX gaps (loading states, error boundaries).
+### 2. Backend (`quoteHelpers.ts`)
+- `calculateQuoteTotals` retorna `{ realSubtotal, presentedSubtotal, realDiscountPercent, presentedDiscountPercent, total }`.
+- `buildInsertPayload` / `buildUpdatePayload` persistem markup + real_subtotal + real_discount_percent.
 
-### Fase 6 — Validação final
-- Re-rodar lint + security scan → 0 erros críticos.
-- Smoke tests 100% green.
-- Browser E2E nas 10 jornadas → screenshot de cada.
-- Atualizar `mem://architecture/operational-resilience-and-disaster-recovery` com checklist de produção.
-- Criar `docs/PRODUCTION_READINESS_REPORT.md` com tudo que foi testado/corrigido.
+### 3. UI Quote Builder — novo card "Estratégia de Negociação"
+Localização: passo 3 (Resumo & Pricing), abaixo do bloco de desconto, **visível apenas para o vendedor** (nunca aparece em PDF/quote pública).
+- Toggle "Aplicar margem de negociação"
+- Slider 0-50% (default 0)
+- Preview comparativo lado-a-lado:
+  - **Cliente vê:** subtotal R$ 111,76 → desconto 15% → **R$ 95,00**
+  - **Real:** subtotal R$ 100,00 → desconto 5% → **R$ 95,00** ✅ dentro da alçada
+- Badge âmbar "Uso interno · não aparece para o cliente"
+- Auto-cap: se markup + desconto aparente excederem alçada real, slider trava + tooltip explicativo.
 
-## Escopo realista (1 sessão)
-Tentar "milhares de testes" literais é inviável; faço **bateria estruturada de ~150 verificações automatizadas + 10 jornadas E2E + correção de todos os P0/P1 encontrados**. Se sobrarem P2, listo no relatório com plano de follow-up.
+### 4. PDF / Quote Pública
+- Usar `subtotal_apresentado` e `discount_percent` (aparente) — cliente nunca enxerga o markup.
+- Itens individuais: preço unitário também inflado proporcionalmente para manter coerência matemática (`unit_price × (1 + markup)`).
 
-## Sem novos arquivos por enquanto
-Tudo em fase de auditoria. Correções específicas só serão escritas após Fase 1+2 revelarem o backlog real. Migrations só se RLS/index faltando.
+### 5. Approval Workflow
+- `MarginInsightBadge`: mostrar BOTH desconto aparente E real ao admin aprovador.
+- `discount_approval_requests.requested_discount_percent` = real (não aparente).
+- Telas admin de aprovação: coluna nova "Desconto Real" + tooltip "Desconto aparente: 15% / Real: 5%".
 
-## Confirmação implícita
-Memória `.lovable/user-preferences` autoriza execução autônoma sequencial. Ao aprovar, executo Fases 1→6 sem pausas, reportando ao final com relatório consolidado e screenshots.
+### 6. Sincronização CRM (Bitrix/SalesPro)
+- Enviar `subtotal_apresentado` + `discount_percent` aparente (espelho do que cliente viu) — alinhado com SSOT do que foi negociado.
+- Campo extra `internal_real_discount_percent` para auditoria interna.
+
+### 7. Auditoria
+- `admin_audit_log` registra toda criação/edição com markup > 0 (ação `quote_negotiation_markup_applied`).
+
+### 8. Memória
+- Criar `mem://features/quote-negotiation-markup` documentando regra + fórmula.
+- Atualizar `mem://features/quote-discount-approval-workflow` referenciando interação com markup.
+
+## Arquivos
+- **Migration:** colunas + trigger + atualização de RPC `request_discount_approval`
+- **Editar:** `src/hooks/quotes/quoteHelpers.ts`, `src/hooks/quotes/quoteTypes.ts`, `src/types/quote.ts`, `src/components/quote/QuoteBuilderSummary.tsx` (ou onde fica o passo 3 atual), `src/components/quote/MarginInsightBadge.tsx`, geradores de PDF/HTML público (`quote-public-view`, geração PDF)
+- **Novo:** `src/components/quote/NegotiationMarkupCard.tsx`, `mem://features/quote-negotiation-markup.md`
+- **Edge functions afetadas:** `quote-public-view` (não expor markup), CRM sync functions (payload aparente)
+- **Sem mudança visível ao cliente** — toda diferença é interna ao vendedor/admin.
+
+## Fora de escopo (follow-up)
+- Análise estatística "quanto markup os vendedores aplicam em média" no Trends — sugerir após validação.
+- Limite de markup configurável por vendedor (similar a `seller_discount_limits`) — adicionar se houver demanda.
