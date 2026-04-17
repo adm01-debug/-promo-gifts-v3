@@ -35,6 +35,8 @@ const fmtBRL = (v: number) =>
 export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
   const bi = useClientBI(clientId);
   const affinity = useClientAffinity(clientId);
+  const clientCats = useClientCategoryAffinity(clientId);
+  const industryCats = useIndustryCategoryTrends(ramoAtividade);
 
   const ownProductIds = new Set(
     (affinity.data?.topProducts ?? [])
@@ -44,6 +46,15 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
   const ownProductNames = new Set(
     (affinity.data?.topProducts ?? []).map((p) => p.product_name.toLowerCase()),
   );
+
+  // Categorias em comum (cliente × setor) — interseção dos slugs
+  const sharedCategories = (() => {
+    const setorSlugs = new Set(industryCats.categories.map((c) => c.slug));
+    return clientCats.categories
+      .filter((c) => setorSlugs.has(c.slug))
+      .slice(0, 4)
+      .map((c) => c.label);
+  })();
 
   const { data, isLoading } = useQuery({
     queryKey: ["bi-lookalikes", clientId, ramoAtividade, bi.avgTicket],
