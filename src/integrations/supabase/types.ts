@@ -2645,45 +2645,6 @@ export type Database = {
         }
         Relationships: []
       }
-      web_vitals: {
-        Row: {
-          created_at: string
-          delta: number | null
-          id: string
-          metric_name: string
-          metric_value: number
-          navigation_type: string | null
-          page_url: string | null
-          rating: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          delta?: number | null
-          id?: string
-          metric_name: string
-          metric_value: number
-          navigation_type?: string | null
-          page_url?: string | null
-          rating?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          delta?: number | null
-          id?: string
-          metric_name?: string
-          metric_value?: number
-          navigation_type?: string | null
-          page_url?: string | null
-          rating?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       workspace_notifications: {
         Row: {
           action_url: string | null
@@ -2852,17 +2813,6 @@ export type Database = {
       }
       get_unread_count: { Args: never; Returns: number }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
-      get_web_vitals_regression: { Args: never; Returns: Json }
-      get_web_vitals_summary: {
-        Args: {
-          compare_previous?: boolean
-          days?: number
-          device_filter?: string
-          metric_filter?: string
-          url_filter?: string
-        }
-        Returns: Json
-      }
       has_org_role: {
         Args: {
           _org_id: string
