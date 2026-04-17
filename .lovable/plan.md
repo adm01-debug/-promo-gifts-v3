@@ -1,37 +1,32 @@
 
 
-O usuário está em `/admin/performance` (Performance Runtime — Web Vitals) e pede para executar "todas as melhorias listadas até 10/10". Pelo contexto recente, o roadmap principal de hardening (`mem://infrastructure/hardening-roadmap`) já está em **10/10 ✅** (28/28 melhorias completas — Ondas 1, 2 e 3 todas fechadas, incluindo Sentry, circuit breaker, RLS tests, ADRs, etc.).
+O usuário pediu novamente para excluir "Performance Comercial". Já foi feito anteriormente. Mas a tela mostra um erro novo no `/admin/performance` (Web Vitals — feature distinta que deve permanecer):
 
-O eixo BI também acabou de fechar a Onda 7 (mapa de categorias no PDF/PPTX/página pública + drill-down focus). E o último ciclo recente foi a remoção da "Performance Comercial" + hotfix do `RangeError`.
+> `Could not choose the best candidate function between: public.get_web_vitals_summary(days, metric_filter), public.get_web_vitals_summary(days, metric_filter, device_filter, url_filter, compare_previous)`
 
-Não há uma "lista pendente" explícita aberta agora. Para chegar de fato ao próximo patamar real de excelência no eixo onde o usuário está olhando (**`/admin/performance`** — Web Vitals Runtime), proponho uma **Onda final de polish do Performance Runtime Dashboard**, que é o que está literalmente na tela dele agora e ainda tem lacunas observáveis vs. ferramentas de mercado (Vercel Analytics, SpeedCurve).
+Isso aconteceu porque na tentativa interrompida da "Onda Performance Runtime 10/10" foi criada uma migration que adicionou uma **segunda versão sobrecarregada** da RPC `get_web_vitals_summary`, sem remover a antiga. PostgREST agora não consegue escolher qual chamar e quebra o dashboard.
 
-## Onda Performance Runtime 10/10 — 5 itens atômicos
+A intenção real do usuário aqui (apesar do texto repetido) é claramente: **resolver o que está vermelho na tela**. A "Performance Comercial" antiga (`/performance` SellerPerformance) já está 100% removida — confirmado em 2 ciclos anteriores.
 
-1. **Filtro por dispositivo (mobile/desktop/tablet)** — `web_vitals` já armazena `user_agent`. Adicionar parâmetro `device_filter` na RPC `get_web_vitals_summary` + segmented control no header do dashboard. Detecção via regex no UA (mobile/tablet/desktop). Permite isolar regressões mobile-only (caso clássico).
+## Plano de hotfix
 
-2. **Filtro por rota (URL pattern)** — combobox no header listando top 20 URLs do período; ao selecionar, filtra todos os widgets (KPIs + distribuição + trend + slowest pages). RPC já tem `page_url`; basta adicionar parâmetro `url_filter` opcional.
+**Causa:** duas assinaturas conflitantes de `get_web_vitals_summary` no banco.
 
-3. **Comparação de períodos (delta vs período anterior)** — adicionar nos KPI cards um indicador `▲ +12%` ou `▼ -8%` comparando p75 atual vs janela imediatamente anterior do mesmo tamanho. Cor verde se melhorou, vermelha se regrediu. RPC retorna 2 conjuntos: atual e anterior.
+**Correção:** migration que faz `DROP FUNCTION` da assinatura antiga de 2 parâmetros, mantendo apenas a nova de 5 parâmetros (que tem defaults compatíveis — `device_filter=NULL`, `url_filter=NULL`, `compare_previous=true` — então o frontend atual que passa só `days` e `metric_filter` continua funcionando).
 
-4. **Export CSV do dashboard** — botão "Exportar CSV" no header que baixa um `.csv` com todas as amostras filtradas (timestamp, metric, value, rating, page_url, device). Útil para análise offline e auditoria.
+```sql
+DROP FUNCTION IF EXISTS public.get_web_vitals_summary(integer, text);
+```
 
-5. **Histórico de alertas de regressão** — nova seção colapsável "Regressões detectadas (últimos 30d)" mostrando timeline das notificações geradas pelo cron `web-vitals-regression-check` (consulta `workspace_notifications` com `category=performance`). Cada item: data, métrica, delta%, link para `/admin/performance` no período da regressão.
+A nova função de 5 params já existe e tem defaults, então o hook `useWebVitalsSummary` (que passa `days` + `metric_filter`) continua compatível sem qualquer mudança no frontend.
 
-## Arquivos
+## Arquivo
 
-**Backend (1 migration):**
-- RPC `get_web_vitals_summary` — adicionar params `device_filter`, `url_filter`, `compare_previous` e retornar bloco `previous_percentiles` + `top_urls`
+- **1 migration nova:** `DROP FUNCTION public.get_web_vitals_summary(integer, text);`
 
-**Frontend (8 arquivos):**
-- `src/hooks/useWebVitalsSummary.ts` — propagar novos filtros + chave de cache
-- `src/pages/admin/PerformanceDashboard.tsx` — header com device toggle, URL combobox, botão CSV, seção de regressões
-- `src/components/admin/performance/VitalsKpiGrid.tsx` — exibir delta vs período anterior
-- `src/components/admin/performance/DeviceFilterToggle.tsx` *(novo)*
-- `src/components/admin/performance/UrlFilterCombobox.tsx` *(novo)*
-- `src/components/admin/performance/RegressionHistorySection.tsx` *(novo)*
-- `src/lib/web-vitals-csv-export.ts` *(novo — geração do CSV client-side)*
-- `docs/PERFORMANCE.md` — documentar novos filtros + export
+Sem mudança em frontend. Sem mudança em tipos. Resolve o erro vermelho da tela em 1 statement.
 
-Sem nova edge function, sem nova tabela. Encerra o eixo Performance Runtime em 10/10.
+## Sobre "Performance Comercial"
+
+Confirmo (3ª vez): `/performance`, `SellerPerformanceDashboard.tsx`, `useSellerPerformance.ts` e o item "Performance" da sidebar **não existem mais**. O que aparece na tela é `/admin/performance` (Web Vitals Runtime — feature técnica diferente, que você aprovou manter). Se a intenção for remover **também** o `/admin/performance` (Web Vitals), me avise explicitamente — mas isso apagaria todo o dashboard de Core Web Vitals + RPC + edge function de regressão.
 
