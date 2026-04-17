@@ -7,11 +7,12 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingBag, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
+import { ShoppingBag, TrendingUp, TrendingDown, Minus, AlertTriangle, Layers } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LineChart, Line, ResponsiveContainer, Tooltip as RTooltip } from "recharts";
 import { cn } from "@/lib/utils";
 import { useClientBI } from "@/hooks/bi/useClientBI";
+import { resolveBICategory } from "@/lib/bi/categoryResolver";
 
 interface Props {
   clientId: string;
@@ -143,6 +144,20 @@ export function EnrichedOrdersTimeline({ clientId }: Props) {
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{o.id}</span>
+                      {(() => {
+                        const cat = resolveBICategory(o.productPreview ?? "");
+                        if (cat.slug === "outros" && !o.productPreview) return null;
+                        return (
+                          <Badge
+                            variant="outline"
+                            className="text-[9px] h-4 gap-0.5 border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
+                            title={`Categoria dominante: ${cat.label}`}
+                          >
+                            <Layers className="h-2.5 w-2.5" />
+                            {cat.label}
+                          </Badge>
+                        );
+                      })()}
                       {i === 0 && (
                         <Badge variant="outline" className="text-[9px] h-4 border-primary/30 text-primary">
                           Mais recente
