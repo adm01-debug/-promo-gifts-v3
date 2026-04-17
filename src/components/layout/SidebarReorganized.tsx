@@ -140,6 +140,7 @@ const navGroups: NavGroup[] = [
       { icon: Sparkles, label: "Prompts IA", href: "/admin/prompts-ia", adminOnly: true },
       { icon: Workflow, label: "Workflows IA", href: "/admin/workflows", adminOnly: true },
       { icon: Activity, label: "Telemetria", href: "/admin/telemetria", adminOnly: true },
+      { icon: Gauge, label: "Performance Runtime", href: "/admin/performance", adminOnly: true },
     ],
   },
 ];
