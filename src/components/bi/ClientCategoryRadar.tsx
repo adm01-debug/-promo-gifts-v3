@@ -21,6 +21,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import {
   Radar,
   TrendingUp,
+  TrendingDown,
+  Minus,
   Target,
   Sparkles,
   CheckCircle2,
