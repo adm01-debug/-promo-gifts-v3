@@ -11,6 +11,7 @@ import type { ClientAffinityResult } from "@/hooks/bi/useClientAffinity";
 import type { IndustryTrendsResult } from "@/hooks/bi/useIndustryTrends";
 import type { SeasonalityResult } from "@/hooks/bi/useClientSeasonality";
 import type { IndustryRecommendation } from "@/lib/bi/industryRecommendations";
+import type { CategorySection } from "@/lib/bi/executive-summary";
 
 export interface DossierClient {
   name: string;
@@ -27,8 +28,9 @@ export interface DossierData {
   vsIndustry: ClientVsIndustryResult;
   affinity: ClientAffinityResult;
   industryTrends: IndustryTrendsResult;
-  seasonality: SeasonalityResult;
+  seasonality?: SeasonalityResult;
   empiricalRec: IndustryRecommendation;
+  categorySection?: CategorySection;
 }
 
 const PRIMARY: [number, number, number] = [124, 58, 237]; // violet-600
@@ -390,12 +392,93 @@ export function generateBIDossierPDF(data: DossierData): Blob {
     },
   });
 
-  // ============ PÁGINA 5 — Sazonalidade ============
-  doc.addPage();
-  y = 22;
-  y = addSectionTitle(doc, "Sazonalidade Cliente × Setor", y);
+  // ============ PÁGINA 5 — Mapa de Categorias ============
+  const cat = data.categorySection;
+  if (cat && cat.hasData) {
+    doc.addPage();
+    y = 22;
+    y = addSectionTitle(doc, "Mapa de Categorias", y);
 
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...MUTED);
+    doc.text(
+      cat.isMock
+        ? "Comparativo cliente × setor por categoria (dados parciais — amostra simulada)."
+        : "Comparativo cliente × setor por categoria de produto (últimos 90 dias).",
+      14,
+      y,
+    );
+    y += 5;
+
+    if (cat.rows.length > 0) {
+      autoTable(doc, {
+        startY: y,
+        head: [["Categoria", "Cliente %", "Setor %", "Tendência (90d)"]],
+        body: cat.rows.map((r) => {
+          const arrow = r.trend === "up" ? "↑" : r.trend === "down" ? "↓" : r.trend === "stable" ? "→" : "—";
+          const delta = r.deltaPct == null
+            ? "—"
+            : `${r.deltaPct > 0 ? "+" : ""}${Math.round(r.deltaPct)}%`;
+          return [
+            r.label,
+            `${r.clientSharePct.toFixed(1)}%`,
+            `${r.industrySharePct.toFixed(1)}%`,
+            `${arrow} ${delta}`,
+          ];
+        }),
+        theme: "grid",
+        headStyles: { fillColor: PRIMARY, textColor: 255, fontSize: 9 },
+        bodyStyles: { fontSize: 9 },
+        margin: { left: 14, right: 14 },
+        columnStyles: {
+          1: { halign: "right", cellWidth: 28 },
+          2: { halign: "right", cellWidth: 28 },
+          3: { halign: "center", cellWidth: 38, fontStyle: "bold" },
+        },
+      });
+      y = doc.lastAutoTable.finalY + 8;
+    }
+
+    if (cat.gaps.length > 0) {
+      const boxH = 14 + cat.gaps.length * 6;
+      doc.setFillColor(254, 243, 226); // amber-50
+      doc.roundedRect(14, y, W - 28, boxH, 2, 2, "F");
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(180, 83, 9); // amber-700
+      doc.text("OPORTUNIDADES GAP — categorias fortes no setor que o cliente não compra", 18, y + 6);
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8.5);
+      doc.setTextColor(...TEXT);
+      cat.gaps.forEach((g, i) => {
+        doc.text(`•  ${g.label} — ${g.reason}`, 18, y + 13 + i * 6);
+      });
+      y += boxH + 6;
+    }
+
+    // Insight final
+    doc.setFillColor(245, 243, 255);
+    doc.roundedRect(14, y, W - 28, 22, 2, 2, "F");
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(8.5);
+    doc.setTextColor(...PRIMARY);
+    doc.text("INSIGHT DE CATEGORIA", 18, y + 6);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(...TEXT);
+    const wrapped = doc.splitTextToSize(cat.insight, W - 36);
+    doc.text(wrapped, 18, y + 12);
+  }
+
+  // ============ PÁGINA 6 — Sazonalidade (opcional) ============
   const seas = data.seasonality;
+  if (seas) {
+    doc.addPage();
+    y = 22;
+    y = addSectionTitle(doc, "Sazonalidade Cliente × Setor", y);
+
+  // (seas é o mesmo data.seasonality usado acima)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...MUTED);
@@ -480,6 +563,7 @@ export function generateBIDossierPDF(data: DossierData): Blob {
     const wrapped = doc.splitTextToSize(seas.insight, W - 36);
     doc.text(wrapped, 18, y + 12);
   }
+  } // end if (seas)
 
   addFooter(doc, generatedAt);
 
