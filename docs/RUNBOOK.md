@@ -111,9 +111,7 @@ WHERE created_at < now() - interval '90 days';
 DELETE FROM query_telemetry 
 WHERE created_at < now() - interval '60 days';
 
--- Limpar web vitals antigos (> 30 dias)
-DELETE FROM web_vitals 
-WHERE created_at < now() - interval '30 days';
+-- (Web Vitals removidos: rastreamento agora é feito por sistema externo.)
 ```
 
 ---

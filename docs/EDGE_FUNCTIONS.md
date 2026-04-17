@@ -54,7 +54,6 @@
 | `send-notification` | JWT | Restrita | Zod | Não | Dispara notificação workspace |
 | `send-scheduled-reports` | Service | Restrita | N/A | Não | Envia relatórios agendados |
 | `send-transactional-email` | JWT | Restrita | Zod | RateLimiter | Email transacional |
-| `store-web-vitals` | JWT | Restrita | Zod | Não | Persiste métricas Web Vitals |
 | `sync-quote-bitrix` | JWT | Restrita | Zod | Não | Sync orçamento → Bitrix |
 | `tests` | Service | Restrita | N/A | Não | Smoke tests |
 | `trends-insights` | JWT | Restrita | Zod | DB (ai) | Insights de tendências do mercado |
