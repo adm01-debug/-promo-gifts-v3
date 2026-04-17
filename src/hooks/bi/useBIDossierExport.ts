@@ -9,8 +9,11 @@ import { useClientBI } from "@/hooks/bi/useClientBI";
 import { useClientVsIndustry } from "@/hooks/bi/useClientVsIndustry";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 import { resolveIndustryRecommendation } from "@/lib/bi/industryRecommendations";
 import { generateBIDossierPDF, buildDossierFileName } from "@/lib/bi/dossierPdfGenerator";
+import { buildCategorySection } from "@/lib/bi/executive-summary";
 import { getCompanyDisplayName } from "@/types/crm";
 
 interface UseBIDossierExport {
@@ -28,6 +31,8 @@ export function useBIDossierExport(clientId: string | null): UseBIDossierExport 
   const vsIndustry = useClientVsIndustry(clientId, ramo);
   const affinityQ = useClientAffinity(clientId ?? undefined);
   const trendsQ = useIndustryTrends(ramo);
+  const catAffinity = useClientCategoryAffinity(clientId ?? undefined);
+  const catIndustry = useIndustryCategoryTrends(ramo);
 
   const [isExporting, setIsExporting] = useState(false);
 
@@ -36,7 +41,8 @@ export function useBIDossierExport(clientId: string | null): UseBIDossierExport 
     if (companyLoading) return false;
     if (clientBI.isLoading || vsIndustry.isLoading) return false;
     if (affinityQ.isLoading) return false;
-    if (ramo && trendsQ.isLoading) return false;
+    if (catAffinity.isLoading) return false;
+    if (ramo && (trendsQ.isLoading || catIndustry.isLoading)) return false;
     return true;
   }, [
     clientId,
@@ -45,6 +51,8 @@ export function useBIDossierExport(clientId: string | null): UseBIDossierExport 
     vsIndustry.isLoading,
     affinityQ.isLoading,
     trendsQ.isLoading,
+    catAffinity.isLoading,
+    catIndustry.isLoading,
     ramo,
   ]);
 
