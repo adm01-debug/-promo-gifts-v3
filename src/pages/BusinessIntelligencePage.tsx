@@ -14,6 +14,7 @@ import { ClientOverview360 } from "@/components/bi/ClientOverview360";
 import { ClientVsIndustryComparison } from "@/components/bi/ClientVsIndustryComparison";
 import { ClientAffinityProducts } from "@/components/bi/ClientAffinityProducts";
 import { IndustryTrendingProducts } from "@/components/bi/IndustryTrendingProducts";
+import { ClientSeasonalityHeatmap } from "@/components/bi/ClientSeasonalityHeatmap";
 import { EmpiricalRecommendations } from "@/components/bi/EmpiricalRecommendations";
 import { ExportDossierButton } from "@/components/bi/ExportDossierButton";
 import { useCrmCompany } from "@/hooks/useCrmCompanies";
@@ -121,6 +122,7 @@ export default function BusinessIntelligencePage() {
             <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
             <ClientAffinityProducts clientId={clientId} />
             <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
+            <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
             <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
           </div>
         )}

@@ -2758,6 +2758,16 @@ export type Database = {
           product_name: string
         }[]
       }
+      get_client_seasonality: {
+        Args: { _client_id: string; _months?: number }
+        Returns: {
+          avg_ticket: number
+          month: number
+          quotes_count: number
+          total_revenue: number
+          year: number
+        }[]
+      }
       get_client_top_products: {
         Args: { _client_id: string; _limit?: number }
         Returns: {
@@ -2781,6 +2791,16 @@ export type Database = {
           top_product_name: string
           total_clients_sampled: number
           total_revenue: number
+        }[]
+      }
+      get_industry_seasonality: {
+        Args: { _company_ids: string[]; _months?: number }
+        Returns: {
+          avg_quotes_per_company: number
+          avg_revenue_per_company: number
+          companies_active: number
+          month: number
+          year: number
         }[]
       }
       get_industry_top_products: {
