@@ -30,6 +30,14 @@ export interface CategoryAggregate {
   totalRevenue: number;
   /** % da receita do cliente que essa categoria representa */
   revenueSharePct: number;
+  /** Receita nos últimos 90 dias */
+  revenueRecent: number;
+  /** Receita 90-180 dias atrás */
+  revenuePrevious: number;
+  /** Variação % entre janela recente e anterior (null se sem dados anteriores) */
+  deltaPct: number | null;
+  /** Tendência categórica baseada em deltaPct (limiar ±15%) */
+  trend: "up" | "down" | "stable";
   /** Top produtos REAIS dessa categoria (até 5) */
   topProducts: Array<{
     productId: string | null;
