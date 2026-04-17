@@ -40,6 +40,10 @@ interface Props {
   onSave: (status: "draft" | "pending" | "pending_approval", sellerNotes?: string) => void;
   maxDiscountPercent?: number | null;
   isDiscountExceeded?: boolean;
+  negotiationMarkup?: number;
+  setNegotiationMarkup?: (v: number) => void;
+  realSubtotal?: number;
+  realDiscountPercent?: number;
 }
 
 export function QuoteBuilderSummaryColumn({
