@@ -4,9 +4,13 @@ import { HelmetProvider } from "react-helmet-async";
 import { registerServiceWorker } from "@/lib/sw-register";
 import { initWebVitals } from "@/lib/web-vitals";
 import { installGlobalErrorHandlers } from "@/lib/error-reporter";
+import { initSentry } from "@/lib/sentry";
 import EnhancedErrorBoundary from "@/components/errors/EnhancedErrorBoundary";
 import App from "./App.tsx";
 import "./index.css";
+
+// Initialize Sentry FIRST (no-op if VITE_SENTRY_DSN is unset)
+initSentry();
 
 // Install global error handlers for unhandled errors/rejections
 installGlobalErrorHandlers();

@@ -22,6 +22,9 @@ import {
 } from "../_shared/external-db-aliases.ts";
 import { emitTelemetry, classifyDuration, VERY_SLOW_QUERY_THRESHOLD_MS, SLOW_QUERY_THRESHOLD_MS } from "../_shared/external-db-telemetry.ts";
 import { getCached, setCache } from "../_shared/external-db-cache.ts";
+import { getBreaker, circuitOpenResponse } from "../_shared/circuit-breaker.ts";
+
+const breaker = getBreaker("external-db");
 
 // ============================================
 // QUERY HELPERS
@@ -249,6 +252,10 @@ Deno.serve(async (req) => {
 
   const requestStartTime = performance.now();
 
+  if (!breaker.canRequest()) {
+    return circuitOpenResponse("external-db", corsHeaders);
+  }
+
   try {
     let rawBody: unknown;
     try {
@@ -283,9 +290,12 @@ Deno.serve(async (req) => {
     // ============================================
     // CRUD OPERATIONS
     // ============================================
-    return await handleCrud(body, req, corsHeaders, requestStartTime);
+    const response = await handleCrud(body, req, corsHeaders, requestStartTime);
+    if (response.status >= 500) breaker.recordFailure(); else breaker.recordSuccess();
+    return response;
 
   } catch (error) {
+    breaker.recordFailure();
     const totalDuration = Math.round(performance.now() - requestStartTime);
     const errorMessage = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error(`❌ [telemetry] Request failed after ${totalDuration}ms: ${errorMessage}`);

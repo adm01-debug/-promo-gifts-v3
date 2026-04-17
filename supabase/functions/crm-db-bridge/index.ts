@@ -2,6 +2,9 @@ import { getCorsHeaders, handleCorsPreflightIfNeeded } from '../_shared/cors.ts'
 import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { runBotProtection } from '../_shared/bot-protection.ts';
+import { getBreaker, circuitOpenResponse } from '../_shared/circuit-breaker.ts';
+
+const breaker = getBreaker("crm-db");
 
 // ============================================
 // CORS
@@ -413,6 +416,10 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  if (!breaker.canRequest()) {
+    return circuitOpenResponse("crm-db", corsHeaders);
+  }
+
   try {
     // Anti-scraping: bot UA check + rate limit por IP (camada externa antes do auth)
     const protection = await runBotProtection(req, {
@@ -504,15 +511,19 @@ Deno.serve(async (req) => {
     }
 
     // Route to operation handler
+    let response: Response;
     switch (operation) {
-      case "insert": return handleInsert(crm, body);
-      case "update": return handleUpdate(crm, body);
-      case "delete": return handleDelete(crm, body);
-      case "select": return handleSelect(crm, body);
-      case "search": return handleSearch(crm, body);
+      case "insert": response = await handleInsert(crm, body); break;
+      case "update": response = await handleUpdate(crm, body); break;
+      case "delete": response = await handleDelete(crm, body); break;
+      case "select": response = await handleSelect(crm, body); break;
+      case "search": response = await handleSearch(crm, body); break;
       default: return jsonResponse({ error: `Operation '${operation}' not supported.` }, 400);
     }
+    if (response.status >= 500) breaker.recordFailure(); else breaker.recordSuccess();
+    return response;
   } catch (error: unknown) {
+    breaker.recordFailure();
     console.error("CRM Bridge error:", error);
     return jsonResponse({ error: error instanceof Error ? error.message : "Internal error" }, 500);
   }
