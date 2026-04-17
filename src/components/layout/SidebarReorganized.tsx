@@ -16,7 +16,6 @@ import {
   Sparkles,
   FileText,
   ShoppingCart,
-  Star,
   Wrench,
   Zap,
   RefreshCw,
@@ -115,7 +114,6 @@ const navGroups: NavGroup[] = [
     defaultOpen: false,
     items: [
       { icon: BarChart3, label: "Dashboard BI", href: "/bi" },
-      { icon: Star, label: "Performance", href: "/performance" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
       { icon: DollarSign, label: "Comissões", href: "/comissoes" },
     ],
