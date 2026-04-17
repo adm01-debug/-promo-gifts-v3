@@ -33,7 +33,8 @@ Deno.serve(async (req) => {
       throw new Error('ELEVENLABS_API_KEY is not configured');
     }
 
-    const response = await fetch(
+    const response = await fetchWithBreaker(
+      "elevenlabs",
       'https://api.elevenlabs.io/v1/single-use-token/realtime_scribe',
       {
         method: 'POST',

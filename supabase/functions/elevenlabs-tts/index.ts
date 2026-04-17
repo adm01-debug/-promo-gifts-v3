@@ -73,7 +73,8 @@ Deno.serve(async (req) => {
     // If voiceId provided but not in allowlist, still use it (custom voices)
     const selectedVoiceId = voiceId || '5lrBPYY4YvMbKHTo8kvZ';
 
-    const response = await fetch(
+    const response = await fetchWithBreaker(
+      "elevenlabs",
       `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}?output_format=mp3_22050_32`,
       {
         method: 'POST',

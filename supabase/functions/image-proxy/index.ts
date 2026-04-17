@@ -83,7 +83,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const imageResponse = await fetch(imageUrl, {
+    const imageResponse = await fetchWithBreaker("image-cdn", imageUrl, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (compatible; ImageProxy/1.0)',
         'Accept': 'image/*',

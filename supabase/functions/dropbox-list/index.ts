@@ -49,7 +49,7 @@ Deno.serve(async (req) => {
     }
 
     // List files from Dropbox
-    const dropboxResponse = await fetch("https://api.dropboxapi.com/2/files/list_folder", {
+    const dropboxResponse = await fetchWithBreaker("dropbox", "https://api.dropboxapi.com/2/files/list_folder", {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${accessToken}`,
@@ -82,8 +82,8 @@ Deno.serve(async (req) => {
         const pathLower = entry.path_lower as string;
         if (tag === "file" && /\.(jpg|jpeg|png|gif)$/i.test(name)) {
           try {
-            const thumbnailResponse = await fetch(
-              "https://content.dropboxapi.com/2/files/get_thumbnail_v2",
+            const thumbnailResponse = await fetchWithBreaker(
+              "dropbox", "https://content.dropboxapi.com/2/files/get_thumbnail_v2",
               {
                 method: "POST",
                 headers: {
