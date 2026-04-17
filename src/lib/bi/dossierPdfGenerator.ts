@@ -478,7 +478,7 @@ export function generateBIDossierPDF(data: DossierData): Blob {
     y = 22;
     y = addSectionTitle(doc, "Sazonalidade Cliente × Setor", y);
 
-  const seas = data.seasonality;
+  // (seas é o mesmo data.seasonality usado acima)
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
   doc.setTextColor(...MUTED);
