@@ -1,47 +1,40 @@
 
-BI Fase 4: Heatmap de Sazonalidade — 6ª zona de inteligência que mostra *quando* o cliente compra ao longo do ano.
+O usuário pediu uma auditoria técnica exaustiva (22 dimensões, scorecard, plano de ação). Isso é trabalho de análise pesada read-only — vou explorar o codebase a fundo e entregar o relatório completo. Preciso confirmar escopo antes de gastar muitos tokens lendo arquivos.
 
-## Sprint — Sazonalidade Cliente × Setor
+# Plano — Auditoria Técnica 360° do Promo Gifts
 
-### 1. Migration — 2 RPCs novas
-- **`get_client_seasonality(_client_id text, _months int DEFAULT 24)`** — agrega `quotes` por (year, month): `quotes_count`, `total_revenue`, `avg_ticket`. Restrita a vendedor dono / admin / manager.
-- **`get_industry_seasonality(_company_ids text[], _months int DEFAULT 24)`** — média por mês entre empresas do ramo: `avg_quotes_per_company`, `avg_revenue_per_company`. Qualquer autenticado.
+## Objetivo
+Executar a auditoria nas **20 dimensões** do prompt, com nota 0-10, evidências (arquivo/linha), gaps e ações corretivas, culminando em scorecard, top-10 ROI e roadmap em 3 ondas.
 
-Ambas SECURITY DEFINER, search_path=public.
+## Como vou executar (em modo default)
 
-### 2. Hook `useClientSeasonality(clientId, ramo)`
-Orquestra ambas RPCs e calcula:
-- Distribuição percentual por mês (cliente e setor) — array de 12 posições
-- **Top 3 meses do cliente** + **Top 3 do setor**
-- **Próximo pico**: distância em dias até o próximo mês de pico do cliente
-- **Insight textual** por regras: ex. "Cliente concentra 45% das compras em Mar-Abr-Mai. Próximo pico em 18 dias — momento ideal para prospecção."
-- Empty state se < 3 meses com dados; fallback mock determinístico
+### Fase 0 — Inventário (1 etapa)
+- `package.json`, `tsconfig*.json`, `vite.config.ts`, `eslint.config.js`, `vitest.config.ts`, `.github/workflows/*`, `supabase/config.toml`
+- Contagem: arquivos `src/**`, edge functions, tabelas (via `supabase--read_query` em `information_schema`), rotas (App.tsx), hooks, componentes
+- Memórias relevantes (`mem://architecture/*`, `mem://security/*`)
 
-### 3. Componente `ClientSeasonalityHeatmap.tsx`
-- Grid 12 colunas (Jan-Dez) × 2 linhas (Cliente / Setor)
-- Células com gradiente proporcional usando `bg-violet-{50→600}` por intensidade
-- Tooltip ao hover (Radix): "Março: 8 pedidos · R$ 12.400 · ticket R$ 1.550"
-- Highlight no mês atual (ring violeta + label "Hoje")
-- Cards laterais: "Próximo pico" + "Insight"
-- Badge "Dados reais (24 meses)" / "Simulado"
+### Fase 1 — Varredura por dimensão (5 blocos paralelos)
+1. **Arquitetura + Manutenibilidade + Qualidade de Código** — `src/` tree, top-20 arquivos por LOC, ESLint config, dead code, duplicações
+2. **Auth + Authz + Segurança** — `AuthContext`, `ProtectedRoute`, `AdminRoute`, RLS via `supabase--linter` + `pg_policies`, edge functions `_shared/auth.ts`, anti-scraping, headers, CORS
+3. **Banco + Data Integrity + Validação** — schema (`information_schema.tables/columns`), triggers, RPCs (já listadas), migrations, Zod em edge functions, constraints
+4. **CI/CD + Infra + Operações + Documentação** — `.github/workflows/`, `CONTRIBUTING.md`, `docs/RUNBOOK.md`, `docs/DEPLOYMENT.md`, `docs/SECURITY.md`, husky, secrets
+5. **Performance + Logging + Observabilidade + Testes + Tipagem + Lógica** — bundle/lazy, `logger.ts`, Sentry, `tests/`, coverage threshold (50% atual), `tsconfig` strict, edge function logs recentes
 
-### 4. Posicionamento na página
-Inserir como **Zona 6** em `BusinessIntelligencePage.tsx`, após `IndustryTrendingProducts` e antes de `EmpiricalRecommendations`.
+### Fase 2 — Consolidação
+- Scorecard tabular (20 linhas + ponderada)
+- Top-10 ações por ROI
+- Roadmap: 🔴 Quick Wins / 🟠 Sprint 1 / 🟡 Sprint 2 / 🟢 Backlog
+- Parágrafo final de maturidade
 
-### 5. Integração com Dossiê PDF
-- Estender `useBIDossierExport.ts`: incluir `seasonalityQ` em `isReady` e payload
-- Adicionar 5ª página em `dossierPdfGenerator.ts`: tabela 12 meses Cliente vs Setor + insight em destaque
-- Atualizar tipo `DossierData` e mock fallback de sazonalidade em `mockData.ts`
+## Premissas (corrija se errar)
+- Auditar as **20 dimensões** listadas no prompt (o título diz 22, o corpo lista 20 — vou cobrir as 20).
+- Foco no app Promo Gifts atual (não auditar Bitrix24/n8n externos, apenas pontos de integração que vivem no repo).
+- Modo **read-only**: nenhuma correção será aplicada — só relatório. Implementação vira sprint separada após você priorizar.
 
-### 6. Memória
-Atualizar `mem://features/business-intelligence-module.md` documentando Zona 6 + 2 RPCs + integração no dossiê.
+## Entregável
+Um único relatório markdown estruturado em chat (Inventário → 20 dimensões → Scorecard → Top-10 → Roadmap → Nota final). Sem alterações no código.
 
-## Arquivos
-- **Migration:** RPCs `get_client_seasonality`, `get_industry_seasonality`
-- **Novo:** `src/hooks/bi/useClientSeasonality.ts`, `src/components/bi/ClientSeasonalityHeatmap.tsx`
-- **Editar:** `src/pages/BusinessIntelligencePage.tsx`, `src/lib/bi/dossierPdfGenerator.ts`, `src/hooks/bi/useBIDossierExport.ts`, `src/lib/bi/mockData.ts`, `mem://features/business-intelligence-module.md`
+## Custo estimado
+~25-35 tool calls de leitura (arquivos + queries SQL + logs). ~15 minutos de análise. Zero risco — read-only.
 
-## Fora de escopo (próximos sprints)
-- Editor admin de `INDUSTRY_RECOMMENDATIONS`
-- Compartilhar dossiê via link público assinado
-- Notificações automáticas em pico sazonal
+Aprove para eu executar.
