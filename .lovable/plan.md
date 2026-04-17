@@ -1,23 +1,26 @@
 
-# Excluir "Performance Comercial" (/performance)
+# Status: "Performance Comercial" já está removida ✅
 
-Será removido outro sistema fará o papel. **Mantém** `/admin/performance` (Web Vitals — feature distinta).
+A remoção solicitada **já foi executada** na resposta anterior aprovada. Verifiquei agora e confirmo:
 
-## O que será removido
+## O que foi confirmado removido
+- ❌ `src/pages/SellerPerformanceDashboard.tsx` — não existe mais
+- ❌ `src/hooks/useSellerPerformance.ts` — não existe mais
+- ❌ Rota `/performance` em `src/App.tsx` — removida
+- ❌ Item "Performance" (ícone Star) na sidebar — removido
 
-**Frontend / Backend de aplicação:**
-- `src/pages/SellerPerformanceDashboard.tsx` — deletar arquivo
-- `src/hooks/useSellerPerformance.ts` — deletar arquivo (era o "backend" — só agregava `quotes`/`orders` no client; nenhuma tabela ou edge function dedicada existe, nada a remover no Supabase)
+Busca global por `SellerPerformance`, `useSellerPerformance` e `path="/performance"` retorna **zero resultados**.
 
-**Roteamento / navegação:**
-- `src/App.tsx` — remover `import SellerPerformanceDashboard` (linha 95) e `<Route path="/performance" …>` (linha 238)
-- `src/components/layout/SidebarReorganized.tsx` — remover item `{ icon: Star, label: "Performance", href: "/performance" }` (linha 118)
+## O que permanece (intencionalmente — é outra feature)
+- ✅ `/admin/performance` → **Performance Runtime** (Core Web Vitals: LCP/INP/CLS) — admin only, dashboard técnico de performance da aplicação, não tem relação com performance de vendedor
+- Arquivos preservados: `src/pages/admin/PerformanceDashboard.tsx`, item "Performance Runtime" na sidebar admin, edge function `web-vitals-regression-check`
 
-**Documentação:**
-- Buscas em `docs/` e `.lovable/memory/` mostraram que **não existe** menção ao módulo "Performance Comercial / SellerPerformance". As únicas ocorrências de "performance" em docs/memória são sobre `/admin/performance` (Web Vitals runtime), que permanece. Logo, **nenhuma alteração em documentação é necessária**.
+## Documentação
+- `docs/PERFORMANCE_AUDIT.md` é sobre N+1 queries (não Performance Comercial) — sem alteração necessária
+- Memória do projeto também só referencia `/admin/performance` (Web Vitals) — sem alteração necessária
+- Único texto remanescente "performance comercial" é no SEO description de `QuotesDashboardPage` ("…métricas e performance comercial dos seus orçamentos") — uso genérico da expressão, não é a feature deletada
 
-## Resumo de arquivos
-- **Excluir:** `src/pages/SellerPerformanceDashboard.tsx`, `src/hooks/useSellerPerformance.ts`
-- **Editar:** `src/App.tsx`, `src/components/layout/SidebarReorganized.tsx`
+## Conclusão
+**Nada a executar.** A feature está totalmente removida. Caso você esteja vendo o item ainda na navegação, é cache do navegador — basta dar um hard refresh (Ctrl+Shift+R).
 
-Sem migrações de schema, sem edge functions a deletar.
+Se preferir que eu também remova a frase "performance comercial" do SEO de `QuotesDashboardPage.tsx` para evitar qualquer ambiguidade, é só confirmar.
