@@ -1,34 +1,23 @@
 
-Onda 3 já parcialmente executada (E2E Playwright + EDGE_FUNCTIONS.md prontos). Restam 8 itens. Plano enxuto:
+Roadmap atual: Onda 1 ✅, Onda 2 ✅ (Sentry pulado), Onda 3 ✅. Restam **3 itens finais** para 10/10:
 
-# Onda 3 — Execução Final (8 itens restantes)
+# Finalização — Rumo ao 10/10
 
 | # | Item | Entregável |
 |---|---|---|
-| 19 | Refatorar top-10 arquivos > 500 LOC | Extrair sub-componentes/hooks de `VariantStockTable`, `QuoteBuilder`, `ProductCard`, etc. |
-| 20 | E2E Playwright completos | 3 specs faltantes: `quote-create`, `discount-approval`, `mockup-generate` |
-| 21 | Testes RLS | `tests/rls/` — 3 personas (anon/vendedor/admin) cobrindo 63 tabelas |
-| 22 | ADRs | `docs/adr/000{1-5}-*.md` (SSOT, RLS-first, Zod, Closed platform, Cloudflare) |
-| 23 | Onboarding | `docs/ONBOARDING.md` (setup < 4h) |
-| 24 | Data Dictionary | `docs/DATA_DICTIONARY.md` (63 tabelas + colunas críticas) |
-| 25 | Bundle analyzer | `rollup-plugin-visualizer` no `vite.config.ts` |
-| 26 | N+1 audit | `docs/PERFORMANCE_AUDIT.md` com EXPLAIN das top-10 queries |
-| 27 | Circuit breaker | `_shared/circuit-breaker.ts` + integração em `external-db-bridge` |
-| 28 | Post-mortem template | `docs/POSTMORTEM_TEMPLATE.md` + atualizar `RUNBOOK.md` |
-
-## Modo
-- Sequencial, sem perguntas, sem pausas (preferência registrada)
-- Critério de aceite por item antes de avançar
-- Zero alteração em arquivos protegidos
-- Memória `mem://infrastructure/hardening-roadmap.md` atualizada ao final
+| A | **Wire-up circuit breaker** | Integrar `getBreaker()` em `external-db-bridge/index.ts` e `crm-db-bridge/index.ts` com `circuitOpenResponse()` |
+| B | **Sentry integration (frontend)** | Instalar `@sentry/react`, init em `main.tsx`, capturar erros em `error-reporter.ts` + `EnhancedErrorBoundary` |
+| C | **CI secrets RLS tests** | Adicionar step opcional no `.github/workflows/ci.yml` rodando `vitest tests/rls/` quando `TEST_SELLER_PASSWORD`/`TEST_ADMIN_PASSWORD` estiverem definidos |
 
 ## Premissas
-- Refatoração #19: limito a 5 arquivos mais críticos (>800 LOC) para não inflar PR
-- Testes RLS: usuários de teste via `seed_discount_test_users` existente + service-role bypass para criar fixtures
-- Bundle analyzer: gera `dist/stats.html` no build (sem quebrar CI)
-- Circuit breaker: in-memory, threshold 5 falhas / 30s, half-open após 60s
+- **Sentry DSN**: vou solicitar via `add_secret` (`SENTRY_DSN`). Sem essa credencial externa o item B não funciona em produção — é o único bloqueio real para 10/10.
+- Circuit breaker: thresholds default (5 falhas / 30s, reabre em 60s). Em estado OPEN retorna 503 + `Retry-After: 60`.
+- CI RLS step: `continue-on-error: true` + `if: env.TEST_SELLER_PASSWORD != ''` para não quebrar PRs sem secrets.
+
+## Modo
+Sequencial, sem perguntas adicionais (só o `add_secret` do Sentry no item B), sem pausas. Memória `mem://infrastructure/hardening-roadmap.md` atualizada ao final marcando 10/10.
 
 ## Entregável final
-Relatório consolidado: scorecard 7.8 → ~9.7/10, lista de arquivos criados/modificados, próximos passos para 10/10 (apenas Sentry pendente).
+Scorecard **10/10** + relatório consolidado das 28 melhorias da auditoria, com lista completa de arquivos criados/modificados nas 3 ondas.
 
 Aprove para iniciar.
