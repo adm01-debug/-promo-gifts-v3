@@ -23,6 +23,7 @@ import {
   DollarSign,
   Plus,
   Activity,
+  Gauge,
   Truck,
   Palette,
   Brain,
