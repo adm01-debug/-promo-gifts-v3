@@ -6,10 +6,12 @@ import { useState, useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, FileText, Info } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { ClientSelector } from "@/components/bi/ClientSelector";
+import { DEMO_CLIENT_ID, isDemoClient } from "@/lib/bi/demoClient";
 import { ClientOverview360 } from "@/components/bi/ClientOverview360";
 import { ClientVsIndustryComparison } from "@/components/bi/ClientVsIndustryComparison";
 import { ClientAffinityProducts } from "@/components/bi/ClientAffinityProducts";
@@ -102,7 +104,7 @@ export default function BusinessIntelligencePage() {
         {/* Empty state */}
         {!clientId && (
           <Card className="border-[1.5px] border-dashed">
-            <CardContent className="p-12 text-center space-y-3">
+            <CardContent className="p-12 text-center space-y-4">
               <div className="mx-auto h-14 w-14 rounded-2xl bg-primary/10 flex items-center justify-center">
                 <Info className="h-6 w-6 text-primary" />
               </div>
@@ -111,6 +113,37 @@ export default function BusinessIntelligencePage() {
                 Escolha uma empresa da sua carteira acima para gerar inteligência comercial personalizada:
                 histórico de compras, afinidade por categoria, tendências do setor e recomendações curadas.
               </p>
+              <div className="pt-2">
+                <Button
+                  onClick={() => handleSelect(DEMO_CLIENT_ID)}
+                  variant="outline"
+                  className="gap-2 border-[1.5px] border-violet-500/40 hover:bg-violet-500/10"
+                >
+                  <Sparkles className="h-4 w-4 text-violet-500" />
+                  Visualizar com dados demo
+                </Button>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Cliente fictício "Acme Brindes" para preview das 6 zonas do BI
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Demo banner */}
+        {isDemoClient(clientId) && (
+          <Card className="border-[1.5px] border-violet-500/40 bg-violet-500/5">
+            <CardContent className="p-3 flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-sm">
+                <Sparkles className="h-4 w-4 text-violet-500" />
+                <span className="font-medium">Modo Demonstração</span>
+                <span className="text-muted-foreground">
+                  · Cliente fictício com dados simulados em todas as zonas
+                </span>
+              </div>
+              <Button size="sm" variant="ghost" onClick={() => handleSelect(null)}>
+                Sair do modo demo
+              </Button>
             </CardContent>
           </Card>
         )}
