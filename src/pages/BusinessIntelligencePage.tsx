@@ -27,6 +27,7 @@ import { EnrichedOrdersTimeline } from "@/components/bi/EnrichedOrdersTimeline";
 import { BIBriefingMode } from "@/components/bi/BIBriefingMode";
 import { BIAiCopilot } from "@/components/bi/BIAiCopilot";
 import { ClientLookalikes } from "@/components/bi/ClientLookalikes";
+import { ClientCategoryRadar } from "@/components/bi/ClientCategoryRadar";
 import { BundleSuggestions } from "@/components/bi/BundleSuggestions";
 import { ExecutiveSummaryButton } from "@/components/bi/ExecutiveSummaryButton";
 import { BITourGuide } from "@/components/bi/BITourGuide";
@@ -256,6 +257,15 @@ export default function BusinessIntelligencePage() {
                 clientId={clientId}
                 clientName={clientName}
                 clientPhone={clientPhone}
+              />
+            </div>
+
+            {/* PROTAGONISTA — Eixo CATEGORIA: cliente × setor */}
+            <div data-tour="category-radar">
+              <ClientCategoryRadar
+                clientId={clientId}
+                ramoAtividade={ramoAtividade}
+                clientName={clientName}
               />
             </div>
 
