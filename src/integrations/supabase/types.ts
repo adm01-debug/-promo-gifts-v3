@@ -2771,6 +2771,18 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_industry_benchmark_stats: {
+        Args: { _company_ids: string[]; _days?: number }
+        Returns: {
+          avg_items_per_quote: number
+          avg_ltv: number
+          avg_quotes_per_client: number
+          avg_ticket: number
+          top_product_name: string
+          total_clients_sampled: number
+          total_revenue: number
+        }[]
+      }
       get_industry_top_products: {
         Args: { _company_ids: string[]; _days?: number; _limit?: number }
         Returns: {
