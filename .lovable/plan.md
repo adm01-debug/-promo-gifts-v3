@@ -1,55 +1,41 @@
 
-BI Fase 1 entregue (dados reais via RPC + imagens + badges). Próximo vetor 10/10: **Comparativo "Cliente vs Setor"** — transforma o BI em ferramenta de pitch consultivo, mostrando ao vendedor como o cliente performa frente à média do ramo.
+BI Fase 2 entregue (Cliente × Setor). Próximo vetor 10/10: **Export PDF do Dossiê BI** — transforma o módulo de "tela operacional" em "ferramenta de pitch": vendedor gera um relatório profissional do cliente para levar a reuniões, anexar em propostas ou compartilhar internamente.
 
-## Sprint — BI Fase 2: Benchmarking Cliente × Setor
+## Sprint — BI Fase 3: Dossiê PDF do Cliente
 
-### 1. Nova RPC `get_industry_benchmark_stats`
-Agrega métricas médias para um conjunto de empresas (mesmo ramo):
-- `avg_ltv` (LTV médio por cliente do ramo)
-- `avg_ticket` (ticket médio do ramo)
-- `avg_orders_per_client` (frequência média)
-- `avg_items_per_quote` (tamanho médio do orçamento)
-- `top_category` (categoria mais comum)
-- `total_clients_sampled` (quantos clientes entraram na média)
+### 1. Botão "Exportar Dossiê" no header da página
+- Posicionado ao lado do título da página, visível só quando cliente selecionado.
+- Ícone `FileDown`, label "Exportar Dossiê PDF".
+- Estado loading enquanto gera (spinner + "Gerando...").
 
-Parâmetros: `_company_ids text[]`, `_days int DEFAULT 180`. SECURITY DEFINER, search_path=public, qualquer autenticado.
+### 2. Gerador PDF client-side com `jspdf` + `jspdf-autotable`
+Bibliotecas já estão no projeto (usadas em export de orçamentos). Reaproveitar utilitários existentes (`src/lib/pdf/*` se houver).
 
-### 2. Hook `useClientVsIndustry(clientId, ramoAtividade)`
-Orquestra:
-- `useClientBI(clientId)` → métricas do cliente
-- RPC benchmark do setor (resolvendo company IDs via `selectCrm` por ramo, excluindo o próprio cliente)
-- Calcula deltas % e classificação ("Acima da média", "Na média", "Abaixo da média") com threshold ±15%
+### 3. Estrutura do Dossiê (4 páginas máx)
+- **Capa:** logo Promo Gifts, "Dossiê Comercial · {Cliente}", ramo, CNPJ, cidade, data de emissão, vendedor responsável.
+- **Página 1 — Visão 360°:** KPIs (LTV, ticket médio, última compra), timeline de pedidos recentes em tabela.
+- **Página 2 — Cliente × Setor:** tabela das 4 métricas com cliente vs média + delta % + classificação textual + insight gerado.
+- **Página 3 — Recomendações:** top 5 produtos de afinidade + top 5 tendências do setor + 3-5 sugestões empíricas (em tabelas com nome + categoria).
+- **Rodapé fixo:** "Confidencial · uso interno comercial · gerado em {data}".
 
-Fallback mock quando ramo vazio ou benchmark vazio.
+### 4. Hook orquestrador `useBIDossierExport(clientId, ramoAtividade)`
+- Reusa `useClientBI`, `useClientVsIndustry`, `useClientAffinity`, `useIndustryTrends`, `resolveIndustryRecommendation` + `useCrmCompany`.
+- Espera todos os hooks resolverem antes de gerar (nada de PDF parcial).
+- Retorna `{ exportPDF: () => Promise<void>, isReady: boolean }`.
 
-### 3. Nova Zona 5 — `ClientVsIndustryComparison.tsx`
-Card visual com 4 métricas comparadas lado-a-lado:
-- LTV: cliente vs média ramo + barra horizontal proporcional + delta % colorido
-- Ticket médio: idem
-- Frequência (pedidos/ano): idem
-- Tamanho do orçamento (itens): idem
-
-Visual: barras horizontais empilhadas com cores semânticas (emerald acima, amber neutro, red abaixo). Legenda discreta "Comparado a N empresas do mesmo ramo · 180 dias".
-
-Inclui um insight textual gerado: ex. "Este cliente compra **35% mais por pedido** que a média do setor — bom alvo para upsell premium." (regras simples baseadas nos deltas).
-
-### 4. Posicionamento na página
-Inserir entre Zona 1 (Visão 360°) e Zona 2 (Afinidade). É a "ponte" natural: depois de ver o cliente, ver como ele se compara, depois ver o que oferecer.
-
-### 5. Badges e empty states
-- Badge "Dados reais" / "Simulado" coerente com outras zonas.
-- Empty state se `companiesInRamo < 3`: "Amostra do ramo ainda insuficiente para comparação" (não exibe card).
+### 5. Componente `ExportDossierButton.tsx`
+- Encapsula botão + lógica de loading + toast de sucesso/erro.
+- Desabilitado se cliente não pronto ou export em curso.
 
 ### 6. Memória
-- Atualizar `mem://features/business-intelligence-module.md` adicionando Zona 5 e nova RPC.
+- Atualizar `mem://features/business-intelligence-module.md`: documentar Fase 3 + novo botão + estrutura do dossiê.
 
 ## Arquivos
-- **Migration:** RPC `get_industry_benchmark_stats(_company_ids text[], _days int)`.
-- **Novo:** `src/hooks/bi/useClientVsIndustry.ts`, `src/components/bi/ClientVsIndustryComparison.tsx`.
-- **Editar:** `src/pages/BusinessIntelligencePage.tsx` (inserir Zona 5), `mem://features/business-intelligence-module.md`.
-- **Sem mudanças** em hooks/zonas existentes.
+- **Novo:** `src/lib/bi/dossierPdfGenerator.ts` (função pura `generateBIDossierPDF(data) → Blob`), `src/hooks/bi/useBIDossierExport.ts`, `src/components/bi/ExportDossierButton.tsx`.
+- **Editar:** `src/pages/BusinessIntelligencePage.tsx` (adicionar botão no header), `mem://features/business-intelligence-module.md`.
+- **Sem migration**, sem mudanças em hooks/zonas existentes, sem novas dependências.
 
-## Fora de escopo (próximo sprint)
-- Export PDF do dossiê completo (cliente + comparativo + sugestões).
-- Editor admin de `INDUSTRY_RECOMMENDATIONS`.
+## Fora de escopo (próximos sprints)
 - Heatmap de sazonalidade (compras por mês).
+- Editor admin de `INDUSTRY_RECOMMENDATIONS`.
+- Compartilhar dossiê via link público assinado.
