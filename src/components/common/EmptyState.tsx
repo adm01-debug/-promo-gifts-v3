@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { 
   Package, 
@@ -119,7 +119,7 @@ const variants: Record<EmptyStateVariant, {
   }
 };
 
-export function EmptyState({
+export const EmptyState = React.forwardRef<HTMLDivElement, EmptyStateProps>(function EmptyState({
   variant = "generic",
   title,
   description,
@@ -127,12 +127,13 @@ export function EmptyState({
   secondaryAction,
   className,
   children
-}: EmptyStateProps) {
+}, ref) {
   const config = variants[variant];
   const Icon = config.icon;
   
   return (
     <motion.div
+      ref={ref}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -218,7 +219,7 @@ export function EmptyState({
       )}
     </motion.div>
   );
-}
+});
 
 // Compact version for inline use
 export function InlineEmptyState({ 
