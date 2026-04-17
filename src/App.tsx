@@ -78,6 +78,8 @@ const DropboxBrowserPage = lazyWithRetry(() => import("./pages/DropboxBrowserPag
 const CommercialIntelligencePage = lazyWithRetry(() => import("./pages/CommercialIntelligencePage"));
 const ProductMatchPage = lazyWithRetry(() => import("./pages/ProductMatchPage"));
 const BusinessIntelligencePage = lazyWithRetry(() => import("./pages/BusinessIntelligencePage"));
+const ClientComparatorPage = lazyWithRetry(() => import("./pages/ClientComparatorPage"));
+const PublicDossierPage = lazyWithRetry(() => import("./pages/PublicDossierPage"));
 
 // Orders Pages
 const OrdersPage = lazyWithRetry(() => import("./pages/OrdersPage"));
@@ -175,6 +177,7 @@ const App = () => {
                           <Route path="/approve/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/proposta/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/kit/:token" element={<PublicKitView />} errorElement={<RouteErrorBoundary />} />
+                          <Route path="/dossie/:token" element={<PublicDossierPage />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
                           {/* Protected Layout Route */}
@@ -261,6 +264,7 @@ const App = () => {
                             <Route path="/magic-up" element={<MagicUp />} />
                             <Route path="/inteligencia-comercial" element={<CommercialIntelligencePage />} />
                             <Route path="/ferramentas/bi" element={<BusinessIntelligencePage />} />
+                            <Route path="/ferramentas/bi/comparar" element={<ClientComparatorPage />} />
                             <Route path="/match" element={<ProductMatchPage />} />
                             <Route path="/dropbox" element={<DropboxBrowserPage />} />
 

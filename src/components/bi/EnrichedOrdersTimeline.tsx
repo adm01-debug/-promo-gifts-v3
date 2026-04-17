@@ -7,7 +7,8 @@ import { useMemo } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ShoppingBag, TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { ShoppingBag, TrendingUp, TrendingDown, Minus, AlertTriangle } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LineChart, Line, ResponsiveContainer, Tooltip as RTooltip } from "recharts";
 import { cn } from "@/lib/utils";
 import { useClientBI } from "@/hooks/bi/useClientBI";
@@ -140,12 +141,35 @@ export function EnrichedOrdersTimeline({ clientId }: Props) {
                 />
                 <div className="flex items-baseline justify-between gap-3">
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-medium text-sm">{o.id}</span>
                       {i === 0 && (
                         <Badge variant="outline" className="text-[9px] h-4 border-primary/30 text-primary">
                           Mais recente
                         </Badge>
+                      )}
+                      {o.isAnomaly && (
+                        <TooltipProvider delayDuration={150}>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Badge
+                                variant="outline"
+                                className="text-[9px] h-4 gap-0.5 border-0 bg-warning/15 text-warning cursor-help"
+                              >
+                                <AlertTriangle className="h-2.5 w-2.5" />
+                                Atípico
+                              </Badge>
+                            </TooltipTrigger>
+                            <TooltipContent side="top" className="max-w-[220px] text-xs">
+                              Pedido {o.deviation > 0 ? "acima" : "abaixo"} do padrão histórico
+                              ({o.deviation > 0 ? "+" : ""}
+                              {o.deviation}σ).{" "}
+                              {Math.abs(o.deviation) > 3
+                                ? "Desvio extremo — vale investigar contexto."
+                                : "Vale entender o que motivou."}
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       )}
                     </div>
                     <div className="text-xs text-muted-foreground truncate">

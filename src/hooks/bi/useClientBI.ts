@@ -28,6 +28,8 @@ export interface ClientBI {
     total: number;
     itemsCount: number;
     productPreview: string;
+    isAnomaly: boolean;
+    deviation: number; // z-score (σ)
   }>;
   /** Métricas restritas aos últimos 90 dias */
   current90d: { ltv: number; avgTicket: number; ordersCount: number };
@@ -50,9 +52,15 @@ export function useClientBI(clientId?: string): ClientBI {
 
   return useMemo(() => {
     if (!data || data.ordersCount === 0) {
+      const mockOrders = MOCK_CLIENT_STATS.recentOrders.map((o) => ({
+        ...o,
+        isAnomaly: false,
+        deviation: 0,
+      }));
       return {
         isMock: true,
         ...MOCK_CLIENT_STATS,
+        recentOrders: mockOrders,
         lastOrderDate: MOCK_CLIENT_STATS.lastOrderDate,
         daysSinceLastOrder: MOCK_CLIENT_STATS.daysSinceLastOrder,
         current90d: {
@@ -115,13 +123,28 @@ export function useClientBI(clientId?: string): ClientBI {
       daysSinceLastOrder: daysSince,
       // Categorias reais ainda não temos (depende de order_items + categoria) — fallback mock parcial
       topCategories: MOCK_CLIENT_STATS.topCategories,
-      recentOrders: data.orders.slice(0, 5).map((o) => ({
-        id: o.order_number,
-        date: o.created_at,
-        total: o.total ?? 0,
-        itemsCount: 1,
-        productPreview: o.notes?.slice(0, 60) ?? "Pedido",
-      })),
+      recentOrders: (() => {
+        const totals = valid.map((o) => o.total ?? 0).filter((t) => t > 0);
+        const mean = totals.length > 0 ? totals.reduce((s, v) => s + v, 0) / totals.length : 0;
+        const variance =
+          totals.length > 1
+            ? totals.reduce((s, v) => s + Math.pow(v - mean, 2), 0) / totals.length
+            : 0;
+        const sigma = Math.sqrt(variance);
+        return data.orders.slice(0, 5).map((o) => {
+          const total = o.total ?? 0;
+          const dev = sigma > 0 ? (total - mean) / sigma : 0;
+          return {
+            id: o.order_number,
+            date: o.created_at,
+            total,
+            itemsCount: 1,
+            productPreview: o.notes?.slice(0, 60) ?? "Pedido",
+            isAnomaly: Math.abs(dev) > 2 && totals.length >= 4,
+            deviation: Math.round(dev * 10) / 10,
+          };
+        });
+      })(),
       current90d: cur,
       previous90d: prev,
       delta: {

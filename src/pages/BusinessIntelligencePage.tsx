@@ -3,10 +3,12 @@
  * Pós-Sprint 1+2+3: Health Score Hero · ChurnRiskBanner · Briefing · Copilot · Lookalikes.
  */
 import { useState, useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, Share2, HelpCircle, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -27,15 +29,21 @@ import { BIAiCopilot } from "@/components/bi/BIAiCopilot";
 import { ClientLookalikes } from "@/components/bi/ClientLookalikes";
 import { BundleSuggestions } from "@/components/bi/BundleSuggestions";
 import { ExecutiveSummaryButton } from "@/components/bi/ExecutiveSummaryButton";
+import { BITourGuide } from "@/components/bi/BITourGuide";
+import { useSeasonalPeakNotifications } from "@/hooks/bi/useSeasonalPeakNotifications";
+import { useClientSeasonality } from "@/hooks/bi/useClientSeasonality";
 import { useCrmCompany } from "@/hooks/useCrmCompanies";
 import { getCompanyDisplayName } from "@/types/crm";
 
 export default function BusinessIntelligencePage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
   const initialClient = searchParams.get("clientId");
   const [clientId, setClientId] = useState<string | null>(initialClient);
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
+  const [tourForce, setTourForce] = useState(false);
+  const [sharing, setSharing] = useState(false);
 
   const handleSelect = (id: string | null) => {
     setClientId(id);
@@ -56,6 +64,36 @@ export default function BusinessIntelligencePage() {
     const c = company as { _deprecated_phone?: string | null; phones?: Array<{ phone_number?: string | null }> } | undefined;
     return c?.phones?.[0]?.phone_number ?? c?._deprecated_phone ?? null;
   }, [company]);
+
+  const seas = useClientSeasonality(clientId, ramoAtividade);
+  useSeasonalPeakNotifications({
+    clientId,
+    clientName,
+    daysToNextPeak: seas.daysToNextPeak,
+    nextPeakMonth: seas.nextPeakMonth,
+  });
+
+  const handleShare = async () => {
+    if (!clientId) return;
+    setSharing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("bi-share-dossier", {
+        body: { clientId, clientName, ramoAtividade, expiresInDays: 7 },
+      });
+      if (error) throw error;
+      const url = (data as { url?: string })?.url;
+      if (url) {
+        await navigator.clipboard.writeText(url);
+        toast.success("Link copiado!", { description: "Válido por 7 dias · read-only." });
+      }
+    } catch (err) {
+      toast.error("Falha ao gerar link", {
+        description: err instanceof Error ? err.message : "Tente novamente.",
+      });
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <MainLayout>
@@ -81,6 +119,17 @@ export default function BusinessIntelligencePage() {
           </div>
           {clientId && (
             <div className="flex items-center gap-2 flex-wrap">
+              <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)} title="Tour guiado">
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/ferramentas/bi/comparar?ids=${clientId}`)}>
+                <GitCompare className="h-4 w-4" />
+                Comparar
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={handleShare} disabled={sharing}>
+                {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
+                Compartilhar
+              </Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -95,6 +144,7 @@ export default function BusinessIntelligencePage() {
                 variant="outline"
                 className="gap-1.5 border-violet-500/30 hover:bg-violet-500/10"
                 onClick={() => setCopilotOpen(true)}
+                data-tour="copilot"
               >
                 <Bot className="h-4 w-4 text-violet-500" />
                 Pergunte ao BI
@@ -197,18 +247,37 @@ export default function BusinessIntelligencePage() {
               clientId={clientId}
               ramoAtividade={ramoAtividade}
               clientName={clientName}
+              data-tour="health-hero"
             />
+            <div data-tour="health-hero" />
 
-            {/* Banner de churn (só aparece se médio/alto) */}
-            <ChurnRiskBanner
-              clientId={clientId}
-              clientName={clientName}
-              clientPhone={clientPhone}
-            />
+            <div data-tour="churn-banner">
+              <ChurnRiskBanner
+                clientId={clientId}
+                clientName={clientName}
+                clientPhone={clientPhone}
+              />
+            </div>
 
-            {/* Visão 360° KPIs + Timeline enriquecida */}
             <ClientOverview360 clientId={clientId} />
-            <EnrichedOrdersTimeline clientId={clientId} />
+            <div data-tour="orders-timeline">
+              <EnrichedOrdersTimeline clientId={clientId} />
+            </div>
+
+            <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
+            <ClientAffinityProducts clientId={clientId} />
+            <BundleSuggestions clientId={clientId} />
+            <IndustryTrendingProducts ramoAtividade={ramoAtividade} clientId={clientId} />
+            <div data-tour="seasonality">
+              <ClientSeasonalityHeatmap clientId={clientId} ramoAtividade={ramoAtividade} />
+            </div>
+            <ClientLookalikes clientId={clientId} ramoAtividade={ramoAtividade} />
+            <EmpiricalRecommendations ramoAtividade={ramoAtividade} clientId={clientId} />
+          </div>
+        )}
+      </div>
+
+      {clientId && <BITourGuide force={tourForce} onClose={() => setTourForce(false)} />}
 
             <ClientVsIndustryComparison clientId={clientId} ramoAtividade={ramoAtividade} />
             <ClientAffinityProducts clientId={clientId} />
