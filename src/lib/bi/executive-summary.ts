@@ -47,8 +47,8 @@ export function buildCategorySection(
   const clientCats: CategoryAggregate[] = catAffinity?.categories ?? [];
   const industryCats: IndustryCategoryAggregate[] = catIndustry?.categories ?? [];
 
-  const clientBySlug = new Map(clientCats.map((c) => [c.slug, c]));
-  const industryBySlug = new Map(industryCats.map((c) => [c.slug, c]));
+  const clientBySlug = new Map<string, CategoryAggregate>(clientCats.map((c) => [c.slug, c]));
+  const industryBySlug = new Map<string, IndustryCategoryAggregate>(industryCats.map((c) => [c.slug, c]));
 
   // União de slugs, priorizando ordem do cliente
   const seen = new Set<string>();
