@@ -1,58 +1,43 @@
 
 
-Usuário quer unificar o módulo "Gestão de Descontos" (`/admin/aprovacoes-desconto`) dentro do módulo "Usuários" (`/admin/usuarios`) como uma nova aba, eliminando a entrada separada na sidebar.
+Usuário pediu para continuar executando melhorias rumo ao 10/10, autonomamente, uma de cada vez. Como estou em plan mode, preciso apresentar o plano da próxima onda de melhorias antes de executar.
 
-## Investigação rápida necessária
+Status atual conhecido (via `mem://infrastructure/hardening-roadmap`): **10/10 já atingido** nas 28 melhorias da auditoria original (Ondas 1, 2, 3 ✅). Então o que ainda faz sentido executar agora? Olhando o histórico recente desta sessão, fizemos 3 remoções grandes (Performance Comercial, Performance Runtime, Comissões) e a unificação de Gestão de Descontos em Usuários. Isso gera **dívida residual**: arquivos órfãos, referências quebradas em docs, memórias desatualizadas, possíveis testes RLS ainda apontando para tabelas dropadas, e oportunidades de polimento descobertas no caminho.
 
-Antes do plano final, preciso confirmar:
-- Localizar item da sidebar "Gestão de Descontos" / "Aprovações de Desconto"
-- Confirmar componentes envolvidos: `SellerDiscountLimitsPanel`, `DiscountApprovalQueue`, hook `usePendingDiscountApprovals` (para badge de pendentes)
-- Verificar se há outros pontos de entrada (links internos, breadcrumbs)
+## Próxima onda — "Polimento pós-remoções + hardening incremental"
 
-## Plano de execução
+Vou executar **6 melhorias atômicas**, uma por vez, em ordem de menor risco → maior valor:
 
-### 1. Adicionar abas em `AdminUsuariosPage.tsx`
-Atualmente tem 2 abas: "Usuários & Roles" + "Reset de Senha". Adicionar 2 novas:
-- **"Limites de Desconto"** → renderiza `<SellerDiscountLimitsPanel />`
-- **"Aprovações de Desconto"** → renderiza `<DiscountApprovalQueue />` com badge de contagem pendente (mesmo padrão do Reset)
+### 1. Auditoria de referências órfãs (3 features removidas)
+Buscar no código, docs e testes por menções residuais a:
+- `commission_entries`, `commission_rules`, `useCommissions`, `/comissoes`
+- `web_vitals`, `useWebVitalsSummary`, `/admin/performance`, `initWebVitals`
+- `AdminDiscountApprovalsPage`, `/admin/aprovacoes-desconto` (exceto o redirect)
 
-Imports novos:
-```ts
-import { SellerDiscountLimitsPanel } from "@/components/admin/SellerDiscountLimitsPanel";
-import { DiscountApprovalQueue } from "@/components/admin/DiscountApprovalQueue";
-import { Percent, ShieldAlert } from "lucide-react";
-```
+Limpar imports mortos, comentários obsoletos, links quebrados em `docs/`. Atualizar `docs/DATA_DICTIONARY.md`, `docs/RUNBOOK.md`, `docs/EDGE_FUNCTIONS.md` se ainda houver resquícios.
 
-Hook para badge de pendentes (vou localizar o hook usado atualmente em `AdminDiscountApprovalsPage` ou criar um pequeno fetcher se ainda não existir).
+### 2. Atualizar memória `quote-discount-approval-workflow`
+Refletir nova localização (`/admin/usuarios?tab=discounts`) e remover qualquer URL antiga.
 
-### 2. Estender `UserStatsCards`
-Adicionar 2 KPIs ao grid existente (de 5 para 7 colunas, ou criar segunda linha):
-- "Aprovações Pendentes" (de descontos)
-- "Vendedores com Limite" (X/total)
+### 3. Atualizar `mem://index.md`
+Garantir que entradas removidas (Performance Runtime Dashboard) estão fora do índice, e que a entrada de discount-approval menciona a nova URL.
 
-Alternativa mais limpa: manter `UserStatsCards` com 5 e exibir os 2 novos KPIs apenas quando a aba de descontos estiver ativa, dentro do conteúdo da aba (já existem nos painéis internos). **Decisão: deixar os KPIs específicos dentro dos próprios painéis de desconto** (que já mostram média/contagem) para evitar duplicação e manter o `UserStatsCards` focado em usuários.
+### 4. Verificar e remover dependências NPM órfãs
+Checar `package.json` para libs que só serviam aos módulos removidos (ex: alguma lib de chart usada exclusivamente no Performance Dashboard que sobrou após o `web-vitals` ter sido removido).
 
-### 3. Atualizar roteamento
-- `src/App.tsx`: redirecionar `/admin/aprovacoes-desconto` → `/admin/usuarios?tab=discount-approvals` (Navigate replace), preservando deep links existentes.
-- `AdminUsuariosPage`: ler query param `?tab=` e usar como `defaultValue` do `<Tabs>` (controlado), permitindo deep link direto às novas abas.
+### 5. Lint pass focado
+Rodar `eslint` no escopo dos arquivos editados nesta sessão (`src/pages/admin/AdminUsuariosPage.tsx`, `src/components/admin/DiscountManagementPanel.tsx`, `src/App.tsx`, sidebar) e corrigir warnings residuais (cores hardcoded → tokens semânticos, `any` → tipos estritos, `useEffect` deps).
 
-### 4. Sidebar
-- Remover item "Gestão de Descontos" / "Aprovações de Desconto" do `SidebarReorganized.tsx`.
-- Manter badge global de pendentes? Sim — mover lógica de badge (se existir na sidebar) para o item "Usuários", somando reset pendentes + descontos pendentes.
+### 6. Smoke test E2E atualizado
+Garantir que `e2e/discount-approval.spec.ts` (que acabei de atualizar) passa no padrão de auth-redirect e que não há outros testes E2E referenciando rotas mortas.
 
-### 5. Deletar arquivo
-- `src/pages/AdminDiscountApprovalsPage.tsx` (substituído pelas abas).
-- Remover lazy import correspondente em `App.tsx`.
+## Política de execução
 
-### 6. Documentação/memória
-- Atualizar `mem://features/quote-discount-approval-workflow` para refletir nova localização (`/admin/usuarios` aba "Aprovações de Desconto").
-- E2E `e2e/discount-approval.spec.ts`: atualizar URL de `/admin/aprovacoes-desconto` para `/admin/usuarios?tab=discount-approvals` (mantém checagem de auth).
+- **Uma melhoria por vez**, em commits lógicos separados.
+- Nenhuma migration nova de banco (apenas docs/code/memória).
+- Não-destrutivo, totalmente reversível.
+- Sem perguntas durante a execução — sigo até concluir as 6.
+- Se descobrir uma 7ª melhoria de alto impacto durante a execução (ex.: rota morta ainda referenciada em algum menu), executo na sequência sem pausar.
 
-## Resumo da nova estrutura de abas em `/admin/usuarios`
-
-```text
-[Usuários & Roles] [Reset de Senha (N)] [Limites de Desconto] [Aprovações de Desconto (N)]
-```
-
-Reversível, não-destrutivo, sem migração de banco.
+Ao aprovar, começo pela #1 e sigo até a #6.
 
