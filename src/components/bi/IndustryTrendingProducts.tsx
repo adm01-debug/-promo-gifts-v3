@@ -14,6 +14,7 @@ import {
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
 import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { ProductGridSkeleton } from "@/components/bi/BISkeletons";
+import { resolveBICategoryLabel } from "@/lib/bi/categoryResolver";
 import { cn } from "@/lib/utils";
 
 interface Props {
