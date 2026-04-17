@@ -1,13 +1,14 @@
 /**
  * ClientVsIndustryComparison — Zona 5 do BI.
- * Compara o cliente atual com a média do seu ramo de atividade em 4 métricas-chave.
+ * Sprint 2: 5ª métrica = Share-of-Wallet (estimativa heurística) com gap em R$.
  */
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Scale, TrendingUp, TrendingDown, Minus, Lightbulb, Info } from "lucide-react";
+import { Scale, TrendingUp, TrendingDown, Minus, Lightbulb, Info, Wallet } from "lucide-react";
 import { useClientVsIndustry, type MetricComparison } from "@/hooks/bi/useClientVsIndustry";
-import { formatCurrencyCompact } from "@/lib/format";
+import { ComparisonSkeleton } from "@/components/bi/BISkeletons";
+import { formatCurrencyCompact, formatCurrency } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 interface Props {
@@ -27,37 +28,13 @@ function formatIndustry(m: MetricComparison): string {
 function classificationStyles(c: MetricComparison["classification"]) {
   switch (c) {
     case "above":
-      return {
-        text: "text-emerald-600 dark:text-emerald-400",
-        bar: "bg-emerald-500",
-        bg: "bg-emerald-500/10",
-        Icon: TrendingUp,
-        label: "Acima da média",
-      };
+      return { text: "text-success", bar: "bg-success", bg: "bg-success/10", Icon: TrendingUp, label: "Acima da média" };
     case "below":
-      return {
-        text: "text-red-600 dark:text-red-400",
-        bar: "bg-red-500",
-        bg: "bg-red-500/10",
-        Icon: TrendingDown,
-        label: "Abaixo da média",
-      };
+      return { text: "text-destructive", bar: "bg-destructive", bg: "bg-destructive/10", Icon: TrendingDown, label: "Abaixo da média" };
     case "on_par":
-      return {
-        text: "text-amber-600 dark:text-amber-400",
-        bar: "bg-amber-500",
-        bg: "bg-amber-500/10",
-        Icon: Minus,
-        label: "Na média",
-      };
+      return { text: "text-warning", bar: "bg-warning", bg: "bg-warning/10", Icon: Minus, label: "Na média" };
     default:
-      return {
-        text: "text-muted-foreground",
-        bar: "bg-muted",
-        bg: "bg-muted/40",
-        Icon: Minus,
-        label: "Sem dados",
-      };
+      return { text: "text-muted-foreground", bar: "bg-muted", bg: "bg-muted/40", Icon: Minus, label: "Sem dados" };
   }
 }
 
@@ -74,10 +51,7 @@ function MetricRow({ metric }: { metric: MetricComparison }) {
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {metric.label}
         </span>
-        <Badge
-          variant="outline"
-          className={cn("text-[10px] gap-1 border-0", styles.bg, styles.text)}
-        >
+        <Badge variant="outline" className={cn("text-[10px] gap-1 border-0", styles.bg, styles.text)}>
           <styles.Icon className="h-3 w-3" />
           {deltaSign}
           {Math.round(metric.deltaPercent)}%
@@ -85,30 +59,22 @@ function MetricRow({ metric }: { metric: MetricComparison }) {
       </div>
 
       <div className="space-y-1.5">
-        {/* Cliente */}
         <div className="space-y-0.5">
           <div className="flex justify-between text-xs">
             <span className="font-medium text-foreground">Cliente</span>
             <span className={cn("font-bold tabular-nums", styles.text)}>{formatValue(metric)}</span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
-            <div
-              className={cn("h-full rounded-full transition-all", styles.bar)}
-              style={{ width: `${clientPct}%` }}
-            />
+            <div className={cn("h-full rounded-full transition-all", styles.bar)} style={{ width: `${clientPct}%` }} />
           </div>
         </div>
-        {/* Setor */}
         <div className="space-y-0.5">
           <div className="flex justify-between text-xs">
             <span className="text-muted-foreground">Média do setor</span>
             <span className="text-muted-foreground tabular-nums">{formatIndustry(metric)}</span>
           </div>
           <div className="h-2 rounded-full bg-muted overflow-hidden">
-            <div
-              className="h-full rounded-full bg-muted-foreground/40 transition-all"
-              style={{ width: `${industryPct}%` }}
-            />
+            <div className="h-full rounded-full bg-muted-foreground/40 transition-all" style={{ width: `${industryPct}%` }} />
           </div>
         </div>
       </div>
@@ -118,28 +84,63 @@ function MetricRow({ metric }: { metric: MetricComparison }) {
   );
 }
 
+/** Card especial: Share-of-Wallet com gauge e gap em R$. */
+function ShareOfWalletCard({ clientLtv, industryAvgLtv }: { clientLtv: number; industryAvgLtv: number }) {
+  const [open, setOpen] = useState(false);
+  // Heurística: cliente / (cliente + 1.5 × média setor) — capped 5..95%
+  const denom = clientLtv + industryAvgLtv * 1.5;
+  const rawShare = denom > 0 ? clientLtv / denom : 0;
+  const share = Math.max(0.05, Math.min(0.95, rawShare));
+  const sharePct = Math.round(share * 100);
+  // Gap: receita potencial não capturada = 1.5 × setor (top tier) − cliente atual
+  const potentialCap = industryAvgLtv * 1.5;
+  const gap = Math.max(0, potentialCap - clientLtv);
+
+  const tone =
+    sharePct >= 50 ? { text: "text-success", bar: "bg-success", bg: "bg-success/10", label: "Carteira dominante" }
+    : sharePct >= 25 ? { text: "text-warning", bar: "bg-warning", bg: "bg-warning/10", label: "Espaço para crescer" }
+    : { text: "text-destructive", bar: "bg-destructive", bg: "bg-destructive/10", label: "Baixa penetração" };
+
+  return (
+    <button
+      type="button"
+      onClick={() => setOpen((o) => !o)}
+      className="text-left space-y-2 p-3 rounded-lg border bg-card/50 hover:border-primary/40 hover:shadow-sm transition-all"
+      aria-expanded={open}
+    >
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-1.5">
+          <Wallet className="h-3 w-3" /> Share of wallet
+        </span>
+        <Badge variant="outline" className={cn("text-[10px] gap-1 border-0", tone.bg, tone.text)}>
+          {sharePct}%
+        </Badge>
+      </div>
+      <div className={cn("font-display text-2xl font-bold tabular-nums", tone.text)}>{sharePct}%</div>
+      <div className="h-2 rounded-full bg-muted overflow-hidden">
+        <div className={cn("h-full rounded-full transition-all", tone.bar)} style={{ width: `${sharePct}%` }} />
+      </div>
+      <div className="flex items-center justify-between text-[11px]">
+        <span className="text-muted-foreground">Gap não capturado</span>
+        <span className="font-bold text-foreground">{formatCurrency(gap)}</span>
+      </div>
+      <p className={cn("text-[10px] font-medium", tone.text)}>{tone.label}</p>
+      {open && (
+        <p className="text-[10px] leading-relaxed text-muted-foreground pt-1 border-t">
+          Estimativa baseada no LTV do cliente vs LTV potencial do ramo (1.5× a média). Gap representa
+          quanto este cliente ainda pode crescer dentro do seu setor.
+        </p>
+      )}
+    </button>
+  );
+}
+
 export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
   const { isLoading, hasEnoughSample, sampleSize, daysWindow, metrics, insight } =
     useClientVsIndustry(clientId, ramoAtividade);
 
-  // Sem ramo cadastrado → não exibe
   if (!ramoAtividade) return null;
-
-  if (isLoading) {
-    return (
-      <Card className="border-[1.5px]">
-        <CardHeader>
-          <Skeleton className="h-6 w-64" />
-          <Skeleton className="h-4 w-80" />
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-32 rounded-lg" />
-          ))}
-        </CardContent>
-      </Card>
-    );
-  }
+  if (isLoading) return <ComparisonSkeleton />;
 
   if (!hasEnoughSample) {
     return (
@@ -149,9 +150,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
             <Info className="h-4 w-4 text-muted-foreground" />
           </div>
           <div className="space-y-1">
-            <h3 className="font-display font-semibold text-sm">
-              Comparativo Cliente × Setor
-            </h3>
+            <h3 className="font-display font-semibold text-sm">Comparativo Cliente × Setor</h3>
             <p className="text-xs text-muted-foreground">
               Amostra do ramo <span className="font-medium">{ramoAtividade}</span> ainda
               insuficiente para gerar benchmarking. Mínimo de 3 empresas com orçamentos
@@ -163,37 +162,40 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
     );
   }
 
+  const ltvMetric = metrics.find((m) => m.label === "LTV");
+
   return (
     <Card className="border-[1.5px]">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2.5">
-            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 flex items-center justify-center shadow-md shadow-emerald-500/20">
-              <Scale className="h-4 w-4 text-primary-foreground" />
+            <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-success to-success/70 flex items-center justify-center shadow-md shadow-success/20">
+              <Scale className="h-4 w-4 text-success-foreground" />
             </div>
             <div>
-              <CardTitle className="font-display text-base">
-                Cliente × Setor
-              </CardTitle>
+              <CardTitle className="font-display text-base">Cliente × Setor</CardTitle>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Benchmark contra {sampleSize} empresa{sampleSize !== 1 ? "s" : ""} de{" "}
                 <span className="font-medium">{ramoAtividade}</span> · últimos {daysWindow} dias
               </p>
             </div>
           </div>
-          <Badge
-            variant="outline"
-            className="bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-0 text-[10px]"
-          >
+          <Badge variant="outline" className="bg-success/10 text-success border-0 text-[10px]">
             Dados reais
           </Badge>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {metrics.map((m) => (
             <MetricRow key={m.label} metric={m} />
           ))}
+          {ltvMetric && (
+            <ShareOfWalletCard
+              clientLtv={ltvMetric.clientValue}
+              industryAvgLtv={ltvMetric.industryAvg}
+            />
+          )}
         </div>
 
         {insight && (
