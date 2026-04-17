@@ -166,6 +166,7 @@ export function useQuoteBuilderState() {
         }
         if (quote.discount_percent && quote.discount_percent > 0) { setDiscountType("percent"); setDiscountValue(quote.discount_percent); }
         else if (quote.discount_amount && quote.discount_amount > 0) { setDiscountType("amount"); setDiscountValue(quote.discount_amount); }
+        if (typeof quote.negotiation_markup_percent === "number") setNegotiationMarkup(quote.negotiation_markup_percent);
         if (quote.payment_terms) setPaymentTerms(quote.payment_terms);
         if (quote.shipping_type) setShippingType(quote.shipping_type);
         if (quote.shipping_cost) setShippingCost(quote.shipping_cost);
@@ -333,9 +334,22 @@ export function useQuoteBuilderState() {
     return item.quantity * item.unit_price + calculateItemPersonalizationTotal(item);
   }, [calculateItemPersonalizationTotal]);
 
-  const subtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
+  // ── Subtotal real (sem markup) e apresentado (com markup) ──
+  const realSubtotal = useMemo(() => items.reduce((sum, item) => sum + calculateItemTotal(item), 0), [items, calculateItemTotal]);
+  const markup = useMemo(() => Math.min(50, Math.max(0, negotiationMarkup || 0)), [negotiationMarkup]);
+  const subtotal = useMemo(
+    () => markup > 0 ? Math.round(realSubtotal * (1 + markup / 100) * 100) / 100 : realSubtotal,
+    [realSubtotal, markup]
+  );
   const discountAmount = useMemo(() => discountType === "percent" ? subtotal * (discountValue / 100) : discountValue, [subtotal, discountType, discountValue]);
   const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
+
+  // ── Desconto REAL (sobre subtotal real) — usado para alçada ──
+  const realDiscountPercent = useMemo(() => {
+    if (realSubtotal <= 0) return 0;
+    const finalBeforeShipping = Math.max(0, subtotal - discountAmount);
+    return Math.round(((realSubtotal - finalBeforeShipping) / realSubtotal) * 10000) / 100;
+  }, [realSubtotal, subtotal, discountAmount]);
 
   // ── Item actions ──
   const toggleExpanded = useCallback((index: number) => {
