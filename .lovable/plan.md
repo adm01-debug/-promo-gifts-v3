@@ -1,79 +1,34 @@
 
-Entendi perfeitamente. O vendedor quer **inflar artificialmente o subtotal** (markup percebido) para que o desconto exibido pareça maior do que o real, mantendo o valor final dentro da margem permitida. Isso precisa coexistir com o sistema de alçada de desconto sem burlá-lo.
+Margem de Negociação já entregue. Próximo vetor 10/10: **fechar o loop da feature** garantindo que markup nunca vaze ao cliente, esteja visível ao admin aprovador e seja auditado.
 
-## Conceito UX — "Valor de Negociação"
+## Sprint — Margem de Negociação: Hardening & Visibilidade
 
-Termo escolhido (testado mentalmente vs alternativas como "preço cheio inflacionado", "preço de catálogo", "âncora psicológica"):
-- **"Margem de Negociação"** — campo opcional que ajusta o `subtotal apresentado` para cima, criando espaço para um "desconto aparente" maior.
+### 1. Quote pública / PDF — anti-vazamento
+- Auditar `supabase/functions/quote-public-view/index.ts`: garantir que o payload retornado ao cliente **não** inclua `negotiation_markup_percent`, `real_subtotal`, `real_discount_percent`. Whitelist explícita de campos.
+- Auditar gerador de PDF (`generateQuotePDF` / `quote-pdf` edge): mesma whitelist. Cliente vê apenas `subtotal` (apresentado) e `discount_percent` (aparente).
 
-### Modelo matemático
-```
-preco_real_unitario      = item.unit_price (do catálogo)
-markup_negociacao_pct    = quote.negotiation_markup_percent (NOVO, default 0)
-subtotal_real            = Σ(qty × unit_price) + personalizações
-subtotal_apresentado     = subtotal_real × (1 + markup_negociacao_pct/100)
-desconto_aparente_pct    = quote.discount_percent (o que o cliente vê)
-desconto_real_pct        = 1 - (subtotal_apresentado × (1 - desconto_aparente/100)) / subtotal_real
+### 2. Approval workflow — admin vê os dois descontos
+- Editar tela de aprovação de desconto (admin): coluna nova "Desconto Real" + tooltip "Aparente: X% / Real: Y% (markup +Z%)".
+- `MarginInsightBadge`: quando markup > 0, mostrar dual badge (aparente vs real).
+- `discount_approval_requests.requested_discount_percent` já é o real (vindo de `realDiscountPercent`) — confirmar no `requestApproval`.
 
-VALIDAÇÃO ALÇADA: desconto_real_pct ≤ seller.max_discount_percent
-```
+### 3. CRM sync — payload coerente
+- `bitrix-quote-sync` / `salespro-quote-sync`: enviar `subtotal` apresentado + `discount_percent` aparente (espelho do que cliente viu) + campo extra `internal_real_discount_percent` para auditoria interna no CRM.
 
-Exemplo:
-- Real: R$100, vendedor pode dar 5%, quer aparentar 15%
-- Markup negociação: +11.76% → subtotal apresentado R$111.76
-- Aplica 15% desconto → R$95.00 final
-- Desconto REAL: 5% ✅ dentro da alçada
+### 4. Auditoria
+- Logar em `admin_audit_log` toda criação/edição com `negotiation_markup_percent > 0` (action: `quote_negotiation_markup_applied`, metadata: markup, real_discount, apparent_discount).
 
-## Implementação
+### 5. Memória
+- Criar `mem://features/quote-negotiation-markup` com fórmula + invariantes + lista de superfícies que NÃO devem expor markup.
+- Atualizar `mem://features/quote-discount-approval-workflow` referenciando que alçada agora valida pelo desconto real.
+- Atualizar `mem://index.md`.
 
-### 1. Migration
-- Adicionar coluna `quotes.negotiation_markup_percent NUMERIC(5,2) DEFAULT 0 CHECK (>=0 AND <=50)`
-- Adicionar `quotes.real_subtotal NUMERIC` (subtotal sem markup, para auditoria)
-- Adicionar `quotes.real_discount_percent NUMERIC` (desconto efetivo real, para alçada)
-- Trigger `validate_quote_real_discount()`: calcula `real_discount_percent` no BEFORE INSERT/UPDATE e bloqueia se exceder limite do vendedor (consulta `seller_discount_limits`).
-- Atualizar `discount_approval_requests` workflow para usar `real_discount_percent` em vez de `discount_percent` aparente.
-
-### 2. Backend (`quoteHelpers.ts`)
-- `calculateQuoteTotals` retorna `{ realSubtotal, presentedSubtotal, realDiscountPercent, presentedDiscountPercent, total }`.
-- `buildInsertPayload` / `buildUpdatePayload` persistem markup + real_subtotal + real_discount_percent.
-
-### 3. UI Quote Builder — novo card "Estratégia de Negociação"
-Localização: passo 3 (Resumo & Pricing), abaixo do bloco de desconto, **visível apenas para o vendedor** (nunca aparece em PDF/quote pública).
-- Toggle "Aplicar margem de negociação"
-- Slider 0-50% (default 0)
-- Preview comparativo lado-a-lado:
-  - **Cliente vê:** subtotal R$ 111,76 → desconto 15% → **R$ 95,00**
-  - **Real:** subtotal R$ 100,00 → desconto 5% → **R$ 95,00** ✅ dentro da alçada
-- Badge âmbar "Uso interno · não aparece para o cliente"
-- Auto-cap: se markup + desconto aparente excederem alçada real, slider trava + tooltip explicativo.
-
-### 4. PDF / Quote Pública
-- Usar `subtotal_apresentado` e `discount_percent` (aparente) — cliente nunca enxerga o markup.
-- Itens individuais: preço unitário também inflado proporcionalmente para manter coerência matemática (`unit_price × (1 + markup)`).
-
-### 5. Approval Workflow
-- `MarginInsightBadge`: mostrar BOTH desconto aparente E real ao admin aprovador.
-- `discount_approval_requests.requested_discount_percent` = real (não aparente).
-- Telas admin de aprovação: coluna nova "Desconto Real" + tooltip "Desconto aparente: 15% / Real: 5%".
-
-### 6. Sincronização CRM (Bitrix/SalesPro)
-- Enviar `subtotal_apresentado` + `discount_percent` aparente (espelho do que cliente viu) — alinhado com SSOT do que foi negociado.
-- Campo extra `internal_real_discount_percent` para auditoria interna.
-
-### 7. Auditoria
-- `admin_audit_log` registra toda criação/edição com markup > 0 (ação `quote_negotiation_markup_applied`).
-
-### 8. Memória
-- Criar `mem://features/quote-negotiation-markup` documentando regra + fórmula.
-- Atualizar `mem://features/quote-discount-approval-workflow` referenciando interação com markup.
+### 6. Validação E2E
+- Browser: criar quote com markup +20% e desconto aparente 25%, confirmar que link público mostra subtotal inflado + 25%, mas tela admin mostra real ~6%.
+- Conferir que tentar exceder alçada real bloqueia com mensagem clara.
+- Verificar PDF gerado.
 
 ## Arquivos
-- **Migration:** colunas + trigger + atualização de RPC `request_discount_approval`
-- **Editar:** `src/hooks/quotes/quoteHelpers.ts`, `src/hooks/quotes/quoteTypes.ts`, `src/types/quote.ts`, `src/components/quote/QuoteBuilderSummary.tsx` (ou onde fica o passo 3 atual), `src/components/quote/MarginInsightBadge.tsx`, geradores de PDF/HTML público (`quote-public-view`, geração PDF)
-- **Novo:** `src/components/quote/NegotiationMarkupCard.tsx`, `mem://features/quote-negotiation-markup.md`
-- **Edge functions afetadas:** `quote-public-view` (não expor markup), CRM sync functions (payload aparente)
-- **Sem mudança visível ao cliente** — toda diferença é interna ao vendedor/admin.
-
-## Fora de escopo (follow-up)
-- Análise estatística "quanto markup os vendedores aplicam em média" no Trends — sugerir após validação.
-- Limite de markup configurável por vendedor (similar a `seller_discount_limits`) — adicionar se houver demanda.
+- **Editar:** `supabase/functions/quote-public-view/index.ts`, `supabase/functions/bitrix-quote-sync/index.ts`, `supabase/functions/salespro-quote-sync/index.ts`, `src/components/admin/DiscountApprovalsTable.tsx` (ou equivalente), `src/components/quote/MarginInsightBadge.tsx`, `src/hooks/quotes/quoteHelpers.ts` (audit log call), gerador de PDF
+- **Novo:** `mem://features/quote-negotiation-markup.md`
+- **Sem migration** (schema já está pronto)
