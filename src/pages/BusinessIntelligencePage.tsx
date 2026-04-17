@@ -40,7 +40,7 @@ export default function BusinessIntelligencePage() {
   return (
     <MainLayout>
       <PageSEO
-        title="Business Intelligence"
+        title="Business Analytic"
         description="Inteligência comercial 360° por cliente: histórico, afinidade, tendências do setor e recomendações."
         path="/ferramentas/bi"
         noIndex
@@ -53,7 +53,7 @@ export default function BusinessIntelligencePage() {
               <Brain className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
-              <h1 className="font-display text-xl font-bold text-foreground">Business Intelligence</h1>
+              <h1 className="font-display text-xl font-bold text-foreground">Business Analytic</h1>
               <p className="text-xs text-muted-foreground">
                 Inteligência comercial 360° · histórico, afinidade, tendência setorial
               </p>
