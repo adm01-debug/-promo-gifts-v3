@@ -2739,6 +2739,16 @@ export type Database = {
         Args: { _name: string; _slug: string }
         Returns: string
       }
+      get_bundle_suggestions: {
+        Args: { _product_id: string }
+        Returns: {
+          cooccurrence_count: number
+          frequency_percent: number
+          product_id: string
+          product_image_url: string
+          product_name: string
+        }[]
+      }
       get_quote_token_by_value: {
         Args: { _token: string }
         Returns: {
