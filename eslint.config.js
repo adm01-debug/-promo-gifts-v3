@@ -17,8 +17,7 @@ export default [
       parserOptions: {
         ecmaFeatures: { jsx: true },
         ecmaVersion: 'latest',
-        sourceType: 'module',
-        project: './tsconfig.json'
+        sourceType: 'module'
       },
       globals: globals.browser
     },
