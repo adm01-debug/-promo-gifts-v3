@@ -1,17 +1,17 @@
 /**
  * E2E: Discount Approval Workflow — Smoke
- * Verifies admin approval queue is protected.
+ * Verifica que a aba de aprovações dentro de Usuários é protegida.
  */
 import { test, expect } from '@playwright/test';
 
 test.describe('Discount Approval', () => {
-  test('admin approval queue requires auth', async ({ page }) => {
-    await page.goto('/admin/aprovacoes-desconto');
+  test('admin discount tab requires auth', async ({ page }) => {
+    await page.goto('/admin/usuarios?tab=discounts');
     await page.waitForURL(/login/, { timeout: 10000 });
     await expect(page).toHaveURL(/login/);
   });
 
-  test('seller cannot reach admin route', async ({ page }) => {
+  test('legacy /admin/aprovacoes-desconto redirects and requires auth', async ({ page }) => {
     await page.goto('/admin/aprovacoes-desconto');
     await page.waitForURL(/login/, { timeout: 10000 });
     await expect(page).toHaveURL(/login/);

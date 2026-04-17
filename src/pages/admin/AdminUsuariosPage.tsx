@@ -1,14 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Users, UserCog, Loader2, KeyRound, Plus, Search } from "lucide-react";
+import { Users, UserCog, Loader2, KeyRound, Plus, Search, Percent } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { PasswordResetApproval } from "@/components/admin/PasswordResetApproval";
+import { DiscountManagementPanel } from "@/components/admin/DiscountManagementPanel";
 import { usePasswordResetRequests } from "@/hooks/usePasswordResetRequests";
 
 import { useUserManagement } from "@/components/admin/users/useUserManagement";
@@ -20,14 +24,47 @@ import { CreateUserDialog } from "@/components/admin/users/CreateUserDialog";
 import { DeleteUserDialog } from "@/components/admin/users/DeleteUserDialog";
 import { type UserWithRole } from "@/components/admin/users/types";
 
+const VALID_TABS = ["users", "password-reset", "discounts"] as const;
+type TabValue = (typeof VALID_TABS)[number];
+
 export default function AdminUsuariosPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const { pendingCount } = usePasswordResetRequests();
   const {
     users, isLoading, updatingUserId,
     fetchUsers, handleRoleChange, handleCreateUser, handleDeleteUser, handleSaveEdit,
     handleAvatarUpload, handleRemoveAvatar,
   } = useUserManagement();
+
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const initialTab: TabValue = (VALID_TABS as readonly string[]).includes(tabParam ?? "")
+    ? (tabParam as TabValue)
+    : "users";
+  const [activeTab, setActiveTab] = useState<TabValue>(initialTab);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value as TabValue);
+    const next = new URLSearchParams(searchParams);
+    if (value === "users") next.delete("tab");
+    else next.set("tab", value);
+    setSearchParams(next, { replace: true });
+  };
+
+  // Pending discount approvals badge
+  const { data: pendingDiscountCount = 0 } = useQuery({
+    queryKey: ["pending-discount-approvals-count"],
+    queryFn: async () => {
+      const { count } = await supabase
+        .from("discount_approval_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      return count || 0;
+    },
+    enabled: isAdmin,
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -37,9 +74,9 @@ export default function AdminUsuariosPage() {
 
   useEffect(() => { fetchUsers(); }, [fetchUsers]);
 
-  const adminCount = users.filter((u) => u.role === "admin").length;
-  const managerCount = users.filter((u) => u.role === "manager").length;
-  const vendedorCount = users.filter((u) => u.role === "vendedor").length;
+  const adminCount = useMemo(() => users.filter((u) => u.role === "admin").length, [users]);
+  const managerCount = useMemo(() => users.filter((u) => u.role === "manager").length, [users]);
+  const vendedorCount = useMemo(() => users.filter((u) => u.role === "vendedor").length, [users]);
 
   const filteredUsers = users
     .sort((a, b) => (a.full_name || "").localeCompare(b.full_name || "", "pt-BR", { sensitivity: "base" }))
@@ -71,7 +108,7 @@ export default function AdminUsuariosPage() {
           pendingCount={pendingCount}
         />
 
-        <Tabs defaultValue="users" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -86,6 +123,17 @@ export default function AdminUsuariosPage() {
                 </Badge>
               )}
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="discounts" className="gap-2">
+                <Percent className="h-4 w-4" />
+                Gestão de Descontos
+                {pendingDiscountCount > 0 && (
+                  <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                    {pendingDiscountCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users">
@@ -138,6 +186,12 @@ export default function AdminUsuariosPage() {
           <TabsContent value="password-reset">
             <PasswordResetApproval />
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="discounts">
+              <DiscountManagementPanel />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Dialogs */}
