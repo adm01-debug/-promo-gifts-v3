@@ -270,6 +270,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
             {rows.map((row) => {
               const meta = STATUS_META[row.status];
               const isOpen = expanded === row.slug;
+              const isFocused = focusedSlug === row.slug;
               const max = Math.max(row.clientShare, row.industryShare, 1);
               return (
                 <Collapsible
@@ -280,7 +281,9 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                   <div
                     className={cn(
                       "rounded-xl border-[1.5px] bg-background/70 backdrop-blur transition-all",
-                      isOpen ? "border-primary/40 shadow-sm" : "border-border hover:border-primary/30",
+                      isFocused
+                        ? "border-violet-500 ring-2 ring-violet-500/30 shadow-md"
+                        : isOpen ? "border-primary/40 shadow-sm" : "border-border hover:border-primary/30",
                     )}
                   >
                     <CollapsibleTrigger asChild>
@@ -437,17 +440,26 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                           </div>
                         )}
 
-                        <Button
-                          size="sm"
-                          variant={row.status === "gap" ? "default" : "outline"}
-                          className="w-full gap-1.5"
-                          onClick={() => handleDrillDown(row)}
-                        >
-                          {row.status === "gap"
-                            ? `Criar orçamento explorando ${row.label}`
-                            : `Reabrir ${row.label} no orçamento`}
-                          <ArrowRight className="h-3.5 w-3.5" />
-                        </Button>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <Button
+                            size="sm"
+                            variant={isFocused ? "default" : "outline"}
+                            className={cn("gap-1.5", isFocused && "bg-violet-600 hover:bg-violet-700 text-white")}
+                            onClick={() => setFocus(isFocused ? null : row.slug, isFocused ? null : row.label)}
+                          >
+                            <Focus className="h-3.5 w-3.5" />
+                            {isFocused ? "Remover foco" : "Focar painel nesta categoria"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant={row.status === "gap" ? "default" : "outline"}
+                            className="gap-1.5"
+                            onClick={() => handleDrillDown(row)}
+                          >
+                            {row.status === "gap" ? "Explorar no orçamento" : "Reabrir no orçamento"}
+                            <ArrowRight className="h-3.5 w-3.5" />
+                          </Button>
+                        </div>
                       </div>
                     </CollapsibleContent>
                   </div>
