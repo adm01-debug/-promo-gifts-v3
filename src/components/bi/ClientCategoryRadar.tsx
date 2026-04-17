@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Progress } from "@/components/ui/progress";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Radar,
   TrendingUp,
@@ -30,6 +31,8 @@ import {
   ArrowRight,
   Package,
   Users,
+  HelpCircle,
+  Focus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
@@ -39,6 +42,7 @@ import {
   type IndustryCategoryAggregate,
 } from "@/hooks/bi/useIndustryCategoryTrends";
 import type { BICategorySlug } from "@/lib/bi/categoryResolver";
+import { useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
 
 interface Props {
   clientId: string;
@@ -104,6 +108,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
   const client = useClientCategoryAffinity(clientId);
   const industry = useIndustryCategoryTrends(ramoAtividade);
   const [expanded, setExpanded] = useState<string | null>(null);
+  const { focusedSlug, setFocus } = useBICategoryFocus();
 
   const rows = useMemo<MergedRow[]>(() => {
     const map = new Map<string, MergedRow>();
