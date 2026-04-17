@@ -341,11 +341,14 @@ export default function TrendsPage() {
         {/* KPIs */}
         <TrendsKpiCards current={kpiCurrent} previous={kpiPrevious} />
 
-        {/* Funil + Demanda */}
+        {/* Funil + Demanda Reprimida */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <ConversionFunnel days={days} />
           <UnmetDemandCard days={days} />
         </div>
+
+        {/* Buscas Quentes — interesse real do mercado */}
+        <HotSearchesCard days={days} />
 
         {/* Forecast Chart com toggles vs anterior + previsão + anomalias */}
         <TrendsForecastChart
