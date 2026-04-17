@@ -14,6 +14,8 @@
     "test:coverage": "vitest run --coverage",
     "coverage": "vitest run --coverage",
     "lint": "tsc --noEmit",
+    "lint:check": "eslint src --max-warnings=500",
+    "typecheck": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "format:check": "prettier --check \"src/**/*.{ts,tsx,css}\"",
     "prepare": "husky",
