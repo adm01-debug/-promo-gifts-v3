@@ -73,10 +73,12 @@ export default function ClientComparatorPage() {
                 <Plus className="h-3.5 w-3.5" />
                 Adicionar cliente ({clientIds.length}/{MAX_CLIENTS})
               </label>
-              <ClientSelector value={adding} onChange={addClient} excludeIds={clientIds} />
-            </CardContent>
-          </Card>
-        )}
+              <ClientSelector value={adding} onChange={addClient} />
+              {clientIds.length > 0 && (
+                <p className="text-[10px] text-muted-foreground">
+                  Já em comparação: {clientIds.length} {clientIds.length === 1 ? "cliente" : "clientes"}.
+                </p>
+              )}
 
         <ClientComparator clientIds={clientIds} onRemove={removeClient} />
       </div>
