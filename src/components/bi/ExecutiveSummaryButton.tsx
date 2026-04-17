@@ -20,7 +20,10 @@ import { useClientAffinity } from "@/hooks/bi/useClientAffinity";
 import { useIndustryTrends } from "@/hooks/bi/useIndustryTrends";
 import { useClientSeasonality } from "@/hooks/bi/useClientSeasonality";
 import { useClientVsIndustry } from "@/hooks/bi/useClientVsIndustry";
+import { useClientCategoryAffinity } from "@/hooks/bi/useClientCategoryAffinity";
+import { useIndustryCategoryTrends } from "@/hooks/bi/useIndustryCategoryTrends";
 import { generateBIPptx } from "@/lib/bi/pptxGenerator";
+import { buildCategorySection } from "@/lib/bi/executive-summary";
 
 interface Props {
   clientId: string;
@@ -39,6 +42,8 @@ export function ExecutiveSummaryButton({ clientId, clientName, ramoAtividade }: 
   const trends = useIndustryTrends(ramoAtividade);
   const seas = useClientSeasonality(clientId, ramoAtividade);
   const vs = useClientVsIndustry(clientId, ramoAtividade);
+  const catAffinity = useClientCategoryAffinity(clientId);
+  const catIndustry = useIndustryCategoryTrends(ramoAtividade);
 
   const handleCopy = async () => {
     setBusy("copy");
@@ -85,6 +90,7 @@ export function ExecutiveSummaryButton({ clientId, clientName, ramoAtividade }: 
         trends: trends.data ?? null,
         seasonality: seas,
         vs,
+        categorySection: buildCategorySection(catAffinity, catIndustry),
       });
       toast.success("PPTX gerado!", { description: "Arquivo baixado." });
     } catch (e) {
