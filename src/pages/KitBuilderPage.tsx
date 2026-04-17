@@ -124,7 +124,7 @@ export default function KitBuilderPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <PageSEO title="Montador de Kits" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
+      <PageSEO title="Kit Creato" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
       
       {/* Header */}
       <div className="border-b bg-card">
@@ -136,7 +136,7 @@ export default function KitBuilderPage() {
                 <Package className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold font-display">Montador de Kits</h1>
+                <h1 className="text-2xl font-bold font-display">Kit Creato</h1>
                 <div className="flex items-center gap-2 text-muted-foreground text-sm">
                   <span>Monte kits personalizados com validação automática</span>
                   {lastSavedAt && (
