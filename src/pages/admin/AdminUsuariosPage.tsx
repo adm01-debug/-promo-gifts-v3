@@ -108,7 +108,7 @@ export default function AdminUsuariosPage() {
           pendingCount={pendingCount}
         />
 
-        <Tabs defaultValue="users" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
           <TabsList>
             <TabsTrigger value="users" className="gap-2">
               <Users className="h-4 w-4" />
@@ -123,6 +123,17 @@ export default function AdminUsuariosPage() {
                 </Badge>
               )}
             </TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="discounts" className="gap-2">
+                <Percent className="h-4 w-4" />
+                Gestão de Descontos
+                {pendingDiscountCount > 0 && (
+                  <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
+                    {pendingDiscountCount}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="users">
@@ -175,6 +186,12 @@ export default function AdminUsuariosPage() {
           <TabsContent value="password-reset">
             <PasswordResetApproval />
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="discounts">
+              <DiscountManagementPanel />
+            </TabsContent>
+          )}
         </Tabs>
 
         {/* Dialogs */}
