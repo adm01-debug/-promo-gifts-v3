@@ -48,5 +48,6 @@ type: feature
 - **Kits semelhantes**: `useSimilarKits` busca em `kit_templates` (top 50 por `usage_count`) e ranqueia por overlap de SKU ≥30%. Widget `SimilarKitsWidget` mostra top 3 com link `?template=ID`.
 - **Detector de duplicatas**: `useDuplicateKitDetector` aplica Jaccard nos SKUs vs últimos 50 kits do usuário; threshold 0.8. `handleSaveKit` só dispara em kit novo (sem `currentKitId`/`autoSavedKitId`) e ≥2 itens, abrindo toast com ação "Abrir existente".
 - **Métricas admin**: `/admin/kit-templates/metricas` (`KitTemplatesMetricsPage`) mostra KPIs (templates ativos, clonagens totais, populares ≥5), tabela ranqueada por `usage_count` e heatmap dos top 20 SKUs presentes em `custom_kits`.
-- **Compartilhamento público**: `kit_share_tokens` + `useKitShare` + rota `/kit/:token` (`PublicKitViewPage`) com edge `kit-public-view` — preço de venda visível, custo oculto.
+- **Compartilhamento público**: `kit_share_tokens` + `useKitShare` + `KitShareLinkDialog` (no header do Builder, ao lado do `KitIdentityPicker`) + rota `/kit/:token` (`PublicKitViewPage`) com edge `kit-public-view` (Zod + bot protection 30 req/min, masking de custos via service role). Token expira em 30 dias e pode ser revogado.
 - **Colaboração interna**: `kit_collaborators` + `kit_comments` (Realtime) já em produção via `KitCollaborationPanel` no sidebar do Builder.
+- **Hardening edges IA**: `kit-identity-suggest` agora usa Zod + `runBotProtection` (10 req/min, block 1h) — mesma pipeline de `kit-public-view`.

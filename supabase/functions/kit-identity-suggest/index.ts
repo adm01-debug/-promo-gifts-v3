@@ -3,19 +3,16 @@
 // Recebe nome + lista de itens do kit e sugere identidade visual
 // (tag curta + cor hex + ícone lucide). Usa Lovable AI Gateway
 // com tool-calling para JSON estrito. Modelo barato e rápido.
+// Hardening: Zod validation + bot protection (rate limit).
 // ============================================================
+import { z } from '../_shared/zod-validate.ts';
+import { runBotProtection } from '../_shared/bot-protection.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers':
     'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
-
-interface RequestBody {
-  name?: string;
-  items?: Array<{ name?: string; sku?: string }>;
-  description?: string | null;
-}
 
 const PALETTE = [
   '#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6',
@@ -28,14 +25,45 @@ const ICONS = [
   'Sun', 'Moon', 'Zap', 'Flame', 'Award',
 ];
 
+const BodySchema = z.object({
+  name: z.string().max(200).optional(),
+  description: z.string().max(500).nullable().optional(),
+  items: z
+    .array(
+      z.object({
+        name: z.string().max(200).optional(),
+        sku: z.string().max(100).optional(),
+      }),
+    )
+    .max(50)
+    .optional(),
+});
+
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response(null, { headers: corsHeaders });
 
   try {
-    const body = (await req.json().catch(() => ({}))) as RequestBody;
-    const name = (body.name ?? '').trim();
-    const items = Array.isArray(body.items) ? body.items.slice(0, 30) : [];
+    // Bot protection + rate limit (10 req / 60s, block 1h)
+    const protection = await runBotProtection(req, {
+      endpoint: 'kit-identity-suggest',
+      maxRequests: 10,
+      windowSeconds: 60,
+      blockSeconds: 3600,
+      allowSearchBots: false,
+    }, corsHeaders);
+    if (!protection.allowed) return protection.blockResponse!;
 
+    const raw = await req.json().catch(() => ({}));
+    const parsed = BodySchema.safeParse(raw);
+    if (!parsed.success) {
+      return new Response(
+        JSON.stringify({ error: 'Parâmetros inválidos', details: parsed.error.flatten().fieldErrors }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      );
+    }
+
+    const name = (parsed.data.name ?? '').trim();
+    const items = parsed.data.items ?? [];
     if (!name && items.length === 0) {
       return new Response(JSON.stringify({ error: 'Forneça name ou items' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -57,7 +85,7 @@ Paleta cores: ${PALETTE.join(', ')}.
 Ícones disponíveis: ${ICONS.join(', ')}.
 Escolha o que melhor combina com o tema. Tag deve ser MARKETING, ex.: ONBOARDING, NATAL, VIP.`;
 
-    const userPrompt = `Kit: "${name || 'sem nome'}"\nItens: ${itemList || 'nenhum'}\n${body.description ? `Descrição: ${body.description}` : ''}`;
+    const userPrompt = `Kit: "${name || 'sem nome'}"\nItens: ${itemList || 'nenhum'}\n${parsed.data.description ? `Descrição: ${parsed.data.description}` : ''}`;
 
     const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -105,8 +133,8 @@ Escolha o que melhor combina com o tema. Tag deve ser MARKETING, ex.: ONBOARDING
       });
     }
 
-    const parsed = JSON.parse(call.function.arguments);
-    return new Response(JSON.stringify({ suggestion: parsed }), {
+    const out = JSON.parse(call.function.arguments);
+    return new Response(JSON.stringify({ suggestion: out }), {
       status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (err) {
