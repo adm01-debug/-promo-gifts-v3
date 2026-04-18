@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { TrendingUp, Package, Award } from 'lucide-react';
+import { TrendingUp, Package, Award, Share2, Eye, Percent } from 'lucide-react';
 import { formatCurrency } from '@/lib/kit-builder';
 
 interface TemplateRow {
@@ -76,6 +76,34 @@ export default function KitTemplatesMetricsPage() {
         .map(([sku, v]) => ({ sku, name: v.name, count: v.count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 20);
+    },
+  });
+
+  // Conversão de compartilhamentos: gerados vs visualizados
+  const { data: shareConversion, isLoading: loadingShare } = useQuery({
+    queryKey: ['admin-kit-share-conversion'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('kit_share_tokens')
+        .select('id, viewed_at, status, created_at')
+        .limit(5000);
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{ id: string; viewed_at: string | null; status: string; created_at: string }>;
+      const generated = rows.length;
+      const active = rows.filter((r) => r.status === 'active').length;
+      const revoked = rows.filter((r) => r.status === 'revoked').length;
+      const viewed = rows.filter((r) => r.viewed_at).length;
+      const rate = generated > 0 ? (viewed / generated) * 100 : 0;
+      // Últimos 30 dias
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const recent = rows.filter((r) => new Date(r.created_at).getTime() >= cutoff);
+      const recentViewed = recent.filter((r) => r.viewed_at).length;
+      const recentRate = recent.length > 0 ? (recentViewed / recent.length) * 100 : 0;
+      return {
+        generated, active, revoked, viewed, rate,
+        recent: recent.length, recentViewed, recentRate,
+      };
     },
   });
 
