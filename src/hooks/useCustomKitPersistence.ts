@@ -33,6 +33,8 @@ export interface CustomKitRow {
   tag: string | null;
   description: string | null;
   is_favorite: boolean;
+  is_pinned: boolean;
+  last_used_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -157,11 +159,52 @@ export function useCustomKitPersistence() {
     [deleteMutation]
   );
 
+  /** Marca o kit como recém-usado (best-effort). */
+  const bumpLastUsed = useCallback(async (kitId: string) => {
+    if (!user?.id) return;
+    try {
+      await supabase
+        .from('custom_kits')
+        .update({ last_used_at: new Date().toISOString() } as never)
+        .eq('id', kitId)
+        .eq('user_id', user.id);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+    } catch {
+      /* best-effort */
+    }
+  }, [user?.id, queryClient]);
+
+  /** Fixa/desfixa kit em destaque (apenas 1 por usuário). */
+  const togglePinned = useCallback(async (kitId: string, value: boolean) => {
+    if (!user?.id) return;
+    try {
+      if (value) {
+        // Desfixa qualquer outro kit fixado primeiro
+        await supabase
+          .from('custom_kits')
+          .update({ is_pinned: false } as never)
+          .eq('user_id', user.id)
+          .eq('is_pinned', true);
+      }
+      await supabase
+        .from('custom_kits')
+        .update({ is_pinned: value } as never)
+        .eq('id', kitId)
+        .eq('user_id', user.id);
+      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
+      toast.success(value ? 'Kit fixado em destaque' : 'Kit desafixado');
+    } catch (err) {
+      toast.error('Erro ao alterar destaque');
+    }
+  }, [user?.id, queryClient]);
+
   return {
     savedKits,
     isLoadingKits,
     saveKit,
     deleteKit,
+    bumpLastUsed,
+    togglePinned,
     isSaving: saveMutation.isPending,
     isDeleting: deleteMutation.isPending,
   };

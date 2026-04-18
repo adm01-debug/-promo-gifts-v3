@@ -1,17 +1,19 @@
 /**
  * Kit Library — Biblioteca unificada de kits do vendedor + sugeridos pelo sistema.
- * 3 abas (Meus / Sugeridos / Favoritos) com busca, filtros visuais e ordenação.
+ * 3 abas (Meus / Sugeridos / Favoritos) com busca, filtros visuais, categorias e ordenação.
+ * Inclui pin/destaque, ordenação por uso recente e badge de adoção (admin-only).
  */
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Library, Sparkles, Star } from 'lucide-react';
+import { Plus, Search, Library, Sparkles, Star, Pin, PinOff, BarChart3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
@@ -22,8 +24,10 @@ import { KitCard, type KitCardData } from '@/components/kit-library/KitCard';
 import { KitCardSkeletonGrid } from '@/components/kit-library/KitCardSkeleton';
 import { KitLibraryFilters, type SortOption } from '@/components/kit-library/KitLibraryFilters';
 import { KitTemplatePreviewDialog } from '@/components/kit-library/KitTemplatePreviewDialog';
+import { KitCategoryChips } from '@/components/kit-library/KitCategoryChips';
 import { useKitTemplates, type KitTemplateRow } from '@/hooks/useKitTemplates';
-import type { CustomKitRow } from '@/hooks/useCustomKitPersistence';
+import { useCustomKitPersistence, type CustomKitRow } from '@/hooks/useCustomKitPersistence';
+import { buildCustomKitInsert } from '@/lib/kit-library/buildCustomKitInsert';
 
 function getItemsCount(items: unknown): number {
   if (!Array.isArray(items)) return 0;
@@ -33,9 +37,10 @@ function getItemsCount(items: unknown): number {
   }, 0);
 }
 
-function applySort<T extends { name: string; total_price: number; updated_at?: string; usage_count?: number }>(
-  list: T[], sort: SortOption,
-): T[] {
+function applySort<T extends {
+  name: string; total_price: number; updated_at?: string;
+  usage_count?: number; last_used_at?: string | null;
+}>(list: T[], sort: SortOption): T[] {
   const arr = [...list];
   switch (sort) {
     case 'price-desc':
@@ -44,6 +49,8 @@ function applySort<T extends { name: string; total_price: number; updated_at?: s
       arr.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')); break;
     case 'usage-desc':
       arr.sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0)); break;
+    case 'last-used':
+      arr.sort((a, b) => (b.last_used_at || '').localeCompare(a.last_used_at || '')); break;
     case 'recent':
     default:
       arr.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
@@ -52,14 +59,16 @@ function applySort<T extends { name: string; total_price: number; updated_at?: s
 }
 
 export default function KitLibraryPage() {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { togglePinned } = useCustomKitPersistence();
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'mine' | 'suggested' | 'favorites'>('mine');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [sort, setSort] = useState<SortOption>('recent');
   const [previewTemplate, setPreviewTemplate] = useState<KitTemplateRow | null>(null);
 
@@ -109,10 +118,14 @@ export default function KitLibraryPage() {
   const duplicateMutation = useMutation({
     mutationFn: async (kit: CustomKitRow) => {
       if (!user?.id) throw new Error('Não autenticado');
-      const { id, created_at, updated_at, ...rest } = kit;
-      const { error } = await supabase.from('custom_kits').insert({
-        ...rest, user_id: user.id, name: `${kit.name} (cópia)`, status: 'draft',
-      } as never);
+      const payload = buildCustomKitInsert(kit, {
+        user_id: user.id,
+        name: `${kit.name} (cópia)`,
+        status: 'draft',
+        is_pinned: false,
+        last_used_at: null,
+      });
+      const { error } = await supabase.from('custom_kits').insert(payload as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -122,7 +135,7 @@ export default function KitLibraryPage() {
     onError: () => toast.error('Erro ao duplicar'),
   });
 
-  // Derived: tags & colors disponíveis nos kits do usuário
+  // Derived
   const availableTags = useMemo(() => {
     const set = new Set<string>();
     myKits.forEach((k) => { if (k.tag) set.add(k.tag); });
@@ -136,7 +149,13 @@ export default function KitLibraryPage() {
     return Array.from(set);
   }, [myKits]);
 
-  // Filter
+  const availableCategories = useMemo(() => {
+    const set = new Set<string>();
+    templates.forEach((t) => { if (t.category) set.add(t.category); });
+    return Array.from(set).sort();
+  }, [templates]);
+
+  // Filters
   const q = search.trim().toLowerCase();
   const matchKit = (k: CustomKitRow) => {
     if (q && !(k.name.toLowerCase().includes(q) || (k.tag || '').toLowerCase().includes(q))) return false;
@@ -147,11 +166,14 @@ export default function KitLibraryPage() {
   const matchTpl = (t: KitTemplateRow) => {
     if (q && !(t.name.toLowerCase().includes(q) || (t.tag || '').toLowerCase().includes(q) || t.category.toLowerCase().includes(q))) return false;
     if (selectedTag && t.tag !== selectedTag) return false;
+    if (selectedCategory && t.category !== selectedCategory) return false;
     return true;
   };
 
+  const pinnedKit = useMemo(() => myKits.find((k) => k.is_pinned && matchKit(k)) || null, [myKits, q, selectedTag, selectedColor]);
+
   const filteredMine = useMemo(
-    () => applySort(myKits.filter(matchKit), sort),
+    () => applySort(myKits.filter((k) => !k.is_pinned && matchKit(k)), sort),
     [myKits, q, selectedTag, selectedColor, sort],
   );
   const filteredFavs = useMemo(
@@ -160,7 +182,7 @@ export default function KitLibraryPage() {
   );
   const filteredTpls = useMemo(
     () => applySort(templates.filter(matchTpl), sort),
-    [templates, q, selectedTag, sort],
+    [templates, q, selectedTag, selectedCategory, sort],
   );
 
   const toCard = (k: CustomKitRow): KitCardData => ({
@@ -168,6 +190,7 @@ export default function KitLibraryPage() {
     color: k.color || '#3B82F6', icon: k.icon || 'Package',
     totalPrice: Number(k.total_price), itemsCount: getItemsCount(k.items_data),
     isFavorite: k.is_favorite,
+    isPinned: k.is_pinned,
   });
 
   const tplToCard = (t: KitTemplateRow): KitCardData => ({
@@ -175,6 +198,7 @@ export default function KitLibraryPage() {
     color: t.color, icon: t.icon,
     totalPrice: Number(t.total_price), itemsCount: getItemsCount(t.items_data),
     badge: t.usage_count >= 5 ? 'Popular' : t.category,
+    usageBadge: isAdmin ? `${t.usage_count} uso${t.usage_count === 1 ? '' : 's'}` : undefined,
   });
 
   const handleClone = async (template: KitTemplateRow) => {
@@ -232,7 +256,16 @@ export default function KitLibraryPage() {
         onColorChange={setSelectedColor}
         onSortChange={setSort}
         showUsageSort={tab === 'suggested'}
+        showLastUsedSort={tab === 'mine' || tab === 'favorites'}
       />
+
+      {tab === 'suggested' && (
+        <KitCategoryChips
+          categories={availableCategories}
+          selected={selectedCategory}
+          onSelect={setSelectedCategory}
+        />
+      )}
 
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
         <TabsList>
@@ -251,10 +284,10 @@ export default function KitLibraryPage() {
         </TabsList>
 
         {/* MINE */}
-        <TabsContent value="mine">
+        <TabsContent value="mine" className="space-y-4">
           {loadingMine ? (
             <KitCardSkeletonGrid count={8} />
-          ) : filteredMine.length === 0 ? (
+          ) : !pinnedKit && filteredMine.length === 0 ? (
             <EmptyState
               icon={<Library className="h-10 w-10" />}
               title={q || selectedTag || selectedColor ? 'Nenhum kit encontrado' : 'Você ainda não criou kits'}
@@ -269,17 +302,43 @@ export default function KitLibraryPage() {
               }
             />
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredMine.map((k) => (
-                <KitCard
-                  key={k.id} variant="mine" data={toCard(k)}
-                  onEdit={() => navigate(`/montar-kit?kit=${k.id}`)}
-                  onDuplicate={() => duplicateMutation.mutate(k)}
-                  onDelete={() => setDeleteId(k.id)}
-                  onToggleFavorite={() => favoriteMutation.mutate({ id: k.id, value: !k.is_favorite })}
-                />
-              ))}
-            </div>
+            <>
+              {pinnedKit && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <Pin className="h-3.5 w-3.5 text-primary" />
+                    <span className="text-xs uppercase tracking-wider font-medium text-muted-foreground">
+                      Kit em destaque
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                    <KitCard
+                      key={pinnedKit.id} variant="mine" data={toCard(pinnedKit)}
+                      onEdit={() => navigate(`/montar-kit?kit=${pinnedKit.id}`)}
+                      onDuplicate={() => duplicateMutation.mutate(pinnedKit)}
+                      onDelete={() => setDeleteId(pinnedKit.id)}
+                      onToggleFavorite={() => favoriteMutation.mutate({ id: pinnedKit.id, value: !pinnedKit.is_favorite })}
+                      onTogglePin={() => togglePinned(pinnedKit.id, false)}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {filteredMine.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                  {filteredMine.map((k) => (
+                    <KitCard
+                      key={k.id} variant="mine" data={toCard(k)}
+                      onEdit={() => navigate(`/montar-kit?kit=${k.id}`)}
+                      onDuplicate={() => duplicateMutation.mutate(k)}
+                      onDelete={() => setDeleteId(k.id)}
+                      onToggleFavorite={() => favoriteMutation.mutate({ id: k.id, value: !k.is_favorite })}
+                      onTogglePin={() => togglePinned(k.id, true)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </TabsContent>
 
@@ -323,6 +382,7 @@ export default function KitLibraryPage() {
                   onDuplicate={() => duplicateMutation.mutate(k)}
                   onDelete={() => setDeleteId(k.id)}
                   onToggleFavorite={() => favoriteMutation.mutate({ id: k.id, value: !k.is_favorite })}
+                  onTogglePin={() => togglePinned(k.id, !k.is_pinned)}
                 />
               ))}
             </div>
@@ -333,9 +393,11 @@ export default function KitLibraryPage() {
       {/* Preview template */}
       <KitTemplatePreviewDialog
         template={previewTemplate}
+        allTemplates={templates}
         open={!!previewTemplate}
         onOpenChange={(o) => !o && setPreviewTemplate(null)}
         onClone={() => previewTemplate && handleClone(previewTemplate)}
+        onSelectRelated={(t) => setPreviewTemplate(t)}
         isCloning={isCloning}
       />
 

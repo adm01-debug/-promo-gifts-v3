@@ -9,13 +9,14 @@ import {
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 
-export type SortOption = 'recent' | 'price-desc' | 'name-asc' | 'usage-desc';
+export type SortOption = 'recent' | 'price-desc' | 'name-asc' | 'usage-desc' | 'last-used';
 
 export const SORT_LABELS: Record<SortOption, string> = {
   'recent': 'Mais recentes',
   'price-desc': 'Maior valor',
   'name-asc': 'Nome (A-Z)',
   'usage-desc': 'Mais usados',
+  'last-used': 'Usados recentemente',
 };
 
 interface Props {
@@ -28,11 +29,12 @@ interface Props {
   onColorChange: (color: string | null) => void;
   onSortChange: (s: SortOption) => void;
   showUsageSort?: boolean;
+  showLastUsedSort?: boolean;
 }
 
 export function KitLibraryFilters({
   tags, colors, selectedTag, selectedColor, sort,
-  onTagChange, onColorChange, onSortChange, showUsageSort,
+  onTagChange, onColorChange, onSortChange, showUsageSort, showLastUsedSort,
 }: Props) {
   const hasFilters = !!selectedTag || !!selectedColor;
 
@@ -46,9 +48,7 @@ export function KitLibraryFilters({
               key={t}
               type="button"
               onClick={() => onTagChange(selectedTag === t ? null : t)}
-              className={cn(
-                'transition-colors',
-              )}
+              className={cn('transition-colors')}
               aria-pressed={selectedTag === t}
             >
               <Badge
@@ -96,11 +96,14 @@ export function KitLibraryFilters({
       <div className="ml-auto flex items-center gap-1.5">
         <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" />
         <Select value={sort} onValueChange={(v) => onSortChange(v as SortOption)}>
-          <SelectTrigger className="h-9 w-[180px] text-xs">
+          <SelectTrigger className="h-9 w-[200px] text-xs">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="recent">{SORT_LABELS['recent']}</SelectItem>
+            {showLastUsedSort && (
+              <SelectItem value="last-used">{SORT_LABELS['last-used']}</SelectItem>
+            )}
             <SelectItem value="price-desc">{SORT_LABELS['price-desc']}</SelectItem>
             <SelectItem value="name-asc">{SORT_LABELS['name-asc']}</SelectItem>
             {showUsageSort && (

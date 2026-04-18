@@ -467,10 +467,12 @@ export type Database = {
           icon: string
           id: string
           is_favorite: boolean
+          is_pinned: boolean
           items_data: Json
           items_price: number
           kit_quantity: number
           kit_type: string
+          last_used_at: string | null
           name: string
           personalization_data: Json
           personalization_price: number
@@ -490,10 +492,12 @@ export type Database = {
           icon?: string
           id?: string
           is_favorite?: boolean
+          is_pinned?: boolean
           items_data?: Json
           items_price?: number
           kit_quantity?: number
           kit_type?: string
+          last_used_at?: string | null
           name?: string
           personalization_data?: Json
           personalization_price?: number
@@ -513,10 +517,12 @@ export type Database = {
           icon?: string
           id?: string
           is_favorite?: boolean
+          is_pinned?: boolean
           items_data?: Json
           items_price?: number
           kit_quantity?: number
           kit_type?: string
+          last_used_at?: string | null
           name?: string
           personalization_data?: Json
           personalization_price?: number
