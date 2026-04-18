@@ -1,33 +1,39 @@
 /**
- * SellerCartsPage - Workspace completo de carrinhos do vendedor
- * Decomposed: hook in useSellerCartsPage, sidebar in CartSidebar.
+ * SellerCartsPage - Workspace de carrinhos do vendedor (Onda Excelência UX).
+ * - Header compactado (Carrinhos · X · Y · R$ Z)
+ * - Picker em Dialog (Recentes/Favoritas/Todas)
+ * - Tabs ricas (status dot, contador colorido, indicador follow-up, +novo)
+ * - Cart header fundido (status como Select óbvio)
+ * - Empty state inteligente (template / duplicar / catálogo)
+ * - Notas sempre visíveis (textarea inline com debounce)
+ * - Sidebar reorganizada (Hero pricing → Ação → Menu) + Health Checklist
  */
+import { useCallback, useMemo, useRef } from "react";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { type CartStatus } from "@/hooks/useSellerCarts";
-import { CartCompanyPicker } from "@/components/cart/CartCompanyPicker";
+import { CartCompanyPickerDialog } from "@/components/cart/CartCompanyPickerDialog";
+import { CartTabsRich } from "@/components/cart/CartTabsRich";
+import { CartEmptyStateSmart } from "@/components/cart/CartEmptyStateSmart";
 import { SortableCartItem } from "@/components/cart/SortableCartItem";
 import {
   getStatusCfg, STATUS_CONFIG, CartItemSkeleton, FollowUpTimer,
-  CompareCartsDialog, MobileSummarySheet,
+  CompareCartsDialog, MobileSummarySheet, formatCurrency,
 } from "@/components/cart/CartUtilComponents";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/common/EmptyState";
 import { DeleteConfirmDialog, ConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { DndContext, closestCenter } from "@dnd-kit/core";
 import { SortableContext, rectSortingStrategy } from "@dnd-kit/sortable";
 import { cn } from "@/lib/utils";
 import {
-  ShoppingCart, Plus, Building2, Package, Trash2,
-  Clock, MapPin, FileText, ChevronDown,
+  ShoppingCart, Plus, Building2, Trash2, Clock, MapPin, FileText,
 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
@@ -45,23 +51,69 @@ export default function SellerCartsPage() {
   );
 }
 
+const NOTES_PLACEHOLDERS = [
+  "Cliente quer entrega para o evento dia DD/MM...",
+  "Negociar prazo 30/60/90 dias...",
+  "Aprovar arte até dia X — produção começa após confirmação...",
+  "Margem-alvo: XX%. Frete por conta do cliente.",
+];
+
 function SellerCartsContent() {
   const s = useSellerCartsPage();
+  const notesRef = useRef<HTMLTextAreaElement>(null);
+
+  const focusNotes = useCallback(() => {
+    notesRef.current?.focus();
+    notesRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+
+  const aggregateTotal = useMemo(
+    () => s.carts.reduce((sum, c) => sum + c.items.reduce((a, i) => a + i.product_price * i.quantity, 0), 0),
+    [s.carts]
+  );
+
+  // Stable rotating placeholder per cart
+  const notesPlaceholder = useMemo(() => {
+    if (!s.activeCart) return NOTES_PLACEHOLDERS[0];
+    const seed = s.activeCart.id.charCodeAt(0) % NOTES_PLACEHOLDERS.length;
+    return NOTES_PLACEHOLDERS[seed];
+  }, [s.activeCart]);
+
+  const handleDuplicateLast = useCallback((sourceCart: typeof s.activeCart) => {
+    if (!sourceCart) return;
+    sourceCart.items.forEach(i => {
+      // re-uses the addToActiveCart through handleLoadTemplate-like flow
+      s.handleLoadTemplate([{
+        product_id: i.product_id, product_name: i.product_name,
+        product_sku: i.product_sku || undefined, product_image_url: i.product_image_url || undefined,
+        product_price: i.product_price, quantity: i.quantity,
+        color_name: i.color_name || undefined, color_hex: i.color_hex || undefined,
+      }]);
+    });
+  }, [s]);
 
   return (
     <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-            <ShoppingCart className="h-6 w-6 text-primary" />
+      {/* Header compactado */}
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <ShoppingCart className="h-4.5 w-4.5 text-primary" />
           </div>
-          <div>
-            <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">Meus Carrinhos</h1>
-            <p className="text-muted-foreground">
-              {s.carts.length} {s.carts.length === 1 ? "carrinho" : "carrinhos"} • {s.totalItems} {s.totalItems === 1 ? "produto" : "produtos"}
-              <span className="hidden sm:inline text-muted-foreground/60 ml-2">
-                <kbd className="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono">Ctrl+K</kbd> para buscar produtos
+          <div className="min-w-0">
+            <h1 className="text-xl lg:text-2xl font-display font-bold text-foreground leading-tight">Carrinhos</h1>
+            <p className="text-xs text-muted-foreground flex items-center gap-1.5 flex-wrap">
+              <span className="tabular-nums">{s.carts.length}</span>
+              <span className="text-muted-foreground/50">·</span>
+              <span className="tabular-nums">{s.totalItems} itens</span>
+              {aggregateTotal > 0 && (
+                <>
+                  <span className="text-muted-foreground/50">·</span>
+                  <span className="tabular-nums font-medium text-foreground/80">{formatCurrency(aggregateTotal)}</span>
+                </>
+              )}
+              <span className="hidden sm:inline-flex items-center gap-1 ml-2 text-muted-foreground/50" title="Buscar produtos">
+                <kbd className="text-[10px] px-1.5 py-0.5 bg-muted rounded font-mono">Ctrl+K</kbd>
               </span>
             </p>
           </div>
@@ -69,60 +121,32 @@ function SellerCartsContent() {
         <div className="flex items-center gap-2">
           {s.carts.length >= 2 && <CompareCartsDialog carts={s.carts} />}
           {s.canCreateCart && (
-            <Button onClick={() => s.setShowNewCart(true)} className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground">
-              <Plus className="h-4 w-4" /> Novo Carrinho
+            <Button onClick={() => s.setShowNewCart(true)} size="sm" className="gap-1.5 bg-primary hover:bg-primary/90 text-primary-foreground h-9">
+              <Plus className="h-3.5 w-3.5" /> Novo Carrinho
             </Button>
           )}
         </div>
-      </div>
+      </header>
 
-      {/* New cart picker */}
-      <AnimatePresence>
-        {s.showNewCart && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}>
-            <Card className="p-4 border-primary/20 bg-primary/5">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-display font-semibold text-sm">Vincular a uma empresa</h3>
-                <Button variant="ghost" size="sm" onClick={() => s.setShowNewCart(false)}>Cancelar</Button>
-              </div>
-              <CartCompanyPicker onCreated={() => s.setShowNewCart(false)} onCancel={() => s.setShowNewCart(false)} />
-            </Card>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Picker em Dialog */}
+      <CartCompanyPickerDialog
+        open={s.showNewCart}
+        onOpenChange={s.setShowNewCart}
+        onCreated={() => s.setShowNewCart(false)}
+      />
 
-      {/* Cart tabs */}
+      {/* Tabs ricas */}
       {s.carts.length > 0 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {s.carts.map((cart) => {
-            const isActive = cart.id === s.activeCartId;
-            return (
-              <button
-                key={cart.id}
-                onClick={() => s.setActiveCartId(cart.id)}
-                className={cn(
-                  "flex items-center gap-2.5 px-4 py-2.5 rounded-xl border transition-all duration-200 whitespace-nowrap flex-shrink-0",
-                  isActive
-                    ? "border-primary/40 bg-primary/10 text-primary shadow-sm ring-2 ring-primary/20 animate-pulse-subtle"
-                    : "border-border/40 hover:border-border/60 hover:bg-muted/30 text-muted-foreground"
-                )}
-              >
-                {cart.company_logo_url ? (
-                  <img src={cart.company_logo_url} alt="" className="w-7 h-7 rounded-lg object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
-                ) : (
-                  <div className={cn("w-7 h-7 rounded-lg flex items-center justify-center", isActive ? "bg-primary/15" : "bg-muted")}>
-                    <Building2 className="h-3.5 w-3.5" />
-                  </div>
-                )}
-                <span className="text-sm font-medium">{cart.company_name}</span>
-                <Badge variant="secondary" className={cn("text-[10px] px-1.5", isActive && "bg-primary/15 text-primary")}>{cart.items.length}</Badge>
-              </button>
-            );
-          })}
-        </div>
+        <CartTabsRich
+          carts={s.carts}
+          activeCartId={s.activeCartId}
+          canCreateCart={s.canCreateCart}
+          onSelect={s.setActiveCartId}
+          onNew={() => s.setShowNewCart(true)}
+        />
       )}
 
-      {/* Content */}
+      {/* Conteúdo */}
       {s.isLoading ? (
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -140,80 +164,86 @@ function SellerCartsContent() {
       ) : s.activeCart ? (
         <div className="grid grid-cols-1 xl:grid-cols-[1fr_340px] gap-6">
           <div className="space-y-4">
-            {/* Cart info bar */}
+            {/* Cart header fundido (status Select óbvio + ações inline) */}
             <Card
-              className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-border/40"
+              className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-border/40"
               style={s.companyAccentColor ? { borderTopColor: s.companyAccentColor, borderTopWidth: "3px" } : undefined}
             >
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-3 min-w-0">
                 {s.activeCart.company_logo_url ? (
-                  <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/50 p-1" loading="lazy" />
+                  <img src={s.activeCart.company_logo_url} alt="" className="w-10 h-10 rounded-xl object-contain bg-background border border-border/50 p-1 flex-shrink-0" loading="lazy" />
                 ) : (
-                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                    <Building2 className="h-5 w-5 text-primary" />
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <Building2 className="h-4.5 w-4.5 text-primary" />
                   </div>
                 )}
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="font-display font-semibold text-lg">{s.activeCart.company_name}</h2>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <button className={cn("text-[10px] font-medium px-2 py-0.5 rounded-full border cursor-pointer hover:opacity-80 transition-opacity", getStatusCfg(s.activeCart.status).color)}>
-                          {getStatusCfg(s.activeCart.status).label}
-                        </button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="start">
-                        {(Object.entries(STATUS_CONFIG) as [CartStatus, typeof STATUS_CONFIG[CartStatus]][]).map(([key, cfg]) => (
-                          <DropdownMenuItem key={key} onClick={() => s.updateCartStatus(s.activeCart!.id, key)} className={cn(s.activeCart!.status === key && "font-semibold")}>
-                            <span className={cn("w-2 h-2 rounded-full mr-2", cfg.color.split(" ")[0])} />
-                            {cfg.label}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </div>
+                <div className="min-w-0">
+                  <h2 className="font-display font-semibold text-base truncate">{s.activeCart.company_name}</h2>
                   <div className="flex items-center gap-3 text-xs text-muted-foreground">
                     {s.activeCart.company_location && (
-                      <span className="flex items-center gap-1"><MapPin className="h-3 w-3" />{s.activeCart.company_location}</span>
+                      <span className="flex items-center gap-1 truncate"><MapPin className="h-3 w-3" />{s.activeCart.company_location}</span>
                     )}
-                    <span className="flex items-center gap-1">
+                    <span className="flex items-center gap-1 whitespace-nowrap">
                       <Clock className="h-3 w-3" />
                       {formatDistanceToNow(new Date(s.activeCart.updated_at), { addSuffix: true, locale: ptBR })}
                     </span>
                   </div>
                 </div>
               </div>
-              <Button variant="outline" size="sm" className="text-destructive hover:text-destructive gap-1.5 text-xs" onClick={() => s.setConfirmDeleteCart(true)}>
-                <Trash2 className="h-3.5 w-3.5" /> Excluir
-              </Button>
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <Select
+                  value={s.activeCart.status}
+                  onValueChange={(v) => s.updateCartStatus(s.activeCart!.id, v as CartStatus)}
+                >
+                  <SelectTrigger className="h-8 text-xs w-auto min-w-[150px] gap-1.5">
+                    <span className={cn("w-1.5 h-1.5 rounded-full inline-block", getStatusCfg(s.activeCart.status).color.split(" ")[0])} />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.entries(STATUS_CONFIG) as [CartStatus, typeof STATUS_CONFIG[CartStatus]][]).map(([key, cfg]) => (
+                      <SelectItem key={key} value={key}>
+                        <span className="flex items-center gap-2">
+                          <span className={cn("w-1.5 h-1.5 rounded-full", cfg.color.split(" ")[0])} />
+                          {cfg.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" size="sm" className="text-destructive hover:text-destructive gap-1.5 text-xs h-8" onClick={() => s.setConfirmDeleteCart(true)}>
+                  <Trash2 className="h-3.5 w-3.5" /> Excluir
+                </Button>
+              </div>
             </Card>
 
             <FollowUpTimer createdAt={s.activeCart.created_at} />
 
-            {/* Notes */}
-            <Collapsible open={s.cartNotesOpen} onOpenChange={s.setCartNotesOpen}>
-              <CollapsibleTrigger asChild>
-                <button className="flex items-center gap-2 text-xs text-muted-foreground hover:text-foreground transition-colors" aria-label="Recolher">
-                  <FileText className="h-3.5 w-3.5" />
-                  {s.activeCart.notes ? "Notas da negociação" : "Adicionar notas da negociação"}
-                  <ChevronDown className={cn("h-3 w-3 transition-transform", s.cartNotesOpen && "rotate-180")} />
-                </button>
-              </CollapsibleTrigger>
-              <CollapsibleContent className="pt-2">
-                <Textarea value={s.localCartNotes} onChange={(e) => s.handleCartNotesChange(e.target.value)} placeholder="Ex: Cliente interessado em kits de onboarding, negociação de prazo 30/60/90..." className="text-sm min-h-[80px]" rows={3} />
-              </CollapsibleContent>
-            </Collapsible>
+            {/* Notas sempre visíveis */}
+            <div className="space-y-1.5">
+              <label htmlFor="cart-notes" className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                <FileText className="h-3.5 w-3.5" /> Notas da negociação
+              </label>
+              <Textarea
+                id="cart-notes"
+                ref={notesRef}
+                value={s.localCartNotes}
+                onChange={(e) => s.handleCartNotesChange(e.target.value)}
+                placeholder={notesPlaceholder}
+                className="text-sm min-h-[64px] resize-y"
+                rows={2}
+              />
+            </div>
 
-            {/* Products grid */}
+            {/* Produtos */}
             {s.activeCart.items.length === 0 ? (
-              <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
-                <Package className="h-12 w-12 mx-auto text-muted-foreground/40 mb-4" />
-                <h3 className="font-display text-lg font-medium text-muted-foreground mb-1">Carrinho vazio</h3>
-                <p className="text-sm text-muted-foreground/70 mb-4">Navegue pelo catálogo e adicione produtos a este carrinho</p>
-                <Button variant="outline" onClick={() => s.navigate("/produtos")} className="gap-2">
-                  <Package className="h-4 w-4" /> Explorar Produtos
-                </Button>
-              </div>
+              <CartEmptyStateSmart
+                activeCart={s.activeCart}
+                templates={s.templates as { id: string; name: string; description?: string; items: import("@/hooks/useCartTemplates").CartTemplateItem[] }[]}
+                otherCarts={s.otherCarts}
+                onApplyTemplate={s.handleLoadTemplate}
+                onDuplicateLast={handleDuplicateLast}
+                onNavigateProducts={() => s.navigate("/produtos")}
+              />
             ) : (
               <DndContext sensors={s.sensors} collisionDetection={closestCenter} onDragEnd={s.handleDragEnd}>
                 <SortableContext items={s.activeCart.items.map(i => i.id)} strategy={rectSortingStrategy}>
@@ -258,6 +288,7 @@ function SellerCartsContent() {
               onClear={() => s.setConfirmClearCart(true)}
               onNavigate={s.navigate}
               onSetActiveCartId={s.setActiveCartId}
+              onFocusNotes={focusNotes}
             />
           )}
         </div>
