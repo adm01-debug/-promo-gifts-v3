@@ -26,6 +26,15 @@ import { useUrlState, useUrlBoolean } from "@/hooks/useUrlState";
 import { exportTrendsCsv } from "@/lib/trends-export";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import {
+  isDemoMode,
+  MOCK_KPI_CURRENT,
+  MOCK_KPI_PREVIOUS,
+  MOCK_PRODUCTS,
+  MOCK_SEARCHES,
+  buildMockDaily,
+} from "./trends/trends-mock";
+import { Badge } from "@/components/ui/badge";
 
 type DateRange = "7d" | "30d" | "90d";
 
@@ -78,6 +87,7 @@ export default function TrendsPage() {
   // Vendedores (não-managers) só veem seus próprios eventos.
   const sellerScope = canManage ? null : user?.id ?? null;
   const scopeKey = sellerScope ?? "all";
+  const demo = isDemoMode();
 
   const { sinceCurrent, sincePrevious, recentCutoff } = useMemo(() => {
     const now = new Date();
@@ -272,17 +282,26 @@ export default function TrendsPage() {
     },
   });
 
-  const kpiCurrent = kpiSnapshot?.current ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 };
-  const kpiPrevious = kpiSnapshot?.previous ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 };
+  const kpiCurrent = demo ? MOCK_KPI_CURRENT : (kpiSnapshot?.current ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 });
+  const kpiPrevious = demo ? MOCK_KPI_PREVIOUS : (kpiSnapshot?.previous ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 });
+
+  // Override de demo para ranking, buscas e série diária
+  const mockDaily = useMemo(() => (demo ? buildMockDaily(days) : null), [demo, days]);
+  const displayProducts = demo ? MOCK_PRODUCTS : topProducts;
+  const displaySearches = demo ? MOCK_SEARCHES : topSearches;
+  const displayDaily = demo ? mockDaily : dailyData;
+  const displayLoadingProducts = demo ? false : loadingProducts;
+  const displayLoadingSearches = demo ? false : loadingSearches;
+  const displayLoadingDaily = demo ? false : loadingDaily;
 
   const handleRefresh = () => { refetchProducts(); refetchSearches(); };
 
   const handleExportProducts = () => {
-    if (!topProducts?.length) {
+    if (!displayProducts?.length) {
       toast({ title: "Sem dados", description: "Nada para exportar ainda.", variant: "destructive" });
       return;
     }
-    exportTrendsCsv("tendencias_produtos", topProducts.map(p => ({
+    exportTrendsCsv("tendencias_produtos", displayProducts.map(p => ({
       Produto: p.name, SKU: p.sku ?? "", Visualizações: p.views,
       Detalhes: p.details, Comparações: p.compares,
       "Crescimento %": p.classification === 'new' ? "NOVO" : Math.round((p.trendingScore - 1) * 100),
@@ -292,11 +311,11 @@ export default function TrendsPage() {
   };
 
   const handleExportSearches = () => {
-    if (!topSearches?.length) {
+    if (!displaySearches?.length) {
       toast({ title: "Sem dados", description: "Nada para exportar ainda.", variant: "destructive" });
       return;
     }
-    exportTrendsCsv("tendencias_buscas", topSearches.map(s => ({
+    exportTrendsCsv("tendencias_buscas", displaySearches.map(s => ({
       Termo: s.term, Buscas: s.count, "Resultados médios": s.avgResults,
     })));
     toast({ title: "Exportado", description: "Arquivo CSV baixado." });
@@ -314,6 +333,11 @@ export default function TrendsPage() {
                 Análise de Tendências
               </h1>
               <RealtimeBadge />
+              {demo && (
+                <Badge variant="outline" className="border-chart-4/40 text-chart-4 bg-chart-4/10">
+                  MODO DEMO — dados fictícios
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground mt-1">
               {canManage
@@ -352,9 +376,9 @@ export default function TrendsPage() {
 
         {/* Forecast Chart com toggles vs anterior + previsão + anomalias */}
         <TrendsForecastChart
-          dailyTrends={dailyData?.current}
-          previousTrends={dailyData?.previous}
-          isLoading={loadingDaily}
+          dailyTrends={displayDaily?.current}
+          previousTrends={displayDaily?.previous}
+          isLoading={displayLoadingDaily}
           showForecast={showForecast}
           onToggleForecast={setShowForecast}
           showCompare={showCompare}
@@ -384,10 +408,10 @@ export default function TrendsPage() {
             </Button>
           </div>
           <TabsContent value="products" className="space-y-4">
-            <ProductsTabContent topProducts={topProducts} isLoading={loadingProducts} />
+            <ProductsTabContent topProducts={displayProducts} isLoading={displayLoadingProducts} />
           </TabsContent>
           <TabsContent value="searches" className="space-y-4">
-            <SearchesTabContent topSearches={topSearches} isLoading={loadingSearches} />
+            <SearchesTabContent topSearches={displaySearches} isLoading={displayLoadingSearches} />
           </TabsContent>
         </Tabs>
       </div>
