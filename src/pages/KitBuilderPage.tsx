@@ -34,6 +34,7 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { transformToKitItem } from '@/hooks/useKitBuilderTransformers';
 import { PageSEO } from "@/components/seo/PageSEO";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 
