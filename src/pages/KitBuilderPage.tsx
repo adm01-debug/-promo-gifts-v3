@@ -176,6 +176,35 @@ export default function KitBuilderPage() {
     toast.success('Kit duplicado — salve para criar uma nova versão');
   };
 
+  // Item 3 — contextual toasts with Desfazer (uses undo from useKitUndoRedo)
+  const handleSelectBox = (box: typeof availableBoxes[number]) => {
+    selectBox(box);
+    toast.success(`Caixa "${box.name}" selecionada`, {
+      action: { label: 'Desfazer', onClick: () => undo() },
+      duration: 4000,
+    });
+  };
+  const handleAddItem = (item: Parameters<typeof addItem>[0]) => {
+    const result = addItem(item);
+    if (result.fits) {
+      toast.success(`"${item.name}" adicionado`, {
+        action: { label: 'Desfazer', onClick: () => undo() },
+        duration: 3500,
+      });
+    }
+    return result;
+  };
+  const handleRemoveItem = (itemId: string) => {
+    const removed = kitState.items.find(i => i.id === itemId);
+    removeItem(itemId);
+    if (removed) {
+      toast.success(`"${removed.name}" removido`, {
+        action: { label: 'Desfazer', onClick: () => undo() },
+        duration: 3500,
+      });
+    }
+  };
+
   useKitWizardShortcuts({
     canProceed: wizardState.canProceed,
     currentStep: wizardState.currentStep,
