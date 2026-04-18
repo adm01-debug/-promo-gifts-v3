@@ -297,11 +297,11 @@ export default function TrendsPage() {
   const handleRefresh = () => { refetchProducts(); refetchSearches(); };
 
   const handleExportProducts = () => {
-    if (!topProducts?.length) {
+    if (!displayProducts?.length) {
       toast({ title: "Sem dados", description: "Nada para exportar ainda.", variant: "destructive" });
       return;
     }
-    exportTrendsCsv("tendencias_produtos", topProducts.map(p => ({
+    exportTrendsCsv("tendencias_produtos", displayProducts.map(p => ({
       Produto: p.name, SKU: p.sku ?? "", Visualizações: p.views,
       Detalhes: p.details, Comparações: p.compares,
       "Crescimento %": p.classification === 'new' ? "NOVO" : Math.round((p.trendingScore - 1) * 100),
@@ -311,11 +311,11 @@ export default function TrendsPage() {
   };
 
   const handleExportSearches = () => {
-    if (!topSearches?.length) {
+    if (!displaySearches?.length) {
       toast({ title: "Sem dados", description: "Nada para exportar ainda.", variant: "destructive" });
       return;
     }
-    exportTrendsCsv("tendencias_buscas", topSearches.map(s => ({
+    exportTrendsCsv("tendencias_buscas", displaySearches.map(s => ({
       Termo: s.term, Buscas: s.count, "Resultados médios": s.avgResults,
     })));
     toast({ title: "Exportado", description: "Arquivo CSV baixado." });
