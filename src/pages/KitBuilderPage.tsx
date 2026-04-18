@@ -41,6 +41,7 @@ import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
 import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPreview';
 import { KitPersonalizationPreview } from '@/components/kit-builder/KitPersonalizationPreview';
+import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
