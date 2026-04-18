@@ -28,6 +28,11 @@ export interface CustomKitRow {
   personalization_price: number;
   total_price: number;
   volume_usage_percent: number;
+  color: string;
+  icon: string;
+  tag: string | null;
+  description: string | null;
+  is_favorite: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -69,6 +74,7 @@ export function useCustomKitPersistence() {
     }) => {
       if (!user?.id) throw new Error('Usuário não autenticado');
 
+      const identity = kitState.identity;
       const payload = {
         user_id: user.id,
         name: kitState.name || 'Kit sem nome',
@@ -83,6 +89,11 @@ export function useCustomKitPersistence() {
         personalization_price: kitState.personalizationPrice,
         total_price: kitState.totalPrice,
         volume_usage_percent: kitState.volumeUsagePercent,
+        color: identity?.color ?? '#3B82F6',
+        icon: identity?.icon ?? 'Package',
+        tag: identity?.tag ?? null,
+        description: identity?.description ?? null,
+        is_favorite: identity?.isFavorite ?? false,
         updated_at: new Date().toISOString(),
       };
 
