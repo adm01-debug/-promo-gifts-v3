@@ -209,6 +209,13 @@ export default function KitBuilderPage() {
                   goToStep('box');
                 }}
               />
+              <TooltipProvider>
+                <Tooltip><TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" asChild aria-label="Kits campeões">
+                    <Link to="/montar-kit/analytics"><Trophy className="h-4 w-4" /></Link>
+                  </Button>
+                </TooltipTrigger><TooltipContent>Meus kits campeões</TooltipContent></Tooltip>
+              </TooltipProvider>
               <Button variant="outline" onClick={handleResetKit}><RotateCcw className="h-4 w-4 mr-2" />Novo Kit</Button>
             </div>
           </div>
@@ -318,11 +325,26 @@ export default function KitBuilderPage() {
           {(() => {
             const sidebarContent = (
               <>
-                {kitState.box && <KitIsometricPreview kitState={kitState} />}
+                {kitState.box && (
+                  <Suspense fallback={<Skeleton className="h-48 w-full" />}>
+                    <KitIsometricPreview kitState={kitState} />
+                  </Suspense>
+                )}
                 {(kitState.personalization.box?.enabled || Object.values(kitState.personalization.items).some(p => p?.enabled)) && (
-                  <KitPersonalizationPreview kitState={kitState} />
+                  <Suspense fallback={<Skeleton className="h-32 w-full" />}>
+                    <KitPersonalizationPreview kitState={kitState} />
+                  </Suspense>
                 )}
                 {kitState.totalPrice > 0 && <KitHealthCard kitState={kitState} kitQuantity={kitQuantity} />}
+                {kitState.items.length > 0 && (
+                  <KitStockForecastCard items={kitState.items} kitQuantity={kitQuantity} />
+                )}
+                <KitVariantsManager
+                  kitMasterId={currentKitId || autoSavedKitId || undefined}
+                  currentState={kitState}
+                  currentQuantity={kitQuantity}
+                />
+                <KitCollaborationPanel kitId={currentKitId || autoSavedKitId || undefined} />
                 {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
 
                 {kitState.box && kitState.box.maxWeight && (
