@@ -106,7 +106,7 @@ describe("Voice Agent Response Contract", () => {
     const validRoutes = [
       "/", "/orcamentos", "/orcamentos/novo", "/pedidos",
       "/favoritos", "/colecoes", "/simulador", "/mockup",
-      "/bi", "/tendencias",
+      "/tendencias",
     ];
 
     validRoutes.forEach(route => {

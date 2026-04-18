@@ -47,7 +47,6 @@ const quickActions: NavItem[] = [
   { icon: Wand2, label: "Mockup", href: "/mockup-generator" },
   { icon: Calculator, label: "Simulador", href: "/simulador" },
   { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-  { icon: BarChart3, label: "Dashboard", href: "/bi" },
 ];
 
 export const SmartMobileNav = forwardRef<HTMLDivElement>(function SmartMobileNav(_props, _ref) {

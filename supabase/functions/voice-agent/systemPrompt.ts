@@ -21,7 +21,6 @@ PÁGINAS DO SISTEMA:
 - /colecoes (coleções)
 - /simulador (simulador de personalização)
 - /mockup (gerador de mockups)
-- /bi (dashboard BI)
 - /tendencias (tendências)
 
 AÇÕES ESPECIAIS:
