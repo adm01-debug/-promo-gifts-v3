@@ -328,7 +328,7 @@ export default function KitBuilderPage() {
                             ))}
                           </RadioGroup>
                         </div>
-                        <BoxSelector boxes={availableBoxes} selectedBox={kitState.box} isLoading={isLoadingBoxes} filters={boxFilters} onFiltersChange={setBoxFilters} onSelect={selectBox} onClear={clearBox} />
+                        <BoxSelector boxes={availableBoxes} selectedBox={kitState.box} isLoading={isLoadingBoxes} filters={boxFilters} onFiltersChange={setBoxFilters} onSelect={handleSelectBox} onClear={clearBox} />
                       </div>
                     )}
 
@@ -342,12 +342,12 @@ export default function KitBuilderPage() {
                           <p className="text-muted-foreground mt-1">O coração do kit — escolha produtos memoráveis</p>
                         </div>
                         <ItemSelector items={availableItems} selectedItems={kitState.items} isLoading={isLoadingItems}
-                          filters={itemFilters} onFiltersChange={setItemFilters} onAddItem={addItem} onRemoveItem={removeItem}
+                          filters={itemFilters} onFiltersChange={setItemFilters} onAddItem={handleAddItem} onRemoveItem={handleRemoveItem}
                           onUpdateQuantity={updateItemQuantity} onUpdateVariant={(itemId, data) => updateItemVariant(itemId, data)}
                           onReorder={reorderItems} boxSelected={kitState.box !== null} />
                         {kitState.items.length > 0 && (
                           <KitSmartSuggestions selectedItems={kitState.items}
-                            onAddItem={(item) => { const kitItem = availableItems.find(i => i.id === item.id); if (kitItem) addItem(kitItem); }} />
+                            onAddItem={(item) => { const kitItem = availableItems.find(i => i.id === item.id); if (kitItem) handleAddItem(kitItem); }} />
                         )}
                       </div>
                     )}
