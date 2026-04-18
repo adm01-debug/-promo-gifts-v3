@@ -29,6 +29,13 @@ export function UnmetDemandCard({ days }: UnmetDemandCardProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["unmet-demand", days],
     queryFn: async (): Promise<UnmetDemandItem[]> => {
+      const { isDemoMode, MOCK_UNMET_DEMAND } = await import("@/pages/trends/trends-mock");
+      if (isDemoMode()) {
+        const now = new Date().toISOString();
+        return MOCK_UNMET_DEMAND.map(d => ({
+          term: d.term, searchCount: d.count, lastSearchedAt: now,
+        }));
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: rows, error } = await (supabase.from as any)("search_analytics")
         .select("search_term, created_at")
