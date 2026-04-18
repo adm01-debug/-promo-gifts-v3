@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
   Sparkles, RefreshCw, AlertTriangle, TrendingUp, Lightbulb, Star,
-  Copy, Check, Download, Database, Inbox,
+  Copy, Check, Database, Inbox,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -117,19 +117,7 @@ export function MarketIntelligenceInsightsCard({
     }
   };
 
-  const handleExport = () => {
-    if (!data) return;
-    const blob = new Blob([buildText(data)], { type: "text/plain;charset=utf-8" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `insights-mercado-${new Date().toISOString().slice(0, 10)}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    toast({ title: "Exportado!", description: "Arquivo .txt salvo." });
-  };
+
 
   const filterChips = [
     categoryName && `Categoria: ${categoryName}`,
