@@ -4,16 +4,12 @@
  * Tier 2: Primary actions (Save, New) + grouped secondary in dropdown
  */
 import {
-  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, MoreHorizontal, Check,
+  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { BackButton } from '@/components/common/BackButton';
 import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 import { cn } from '@/lib/utils';
@@ -118,21 +114,13 @@ export function KitBuilderHeader({
               {isExistingKit ? 'Atualizar' : 'Salvar'}
             </Button>
 
-            {/* Secondary actions grouped */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" aria-label="Mais ações">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Ações rápidas</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
-                  <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              onClick={onReset}
+              className="font-medium text-destructive hover:text-destructive"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
+            </Button>
 
             <div className="hidden lg:block">
               <KitAIPromptDialog onApply={onAIApply} />
