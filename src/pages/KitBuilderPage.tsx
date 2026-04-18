@@ -295,6 +295,7 @@ export default function KitBuilderPage() {
           </div>
         </div>
       </div>
-    </div>
+      </div>
+    </MainLayout>
   );
 }
