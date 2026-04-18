@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
+import { BoxCardSkeleton } from './KitCardSkeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Slider } from '@/components/ui/slider';
 import { Label } from '@/components/ui/label';
@@ -241,7 +241,7 @@ export function BoxSelector({
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {[1, 2, 3, 4].map(i => (
-              <Skeleton key={i} className="h-36 w-full rounded-lg" />
+              <BoxCardSkeleton key={i} />
             ))}
           </div>
         ) : boxes.length === 0 ? (

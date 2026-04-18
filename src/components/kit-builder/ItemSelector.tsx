@@ -8,7 +8,7 @@ import { Search, AlertTriangle, X, Package } from 'lucide-react';
 import { SelectedItemsBadges } from './SelectedItemsBadges';
 import { ItemCard } from './ItemCard';
 import { Input } from '@/components/ui/input';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ItemCardSkeleton } from './KitCardSkeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -145,7 +145,7 @@ export function ItemSelector({
         {isLoading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
             {[1, 2, 3, 4, 5, 6].map(i => (
-              <Skeleton key={i} className="h-28 w-full rounded-lg" />
+              <ItemCardSkeleton key={i} />
             ))}
           </div>
         ) : items.length === 0 ? (
