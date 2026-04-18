@@ -36,7 +36,7 @@ function buildWhatsappUrl(quote: Quote) {
 export function QuoteRowQuickActions({ quote, onDuplicate, onMarkApproved }: QuoteRowQuickActionsProps) {
   const isClosed = quote.status === "approved" || quote.status === "converted" || quote.status === "rejected";
 
-  const handleCopyLink = async (e: React.MouseEvent) => {
+  const handleCopyLink = async (e: ReactMouseEvent) => {
     e.stopPropagation();
     try {
       await navigator.clipboard.writeText(buildShareUrl(quote));
@@ -46,18 +46,18 @@ export function QuoteRowQuickActions({ quote, onDuplicate, onMarkApproved }: Quo
     }
   };
 
-  const handleWhatsapp = (e: React.MouseEvent) => {
+  const handleWhatsapp = (e: ReactMouseEvent) => {
     e.stopPropagation();
     window.open(buildWhatsappUrl(quote), "_blank", "noopener,noreferrer");
   };
 
-  const handleDuplicate = (e: React.MouseEvent) => {
+  const handleDuplicate = (e: ReactMouseEvent) => {
     e.stopPropagation();
     if (!quote.id) return;
     onDuplicate(quote.id);
   };
 
-  const handleApprove = (e: React.MouseEvent) => {
+  const handleApprove = (e: ReactMouseEvent) => {
     e.stopPropagation();
     if (!quote.id) return;
     onMarkApproved(quote.id);
