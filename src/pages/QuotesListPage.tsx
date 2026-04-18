@@ -54,6 +54,9 @@ import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
 import { QuotesStatusChips } from "@/components/quotes/QuotesStatusChips";
+import { QuotesFunnelChart } from "@/components/quotes/QuotesFunnelChart";
+import { useQuoteFunnel } from "@/hooks/useQuoteFunnel";
+import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
 
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "expiring";
