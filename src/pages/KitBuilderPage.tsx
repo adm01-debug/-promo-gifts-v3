@@ -42,6 +42,7 @@ import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBa
 import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPreview';
 import { KitPersonalizationPreview } from '@/components/kit-builder/KitPersonalizationPreview';
 import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
+import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
