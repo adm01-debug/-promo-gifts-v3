@@ -50,6 +50,9 @@ import type { Quote } from "@/hooks/useQuotes";
 import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
 import { BulkActionsBar, type BulkAction } from "@/components/common/BulkActionsBar";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
+import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
+import { QuoteViewedBadge } from "./QuoteViewedBadge";
+import { QuoteRowQuickActions } from "./QuoteRowQuickActions";
 import {
   DndContext,
   closestCenter,
@@ -142,6 +145,7 @@ interface QuotesConfigurableListProps {
   onBulkStatusChange?: (ids: string[], status: string) => void;
   onBulkExport?: (ids: string[]) => void;
   onDuplicate: (id: string) => void;
+  onMarkApproved?: (id: string) => void;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
@@ -153,6 +157,7 @@ export function QuotesConfigurableList({
   onBulkStatusChange,
   onBulkExport,
   onDuplicate,
+  onMarkApproved,
 }: QuotesConfigurableListProps) {
   const navigate = useNavigate();
 
