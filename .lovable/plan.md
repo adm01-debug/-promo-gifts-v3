@@ -1,37 +1,25 @@
 
-The previous Kit Library 10/10 roadmap was just completed (16 melhorias entregues). Sem nova lista explícita, proponho a próxima onda — **Kit Library 11/10: Dados reais + UX avançada** — para continuar a evolução autônoma rumo à perfeição.
+Continuação da Onda pós-10/10 do Kit Library — itens pendentes da sessão anterior. Executarei sequencialmente sem pausas até o build limpo.
 
-# Plano: Kit Library — Onda Pós-10/10 (Dados Reais + UX Avançada)
+# Plano: Kit Library — Finalizar Onda Pós-10/10
 
-Executarei tudo sequencialmente, sem pausas, até o build TS limpo final.
+## Pendências (8 itens)
 
-## Onda A — Templates com dados reais (gap crítico)
-1. **Admin: snapshot do kit atual como template** — botão no Kit Builder "Salvar como template do sistema" (admin only) que captura `box_data + items_data + personalization_data + total_price` do estado atual e cria/atualiza um `kit_templates`.
-2. **Admin: editor de template carrega kit completo** — no `/admin/kit-templates`, botão "Editar conteúdo" abre o template no Kit Builder em modo template (URL `?template=ID`); ao salvar, persiste de volta em `kit_templates`, não em `custom_kits`.
-3. **Clone real funcional** — `cloneTemplate` já copia JSONB; validar que o kit clonado abre corretamente no Builder com box+items+personalização restaurados (smoke test mental + ajuste se faltar campo).
+1. **Atalho global `G+K`** — adicionar em `useGlobalShortcuts` para abrir `/meus-kits` de qualquer lugar; documentar em `keyboard-shortcuts-registry`.
+2. **Spotlight: entradas dinâmicas** — `Ctrl+K` com "Ir para biblioteca de kits" + entradas para cada kit favoritado/fixado do usuário.
+3. **Identidade no PDF** — header do `kitPdfGenerator` mostra cor (faixa) + ícone + tag do kit.
+4. **`kit_metadata` no orçamento** — `useKitBuilderQuote` envia `{color, icon, tag}` junto ao item criado para referência visual futura.
+5. **Botão admin "Salvar como template do sistema"** no `KitBuilderHeader` — usa `useTemplateSnapshot` (já criado), visível só para admin.
+6. **Modo `?template=ID` no `KitBuilderPage`** — carrega de `kit_templates`, mostra banner "Editando template do sistema", e ao salvar persiste de volta em `kit_templates` (não em `custom_kits`).
+7. **`bumpLastUsed` no load** — `KitBuilderPage` chama `bumpLastUsed(kitId)` quando abre kit existente para alimentar ordenação "Usados recentemente".
+8. **Realtime opcional em `custom_kits`** — subscrever canal `user:<uid>:custom-kits` (com fallback no polling) para refletir mudanças cross-tab; invalida query no evento.
 
-## Onda B — Identidade visual end-to-end
-4. **Identidade no PDF do kit** — header do PDF exportado mostra cor + ícone + tag do kit (hoje é genérico).
-5. **Identidade no Orçamento** — quando "Criar Orçamento" é acionado, levar `color/tag/icon` para um campo `kit_metadata` no quote item para futura referência visual.
-6. **Identidade no compartilhamento WhatsApp** — incluir tag no texto (`*Kit VIP — Cliente Premium*`).
+## Validação final
+- TS check (`tsc --noEmit`).
+- Smoke mental: admin cria template via snapshot → vendedor abre `/meus-kits` via `G+K` → clona → edita identidade → fixa → orçamento sai com `kit_metadata` → PDF mostra identidade → admin reabre via `?template=ID` e salva.
+- Atualizar memória `mem://features/kit-library-system` com fluxo final.
 
-## Onda C — Biblioteca: descoberta e produtividade
-7. **"Usado recentemente"** — ordenar Meus Kits por `last_used_at` (novo campo); incrementar quando o kit é aberto via `/montar-kit?kit=ID`.
-8. **Pin/destacar kit** — além de favoritar, permitir "fixar" 1 kit que aparece em destaque no topo de Meus Kits (campo `is_pinned`).
-9. **Atalho de teclado** `G + K` para abrir biblioteca de qualquer lugar; documentar em `keyboard-shortcuts-registry`.
-10. **Comando rápido no Spotlight** (`Ctrl+K`) — entrada "Ir para biblioteca de kits" + entradas dinâmicas para cada kit favoritado.
-
-## Onda D — Templates inteligentes
-11. **Categorias dinâmicas** — chips de categoria na aba Sugeridos (Tecnologia, Bem-estar, Premium, Onboarding, Eco) derivados de `kit_templates.category` distinct.
-12. **"Quem usou também usou"** — sob cada template, mostrar 2-3 templates da mesma categoria.
-13. **Métrica de adoção visível só p/ admin** — badge com `usage_count` no card de template quando `has_role(uid,'admin')`.
-
-## Onda E — Polimento técnico
-14. **Tipagem `CustomKitRow` exportada** + remover `as never` no insert de `KitLibraryPage` (criar helper `buildCustomKitInsert`).
-15. **Realtime opcional** — subscrever `custom_kits` (canal `user:<uid>:custom-kits`) para refletir mudanças cross-tab; fallback no polling atual.
-16. **Validação final** — TS check + smoke mental: criar template (admin) → vendedor clona → edita identidade → fixa → orçamento sai com tag → admin vê adoção subir.
-
-## Arquivos esperados
-- **Migrações**: 1 (`custom_kits.last_used_at timestamptz`, `custom_kits.is_pinned boolean default false`).
-- **Modificar**: `KitBuilderPage.tsx`, `KitBuilderHeader.tsx`, `KitLibraryPage.tsx`, `useKitTemplates.ts`, `useAdminKitTemplates.ts`, `KitTemplatesAdminPage.tsx`, `useCustomKitPersistence.ts`, `Spotlight.tsx`, kit PDF export, WhatsApp text composer.
-- **Criar**: `useTemplateSnapshot.ts`, `KitCategoryChips.tsx`, `RelatedTemplates.tsx`, helper `buildCustomKitInsert.ts`, memória atualizada.
+## Arquivos
+- **Modificar**: `useGlobalShortcuts.ts`, `EnhancedSpotlight.tsx` (ou `SpotlightItems.ts`), `kitPdfGenerator.ts`, `useKitBuilderQuote.ts`, `KitBuilderHeader.tsx`, `KitBuilderPage.tsx`.
+- **Criar**: `useCustomKitsRealtime.ts` (hook leve de subscribe).
+- **Memória**: atualizar `kit-library-system` + `keyboard-shortcuts-registry`.
