@@ -1,51 +1,42 @@
 
-User quer 2 bancos de kits no Kit Maker:
-1. **Banco "Meus Kits"** — kits criados pelo próprio vendedor, com identidade visual (nome, cor/tag, ícone), buscáveis.
-2. **Banco "Kits Sugeridos"** — biblioteca curada pelo sistema (templates pré-prontos) que o vendedor pode clonar e adaptar.
+User wants autonomous execution of "all listed improvements" but no list was provided in this message. Need to check chat history for the pending improvements list, OR assume they refer to the Kit Maker biblioteca that was just delivered + remaining 10/10 polish.
 
-Investigação:
-- Já existe `custom_kits` (RLS por user_id), página `/meus-kits` (MeusKitsPage.tsx) e hook `useCustomKitPersistence`.
-- Falta: identidade visual (cor/tag/ícone), banco de templates compartilhados, página unificada de "Biblioteca de Kits" com 2 abas (Meus / Sugeridos).
+Looking at recent context: just finished Kit Library implementation. The user preference says "execute autonomously, one at a time, no pauses". They likely want continuous Kit Maker polish to reach 10/10.
 
-# Plano
+Since no explicit list exists in current window, I'll propose a focused 10/10 roadmap for the new Kit Library + Kit Maker identity feature (the most recent delivery), executing each sequentially without further questions.
 
-## 1. Backend — schema
-**Migração 1: enriquecer `custom_kits`**
-- `color` text (hex, default `#3B82F6`)
-- `tag` text (ex: "Onboarding", "Cliente VIP", "Natal")
-- `icon` text (lucide icon name, default `Package`)
-- `description` text (curta, opcional)
-- `is_favorite` boolean default false
+# Plano: Kit Library 10/10 — Polimento Sequencial Autônomo
 
-**Migração 2: nova tabela `kit_templates`** (banco curado pelo sistema)
-- `id`, `name`, `description`, `category` (ex: "Tecnologia", "Bem-estar", "Premium"), `color`, `icon`, `tag`
-- `box_data jsonb`, `items_data jsonb`, `personalization_data jsonb`
-- `total_price numeric`, `volume_usage_percent numeric`
-- `created_by uuid` (admin que cadastrou), `is_active boolean`, `usage_count int` (popularidade)
-- `cover_image_url text` (opcional)
-- RLS: `SELECT` público para autenticados; `INSERT/UPDATE/DELETE` apenas `admin` (via `has_role`)
-- Seed de 6 templates iniciais (Tech Premium, Bem-estar Essencial, Natal Corporativo, Onboarding Novo Funcionário, Cliente Top, Eco-friendly)
+Executarei as melhorias abaixo **uma de cada vez**, sem pausas, até concluir todas:
 
-## 2. Frontend
-**A. `KitLibraryPage.tsx`** (substitui/expande `MeusKitsPage`)
-- Header: "Biblioteca de Kits" + busca global + filtro por tag/cor
-- Tabs: **Meus Kits** | **Sugeridos pelo Sistema** | **Favoritos**
-- Cards ricos: ícone colorido + nome + tag pill + preço + volume bar + ações (editar, duplicar, favoritar, excluir)
-- Empty states bonitos por aba
-- Botão "Usar este template" em sugeridos → cria cópia em `custom_kits`
+## Onda 1 — Funcionalidade essencial faltante
+1. **Carregar identidade ao abrir kit existente** — `loadKit()` em `useKitBuilder` precisa popular `identity` (cor/ícone/tag/descrição/favorito) a partir do banco. Hoje só carrega box/items/personalization.
+2. **Tipar `custom_kits.color/icon/tag/...`** corretamente nos selects e remover `as unknown as` da `KitLibraryPage` (criar helper tipado).
 
-**B. `useKitTemplates.ts`** (hook novo) — lista templates ativos, ordena por `usage_count`, ação `cloneToMyKits()`
+## Onda 2 — UX da Biblioteca
+3. **Filtros visuais** na Biblioteca: chips por tag e por cor (derivados dos kits do usuário), além da busca textual.
+4. **Ordenação**: dropdown "Mais recentes / Maior valor / Nome A-Z / Mais usados (templates)".
+5. **Skeleton cards** durante carregamento (substituir spinner por 8 skeletons no padrão `loading-and-skeleton-standard`).
+6. **Contador de itens correto**: hoje soma `quantity` mas alguns templates podem ter items com estrutura diferente — normalizar.
 
-**C. Edição de identidade visual no `KitBuilderHeader`**
-- Botão "Identidade" abre popover: color picker (8 cores pré-definidas), seletor de ícone (12 ícones lucide), input de tag
-- Persistir nos novos campos
+## Onda 3 — Identidade visual aplicada no Kit Maker
+7. **Header do Kit Builder reflete a identidade**: stripe colorida no topo + ícone ao lado do nome do kit (não só no popover).
+8. **Card "Meus Kits" no /montar-kit**: botão "Abrir biblioteca" no header levando direto à aba certa.
 
-**D. `useCustomKitPersistence` atualizado** — incluir `color/tag/icon/description/is_favorite` no payload
+## Onda 4 — Templates avançados
+9. **Painel Admin de Templates** (`/admin/kit-templates`): CRUD de `kit_templates` para administradores popularem o banco com kits reais (box+items+personalização) — protegido por `AdminRoute`.
+10. **Badge "Popular"** em templates com `usage_count >= 5`.
+11. **Preview rico** do template antes de clonar (modal mostrando itens, caixa, preço).
 
-## 3. Validação
-- TS check, RLS check, seed verificado, navegação `/meus-kits` → `KitLibraryPage`.
+## Onda 5 — Polimento final 10/10
+12. **Animações** `animate-fade-in` escalonadas nos grids da biblioteca.
+13. **Empty states ilustrados** com CTA secundário (ex: "Ver templates sugeridos" no estado vazio de Meus Kits).
+14. **PageSEO** com OG image e descrição SEO-friendly.
+15. **Memory update**: registrar `mem://features/kit-library-system` documentando a arquitetura dos 2 bancos.
+16. **Validação final**: TS check + lint + smoke test mental do fluxo completo (criar → salvar com identidade → reabrir → clonar template → favoritar → excluir).
 
-## Arquivos
-- **Migrações**: 2 (schema + seed)
-- **Novos**: `KitLibraryPage.tsx`, `useKitTemplates.ts`, `KitIdentityPicker.tsx`, `KitTemplateCard.tsx`, `MyKitCard.tsx`
-- **Modificados**: `App.tsx` (rota), `KitBuilderHeader.tsx`, `useCustomKitPersistence.ts`, `KitBuilderPage.tsx`, `types.ts` (KitState ganha color/tag/icon)
+## Arquivos esperados
+- **Modificar**: `useKitBuilder.ts`, `useCustomKitPersistence.ts`, `KitLibraryPage.tsx`, `KitBuilderHeader.tsx`, `KitCard.tsx`, `App.tsx`.
+- **Criar**: `src/pages/admin/KitTemplatesAdminPage.tsx`, `src/hooks/useAdminKitTemplates.ts`, `src/components/kit-library/KitLibraryFilters.tsx`, `src/components/kit-library/KitTemplatePreviewDialog.tsx`, `src/components/kit-library/KitCardSkeleton.tsx`, memória.
+
+Após aprovação, executo as 16 melhorias sequencialmente sem novas perguntas até o build TS limpo final.
