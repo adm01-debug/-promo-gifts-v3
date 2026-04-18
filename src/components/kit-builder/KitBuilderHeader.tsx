@@ -15,6 +15,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { BackButton } from '@/components/common/BackButton';
 import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 import { KitIdentityPicker } from '@/components/kit-builder/KitIdentityPicker';
+import { KitShareLinkDialog } from '@/components/kit-builder/KitShareLinkDialog';
 import { useRBAC } from '@/hooks/useRBAC';
 import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
 import type { KitIdentity, KitState } from '@/lib/kit-builder';
@@ -42,12 +43,14 @@ interface KitBuilderHeaderProps {
   kitState?: KitState;
   /** When set, header indicates we are editing a system template (admin mode). */
   templateId?: string;
+  /** Saved kit ID — enables share link dialog. */
+  currentKitId?: string;
 }
 
 export function KitBuilderHeader({
   kitName, onKitNameChange, isValid, isSaving, isAutoSaving, lastSavedAt, hasContent, isExistingKit,
   canUndo, canRedo, identity, onIdentityChange, onSave, onUndo, onRedo, onReset, onAIApply,
-  kitState, templateId,
+  kitState, templateId, currentKitId,
 }: KitBuilderHeaderProps) {
   const navigate = useNavigate();
   const { isAdmin } = useRBAC();
@@ -147,6 +150,8 @@ export function KitBuilderHeader({
             </TooltipProvider>
 
             <KitIdentityPicker identity={identity} onChange={onIdentityChange} />
+
+            <KitShareLinkDialog kitId={currentKitId} kitName={kitName} />
 
             <TooltipProvider>
               <Tooltip>
