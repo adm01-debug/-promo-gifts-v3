@@ -1,33 +1,30 @@
 
-A última onda (Compartilhamento & Hardening) foi entregue 8/8. Sem nova lista pendente, proponho a próxima onda autônoma para fechar gaps reais que ainda separam o Kit Maker de um produto polido para clientes finais e equipes.
+# Plano: Compactar loading do Dashboard de Estoque
 
-# Plano: Kit Maker — Onda Cliente-Facing & Operacional (8 itens)
+## Problema
+O estado de carregamento (`StockDashboard.tsx` linhas 148-184) usa `py-16` + ícone 80x80 + texto grande + barra de progresso isolada, ocupando uma faixa enorme acima dos skeletons. Visualmente parece um "modal vazio" desproporcional para uma simples sincronização de dados.
 
-## Onda A — Experiência do cliente no link público
-1. **Página pública `/kit/:token` (`PublicKitViewPage`)** — consome edge `kit-public-view` (já existe), renderiza hero com cor da identidade, lista de items sem custo, dados do vendedor + organização, CTA "Solicitar orçamento via WhatsApp". Rota registrada em `App.tsx` fora do `AuthLayout`.
-2. **PageSEO + OG dinâmica no link público** — `<title>` = "Kit {nome} – {organização}", `og:image` gerada via canvas com cor de identidade + nome do kit (data URL).
-3. **Gerenciar links ativos** — aba "Links" no `KitShareLinkDialog` listando tokens do kit (status, criado em, expira em, visualizado em) com botão revogar via `revokeShareLink`.
+## Solução — Loading inline compacto integrado aos skeletons
+Substituir o bloco hero por uma **barra de status fina e horizontal** no topo, deixando os skeletons abaixo carregarem o resto do espaço naturalmente (que é o padrão de loading correto).
 
-## Onda B — Colaboração interna real
-4. **Migrações `kit_collaborators` + `kit_comments`** — RLS via `is_kit_owner`/`is_kit_collaborator` (já existem); Realtime ADD TABLE; trigger `validate_status_fields` no comments (resolved/open).
-5. **`KitCollaborationPanel` + hook `useKitComments`** — painel sticky no sidebar do Builder: convidar por email, lista de comentários em tempo real (subscribe `postgres_changes`), marcar como resolvido.
+### Mudanças em `src/components/inventory/StockDashboard.tsx` (linhas 148-184)
 
-## Onda C — Operacional & métricas
-6. **Indicador "Visualizado pelo cliente"** — badge verde no `KitCard` quando `kit_share_tokens.viewed_at` existe; tooltip mostra data; query agregada no `useCustomKits`.
-7. **Heatmap admin: kits compartilhados vs visualizados** — extensão de `KitTemplatesMetricsPage` com tabela "Conversão de compartilhamentos" (gerados / visualizados / taxa).
+1. **Remover** o bloco centralizado `flex flex-col items-center justify-center py-16` (ícone 80x80 + ping + texto grande).
+2. **Substituir** por um cabeçalho horizontal compacto (h-14, com mesmo padrão visual das outras páginas):
+   - Ícone `Package` 16px com `animate-pulse` à esquerda
+   - Texto "Sincronizando estoque" (`text-sm font-medium`) + sublinha "Conectando ao fornecedor..." (`text-xs muted`)
+   - Barra de progresso fina (`h-1`) à direita com `%` em tabular-nums
+   - Tudo dentro de um `Card` compacto com `border border-border/40 rounded-xl px-4 py-3`
+3. **Manter** os skeletons abaixo (KPIs grid + filtros + tabela) exatamente como estão — eles já comunicam o carregamento da estrutura real.
+4. **Remover** o `p-6` externo (alinhar com `space-y-5` do estado carregado).
 
-## Onda D — Hardening final
-8. **`useKitShare` listKitTokens + revokeShareLink batch + Zod no `kit-public-view`** — validação final TS limpa, atualizar `mem://features/kit-library-system` com fluxo cliente-facing completo.
+### Resultado esperado
+- Loading ocupa ~60px de altura (vs ~340px atual)
+- Visual coerente com o restante do app (mesmos tokens, sem hero gigante)
+- Progresso ainda visível, mas como informação secundária
+- Skeletons assumem o protagonismo visual — padrão correto de loading skeleton
 
-## Migrações esperadas
-- `kit_collaborators (id, kit_id, user_id, invited_email, permission, status, invited_by, created_at)`
-- `kit_comments (id, kit_id, author_id, body, resolved, resolved_by, resolved_at, created_at, updated_at)`
-- RLS + Realtime ADD TABLE em ambas + trigger validação status.
+### Arquivos modificados
+- `src/components/inventory/StockDashboard.tsx` (apenas o bloco `if (isLoading)`)
 
-## Arquivos novos esperados
-`src/pages/PublicKitViewPage.tsx`, `src/hooks/useKitCollaboration.ts`, `src/components/kit-builder/KitCollaborationPanel.tsx`, helper `src/lib/kit-og-image.ts`.
-
-## Modificados
-`App.tsx` (rota `/kit/:token`), `src/components/kit-builder/KitShareLinkDialog.tsx` (aba Links + listKitTokens), `src/hooks/useKitShare.ts` (listKitTokens), `src/pages/KitBuilderPage.tsx` (collab panel), `src/components/kit-library/KitCard.tsx` (badge visualizado), `src/pages/admin/KitTemplatesMetricsPage.tsx` (conversão), `supabase/functions/kit-public-view/index.ts` (já tem Zod, revisar).
-
-Após aprovação executo os 8 itens sequencialmente sem pausas até o build TS limpo final.
+Sem migrações, sem novos arquivos, sem mudança de comportamento — apenas refinamento visual do estado de loading.
