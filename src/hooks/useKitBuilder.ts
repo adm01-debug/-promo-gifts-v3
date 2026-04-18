@@ -343,6 +343,7 @@ export function useKitBuilder() {
     items: KitItem[];
     personalization: KitPersonalization;
     kitQuantity: number;
+    identity?: KitIdentity;
   }) => {
     setKitName(data.name);
     setKitType(data.kitType);
@@ -350,6 +351,15 @@ export function useKitBuilder() {
     setSelectedItems(data.items);
     setPersonalization(data.personalization || { box: { enabled: false }, items: {} });
     setKitQuantity(data.kitQuantity || 1);
+    if (data.identity) {
+      setIdentity({
+        color: data.identity.color || '#3B82F6',
+        icon: data.identity.icon || 'Package',
+        tag: data.identity.tag || '',
+        description: data.identity.description || '',
+        isFavorite: data.identity.isFavorite ?? false,
+      });
+    }
     setCurrentStep('summary');
   }, []);
 

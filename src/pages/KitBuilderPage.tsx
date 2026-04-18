@@ -134,7 +134,22 @@ export default function KitBuilderPage() {
       try {
         const { data, error } = await supabase.from('custom_kits').select('*').eq('id', kitIdParam).maybeSingle();
         if (error || !data) { toast.error('Kit não encontrado'); return; }
-        loadKit({ name: data.name || '', kitType: (data.kit_type as string) || 'montado', box: data.box_data as Record<string, unknown>, items: (data.items_data as unknown[]) || [], personalization: (data.personalization_data as Record<string, unknown>) || { box: { enabled: false }, items: {} }, kitQuantity: data.kit_quantity || 1 });
+        const row = data as Record<string, unknown>;
+        loadKit({
+          name: (row.name as string) || '',
+          kitType: ((row.kit_type as 'montado' | 'original' | 'simples') || 'montado'),
+          box: row.box_data as never,
+          items: (row.items_data as unknown[] as never) || [],
+          personalization: (row.personalization_data as never) || { box: { enabled: false }, items: {} },
+          kitQuantity: (row.kit_quantity as number) || 1,
+          identity: {
+            color: (row.color as string) || '#3B82F6',
+            icon: (row.icon as string) || 'Package',
+            tag: (row.tag as string) || '',
+            description: (row.description as string) || '',
+            isFavorite: (row.is_favorite as boolean) ?? false,
+          },
+        });
         toast.success('Kit carregado para edição');
       } catch { toast.error('Erro ao carregar kit'); }
     })();

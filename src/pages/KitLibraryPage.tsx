@@ -1,11 +1,11 @@
 /**
  * Kit Library — Biblioteca unificada de kits do vendedor + sugeridos pelo sistema.
- * Substitui MeusKitsPage com 3 abas (Meus / Sugeridos / Favoritos).
+ * 3 abas (Meus / Sugeridos / Favoritos) com busca, filtros visuais e ordenação.
  */
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Search, Library, Sparkles, Star, Loader2 } from 'lucide-react';
+import { Plus, Search, Library, Sparkles, Star } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -19,6 +19,9 @@ import {
 import { toast } from 'sonner';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { KitCard, type KitCardData } from '@/components/kit-library/KitCard';
+import { KitCardSkeletonGrid } from '@/components/kit-library/KitCardSkeleton';
+import { KitLibraryFilters, type SortOption } from '@/components/kit-library/KitLibraryFilters';
+import { KitTemplatePreviewDialog } from '@/components/kit-library/KitTemplatePreviewDialog';
 import { useKitTemplates, type KitTemplateRow } from '@/hooks/useKitTemplates';
 import type { CustomKitRow } from '@/hooks/useCustomKitPersistence';
 
@@ -26,8 +29,26 @@ function getItemsCount(items: unknown): number {
   if (!Array.isArray(items)) return 0;
   return items.reduce((sum: number, it: unknown) => {
     const obj = it as { quantity?: number };
-    return sum + (obj.quantity || 1);
+    return sum + (obj?.quantity ?? 1);
   }, 0);
+}
+
+function applySort<T extends { name: string; total_price: number; updated_at?: string; usage_count?: number }>(
+  list: T[], sort: SortOption,
+): T[] {
+  const arr = [...list];
+  switch (sort) {
+    case 'price-desc':
+      arr.sort((a, b) => Number(b.total_price) - Number(a.total_price)); break;
+    case 'name-asc':
+      arr.sort((a, b) => a.name.localeCompare(b.name, 'pt-BR')); break;
+    case 'usage-desc':
+      arr.sort((a, b) => (b.usage_count ?? 0) - (a.usage_count ?? 0)); break;
+    case 'recent':
+    default:
+      arr.sort((a, b) => (b.updated_at || '').localeCompare(a.updated_at || ''));
+  }
+  return arr;
 }
 
 export default function KitLibraryPage() {
@@ -37,6 +58,10 @@ export default function KitLibraryPage() {
   const [search, setSearch] = useState('');
   const [tab, setTab] = useState<'mine' | 'suggested' | 'favorites'>('mine');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedColor, setSelectedColor] = useState<string | null>(null);
+  const [sort, setSort] = useState<SortOption>('recent');
+  const [previewTemplate, setPreviewTemplate] = useState<KitTemplateRow | null>(null);
 
   // Mine
   const { data: myKits = [], isLoading: loadingMine } = useQuery({
@@ -72,14 +97,11 @@ export default function KitLibraryPage() {
 
   const favoriteMutation = useMutation({
     mutationFn: async ({ id, value }: { id: string; value: boolean }) => {
-      const { error } = await (supabase as unknown as {
-        from: (t: string) => {
-          update: (v: Record<string, unknown>) => {
-            eq: (k: string, v: string) => Promise<{ error: { message: string } | null }>;
-          };
-        };
-      }).from('custom_kits').update({ is_favorite: value }).eq('id', id);
-      if (error) throw new Error(error.message);
+      const { error } = await supabase
+        .from('custom_kits')
+        .update({ is_favorite: value } as never)
+        .eq('id', id);
+      if (error) throw error;
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['custom-kits'] }),
   });
@@ -90,7 +112,7 @@ export default function KitLibraryPage() {
       const { id, created_at, updated_at, ...rest } = kit;
       const { error } = await supabase.from('custom_kits').insert({
         ...rest, user_id: user.id, name: `${kit.name} (cópia)`, status: 'draft',
-      } as unknown as Record<string, unknown>);
+      } as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -100,17 +122,46 @@ export default function KitLibraryPage() {
     onError: () => toast.error('Erro ao duplicar'),
   });
 
+  // Derived: tags & colors disponíveis nos kits do usuário
+  const availableTags = useMemo(() => {
+    const set = new Set<string>();
+    myKits.forEach((k) => { if (k.tag) set.add(k.tag); });
+    templates.forEach((t) => { if (t.tag) set.add(t.tag); });
+    return Array.from(set).sort();
+  }, [myKits, templates]);
+
+  const availableColors = useMemo(() => {
+    const set = new Set<string>();
+    myKits.forEach((k) => { if (k.color) set.add(k.color); });
+    return Array.from(set);
+  }, [myKits]);
+
   // Filter
   const q = search.trim().toLowerCase();
-  const matchKit = (k: CustomKitRow) =>
-    !q || k.name.toLowerCase().includes(q) || (k.tag || '').toLowerCase().includes(q);
-  const matchTpl = (t: KitTemplateRow) =>
-    !q || t.name.toLowerCase().includes(q) || (t.tag || '').toLowerCase().includes(q) ||
-    t.category.toLowerCase().includes(q);
+  const matchKit = (k: CustomKitRow) => {
+    if (q && !(k.name.toLowerCase().includes(q) || (k.tag || '').toLowerCase().includes(q))) return false;
+    if (selectedTag && k.tag !== selectedTag) return false;
+    if (selectedColor && k.color !== selectedColor) return false;
+    return true;
+  };
+  const matchTpl = (t: KitTemplateRow) => {
+    if (q && !(t.name.toLowerCase().includes(q) || (t.tag || '').toLowerCase().includes(q) || t.category.toLowerCase().includes(q))) return false;
+    if (selectedTag && t.tag !== selectedTag) return false;
+    return true;
+  };
 
-  const filteredMine = useMemo(() => myKits.filter(matchKit), [myKits, q]);
-  const filteredFavs = useMemo(() => myKits.filter(k => k.is_favorite && matchKit(k)), [myKits, q]);
-  const filteredTpls = useMemo(() => templates.filter(matchTpl), [templates, q]);
+  const filteredMine = useMemo(
+    () => applySort(myKits.filter(matchKit), sort),
+    [myKits, q, selectedTag, selectedColor, sort],
+  );
+  const filteredFavs = useMemo(
+    () => applySort(myKits.filter((k) => k.is_favorite && matchKit(k)), sort),
+    [myKits, q, selectedTag, selectedColor, sort],
+  );
+  const filteredTpls = useMemo(
+    () => applySort(templates.filter(matchTpl), sort),
+    [templates, q, selectedTag, sort],
+  );
 
   const toCard = (k: CustomKitRow): KitCardData => ({
     id: k.id, name: k.name, description: k.description, tag: k.tag,
@@ -123,12 +174,25 @@ export default function KitLibraryPage() {
     id: t.id, name: t.name, description: t.description, tag: t.tag,
     color: t.color, icon: t.icon,
     totalPrice: Number(t.total_price), itemsCount: getItemsCount(t.items_data),
-    badge: t.category,
+    badge: t.usage_count >= 5 ? 'Popular' : t.category,
   });
+
+  const handleClone = async (template: KitTemplateRow) => {
+    const created = await cloneTemplate(template);
+    setPreviewTemplate(null);
+    if (created && typeof created === 'object' && 'id' in created) {
+      navigate(`/montar-kit?kit=${(created as { id: string }).id}`);
+    }
+  };
 
   return (
     <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
-      <PageSEO title="Biblioteca de Kits" description="Seus kits salvos e templates sugeridos pelo sistema." path="/meus-kits" noIndex />
+      <PageSEO
+        title="Biblioteca de Kits — Seus kits salvos e templates do sistema"
+        description="Acesse seu banco pessoal de kits e clone templates curados pelo sistema para acelerar a montagem de propostas."
+        path="/meus-kits"
+        noIndex
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -157,6 +221,19 @@ export default function KitLibraryPage() {
         />
       </div>
 
+      {/* Filters */}
+      <KitLibraryFilters
+        tags={availableTags}
+        colors={tab === 'mine' || tab === 'favorites' ? availableColors : []}
+        selectedTag={selectedTag}
+        selectedColor={selectedColor}
+        sort={sort}
+        onTagChange={setSelectedTag}
+        onColorChange={setSelectedColor}
+        onSortChange={setSort}
+        showUsageSort={tab === 'suggested'}
+      />
+
       <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)} className="space-y-4">
         <TabsList>
           <TabsTrigger value="mine" className="gap-2">
@@ -169,24 +246,31 @@ export default function KitLibraryPage() {
           </TabsTrigger>
           <TabsTrigger value="favorites" className="gap-2">
             <Star className="h-4 w-4" /> Favoritos
-            <span className="ml-1 text-[10px] opacity-60">({myKits.filter(k => k.is_favorite).length})</span>
+            <span className="ml-1 text-[10px] opacity-60">({myKits.filter((k) => k.is_favorite).length})</span>
           </TabsTrigger>
         </TabsList>
 
         {/* MINE */}
         <TabsContent value="mine">
           {loadingMine ? (
-            <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            <KitCardSkeletonGrid count={8} />
           ) : filteredMine.length === 0 ? (
             <EmptyState
               icon={<Library className="h-10 w-10" />}
-              title={q ? 'Nenhum kit encontrado' : 'Você ainda não criou kits'}
-              description={q ? 'Tente outra busca.' : 'Comece montando o seu primeiro kit personalizado.'}
-              action={!q ? <Button onClick={() => navigate('/montar-kit')} className="gap-2"><Plus className="h-4 w-4" /> Montar kit</Button> : undefined}
+              title={q || selectedTag || selectedColor ? 'Nenhum kit encontrado' : 'Você ainda não criou kits'}
+              description={q || selectedTag || selectedColor ? 'Tente ajustar os filtros ou a busca.' : 'Comece montando o seu primeiro kit personalizado ou explore os templates do sistema.'}
+              action={
+                <div className="flex flex-wrap items-center justify-center gap-2">
+                  <Button onClick={() => navigate('/montar-kit')} className="gap-2"><Plus className="h-4 w-4" /> Montar kit</Button>
+                  <Button variant="outline" onClick={() => setTab('suggested')} className="gap-2">
+                    <Sparkles className="h-4 w-4" /> Ver templates
+                  </Button>
+                </div>
+              }
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredMine.map(k => (
+              {filteredMine.map((k) => (
                 <KitCard
                   key={k.id} variant="mine" data={toCard(k)}
                   onEdit={() => navigate(`/montar-kit?kit=${k.id}`)}
@@ -202,7 +286,7 @@ export default function KitLibraryPage() {
         {/* SUGGESTED */}
         <TabsContent value="suggested">
           {loadingTemplates ? (
-            <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-primary" /></div>
+            <KitCardSkeletonGrid count={8} />
           ) : filteredTpls.length === 0 ? (
             <EmptyState
               icon={<Sparkles className="h-10 w-10" />}
@@ -211,16 +295,11 @@ export default function KitLibraryPage() {
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredTpls.map(t => (
+              {filteredTpls.map((t) => (
                 <KitCard
                   key={t.id} variant="template" data={tplToCard(t)}
                   isBusy={isCloning}
-                  onUseTemplate={async () => {
-                    const created = await cloneTemplate(t);
-                    if (created && typeof created === 'object' && 'id' in created) {
-                      navigate(`/montar-kit?kit=${(created as { id: string }).id}`);
-                    }
-                  }}
+                  onUseTemplate={() => setPreviewTemplate(t)}
                 />
               ))}
             </div>
@@ -237,7 +316,7 @@ export default function KitLibraryPage() {
             />
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-              {filteredFavs.map(k => (
+              {filteredFavs.map((k) => (
                 <KitCard
                   key={k.id} variant="mine" data={toCard(k)}
                   onEdit={() => navigate(`/montar-kit?kit=${k.id}`)}
@@ -250,6 +329,15 @@ export default function KitLibraryPage() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Preview template */}
+      <KitTemplatePreviewDialog
+        template={previewTemplate}
+        open={!!previewTemplate}
+        onOpenChange={(o) => !o && setPreviewTemplate(null)}
+        onClone={() => previewTemplate && handleClone(previewTemplate)}
+        isCloning={isCloning}
+      />
 
       {/* Delete dialog */}
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
