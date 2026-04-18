@@ -21,7 +21,7 @@ import { ClientAffinityProducts } from "@/components/bi/ClientAffinityProducts";
 import { IndustryTrendingProducts } from "@/components/bi/IndustryTrendingProducts";
 import { ClientSeasonalityHeatmap } from "@/components/bi/ClientSeasonalityHeatmap";
 import { EmpiricalRecommendations } from "@/components/bi/EmpiricalRecommendations";
-import { ExportDossierButton } from "@/components/bi/ExportDossierButton";
+
 import { ClientHealthHero } from "@/components/bi/ClientHealthHero";
 import { ChurnRiskBanner } from "@/components/bi/ChurnRiskBanner";
 import { EnrichedOrdersTimeline } from "@/components/bi/EnrichedOrdersTimeline";
@@ -152,7 +152,6 @@ export default function BusinessIntelligencePage() {
                 Pergunte ao BI
               </Button>
               <ExecutiveSummaryButton clientId={clientId} clientName={clientName} ramoAtividade={ramoAtividade} />
-              <ExportDossierButton clientId={clientId} />
             </div>
           )}
         </div>
