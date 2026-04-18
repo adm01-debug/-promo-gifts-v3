@@ -1,6 +1,7 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { generateKitOgImage } from "@/lib/kit-og-image";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -95,6 +96,16 @@ export default function PublicKitViewPage() {
     );
   }
 
+  // Generate dynamic OG image once kit data loads
+  const ogImage = useMemo(() => {
+    if (!data) return undefined;
+    return generateKitOgImage({
+      kitName: data.kit.name,
+      organization: data.organization?.name,
+      itemsCount: data.kit.items.length,
+    }) || undefined;
+  }, [data]);
+
   if (!data) return null;
 
   const { kit, seller, organization, token: tokenInfo } = data;
@@ -104,8 +115,14 @@ export default function PublicKitViewPage() {
     simples: "Kit Simples",
   };
 
+  const seoTitle = organization?.name
+    ? `Kit ${kit.name} – ${organization.name}`
+    : `Kit ${kit.name}`;
+  const seoDescription = `Apresentação do kit "${kit.name}" com ${kit.items.length} ${kit.items.length === 1 ? "item" : "itens"}${organization?.name ? ` por ${organization.name}` : ""}.`;
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-muted/30 to-background">
+      <PageSEO title={seoTitle} description={seoDescription} ogImage={ogImage} noIndex />
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
