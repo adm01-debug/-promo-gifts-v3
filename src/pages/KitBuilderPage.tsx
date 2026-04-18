@@ -51,6 +51,7 @@ export default function KitBuilderPage() {
   const kitIdParam = searchParams.get('kit');
   const productIdParam = searchParams.get('product');
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
+  const [occasion, setOccasion] = useState<Occasion | null>(null);
   const hasLoadedRef = useRef(false);
   const hasLoadedProductRef = useRef(false);
   
