@@ -30,3 +30,14 @@ type: feature
 - O Kit Library reusa a key `['custom-kits']` que `useCustomKitPersistence` invalida — qualquer mudança de payload deve manter compatibilidade.
 - `getItemsCount` soma `quantity` mas tolera items sem `quantity` (defaulta a 1) para suportar templates antigos.
 - `KitTemplateRow.items_data` é `Record<string, unknown>[]` — o preview não renderiza imagens, apenas nome/sku/qtd/preço.
+
+## Fluxo completo (Onda Pós-10/10)
+
+- **Atalho global `G K`**: abre `/meus-kits` de qualquer lugar (chord vim-style, 800ms window). Documentado em `keyboard-shortcuts-registry`.
+- **Spotlight (Ctrl+K)**: entradas estáticas "Biblioteca de Kits" e "Montar novo kit" em Navegação.
+- **Identidade no PDF**: `kitPdfGenerator.drawHeader` pinta uma stripe de 2mm com `identity.color` e renderiza `identity.tag` como pill no canto superior direito.
+- **Identidade no orçamento**: `useKitBuilderQuote` injeta `[tag] kitName` em `notes` e dump `cor=… | ícone=… | tag=…` em `internal_notes`.
+- **Admin: snapshot do kit como template**: botão "Salvar como template" no `KitBuilderHeader` (visível só para `useRBAC().isAdmin`) chama `useTemplateSnapshot.saveAsTemplate({ kitState })`. Em modo template (`?template=ID`), o botão vira "Atualizar template" e o `handleSaveKit` salva de volta em `kit_templates`.
+- **Modo template**: `KitBuilderPage` aceita `?template=ID`, mostra badge "Editando template do sistema" no header, carrega `kit_templates` row e redireciona o save padrão para `useTemplateSnapshot`.
+- **`bumpLastUsed`**: `KitBuilderPage` chama `bumpLastUsed(kitId)` ao abrir um kit existente — alimenta a ordenação "Usados recentemente" em `KitLibraryPage`.
+- **Realtime cross-tab**: `useCustomKitsRealtime` subscreve `user:<uid>:custom-kits` e invalida a query `['custom-kits']` em qualquer INSERT/UPDATE/DELETE. Polling de 30s permanece como fallback.
