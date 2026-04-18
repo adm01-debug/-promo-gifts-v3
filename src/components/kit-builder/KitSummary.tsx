@@ -78,7 +78,7 @@ export function KitSummary({ kitState, kitQuantity, kitName, onKitNameChange, on
         </Card>
       )}
 
-      <KitActionsBar isValid={kitState.isValid} isAddingToQuote={isAddingToQuote} kitName={kitName} kitQuantity={kitQuantity} unitPrice={pricing.unitPrice} total={pricing.total} items={items} onAddToQuote={onAddToQuote} onExportPDF={onExportPDF} />
+      <KitActionsBar isValid={kitState.isValid} isAddingToQuote={isAddingToQuote} kitName={kitName} kitTag={kitState.identity?.tag} kitQuantity={kitQuantity} unitPrice={pricing.unitPrice} total={pricing.total} items={items} onAddToQuote={onAddToQuote} onExportPDF={onExportPDF} />
     </div>
   );
 }
