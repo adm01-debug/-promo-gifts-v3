@@ -14,12 +14,13 @@ import { Brain, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useDebouncedFilters } from "@/hooks/useDebouncedFilters";
 
 export default function CommercialIntelligencePage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [filters, setFilters] = useState<IntelligenceFilters>({
+  const [rawFilters, setRawFilters] = useState<IntelligenceFilters>({
     days: 30,
     categoryId: null,
     categoryName: null,
@@ -28,6 +29,10 @@ export default function CommercialIntelligencePage() {
     productId: null,
     productName: null,
   });
+
+  // Debounce 300ms — evita refetch em cascata ao trocar filtros rapidamente
+  const filters = useDebouncedFilters(rawFilters, 300);
+  const setFilters = setRawFilters;
 
   const handleGlobalRefresh = async () => {
     await queryClient.invalidateQueries();
@@ -70,9 +75,9 @@ export default function CommercialIntelligencePage() {
           </div>
         </div>
 
-        {/* Filters — sticky no scroll */}
+        {/* Filters — sticky no scroll · UI controlada por rawFilters (sem latência), refetch debounced */}
         <div className="sticky top-0 z-20 -mx-3 sm:-mx-4 lg:-mx-6 xl:-mx-8 px-3 sm:px-4 lg:px-6 xl:px-8 py-2 bg-background/85 backdrop-blur-md border-b border-border/40">
-          <IntelligenceFilterBar filters={filters} onFiltersChange={setFilters} />
+          <IntelligenceFilterBar filters={rawFilters} onFiltersChange={setFilters} />
         </div>
 
         {/* KPI Summary */}

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { LayoutGrid, Package, TrendingUp, Store, BarChart3, PieChart as PieChartIcon } from "lucide-react";
+import { LayoutGrid, TrendingUp, Store, BarChart3, PieChart as PieChartIcon } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip as RechartsTooltip, Legend } from "recharts";
 import { useCategoryRanking, type CategoryRankingItem } from "@/hooks/useCommercialIntelligence";
 import { cn } from "@/lib/utils";
+import { IntelligenceEmptyState } from "./IntelligenceEmptyState";
 
 type SortMode = "combined" | "internal" | "market";
 type ViewMode = "list" | "chart";
@@ -198,10 +199,10 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
       </CardHeader>
       <CardContent>
         {!hasData ? (
-          <div className="flex flex-col items-center py-8 text-muted-foreground">
-            <Package className="h-8 w-8 mb-2 opacity-30" />
-            <p className="text-xs">Sem dados de categorias para o período</p>
-          </div>
+          <IntelligenceEmptyState
+            title="Nenhuma categoria com vendas"
+            description={categoryName ? `Não há sub-categorias com movimentação em "${categoryName}".` : "Selecione um período mais amplo ou outros filtros."}
+          />
         ) : (
           <AnimatePresence mode="wait">
             {viewMode === "chart" ? (

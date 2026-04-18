@@ -1,10 +1,10 @@
-import { Truck, Package } from "lucide-react";
+import { Truck } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useSupplierSales } from "@/hooks/useCommercialIntelligence";
 import { cn } from "@/lib/utils";
+import { IntelligenceEmptyState } from "./IntelligenceEmptyState";
 
 export function SupplierSales({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: suppliers, isLoading } = useSupplierSales(days, categoryId, supplierId, productId);
@@ -51,10 +51,10 @@ export function SupplierSales({ days = 30, categoryId, supplierId, productId, ca
       </CardHeader>
       <CardContent className="space-y-2.5">
         {!hasData ? (
-          <div className="flex flex-col items-center py-8 text-muted-foreground">
-            <Package className="h-8 w-8 mb-2 opacity-30" />
-            <p className="text-xs">Sem dados de vendas para o período</p>
-          </div>
+          <IntelligenceEmptyState
+            title="Sem vendas por fornecedor"
+            description={categoryName ? `Nenhum fornecedor com vendas em "${categoryName}".` : "Nenhum fornecedor registrou vendas neste período."}
+          />
         ) : (
           suppliers!.map((supplier, i) => {
             const pct = maxRevenue > 0 ? (supplier.revenue / maxRevenue) * 100 : 0;

@@ -12,6 +12,7 @@ import { AiSummaryCard } from "./ai-usage/AiSummaryCard";
 import { AiCharts } from "./ai-usage/AiCharts";
 import { AiTables } from "./ai-usage/AiTables";
 import { AiQuotaManager } from "./ai-usage/AiQuotaManager";
+import { MarketIntelInsightsUsagePanel } from "./ai-usage/MarketIntelInsightsUsagePanel";
 
 const formatCurrency = (val: number) => `$${val.toFixed(4)}`;
 const formatNumber = (val: number) => val.toLocaleString("pt-BR");
@@ -44,6 +45,7 @@ export default function AdminAiUsagePage() {
 
         <AiCharts byDay={stats?.byDay || []} byFunction={stats?.byFunction || []} isLoading={statsLoading} />
         <AiTables byUser={stats?.byUser || []} byModel={stats?.byModel || []} logs={logs || []} statsLoading={statsLoading} logsLoading={logsLoading} />
+        <MarketIntelInsightsUsagePanel />
         <AiQuotaManager />
       </div>
     </MainLayout>
