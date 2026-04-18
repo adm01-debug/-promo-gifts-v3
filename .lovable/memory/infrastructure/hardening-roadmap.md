@@ -60,3 +60,13 @@ Módulo `/bi` (BIDashboard de produtos — não confundir com `/ferramentas/bi` 
 - Edição: rota `/bi` em `App.tsx`, item "Dashboard BI" em `SidebarReorganized`, atalho mobile em `SmartMobileNav`, item Spotlight, prefetch em `routePrefetch`, skeleton em `SkeletonLoaders`, passo de onboarding em `useOnboarding`, rota no `voice-agent/systemPrompt` + teste, redirects de `DeprecatedRoute` (admin/performance) trocados de `/bi` → `/ferramentas/bi`.
 - Docs: `FUNCIONALIDADES_E_FERRAMENTAS.md` (seção 8.1) e `CONFIGURACAO_LOCALE_PT_BR.md` limpos.
 - Não tocados: `BusinessIntelligencePage` (rota `/ferramentas/bi`), edge functions `bi-copilot` e `bi-share-dossier` (servem o módulo comercial 360°), MVs externas.
+
+## Onda 6 — Inteligência de Mercado 10/10 ✅ COMPLETA (16/16) — 2026-04-18
+
+Módulo `/inteligencia-comercial` elevado a excelência total.
+
+**Robustez IA (1-3):** cache server-side `ai_insights_cache` (6h TTL), empty state inteligente, copiar/exportar insight.
+**UX (4-7):** skeleton unificado KPIs, filtros sticky com backdrop-blur, indicador "atualizado há…" + refresh global, empty states ilustrados (`IntelligenceEmptyState`).
+**Performance (8-10):** debounce 300ms (`useDebouncedFilters`), prefetch via `routePrefetch`, virtualização condicional >50 itens.
+**Observabilidade (11-13):** logging estruturado na edge `market-intelligence-insights`, telemetria em `ai_usage_events` (manual_regenerate), painel admin `MarketIntelInsightsUsagePanel` em `/admin/consumo-ia`, pg_cron `cleanup-ai-insights-cache` (03:00 diário).
+**Polimento (14-16):** tooltips em KPIs + botão Regenerar (alerta de consumo IA), animações fade-in escalonadas (50ms delay), doc consolidada em `FUNCIONALIDADES_E_FERRAMENTAS.md` §34.
