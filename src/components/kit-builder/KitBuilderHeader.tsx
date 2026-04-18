@@ -12,6 +12,8 @@ import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { BackButton } from '@/components/common/BackButton';
 import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
+import { KitIdentityPicker } from '@/components/kit-builder/KitIdentityPicker';
+import type { KitIdentity } from '@/lib/kit-builder';
 import { cn } from '@/lib/utils';
 
 interface KitBuilderHeaderProps {
@@ -25,6 +27,8 @@ interface KitBuilderHeaderProps {
   isExistingKit: boolean;
   canUndo: boolean;
   canRedo: boolean;
+  identity?: KitIdentity;
+  onIdentityChange: (next: KitIdentity) => void;
   onSave: () => void;
   onUndo: () => void;
   onRedo: () => void;
@@ -34,7 +38,7 @@ interface KitBuilderHeaderProps {
 
 export function KitBuilderHeader({
   kitName, onKitNameChange, isValid, isSaving, isAutoSaving, lastSavedAt, hasContent, isExistingKit,
-  canUndo, canRedo, onSave, onUndo, onRedo, onReset, onAIApply,
+  canUndo, canRedo, identity, onIdentityChange, onSave, onUndo, onRedo, onReset, onAIApply,
 }: KitBuilderHeaderProps) {
   // Morphing save icon: idle → saving → saved
   const SaveIcon = isSaving ? Loader2 : (lastSavedAt && !isAutoSaving) ? Check : Save;
@@ -103,6 +107,8 @@ export function KitBuilderHeader({
                 <TooltipContent>Refazer (Ctrl+Y)</TooltipContent>
               </Tooltip>
             </TooltipProvider>
+
+            <KitIdentityPicker identity={identity} onChange={onIdentityChange} />
 
             <Button
               variant={isValid && hasContent ? 'default' : 'outline'}
