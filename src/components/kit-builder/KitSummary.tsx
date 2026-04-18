@@ -44,6 +44,8 @@ export function KitSummary({ kitState, kitQuantity, kitName, onKitNameChange, on
       <KitIdentificationCard kitName={kitName} kitQuantity={kitQuantity} onKitNameChange={onKitNameChange} onKitQuantityChange={onKitQuantityChange} />
       <KitStatsCards kitState={kitState} totalItems={totalItems} itemsCount={items.length} personalizedCount={personalizedCount} />
       <KitVisualPreview kitState={kitState} />
+      <KitPresentablePreview kitState={kitState} kitQuantity={kitQuantity} kitName={kitName} currentKitId={currentKitId} />
+      <KitConflictAlerts kitState={kitState} />
       <DiscontinuedItemsAlert items={items} />
       <KitCompositionCard kitState={kitState} kitQuantity={kitQuantity} stockByProduct={stockByProduct} />
       <KitPricingCard kitState={kitState} kitQuantity={kitQuantity} onKitQuantityChange={onKitQuantityChange} />
