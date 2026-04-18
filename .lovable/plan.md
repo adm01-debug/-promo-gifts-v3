@@ -1,32 +1,32 @@
 
-A última onda (Pós-10/10 do Kit Library) foi concluída integralmente — 8/8 itens entregues, build TS limpo. Não há lista pendente explícita.
+A onda anterior (Inteligência & Colaboração) foi entregue 8/8. Próxima onda autônoma foca em fechar gaps reais: ativar de fato a sugestão IA no Builder, materializar o compartilhamento público + colaboração interna mencionados na memória mas ainda sem código visível, e adicionar guardrails de produção.
 
-Proponho a próxima onda autônoma, focada nos gaps reais que ainda separam o Kit Maker de um produto "11/10": colaboração, inteligência e métricas.
+# Plano: Kit Maker — Onda Compartilhamento & Hardening (8 itens)
 
-# Plano: Kit Maker — Onda Inteligência & Colaboração (8 itens)
+## Onda A — Ativar inteligência já criada
+1. **Plug `IdentitySuggestionButton` no `KitBuilderHeader`** — botão visível só quando `identity` está vazia, ao lado do `KitIdentityPicker`; aplica `tag/color/icon` direto no estado.
+2. **Integrar `SimilarKitsWidget` na sidebar do Builder** — abaixo do `KitHealthCard`, recebendo SKUs atuais.
 
-## Onda A — Inteligência aplicada
-1. **Sugestão automática de tag/cor por IA** — ao salvar kit sem identidade, sugerir `tag` + `color` baseado no nome/items via Lovable AI (`gemini-2.5-flash-lite`), com botão "Aplicar sugestão".
-2. **"Kits semelhantes" no Builder** — sidebar mostra 3 templates com items em comum (≥30% overlap por SKU) para inspiração rápida.
-3. **Detector de duplicatas** — ao salvar, comparar com `custom_kits` do usuário e avisar se ≥80% similar a um kit existente ("Você já tem 'Kit Onboarding Q4' parecido — atualizar em vez de criar novo?").
+## Onda B — Compartilhamento público real
+3. **Migração `kit_share_tokens`** — `(id, kit_id, token unique, created_by, expires_at, view_count, status, created_at)` + trigger `generate_secure_token` + `validate_status_fields` (já existe no enum).
+4. **RPC `get_kit_by_token(_token)`** SECURITY DEFINER — devolve kit + items mascarando `cost_*`, incrementa `view_count`, valida `expires_at` e `status='active'`.
+5. **Hook `useKitShare` + `KitShareLinkDialog`** — gera token via insert, copia URL `/kit/:token`, lista tokens ativos com revogação.
+6. **Página pública `/kit/:token` (`PublicKitViewPage`)** — usa edge `kit-public-view` (Zod + rate limit) que chama a RPC; PageSEO dinâmico com cor de identidade; sem custos.
 
-## Onda B — Colaboração & compartilhamento
-4. **Link público read-only do kit** — gerar token (`kit_share_tokens`) que abre `/kit/publico/:token` mostrando ficha sem preço de custo, ideal para mandar pro cliente preview.
-5. **Comentários internos no kit** — `kit_comments` (kit_id, user_id, body, created_at) com painel lateral; visível para todos vendedores do mesmo kit (admin vê todos).
+## Onda C — Colaboração interna
+7. **Migrações `kit_collaborators` + `kit_comments` + Realtime** — RLS via `is_kit_owner`/`is_kit_collaborator` (funções já existem); painel `KitCollaborationPanel` no sidebar do Builder com lista de comentários em tempo real.
 
-## Onda C — Métricas & adoção
-6. **Dashboard `/admin/kit-templates/metricas`** — tabela com `usage_count`, `last_cloned_at`, taxa de conversão (templates clonados → kits salvos completos → orçamento aprovado).
-7. **Heatmap de items mais usados** — top 20 produtos que aparecem em mais kits (cross-user para admin, próprio para vendedor) com link para adicionar ao kit atual.
-
-## Onda D — Polimento final
-8. **PageSEO + OG image dinâmica** para `/kit/publico/:token` (renderiza preview com cor de identidade); validação TS final + atualizar `mem://features/kit-library-system`.
+## Onda D — Hardening
+8. **Rate limit + Zod nas edges novas** (`kit-public-view`, `kit-identity-suggest`) usando `check_rate_limit`; validação final TS; atualizar `mem://features/kit-library-system` com fluxo público + colaboração.
 
 ## Migrações esperadas
-- `kit_share_tokens` (id, kit_id, token unique, created_by, expires_at, view_count)
-- `kit_comments` (id, kit_id, user_id, body, created_at)
-- RLS: token público read-only via RPC `get_kit_by_token`; comments só do mesmo workspace.
+- `kit_share_tokens`, `kit_collaborators`, `kit_comments` + RLS + Realtime ADD TABLE.
+- RPCs: `get_kit_by_token`, helpers de revoke.
 
 ## Arquivos novos esperados
-`useKitIdentitySuggestion.ts`, `useSimilarKits.ts`, `useDuplicateKitDetector.ts`, `KitShareLinkDialog.tsx`, `KitCommentsPanel.tsx`, `PublicKitView.tsx`, `KitTemplatesMetricsPage.tsx`, `KitItemsHeatmap.tsx`, edge function `kit-identity-suggest`.
+`useKitShare.ts`, `KitShareLinkDialog.tsx`, `PublicKitViewPage.tsx`, `KitCollaborationPanel.tsx`, `useKitComments.ts`, edge `kit-public-view/index.ts`.
 
-Após aprovação executo os 8 itens sequencialmente sem pausas até o build limpo final.
+## Modificados
+`KitBuilderHeader.tsx` (botão IA + share), `KitBuilderPage.tsx` (sidebar widgets + collab panel), `App.tsx` (rota `/kit/:token`), `kit-identity-suggest/index.ts` (Zod + rate limit).
+
+Após aprovação executo os 8 itens sequencialmente sem pausas até o build TS limpo final.
