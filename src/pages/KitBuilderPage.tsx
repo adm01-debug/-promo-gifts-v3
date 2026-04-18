@@ -3,8 +3,8 @@
  * Página principal do montador de kits (refatorado)
  */
 
-import { useState, useEffect, useRef } from 'react';
-import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, Cloud, Copy } from 'lucide-react';
+import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, Cloud, Copy, Trophy } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { BackButton } from '@/components/common/BackButton';
 import { Button } from '@/components/ui/button';
@@ -13,6 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { formatCurrency } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
 import { useCustomKitPersistence } from '@/hooks/useCustomKitPersistence';
@@ -21,7 +22,7 @@ import { useKitUndoRedo } from '@/hooks/useKitUndoRedo';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalDb } from '@/lib/external-db';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import {
   WizardSteps, BoxSelector, ItemSelector, VolumeIndicator,
   PersonalizationConfig, KitSummary,
@@ -39,11 +40,17 @@ import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
-import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPreview';
-import { KitPersonalizationPreview } from '@/components/kit-builder/KitPersonalizationPreview';
 import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
 import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
 import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
+import { KitVariantsManager } from '@/components/kit-builder/KitVariantsManager';
+import { KitCollaborationPanel } from '@/components/kit-builder/KitCollaborationPanel';
+import { KitStockForecastCard } from '@/components/kit-builder/KitStockForecastCard';
+import { KitOnboardingTour } from '@/components/kit-builder/KitOnboardingTour';
+
+// Lazy load previews pesados
+const KitIsometricPreview = lazy(() => import('@/components/kit-builder/KitIsometricPreview').then(m => ({ default: m.KitIsometricPreview })));
+const KitPersonalizationPreview = lazy(() => import('@/components/kit-builder/KitPersonalizationPreview').then(m => ({ default: m.KitPersonalizationPreview })));
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
