@@ -51,3 +51,11 @@ type: feature
 - **Compartilhamento público**: `kit_share_tokens` + `useKitShare` + `KitShareLinkDialog` (no header do Builder, ao lado do `KitIdentityPicker`) + rota `/kit/:token` (`PublicKitViewPage`) com edge `kit-public-view` (Zod + bot protection 30 req/min, masking de custos via service role). Token expira em 30 dias e pode ser revogado.
 - **Colaboração interna**: `kit_collaborators` + `kit_comments` (Realtime) já em produção via `KitCollaborationPanel` no sidebar do Builder.
 - **Hardening edges IA**: `kit-identity-suggest` agora usa Zod + `runBotProtection` (10 req/min, block 1h) — mesma pipeline de `kit-public-view`.
+
+## Onda Cliente-Facing & Operacional
+
+- **Página pública premium**: `PublicKitViewPage` consome edge `kit-public-view`, gera **OG image dinâmica** via `src/lib/kit-og-image.ts` (canvas 1200x630 com cor da identidade + nome do kit), título SEO `Kit {nome} – {organização}`, hero com logo da organização, lista limpa de items e CTA WhatsApp/email no card do vendedor.
+- **Aba "Links" no `KitShareLinkDialog`**: usa `useKitShareTokens(kitId)` para listar tokens com status (Ativo/Revogado/Expirado), badge "Visualizado" quando `viewed_at` existe, e botão de revogação inline.
+- **Badge "Visto" no `KitCard`**: `useKitShareSummary()` agrega tokens do usuário em `Record<kitId, { generated, viewed, lastViewedAt }>`; `KitLibraryPage.toCard` injeta `viewedByClient` + `lastViewedAt` (tooltip mostra timestamp).
+- **Conversão admin**: `KitTemplatesMetricsPage` ganhou bloco "Conversão de compartilhamentos" com gerados/visualizados/taxa global + recorte últimos 30 dias.
+- **Hooks novos em `useKitShare.ts`**: `useKitShareTokens(kitId)` e `useKitShareSummary()` — invalidação automática a cada generate/revoke via `kit-share-tokens` e `kit-share-summary`.
