@@ -1,47 +1,44 @@
 
+## Remoção total do "Dashboard de Produtos" (BI)
 
-## Remoção total da funcionalidade "Agenda Comercial" + sistema de Follow-up Reminders
+Outro sistema externo cobrirá. Removo de front, back e docs.
 
-Outro sistema externo cobrirá essa função. Removo de **front, back e docs**, mantendo apenas o estritamente necessário (tabela permanece no banco para não criar migration de DROP — fica órfã sem UI/edge consumindo).
+### Investigação rápida necessária
+- Confirmar rota `/bi` em `App.tsx`
+- Localizar item de menu (Sidebar)
+- Mapear hooks/componentes/páginas do BI
+- Verificar edge functions e testes relacionados
 
-### Frontend (deletar arquivos)
-- `src/pages/CommercialAgendaPage.tsx`
-- `src/hooks/useCommercialAgenda.ts`
-- `src/hooks/useFollowUpReminders.ts`
-- `src/components/quotes/FollowUpRemindersPanel.tsx`
-- `src/lib/validations/reminderSchema.ts`
+### Frontend — deletar
+- `src/pages/` página do BI Dashboard (provavelmente `BIDashboardPage.tsx` ou similar)
+- `src/hooks/useBIMetrics.ts`
+- Componentes em `src/components/bi/` (se existirem) — widgets de gráficos, cards de stats, novidades
+- `tests/hooks/useBIMetrics.test.tsx`
 
-### Frontend (editar)
-- `src/App.tsx` — remover `lazyWithRetry` import + rota `/agenda`.
-- `src/components/layout/SidebarReorganized.tsx` — remover item `{ icon: CalendarDays, label: "Agenda", href: "/agenda" }`.
-- `src/lib/validations/index.ts` — remover exports `followUpReminderSchema` / `FollowUpReminderFormData`.
-- `src/pages/QuoteDetailPage.tsx` — remover import + `<TabsTrigger value="reminders">` + `<TabsContent value="reminders">` + `<FollowUpRemindersPanel>`.
-- `src/components/search/useGlobalSearch.ts` — remover bloco `wants("reminder")` que consulta `follow_up_reminders` (linhas ~410-…).
+### Frontend — editar
+- `src/App.tsx` — remover import lazy + rota `/bi`
+- `src/components/layout/SidebarReorganized.tsx` — remover item de menu "Dashboard de Produtos" / "BI"
+- `src/components/search/useGlobalSearch.ts` — remover qualquer referência se houver
+- Quaisquer breadcrumbs/links cruzados (`useCurrentSection.ts` se mapear `/bi`)
 
-### Backend / Edge Functions (deletar)
-- `supabase/functions/detect-stalled-quotes/` — pasta inteira (não há cron pg_cron referenciando).
-- `supabase/functions/cleanup-notifications/` — **manter** (não relacionado).
-- `supabase/functions/send-transactional-email/index.ts` — remover branch `case "follow_up_reminder"` e o literal do union type `EmailRequest.event_type`.
-- `supabase/functions/expert-chat/index.ts` — remover interface `FollowUpData`, query em `follow_up_reminders`, variável `pendingFollowUps`, e linhas do prompt que referenciam follow-ups (~705-717 + ~812).
-
-Após deletar pastas, chamar `supabase--delete_edge_functions(["detect-stalled-quotes"])` para remover do deploy.
+### Backend / Edge Functions
+- Verificar se existe edge function dedicada (ex: `bi-metrics`, `product-bi-aggregator`) e deletar via `supabase--delete_edge_functions`
+- Não tocar em MVs/tabelas externas (`mv_product_intelligence`) — usadas por outros módulos (ranking, supplier sales)
 
 ### Documentação
-- `docs/EDGE_FUNCTIONS.md` — remover linha de `detect-stalled-quotes`.
-- `docs/DATA_DICTIONARY.md` — remover linha `follow_up_reminders`.
-- `docs/FUNCIONALIDADES_E_FERRAMENTAS.md` — remover seção "📅 12. LEMBRETES E FOLLOW-UP" e referência em "Notificações e Lembretes".
-- `.lovable/memory/infrastructure/hardening-roadmap.md` — adicionar nota da remoção (Onda 6 / patch).
+- `docs/EDGE_FUNCTIONS.md` — remover entradas se houver
+- `docs/FUNCIONALIDADES_E_FERRAMENTAS.md` — remover seção do Dashboard de Produtos
+- `.lovable/memory/infrastructure/hardening-roadmap.md` — registrar remoção
+- Atualizar `mem://architecture/security-and-auth-governance` se mencionar `/bi` como rota protegida
 
 ### Não tocar
-- Migrations SQL existentes da tabela `follow_up_reminders` (histórico imutável; tabela fica sem consumidores).
-- `src/integrations/supabase/types.ts` (auto-gerado).
-- Categorias/regex contendo a palavra "agenda" como categoria de produto (Agendas executivas) — não é a feature.
+- Hooks de inteligência reusados por outros módulos: `useSupplierSalesRanking`, `useCatalogRealStats`, `useSupplierTrust` (servem catálogo/reposição, não o BI)
+- `src/integrations/supabase/types.ts` (auto-gerado)
+- MVs externas
 
 ### Resultado
-- Menu lateral sem "Agenda".
-- Rota `/agenda` deixa de existir (404).
-- Tela de detalhe de orçamento perde aba "Lembretes".
-- Edge function `detect-stalled-quotes` removida; `expert-chat` e `send-transactional-email` deixam de processar follow-ups.
-- Busca global deixa de retornar lembretes.
-- Documentação consistente.
-
+- Menu sem "Dashboard de Produtos"
+- Rota `/bi` deixa de existir (404)
+- Hook `useBIMetrics` e seu teste removidos
+- Edge function de BI (se existir) removida do deploy
+- Docs/memória consistentes
