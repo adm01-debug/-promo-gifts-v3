@@ -19,7 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Tooltip as _Tooltip, TooltipContent as _TooltipContent, TooltipTrigger as _TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -33,8 +32,6 @@ import {
   Trash2,
   Copy,
   Edit,
-  UserPlus,
-  AlertTriangle,
   Settings2,
   GripVertical,
   ChevronLeft,
@@ -44,11 +41,8 @@ import {
   Download,
   RefreshCw,
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import type { Quote } from "@/hooks/useQuotes";
-import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
-import { BulkActionsBar, type BulkAction } from "@/components/common/BulkActionsBar";
+import { BulkActionsBar } from "@/components/common/BulkActionsBar";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
 import { QuoteViewedBadge } from "./QuoteViewedBadge";
@@ -89,26 +83,6 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "delivery", label: "Entrega", width: "150px" },
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
-
-
-
-const statusConfig = Object.fromEntries(
-  Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, className: v.badgeClassName }])
-) as Record<Quote["status"], { label: string; className?: string }>;
-
-function getValidityInfo(validUntil: string | undefined | null) {
-  if (!validUntil) return null;
-  const date = new Date(validUntil);
-  const days = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const expired = days < 0;
-  if (expired) return { label: "Vencido", color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 7) return { label: `${days}d restantes`, color: "text-warning", bgColor: "bg-warning/10", urgent: true };
-  return null;
-}
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
 
 // ── Sortable Header Cell ──
 function SortableHeaderCell({ column }: { column: ColumnDef }) {
