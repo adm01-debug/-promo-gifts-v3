@@ -133,11 +133,6 @@ export function KitBuilderHeader({
                 <DropdownMenuItem onClick={onDuplicate} disabled={!hasContent}>
                   <Copy className="h-4 w-4 mr-2" /> Duplicar kit
                 </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/montar-kit/analytics">
-                    <Trophy className="h-4 w-4 mr-2" /> Meus campeões
-                  </Link>
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
                   <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
