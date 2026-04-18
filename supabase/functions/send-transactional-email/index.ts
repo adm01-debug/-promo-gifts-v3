@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 interface EmailRequest {
-  event_type: "quote_sent" | "quote_approved" | "quote_rejected" | "order_created" | "follow_up_reminder";
+  event_type: "quote_sent" | "quote_approved" | "quote_rejected" | "order_created";
   recipient_email: string;
   recipient_name?: string;
   data: Record<string, unknown>;
@@ -115,28 +115,6 @@ function buildEmailContent(event: EmailRequest): { subject: string; html: string
               ${event.data.total ? `<p style="color: #4b5563;">Valor total: <strong>R$ ${Number(event.data.total).toLocaleString("pt-BR", { minimumFractionDigits: 2 })}</strong></p>` : ""}
               <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
                 Promo Gifts — Gestão de Pedidos
-              </p>
-            </div>
-          </div>
-        `,
-      };
-
-    case "follow_up_reminder":
-      return {
-        subject: `⏰ Lembrete: ${event.data.title || "Follow-up"}`,
-        html: `
-          <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-            <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 24px; border-radius: 12px 12px 0 0; text-align: center;">
-              <h1 style="color: white; margin: 0;">⏰ Lembrete</h1>
-            </div>
-            <div style="background: #ffffff; padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 12px 12px;">
-              <h2 style="color: #1f2937; margin-top: 0;">Olá, ${name}!</h2>
-              <p style="color: #4b5563; line-height: 1.6;">
-                Você tem um lembrete agendado: <strong>${event.data.title || "Follow-up"}</strong>
-              </p>
-              ${event.data.notes ? `<p style="color: #6b7280;">${event.data.notes}</p>` : ""}
-              <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">
-                Promo Gifts — Agenda Comercial
               </p>
             </div>
           </div>

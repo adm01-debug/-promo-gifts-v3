@@ -91,14 +91,6 @@ interface OrderData {
   fulfillment_status?: string;
 }
 
-interface FollowUpData {
-  id: string;
-  quote_id: string;
-  reminder_type: string;
-  scheduled_for: string;
-  is_sent: boolean;
-}
-
 interface SemanticExpansion {
   searchTerms: string[];
   categories: string[];
@@ -702,20 +694,6 @@ Deno.serve(async (req) => {
         console.log("Client orders count:", clientOrders.length);
       }
 
-      let pendingFollowUps: FollowUpData[] = [];
-      const { data: followUps, error: followUpsError } = await supabase
-        .from("follow_up_reminders")
-        .select("id, quote_id, reminder_type, scheduled_for, is_sent")
-        .eq("seller_id", userId)
-        .eq("is_sent", false)
-        .order("scheduled_for", { ascending: true })
-        .limit(10);
-
-      if (!followUpsError && followUps) {
-        pendingFollowUps = followUps;
-        console.log("Pending follow-ups:", pendingFollowUps.length);
-      }
-
       // Build client context
       const productPreferences = new Map<string, { count: number; totalValue: number; lastPurchase: string }>();
       quoteProductHistory.forEach(quote => {
@@ -809,8 +787,7 @@ ALERTAS E FOLLOW-UPS:
 ${pendingQuotes.length > 0 ? `⚠️ ${pendingQuotes.length} orçamento(s) enviado(s) aguardando resposta do cliente` : ""}
 ${expiringQuotes.length > 0 ? `⏰ ${expiringQuotes.length} orçamento(s) prestes a vencer nos próximos 7 dias` : ""}
 ${daysSinceLastInteraction !== null && daysSinceLastInteraction > 30 ? `🔔 Cliente inativo há ${daysSinceLastInteraction} dias - considere retomar contato` : ""}
-${pendingFollowUps.length > 0 ? `📋 ${pendingFollowUps.length} lembrete(s) de follow-up pendente(s)` : ""}
-${!pendingQuotes.length && !expiringQuotes.length && (daysSinceLastInteraction === null || daysSinceLastInteraction <= 30) && !pendingFollowUps.length ? "✅ Nenhum alerta pendente" : ""}
+${!pendingQuotes.length && !expiringQuotes.length && (daysSinceLastInteraction === null || daysSinceLastInteraction <= 30) ? "✅ Nenhum alerta pendente" : ""}
 
 PRODUTOS MAIS COMPRADOS:
 ${topProducts.length > 0

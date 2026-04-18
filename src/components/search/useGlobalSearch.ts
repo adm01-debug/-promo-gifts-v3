@@ -406,21 +406,6 @@ export function useGlobalSearch() {
         } catch { /* silent */ }
       }
 
-      // Follow-up reminders
-      if (wants("reminder")) {
-        try {
-          const { data } = await supabase.from("follow_up_reminders")
-            .select("id, title, notes, scheduled_for, is_completed, quote_id")
-            .or(`title.ilike.%${term}%,notes.ilike.%${term}%`)
-            .order("scheduled_for", { ascending: true }).limit(5);
-          (data || []).forEach(r => allResults.push({
-            id: r.id, title: r.title || "Lembrete",
-            subtitle: `${r.is_completed ? "✅ Concluído" : "⏰ Pendente"} • ${new Date(r.scheduled_for).toLocaleDateString("pt-BR")}${r.notes ? " • " + r.notes.slice(0, 40) : ""}`,
-            type: "reminder", href: r.quote_id ? `/orcamentos/${r.quote_id}` : "/orcamentos",
-          }));
-        } catch { /* silent */ }
-      }
-
       // Expert conversations
       if (wants("conversation")) {
         try {
