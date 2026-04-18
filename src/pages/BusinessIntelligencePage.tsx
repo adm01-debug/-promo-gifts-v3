@@ -44,7 +44,6 @@ export default function BusinessIntelligencePage() {
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [tourForce, setTourForce] = useState(false);
-  const [sharing, setSharing] = useState(false);
 
   const handleSelect = (id: string | null) => {
     setClientId(id);
