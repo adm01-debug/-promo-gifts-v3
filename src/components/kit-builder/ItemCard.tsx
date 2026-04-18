@@ -31,10 +31,11 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
   return (
     <Card
       className={cn(
-        "transition-all",
-        isSelected && "ring-2 ring-primary bg-primary/5",
+        "group rounded-xl transition-all duration-200 will-change-transform",
+        "border-border/50 focus-within:ring-2 focus-within:ring-primary/60",
+        isSelected && "ring-2 ring-primary bg-primary/5 shadow-[0_4px_20px_-6px_hsl(var(--primary)/0.35)]",
         cantFit && "opacity-60",
-        !cantFit && !isSelected && "hover:shadow-md hover:border-primary/30 cursor-pointer"
+        !cantFit && !isSelected && "cursor-pointer hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40 hover:bg-card",
       )}
     >
       <CardContent className="p-3">
@@ -105,17 +106,18 @@ export function ItemCard({ item, isSelected, boxSelected, onAdd, onRemove }: Ite
             <Button
               variant="outline"
               size="sm"
-              className="ml-auto"
+              className="ml-auto focus-visible:ring-2 focus-visible:ring-primary/60"
               onClick={() => onRemove(item.id)}
             >
-              <X className="h-3 w-3 mr-1" />
-              Remover
+              <Check className="h-3 w-3 mr-1 text-success" />
+              <span className="group-hover:hidden">Adicionado</span>
+              <span className="hidden group-hover:inline">Remover</span>
             </Button>
           ) : (
             <Button
               variant="default"
               size="sm"
-              className="ml-auto"
+              className="ml-auto opacity-90 group-hover:opacity-100 transition-opacity focus-visible:ring-2 focus-visible:ring-primary/60"
               disabled={cantFit}
               onClick={() => onAdd(item)}
             >
