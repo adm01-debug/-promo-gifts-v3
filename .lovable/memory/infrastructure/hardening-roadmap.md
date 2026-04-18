@@ -46,3 +46,10 @@ Total: **9 edge functions** com graceful degradation (503+Retry-After:60 quando 
 - Sentry: `VITE_SENTRY_DSN` em Build Secrets ativa em produção.
 - CI RLS: `vitest tests/rls/` quando `TEST_SELLER_PASSWORD`+`TEST_ADMIN_PASSWORD` definidos.
 - Pre-push: `npm run typecheck && npm run lint:check && npm run test`.
+
+## Patch — Remoção Agenda Comercial / Follow-up Reminders (2026-04-18)
+Funcionalidade migrada para sistema externo. Removidos:
+- Frontend: `CommercialAgendaPage`, `useCommercialAgenda`, `useFollowUpReminders`, `FollowUpRemindersPanel`, `reminderSchema`, rota `/agenda`, item sidebar, aba "Lembretes" no QuoteDetail, busca global de reminders.
+- Backend: edge function `detect-stalled-quotes` deletada; branch `follow_up_reminder` removido de `send-transactional-email`; query/contexto removido de `expert-chat`.
+- Tabela `follow_up_reminders` mantida no banco (sem consumidores) para preservar histórico — sem migration de DROP.
+- Adoção `fetchWithBreaker` agora em **8 edge functions** (era 9).

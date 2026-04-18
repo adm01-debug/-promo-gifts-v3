@@ -602,16 +602,6 @@
 
 ---
 
-## 📅 12. LEMBRETES E FOLLOW-UP
-
-### 12.1 Sistema de Lembretes
-| Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
-|----------------|-------------------|-------------------------|
-| Hook | `src/hooks/useFollowUpReminders.ts` | Supabase |
-| Tabela: `follow_up_reminders` | Supabase Database | PostgreSQL |
-
----
-
 ## 📤 13. EXPORTAÇÃO
 
 ### 13.1 Export Excel
@@ -1255,9 +1245,8 @@
 ### Carrinho
 - `cart_templates`
 
-### Notificações e Lembretes
+### Notificações
 - `notifications`
-- `follow_up_reminders`
 
 ### Outros
 - `quote_templates`, `quote_history`

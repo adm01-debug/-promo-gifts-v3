@@ -23,7 +23,6 @@
 | `commemorative-dates` | JWT | Restrita | Zod | Não | Lista datas comemorativas para campanhas |
 | `crm-db-bridge` | Public | Restrita | Zod | RateLimiter | Ponte para Supabase secundário (CRM) |
 | `detect-new-device` | JWT | Restrita | Zod | DB | Marca dispositivos novos no login |
-| `detect-stalled-quotes` | Service | Restrita | N/A | Não | Job pg_cron — orçamentos parados > 7d |
 | `dropbox-list` | JWT | Restrita | Zod | RateLimiter | Lista arquivos de pasta Dropbox |
 | `elevenlabs-scribe-token` | JWT | Restrita | N/A | RateLimiter | Token efêmero para STT em tempo real |
 | `elevenlabs-tts` | JWT | Restrita | Zod | RateLimiter | Síntese de voz |

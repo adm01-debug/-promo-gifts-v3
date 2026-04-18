@@ -32,7 +32,6 @@
 | `seller_discount_limits` | Limite por vendedor | `user_id`, `max_discount_percent` |
 | `orders` | Pedido (quote convertido) | `order_number` (PED-YY-XXXX), `quote_id`, `fulfillment_status`, `version` |
 | `order_items` | Itens do pedido | `order_id`, `product_id`, `quantity`, `unit_price` |
-| `follow_up_reminders` | Lembretes | `quote_id`, `scheduled_for`, `is_completed` |
 
 ### 🎨 Kits & Mockups
 | Tabela | Propósito |

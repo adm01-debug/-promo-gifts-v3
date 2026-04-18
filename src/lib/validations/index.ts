@@ -9,6 +9,3 @@ export type { QuoteFormData, QuoteItemData } from "./quoteSchema";
 
 export { salesGoalSchema } from "./goalSchema";
 export type { SalesGoalFormData } from "./goalSchema";
-
-export { followUpReminderSchema } from "./reminderSchema";
-export type { FollowUpReminderFormData } from "./reminderSchema";

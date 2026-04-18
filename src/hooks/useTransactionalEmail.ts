@@ -7,8 +7,7 @@ export type EmailEventType =
   | "quote_sent"
   | "quote_approved"
   | "quote_rejected"
-  | "order_created"
-  | "follow_up_reminder";
+  | "order_created";
 
 interface SendEmailParams {
   event_type: EmailEventType;

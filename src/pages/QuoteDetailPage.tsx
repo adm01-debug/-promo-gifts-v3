@@ -1,5 +1,5 @@
 /**
- * QuoteDetailPage — detalhe completo de um orçamento (itens, histórico, comentários, versões, follow-ups).
+ * QuoteDetailPage — detalhe completo de um orçamento (itens, histórico, comentários, versões).
  */
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
@@ -10,7 +10,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { QuoteHistoryTimeline } from "@/components/quotes/QuoteHistoryTimeline";
 import { QuoteCommentsThread } from "@/components/quotes/QuoteCommentsThread";
 import { QuoteVersionsList } from "@/components/quotes/QuoteVersionsList";
-import { FollowUpRemindersPanel } from "@/components/quotes/FollowUpRemindersPanel";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Badge } from "@/components/ui/badge";
 
@@ -48,7 +47,6 @@ export default function QuoteDetailPage() {
           <TabsTrigger value="history">Histórico</TabsTrigger>
           <TabsTrigger value="comments">Comentários</TabsTrigger>
           <TabsTrigger value="versions">Versões</TabsTrigger>
-          <TabsTrigger value="reminders">Lembretes</TabsTrigger>
         </TabsList>
         <TabsContent value="history" className="mt-4">
           <Card><CardHeader><CardTitle className="text-base">Linha do tempo</CardTitle></CardHeader><CardContent><QuoteHistoryTimeline quoteId={quote.id} /></CardContent></Card>
@@ -58,9 +56,6 @@ export default function QuoteDetailPage() {
         </TabsContent>
         <TabsContent value="versions" className="mt-4">
           <Card><CardHeader><CardTitle className="text-base">Versões</CardTitle></CardHeader><CardContent><QuoteVersionsList quoteId={quote.id} parentQuoteId={quote.parent_quote_id} /></CardContent></Card>
-        </TabsContent>
-        <TabsContent value="reminders" className="mt-4">
-          <FollowUpRemindersPanel quoteId={quote.id} />
         </TabsContent>
       </Tabs>
     </div>

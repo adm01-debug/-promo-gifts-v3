@@ -163,7 +163,6 @@ export function useQuotes() {
     try {
       const { error: delErr } = await supabase.from("quotes").delete().eq("id", quoteId);
       if (delErr) throw new Error(delErr.message);
-      await supabase.from("follow_up_reminders").delete().eq("quote_id", quoteId);
       toast.success("Orçamento excluído");
       await fetchQuotes();
       return true;

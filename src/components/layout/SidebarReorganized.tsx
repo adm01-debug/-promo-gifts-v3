@@ -37,7 +37,6 @@ import {
   Settings,
   Percent,
   X,
-  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
@@ -104,7 +103,6 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
-      { icon: CalendarDays, label: "Agenda", href: "/agenda" },
     ],
   },
   {
