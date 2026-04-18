@@ -87,6 +87,7 @@ export default function TrendsPage() {
   // Vendedores (não-managers) só veem seus próprios eventos.
   const sellerScope = canManage ? null : user?.id ?? null;
   const scopeKey = sellerScope ?? "all";
+  const demo = isDemoMode();
 
   const { sinceCurrent, sincePrevious, recentCutoff } = useMemo(() => {
     const now = new Date();
