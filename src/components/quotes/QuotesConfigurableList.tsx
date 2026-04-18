@@ -47,6 +47,7 @@ import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
 import { QuoteViewedBadge } from "./QuoteViewedBadge";
 import { QuoteRowQuickActions } from "./QuoteRowQuickActions";
+import { QuoteOrderBadge } from "./QuoteOrderBadge";
 import {
   DndContext,
   closestCenter,
@@ -360,6 +361,7 @@ export function QuotesConfigurableList({
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="min-w-0 flex-1">{renderCell(quote, col.id)}</div>
                     <QuoteViewedBadge info={viewedMap[quote.id!]} />
+                    <QuoteOrderBadge quoteId={quote.id!} />
                   </div>
                 ) : (
                   renderCell(quote, col.id)

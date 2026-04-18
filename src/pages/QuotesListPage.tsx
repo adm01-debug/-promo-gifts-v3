@@ -54,6 +54,9 @@ import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
 import { QuotesStatusChips } from "@/components/quotes/QuotesStatusChips";
+import { QuotesFunnelChart } from "@/components/quotes/QuotesFunnelChart";
+import { useQuoteFunnel } from "@/hooks/useQuoteFunnel";
+import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
 
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "expiring";
@@ -89,6 +92,11 @@ export default function QuotesListPage() {
 
     return { total, approved, pending, totalValue, approvedValue, conversionRate };
   }, [quotes]);
+
+  // ── Funil + ciclo médio ──
+  const allQuoteIds = useMemo(() => quotes.map((q) => q.id!).filter(Boolean), [quotes]);
+  const allViewedMap = useQuoteViewedMap(allQuoteIds);
+  const funnelData = useQuoteFunnel(quotes, allViewedMap);
 
   // ── Fuse.js fuzzy search ──
   const quoteFuse = useMemo(() => {
@@ -294,6 +302,9 @@ export default function QuotesListPage() {
               </CardContent>
             </Card>
           </div>
+
+          {/* Funil de vendas */}
+          {quotes.length > 0 && <QuotesFunnelChart data={funnelData} />}
 
           {/* Error banner */}
           {error && (
