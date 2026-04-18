@@ -281,6 +281,7 @@ export default function KitBuilderPage() {
           {(() => {
             const sidebarContent = (
               <>
+                {kitState.box && <KitIsometricPreview kitState={kitState} />}
                 {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
 
                 {kitState.box && kitState.box.maxWeight && (
