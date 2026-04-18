@@ -53,6 +53,15 @@ export function ConversionFunnel({ days }: ConversionFunnelProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["conversion-funnel", days],
     queryFn: async () => {
+      const { isDemoMode, MOCK_FUNNEL } = await import("@/pages/trends/trends-mock");
+      if (isDemoMode()) {
+        return {
+          searches: 3_421,
+          views: MOCK_FUNNEL.views,
+          quotes: MOCK_FUNNEL.quotes,
+          orders: MOCK_FUNNEL.orders,
+        };
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const supa = supabase as any;
       const [searches, views, quotes, orders] = await Promise.all([
