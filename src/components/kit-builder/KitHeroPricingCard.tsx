@@ -34,9 +34,9 @@ export function KitHeroPricingCard({ unitPrice, total, kitQuantity, isValid, has
   return (
     <Card
       className={cn(
-        'overflow-hidden border-primary/20 relative',
-        'bg-gradient-to-br from-card via-card to-primary/[0.04]',
-        'shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.25)]',
+        'overflow-hidden border-primary/20 dark:border-primary/30 relative',
+        'bg-gradient-to-br from-card via-card to-primary/[0.04] dark:to-primary/[0.10]',
+        'shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.25)] dark:shadow-[0_8px_32px_-8px_hsl(var(--primary)/0.35)]',
       )}
     >
       {/* Subtle decorative glow */}

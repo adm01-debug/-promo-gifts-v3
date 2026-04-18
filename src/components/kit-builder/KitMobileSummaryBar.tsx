@@ -64,11 +64,13 @@ export function KitMobileSummaryBar({ kitState, kitQuantity, children }: KitMobi
           </button>
         </DrawerTrigger>
       </div>
-      <DrawerContent className="max-h-[85vh]">
-        <DrawerHeader>
-          <DrawerTitle>Resumo do Kit</DrawerTitle>
+      <DrawerContent className="max-h-[90vh]">
+        {/* Visual drag handle (vaul renders one but we reinforce visibility) */}
+        <div className="mx-auto mt-2 h-1.5 w-12 rounded-full bg-muted-foreground/30" aria-hidden />
+        <DrawerHeader className="pb-2">
+          <DrawerTitle className="font-display">Resumo do Kit</DrawerTitle>
         </DrawerHeader>
-        <div className="px-4 pb-6 overflow-y-auto space-y-4">{children}</div>
+        <div className="px-4 pb-8 overflow-y-auto space-y-4 scrollbar-thin">{children}</div>
       </DrawerContent>
     </Drawer>
   );

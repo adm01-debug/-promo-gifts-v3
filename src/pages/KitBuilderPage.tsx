@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import confetti from 'canvas-confetti';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { Button } from '@/components/ui/button';
@@ -92,6 +93,40 @@ export default function KitBuilderPage() {
     });
   }, [kitState.box?.id, kitState.items.length, kitState.name, kitQuantity]);
 
+  // Item 8 — dynamic document title
+  useEffect(() => {
+    const baseTitle = 'Kit Maker · Promo Gifts';
+    document.title = kitState.name?.trim()
+      ? `${kitState.name} · Kit Maker`
+      : baseTitle;
+    return () => { document.title = baseTitle; };
+  }, [kitState.name]);
+
+  // Item 7 — celebrate first-time validation (false → true)
+  const wasValidRef = useRef(false);
+  useEffect(() => {
+    if (kitState.isValid && !wasValidRef.current && kitState.items.length > 0) {
+      wasValidRef.current = true;
+      // Subtle confetti burst from bottom-center
+      try {
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.85, x: 0.5 },
+          colors: ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))'].map(() => '#f97316'),
+          scalar: 0.9,
+          ticks: 120,
+        });
+      } catch { /* noop */ }
+      toast.success('Seu kit está pronto! 🎉', {
+        description: 'Próximo passo: revisar resumo e enviar para orçamento.',
+        duration: 4000,
+      });
+    } else if (!kitState.isValid) {
+      wasValidRef.current = false;
+    }
+  }, [kitState.isValid, kitState.items.length]);
+
   useEffect(() => {
     if (!kitIdParam || hasLoadedRef.current) return;
     hasLoadedRef.current = true;
@@ -139,6 +174,35 @@ export default function KitBuilderPage() {
     setCurrentKitId(undefined);
     setKitName(`${kitState.name || 'Kit'} (cópia)`);
     toast.success('Kit duplicado — salve para criar uma nova versão');
+  };
+
+  // Item 3 — contextual toasts with Desfazer (uses undo from useKitUndoRedo)
+  const handleSelectBox = (box: typeof availableBoxes[number]) => {
+    selectBox(box);
+    toast.success(`Caixa "${box.name}" selecionada`, {
+      action: { label: 'Desfazer', onClick: () => undo() },
+      duration: 4000,
+    });
+  };
+  const handleAddItem = (item: Parameters<typeof addItem>[0]) => {
+    const result = addItem(item);
+    if (result.fits) {
+      toast.success(`"${item.name}" adicionado`, {
+        action: { label: 'Desfazer', onClick: () => undo() },
+        duration: 3500,
+      });
+    }
+    return result;
+  };
+  const handleRemoveItem = (itemId: string) => {
+    const removed = kitState.items.find(i => i.id === itemId);
+    removeItem(itemId);
+    if (removed) {
+      toast.success(`"${removed.name}" removido`, {
+        action: { label: 'Desfazer', onClick: () => undo() },
+        duration: 3500,
+      });
+    }
   };
 
   useKitWizardShortcuts({
@@ -264,7 +328,7 @@ export default function KitBuilderPage() {
                             ))}
                           </RadioGroup>
                         </div>
-                        <BoxSelector boxes={availableBoxes} selectedBox={kitState.box} isLoading={isLoadingBoxes} filters={boxFilters} onFiltersChange={setBoxFilters} onSelect={selectBox} onClear={clearBox} />
+                        <BoxSelector boxes={availableBoxes} selectedBox={kitState.box} isLoading={isLoadingBoxes} filters={boxFilters} onFiltersChange={setBoxFilters} onSelect={handleSelectBox} onClear={clearBox} />
                       </div>
                     )}
 
@@ -278,12 +342,12 @@ export default function KitBuilderPage() {
                           <p className="text-muted-foreground mt-1">O coração do kit — escolha produtos memoráveis</p>
                         </div>
                         <ItemSelector items={availableItems} selectedItems={kitState.items} isLoading={isLoadingItems}
-                          filters={itemFilters} onFiltersChange={setItemFilters} onAddItem={addItem} onRemoveItem={removeItem}
+                          filters={itemFilters} onFiltersChange={setItemFilters} onAddItem={handleAddItem} onRemoveItem={handleRemoveItem}
                           onUpdateQuantity={updateItemQuantity} onUpdateVariant={(itemId, data) => updateItemVariant(itemId, data)}
                           onReorder={reorderItems} boxSelected={kitState.box !== null} />
                         {kitState.items.length > 0 && (
                           <KitSmartSuggestions selectedItems={kitState.items}
-                            onAddItem={(item) => { const kitItem = availableItems.find(i => i.id === item.id); if (kitItem) addItem(kitItem); }} />
+                            onAddItem={(item) => { const kitItem = availableItems.find(i => i.id === item.id); if (kitItem) handleAddItem(kitItem); }} />
                         )}
                       </div>
                     )}
