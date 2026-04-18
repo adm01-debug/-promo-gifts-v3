@@ -184,6 +184,11 @@ export default function KitBuilderPage() {
                 {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
                 {currentKitId || autoSavedKitId ? 'Atualizar' : 'Salvar'} Kit
               </Button>
+              <TooltipProvider>
+                <Tooltip><TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" aria-label="Duplicar kit" onClick={handleDuplicateKit} disabled={!kitState.box && kitState.items.length === 0}><Copy className="h-4 w-4" /></Button>
+                </TooltipTrigger><TooltipContent>Duplicar como novo kit</TooltipContent></Tooltip>
+              </TooltipProvider>
               <Button variant="outline" onClick={handleResetKit}><RotateCcw className="h-4 w-4 mr-2" />Novo Kit</Button>
             </div>
           </div>
@@ -255,7 +260,8 @@ export default function KitBuilderPage() {
                   <KitSummary kitState={kitState} kitQuantity={kitQuantity} kitName={kitState.name}
                     onKitNameChange={setKitName} onKitQuantityChange={setKitQuantity}
                     onAddToQuote={() => handleAddToQuote(kitState, kitQuantity)}
-                    onExportPDF={handleExportPDF} isAddingToQuote={isCreatingQuote} />
+                    onExportPDF={handleExportPDF} isAddingToQuote={isCreatingQuote}
+                    currentKitId={currentKitId || autoSavedKitId || undefined} />
                 )}
               </CardContent>
             </Card>
