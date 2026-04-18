@@ -54,6 +54,8 @@ import { EmptyState } from "@/components/common/EmptyState";
 import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
+import { QuotesStatusChips } from "@/components/quotes/QuotesStatusChips";
+import { Loader2 } from "lucide-react";
 
 // ── Status config with semantic colors ──
 const statusConfig: Record<
