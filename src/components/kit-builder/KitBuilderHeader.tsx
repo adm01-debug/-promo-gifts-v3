@@ -4,7 +4,7 @@
  * Tier 2: Primary actions (Save, New, Library)
  */
 import {
-  Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Check, Library,
+  Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Check, Library, Sparkles,
 } from 'lucide-react';
 import * as Lucide from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -15,7 +15,9 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { BackButton } from '@/components/common/BackButton';
 import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 import { KitIdentityPicker } from '@/components/kit-builder/KitIdentityPicker';
-import type { KitIdentity } from '@/lib/kit-builder';
+import { useRBAC } from '@/hooks/useRBAC';
+import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
+import type { KitIdentity, KitState } from '@/lib/kit-builder';
 import { cn } from '@/lib/utils';
 
 interface KitBuilderHeaderProps {
@@ -36,13 +38,20 @@ interface KitBuilderHeaderProps {
   onRedo: () => void;
   onReset: () => void;
   onAIApply: (s: { kit_type: 'montado' | 'original' | 'simples'; box_keywords: string[] }) => void;
+  /** Full kit state — used by admin "Save as system template" snapshot. */
+  kitState?: KitState;
+  /** When set, header indicates we are editing a system template (admin mode). */
+  templateId?: string;
 }
 
 export function KitBuilderHeader({
   kitName, onKitNameChange, isValid, isSaving, isAutoSaving, lastSavedAt, hasContent, isExistingKit,
   canUndo, canRedo, identity, onIdentityChange, onSave, onUndo, onRedo, onReset, onAIApply,
+  kitState, templateId,
 }: KitBuilderHeaderProps) {
   const navigate = useNavigate();
+  const { isAdmin } = useRBAC();
+  const { saveAsTemplate, isSavingTemplate } = useTemplateSnapshot();
   const SaveIcon = isSaving ? Loader2 : (lastSavedAt && !isAutoSaving) ? Check : Save;
 
   const identityColor = identity?.color || '#3B82F6';
@@ -87,6 +96,11 @@ export function KitBuilderHeader({
             />
             <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
               <span>Kit Maker</span>
+              {templateId && (
+                <Badge className="text-[10px] gap-1 h-5 bg-primary/15 text-primary border-primary/30">
+                  <Sparkles className="h-2.5 w-2.5" /> Editando template do sistema
+                </Badge>
+              )}
               {identity?.tag && (
                 <Badge variant="secondary" className="text-[10px] h-5">{identity.tag}</Badge>
               )}
@@ -151,6 +165,27 @@ export function KitBuilderHeader({
                 <TooltipContent>Abrir biblioteca de kits</TooltipContent>
               </Tooltip>
             </TooltipProvider>
+
+            {isAdmin && kitState && hasContent && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => saveAsTemplate({ kitState, templateId })}
+                      disabled={isSavingTemplate}
+                      className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+                      aria-label="Salvar como template do sistema"
+                    >
+                      {isSavingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      <span className="hidden md:inline">{templateId ? 'Atualizar template' : 'Salvar como template'}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{templateId ? 'Atualizar template do sistema' : 'Salvar este kit como template do sistema (admin)'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
 
             <Button
               variant={isValid && hasContent ? 'default' : 'outline'}

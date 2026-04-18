@@ -41,6 +41,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
+import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
+import { useCustomKitsRealtime } from '@/hooks/useCustomKitsRealtime';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
 import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
 import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
@@ -62,10 +64,13 @@ export default function KitBuilderPage() {
   const [searchParams] = useSearchParams();
   const kitIdParam = searchParams.get('kit');
   const productIdParam = searchParams.get('product');
+  const templateIdParam = searchParams.get('template');
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
   const [occasion, setOccasion] = useState<Occasion | null>(null);
   const hasLoadedRef = useRef(false);
   const hasLoadedProductRef = useRef(false);
+  const hasLoadedTemplateRef = useRef(false);
+  const hasBumpedRef = useRef(false);
 
   const {
     kitState, setKitType, wizardState, kitQuantity, availableBoxes, availableItems,
@@ -75,8 +80,10 @@ export default function KitBuilderPage() {
     setKitQuantity, setIdentity, goToStep, nextStep, prevStep, resetKit, loadKit,
   } = useKitBuilder();
 
-  const { saveKit, isSaving } = useCustomKitPersistence();
+  const { saveKit, isSaving, bumpLastUsed } = useCustomKitPersistence();
+  const { saveAsTemplate } = useTemplateSnapshot();
   const { handleAddToQuote, isCreatingQuote } = useKitBuilderQuote();
+  useCustomKitsRealtime();
 
   const { lastSavedAt, isSaving: isAutoSaving, autoSavedKitId } = useKitAutoSave(
     kitState, kitQuantity, currentKitId, (id) => setCurrentKitId(id),
@@ -151,9 +158,43 @@ export default function KitBuilderPage() {
           },
         });
         toast.success('Kit carregado para edição');
+        // Bump last_used_at so it appears at top of "Usados recentemente"
+        if (!hasBumpedRef.current) {
+          hasBumpedRef.current = true;
+          bumpLastUsed(kitIdParam);
+        }
       } catch { toast.error('Erro ao carregar kit'); }
     })();
-  }, [kitIdParam, loadKit]);
+  }, [kitIdParam, loadKit, bumpLastUsed]);
+
+  // Template mode: load a kit_templates row for admin editing
+  useEffect(() => {
+    if (!templateIdParam || hasLoadedTemplateRef.current || kitIdParam) return;
+    hasLoadedTemplateRef.current = true;
+    (async () => {
+      try {
+        const { data, error } = await supabase.from('kit_templates').select('*').eq('id', templateIdParam).maybeSingle();
+        if (error || !data) { toast.error('Template não encontrado'); return; }
+        const row = data as Record<string, unknown>;
+        loadKit({
+          name: (row.name as string) || '',
+          kitType: 'montado',
+          box: row.box_data as never,
+          items: (row.items_data as unknown[] as never) || [],
+          personalization: (row.personalization_data as never) || { box: { enabled: false }, items: {} },
+          kitQuantity: 1,
+          identity: {
+            color: (row.color as string) || '#3B82F6',
+            icon: (row.icon as string) || 'Package',
+            tag: (row.tag as string) || '',
+            description: (row.description as string) || '',
+            isFavorite: false,
+          },
+        });
+        toast.success('Template carregado para edição', { description: 'Ao salvar, atualizará o template do sistema.' });
+      } catch { toast.error('Erro ao carregar template'); }
+    })();
+  }, [templateIdParam, kitIdParam, loadKit]);
 
   useEffect(() => {
     if (!productIdParam || hasLoadedProductRef.current || kitIdParam) return;
@@ -173,6 +214,11 @@ export default function KitBuilderPage() {
 
   const handleSaveKit = async () => {
     try {
+      // In template mode (admin editing kit_templates), save back to kit_templates
+      if (templateIdParam) {
+        await saveAsTemplate({ kitState, templateId: templateIdParam });
+        return;
+      }
       const result = await saveKit(kitState, kitQuantity, currentKitId || autoSavedKitId || undefined);
       if (result && 'id' in result) setCurrentKitId((result as { id: string }).id);
     } catch { /* handled by hook */ }
@@ -265,6 +311,8 @@ export default function KitBuilderPage() {
           onUndo={() => undo()}
           onRedo={() => redo()}
           onReset={handleResetKit}
+          kitState={kitState}
+          templateId={templateIdParam || undefined}
           
           onAIApply={(s) => {
             setKitType(s.kit_type);

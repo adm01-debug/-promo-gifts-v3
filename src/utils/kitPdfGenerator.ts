@@ -32,29 +32,61 @@ const GRAY_200 = [229, 231, 235] as const;
 const WHITE = [255, 255, 255] as const;
 const GREEN = [16, 185, 129] as const;
 
-function drawHeader(doc: jsPDF, kitName: string, y: number, orgName?: string, orgLogoUrl?: string): number {
-  // Blue header bar
-  doc.setFillColor(...PRIMARY);
-  doc.rect(0, 0, 210, 36, 'F');
+function hexToRgb(hex?: string): readonly [number, number, number] | null {
+  if (!hex) return null;
+  const m = hex.replace('#', '').match(/^([0-9a-f]{6})$/i);
+  if (!m) return null;
+  const n = parseInt(m[1], 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255] as const;
+}
 
-  // Org logo (if available, loaded as base64 previously)
+function drawHeader(
+  doc: jsPDF,
+  kitName: string,
+  y: number,
+  orgName?: string,
+  orgLogoUrl?: string,
+  identity?: { color?: string; tag?: string | null; icon?: string },
+): number {
+  const accent = hexToRgb(identity?.color) ?? PRIMARY;
+
+  // Identity color stripe (top 2mm) — reflects kit identity color
+  doc.setFillColor(...accent);
+  doc.rect(0, 0, 210, 2, 'F');
+
+  // Main header bar
+  doc.setFillColor(...PRIMARY);
+  doc.rect(0, 2, 210, 34, 'F');
+
   const textStartX = 14;
 
   doc.setTextColor(...WHITE);
   doc.setFontSize(18);
   doc.setFont('helvetica', 'bold');
-  doc.text(kitName || 'Kit Personalizado', textStartX, 16);
+  doc.text(kitName || 'Kit Personalizado', textStartX, 18);
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'normal');
   const dateStr = new Date().toLocaleDateString('pt-BR', {
     day: '2-digit', month: 'long', year: 'numeric',
   });
-  doc.text(`Gerado em ${dateStr}${orgName ? ` • ${orgName}` : ''}`, textStartX, 26);
+  doc.text(`Gerado em ${dateStr}${orgName ? ` • ${orgName}` : ''}`, textStartX, 28);
+
+  // Identity tag pill (right side, above the badge)
+  if (identity?.tag) {
+    doc.setFillColor(...accent);
+    const tagText = identity.tag.toUpperCase();
+    doc.setFontSize(7);
+    const tagW = doc.getTextWidth(tagText) + 6;
+    doc.roundedRect(196 - tagW, 10, tagW, 6, 1.5, 1.5, 'F');
+    doc.setTextColor(...WHITE);
+    doc.text(tagText, 196 - tagW / 2, 14.2, { align: 'center' });
+  }
 
   // Right-aligned badge
+  doc.setTextColor(...WHITE);
   doc.setFontSize(8);
-  doc.text('FICHA DO KIT', 196, 16, { align: 'right' });
+  doc.text('FICHA DO KIT', 196, 22, { align: 'right' });
 
   return 44;
 }
@@ -335,7 +367,7 @@ export function generateKitPDF(options: KitPdfOptions): Blob {
   const { kitState, kitQuantity, kitName } = options;
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
-  let y = drawHeader(doc, kitName, 0, options.orgName, options.orgLogoUrl);
+  let y = drawHeader(doc, kitName, 0, options.orgName, options.orgLogoUrl, kitState.identity);
 
   // KPI cards
   y = drawKpiCards(doc, kitState, kitQuantity, y);
