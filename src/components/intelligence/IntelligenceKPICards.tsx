@@ -58,18 +58,24 @@ export function IntelligenceKPICards({ days, categoryId, supplierId, productId, 
             value={formatCurrency(kpis.totalRevenue)}
             sub={`${formatCurrency(kpis.revenueThisMonth)} este mês`}
             highlight
+            tooltip="Soma do total de todos os pedidos confirmados no período selecionado. Inclui descontos aplicados, exclui cancelados."
+            animationDelay={0}
           />
           <KpiCard
             icon={ShoppingCart}
             label="Pedidos"
             value={String(kpis.totalOrders)}
             sub={`${kpis.ordersThisMonth} este mês`}
+            tooltip="Quantidade de pedidos criados no período. Cada pedido representa uma venda efetiva (orçamento que virou pedido)."
+            animationDelay={50}
           />
           <KpiCard
             icon={Receipt}
             label="Orçamentos"
             value={String(kpis.totalQuotes)}
             sub={`${kpis.quotesThisMonth} este mês`}
+            tooltip="Quantidade de orçamentos criados no período (em qualquer status: rascunho, enviado, aprovado, etc.)."
+            animationDelay={100}
           />
           <KpiCard
             icon={TrendingUp}
@@ -79,12 +85,16 @@ export function IntelligenceKPICards({ days, categoryId, supplierId, productId, 
             highlight={kpis.conversionRate >= 50}
             warning={kpis.conversionRate > 0 && kpis.conversionRate < 30}
             alert={kpis.conversionRate === 0 && kpis.totalQuotes > 0}
+            tooltip="Percentual de orçamentos que viraram pedidos. Calculado como: (pedidos ÷ orçamentos) × 100. Verde ≥ 50%, amarelo < 30%."
+            animationDelay={150}
           />
           <KpiCard
             icon={DollarSign}
             label="Ticket Médio"
             value={formatCurrency(kpis.averageTicket)}
             sub="por pedido"
+            tooltip="Valor médio por pedido. Calculado como faturamento total dividido pela quantidade de pedidos."
+            animationDelay={200}
           />
         </div>
       </CardContent>

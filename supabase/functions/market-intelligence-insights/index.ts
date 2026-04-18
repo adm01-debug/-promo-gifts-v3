@@ -1,5 +1,6 @@
 // supabase/functions/market-intelligence-insights/index.ts
 // Generates AI-powered insights for the Market Intelligence dashboard.
+// v2: server-side cache, structured logging, telemetry, quota check, smart empty state.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { authenticateRequest, authErrorResponse } from "../_shared/auth.ts";
 
@@ -10,6 +11,9 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
+const FUNCTION_NAME = "market-intelligence-insights";
+const CACHE_TTL_MS = 6 * 60 * 60 * 1000; // 6h
+
 interface RequestBody {
   days?: number;
   categoryId?: string | null;
@@ -18,25 +22,14 @@ interface RequestBody {
   categoryName?: string | null;
   supplierName?: string | null;
   productName?: string | null;
+  forceRefresh?: boolean;
 }
 
 interface AggregatedSummary {
   period_days: number;
   filters: { category?: string | null; supplier?: string | null; product?: string | null };
-  current: {
-    revenue: number;
-    orders: number;
-    quotes: number;
-    avg_ticket: number;
-    conversion_rate: number;
-  };
-  previous: {
-    revenue: number;
-    orders: number;
-    quotes: number;
-    avg_ticket: number;
-    conversion_rate: number;
-  };
+  current: { revenue: number; orders: number; quotes: number; avg_ticket: number; conversion_rate: number };
+  previous: { revenue: number; orders: number; quotes: number; avg_ticket: number; conversion_rate: number };
   deltas: {
     revenue_pct: number | null;
     orders_pct: number | null;
@@ -47,12 +40,58 @@ interface AggregatedSummary {
   top_suppliers: Array<{ name: string; revenue: number; share_pct: number }>;
 }
 
+interface InsightPayload {
+  summary: string;
+  what_changed: string;
+  why: string;
+  next_action: string;
+  highlights?: string[];
+  empty?: boolean;
+  cached?: boolean;
+  generated_at?: string;
+}
+
+function log(level: "info" | "warn" | "error", event: string, data: Record<string, unknown> = {}) {
+  console.log(JSON.stringify({ fn: FUNCTION_NAME, level, event, ts: new Date().toISOString(), ...data }));
+}
+
 function pctChange(curr: number, prev: number): number | null {
   if (prev === 0) return curr === 0 ? 0 : null;
   return Number((((curr - prev) / prev) * 100).toFixed(1));
 }
 
-function buildFallback(s: AggregatedSummary) {
+async function sha256(input: string): Promise<string> {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input));
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function buildCacheKey(b: RequestBody): Promise<string> {
+  return sha256(
+    JSON.stringify({
+      d: b.days ?? 30,
+      c: b.categoryId ?? null,
+      s: b.supplierId ?? null,
+      p: b.productId ?? null,
+      day: new Date().toISOString().slice(0, 10),
+    }),
+  );
+}
+
+function buildEmptyState(s: AggregatedSummary): InsightPayload {
+  const filterCtx =
+    [s.filters.category, s.filters.supplier, s.filters.product].filter(Boolean).join(" · ") ||
+    "este recorte";
+  return {
+    empty: true,
+    summary: `Sem volume suficiente em ${filterCtx} nos últimos ${s.period_days} dias para gerar insights.`,
+    what_changed: "Não há pedidos nem orçamentos registrados no período selecionado.",
+    why: "O filtro pode estar muito restritivo, ou ainda não houve atividade comercial neste recorte.",
+    next_action: "Amplie o período (ex: 60 ou 90 dias) ou remova filtros para ver o panorama geral.",
+    highlights: [],
+  };
+}
+
+function buildFallback(s: AggregatedSummary): InsightPayload {
   const filterCtx =
     [s.filters.category, s.filters.supplier, s.filters.product].filter(Boolean).join(" · ") ||
     "todo o catálogo";
@@ -78,7 +117,9 @@ function buildFallback(s: AggregatedSummary) {
         ? `Conversão em ${conv}% — revise follow-up dos orçamentos abertos para destravar pedidos.`
         : "Mantenha o ritmo: foque os 5 produtos de maior giro para sustentar o faturamento.",
     highlights: [
-      s.top_suppliers[0] ? `${s.top_suppliers[0].name} representa ${s.top_suppliers[0].share_pct}% do faturamento.` : null,
+      s.top_suppliers[0]
+        ? `${s.top_suppliers[0].name} representa ${s.top_suppliers[0].share_pct}% do faturamento.`
+        : null,
       s.current.avg_ticket > 0
         ? `Ticket médio: ${s.current.avg_ticket.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}.`
         : null,
@@ -95,23 +136,19 @@ async function aggregateData(
   const startCurr = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
   const startPrev = new Date(now.getTime() - 2 * days * 24 * 60 * 60 * 1000);
 
-  const buildQuoteQuery = (from: Date, to: Date) => {
-    let q = supabase
+  const buildQuoteQuery = (from: Date, to: Date) =>
+    supabase
       .from("quotes")
       .select("id, total, status, created_at", { count: "exact" })
       .gte("created_at", from.toISOString())
       .lt("created_at", to.toISOString());
-    return q;
-  };
 
-  const buildOrderQuery = (from: Date, to: Date) => {
-    let q = supabase
+  const buildOrderQuery = (from: Date, to: Date) =>
+    supabase
       .from("orders")
       .select("id, total, created_at", { count: "exact" })
       .gte("created_at", from.toISOString())
       .lt("created_at", to.toISOString());
-    return q;
-  };
 
   const [currQuotes, prevQuotes, currOrders, prevOrders] = await Promise.all([
     buildQuoteQuery(startCurr, now),
@@ -120,10 +157,7 @@ async function aggregateData(
     buildOrderQuery(startPrev, startCurr),
   ]);
 
-  const calcMetrics = (
-    quotes: { data: any[] | null },
-    orders: { data: any[] | null },
-  ) => {
+  const calcMetrics = (quotes: { data: any[] | null }, orders: { data: any[] | null }) => {
     const qData = quotes.data ?? [];
     const oData = orders.data ?? [];
     const revenue = oData.reduce((s, o) => s + (Number(o.total) || 0), 0);
@@ -153,9 +187,7 @@ async function aggregateData(
       acc[key].quantity += Number(it.quantity) || 0;
       acc[key].revenue += (Number(it.quantity) || 0) * (Number(it.unit_price) || 0);
     });
-    top_products = Object.values(acc)
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 5);
+    top_products = Object.values(acc).sort((a, b) => b.revenue - a.revenue).slice(0, 5);
   }
 
   const top_suppliers: AggregatedSummary["top_suppliers"] = body.supplierName
@@ -183,38 +215,81 @@ async function aggregateData(
 }
 
 Deno.serve(async (req) => {
+  const t0 = Date.now();
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
+  let userId: string | null = null;
   try {
-    const auth = await authenticateRequest(req).catch((e) => {
-      throw e;
-    });
-
+    const auth = await authenticateRequest(req);
+    userId = auth.user.id;
     const body = (await req.json().catch(() => ({}))) as RequestBody;
+    const cacheKey = await buildCacheKey(body);
+
+    // 1) Cache lookup (skip if forceRefresh)
+    if (!body.forceRefresh) {
+      const { data: cached } = await auth.localServiceClient
+        .from("ai_insights_cache")
+        .select("payload, created_at, expires_at")
+        .eq("user_id", userId)
+        .eq("function_name", FUNCTION_NAME)
+        .eq("cache_key", cacheKey)
+        .gt("expires_at", new Date().toISOString())
+        .maybeSingle();
+      if (cached?.payload) {
+        log("info", "cache_hit", { user_id: userId, cache_key: cacheKey, duration_ms: Date.now() - t0 });
+        await auth.localServiceClient.from("ai_usage_events").insert({
+          user_id: userId,
+          function_name: FUNCTION_NAME,
+          event_type: "cache_hit",
+          metadata: { cache_key: cacheKey },
+        });
+        return new Response(
+          JSON.stringify({ ...(cached.payload as object), cached: true, generated_at: cached.created_at }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+    }
+
+    // 2) Quota check
+    const { data: quota } = await auth.localServiceClient.rpc("check_ai_quota", { _user_id: userId });
+    if (quota && quota.allowed === false) {
+      log("warn", "quota_exceeded", { user_id: userId, used: quota.used, limit: quota.limit });
+      return new Response(
+        JSON.stringify({
+          error: "quota_exceeded",
+          message: `Limite mensal de IA atingido (${quota.used}/${quota.limit}).`,
+        }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    // 3) Aggregate data
     const summary = await aggregateData(auth.localServiceClient, body);
+
+    // 4) Smart empty state
+    if (summary.current.orders === 0 && summary.current.quotes === 0) {
+      const empty = buildEmptyState(summary);
+      log("info", "empty_state", { user_id: userId, period_days: summary.period_days });
+      return new Response(JSON.stringify(empty), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      console.warn("[market-intelligence-insights] LOVABLE_API_KEY missing — fallback");
+      log("warn", "missing_api_key", { user_id: userId });
       return new Response(JSON.stringify(buildFallback(summary)), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    if (summary.current.orders === 0 && summary.current.quotes === 0) {
-      return new Response(JSON.stringify(buildFallback(summary)), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
+    // 5) Call AI Gateway
+    const aiT0 = Date.now();
     const systemPrompt = `Você é analista comercial sênior. Gere insights ACIONÁVEIS e ESPECÍFICOS em pt-BR sobre o desempenho de vendas. Use números concretos do JSON fornecido. Seja direto: 1 frase por campo. Nunca invente dados.`;
 
     const aiResp = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
+      headers: { Authorization: `Bearer ${LOVABLE_API_KEY}`, "Content-Type": "application/json" },
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
@@ -230,15 +305,11 @@ Deno.serve(async (req) => {
               parameters: {
                 type: "object",
                 properties: {
-                  summary: { type: "string", description: "Resumo executivo em 1 frase com número-chave" },
-                  what_changed: { type: "string", description: "O que mudou vs. período anterior, com %" },
-                  why: { type: "string", description: "Hipótese causal curta" },
-                  next_action: { type: "string", description: "Próxima ação concreta" },
-                  highlights: {
-                    type: "array",
-                    items: { type: "string" },
-                    description: "2-3 bullets opcionais de destaque",
-                  },
+                  summary: { type: "string" },
+                  what_changed: { type: "string" },
+                  why: { type: "string" },
+                  next_action: { type: "string" },
+                  highlights: { type: "array", items: { type: "string" } },
                 },
                 required: ["summary", "what_changed", "why", "next_action"],
                 additionalProperties: false,
@@ -249,47 +320,95 @@ Deno.serve(async (req) => {
         tool_choice: { type: "function", function: { name: "emit_insights" } },
       }),
     });
+    const aiDuration = Date.now() - aiT0;
 
     if (aiResp.status === 429) {
+      log("warn", "ai_rate_limited", { user_id: userId, ai_duration_ms: aiDuration });
       return new Response(JSON.stringify({ error: "rate_limited", ...buildFallback(summary) }), {
         status: 429,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (aiResp.status === 402) {
+      log("warn", "ai_no_credits", { user_id: userId });
       return new Response(JSON.stringify({ error: "no_credits", ...buildFallback(summary) }), {
         status: 402,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     if (!aiResp.ok) {
-      console.error("[market-intelligence-insights] AI error", aiResp.status, await aiResp.text());
+      const txt = await aiResp.text();
+      log("error", "ai_error", { user_id: userId, status: aiResp.status, body: txt.slice(0, 300) });
       return new Response(JSON.stringify(buildFallback(summary)), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     const aiJson = await aiResp.json();
+    const usage = aiJson?.usage ?? {};
     const toolCall = aiJson?.choices?.[0]?.message?.tool_calls?.[0];
-    const args = toolCall?.function?.arguments;
-    let parsed: any = null;
+    let parsed: InsightPayload | null = null;
     try {
+      const args = toolCall?.function?.arguments;
       parsed = typeof args === "string" ? JSON.parse(args) : args;
     } catch {
       parsed = null;
     }
     if (!parsed || !parsed.summary) {
+      log("warn", "ai_parse_failed", { user_id: userId });
       return new Response(JSON.stringify(buildFallback(summary)), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    return new Response(JSON.stringify(parsed), {
+    // 6) Persist cache + telemetry (fire-and-forget but awaited briefly)
+    const totalDuration = Date.now() - t0;
+    const expiresAt = new Date(Date.now() + CACHE_TTL_MS).toISOString();
+    await Promise.all([
+      auth.localServiceClient.from("ai_insights_cache").upsert(
+        {
+          user_id: userId,
+          function_name: FUNCTION_NAME,
+          cache_key: cacheKey,
+          payload: parsed,
+          model: "google/gemini-2.5-flash",
+          tokens_input: usage.prompt_tokens ?? null,
+          tokens_output: usage.completion_tokens ?? null,
+          duration_ms: aiDuration,
+          expires_at: expiresAt,
+          created_at: new Date().toISOString(),
+        },
+        { onConflict: "user_id,function_name,cache_key" },
+      ),
+      auth.localServiceClient.from("ai_usage_events").insert({
+        user_id: userId,
+        function_name: FUNCTION_NAME,
+        event_type: body.forceRefresh ? "regenerate" : "generate",
+        metadata: {
+          cache_key: cacheKey,
+          ai_duration_ms: aiDuration,
+          total_duration_ms: totalDuration,
+          tokens_input: usage.prompt_tokens ?? null,
+          tokens_output: usage.completion_tokens ?? null,
+          period_days: summary.period_days,
+        },
+      }),
+    ]);
+
+    log("info", "ai_success", {
+      user_id: userId,
+      ai_duration_ms: aiDuration,
+      total_duration_ms: totalDuration,
+      tokens_input: usage.prompt_tokens,
+      tokens_output: usage.completion_tokens,
+    });
+
+    return new Response(JSON.stringify({ ...parsed, cached: false, generated_at: new Date().toISOString() }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (e: any) {
     if (e?.status) return authErrorResponse(e, corsHeaders);
-    console.error("[market-intelligence-insights] error", e);
+    log("error", "internal_error", { user_id: userId, message: e?.message ?? String(e) });
     return new Response(JSON.stringify({ error: e?.message ?? "internal_error" }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
