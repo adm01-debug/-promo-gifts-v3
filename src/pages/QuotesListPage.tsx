@@ -343,20 +343,6 @@ export default function QuotesListPage() {
                 className="pl-9"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[170px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                {Object.entries(statusConfig).map(([key, config]) => (
-                  <SelectItem key={key} value={key}>
-                    {config.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
               <SelectTrigger className="w-[180px]">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -372,24 +358,24 @@ export default function QuotesListPage() {
             </Select>
           </div>
 
+          {/* Status chips */}
+          <QuotesStatusChips quotes={quotes} value={statusFilter} onChange={setStatusFilter} />
+
           {/* Quotes List */}
-          <ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
+          <ScrollArea className="h-[calc(100vh-360px)] min-h-[400px]">
             {filteredQuotes.length === 0 ? (
               <EmptyState
                 variant="quotes"
-                title="Nenhum orçamento encontrado"
+                title={hasActiveFilters ? "Nenhum resultado para esses filtros" : "Nenhum orçamento encontrado"}
                 description={
-                  searchTerm || statusFilter !== "all"
-                    ? "Tente ajustar seus filtros"
-                    : "Crie seu primeiro orçamento"
+                  hasActiveFilters
+                    ? "Ajuste a busca ou os chips de status, ou limpe todos os filtros."
+                    : "Crie seu primeiro orçamento e comece a vender."
                 }
                 action={
-                  !searchTerm && statusFilter === "all"
-                    ? {
-                        label: "Criar Orçamento",
-                        onClick: () => navigate("/orcamentos/novo"),
-                      }
-                    : undefined
+                  hasActiveFilters
+                    ? { label: "Limpar filtros", onClick: handleClearFilters }
+                    : { label: "Criar Orçamento", onClick: () => navigate("/orcamentos/novo") }
                 }
               />
             ) : (
