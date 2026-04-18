@@ -520,7 +520,12 @@ export default function KitBuilderPage() {
                     items={kitState.items.map((i) => ({ name: i.name, sku: i.sku }))}
                     description={kitState.identity?.description ?? null}
                     current={kitState.identity}
-                    onApply={(partial) => setIdentity({ ...(kitState.identity ?? {}), ...partial })}
+                    onApply={(partial) => setIdentity({
+                      color: '#3B82F6',
+                      icon: 'Package',
+                      ...(kitState.identity ?? {}),
+                      ...partial,
+                    })}
                   />
 
                   <SimilarKitsWidget
