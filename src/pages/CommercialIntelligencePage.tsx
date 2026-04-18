@@ -3,6 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { IntelligenceFilterBar, type IntelligenceFilters } from "@/components/intelligence/IntelligenceFilterBar";
 import { IntelligenceKPICards } from "@/components/intelligence/IntelligenceKPICards";
+import { MarketIntelligenceInsightsCard } from "@/components/intelligence/MarketIntelligenceInsightsCard";
 import { MarketIntelligenceChart } from "@/components/intelligence/MarketIntelligenceChart";
 import { SalesOverviewChart } from "@/components/intelligence/SalesOverviewChart";
 import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
@@ -53,6 +54,17 @@ export default function CommercialIntelligencePage() {
           productId={filters.productId}
           categoryName={filters.categoryName}
           supplierName={filters.supplierName}
+        />
+
+        {/* AI Insights */}
+        <MarketIntelligenceInsightsCard
+          days={filters.days}
+          categoryId={filters.categoryId}
+          supplierId={filters.supplierId}
+          productId={filters.productId}
+          categoryName={filters.categoryName}
+          supplierName={filters.supplierName}
+          productName={filters.productName}
         />
 
         {/* 1. Market Intelligence */}
