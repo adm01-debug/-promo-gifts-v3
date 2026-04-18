@@ -1250,7 +1250,33 @@
 
 ---
 
-## 🔐 33. SECRETS/ENV VARS
+## 🧠 34. INTELIGÊNCIA DE MERCADO (`/inteligencia-comercial`)
+
+Painel estratégico com KPIs, rankings e narrativa de IA acionável a partir das vendas internas + sinais de mercado.
+
+### Componentes
+- **IntelligenceFilterBar** — período (7d–360d), categoria, fornecedor, produto. Sticky no topo, debounce 300ms para evitar refetch em cascata.
+- **IntelligenceKPICards** — KPIs com tooltip explicativo (faturamento, ticket médio, qty, conversão), animação fade-in escalonada.
+- **MarketIntelligenceInsightsCard** — narrativa de IA via edge `market-intelligence-insights`. Cache server-side de 6h (`ai_insights_cache`), botões Copiar/Exportar/Regenerar (com tooltip avisando consumo de créditos).
+- **MarketIntelligenceChart**, **SalesOverviewChart**, **TrendingProducts**, **CategoryRanking**, **SupplierSales**, **ProductRankingSearch** — cada um com empty state ilustrado (`IntelligenceEmptyState`).
+- **Refresh global** — invalida todas as queries da rota e atualiza o indicador "Atualizado há …".
+
+### Backend
+- **Edge `market-intelligence-insights`** — Zod-validated, quota-aware (`check_ai_quota`), structured logging (latência, tokens, fallback), cache de 6h por hash de filtros, fallback determinístico em 429/402.
+- **Tabela `ai_insights_cache`** — 1 linha por usuário+filtros+dia; expira em 24h. Limpeza diária via `pg_cron` (`cleanup-ai-insights-cache`, 03:00).
+- **Tabela `ai_usage_events`** — telemetria de regenerações manuais (`event_type = 'manual_regenerate'`) com metadata = filtros ativos.
+
+### Painel Admin
+- **`/admin/consumo-ia`** inclui `MarketIntelInsightsUsagePanel`: total de regenerações, top usuários, % cache hit, série diária 14 dias.
+
+### Performance
+- Prefetch da rota via `routePrefetch`.
+- Listas longas usam `@tanstack/react-virtual` (padrão >50 itens).
+- Filtros sticky com `backdrop-blur-md` + `bg-background/85`.
+
+---
+
+## 🔐 35. SECRETS/ENV VARS
 
 | Secret | Uso |
 |--------|-----|
