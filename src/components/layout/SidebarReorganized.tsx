@@ -53,6 +53,26 @@ interface SidebarProps {
 
 const navGroups: NavGroup[] = [
   {
+    id: "carts",
+    label: "Carrinhos",
+    icon: ShoppingCart,
+    defaultOpen: true,
+    items: [
+      { icon: Plus, label: "Novo Carrinho", href: "/carrinhos/novo", isCta: true },
+      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
+    ],
+  },
+  {
+    id: "quotes",
+    label: "Orçamentos",
+    icon: FileText,
+    defaultOpen: true,
+    items: [
+      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
+      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
+    ],
+  },
+  {
     id: "catalog",
     label: "Catálogo",
     icon: Package,
@@ -92,26 +112,6 @@ const navGroups: NavGroup[] = [
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
       { icon: Sparkles, label: "Business Analytic", href: "/ferramentas/bi" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
-    ],
-  },
-  {
-    id: "carts",
-    label: "Carrinhos",
-    icon: ShoppingCart,
-    defaultOpen: true,
-    items: [
-      { icon: Plus, label: "Novo Carrinho", href: "/carrinhos/novo", isCta: true },
-      { icon: ShoppingCart, label: "Carrinhos", href: "/carrinhos", exact: true },
-    ],
-  },
-  {
-    id: "quotes",
-    label: "Orçamentos",
-    icon: FileText,
-    defaultOpen: true,
-    items: [
-      { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
-      { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
     ],
   },
   {
