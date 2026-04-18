@@ -10,16 +10,11 @@ import { TrendingProducts } from "@/components/intelligence/TrendingProducts";
 import { ProductRankingSearch } from "@/components/intelligence/ProductRankingSearch";
 import { CategoryRanking } from "@/components/intelligence/CategoryRanking";
 import { SupplierSales } from "@/components/intelligence/SupplierSales";
-import { Brain, RefreshCw, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
+import { Brain, Clock } from "lucide-react";
 import { useDebouncedFilters } from "@/hooks/useDebouncedFilters";
 
 export default function CommercialIntelligencePage() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh] = useState<Date>(new Date());
   const [rawFilters, setRawFilters] = useState<IntelligenceFilters>({
     days: 30,
     categoryId: null,
@@ -33,12 +28,6 @@ export default function CommercialIntelligencePage() {
   // Debounce 300ms — evita refetch em cascata ao trocar filtros rapidamente
   const filters = useDebouncedFilters(rawFilters, 300);
   const setFilters = setRawFilters;
-
-  const handleGlobalRefresh = async () => {
-    await queryClient.invalidateQueries();
-    setLastRefresh(new Date());
-    toast({ title: "Dados atualizados", description: "Todos os painéis foram recarregados." });
-  };
 
   const formatRelative = (d: Date) => {
     const diff = Math.round((Date.now() - d.getTime()) / 1000);
@@ -68,10 +57,6 @@ export default function CommercialIntelligencePage() {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
             <span>Atualizado {formatRelative(lastRefresh)}</span>
-            <Button variant="outline" size="sm" onClick={handleGlobalRefresh} className="h-8 gap-1.5">
-              <RefreshCw className="h-3.5 w-3.5" />
-              Atualizar
-            </Button>
           </div>
         </div>
 
