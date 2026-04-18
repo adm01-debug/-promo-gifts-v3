@@ -173,6 +173,10 @@ export function QuotesConfigurableList({
     return quotes.slice(start, start + pageSize);
   }, [quotes, safePage, pageSize]);
 
+  // ── Visualizações pelo cliente (apenas página atual, performance) ──
+  const visibleIds = useMemo(() => paginatedQuotes.map((q) => q.id!).filter(Boolean), [paginatedQuotes]);
+  const viewedMap = useQuoteViewedMap(visibleIds);
+
   // ── Bulk selection (operates on paginated items) ──
   const { selectedIds, selectedCount, toggleItem, toggleAll, clearSelection, isSelected, isAllSelected } =
     useBulkSelection(paginatedQuotes as (Quote & { id: string })[]);
