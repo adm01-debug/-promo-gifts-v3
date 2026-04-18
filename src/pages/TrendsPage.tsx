@@ -282,8 +282,17 @@ export default function TrendsPage() {
     },
   });
 
-  const kpiCurrent = kpiSnapshot?.current ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 };
-  const kpiPrevious = kpiSnapshot?.previous ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 };
+  const kpiCurrent = demo ? MOCK_KPI_CURRENT : (kpiSnapshot?.current ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 });
+  const kpiPrevious = demo ? MOCK_KPI_PREVIOUS : (kpiSnapshot?.previous ?? { totalViews: 0, totalSearches: 0, uniqueProducts: 0, uniqueSearches: 0 });
+
+  // Override de demo para ranking, buscas e série diária
+  const mockDaily = useMemo(() => (demo ? buildMockDaily(days) : null), [demo, days]);
+  const displayProducts = demo ? MOCK_PRODUCTS : topProducts;
+  const displaySearches = demo ? MOCK_SEARCHES : topSearches;
+  const displayDaily = demo ? mockDaily : dailyData;
+  const displayLoadingProducts = demo ? false : loadingProducts;
+  const displayLoadingSearches = demo ? false : loadingSearches;
+  const displayLoadingDaily = demo ? false : loadingDaily;
 
   const handleRefresh = () => { refetchProducts(); refetchSearches(); };
 
