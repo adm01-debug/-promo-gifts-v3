@@ -96,6 +96,11 @@ export function KitBuilderHeader({
             />
             <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
               <span>Kit Maker</span>
+              {templateId && (
+                <Badge className="text-[10px] gap-1 h-5 bg-primary/15 text-primary border-primary/30">
+                  <Sparkles className="h-2.5 w-2.5" /> Editando template do sistema
+                </Badge>
+              )}
               {identity?.tag && (
                 <Badge variant="secondary" className="text-[10px] h-5">{identity.tag}</Badge>
               )}
