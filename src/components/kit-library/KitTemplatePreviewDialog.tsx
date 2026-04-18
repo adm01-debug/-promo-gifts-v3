@@ -1,5 +1,5 @@
 /**
- * Preview rico do template antes de clonar.
+ * Preview rico do template antes de clonar — com seção "Quem usou também usou".
  */
 import * as Lucide from 'lucide-react';
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
@@ -10,17 +10,22 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { formatCurrency } from '@/lib/kit-builder';
+import { RelatedTemplates } from '@/components/kit-library/RelatedTemplates';
 import type { KitTemplateRow } from '@/hooks/useKitTemplates';
 
 interface Props {
   template: KitTemplateRow | null;
+  allTemplates?: KitTemplateRow[];
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onClone: () => void;
+  onSelectRelated?: (t: KitTemplateRow) => void;
   isCloning: boolean;
 }
 
-export function KitTemplatePreviewDialog({ template, open, onOpenChange, onClone, isCloning }: Props) {
+export function KitTemplatePreviewDialog({
+  template, allTemplates = [], open, onOpenChange, onClone, onSelectRelated, isCloning,
+}: Props) {
   if (!template) return null;
 
   const Icon =
@@ -60,7 +65,6 @@ export function KitTemplatePreviewDialog({ template, open, onOpenChange, onClone
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Box */}
           {box && (
             <div className="p-3 rounded-lg border bg-muted/30">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Embalagem</p>
@@ -69,7 +73,6 @@ export function KitTemplatePreviewDialog({ template, open, onOpenChange, onClone
             </div>
           )}
 
-          {/* Items */}
           <div>
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
               Itens ({items.length})
@@ -99,11 +102,14 @@ export function KitTemplatePreviewDialog({ template, open, onOpenChange, onClone
             </ScrollArea>
           </div>
 
-          {/* Totals */}
           <div className="flex items-center justify-between p-3 rounded-lg border bg-primary/5">
             <span className="text-sm text-muted-foreground">Total estimado</span>
             <span className="text-xl font-bold text-primary">{formatCurrency(Number(template.total_price))}</span>
           </div>
+
+          {onSelectRelated && allTemplates.length > 0 && (
+            <RelatedTemplates current={template} all={allTemplates} onSelect={onSelectRelated} />
+          )}
         </div>
 
         <DialogFooter>

@@ -6,6 +6,7 @@ interface KitActionsBarProps {
   isValid: boolean;
   isAddingToQuote?: boolean;
   kitName: string;
+  kitTag?: string | null;
   kitQuantity: number;
   unitPrice: number;
   total: number;
@@ -14,7 +15,7 @@ interface KitActionsBarProps {
   onExportPDF?: () => void;
 }
 
-export function KitActionsBar({ isValid, isAddingToQuote, kitName, kitQuantity, unitPrice, total, items, onAddToQuote, onExportPDF }: KitActionsBarProps) {
+export function KitActionsBar({ isValid, isAddingToQuote, kitName, kitTag, kitQuantity, unitPrice, total, items, onAddToQuote, onExportPDF }: KitActionsBarProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
       <Button variant="outline" onClick={onExportPDF}>
@@ -30,8 +31,9 @@ export function KitActionsBar({ isValid, isAddingToQuote, kitName, kitQuantity, 
         disabled={!isValid}
         onClick={() => {
           const kitLabel = kitName || 'Kit Personalizado';
+          const title = kitTag ? `*${kitLabel} — ${kitTag}*` : `*${kitLabel}*`;
           const itemsList = items.map(i => `• ${i.quantity}x ${i.name}`).join('\n');
-          const text = `*${kitLabel}* (${kitQuantity}x)\n\n${itemsList}\n\n💰 *${formatCurrency(unitPrice)}/kit*\n📦 Total: *${formatCurrency(total)}*`;
+          const text = `${title} (${kitQuantity}x)\n\n${itemsList}\n\n💰 *${formatCurrency(unitPrice)}/kit*\n📦 Total: *${formatCurrency(total)}*`;
           window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
         }}
       >

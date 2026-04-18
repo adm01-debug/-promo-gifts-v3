@@ -2,10 +2,11 @@
  * Kit Card — Cartão visual rico para "Meus Kits" e "Sugeridos".
  */
 import * as Lucide from 'lucide-react';
-import { Star, Pencil, Copy, Trash2, Wand2, Tag as TagIcon, Layers } from 'lucide-react';
+import { Star, Pencil, Copy, Trash2, Wand2, Tag as TagIcon, Layers, Pin } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { formatCurrency } from '@/lib/kit-builder';
 import { cn } from '@/lib/utils';
 
@@ -19,7 +20,9 @@ export interface KitCardData {
   totalPrice: number;
   itemsCount: number;
   isFavorite?: boolean;
+  isPinned?: boolean;
   badge?: string;
+  usageBadge?: string;
 }
 
 interface Props {
@@ -29,20 +32,23 @@ interface Props {
   onDuplicate?: () => void;
   onDelete?: () => void;
   onToggleFavorite?: () => void;
+  onTogglePin?: () => void;
   onUseTemplate?: () => void;
   isBusy?: boolean;
 }
 
 export function KitCard({
-  data, variant, onEdit, onDuplicate, onDelete, onToggleFavorite, onUseTemplate, isBusy,
+  data, variant, onEdit, onDuplicate, onDelete, onToggleFavorite, onTogglePin, onUseTemplate, isBusy,
 }: Props) {
   const Icon =
     (Lucide as unknown as Record<string, React.ComponentType<{ className?: string }>>)[data.icon] ||
     Lucide.Package;
 
   return (
-    <Card className="group relative overflow-hidden hover:shadow-lg transition-all">
-      {/* Color stripe */}
+    <Card className={cn(
+      'group relative overflow-hidden hover:shadow-lg transition-all',
+      data.isPinned && 'ring-2 ring-primary/50',
+    )}>
       <div className="h-1.5 w-full" style={{ background: data.color }} aria-hidden />
 
       <CardContent className="p-4 space-y-3">
@@ -58,7 +64,17 @@ export function KitCard({
             <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-display font-semibold truncate">{data.name}</h3>
               {data.badge && (
-                <Badge variant="outline" className="text-[10px]">{data.badge}</Badge>
+                <Badge
+                  variant={data.badge === 'Popular' ? 'default' : 'outline'}
+                  className={cn('text-[10px]', data.badge === 'Popular' && 'bg-warning/15 text-warning border-warning/30')}
+                >
+                  {data.badge}
+                </Badge>
+              )}
+              {data.usageBadge && (
+                <Badge variant="secondary" className="text-[10px] gap-1">
+                  {data.usageBadge}
+                </Badge>
               )}
             </div>
             {data.description && (
@@ -66,22 +82,47 @@ export function KitCard({
             )}
           </div>
 
-          {variant === 'mine' && onToggleFavorite && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 shrink-0"
-              onClick={onToggleFavorite}
-              aria-label={data.isFavorite ? 'Remover dos favoritos' : 'Favoritar'}
-            >
-              <Star
-                className={cn(
-                  'h-4 w-4 transition-colors',
-                  data.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground',
-                )}
-              />
-            </Button>
-          )}
+          <div className="flex items-center gap-0.5 shrink-0">
+            {variant === 'mine' && onTogglePin && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={onTogglePin}
+                      aria-label={data.isPinned ? 'Desafixar' : 'Fixar em destaque'}
+                    >
+                      <Pin
+                        className={cn(
+                          'h-4 w-4 transition-colors',
+                          data.isPinned ? 'fill-primary text-primary' : 'text-muted-foreground',
+                        )}
+                      />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{data.isPinned ? 'Desafixar' : 'Fixar em destaque'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+            {variant === 'mine' && onToggleFavorite && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={onToggleFavorite}
+                aria-label={data.isFavorite ? 'Remover dos favoritos' : 'Favoritar'}
+              >
+                <Star
+                  className={cn(
+                    'h-4 w-4 transition-colors',
+                    data.isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-muted-foreground',
+                  )}
+                />
+              </Button>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
