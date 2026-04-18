@@ -1,42 +1,37 @@
 
-User wants autonomous execution of "all listed improvements" but no list was provided in this message. Need to check chat history for the pending improvements list, OR assume they refer to the Kit Maker biblioteca that was just delivered + remaining 10/10 polish.
+The previous Kit Library 10/10 roadmap was just completed (16 melhorias entregues). Sem nova lista explícita, proponho a próxima onda — **Kit Library 11/10: Dados reais + UX avançada** — para continuar a evolução autônoma rumo à perfeição.
 
-Looking at recent context: just finished Kit Library implementation. The user preference says "execute autonomously, one at a time, no pauses". They likely want continuous Kit Maker polish to reach 10/10.
+# Plano: Kit Library — Onda Pós-10/10 (Dados Reais + UX Avançada)
 
-Since no explicit list exists in current window, I'll propose a focused 10/10 roadmap for the new Kit Library + Kit Maker identity feature (the most recent delivery), executing each sequentially without further questions.
+Executarei tudo sequencialmente, sem pausas, até o build TS limpo final.
 
-# Plano: Kit Library 10/10 — Polimento Sequencial Autônomo
+## Onda A — Templates com dados reais (gap crítico)
+1. **Admin: snapshot do kit atual como template** — botão no Kit Builder "Salvar como template do sistema" (admin only) que captura `box_data + items_data + personalization_data + total_price` do estado atual e cria/atualiza um `kit_templates`.
+2. **Admin: editor de template carrega kit completo** — no `/admin/kit-templates`, botão "Editar conteúdo" abre o template no Kit Builder em modo template (URL `?template=ID`); ao salvar, persiste de volta em `kit_templates`, não em `custom_kits`.
+3. **Clone real funcional** — `cloneTemplate` já copia JSONB; validar que o kit clonado abre corretamente no Builder com box+items+personalização restaurados (smoke test mental + ajuste se faltar campo).
 
-Executarei as melhorias abaixo **uma de cada vez**, sem pausas, até concluir todas:
+## Onda B — Identidade visual end-to-end
+4. **Identidade no PDF do kit** — header do PDF exportado mostra cor + ícone + tag do kit (hoje é genérico).
+5. **Identidade no Orçamento** — quando "Criar Orçamento" é acionado, levar `color/tag/icon` para um campo `kit_metadata` no quote item para futura referência visual.
+6. **Identidade no compartilhamento WhatsApp** — incluir tag no texto (`*Kit VIP — Cliente Premium*`).
 
-## Onda 1 — Funcionalidade essencial faltante
-1. **Carregar identidade ao abrir kit existente** — `loadKit()` em `useKitBuilder` precisa popular `identity` (cor/ícone/tag/descrição/favorito) a partir do banco. Hoje só carrega box/items/personalization.
-2. **Tipar `custom_kits.color/icon/tag/...`** corretamente nos selects e remover `as unknown as` da `KitLibraryPage` (criar helper tipado).
+## Onda C — Biblioteca: descoberta e produtividade
+7. **"Usado recentemente"** — ordenar Meus Kits por `last_used_at` (novo campo); incrementar quando o kit é aberto via `/montar-kit?kit=ID`.
+8. **Pin/destacar kit** — além de favoritar, permitir "fixar" 1 kit que aparece em destaque no topo de Meus Kits (campo `is_pinned`).
+9. **Atalho de teclado** `G + K` para abrir biblioteca de qualquer lugar; documentar em `keyboard-shortcuts-registry`.
+10. **Comando rápido no Spotlight** (`Ctrl+K`) — entrada "Ir para biblioteca de kits" + entradas dinâmicas para cada kit favoritado.
 
-## Onda 2 — UX da Biblioteca
-3. **Filtros visuais** na Biblioteca: chips por tag e por cor (derivados dos kits do usuário), além da busca textual.
-4. **Ordenação**: dropdown "Mais recentes / Maior valor / Nome A-Z / Mais usados (templates)".
-5. **Skeleton cards** durante carregamento (substituir spinner por 8 skeletons no padrão `loading-and-skeleton-standard`).
-6. **Contador de itens correto**: hoje soma `quantity` mas alguns templates podem ter items com estrutura diferente — normalizar.
+## Onda D — Templates inteligentes
+11. **Categorias dinâmicas** — chips de categoria na aba Sugeridos (Tecnologia, Bem-estar, Premium, Onboarding, Eco) derivados de `kit_templates.category` distinct.
+12. **"Quem usou também usou"** — sob cada template, mostrar 2-3 templates da mesma categoria.
+13. **Métrica de adoção visível só p/ admin** — badge com `usage_count` no card de template quando `has_role(uid,'admin')`.
 
-## Onda 3 — Identidade visual aplicada no Kit Maker
-7. **Header do Kit Builder reflete a identidade**: stripe colorida no topo + ícone ao lado do nome do kit (não só no popover).
-8. **Card "Meus Kits" no /montar-kit**: botão "Abrir biblioteca" no header levando direto à aba certa.
-
-## Onda 4 — Templates avançados
-9. **Painel Admin de Templates** (`/admin/kit-templates`): CRUD de `kit_templates` para administradores popularem o banco com kits reais (box+items+personalização) — protegido por `AdminRoute`.
-10. **Badge "Popular"** em templates com `usage_count >= 5`.
-11. **Preview rico** do template antes de clonar (modal mostrando itens, caixa, preço).
-
-## Onda 5 — Polimento final 10/10
-12. **Animações** `animate-fade-in` escalonadas nos grids da biblioteca.
-13. **Empty states ilustrados** com CTA secundário (ex: "Ver templates sugeridos" no estado vazio de Meus Kits).
-14. **PageSEO** com OG image e descrição SEO-friendly.
-15. **Memory update**: registrar `mem://features/kit-library-system` documentando a arquitetura dos 2 bancos.
-16. **Validação final**: TS check + lint + smoke test mental do fluxo completo (criar → salvar com identidade → reabrir → clonar template → favoritar → excluir).
+## Onda E — Polimento técnico
+14. **Tipagem `CustomKitRow` exportada** + remover `as never` no insert de `KitLibraryPage` (criar helper `buildCustomKitInsert`).
+15. **Realtime opcional** — subscrever `custom_kits` (canal `user:<uid>:custom-kits`) para refletir mudanças cross-tab; fallback no polling atual.
+16. **Validação final** — TS check + smoke mental: criar template (admin) → vendedor clona → edita identidade → fixa → orçamento sai com tag → admin vê adoção subir.
 
 ## Arquivos esperados
-- **Modificar**: `useKitBuilder.ts`, `useCustomKitPersistence.ts`, `KitLibraryPage.tsx`, `KitBuilderHeader.tsx`, `KitCard.tsx`, `App.tsx`.
-- **Criar**: `src/pages/admin/KitTemplatesAdminPage.tsx`, `src/hooks/useAdminKitTemplates.ts`, `src/components/kit-library/KitLibraryFilters.tsx`, `src/components/kit-library/KitTemplatePreviewDialog.tsx`, `src/components/kit-library/KitCardSkeleton.tsx`, memória.
-
-Após aprovação, executo as 16 melhorias sequencialmente sem novas perguntas até o build TS limpo final.
+- **Migrações**: 1 (`custom_kits.last_used_at timestamptz`, `custom_kits.is_pinned boolean default false`).
+- **Modificar**: `KitBuilderPage.tsx`, `KitBuilderHeader.tsx`, `KitLibraryPage.tsx`, `useKitTemplates.ts`, `useAdminKitTemplates.ts`, `KitTemplatesAdminPage.tsx`, `useCustomKitPersistence.ts`, `Spotlight.tsx`, kit PDF export, WhatsApp text composer.
+- **Criar**: `useTemplateSnapshot.ts`, `KitCategoryChips.tsx`, `RelatedTemplates.tsx`, helper `buildCustomKitInsert.ts`, memória atualizada.
