@@ -79,7 +79,7 @@ const navGroups: NavGroup[] = [
       { icon: Calculator, label: "Simulador", href: "/simulador", shortcut: "Alt+S" },
       { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
-      { icon: Boxes, label: "Kit Creator", href: "/montar-kit" },
+      { icon: Boxes, label: "Kit Maker", href: "/montar-kit" },
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
       { icon: Sparkles, label: "Business Analytic", href: "/ferramentas/bi" },
       { icon: Crosshair, label: "Match", href: "/match" },
