@@ -17,6 +17,8 @@ import { KitStatsCards } from './kit-summary/KitStatsCards';
 import { KitCompositionCard } from './kit-summary/KitCompositionCard';
 import { KitPricingCard } from './kit-summary/KitPricingCard';
 import { KitActionsBar } from './kit-summary/KitActionsBar';
+import { KitConflictAlerts } from './KitConflictAlerts';
+import { KitPresentablePreview } from './KitPresentablePreview';
 
 interface KitSummaryProps {
   kitState: KitState;
@@ -27,9 +29,10 @@ interface KitSummaryProps {
   onAddToQuote?: () => void;
   onExportPDF?: () => void;
   isAddingToQuote?: boolean;
+  currentKitId?: string;
 }
 
-export function KitSummary({ kitState, kitQuantity, kitName, onKitNameChange, onKitQuantityChange, onAddToQuote, onExportPDF, isAddingToQuote }: KitSummaryProps) {
+export function KitSummary({ kitState, kitQuantity, kitName, onKitNameChange, onKitQuantityChange, onAddToQuote, onExportPDF, isAddingToQuote, currentKitId }: KitSummaryProps) {
   const { box, items, personalization } = kitState;
   const pricing = calculateTotalKitPrice(box, items, personalization, kitQuantity);
   const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
