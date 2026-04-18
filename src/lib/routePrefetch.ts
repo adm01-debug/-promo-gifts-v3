@@ -25,7 +25,7 @@ const routeImportMap: Record<string, () => Promise<unknown>> = {
   '/mockup': () => import('@/pages/MockupGenerator'),
   '/magic-up': () => import('@/pages/MagicUp'),
   '/kits': () => import('@/pages/KitBuilderPage'),
-  '/meus-kits': () => import('@/pages/MeusKitsPage'),
+  '/meus-kits': () => import('@/pages/KitLibraryPage'),
   '/pedidos': () => import('@/pages/OrdersPage'),
   
   '/tendencias': () => import('@/pages/TrendsPage'),

@@ -95,12 +95,21 @@ export interface KitPersonalization {
 // ESTADO DO KIT
 // ============================================
 
+export interface KitIdentity {
+  color: string;       // hex
+  icon: string;        // lucide icon name
+  tag?: string;        // free text label
+  description?: string;
+  isFavorite?: boolean;
+}
+
 export interface KitState {
   name: string;
   kitType: KitType;
   box: KitBox | null;
   items: KitItem[];
   personalization: KitPersonalization;
+  identity?: KitIdentity;
   // Volumes
   totalItemsVolume: number;
   availableVolume: number;

@@ -72,7 +72,7 @@ export default function KitBuilderPage() {
     isLoadingBoxes, isLoadingItems, boxFilters, setBoxFilters, itemFilters, setItemFilters,
     setKitName, selectBox, clearBox, addItem, removeItem, updateItemQuantity,
     updateItemVariant, reorderItems, setItemPersonalization, setBoxPersonalization,
-    setKitQuantity, goToStep, nextStep, prevStep, resetKit, loadKit,
+    setKitQuantity, setIdentity, goToStep, nextStep, prevStep, resetKit, loadKit,
   } = useKitBuilder();
 
   const { saveKit, isSaving } = useCustomKitPersistence();
@@ -244,6 +244,8 @@ export default function KitBuilderPage() {
           isExistingKit={isExistingKit}
           canUndo={canUndo}
           canRedo={canRedo}
+          identity={kitState.identity}
+          onIdentityChange={setIdentity}
           onSave={handleSaveKit}
           onUndo={() => undo()}
           onRedo={() => redo()}

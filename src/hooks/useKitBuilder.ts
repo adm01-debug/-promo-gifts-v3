@@ -11,6 +11,7 @@ import {
   type KitItem,
   type KitState,
   type KitType,
+  type KitIdentity,
   type KitPersonalization,
   type KitItemPersonalization,
   type KitBuilderStep,
@@ -39,6 +40,9 @@ export function useKitBuilder() {
     items: {},
   });
   const [kitQuantity, setKitQuantity] = useState(1);
+  const [identity, setIdentity] = useState<KitIdentity>({
+    color: '#3B82F6', icon: 'Package', tag: '', description: '', isFavorite: false,
+  });
 
   // Estado do wizard
   const [currentStep, setCurrentStep] = useState<KitBuilderStep>('box');
@@ -97,6 +101,7 @@ export function useKitBuilder() {
       box: selectedBox,
       items: selectedItems,
       personalization,
+      identity,
       totalItemsVolume,
       availableVolume,
       volumeUsagePercent,
@@ -108,7 +113,7 @@ export function useKitBuilder() {
       isValid: validationErrors.length === 0,
       validationErrors,
     };
-  }, [kitName, kitType, selectedBox, selectedItems, personalization, kitQuantity]);
+  }, [kitName, kitType, selectedBox, selectedItems, personalization, kitQuantity, identity]);
 
   const wizardState = useMemo((): KitBuilderWizardState => {
     const completedSteps: KitBuilderStep[] = [];
@@ -326,6 +331,7 @@ export function useKitBuilder() {
     setSelectedItems([]);
     setPersonalization({ box: { enabled: false }, items: {} });
     setKitQuantity(1);
+    setIdentity({ color: '#3B82F6', icon: 'Package', tag: '', description: '', isFavorite: false });
     setCurrentStep('box');
   }, []);
 
@@ -408,6 +414,7 @@ export function useKitBuilder() {
     setItemPersonalization,
     setBoxPersonalization,
     setKitQuantity,
+    setIdentity,
     goToStep,
     nextStep,
     prevStep,
