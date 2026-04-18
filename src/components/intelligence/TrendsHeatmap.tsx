@@ -22,6 +22,8 @@ export function TrendsHeatmap({ days }: TrendsHeatmapProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["trends-heatmap", days],
     queryFn: async () => {
+      const { isDemoMode, buildMockHeatmap } = await import("@/pages/trends/trends-mock");
+      if (isDemoMode()) return buildMockHeatmap();
       const [{ data: views }, { data: searches }] = await Promise.all([
         untypedFrom("product_views").select("created_at").gte("created_at", since),
         untypedFrom("search_analytics").select("created_at").gte("created_at", since),
