@@ -170,12 +170,6 @@ export default function KitBuilderPage() {
 
   const handleResetKit = () => { resetKit(); setCurrentKitId(undefined); };
 
-  const handleDuplicateKit = () => {
-    setCurrentKitId(undefined);
-    setKitName(`${kitState.name || 'Kit'} (cópia)`);
-    toast.success('Kit duplicado — salve para criar uma nova versão');
-  };
-
   // Item 3 — contextual toasts with Desfazer (uses undo from useKitUndoRedo)
   const handleSelectBox = (box: typeof availableBoxes[number]) => {
     selectBox(box);
