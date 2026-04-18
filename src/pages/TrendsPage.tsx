@@ -376,9 +376,9 @@ export default function TrendsPage() {
 
         {/* Forecast Chart com toggles vs anterior + previsão + anomalias */}
         <TrendsForecastChart
-          dailyTrends={dailyData?.current}
-          previousTrends={dailyData?.previous}
-          isLoading={loadingDaily}
+          dailyTrends={displayDaily?.current}
+          previousTrends={displayDaily?.previous}
+          isLoading={displayLoadingDaily}
           showForecast={showForecast}
           onToggleForecast={setShowForecast}
           showCompare={showCompare}
