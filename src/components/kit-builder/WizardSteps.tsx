@@ -41,7 +41,7 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
   };
 
   return (
-    <div className="w-full space-y-4">
+    <div className="w-full space-y-2">
       {/* Continuous progress bar */}
       <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted/60">
         <div
@@ -50,7 +50,7 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
         />
       </div>
 
-      <div className="flex items-start justify-between gap-2">
+      <div className="flex items-center justify-between gap-2">
         {STEPS.map((step, index) => {
           const isActive = step.id === currentStep;
           const isCompleted = completedSteps.includes(step.id);
@@ -59,44 +59,35 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
           const summary = getStepSummary(step.id);
 
           return (
-            <div key={step.id} className="flex items-start flex-1 min-w-0">
+            <div key={step.id} className="flex items-center flex-1 min-w-0">
               <button
                 onClick={() => isClickable && onStepClick?.(step.id)}
                 disabled={!isClickable}
                 aria-current={isActive ? 'step' : undefined}
                 className={cn(
-                  'group flex flex-col items-center gap-2 flex-1 min-w-0 px-1 transition-all',
+                  'group flex items-center gap-2.5 flex-1 min-w-0 px-1 py-1 transition-all rounded-lg',
                   isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
                 )}
               >
                 <div
                   className={cn(
-                    'relative flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-all duration-300',
-                    isActive && 'border-primary bg-primary text-primary-foreground scale-110 shadow-[0_0_24px_hsl(var(--primary)/0.45)]',
+                    'relative flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl border-2 transition-all duration-300',
+                    isActive && 'border-primary bg-primary text-primary-foreground shadow-[0_0_18px_hsl(var(--primary)/0.4)]',
                     isCompleted && !isActive && 'border-success/50 bg-success/10 text-success',
                     !isActive && !isCompleted && 'border-border bg-muted/40 text-muted-foreground group-hover:border-border/80',
                   )}
                 >
                   {isCompleted && !isActive ? (
-                    <Check className="h-5 w-5" strokeWidth={2.5} />
+                    <Check className="h-4 w-4" strokeWidth={2.5} />
                   ) : (
-                    <Icon className="h-5 w-5" />
+                    <Icon className="h-4 w-4" />
                   )}
-                  {/* Ordinal badge */}
-                  <span
-                    className={cn(
-                      'absolute -top-1.5 -right-1.5 text-[9px] font-display font-bold tabular-nums px-1.5 py-0.5 rounded-md',
-                      isActive ? 'bg-foreground text-background' : 'bg-card text-muted-foreground border border-border/60',
-                    )}
-                  >
-                    {step.ordinal}
-                  </span>
                 </div>
 
-                <div className="text-center min-w-0 w-full">
+                <div className="text-left min-w-0 flex-1">
                   <p
                     className={cn(
-                      'text-sm font-display font-semibold tracking-tight truncate transition-colors',
+                      'text-sm font-display font-semibold tracking-tight truncate leading-tight transition-colors',
                       isActive && 'text-foreground',
                       isCompleted && !isActive && 'text-foreground/80',
                       !isActive && !isCompleted && 'text-muted-foreground',
@@ -105,11 +96,11 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
                     {step.label}
                   </p>
                   {summary ? (
-                    <p className="text-[10px] text-success font-medium truncate mt-0.5" title={summary}>
+                    <p className="text-[10px] text-success font-medium truncate leading-tight" title={summary}>
                       ✓ {summary}
                     </p>
                   ) : (
-                    <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5 hidden sm:block">
+                    <p className="text-[10px] text-muted-foreground/70 truncate leading-tight hidden md:block">
                       {step.tagline}
                     </p>
                   )}
@@ -118,7 +109,7 @@ export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState
 
               {/* Connector */}
               {index < STEPS.length - 1 && (
-                <div className="hidden sm:block flex-shrink-0 mt-6 w-8 h-px bg-border/60" aria-hidden />
+                <div className="hidden sm:block flex-shrink-0 w-4 h-px bg-border/60" aria-hidden />
               )}
             </div>
           );
