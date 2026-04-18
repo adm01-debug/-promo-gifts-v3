@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
+import confetti from 'canvas-confetti';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { Button } from '@/components/ui/button';

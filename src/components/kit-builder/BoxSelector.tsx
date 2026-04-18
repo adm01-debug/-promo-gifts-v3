@@ -261,8 +261,9 @@ export function BoxSelector({
               <Card
                 key={box.id}
                 className={cn(
-                  "cursor-pointer transition-all hover:shadow-md hover:border-primary/50",
-                  "group"
+                  "group cursor-pointer rounded-xl border-border/50 transition-all duration-200 will-change-transform",
+                  "hover:-translate-y-0.5 hover:shadow-lg hover:border-primary/40",
+                  "focus-within:ring-2 focus-within:ring-primary/60",
                 )}
                 onClick={() => onSelect(box)}
               >
