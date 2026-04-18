@@ -1,11 +1,10 @@
 import { TrendingUp, TrendingDown, Minus, Package } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTrendingProducts } from "@/hooks/useCommercialIntelligence";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { IntelligenceEmptyState } from "./IntelligenceEmptyState";
 
 export function TrendingProducts({ days = 30, categoryId, supplierId, productId, categoryName }: { days?: number; categoryId?: string | null; supplierId?: string | null; productId?: string | null; categoryName?: string | null }) {
   const { data: products, isLoading } = useTrendingProducts(days, categoryId, supplierId, productId, 7);
@@ -53,10 +52,10 @@ export function TrendingProducts({ days = 30, categoryId, supplierId, productId,
       </CardHeader>
       <CardContent className="p-0">
         {!hasData ? (
-          <div className="flex flex-col items-center py-8 text-muted-foreground">
-            <Package className="h-8 w-8 mb-2 opacity-30" />
-            <p className="text-xs">Sem dados de vendas para o período</p>
-          </div>
+          <IntelligenceEmptyState
+            title="Nenhum produto em alta"
+            description={categoryName ? `Sem vendas registradas em "${categoryName}" no período.` : "Sem vendas registradas para o período selecionado."}
+          />
         ) : (
           <div className="divide-y divide-border">
             {products!.map((product, index) => (
