@@ -43,6 +43,7 @@ import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPrevie
 import { KitPersonalizationPreview } from '@/components/kit-builder/KitPersonalizationPreview';
 import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
 import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
+import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
