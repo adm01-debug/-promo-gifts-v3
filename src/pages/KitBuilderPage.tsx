@@ -287,6 +287,7 @@ export default function KitBuilderPage() {
                 {(kitState.personalization.box?.enabled || Object.values(kitState.personalization.items).some(p => p?.enabled)) && (
                   <KitPersonalizationPreview kitState={kitState} />
                 )}
+                {kitState.totalPrice > 0 && <KitHealthCard kitState={kitState} kitQuantity={kitQuantity} />}
                 {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
 
                 {kitState.box && kitState.box.maxWeight && (
