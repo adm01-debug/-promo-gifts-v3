@@ -213,7 +213,7 @@ export function QuotesConfigurableList({
   );
 
   const gridTemplate = useMemo(
-    () => ["40px", ...visibleColumns.map((c) => c.width), "44px"].join(" "),
+    () => ["40px", ...visibleColumns.map((c) => c.width), "180px"].join(" "),
     [visibleColumns]
   );
 
