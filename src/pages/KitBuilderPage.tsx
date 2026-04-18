@@ -311,6 +311,8 @@ export default function KitBuilderPage() {
           onUndo={() => undo()}
           onRedo={() => redo()}
           onReset={handleResetKit}
+          kitState={kitState}
+          templateId={templateIdParam || undefined}
           
           onAIApply={(s) => {
             setKitType(s.kit_type);
