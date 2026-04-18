@@ -26,6 +26,15 @@ import { useUrlState, useUrlBoolean } from "@/hooks/useUrlState";
 import { exportTrendsCsv } from "@/lib/trends-export";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import {
+  isDemoMode,
+  MOCK_KPI_CURRENT,
+  MOCK_KPI_PREVIOUS,
+  MOCK_PRODUCTS,
+  MOCK_SEARCHES,
+  buildMockDaily,
+} from "./trends/trends-mock";
+import { Badge } from "@/components/ui/badge";
 
 type DateRange = "7d" | "30d" | "90d";
 
