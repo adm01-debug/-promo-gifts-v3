@@ -53,3 +53,10 @@ Funcionalidade migrada para sistema externo. Removidos:
 - Backend: edge function `detect-stalled-quotes` deletada; branch `follow_up_reminder` removido de `send-transactional-email`; query/contexto removido de `expert-chat`.
 - Tabela `follow_up_reminders` mantida no banco (sem consumidores) para preservar histórico — sem migration de DROP.
 - Adoção `fetchWithBreaker` agora em **8 edge functions** (era 9).
+
+## Patch — Remoção Dashboard de Produtos / BI (2026-04-18)
+Módulo `/bi` (BIDashboard de produtos — não confundir com `/ferramentas/bi` Business Intelligence comercial, que permanece). Migrado para sistema externo. Removidos:
+- Frontend: `src/pages/BIDashboard.tsx`, `src/pages/bi-dashboard/` (BIDashboardCharts), `src/hooks/useBIMetrics.ts`, `tests/hooks/useBIMetrics.test.tsx`.
+- Edição: rota `/bi` em `App.tsx`, item "Dashboard BI" em `SidebarReorganized`, atalho mobile em `SmartMobileNav`, item Spotlight, prefetch em `routePrefetch`, skeleton em `SkeletonLoaders`, passo de onboarding em `useOnboarding`, rota no `voice-agent/systemPrompt` + teste, redirects de `DeprecatedRoute` (admin/performance) trocados de `/bi` → `/ferramentas/bi`.
+- Docs: `FUNCIONALIDADES_E_FERRAMENTAS.md` (seção 8.1) e `CONFIGURACAO_LOCALE_PT_BR.md` limpos.
+- Não tocados: `BusinessIntelligencePage` (rota `/ferramentas/bi`), edge functions `bi-copilot` e `bi-share-dossier` (servem o módulo comercial 360°), MVs externas.
