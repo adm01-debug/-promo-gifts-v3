@@ -254,6 +254,67 @@ export default function KitTemplatesMetricsPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Conversão de compartilhamentos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Share2 className="h-4 w-4 text-primary" />
+              Conversão de compartilhamentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingShare ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20" />)}
+              </div>
+            ) : !shareConversion || shareConversion.generated === 0 ? (
+              <p className="text-sm text-muted-foreground py-4">
+                Nenhum link de apresentação gerado ainda.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Gerados</p>
+                    <p className="text-2xl font-display font-semibold tabular-nums">{shareConversion.generated}</p>
+                  </div>
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <Eye className="h-3 w-3" /> Visualizados
+                    </p>
+                    <p className="text-2xl font-display font-semibold tabular-nums">{shareConversion.viewed}</p>
+                  </div>
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <Percent className="h-3 w-3" /> Taxa
+                    </p>
+                    <p className="text-2xl font-display font-semibold tabular-nums text-primary">
+                      {shareConversion.rate.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ativos / Revogados</p>
+                    <p className="text-sm font-medium tabular-nums mt-1">
+                      <span className="text-success">{shareConversion.active}</span>
+                      <span className="text-muted-foreground"> / </span>
+                      <span className="text-destructive">{shareConversion.revoked}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                  <p className="font-medium mb-1">Últimos 30 dias</p>
+                  <p className="text-muted-foreground text-xs">
+                    {shareConversion.recent} link{shareConversion.recent === 1 ? '' : 's'} gerado{shareConversion.recent === 1 ? '' : 's'} •{' '}
+                    {shareConversion.recentViewed} visualizado{shareConversion.recentViewed === 1 ? '' : 's'} •{' '}
+                    <span className="text-primary font-medium">{shareConversion.recentRate.toFixed(1)}%</span> de conversão
+                  </p>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </MainLayout>
   );
