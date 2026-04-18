@@ -39,6 +39,11 @@ import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
+import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPreview';
+import { KitPersonalizationPreview } from '@/components/kit-builder/KitPersonalizationPreview';
+import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
+import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
+import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
@@ -47,6 +52,7 @@ export default function KitBuilderPage() {
   const kitIdParam = searchParams.get('kit');
   const productIdParam = searchParams.get('product');
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
+  const [occasion, setOccasion] = useState<Occasion | null>(null);
   const hasLoadedRef = useRef(false);
   const hasLoadedProductRef = useRef(false);
   
@@ -189,6 +195,13 @@ export default function KitBuilderPage() {
                   <Button variant="outline" size="icon" aria-label="Duplicar kit" onClick={handleDuplicateKit} disabled={!kitState.box && kitState.items.length === 0}><Copy className="h-4 w-4" /></Button>
                 </TooltipTrigger><TooltipContent>Duplicar como novo kit</TooltipContent></Tooltip>
               </TooltipProvider>
+              <KitAIPromptDialog
+                onApply={(s) => {
+                  setKitType(s.kit_type);
+                  setBoxFilters({ ...boxFilters, search: s.box_keywords[0] ?? '' });
+                  goToStep('box');
+                }}
+              />
               <Button variant="outline" onClick={handleResetKit}><RotateCcw className="h-4 w-4 mr-2" />Novo Kit</Button>
             </div>
           </div>
@@ -218,6 +231,24 @@ export default function KitBuilderPage() {
                 {wizardState.currentStep === 'box' && (
                   <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
                     <div><h2 className="text-xl font-semibold font-display">1. Selecione a Embalagem</h2><p className="text-muted-foreground">Escolha a caixa ou embalagem que será a base do seu kit</p></div>
+                    <KitOccasionSelector
+                      value={occasion}
+                      onChange={(o) => {
+                        setOccasion(o);
+                        if (o) {
+                          const meta = OCCASIONS.find((x) => x.id === o);
+                          if (meta) {
+                            setKitType(meta.suggestedKitType);
+                            setBoxFilters({ ...boxFilters, search: meta.boxKeywords[0] ?? '' });
+                            toast.success(`Modo "${meta.label}" ativado`, {
+                              description: 'Filtros e sugestões ajustados para esta ocasião.',
+                            });
+                          }
+                        } else {
+                          setBoxFilters({ ...boxFilters, search: '' });
+                        }
+                      }}
+                    />
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Tipo de Kit</Label>
                       <RadioGroup value={kitState.kitType} onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')} className="flex gap-4">
@@ -280,6 +311,11 @@ export default function KitBuilderPage() {
           {(() => {
             const sidebarContent = (
               <>
+                {kitState.box && <KitIsometricPreview kitState={kitState} />}
+                {(kitState.personalization.box?.enabled || Object.values(kitState.personalization.items).some(p => p?.enabled)) && (
+                  <KitPersonalizationPreview kitState={kitState} />
+                )}
+                {kitState.totalPrice > 0 && <KitHealthCard kitState={kitState} kitQuantity={kitQuantity} />}
                 {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
 
                 {kitState.box && kitState.box.maxWeight && (
