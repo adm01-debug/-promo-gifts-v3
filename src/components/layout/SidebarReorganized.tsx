@@ -89,6 +89,7 @@ const navGroups: NavGroup[] = [
     icon: Brain,
     defaultOpen: false,
     items: [
+      { icon: Activity, label: "Tendências", href: "/tendencias" },
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
       { icon: Sparkles, label: "Business Analytic", href: "/ferramentas/bi" },
     ],
@@ -111,15 +112,6 @@ const navGroups: NavGroup[] = [
     items: [
       { icon: Plus, label: "Novo Orçamento", href: "/orcamentos/novo", isCta: true, shortcut: "Alt+N" },
       { icon: FileText, label: "Orçamentos", href: "/orcamentos", tourId: "quotes", exact: true, shortcut: "Alt+O" },
-    ],
-  },
-  {
-    id: "analytics",
-    label: "Análises",
-    icon: BarChart3,
-    defaultOpen: false,
-    items: [
-      { icon: Activity, label: "Tendências", href: "/tendencias" },
     ],
   },
   {
