@@ -1,85 +1,124 @@
 /**
- * Kit Builder Wizard Steps
- * Indicador de progresso do wizard
+ * Kit Builder Wizard Steps — Premium edition
+ * Continuous progress bar + active glow + mini-summaries per step.
  */
 
 import { Check, Package, Gift, Palette, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { KitBuilderStep } from '@/lib/kit-builder';
+import type { KitBuilderStep, KitState } from '@/lib/kit-builder';
 
 interface WizardStepsProps {
   currentStep: KitBuilderStep;
   completedSteps: KitBuilderStep[];
   onStepClick?: (step: KitBuilderStep) => void;
+  kitState?: KitState;
 }
 
-const STEPS: { id: KitBuilderStep; label: string; icon: typeof Package }[] = [
-  { id: 'box', label: 'Caixa', icon: Package },
-  { id: 'items', label: 'Itens', icon: Gift },
-  { id: 'personalization', label: 'Personalização', icon: Palette },
-  { id: 'summary', label: 'Resumo', icon: FileText },
+const STEPS: { id: KitBuilderStep; label: string; ordinal: string; icon: typeof Package; tagline: string }[] = [
+  { id: 'box', label: 'Caixa', ordinal: '01', icon: Package, tagline: 'A primeira impressão' },
+  { id: 'items', label: 'Itens', ordinal: '02', icon: Gift, tagline: 'O coração do kit' },
+  { id: 'personalization', label: 'Personalização', ordinal: '03', icon: Palette, tagline: 'Sua marca presente' },
+  { id: 'summary', label: 'Resumo', ordinal: '04', icon: FileText, tagline: 'Pronto para encantar' },
 ];
 
-export function WizardSteps({ currentStep, completedSteps, onStepClick }: WizardStepsProps) {
+export function WizardSteps({ currentStep, completedSteps, onStepClick, kitState }: WizardStepsProps) {
+  const currentIndex = STEPS.findIndex(s => s.id === currentStep);
+  const progressPercent = ((currentIndex + (completedSteps.includes(currentStep) ? 1 : 0.5)) / STEPS.length) * 100;
+
+  const getStepSummary = (stepId: KitBuilderStep): string | null => {
+    if (!kitState) return null;
+    if (stepId === 'box' && kitState.box) return kitState.box.name;
+    if (stepId === 'items' && kitState.items.length > 0) {
+      const totalQty = kitState.items.reduce((s, i) => s + i.quantity, 0);
+      return `${kitState.items.length} produtos · ${totalQty} un.`;
+    }
+    if (stepId === 'personalization') {
+      const count = (kitState.personalization.box?.enabled ? 1 : 0)
+        + Object.values(kitState.personalization.items).filter(p => p?.enabled).length;
+      if (count > 0) return `${count} ${count === 1 ? 'item' : 'itens'} personalizados`;
+    }
+    return null;
+  };
+
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between">
+    <div className="w-full space-y-4">
+      {/* Continuous progress bar */}
+      <div className="relative h-1 w-full overflow-hidden rounded-full bg-muted/60">
+        <div
+          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-primary via-primary to-primary/70 transition-all duration-700 ease-out"
+          style={{ width: `${progressPercent}%`, boxShadow: '0 0 12px hsl(var(--primary) / 0.5)' }}
+        />
+      </div>
+
+      <div className="flex items-start justify-between gap-2">
         {STEPS.map((step, index) => {
           const isActive = step.id === currentStep;
           const isCompleted = completedSteps.includes(step.id);
-          const isPast = STEPS.findIndex(s => s.id === currentStep) > index;
+          const isClickable = isCompleted || isActive;
           const Icon = step.icon;
+          const summary = getStepSummary(step.id);
 
           return (
-            <div key={step.id} className="flex items-center flex-1">
-              {/* Step Circle */}
+            <div key={step.id} className="flex items-start flex-1 min-w-0">
               <button
-                onClick={() => onStepClick?.(step.id)}
-                disabled={!isCompleted && !isActive}
+                onClick={() => isClickable && onStepClick?.(step.id)}
+                disabled={!isClickable}
+                aria-current={isActive ? 'step' : undefined}
                 className={cn(
-                  "flex flex-col items-center gap-2 transition-all",
-                  (isCompleted || isActive) && "cursor-pointer",
-                  !isCompleted && !isActive && "cursor-not-allowed opacity-50"
+                  'group flex flex-col items-center gap-2 flex-1 min-w-0 px-1 transition-all',
+                  isClickable ? 'cursor-pointer' : 'cursor-not-allowed opacity-60',
                 )}
               >
                 <div
                   className={cn(
-                    "w-12 h-12 rounded-full flex items-center justify-center border-2 transition-all",
-                    isActive && "bg-primary border-primary text-primary-foreground scale-110 shadow-lg",
-                    isCompleted && !isActive && "bg-primary/20 border-primary text-primary",
-                    !isActive && !isCompleted && "bg-muted border-border text-muted-foreground"
+                    'relative flex h-12 w-12 items-center justify-center rounded-2xl border-2 transition-all duration-300',
+                    isActive && 'border-primary bg-primary text-primary-foreground scale-110 shadow-[0_0_24px_hsl(var(--primary)/0.45)]',
+                    isCompleted && !isActive && 'border-success/50 bg-success/10 text-success',
+                    !isActive && !isCompleted && 'border-border bg-muted/40 text-muted-foreground group-hover:border-border/80',
                   )}
                 >
                   {isCompleted && !isActive ? (
-                    <Check className="h-5 w-5" />
+                    <Check className="h-5 w-5" strokeWidth={2.5} />
                   ) : (
                     <Icon className="h-5 w-5" />
                   )}
+                  {/* Ordinal badge */}
+                  <span
+                    className={cn(
+                      'absolute -top-1.5 -right-1.5 text-[9px] font-display font-bold tabular-nums px-1.5 py-0.5 rounded-md',
+                      isActive ? 'bg-foreground text-background' : 'bg-card text-muted-foreground border border-border/60',
+                    )}
+                  >
+                    {step.ordinal}
+                  </span>
                 </div>
-                <span
-                  className={cn(
-                    "text-sm font-medium transition-colors",
-                    isActive && "text-primary",
-                    isCompleted && !isActive && "text-foreground",
-                    !isActive && !isCompleted && "text-muted-foreground"
+
+                <div className="text-center min-w-0 w-full">
+                  <p
+                    className={cn(
+                      'text-sm font-display font-semibold tracking-tight truncate transition-colors',
+                      isActive && 'text-foreground',
+                      isCompleted && !isActive && 'text-foreground/80',
+                      !isActive && !isCompleted && 'text-muted-foreground',
+                    )}
+                  >
+                    {step.label}
+                  </p>
+                  {summary ? (
+                    <p className="text-[10px] text-success font-medium truncate mt-0.5" title={summary}>
+                      ✓ {summary}
+                    </p>
+                  ) : (
+                    <p className="text-[10px] text-muted-foreground/70 truncate mt-0.5 hidden sm:block">
+                      {step.tagline}
+                    </p>
                   )}
-                >
-                  {step.label}
-                </span>
+                </div>
               </button>
 
-              {/* Connector Line */}
+              {/* Connector */}
               {index < STEPS.length - 1 && (
-                <div className="flex-1 h-0.5 mx-4">
-                  <div
-                    className={cn(
-                      "h-full transition-colors",
-                      isPast || isCompleted
-                        ? "bg-primary"
-                        : "bg-border"
-                    )}
-                  />
-                </div>
+                <div className="hidden sm:block flex-shrink-0 mt-6 w-8 h-px bg-border/60" aria-hidden />
               )}
             </div>
           );
