@@ -156,6 +156,7 @@ export default function KitBuilderPage() {
 
   return (
     <MainLayout>
+      <KitOnboardingTour />
       <div className="bg-background">
       <PageSEO title="Kit Maker" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
       
