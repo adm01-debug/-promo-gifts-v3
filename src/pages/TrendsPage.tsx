@@ -408,10 +408,10 @@ export default function TrendsPage() {
             </Button>
           </div>
           <TabsContent value="products" className="space-y-4">
-            <ProductsTabContent topProducts={topProducts} isLoading={loadingProducts} />
+            <ProductsTabContent topProducts={displayProducts} isLoading={displayLoadingProducts} />
           </TabsContent>
           <TabsContent value="searches" className="space-y-4">
-            <SearchesTabContent topSearches={topSearches} isLoading={loadingSearches} />
+            <SearchesTabContent topSearches={displaySearches} isLoading={displayLoadingSearches} />
           </TabsContent>
         </Tabs>
       </div>
