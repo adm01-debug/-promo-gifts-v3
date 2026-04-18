@@ -11,14 +11,10 @@ import { ProductRankingSearch } from "@/components/intelligence/ProductRankingSe
 import { CategoryRanking } from "@/components/intelligence/CategoryRanking";
 import { SupplierSales } from "@/components/intelligence/SupplierSales";
 import { Brain, Clock } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
 import { useDebouncedFilters } from "@/hooks/useDebouncedFilters";
 
 export default function CommercialIntelligencePage() {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
-  const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
+  const [lastRefresh] = useState<Date>(new Date());
   const [rawFilters, setRawFilters] = useState<IntelligenceFilters>({
     days: 30,
     categoryId: null,
@@ -32,12 +28,6 @@ export default function CommercialIntelligencePage() {
   // Debounce 300ms — evita refetch em cascata ao trocar filtros rapidamente
   const filters = useDebouncedFilters(rawFilters, 300);
   const setFilters = setRawFilters;
-
-  const handleGlobalRefresh = async () => {
-    await queryClient.invalidateQueries();
-    setLastRefresh(new Date());
-    toast({ title: "Dados atualizados", description: "Todos os painéis foram recarregados." });
-  };
 
   const formatRelative = (d: Date) => {
     const diff = Math.round((Date.now() - d.getTime()) / 1000);
