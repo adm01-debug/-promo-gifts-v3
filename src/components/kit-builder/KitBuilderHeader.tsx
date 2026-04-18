@@ -4,7 +4,7 @@
  * Tier 2: Primary actions (Save, New) + grouped secondary in dropdown
  */
 import {
-  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Copy, MoreHorizontal, Check,
+  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, MoreHorizontal, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,13 +33,12 @@ interface KitBuilderHeaderProps {
   onUndo: () => void;
   onRedo: () => void;
   onReset: () => void;
-  onDuplicate: () => void;
   onAIApply: (s: { kit_type: 'montado' | 'original' | 'simples'; box_keywords: string[] }) => void;
 }
 
 export function KitBuilderHeader({
   kitName, onKitNameChange, isValid, isSaving, isAutoSaving, lastSavedAt, hasContent, isExistingKit,
-  canUndo, canRedo, onSave, onUndo, onRedo, onReset, onDuplicate, onAIApply,
+  canUndo, canRedo, onSave, onUndo, onRedo, onReset, onAIApply,
 }: KitBuilderHeaderProps) {
   // Morphing save icon: idle → saving → saved
   const SaveIcon = isSaving ? Loader2 : (lastSavedAt && !isAutoSaving) ? Check : Save;
@@ -128,10 +127,6 @@ export function KitBuilderHeader({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Ações rápidas</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onDuplicate} disabled={!hasContent}>
-                  <Copy className="h-4 w-4 mr-2" /> Duplicar kit
-                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
                   <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
