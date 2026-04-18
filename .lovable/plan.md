@@ -1,18 +1,26 @@
 
-# Plano: Reordenar grupos do Sidebar
+A última solicitação ("Reordenar Sidebar") foi entregue. Não há lista pendente explícita. Proponho a próxima onda autônoma focada em fechar gaps reais do módulo de Orçamentos (rota atual `/orcamentos`) e elevar pontos onde ainda há fricção operacional.
 
-## Mudança
-Em `src/components/layout/SidebarReorganized.tsx`, mover **Carrinhos** (1º) e **Orçamentos** (2º) para o topo do array `navGroups`, mantendo o restante na sequência atual.
+# Plano: Orçamentos — Onda Eficiência & Clareza (8 itens)
 
-## Nova ordem
-1. **Carrinhos**
-2. **Orçamentos**
-3. Catálogo
-4. Ferramentas
-5. Insights
-6. Admin
+## Onda A — Lista de Orçamentos (`/orcamentos`)
+1. **Filtros rápidos por status** — chips horizontais (Todos, Rascunho, Enviado, Aprovado, Recusado, Expirado) com contador, sticky abaixo do header.
+2. **Busca instantânea + ordenação** — input com debounce 250ms (cliente, número, vendedor) + dropdown de ordenação (Mais recentes, Maior valor, Vencendo).
+3. **KPIs no topo** — 4 cards compactos (Total no mês, Aprovados, Pipeline aberto, Taxa conversão) com sparkline mini.
 
-## Arquivo modificado
-- `src/components/layout/SidebarReorganized.tsx` (apenas reordenação dos blocos do array `navGroups` linhas 54-116)
+## Onda B — Card/linha do orçamento
+4. **Indicador "Visualizado pelo cliente"** — badge verde quando `quote_share_tokens.viewed_at` existe; mostra data no tooltip.
+5. **Ações rápidas inline** — Duplicar, Compartilhar link, Enviar WhatsApp, Marcar como ganho — sem abrir o orçamento.
 
-Sem mudanças de comportamento, props, rotas ou estilos — apenas a ordem dos grupos.
+## Onda C — Operacional
+6. **Bulk actions** — checkbox por linha + barra flutuante (Exportar CSV, Mudar status, Atribuir vendedor).
+7. **Empty state contextual** — quando filtro retorna 0, mostra CTA "Limpar filtros" + sugestão "Criar novo orçamento".
+
+## Onda D — Hardening
+8. **Skeleton + loading compacto** (mesmo padrão do StockDashboard recém-refinado) + atualizar `mem://features/quote-system-master-spec` com novos filtros/KPIs.
+
+## Arquivos esperados
+- **Modificados**: `src/pages/QuotesListPage.tsx` (ou equivalente), `src/components/quotes/QuoteListItem.tsx`, `src/hooks/useQuotes.ts`.
+- **Novos**: `src/components/quotes/QuotesFilters.tsx`, `src/components/quotes/QuotesKpis.tsx`, `src/components/quotes/QuoteBulkBar.tsx`.
+
+Sem migrações novas (usa `quote_share_tokens.viewed_at` já existente). Após aprovação executo os 8 itens sequencialmente até o build TS limpo final.
