@@ -81,6 +81,14 @@ const navGroups: NavGroup[] = [
       { icon: Calculator, label: "Simulador", href: "/simulador", shortcut: "Alt+S" },
       { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
+    ],
+  },
+  {
+    id: "intelligence",
+    label: "Inteligência",
+    icon: Brain,
+    defaultOpen: false,
+    items: [
       { icon: Brain, label: "Inteligência de Mercado", href: "/inteligencia-comercial" },
       { icon: Sparkles, label: "Business Analytic", href: "/ferramentas/bi" },
     ],
