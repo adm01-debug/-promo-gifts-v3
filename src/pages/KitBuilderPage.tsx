@@ -1,18 +1,19 @@
 /**
- * Kit Builder Page
- * Página principal do montador de kits (refatorado)
+ * Kit Builder Page — Premium 10/10 design
+ * - 2-tier sticky header
+ * - Continuous progress wizard
+ * - Sticky sidebar with hero pricing
+ * - Subtle noise BG + motion transitions
  */
 
 import { useState, useEffect, useRef, lazy, Suspense } from 'react';
-import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, Cloud, Copy, Trophy } from 'lucide-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
-import { BackButton } from '@/components/common/BackButton';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { formatCurrency } from '@/lib/kit-builder';
+import { formatCurrency, calculateTotalKitPrice } from '@/lib/kit-builder';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useKitBuilder } from '@/hooks/useKitBuilder';
@@ -22,7 +23,7 @@ import { useKitUndoRedo } from '@/hooks/useKitUndoRedo';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeExternalDb } from '@/lib/external-db';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   WizardSteps, BoxSelector, ItemSelector, VolumeIndicator,
   PersonalizationConfig, KitSummary,
@@ -42,13 +43,15 @@ import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
 import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
 import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
-import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 import { KitVariantsManager } from '@/components/kit-builder/KitVariantsManager';
 import { KitCollaborationPanel } from '@/components/kit-builder/KitCollaborationPanel';
 import { KitStockForecastCard } from '@/components/kit-builder/KitStockForecastCard';
 import { KitOnboardingTour } from '@/components/kit-builder/KitOnboardingTour';
+import { KitBuilderHeader } from '@/components/kit-builder/KitBuilderHeader';
+import { KitHeroPricingCard } from '@/components/kit-builder/KitHeroPricingCard';
+import { KitShortcutsDialog } from '@/components/kit-builder/KitShortcutsDialog';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
-// Lazy load previews pesados
 const KitIsometricPreview = lazy(() => import('@/components/kit-builder/KitIsometricPreview').then(m => ({ default: m.KitIsometricPreview })));
 const KitPersonalizationPreview = lazy(() => import('@/components/kit-builder/KitPersonalizationPreview').then(m => ({ default: m.KitPersonalizationPreview })));
 
@@ -62,7 +65,7 @@ export default function KitBuilderPage() {
   const [occasion, setOccasion] = useState<Occasion | null>(null);
   const hasLoadedRef = useRef(false);
   const hasLoadedProductRef = useRef(false);
-  
+
   const {
     kitState, setKitType, wizardState, kitQuantity, availableBoxes, availableItems,
     isLoadingBoxes, isLoadingItems, boxFilters, setBoxFilters, itemFilters, setItemFilters,
@@ -89,7 +92,6 @@ export default function KitBuilderPage() {
     });
   }, [kitState.box?.id, kitState.items.length, kitState.name, kitQuantity]);
 
-  // Load saved kit
   useEffect(() => {
     if (!kitIdParam || hasLoadedRef.current) return;
     hasLoadedRef.current = true;
@@ -103,7 +105,6 @@ export default function KitBuilderPage() {
     })();
   }, [kitIdParam, loadKit]);
 
-  // Load product from URL
   useEffect(() => {
     if (!productIdParam || hasLoadedProductRef.current || kitIdParam) return;
     hasLoadedProductRef.current = true;
@@ -140,7 +141,6 @@ export default function KitBuilderPage() {
     toast.success('Kit duplicado — salve para criar uma nova versão');
   };
 
-  // Wizard keyboard shortcuts (← → 1-4)
   useKitWizardShortcuts({
     canProceed: wizardState.canProceed,
     currentStep: wizardState.currentStep,
@@ -153,252 +153,306 @@ export default function KitBuilderPage() {
   const itemsWeight = kitState.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
   const weightExceeded = kitState.box?.maxWeight ? itemsWeight > kitState.box.maxWeight : false;
   const weightPercent = kitState.box?.maxWeight ? (itemsWeight / kitState.box.maxWeight) * 100 : 0;
+  const hasContent = !!kitState.box || kitState.items.length > 0;
+  const isExistingKit = !!(currentKitId || autoSavedKitId);
+  const pricing = calculateTotalKitPrice(kitState.box, kitState.items, kitState.personalization, kitQuantity);
 
   return (
     <MainLayout>
       <KitOnboardingTour />
-      <div className="bg-background">
-      <PageSEO title="Kit Maker" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
-      
-      {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container py-6">
-          <BackButton fallbackPath="/meus-kits" className="mb-3" />
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                <Package className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold font-display">Kit Maker</h1>
-                <div className="flex items-center gap-2 text-muted-foreground text-sm">
-                  <span>Monte kits personalizados com validação automática</span>
-                  {lastSavedAt && (
-                    <Badge variant="outline" className="text-[10px] gap-1">
-                      <Cloud className="h-3 w-3 text-success" />
-                      Salvo {lastSavedAt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
-                    </Badge>
-                  )}
-                  {isAutoSaving && (
-                    <Badge variant="outline" className="text-[10px] gap-1">
-                      <Loader2 className="h-3 w-3 animate-spin" />Salvando...
-                    </Badge>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <TooltipProvider>
-                <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Desfazer" disabled={!canUndo} onClick={() => undo()}><Undo2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Desfazer (Ctrl+Z)</TooltipContent></Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip><TooltipTrigger asChild><Button variant="ghost" size="icon" aria-label="Refazer" disabled={!canRedo} onClick={() => redo()}><Redo2 className="h-4 w-4" /></Button></TooltipTrigger><TooltipContent>Refazer (Ctrl+Y)</TooltipContent></Tooltip>
-              </TooltipProvider>
-              <Button variant="default" onClick={handleSaveKit} disabled={isSaving || (!kitState.box && kitState.items.length === 0)}>
-                {isSaving ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Save className="h-4 w-4 mr-2" />}
-                {currentKitId || autoSavedKitId ? 'Atualizar' : 'Salvar'} Kit
-              </Button>
-              <TooltipProvider>
-                <Tooltip><TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" aria-label="Duplicar kit" onClick={handleDuplicateKit} disabled={!kitState.box && kitState.items.length === 0}><Copy className="h-4 w-4" /></Button>
-                </TooltipTrigger><TooltipContent>Duplicar como novo kit</TooltipContent></Tooltip>
-              </TooltipProvider>
-              <KitAIPromptDialog
-                onApply={(s) => {
-                  setKitType(s.kit_type);
-                  setBoxFilters({ ...boxFilters, search: s.box_keywords[0] ?? '' });
-                  goToStep('box');
-                }}
-              />
-              <TooltipProvider>
-                <Tooltip><TooltipTrigger asChild>
-                  <Button variant="outline" size="icon" asChild aria-label="Kits campeões">
-                    <Link to="/montar-kit/analytics"><Trophy className="h-4 w-4" /></Link>
-                  </Button>
-                </TooltipTrigger><TooltipContent>Meus kits campeões</TooltipContent></Tooltip>
-              </TooltipProvider>
-              <Button variant="outline" onClick={handleResetKit}><RotateCcw className="h-4 w-4 mr-2" />Novo Kit</Button>
-            </div>
+      <KitShortcutsDialog />
+
+      {/* Subtle noise + gradient background — distinguishes from catalog */}
+      <div
+        className="min-h-screen relative"
+        style={{
+          background: `
+            radial-gradient(ellipse 80% 50% at 50% -20%, hsl(var(--primary) / 0.08), transparent),
+            radial-gradient(ellipse 60% 40% at 100% 100%, hsl(var(--primary) / 0.04), transparent),
+            hsl(var(--background))
+          `,
+        }}
+      >
+        <PageSEO title="Kit Maker" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
+
+        <KitBuilderHeader
+          kitName={kitState.name}
+          onKitNameChange={setKitName}
+          isValid={kitState.isValid}
+          isSaving={isSaving}
+          isAutoSaving={isAutoSaving}
+          lastSavedAt={lastSavedAt}
+          hasContent={hasContent}
+          isExistingKit={isExistingKit}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onSave={handleSaveKit}
+          onUndo={() => undo()}
+          onRedo={() => redo()}
+          onReset={handleResetKit}
+          onDuplicate={handleDuplicateKit}
+          onAIApply={(s) => {
+            setKitType(s.kit_type);
+            setBoxFilters({ ...boxFilters, search: s.box_keywords[0] ?? '' });
+            goToStep('box');
+          }}
+        />
+
+        {/* Wizard */}
+        <div className="border-b bg-card/40 backdrop-blur-sm">
+          <div className="container py-4">
+            <WizardSteps
+              currentStep={wizardState.currentStep}
+              completedSteps={wizardState.completedSteps}
+              onStepClick={goToStep}
+              kitState={kitState}
+            />
           </div>
         </div>
-      </div>
 
-      {/* Wizard Steps */}
-      <div className="border-b bg-card/50">
+        {/* Content */}
         <div className="container py-6">
-          <WizardSteps currentStep={wizardState.currentStep} completedSteps={wizardState.completedSteps} onStepClick={goToStep} />
-        </div>
-      </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              <Card className="rounded-2xl border-border/60 shadow-sm overflow-hidden">
+                <CardContent className="p-6">
+                  <div key={wizardState.currentStep} className="animate-fade-in">
+                    {wizardState.currentStep === 'box' && !kitState.box && kitState.items.length === 0 && (
+                      <KitTemplates visible onSelectTemplate={(template: KitTemplate) => {
+                        setKitType(template.kitType); setKitName(template.name);
+                        toast.success(`Template "${template.name}" aplicado!`, { description: `Tipo: ${template.kitType}. Agora selecione a caixa.` });
+                      }} />
+                    )}
 
-      {/* Content */}
-      <div className="container py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <Card>
-              <CardContent className="p-6">
-                {wizardState.currentStep === 'box' && !kitState.box && kitState.items.length === 0 && (
-                  <KitTemplates visible onSelectTemplate={(template: KitTemplate) => {
-                    setKitType(template.kitType); setKitName(template.name);
-                    toast.success(`Template "${template.name}" aplicado!`, { description: `Tipo: ${template.kitType}. Agora selecione a caixa.` });
-                  }} />
-                )}
+                    {wizardState.currentStep === 'box' && (
+                      <div className="w-full max-w-[1920px] mx-auto px-1 sm:px-2 py-2 space-y-4 pb-24 md:pb-6">
+                        <div>
+                          <h2 className="text-3xl font-display font-bold tracking-tight">
+                            <span className="text-primary/40 tabular-nums mr-2">01</span>
+                            Selecione a Embalagem
+                          </h2>
+                          <p className="text-muted-foreground mt-1">Toda boa entrega começa pela embalagem certa</p>
+                        </div>
+                        <KitOccasionSelector
+                          value={occasion}
+                          onChange={(o) => {
+                            setOccasion(o);
+                            if (o) {
+                              const meta = OCCASIONS.find((x) => x.id === o);
+                              if (meta) {
+                                setKitType(meta.suggestedKitType);
+                                setBoxFilters({ ...boxFilters, search: meta.boxKeywords[0] ?? '' });
+                                toast.success(`Modo "${meta.label}" ativado`, {
+                                  description: 'Filtros e sugestões ajustados para esta ocasião.',
+                                });
+                              }
+                            } else {
+                              setBoxFilters({ ...boxFilters, search: '' });
+                            }
+                          }}
+                        />
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Tipo de Kit</Label>
+                          <RadioGroup value={kitState.kitType} onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')} className="flex gap-4">
+                            {[{ value: 'montado', label: 'Montado', desc: 'Kit montado dentro da caixa, itens arrumados e prontos para presentear.' },
+                              { value: 'original', label: 'Original', desc: 'Kit com embalagem original do fornecedor, sem remontagem.' },
+                              { value: 'simples', label: 'Simples', desc: 'Agrupamento de itens sem embalagem especial — apenas os produtos.' }
+                            ].map(opt => (
+                              <TooltipProvider key={opt.value}><Tooltip><TooltipTrigger asChild>
+                                <div className="flex items-center space-x-2"><RadioGroupItem value={opt.value} id={`kit-${opt.value}`} /><Label htmlFor={`kit-${opt.value}`} className="cursor-pointer text-sm">{opt.label}</Label></div>
+                              </TooltipTrigger><TooltipContent><p className="text-xs max-w-[200px]">{opt.desc}</p></TooltipContent></Tooltip></TooltipProvider>
+                            ))}
+                          </RadioGroup>
+                        </div>
+                        <BoxSelector boxes={availableBoxes} selectedBox={kitState.box} isLoading={isLoadingBoxes} filters={boxFilters} onFiltersChange={setBoxFilters} onSelect={selectBox} onClear={clearBox} />
+                      </div>
+                    )}
 
-                {wizardState.currentStep === 'box' && (
-                  <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-                    <div><h2 className="text-xl font-semibold font-display">1. Selecione a Embalagem</h2><p className="text-muted-foreground">Escolha a caixa ou embalagem que será a base do seu kit</p></div>
-                    <KitOccasionSelector
-                      value={occasion}
-                      onChange={(o) => {
-                        setOccasion(o);
-                        if (o) {
-                          const meta = OCCASIONS.find((x) => x.id === o);
-                          if (meta) {
-                            setKitType(meta.suggestedKitType);
-                            setBoxFilters({ ...boxFilters, search: meta.boxKeywords[0] ?? '' });
-                            toast.success(`Modo "${meta.label}" ativado`, {
-                              description: 'Filtros e sugestões ajustados para esta ocasião.',
-                            });
-                          }
-                        } else {
-                          setBoxFilters({ ...boxFilters, search: '' });
-                        }
-                      }}
-                    />
-                    <div className="space-y-2">
-                      <Label className="text-sm font-medium">Tipo de Kit</Label>
-                      <RadioGroup value={kitState.kitType} onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')} className="flex gap-4">
-                        {[{ value: 'montado', label: 'Montado', desc: 'Kit montado dentro da caixa, itens arrumados e prontos para presentear.' },
-                          { value: 'original', label: 'Original', desc: 'Kit com embalagem original do fornecedor, sem remontagem.' },
-                          { value: 'simples', label: 'Simples', desc: 'Agrupamento de itens sem embalagem especial — apenas os produtos.' }
-                        ].map(opt => (
-                          <TooltipProvider key={opt.value}><Tooltip><TooltipTrigger asChild>
-                            <div className="flex items-center space-x-2"><RadioGroupItem value={opt.value} id={`kit-${opt.value}`} /><Label htmlFor={`kit-${opt.value}`} className="cursor-pointer text-sm">{opt.label}</Label></div>
-                          </TooltipTrigger><TooltipContent><p className="text-xs max-w-[200px]">{opt.desc}</p></TooltipContent></Tooltip></TooltipProvider>
-                        ))}
-                      </RadioGroup>
-                    </div>
-                    <BoxSelector boxes={availableBoxes} selectedBox={kitState.box} isLoading={isLoadingBoxes} filters={boxFilters} onFiltersChange={setBoxFilters} onSelect={selectBox} onClear={clearBox} />
-                  </div>
-                )}
+                    {wizardState.currentStep === 'items' && (
+                      <div className="w-full max-w-[1920px] mx-auto px-1 sm:px-2 py-2 space-y-4 pb-24 md:pb-6">
+                        <div>
+                          <h2 className="text-3xl font-display font-bold tracking-tight">
+                            <span className="text-primary/40 tabular-nums mr-2">02</span>
+                            Adicione os Itens
+                          </h2>
+                          <p className="text-muted-foreground mt-1">O coração do kit — escolha produtos memoráveis</p>
+                        </div>
+                        <ItemSelector items={availableItems} selectedItems={kitState.items} isLoading={isLoadingItems}
+                          filters={itemFilters} onFiltersChange={setItemFilters} onAddItem={addItem} onRemoveItem={removeItem}
+                          onUpdateQuantity={updateItemQuantity} onUpdateVariant={(itemId, data) => updateItemVariant(itemId, data)}
+                          onReorder={reorderItems} boxSelected={kitState.box !== null} />
+                        {kitState.items.length > 0 && (
+                          <KitSmartSuggestions selectedItems={kitState.items}
+                            onAddItem={(item) => { const kitItem = availableItems.find(i => i.id === item.id); if (kitItem) addItem(kitItem); }} />
+                        )}
+                      </div>
+                    )}
 
-                {wizardState.currentStep === 'items' && (
-                  <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-                    <h2 className="text-xl font-semibold font-display">2. Adicione os Itens</h2>
-                    <p className="text-muted-foreground">Selecione os produtos que farão parte do kit</p>
-                    <ItemSelector items={availableItems} selectedItems={kitState.items} isLoading={isLoadingItems}
-                      filters={itemFilters} onFiltersChange={setItemFilters} onAddItem={addItem} onRemoveItem={removeItem}
-                      onUpdateQuantity={updateItemQuantity} onUpdateVariant={(itemId, data) => updateItemVariant(itemId, data)}
-                      onReorder={reorderItems} boxSelected={kitState.box !== null} />
-                    {kitState.items.length > 0 && (
-                      <KitSmartSuggestions selectedItems={kitState.items}
-                        onAddItem={(item) => { const kitItem = availableItems.find(i => i.id === item.id); if (kitItem) addItem(kitItem); }} />
+                    {wizardState.currentStep === 'personalization' && (
+                      <div className="space-y-4">
+                        <div>
+                          <h2 className="text-3xl font-display font-bold tracking-tight">
+                            <span className="text-primary/40 tabular-nums mr-2">03</span>
+                            Personalização
+                          </h2>
+                          <p className="text-muted-foreground mt-1">Sua marca presente em cada detalhe</p>
+                        </div>
+                        <PersonalizationConfig box={kitState.box} items={kitState.items} kitQuantity={kitQuantity}
+                          boxPersonalization={kitState.personalization.box} itemPersonalizations={kitState.personalization.items}
+                          onBoxPersonalizationChange={setBoxPersonalization} onItemPersonalizationChange={setItemPersonalization} />
+                      </div>
+                    )}
+
+                    {wizardState.currentStep === 'summary' && (
+                      <div className="space-y-4">
+                        <div>
+                          <h2 className="text-3xl font-display font-bold tracking-tight">
+                            <span className="text-primary/40 tabular-nums mr-2">04</span>
+                            Resumo
+                          </h2>
+                          <p className="text-muted-foreground mt-1">Pronto para encantar seu cliente</p>
+                        </div>
+                        <KitSummary kitState={kitState} kitQuantity={kitQuantity} kitName={kitState.name}
+                          onKitNameChange={setKitName} onKitQuantityChange={setKitQuantity}
+                          onAddToQuote={() => handleAddToQuote(kitState, kitQuantity)}
+                          onExportPDF={handleExportPDF} isAddingToQuote={isCreatingQuote}
+                          currentKitId={currentKitId || autoSavedKitId || undefined} />
+                      </div>
                     )}
                   </div>
-                )}
+                </CardContent>
+              </Card>
 
-                {wizardState.currentStep === 'personalization' && (
-                  <PersonalizationConfig box={kitState.box} items={kitState.items} kitQuantity={kitQuantity}
-                    boxPersonalization={kitState.personalization.box} itemPersonalizations={kitState.personalization.items}
-                    onBoxPersonalizationChange={setBoxPersonalization} onItemPersonalizationChange={setItemPersonalization} />
+              <div className="flex justify-between mt-6">
+                <Button variant="outline" onClick={prevStep} disabled={wizardState.currentStep === 'box'}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />Voltar
+                </Button>
+                {wizardState.currentStep !== 'summary' && (
+                  <Button onClick={nextStep} disabled={!wizardState.canProceed} size="lg" className="shadow-lg shadow-primary/20">
+                    Próximo<ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
                 )}
-
-                {wizardState.currentStep === 'summary' && (
-                  <KitSummary kitState={kitState} kitQuantity={kitQuantity} kitName={kitState.name}
-                    onKitNameChange={setKitName} onKitQuantityChange={setKitQuantity}
-                    onAddToQuote={() => handleAddToQuote(kitState, kitQuantity)}
-                    onExportPDF={handleExportPDF} isAddingToQuote={isCreatingQuote}
-                    currentKitId={currentKitId || autoSavedKitId || undefined} />
-                )}
-              </CardContent>
-            </Card>
-
-            <div className="flex justify-between mt-6">
-              <Button variant="outline" onClick={prevStep} disabled={wizardState.currentStep === 'box'}>
-                <ArrowLeft className="h-4 w-4 mr-2" />Voltar
-              </Button>
-              {wizardState.currentStep !== 'summary' && (
-                <Button onClick={nextStep} disabled={!wizardState.canProceed}>Próximo<ArrowRight className="h-4 w-4 ml-2" /></Button>
-              )}
+              </div>
             </div>
-          </div>
 
-          {/* Sidebar (desktop) + same content reused inside mobile bottom-sheet */}
-          {(() => {
-            const sidebarContent = (
-              <>
-                {kitState.box && (
-                  <Suspense fallback={<Skeleton className="h-48 w-full" />}>
-                    <KitIsometricPreview kitState={kitState} />
-                  </Suspense>
-                )}
-                {(kitState.personalization.box?.enabled || Object.values(kitState.personalization.items).some(p => p?.enabled)) && (
-                  <Suspense fallback={<Skeleton className="h-32 w-full" />}>
-                    <KitPersonalizationPreview kitState={kitState} />
-                  </Suspense>
-                )}
-                {kitState.totalPrice > 0 && <KitHealthCard kitState={kitState} kitQuantity={kitQuantity} />}
-                {kitState.items.length > 0 && (
-                  <KitStockForecastCard items={kitState.items} kitQuantity={kitQuantity} />
-                )}
-                <KitVariantsManager
-                  kitMasterId={currentKitId || autoSavedKitId || undefined}
-                  currentState={kitState}
-                  currentQuantity={kitQuantity}
-                />
-                <KitCollaborationPanel kitId={currentKitId || autoSavedKitId || undefined} />
-                {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
+            {/* Sticky premium sidebar */}
+            {(() => {
+              const sidebarContent = (
+                <>
+                  {/* Hero pricing — always visible at top */}
+                  <KitHeroPricingCard
+                    unitPrice={pricing.unitPrice}
+                    total={pricing.total}
+                    kitQuantity={kitQuantity}
+                    isValid={kitState.isValid}
+                    hasContent={hasContent}
+                  />
 
-                {kitState.box && kitState.box.maxWeight && (
-                  <Card className={cn(weightExceeded && "border-destructive")}>
-                    <CardContent className="p-4 space-y-2">
-                      <h3 className="font-display font-semibold text-sm flex items-center justify-between">
-                        <span>⚖️ Peso</span>
-                        <span className={cn("text-xs", weightExceeded ? "text-destructive" : "text-muted-foreground")}>
-                          {(itemsWeight / 1000).toFixed(1)}kg / {(kitState.box.maxWeight / 1000).toFixed(1)}kg
-                        </span>
-                      </h3>
-                      <div className="w-full bg-secondary rounded-full h-2">
-                        <div className={cn("h-2 rounded-full transition-all", weightExceeded ? "bg-destructive" : weightPercent > 80 ? "bg-warning" : "bg-primary")}
-                          style={{ width: `${Math.min(weightPercent, 100)}%` }} />
-                      </div>
-                      {weightExceeded && <p className="text-xs text-destructive font-medium">⚠ Peso excede o limite da caixa em {((itemsWeight - kitState.box.maxWeight) / 1000).toFixed(1)}kg</p>}
-                    </CardContent>
-                  </Card>
-                )}
+                  {kitState.box && (
+                    <Suspense fallback={<Skeleton className="h-48 w-full rounded-xl" />}>
+                      <KitIsometricPreview kitState={kitState} />
+                    </Suspense>
+                  )}
 
-                <Card>
-                  <CardContent className="p-4 space-y-3">
-                    <h3 className="font-display font-semibold">Prévia de Preços</h3>
-                    <div className="space-y-2 text-sm">
-                      <div className="flex justify-between"><span className="text-muted-foreground">Caixa</span><span>{formatCurrency(kitState.boxPrice)}</span></div>
-                      <div className="flex justify-between"><span className="text-muted-foreground">Itens</span><span>{formatCurrency(kitState.itemsPrice)}</span></div>
-                      {kitState.personalizationPrice > 0 && <div className="flex justify-between text-primary"><span>Personalização</span><span>{formatCurrency(kitState.personalizationPrice)}</span></div>}
-                      <div className="border-t pt-2 flex justify-between font-semibold"><span>Total/kit</span><span className="text-primary">{formatCurrency(kitState.totalPrice)}</span></div>
-                      {kitState.totalWeight > 0 && <div className="flex justify-between text-xs text-muted-foreground pt-1"><span>Peso estimado</span><span>{kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(2)} kg` : `${kitState.totalWeight} g`}</span></div>}
+                  {(kitState.personalization.box?.enabled || Object.values(kitState.personalization.items).some(p => p?.enabled)) && (
+                    <Suspense fallback={<Skeleton className="h-32 w-full rounded-xl" />}>
+                      <KitPersonalizationPreview kitState={kitState} />
+                    </Suspense>
+                  )}
+
+                  {kitState.totalPrice > 0 && <KitHealthCard kitState={kitState} kitQuantity={kitQuantity} />}
+
+                  {/* Collapsible details */}
+                  {hasContent && (
+                    <Card className="rounded-xl border-border/40">
+                      <Accordion type="multiple" defaultValue={['breakdown']} className="w-full">
+                        <AccordionItem value="breakdown" className="border-b-0">
+                          <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                            <span className="font-display font-semibold text-sm">Composição de preço</span>
+                          </AccordionTrigger>
+                          <AccordionContent className="px-4 pb-4">
+                            <div className="space-y-2 text-sm">
+                              <div className="flex justify-between"><span className="text-muted-foreground">Caixa</span><span className="tabular-nums">{formatCurrency(kitState.boxPrice)}</span></div>
+                              <div className="flex justify-between"><span className="text-muted-foreground">Itens</span><span className="tabular-nums">{formatCurrency(kitState.itemsPrice)}</span></div>
+                              {kitState.personalizationPrice > 0 && <div className="flex justify-between text-primary"><span>Personalização</span><span className="tabular-nums">{formatCurrency(kitState.personalizationPrice)}</span></div>}
+                              <div className="border-t border-border/40 pt-2 flex justify-between font-semibold"><span>Total/kit</span><span className="text-primary tabular-nums">{formatCurrency(kitState.totalPrice)}</span></div>
+                              {kitState.totalWeight > 0 && <div className="flex justify-between text-xs text-muted-foreground pt-1"><span>Peso estimado</span><span className="tabular-nums">{kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(2)} kg` : `${kitState.totalWeight} g`}</span></div>}
+                            </div>
+                          </AccordionContent>
+                        </AccordionItem>
+
+                        {kitState.box && (
+                          <AccordionItem value="capacity" className="border-b-0 border-t border-border/30">
+                            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                              <span className="font-display font-semibold text-sm">Capacidade</span>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-4 pb-4 space-y-3">
+                              <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />
+                              {kitState.box.maxWeight && (
+                                <div className={cn('rounded-lg p-3 space-y-2', weightExceeded ? 'bg-destructive/5 border border-destructive/30' : 'bg-muted/30')}>
+                                  <div className="flex items-center justify-between text-xs">
+                                    <span className="font-medium">Peso</span>
+                                    <span className={cn('tabular-nums', weightExceeded ? 'text-destructive font-semibold' : 'text-muted-foreground')}>
+                                      {(itemsWeight / 1000).toFixed(1)}kg / {(kitState.box.maxWeight / 1000).toFixed(1)}kg
+                                    </span>
+                                  </div>
+                                  <div className="w-full bg-secondary rounded-full h-1.5 overflow-hidden">
+                                    <div
+                                      className={cn('h-full rounded-full transition-all duration-500', weightExceeded ? 'bg-destructive' : weightPercent > 80 ? 'bg-warning' : 'bg-success')}
+                                      style={{ width: `${Math.min(weightPercent, 100)}%` }}
+                                    />
+                                  </div>
+                                  {weightExceeded && <p className="text-[11px] text-destructive font-medium">⚠ Excede em {((itemsWeight - kitState.box.maxWeight) / 1000).toFixed(1)}kg</p>}
+                                </div>
+                              )}
+                            </AccordionContent>
+                          </AccordionItem>
+                        )}
+
+                        {kitState.totalWeight > 0 && (
+                          <AccordionItem value="freight" className="border-b-0 border-t border-border/30">
+                            <AccordionTrigger className="px-4 py-3 hover:no-underline">
+                              <span className="font-display font-semibold text-sm">Estimativa de frete</span>
+                            </AccordionTrigger>
+                            <AccordionContent className="px-4 pb-4">
+                              <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
+                            </AccordionContent>
+                          </AccordionItem>
+                        )}
+                      </Accordion>
+                    </Card>
+                  )}
+
+                  {kitState.items.length > 0 && (
+                    <KitStockForecastCard items={kitState.items} kitQuantity={kitQuantity} />
+                  )}
+
+                  <KitVariantsManager
+                    kitMasterId={currentKitId || autoSavedKitId || undefined}
+                    currentState={kitState}
+                    currentQuantity={kitQuantity}
+                  />
+
+                  <KitCollaborationPanel kitId={currentKitId || autoSavedKitId || undefined} />
+                </>
+              );
+
+              return (
+                <>
+                  <aside className="hidden lg:block">
+                    <div className="sticky top-[180px] space-y-3 max-h-[calc(100vh-200px)] overflow-y-auto pr-2 -mr-2 scrollbar-thin">
+                      {sidebarContent}
                     </div>
-                  </CardContent>
-                </Card>
-
-                {kitState.totalWeight > 0 && (
-                  <div className="scale-[0.92] origin-top">
-                    <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
-                  </div>
-                )}
-              </>
-            );
-
-            return (
-              <>
-                <div className="hidden lg:block space-y-4">{sidebarContent}</div>
-                <KitMobileSummaryBar kitState={kitState} kitQuantity={kitQuantity}>
-                  {sidebarContent}
-                </KitMobileSummaryBar>
-              </>
-            );
-          })()}
+                  </aside>
+                  <KitMobileSummaryBar kitState={kitState} kitQuantity={kitQuantity}>
+                    {sidebarContent}
+                  </KitMobileSummaryBar>
+                </>
+              );
+            })()}
+          </div>
         </div>
-      </div>
-      <div className="h-20 lg:hidden" aria-hidden />
+        <div className="h-20 lg:hidden" aria-hidden />
       </div>
     </MainLayout>
   );
