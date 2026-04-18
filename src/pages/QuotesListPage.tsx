@@ -300,6 +300,7 @@ export default function QuotesListPage() {
                   </div>
                 </div>
               </CardContent>
+            </Card>
           </div>
 
           {/* Funil de vendas */}
