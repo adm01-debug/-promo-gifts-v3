@@ -31,6 +31,15 @@ export function HotSearchesCard({ days }: HotSearchesCardProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["hot-searches", days],
     queryFn: async (): Promise<HotSearchItem[]> => {
+      const { isDemoMode, MOCK_HOT_SEARCHES } = await import("@/pages/trends/trends-mock");
+      if (isDemoMode()) {
+        return MOCK_HOT_SEARCHES.map(s => ({
+          term: s.term,
+          searchCount: s.count,
+          previousCount: Math.max(1, Math.round(s.count / (1 + s.growth / 100))),
+          delta: s.growth,
+        }));
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data: rows, error } = await (supabase.from as any)("search_analytics")
         .select("search_term, created_at, results_count")

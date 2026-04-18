@@ -29,6 +29,12 @@ export function TrendsInsightsCard({ days }: TrendsInsightsCardProps) {
   const { data, isLoading, isError, refetch, isFetching } = useQuery({
     queryKey: ["trends-insights", days, version],
     queryFn: async (): Promise<InsightResponse | null> => {
+      const { isDemoMode, MOCK_INSIGHTS } = await import("@/pages/trends/trends-mock");
+      if (isDemoMode()) {
+        // Simula latência leve para sensação real
+        await new Promise(r => setTimeout(r, 400));
+        return MOCK_INSIGHTS;
+      }
       const { data, error } = await supabase.functions.invoke("trends-insights", {
         body: { days },
       });

@@ -44,6 +44,18 @@ export function TopCategoriesCard({ days }: TopCategoriesCardProps) {
   const { data, isLoading } = useQuery({
     queryKey: ["trends-top-categories", days],
     queryFn: async (): Promise<CategoryRow[]> => {
+      const { isDemoMode, MOCK_TOP_CATEGORIES } = await import("@/pages/trends/trends-mock");
+      if (isDemoMode()) {
+        return MOCK_TOP_CATEGORIES.map((c, idx) => ({
+          category: c.category,
+          views: c.views,
+          recentViews: Math.round(c.views * 0.42),
+          baselineViews: Math.round(c.views * 0.58),
+          trendingScore: 2 + (MOCK_TOP_CATEGORIES.length - idx) * 0.3,
+          classification: idx < 3 ? 'rising' : idx === MOCK_TOP_CATEGORIES.length - 1 ? 'new' : 'stable',
+          growthPercent: [142, 98, 67, 32, 18, 0][idx] ?? 0,
+        }));
+      }
       const { data, error } = await untypedFrom("product_views")
         .select("product_name, created_at")
         .gte("created_at", sinceCurrent);

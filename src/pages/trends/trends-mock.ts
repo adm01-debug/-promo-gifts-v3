@@ -91,7 +91,83 @@ export function buildMockDaily(days: number) {
   return { current, previous };
 }
 
+/**
+ * Demo ligado por padrão (avaliação de viabilidade do módulo).
+ * Para desligar: acessar /tendencias?demo=0
+ */
 export function isDemoMode(): boolean {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get("demo") === "1";
+  if (typeof window === "undefined") return true;
+  return new URLSearchParams(window.location.search).get("demo") !== "0";
+}
+
+// =====================================================
+// Mocks adicionais para os demais cards do módulo
+// =====================================================
+
+export const MOCK_FUNNEL = {
+  views: 12_847,
+  details: 4_812,
+  quotes: 1_284,
+  orders: 487,
+  viewToDetail: 37.5,
+  detailToQuote: 26.7,
+  quoteToOrder: 37.9,
+  overall: 3.8,
+};
+
+export const MOCK_UNMET_DEMAND = [
+  { term: "ecobag algodão cru", count: 87, avgResults: 2 },
+  { term: "kit home office premium", count: 64, avgResults: 4 },
+  { term: "squeeze bambu", count: 52, avgResults: 1 },
+  { term: "caderno couro sintético", count: 41, avgResults: 3 },
+  { term: "mochila antifurto", count: 38, avgResults: 2 },
+  { term: "garrafa térmica colorida", count: 33, avgResults: 4 },
+];
+
+export const MOCK_HOT_SEARCHES = [
+  { term: "squeeze personalizada", count: 287, growth: 142 },
+  { term: "kit escritório", count: 176, growth: 98 },
+  { term: "mochila notebook", count: 198, growth: 67 },
+  { term: "caneca brinde", count: 241, growth: 45 },
+  { term: "ecobag personalizada", count: 128, growth: 38 },
+  { term: "power bank", count: 142, growth: 22 },
+];
+
+export const MOCK_TOP_CATEGORIES = [
+  { category: "Bebidas & Squeezes", views: 3_241, share: 25.2 },
+  { category: "Escritório & Papelaria", views: 2_687, share: 20.9 },
+  { category: "Mochilas & Bolsas", views: 2_104, share: 16.4 },
+  { category: "Tecnologia", views: 1_842, share: 14.3 },
+  { category: "Vestuário", views: 1_512, share: 11.8 },
+  { category: "Sustentáveis", views: 1_461, share: 11.4 },
+];
+
+export const MOCK_INSIGHTS = {
+  summary:
+    "O período registrou crescimento de 33% em visualizações com destaque para itens sustentáveis e kits de escritório. A conversão orçamento→pedido subiu para 37,9%.",
+  what_changed:
+    "Squeezes térmicas e blocos de notas eco lideram o ranking de crescimento (+240% e +197%). Buscas por 'ecobag algodão cru' (87) ficaram quase sem resultado (média 2 produtos).",
+  why:
+    "Sazonalidade de campanhas de fim de ano + tendência ESG dos clientes corporativos. Falta de cadastro adequado em itens sustentáveis cria gap.",
+  next_action:
+    "Cadastrar variações de ecobag de algodão cru e revisar atributos de produtos sustentáveis. Acionar fornecedores de kits home office para pré-venda.",
+};
+
+// Heatmap 7×24 mockado com pico em horário comercial
+export function buildMockHeatmap() {
+  const matrix: number[][] = Array.from({ length: 7 }, (_, day) =>
+    Array.from({ length: 24 }, (_, hour) => {
+      // Fim de semana mais fraco
+      const dayWeight = day === 0 || day === 6 ? 0.25 : 1;
+      // Pico 9-12 e 14-18
+      let hourWeight = 0.05;
+      if (hour >= 9 && hour <= 12) hourWeight = 0.9 + Math.random() * 0.1;
+      else if (hour >= 14 && hour <= 18) hourWeight = 0.7 + Math.random() * 0.3;
+      else if (hour >= 19 && hour <= 22) hourWeight = 0.3;
+      else if (hour >= 7 && hour < 9) hourWeight = 0.4;
+      return Math.round(120 * dayWeight * hourWeight + Math.random() * 8);
+    }),
+  );
+  const max = Math.max(...matrix.flat(), 1);
+  return { matrix, max };
 }
