@@ -1,40 +1,34 @@
 
-O usuário pediu para executar autonomamente todas as melhorias até atingir 10/10 no módulo de Inteligência de Mercado. Vou estruturar um roadmap focado e executável em ondas, com foco em qualidade percebida (UX, performance, observabilidade, robustez do Insights de IA recém-criado).
+Estou em modo plan (read-only). Ondas 1-2 já concluídas (8/16). Preciso apresentar plano para Ondas 3-5 (8 melhorias restantes) para o usuário aprovar e eu executar em modo default.
 
-## Roadmap de Excelência — Inteligência de Mercado (rumo a 10/10)
-
-### Onda 1 — Robustez do Insights de IA (acabamos de criar)
-1. **Persistência de cache server-side** — salvar último insight gerado em tabela `ai_insights_cache` (chave = hash dos filtros + dia) para evitar re-cobrança do gateway em refresh
-2. **Estado vazio inteligente** — quando volume insuficiente, mostrar mensagem explicativa em vez de erro
-3. **Botão "Copiar insight"** + "Exportar como nota" para compartilhar com a equipe
-
-### Onda 2 — UX do Dashboard
-4. **Skeleton unificado** dos KPI Cards (eliminar layout shift ao trocar filtros)
-5. **Filtros sticky** no scroll (barra fica fixa no topo ao rolar)
-6. **Indicador de "última atualização"** com botão refresh global da página
-7. **Empty states ilustrados** para Top Produtos / Categorias / Fornecedores quando não há dados no filtro
+## Roadmap final — Ondas 3 a 5 (8 melhorias restantes)
 
 ### Onda 3 — Performance
-8. **Debounce de 300ms** nos filtros para evitar refetch em cascata ao trocar rapidamente
-9. **Prefetch** dos dados ao abrir a rota via `routePrefetch`
-10. **Virtualização** das listas longas (CategoryRanking, SupplierSales) quando > 50 itens
+**9. Debounce de 300ms nos filtros** — `IntelligenceFilterBar.tsx`: aplicar `useDebouncedCallback` no `onFiltersChange` para evitar refetch em cascata ao trocar categoria/fornecedor/produto rapidamente.
 
-### Onda 4 — Observabilidade & Qualidade
-11. **Logging estruturado** na edge `market-intelligence-insights` (latência, tokens, fallback usado)
-12. **Telemetria de uso**: tracking de quantas vezes Insights é regenerado por usuário (tabela `ai_usage_events`)
-13. **Quota check** integrada ao `monitoramento-consumo-e-quotas` (bloquear se exceder limite por papel)
+**10. Virtualização de listas longas** — `CategoryRanking.tsx` e `SupplierSales.tsx`: usar `@tanstack/react-virtual` quando lista > 50 itens (padrão já adotado no projeto conforme `mem://architecture/performance-virtualization-standards`).
+
+### Onda 4 — Observabilidade & Telemetria
+**11. Telemetria de regenerações no card de Insights** — `MarketIntelligenceInsightsCard.tsx`: ao clicar "Regenerar", inserir evento em `ai_usage_events` (`event_type: 'manual_regenerate'`, metadata = filtros ativos). Tabela já existe.
+
+**12. Painel admin "Uso de IA — Inteligência de Mercado"** — adicionar seção em `/admin/monitoramento-ia` (ou rota equivalente) consumindo `ai_usage_events` filtrado por `function_name = 'market-intelligence-insights'`: total regenerações por dia, top usuários, % cache hit vs miss. Componente novo `MarketIntelInsightsUsagePanel.tsx`.
+
+**13. Job de limpeza de cache expirado** — pg_cron diário que apaga `ai_insights_cache WHERE expires_at < now()` (mantém tabela enxuta).
 
 ### Onda 5 — Polimento Final
-14. **Tooltip explicativo** em cada KPI (o que significa, como é calculado)
-15. **Animação fade-in escalonada** nos cards (motion delay 50ms)
-16. **Documentação** atualizada em `docs/FUNCIONALIDADES_E_FERRAMENTAS.md` descrevendo o módulo completo
+**14. Empty states ilustrados** — `TrendingProducts`, `CategoryRanking`, `SupplierSales`: quando filtro retorna 0 resultados, mostrar ilustração SVG inline + CTA "Limpar filtros" em vez de lista vazia silenciosa.
+
+**15. Tooltip explicativo no botão "Regenerar"** do card de Insights — informar que custo de IA será consumido e que cache vale 6h, evitando regenerações acidentais.
+
+**16. Documentação consolidada** — atualizar `docs/FUNCIONALIDADES_E_FERRAMENTAS.md` (seção Inteligência de Mercado) descrevendo: KPIs, Insights de IA com cache, telemetria, filtros sticky, refresh global. Atualizar `mem://infrastructure/hardening-roadmap.md` marcando as 16 melhorias como concluídas.
 
 ### Execução
-- Sequencial, 1 melhoria por vez, sem pausas
-- Após cada onda, atualizar memória correspondente
-- Ao final: relatório consolidado das 16 melhorias
+- Sequencial, sem pausas, sem perguntas
+- Após cada onda: relatório curto inline
+- Ao final: resumo consolidado das 16 melhorias + screenshots mentais do que mudou
 
 ### Não tocar
-- Mocks do `/tendencias`
-- Hooks SSOT do catálogo
+- Mocks de `/tendencias`
 - `types.ts`, `client.ts`, `.env`
+- Edge functions de outros módulos
+- Hooks SSOT do catálogo
