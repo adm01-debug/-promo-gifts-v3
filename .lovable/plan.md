@@ -1,62 +1,40 @@
 
-## Insights da IA no módulo Inteligência de Mercado
+O usuário pediu para executar autonomamente todas as melhorias até atingir 10/10 no módulo de Inteligência de Mercado. Vou estruturar um roadmap focado e executável em ondas, com foco em qualidade percebida (UX, performance, observabilidade, robustez do Insights de IA recém-criado).
 
-Adicionar um card "Insights da IA" no topo do `/inteligencia-comercial`, abaixo dos KPIs, gerando narrativa acionável (resumo + o que mudou + por quê + próxima ação) com base nas mesmas métricas exibidas na página, respeitando os filtros ativos (período, categoria, fornecedor, produto).
+## Roadmap de Excelência — Inteligência de Mercado (rumo a 10/10)
 
-### Backend — nova edge function `market-intelligence-insights`
-Arquivo: `supabase/functions/market-intelligence-insights/index.ts`
+### Onda 1 — Robustez do Insights de IA (acabamos de criar)
+1. **Persistência de cache server-side** — salvar último insight gerado em tabela `ai_insights_cache` (chave = hash dos filtros + dia) para evitar re-cobrança do gateway em refresh
+2. **Estado vazio inteligente** — quando volume insuficiente, mostrar mensagem explicativa em vez de erro
+3. **Botão "Copiar insight"** + "Exportar como nota" para compartilhar com a equipe
 
-- Auth JWT obrigatório (padrão do projeto)
-- Body: `{ days, categoryId?, supplierId?, productId?, categoryName?, supplierName?, productName? }`
-- Agrega dados reais de:
-  - **Vendas internas** (período atual vs. anterior): `quote_items` + `order_items` filtrados → faturamento, pedidos, orçamentos, conversão, ticket médio
-  - **Top produtos vendidos** (5)
-  - **Top fornecedores** (5) com share %
-  - **Top categorias** (5)
-  - **Mercado** (via `mv_product_intelligence` quando disponível): velocidade média 7d/30d, ABC mix, depleted_30d
-- Monta `summary` JSON e chama Lovable AI Gateway com `google/gemini-2.5-flash` + tool calling estruturado:
-  - `summary` (1 frase)
-  - `what_changed` (números específicos)
-  - `why` (hipótese)
-  - `next_action` (ação concreta)
-  - `highlights` (array curto de 2-3 bullets opcionais)
-- Tratamento de 429/402 + fallback determinístico se AI falhar ou volume insuficiente
-- Inline CORS (padrão do projeto)
-- `verify_jwt = true` (default — não precisa entrada no config.toml)
+### Onda 2 — UX do Dashboard
+4. **Skeleton unificado** dos KPI Cards (eliminar layout shift ao trocar filtros)
+5. **Filtros sticky** no scroll (barra fica fixa no topo ao rolar)
+6. **Indicador de "última atualização"** com botão refresh global da página
+7. **Empty states ilustrados** para Top Produtos / Categorias / Fornecedores quando não há dados no filtro
 
-### Frontend — novo componente `MarketIntelligenceInsightsCard`
-Arquivo: `src/components/intelligence/MarketIntelligenceInsightsCard.tsx`
+### Onda 3 — Performance
+8. **Debounce de 300ms** nos filtros para evitar refetch em cascata ao trocar rapidamente
+9. **Prefetch** dos dados ao abrir a rota via `routePrefetch`
+10. **Virtualização** das listas longas (CategoryRanking, SupplierSales) quando > 50 itens
 
-- Mesma estética do `TrendsInsightsCard` (gradient violet, ícone Sparkles, botão refresh)
-- Props: `{ days, categoryId, supplierId, productId, categoryName, supplierName, productName }`
-- `useQuery` com chave incluindo todos os filtros — recarrega ao trocar filtro
-- Exibe: resumo em destaque + 3-4 InsightRows (O que mudou / Por quê / Próxima ação / Destaques opcionais)
-- Skeleton de loading + estado de erro amigável
-- Toasts para 429/402
-- `staleTime: 5 min`, `retry: false`
-- Badge contextual mostrando filtros ativos (ex: "Categoria: Canecas · Fornecedor: ABC")
+### Onda 4 — Observabilidade & Qualidade
+11. **Logging estruturado** na edge `market-intelligence-insights` (latência, tokens, fallback usado)
+12. **Telemetria de uso**: tracking de quantas vezes Insights é regenerado por usuário (tabela `ai_usage_events`)
+13. **Quota check** integrada ao `monitoramento-consumo-e-quotas` (bloquear se exceder limite por papel)
 
-### Integração na página
-Arquivo: `src/pages/CommercialIntelligencePage.tsx`
+### Onda 5 — Polimento Final
+14. **Tooltip explicativo** em cada KPI (o que significa, como é calculado)
+15. **Animação fade-in escalonada** nos cards (motion delay 50ms)
+16. **Documentação** atualizada em `docs/FUNCIONALIDADES_E_FERRAMENTAS.md` descrevendo o módulo completo
 
-Inserir o card logo após `<IntelligenceKPICards>` e antes de `<MarketIntelligenceChart>`:
-
-```tsx
-<MarketIntelligenceInsightsCard
-  days={filters.days}
-  categoryId={filters.categoryId}
-  supplierId={filters.supplierId}
-  productId={filters.productId}
-  categoryName={filters.categoryName}
-  supplierName={filters.supplierName}
-  productName={filters.productName}
-/>
-```
-
-### Documentação
-- Atualizar `mem://features/ai/monitoramento-consumo-e-quotas` adicionando `market-intelligence-insights` aos componentes/edge functions de IA monitorados
+### Execução
+- Sequencial, 1 melhoria por vez, sem pausas
+- Após cada onda, atualizar memória correspondente
+- Ao final: relatório consolidado das 16 melhorias
 
 ### Não tocar
-- `trends-insights` (continua exclusivo do `/tendencias`)
-- Hooks de dados existentes (`useSalesHistoryMacro`, `useSupplierSalesRanking`, etc.) — a edge function consulta direto o banco para evitar dependência client-side
-- Mocks do módulo Tendências
+- Mocks do `/tendencias`
+- Hooks SSOT do catálogo
+- `types.ts`, `client.ts`, `.env`
