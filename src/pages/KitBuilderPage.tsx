@@ -40,6 +40,7 @@ import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
 import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPreview';
+import { KitPersonalizationPreview } from '@/components/kit-builder/KitPersonalizationPreview';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
