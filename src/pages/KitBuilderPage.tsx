@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useRef } from 'react';
-import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, Cloud } from 'lucide-react';
+import { Package, ArrowLeft, ArrowRight, RotateCcw, Save, Loader2, Undo2, Redo2, Cloud, Copy } from 'lucide-react';
 import { downloadKitPDF } from '@/utils/kitPdfGenerator';
 import { BackButton } from '@/components/common/BackButton';
 import { Button } from '@/components/ui/button';
@@ -37,6 +37,8 @@ import { PageSEO } from "@/components/seo/PageSEO";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
+import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
+import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
