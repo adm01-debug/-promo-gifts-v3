@@ -223,6 +223,24 @@ export default function KitBuilderPage() {
                 {wizardState.currentStep === 'box' && (
                   <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
                     <div><h2 className="text-xl font-semibold font-display">1. Selecione a Embalagem</h2><p className="text-muted-foreground">Escolha a caixa ou embalagem que será a base do seu kit</p></div>
+                    <KitOccasionSelector
+                      value={occasion}
+                      onChange={(o) => {
+                        setOccasion(o);
+                        if (o) {
+                          const meta = OCCASIONS.find((x) => x.id === o);
+                          if (meta) {
+                            setKitType(meta.suggestedKitType);
+                            setBoxFilters({ ...boxFilters, search: meta.boxKeywords[0] ?? '' });
+                            toast.success(`Modo "${meta.label}" ativado`, {
+                              description: 'Filtros e sugestões ajustados para esta ocasião.',
+                            });
+                          }
+                        } else {
+                          setBoxFilters({ ...boxFilters, search: '' });
+                        }
+                      }}
+                    />
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Tipo de Kit</Label>
                       <RadioGroup value={kitState.kitType} onValueChange={(v) => setKitType(v as 'montado' | 'original' | 'simples')} className="flex gap-4">
