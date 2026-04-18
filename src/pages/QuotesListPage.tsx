@@ -412,6 +412,17 @@ export default function QuotesListPage() {
                   });
                 }}
                 onDuplicate={(id) => duplicateQuote(id)}
+                onMarkApproved={async (id) => {
+                  const ok = await updateQuoteStatus(id, "approved");
+                  if (ok) {
+                    confetti({
+                      particleCount: 80,
+                      spread: 60,
+                      origin: { y: 0.7 },
+                      colors: ["hsl(25,100%,50%)", "hsl(142,71%,45%)", "hsl(217,91%,60%)"],
+                    });
+                  }
+                }}
               />
             )}
           </ScrollArea>
