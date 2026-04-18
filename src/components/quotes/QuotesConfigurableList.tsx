@@ -360,7 +360,7 @@ export function QuotesConfigurableList({
         {paginatedQuotes.map((quote) => (
           <div
             key={quote.id}
-            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
+            className={`group grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
               isSelected(quote.id!) || allPagesSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
             }`}
             style={{ gridTemplateColumns: gridTemplate }}
@@ -372,7 +372,6 @@ export function QuotesConfigurableList({
                 onCheckedChange={() => {
                   if (allPagesSelected) {
                     setAllPagesSelected(false);
-                    // select all on page except this one
                     toggleAll();
                     toggleItem(quote.id!);
                   } else {
@@ -382,31 +381,46 @@ export function QuotesConfigurableList({
               />
             </div>
             {visibleColumns.map((col) => (
-              <div key={col.id} className={col.align === "right" ? "text-right" : ""}>
-                {renderCell(quote, col.id)}
+              <div key={col.id} className={`min-w-0 ${col.align === "right" ? "text-right" : ""}`}>
+                {col.id === "client" ? (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">{renderCell(quote, col.id)}</div>
+                    <QuoteViewedBadge info={viewedMap[quote.id!]} />
+                  </div>
+                ) : (
+                  renderCell(quote, col.id)
+                )}
               </div>
             ))}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Mais opções"><MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                  <Eye className="h-4 w-4 mr-2" /> Visualizar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                  <Edit className="h-4 w-4 mr-2" /> Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDuplicate(quote.id!)}>
-                  <Copy className="h-4 w-4 mr-2" /> Duplicar
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive" onClick={() => onDelete(quote.id!)}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center justify-end gap-0.5">
+              <QuoteRowQuickActions
+                quote={quote}
+                onDuplicate={onDuplicate}
+                onMarkApproved={(id) => onMarkApproved?.(id)}
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Mais opções">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                    <Eye className="h-4 w-4 mr-2" /> Visualizar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                    <Edit className="h-4 w-4 mr-2" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDuplicate(quote.id!)}>
+                    <Copy className="h-4 w-4 mr-2" /> Duplicar
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive" onClick={() => onDelete(quote.id!)}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         ))}
       </div>
