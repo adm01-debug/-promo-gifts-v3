@@ -1,11 +1,13 @@
 /**
  * Kit Builder Header — 2-tier premium layout
- * Tier 1: Identity (name + status badges)
- * Tier 2: Primary actions (Save, New) + grouped secondary in dropdown
+ * Tier 1: Identity (name + status badges) — stripe + colored icon refletem identidade
+ * Tier 2: Primary actions (Save, New, Library)
  */
 import {
-  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Check,
+  Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Check, Library,
 } from 'lucide-react';
+import * as Lucide from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -40,18 +42,37 @@ export function KitBuilderHeader({
   kitName, onKitNameChange, isValid, isSaving, isAutoSaving, lastSavedAt, hasContent, isExistingKit,
   canUndo, canRedo, identity, onIdentityChange, onSave, onUndo, onRedo, onReset, onAIApply,
 }: KitBuilderHeaderProps) {
-  // Morphing save icon: idle → saving → saved
+  const navigate = useNavigate();
   const SaveIcon = isSaving ? Loader2 : (lastSavedAt && !isAutoSaving) ? Check : Save;
+
+  const identityColor = identity?.color || '#3B82F6';
+  const identityIconName = identity?.icon || 'Package';
+  const IdentityIcon =
+    (Lucide as unknown as Record<string, React.ComponentType<{ className?: string; strokeWidth?: number }>>)[identityIconName] ||
+    Lucide.Package;
 
   return (
     <header className="border-b bg-card/80 backdrop-blur-md sticky top-0 z-30">
+      {/* Identity color stripe */}
+      <div
+        className="h-1 w-full transition-colors"
+        style={{ background: identityColor }}
+        aria-hidden
+      />
       <div className="container py-3">
         <BackButton fallbackPath="/meus-kits" className="mb-2" />
 
         {/* TIER 1 — Identity */}
         <div className="flex items-center gap-3 mb-3">
-          <div className="relative w-11 h-11 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center shrink-0 border border-primary/20">
-            <Package className="h-5 w-5 text-primary" strokeWidth={2.25} />
+          <div
+            className="relative w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 border transition-colors"
+            style={{
+              background: `${identityColor}1A`,
+              borderColor: `${identityColor}40`,
+              color: identityColor,
+            }}
+          >
+            <IdentityIcon className="h-5 w-5" strokeWidth={2.25} />
           </div>
           <div className="flex-1 min-w-0">
             <Input
@@ -64,8 +85,11 @@ export function KitBuilderHeader({
                 !kitName && 'italic text-muted-foreground',
               )}
             />
-            <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground flex-wrap">
               <span>Kit Maker</span>
+              {identity?.tag && (
+                <Badge variant="secondary" className="text-[10px] h-5">{identity.tag}</Badge>
+              )}
               {lastSavedAt && !isAutoSaving && (
                 <Badge variant="outline" className="text-[10px] gap-1 h-5 border-success/40 text-success">
                   <Cloud className="h-2.5 w-2.5" />
@@ -109,6 +133,24 @@ export function KitBuilderHeader({
             </TooltipProvider>
 
             <KitIdentityPicker identity={identity} onChange={onIdentityChange} />
+
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/meus-kits')}
+                    className="gap-2"
+                    aria-label="Abrir biblioteca de kits"
+                  >
+                    <Library className="h-4 w-4" />
+                    <span className="hidden md:inline">Biblioteca</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Abrir biblioteca de kits</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
 
             <Button
               variant={isValid && hasContent ? 'default' : 'outline'}
