@@ -93,6 +93,11 @@ export default function QuotesListPage() {
     return { total, approved, pending, totalValue, approvedValue, conversionRate };
   }, [quotes]);
 
+  // ── Funil + ciclo médio ──
+  const allQuoteIds = useMemo(() => quotes.map((q) => q.id!).filter(Boolean), [quotes]);
+  const allViewedMap = useQuoteViewedMap(allQuoteIds);
+  const funnelData = useQuoteFunnel(quotes, allViewedMap);
+
   // ── Fuse.js fuzzy search ──
   const quoteFuse = useMemo(() => {
     return new Fuse(quotes, {
@@ -295,8 +300,10 @@ export default function QuotesListPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
           </div>
+
+          {/* Funil de vendas */}
+          {quotes.length > 0 && <QuotesFunnelChart data={funnelData} />}
 
           {/* Error banner */}
           {error && (

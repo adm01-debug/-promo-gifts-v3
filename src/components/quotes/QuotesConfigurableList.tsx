@@ -47,6 +47,7 @@ import { useBulkSelection } from "@/hooks/useBulkSelection";
 import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
 import { QuoteViewedBadge } from "./QuoteViewedBadge";
 import { QuoteRowQuickActions } from "./QuoteRowQuickActions";
+import { QuoteOrderBadge } from "./QuoteOrderBadge";
 import {
   DndContext,
   closestCenter,
