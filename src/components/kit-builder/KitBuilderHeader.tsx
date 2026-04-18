@@ -4,16 +4,12 @@
  * Tier 2: Primary actions (Save, New) + grouped secondary in dropdown
  */
 import {
-  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, MoreHorizontal, Check,
+  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
-  DropdownMenuSeparator, DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { BackButton } from '@/components/common/BackButton';
 import { KitAIPromptDialog } from '@/components/kit-builder/KitAIPromptDialog';
 import { cn } from '@/lib/utils';
