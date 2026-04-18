@@ -93,6 +93,40 @@ export default function KitBuilderPage() {
     });
   }, [kitState.box?.id, kitState.items.length, kitState.name, kitQuantity]);
 
+  // Item 8 — dynamic document title
+  useEffect(() => {
+    const baseTitle = 'Kit Maker · Promo Gifts';
+    document.title = kitState.name?.trim()
+      ? `${kitState.name} · Kit Maker`
+      : baseTitle;
+    return () => { document.title = baseTitle; };
+  }, [kitState.name]);
+
+  // Item 7 — celebrate first-time validation (false → true)
+  const wasValidRef = useRef(false);
+  useEffect(() => {
+    if (kitState.isValid && !wasValidRef.current && kitState.items.length > 0) {
+      wasValidRef.current = true;
+      // Subtle confetti burst from bottom-center
+      try {
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: { y: 0.85, x: 0.5 },
+          colors: ['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))'].map(() => '#f97316'),
+          scalar: 0.9,
+          ticks: 120,
+        });
+      } catch { /* noop */ }
+      toast.success('Seu kit está pronto! 🎉', {
+        description: 'Próximo passo: revisar resumo e enviar para orçamento.',
+        duration: 4000,
+      });
+    } else if (!kitState.isValid) {
+      wasValidRef.current = false;
+    }
+  }, [kitState.isValid, kitState.items.length]);
+
   useEffect(() => {
     if (!kitIdParam || hasLoadedRef.current) return;
     hasLoadedRef.current = true;
