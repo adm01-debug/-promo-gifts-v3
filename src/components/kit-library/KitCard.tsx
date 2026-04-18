@@ -2,7 +2,7 @@
  * Kit Card — Cartão visual rico para "Meus Kits" e "Sugeridos".
  */
 import * as Lucide from 'lucide-react';
-import { Star, Pencil, Copy, Trash2, Wand2, Tag as TagIcon, Layers, Pin } from 'lucide-react';
+import { Star, Pencil, Copy, Trash2, Wand2, Tag as TagIcon, Layers, Pin, Eye } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -23,6 +23,10 @@ export interface KitCardData {
   isPinned?: boolean;
   badge?: string;
   usageBadge?: string;
+  /** Cliente já abriu o link público desse kit ao menos uma vez. */
+  viewedByClient?: boolean;
+  /** Última visualização do cliente (ISO) — usado em tooltip. */
+  lastViewedAt?: string | null;
 }
 
 interface Props {
@@ -75,6 +79,26 @@ export function KitCard({
                 <Badge variant="secondary" className="text-[10px] gap-1">
                   {data.usageBadge}
                 </Badge>
+              )}
+              {data.viewedByClient && (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Badge
+                        variant="outline"
+                        className="text-[10px] gap-1 border-success/40 text-success bg-success/10"
+                      >
+                        <Eye className="h-3 w-3" />
+                        Visto
+                      </Badge>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      {data.lastViewedAt
+                        ? `Visualizado pelo cliente em ${new Date(data.lastViewedAt).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}`
+                        : 'Visualizado pelo cliente'}
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </div>
             {data.description && (

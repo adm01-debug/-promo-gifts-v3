@@ -27,6 +27,7 @@ import { KitTemplatePreviewDialog } from '@/components/kit-library/KitTemplatePr
 import { KitCategoryChips } from '@/components/kit-library/KitCategoryChips';
 import { useKitTemplates, type KitTemplateRow } from '@/hooks/useKitTemplates';
 import { useCustomKitPersistence, type CustomKitRow } from '@/hooks/useCustomKitPersistence';
+import { useKitShareSummary } from '@/hooks/useKitShare';
 import { buildCustomKitInsert } from '@/lib/kit-library/buildCustomKitInsert';
 
 function getItemsCount(items: unknown): number {
@@ -185,13 +186,20 @@ export default function KitLibraryPage() {
     [templates, q, selectedTag, selectedCategory, sort],
   );
 
-  const toCard = (k: CustomKitRow): KitCardData => ({
-    id: k.id, name: k.name, description: k.description, tag: k.tag,
-    color: k.color || '#3B82F6', icon: k.icon || 'Package',
-    totalPrice: Number(k.total_price), itemsCount: getItemsCount(k.items_data),
-    isFavorite: k.is_favorite,
-    isPinned: k.is_pinned,
-  });
+  const { data: shareSummary = {} } = useKitShareSummary();
+
+  const toCard = (k: CustomKitRow): KitCardData => {
+    const summary = shareSummary[k.id];
+    return {
+      id: k.id, name: k.name, description: k.description, tag: k.tag,
+      color: k.color || '#3B82F6', icon: k.icon || 'Package',
+      totalPrice: Number(k.total_price), itemsCount: getItemsCount(k.items_data),
+      isFavorite: k.is_favorite,
+      isPinned: k.is_pinned,
+      viewedByClient: !!(summary && summary.viewed > 0),
+      lastViewedAt: summary?.lastViewedAt ?? null,
+    };
+  };
 
   const tplToCard = (t: KitTemplateRow): KitCardData => ({
     id: t.id, name: t.name, description: t.description, tag: t.tag,

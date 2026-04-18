@@ -1,10 +1,25 @@
 import { useState, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
+export interface KitShareToken {
+  id: string;
+  kit_id: string;
+  seller_id: string;
+  token: string;
+  client_name: string | null;
+  client_email: string | null;
+  status: string;
+  expires_at: string | null;
+  viewed_at: string | null;
+  created_at: string;
+}
+
 export function useKitShare() {
   const { user } = useAuth();
+  const qc = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
 
   const generateShareLink = useCallback(async (
@@ -38,6 +53,8 @@ export function useKitShare() {
 
       const link = `${window.location.origin}/kit/${(data as Record<string, string>).token}`;
       toast.success("Link de apresentação gerado!");
+      qc.invalidateQueries({ queryKey: ["kit-share-tokens", kitId] });
+      qc.invalidateQueries({ queryKey: ["kit-share-summary"] });
       return link;
     } catch (err) {
       console.error("Error generating share link:", err);
@@ -46,9 +63,9 @@ export function useKitShare() {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, qc]);
 
-  const revokeShareLink = useCallback(async (tokenId: string): Promise<boolean> => {
+  const revokeShareLink = useCallback(async (tokenId: string, kitId?: string): Promise<boolean> => {
     try {
       const { error } = await supabase
         .from("kit_share_tokens")
@@ -57,13 +74,75 @@ export function useKitShare() {
 
       if (error) throw error;
       toast.success("Link revogado");
+      if (kitId) qc.invalidateQueries({ queryKey: ["kit-share-tokens", kitId] });
+      qc.invalidateQueries({ queryKey: ["kit-share-summary"] });
       return true;
     } catch (err) {
       console.error("Error revoking token:", err);
       toast.error("Erro ao revogar link");
       return false;
     }
-  }, []);
+  }, [qc]);
 
   return { generateShareLink, revokeShareLink, isLoading };
+}
+
+/**
+ * Lista tokens de compartilhamento de um kit específico.
+ * Usado no `KitShareLinkDialog` (aba Links).
+ */
+export function useKitShareTokens(kitId: string | undefined) {
+  return useQuery({
+    queryKey: ["kit-share-tokens", kitId],
+    enabled: !!kitId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("kit_share_tokens")
+        .select("*")
+        .eq("kit_id", kitId!)
+        .order("created_at", { ascending: false });
+      if (error) throw error;
+      return (data || []) as unknown as KitShareToken[];
+    },
+  });
+}
+
+/**
+ * Resumo agregado de share tokens do usuário autenticado.
+ * Devolve um Map<kitId, { generated, viewed, lastViewedAt }>.
+ * Usado para badges "visualizado pelo cliente" em `KitCard`.
+ */
+export interface KitShareSummary {
+  generated: number;
+  viewed: number;
+  lastViewedAt: string | null;
+}
+
+export function useKitShareSummary() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ["kit-share-summary", user?.id],
+    enabled: !!user?.id,
+    staleTime: 60_000,
+    queryFn: async (): Promise<Record<string, KitShareSummary>> => {
+      const { data, error } = await supabase
+        .from("kit_share_tokens")
+        .select("kit_id, viewed_at, status")
+        .eq("seller_id", user!.id);
+      if (error) throw error;
+      const map: Record<string, KitShareSummary> = {};
+      for (const row of (data || []) as Array<{ kit_id: string; viewed_at: string | null; status: string }>) {
+        const cur = map[row.kit_id] || { generated: 0, viewed: 0, lastViewedAt: null };
+        if (row.status === "active" || row.status === "revoked") cur.generated += 1;
+        if (row.viewed_at) {
+          cur.viewed += 1;
+          if (!cur.lastViewedAt || row.viewed_at > cur.lastViewedAt) {
+            cur.lastViewedAt = row.viewed_at;
+          }
+        }
+        map[row.kit_id] = cur;
+      }
+      return map;
+    },
+  });
 }

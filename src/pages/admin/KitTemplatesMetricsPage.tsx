@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PageSEO } from '@/components/seo/PageSEO';
 import { MainLayout } from '@/components/layout/MainLayout';
-import { TrendingUp, Package, Award } from 'lucide-react';
+import { TrendingUp, Package, Award, Share2, Eye, Percent } from 'lucide-react';
 import { formatCurrency } from '@/lib/kit-builder';
 
 interface TemplateRow {
@@ -76,6 +76,34 @@ export default function KitTemplatesMetricsPage() {
         .map(([sku, v]) => ({ sku, name: v.name, count: v.count }))
         .sort((a, b) => b.count - a.count)
         .slice(0, 20);
+    },
+  });
+
+  // Conversão de compartilhamentos: gerados vs visualizados
+  const { data: shareConversion, isLoading: loadingShare } = useQuery({
+    queryKey: ['admin-kit-share-conversion'],
+    staleTime: 5 * 60 * 1000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('kit_share_tokens')
+        .select('id, viewed_at, status, created_at')
+        .limit(5000);
+      if (error) throw error;
+      const rows = (data ?? []) as Array<{ id: string; viewed_at: string | null; status: string; created_at: string }>;
+      const generated = rows.length;
+      const active = rows.filter((r) => r.status === 'active').length;
+      const revoked = rows.filter((r) => r.status === 'revoked').length;
+      const viewed = rows.filter((r) => r.viewed_at).length;
+      const rate = generated > 0 ? (viewed / generated) * 100 : 0;
+      // Últimos 30 dias
+      const cutoff = Date.now() - 30 * 24 * 60 * 60 * 1000;
+      const recent = rows.filter((r) => new Date(r.created_at).getTime() >= cutoff);
+      const recentViewed = recent.filter((r) => r.viewed_at).length;
+      const recentRate = recent.length > 0 ? (recentViewed / recent.length) * 100 : 0;
+      return {
+        generated, active, revoked, viewed, rate,
+        recent: recent.length, recentViewed, recentRate,
+      };
     },
   });
 
@@ -222,6 +250,67 @@ export default function KitTemplatesMetricsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Conversão de compartilhamentos */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Share2 className="h-4 w-4 text-primary" />
+              Conversão de compartilhamentos
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {loadingShare ? (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[1, 2, 3, 4].map((i) => <Skeleton key={i} className="h-20" />)}
+              </div>
+            ) : !shareConversion || shareConversion.generated === 0 ? (
+              <p className="text-sm text-muted-foreground py-4">
+                Nenhum link de apresentação gerado ainda.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Gerados</p>
+                    <p className="text-2xl font-display font-semibold tabular-nums">{shareConversion.generated}</p>
+                  </div>
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <Eye className="h-3 w-3" /> Visualizados
+                    </p>
+                    <p className="text-2xl font-display font-semibold tabular-nums">{shareConversion.viewed}</p>
+                  </div>
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                      <Percent className="h-3 w-3" /> Taxa
+                    </p>
+                    <p className="text-2xl font-display font-semibold tabular-nums text-primary">
+                      {shareConversion.rate.toFixed(1)}%
+                    </p>
+                  </div>
+                  <div className="rounded-lg border bg-card/40 p-3">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground">Ativos / Revogados</p>
+                    <p className="text-sm font-medium tabular-nums mt-1">
+                      <span className="text-success">{shareConversion.active}</span>
+                      <span className="text-muted-foreground"> / </span>
+                      <span className="text-destructive">{shareConversion.revoked}</span>
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-lg border bg-muted/30 p-3 text-sm">
+                  <p className="font-medium mb-1">Últimos 30 dias</p>
+                  <p className="text-muted-foreground text-xs">
+                    {shareConversion.recent} link{shareConversion.recent === 1 ? '' : 's'} gerado{shareConversion.recent === 1 ? '' : 's'} •{' '}
+                    {shareConversion.recentViewed} visualizado{shareConversion.recentViewed === 1 ? '' : 's'} •{' '}
+                    <span className="text-primary font-medium">{shareConversion.recentRate.toFixed(1)}%</span> de conversão
+                  </p>
+                </div>
               </div>
             )}
           </CardContent>
