@@ -26,6 +26,9 @@ export function useKitBuilderQuote() {
     try {
       const kitLabel = kitState.name || 'Kit sem nome';
       const kitGroupId = crypto.randomUUID();
+      const kitMetadataNote = kitState.identity?.tag
+        ? `[${kitState.identity.tag}] ${kitLabel}`
+        : kitLabel;
 
       const { calculateTotalKitPrice } = await import('@/lib/kit-builder');
       const { total: kitTotal } = calculateTotalKitPrice(kitState.box, kitState.items, kitState.personalization, kitQuantity);
@@ -38,10 +41,13 @@ export function useKitBuilderQuote() {
           status: 'draft',
           subtotal: kitTotal,
           total: kitTotal,
-          notes: `Kit "${kitLabel}" (${kitQuantity}x) — tipo: ${kitState.kitType}`,
-          internal_notes: kitState.box
-            ? `Caixa: ${kitState.box.name} | Volume: ${kitState.volumeUsagePercent.toFixed(0)}%`
-            : undefined,
+          notes: `Kit "${kitMetadataNote}" (${kitQuantity}x) — tipo: ${kitState.kitType}`,
+          internal_notes: [
+            kitState.box ? `Caixa: ${kitState.box.name} | Volume: ${kitState.volumeUsagePercent.toFixed(0)}%` : null,
+            kitState.identity?.color || kitState.identity?.icon || kitState.identity?.tag
+              ? `Identidade: cor=${kitState.identity?.color ?? '-'} | ícone=${kitState.identity?.icon ?? '-'} | tag=${kitState.identity?.tag ?? '-'}`
+              : null,
+          ].filter(Boolean).join('\n') || undefined,
         })
         .select('id, quote_number')
         .single();

@@ -18,6 +18,9 @@ interface ShortcutHandlers {
   onToggleCart?: () => void;
 }
 
+// "G then K" sequence buffer (vim-style chord) — opens kit library
+let lastGAt = 0;
+
 export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
   const navigate = useNavigate();
   const openOracle = useOracleVoiceBridge((s) => s.openOracle);
@@ -30,6 +33,20 @@ export function useGlobalShortcuts(handlers?: ShortcutHandlers) {
         target.tagName === "INPUT" ||
         target.tagName === "TEXTAREA" ||
         target.isContentEditable;
+
+      // G then K (within 800ms) → open kit library — no modifier, ignored in inputs
+      if (!isMod && !e.altKey && !e.shiftKey && !isInput) {
+        if (e.key === "g" || e.key === "G") {
+          lastGAt = Date.now();
+          return;
+        }
+        if ((e.key === "k" || e.key === "K") && Date.now() - lastGAt < 800) {
+          e.preventDefault();
+          lastGAt = 0;
+          navigate("/meus-kits");
+          return;
+        }
+      }
 
       if (!isMod) return;
 
