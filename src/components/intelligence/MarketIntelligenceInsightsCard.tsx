@@ -181,14 +181,6 @@ export function MarketIntelligenceInsightsCard({
                   </TooltipTrigger>
                   <TooltipContent>Copiar para área de transferência</TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={handleExport} aria-label="Exportar como nota">
-                      <Download className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Exportar como nota (.txt)</TooltipContent>
-                </Tooltip>
               </>
             )}
             <Tooltip>
