@@ -124,7 +124,8 @@ export default function KitBuilderPage() {
   const weightPercent = kitState.box?.maxWeight ? (itemsWeight / kitState.box.maxWeight) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-background">
+    <MainLayout>
+      <div className="bg-background">
       <PageSEO title="Kit Maker" description="Monte kits personalizados de brindes promocionais." path="/kit-builder" noIndex />
       
       {/* Header */}
