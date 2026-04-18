@@ -773,6 +773,98 @@ export type Database = {
         }
         Relationships: []
       }
+      kit_collaborators: {
+        Row: {
+          created_at: string
+          id: string
+          invited_by: string | null
+          invited_email: string | null
+          kit_id: string
+          permission: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_email?: string | null
+          kit_id: string
+          permission?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          invited_by?: string | null
+          invited_email?: string | null
+          kit_id?: string
+          permission?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_collaborators_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "custom_kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_comments: {
+        Row: {
+          author_id: string
+          body: string
+          created_at: string
+          id: string
+          item_anchor: string | null
+          kit_id: string
+          parent_id: string | null
+          resolved: boolean
+          updated_at: string
+        }
+        Insert: {
+          author_id: string
+          body: string
+          created_at?: string
+          id?: string
+          item_anchor?: string | null
+          kit_id: string
+          parent_id?: string | null
+          resolved?: boolean
+          updated_at?: string
+        }
+        Update: {
+          author_id?: string
+          body?: string
+          created_at?: string
+          id?: string
+          item_anchor?: string | null
+          kit_id?: string
+          parent_id?: string | null
+          resolved?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_comments_kit_id_fkey"
+            columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "custom_kits"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "kit_comments_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "kit_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       kit_share_tokens: {
         Row: {
           client_email: string | null
@@ -817,6 +909,56 @@ export type Database = {
           {
             foreignKeyName: "kit_share_tokens_kit_id_fkey"
             columns: ["kit_id"]
+            isOneToOne: false
+            referencedRelation: "custom_kits"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      kit_variants: {
+        Row: {
+          box_data: Json | null
+          created_at: string
+          id: string
+          items_data: Json
+          kit_master_id: string
+          kit_quantity: number
+          label: string
+          personalization_data: Json
+          sort_order: number
+          total_price: number
+          updated_at: string
+        }
+        Insert: {
+          box_data?: Json | null
+          created_at?: string
+          id?: string
+          items_data?: Json
+          kit_master_id: string
+          kit_quantity?: number
+          label: string
+          personalization_data?: Json
+          sort_order?: number
+          total_price?: number
+          updated_at?: string
+        }
+        Update: {
+          box_data?: Json | null
+          created_at?: string
+          id?: string
+          items_data?: Json
+          kit_master_id?: string
+          kit_quantity?: number
+          label?: string
+          personalization_data?: Json
+          sort_order?: number
+          total_price?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "kit_variants_kit_master_id_fkey"
+            columns: ["kit_master_id"]
             isOneToOne: false
             referencedRelation: "custom_kits"
             referencedColumns: ["id"]
@@ -2813,6 +2955,14 @@ export type Database = {
       }
       is_admin: { Args: never; Returns: boolean }
       is_dnd_active: { Args: never; Returns: boolean }
+      is_kit_collaborator: {
+        Args: { _kit_id: string; _user_id: string }
+        Returns: boolean
+      }
+      is_kit_owner: {
+        Args: { _kit_id: string; _user_id: string }
+        Returns: boolean
+      }
       is_manager_or_admin: { Args: never; Returns: boolean }
       is_org_member: {
         Args: { _org_id: string; _user_id: string }
