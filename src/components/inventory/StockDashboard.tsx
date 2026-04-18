@@ -148,30 +148,30 @@ export function StockDashboard() {
   if (isLoading) {
     const pct = loadingProgress ? Math.round((loadingProgress.current / loadingProgress.total) * 100) : 0;
     return (
-      <div className="space-y-6 p-6" aria-live="polite" aria-busy="true">
-        <div className="flex flex-col items-center justify-center py-16">
-          <div className="relative mb-6">
-            <div className="h-20 w-20 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <Package className="h-10 w-10 text-primary animate-pulse" />
-            </div>
-            <div className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary animate-ping" />
+      <div className="space-y-5" aria-live="polite" aria-busy="true">
+        <div className="flex items-center gap-3 rounded-xl border border-border/40 bg-card px-4 py-3">
+          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0">
+            <Package className="h-4 w-4 text-primary animate-pulse" />
           </div>
-          <p className="text-lg font-semibold mb-1">Sincronizando estoque</p>
-          <p className="text-sm text-muted-foreground mb-4">Conectando ao fornecedor e processando dados...</p>
-          {loadingProgress && (
-            <div className="flex flex-col items-center gap-2 w-full max-w-xs">
-              <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-sm font-medium truncate">Sincronizando estoque</p>
+              {loadingProgress && (
+                <p className="text-xs font-medium tabular-nums text-primary flex-shrink-0">{pct}%</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2 mt-1.5">
+              <div className="flex-1 h-1 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-gradient-to-r from-primary to-primary/60 rounded-full transition-all duration-500 ease-out"
-                  style={{ width: `${pct}%` }}
+                  style={{ width: `${pct || 8}%` }}
                 />
               </div>
-              <div className="flex items-center justify-between w-full">
-                <p className="text-xs text-muted-foreground">{loadingProgress.step}</p>
-                <p className="text-xs font-medium tabular-nums text-primary">{pct}%</p>
-              </div>
+              <p className="text-xs text-muted-foreground truncate max-w-[40%]">
+                {loadingProgress?.step || 'Conectando ao fornecedor...'}
+              </p>
             </div>
-          )}
+          </div>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5].map(i => (
