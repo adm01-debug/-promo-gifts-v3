@@ -195,6 +195,13 @@ export default function KitBuilderPage() {
                   <Button variant="outline" size="icon" aria-label="Duplicar kit" onClick={handleDuplicateKit} disabled={!kitState.box && kitState.items.length === 0}><Copy className="h-4 w-4" /></Button>
                 </TooltipTrigger><TooltipContent>Duplicar como novo kit</TooltipContent></Tooltip>
               </TooltipProvider>
+              <KitAIPromptDialog
+                onApply={(s) => {
+                  setKitType(s.kit_type);
+                  setBoxFilters({ ...boxFilters, search: s.box_keywords[0] ?? '' });
+                  goToStep('box');
+                }}
+              />
               <Button variant="outline" onClick={handleResetKit}><RotateCcw className="h-4 w-4 mr-2" />Novo Kit</Button>
             </div>
           </div>
