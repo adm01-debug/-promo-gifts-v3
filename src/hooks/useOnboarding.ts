@@ -74,14 +74,6 @@ export const ONBOARDING_STEPS: OnboardingStep[] = [
     route: "/mockup-generator",
   },
   {
-    id: "bi-dashboard",
-    title: "Dashboard de BI",
-    description: "Acompanhe métricas de vendas, metas, conversões e tendências. Visualize dados em tempo real para tomar decisões estratégicas!",
-    targetSelector: "[data-tour='bi']",
-    position: "right",
-    route: "/bi",
-  },
-  {
     id: "trends",
     title: "Análise de Tendências",
     description: "Descubra produtos em alta, categorias mais buscadas e padrões de compra. Antecipe demandas e surpreenda seus clientes!",

@@ -374,7 +374,6 @@ npm install date-fns-tz
   - [ ] `QuoteHistoryPanel`
   - [ ] `ClientInteractionsTimeline`
   - [ ] `OrderDetailPage`
-  - [ ] `BIDashboard` (gráficos de tempo)
   - [ ] `NotificationsPopover` (tempo relativo)
 
 ### 🔧 **Tarefas Opcionais (Recomendadas):**

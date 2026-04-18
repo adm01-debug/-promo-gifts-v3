@@ -37,7 +37,6 @@ export function buildSpotlightItems(navigate: (path: string) => void): Spotlight
     { id: "magic-up", title: "Magic Up", description: "IA para edição de imagens", icon: React.createElement(Sparkles, { className: "h-4 w-4" }), action: () => navigate("/magic-up"), category: "Ferramentas" },
     { id: "commercial-intelligence", title: "Inteligência Comercial", description: "Insights estratégicos de vendas", icon: React.createElement(BarChart3, { className: "h-4 w-4" }), action: () => navigate("/inteligencia-comercial"), category: "Ferramentas" },
     // Analytics
-    { id: "dashboard", title: "Dashboard BI", description: "Métricas e análises", icon: React.createElement(BarChart3, { className: "h-4 w-4" }), action: () => navigate("/bi"), category: "Analytics" },
     { id: "trends", title: "Tendências", description: "Análise de tendências", icon: React.createElement(TrendingUp, { className: "h-4 w-4" }), action: () => navigate("/tendencias"), category: "Analytics" },
     // Admin
     { id: "users-admin", title: "Gestão de Usuários", description: "Gerenciar usuários e perfis", icon: React.createElement(Settings, { className: "h-4 w-4" }), action: () => navigate("/admin/usuarios"), category: "Admin" },

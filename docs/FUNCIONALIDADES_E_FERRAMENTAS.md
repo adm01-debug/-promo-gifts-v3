@@ -507,13 +507,7 @@
 
 ## 📊 8. ANALYTICS E BI
 
-### 8.1 Dashboard de BI
-| Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
-|----------------|-------------------|-------------------------|
-| Página Dashboard | `src/pages/BIDashboard.tsx` | React, Recharts |
-| Hook Métricas | `src/hooks/useBIMetrics.ts` | Supabase |
-
-### 8.2 Dashboard Customizável
+### 8.1 Dashboard Customizável
 | Funcionalidade | Arquivo Principal | Ferramentas/Bibliotecas |
 |----------------|-------------------|-------------------------|
 | Página | `src/pages/CustomizableDashboard.tsx` | React, DnD Kit |

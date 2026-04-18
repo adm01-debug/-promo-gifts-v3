@@ -111,7 +111,6 @@ const navGroups: NavGroup[] = [
     icon: BarChart3,
     defaultOpen: false,
     items: [
-      { icon: BarChart3, label: "Dashboard BI", href: "/bi" },
       { icon: Activity, label: "Tendências", href: "/tendencias" },
     ],
   },

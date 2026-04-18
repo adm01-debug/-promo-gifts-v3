@@ -214,7 +214,7 @@ export function getFallback(pathname: string): React.ReactNode {
   if (pathname === "/produtos" || pathname === "/filtros" || pathname === "/" || pathname === "/novidades" || pathname === "/reposicao" || pathname === "/favoritos")
     return <CatalogSkeleton />;
   if (pathname.startsWith("/orcamentos")) return <QuotesSkeleton />;
-  if (pathname.startsWith("/admin") || pathname === "/bi" || pathname === "/status")
+  if (pathname.startsWith("/admin") || pathname === "/status")
     return <AdminSkeleton />;
   if (pathname === "/dashboard") return <DashboardSkeleton />;
   if (pathname.startsWith("/pedidos")) return <OrdersSkeleton />;
