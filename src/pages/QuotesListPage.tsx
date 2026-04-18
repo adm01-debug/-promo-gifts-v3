@@ -193,14 +193,19 @@ export default function QuotesListPage() {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
           <DynamicBreadcrumbs />
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-10 w-48 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+                <FileText className="h-7 w-7" />
+                Orçamentos
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1 inline-flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Carregando orçamentos…
+              </p>
             </div>
-            <div className="h-10 w-32 bg-muted animate-pulse rounded" />
           </div>
           <div className="grid gap-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -211,6 +216,13 @@ export default function QuotesListPage() {
       </MainLayout>
     );
   }
+
+  const hasActiveFilters = !!searchTerm || statusFilter !== "all";
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setSortBy("newest");
+  };
 
   return (
     <MainLayout>
