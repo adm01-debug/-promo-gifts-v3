@@ -276,49 +276,63 @@ export default function KitBuilderPage() {
             </div>
           </div>
 
-          {/* Sidebar */}
-          <div className="space-y-4">
-            {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
+          {/* Sidebar (desktop) + same content reused inside mobile bottom-sheet */}
+          {(() => {
+            const sidebarContent = (
+              <>
+                {kitState.box && <VolumeIndicator usedVolume={kitState.totalItemsVolume} totalVolume={kitState.box.internalVolume} usagePercent={kitState.volumeUsagePercent} />}
 
-            {kitState.box && kitState.box.maxWeight && (
-              <Card className={cn(weightExceeded && "border-destructive")}>
-                <CardContent className="p-4 space-y-2">
-                  <h3 className="font-display font-semibold text-sm flex items-center justify-between">
-                    <span>⚖️ Peso</span>
-                    <span className={cn("text-xs", weightExceeded ? "text-destructive" : "text-muted-foreground")}>
-                      {(itemsWeight / 1000).toFixed(1)}kg / {(kitState.box.maxWeight / 1000).toFixed(1)}kg
-                    </span>
-                  </h3>
-                  <div className="w-full bg-secondary rounded-full h-2">
-                    <div className={cn("h-2 rounded-full transition-all", weightExceeded ? "bg-destructive" : weightPercent > 80 ? "bg-warning" : "bg-primary")}
-                      style={{ width: `${Math.min(weightPercent, 100)}%` }} />
+                {kitState.box && kitState.box.maxWeight && (
+                  <Card className={cn(weightExceeded && "border-destructive")}>
+                    <CardContent className="p-4 space-y-2">
+                      <h3 className="font-display font-semibold text-sm flex items-center justify-between">
+                        <span>⚖️ Peso</span>
+                        <span className={cn("text-xs", weightExceeded ? "text-destructive" : "text-muted-foreground")}>
+                          {(itemsWeight / 1000).toFixed(1)}kg / {(kitState.box.maxWeight / 1000).toFixed(1)}kg
+                        </span>
+                      </h3>
+                      <div className="w-full bg-secondary rounded-full h-2">
+                        <div className={cn("h-2 rounded-full transition-all", weightExceeded ? "bg-destructive" : weightPercent > 80 ? "bg-warning" : "bg-primary")}
+                          style={{ width: `${Math.min(weightPercent, 100)}%` }} />
+                      </div>
+                      {weightExceeded && <p className="text-xs text-destructive font-medium">⚠ Peso excede o limite da caixa em {((itemsWeight - kitState.box.maxWeight) / 1000).toFixed(1)}kg</p>}
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card>
+                  <CardContent className="p-4 space-y-3">
+                    <h3 className="font-display font-semibold">Prévia de Preços</h3>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between"><span className="text-muted-foreground">Caixa</span><span>{formatCurrency(kitState.boxPrice)}</span></div>
+                      <div className="flex justify-between"><span className="text-muted-foreground">Itens</span><span>{formatCurrency(kitState.itemsPrice)}</span></div>
+                      {kitState.personalizationPrice > 0 && <div className="flex justify-between text-primary"><span>Personalização</span><span>{formatCurrency(kitState.personalizationPrice)}</span></div>}
+                      <div className="border-t pt-2 flex justify-between font-semibold"><span>Total/kit</span><span className="text-primary">{formatCurrency(kitState.totalPrice)}</span></div>
+                      {kitState.totalWeight > 0 && <div className="flex justify-between text-xs text-muted-foreground pt-1"><span>Peso estimado</span><span>{kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(2)} kg` : `${kitState.totalWeight} g`}</span></div>}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                {kitState.totalWeight > 0 && (
+                  <div className="scale-[0.92] origin-top">
+                    <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
                   </div>
-                  {weightExceeded && <p className="text-xs text-destructive font-medium">⚠ Peso excede o limite da caixa em {((itemsWeight - kitState.box.maxWeight) / 1000).toFixed(1)}kg</p>}
-                </CardContent>
-              </Card>
-            )}
+                )}
+              </>
+            );
 
-            <Card>
-              <CardContent className="p-4 space-y-3">
-                <h3 className="font-display font-semibold">Prévia de Preços</h3>
-                <div className="space-y-2 text-sm">
-                  <div className="flex justify-between"><span className="text-muted-foreground">Caixa</span><span>{formatCurrency(kitState.boxPrice)}</span></div>
-                  <div className="flex justify-between"><span className="text-muted-foreground">Itens</span><span>{formatCurrency(kitState.itemsPrice)}</span></div>
-                  {kitState.personalizationPrice > 0 && <div className="flex justify-between text-primary"><span>Personalização</span><span>{formatCurrency(kitState.personalizationPrice)}</span></div>}
-                  <div className="border-t pt-2 flex justify-between font-semibold"><span>Total/kit</span><span className="text-primary">{formatCurrency(kitState.totalPrice)}</span></div>
-                  {kitState.totalWeight > 0 && <div className="flex justify-between text-xs text-muted-foreground pt-1"><span>Peso estimado</span><span>{kitState.totalWeight >= 1000 ? `${(kitState.totalWeight / 1000).toFixed(2)} kg` : `${kitState.totalWeight} g`}</span></div>}
-                </div>
-              </CardContent>
-            </Card>
-
-            {kitState.totalWeight > 0 && (
-              <div className="scale-[0.92] origin-top">
-                <FreightEstimator totalWeightGrams={kitState.totalWeight} kitQuantity={kitQuantity} />
-              </div>
-            )}
-          </div>
+            return (
+              <>
+                <div className="hidden lg:block space-y-4">{sidebarContent}</div>
+                <KitMobileSummaryBar kitState={kitState} kitQuantity={kitQuantity}>
+                  {sidebarContent}
+                </KitMobileSummaryBar>
+              </>
+            );
+          })()}
         </div>
       </div>
+      <div className="h-20 lg:hidden" aria-hidden />
       </div>
     </MainLayout>
   );
