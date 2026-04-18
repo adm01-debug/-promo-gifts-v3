@@ -70,6 +70,16 @@ export default function PublicKitViewPage() {
     fetchKit();
   }, [token]);
 
+  // Generate dynamic OG image once kit data loads (must run before any early return)
+  const ogImage = useMemo(() => {
+    if (!data) return undefined;
+    return generateKitOgImage({
+      kitName: data.kit.name,
+      organization: data.organization?.name,
+      itemsCount: data.kit.items.length,
+    }) || undefined;
+  }, [data]);
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center">
@@ -95,16 +105,6 @@ export default function PublicKitViewPage() {
       </div>
     );
   }
-
-  // Generate dynamic OG image once kit data loads
-  const ogImage = useMemo(() => {
-    if (!data) return undefined;
-    return generateKitOgImage({
-      kitName: data.kit.name,
-      organization: data.organization?.name,
-      itemsCount: data.kit.items.length,
-    }) || undefined;
-  }, [data]);
 
   if (!data) return null;
 
