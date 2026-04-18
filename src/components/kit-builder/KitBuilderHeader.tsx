@@ -118,21 +118,13 @@ export function KitBuilderHeader({
               {isExistingKit ? 'Atualizar' : 'Salvar'}
             </Button>
 
-            {/* Secondary actions grouped */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" aria-label="Mais ações">
-                  <MoreHorizontal className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Ações rápidas</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">
-                  <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button
+              variant="outline"
+              onClick={onReset}
+              className="font-medium text-destructive hover:text-destructive"
+            >
+              <RotateCcw className="h-4 w-4 mr-2" /> Novo kit
+            </Button>
 
             <div className="hidden lg:block">
               <KitAIPromptDialog onApply={onAIApply} />
