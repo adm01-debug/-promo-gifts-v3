@@ -67,10 +67,6 @@ export default function CommercialIntelligencePage() {
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
             <span>Atualizado {formatRelative(lastRefresh)}</span>
-            <Button variant="outline" size="sm" onClick={handleGlobalRefresh} className="h-8 gap-1.5">
-              <RefreshCw className="h-3.5 w-3.5" />
-              Atualizar
-            </Button>
           </div>
         </div>
 
