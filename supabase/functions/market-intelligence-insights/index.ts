@@ -221,7 +221,7 @@ Deno.serve(async (req) => {
   let userId: string | null = null;
   try {
     const auth = await authenticateRequest(req);
-    userId = auth.user.id;
+    userId = auth.userId;
     const body = (await req.json().catch(() => ({}))) as RequestBody;
     const cacheKey = await buildCacheKey(body);
 
