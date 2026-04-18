@@ -248,7 +248,7 @@ export default function KitBuilderPage() {
           onUndo={() => undo()}
           onRedo={() => redo()}
           onReset={handleResetKit}
-          onDuplicate={handleDuplicateKit}
+          
           onAIApply={(s) => {
             setKitType(s.kit_type);
             setBoxFilters({ ...boxFilters, search: s.box_keywords[0] ?? '' });
