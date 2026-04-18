@@ -53,6 +53,9 @@ import { KitOnboardingTour } from '@/components/kit-builder/KitOnboardingTour';
 import { KitBuilderHeader } from '@/components/kit-builder/KitBuilderHeader';
 import { KitHeroPricingCard } from '@/components/kit-builder/KitHeroPricingCard';
 import { KitShortcutsDialog } from '@/components/kit-builder/KitShortcutsDialog';
+import { SimilarKitsWidget } from '@/components/kit-builder/SimilarKitsWidget';
+import { IdentitySuggestionButton } from '@/components/kit-builder/IdentitySuggestionButton';
+import { useDuplicateKitDetector } from '@/hooks/useDuplicateKitDetector';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 const KitIsometricPreview = lazy(() => import('@/components/kit-builder/KitIsometricPreview').then(m => ({ default: m.KitIsometricPreview })));
@@ -212,6 +215,8 @@ export default function KitBuilderPage() {
     })();
   }, [productIdParam, kitIdParam, addItem, setKitName]);
 
+  const { findDuplicate } = useDuplicateKitDetector();
+
   const handleSaveKit = async () => {
     try {
       // In template mode (admin editing kit_templates), save back to kit_templates
@@ -219,7 +224,32 @@ export default function KitBuilderPage() {
         await saveAsTemplate({ kitState, templateId: templateIdParam });
         return;
       }
-      const result = await saveKit(kitState, kitQuantity, currentKitId || autoSavedKitId || undefined);
+
+      // Duplicate detection — only when creating a brand new kit
+      const editingId = currentKitId || autoSavedKitId || undefined;
+      if (!editingId && kitState.items.length >= 2) {
+        const skus = kitState.items
+          .map((i) => (i.sku ? String(i.sku).toLowerCase() : ''))
+          .filter(Boolean);
+        const dup = await findDuplicate(skus);
+        if (dup) {
+          const proceed = await new Promise<boolean>((resolve) => {
+            toast.warning(`Você já tem um kit parecido (${Math.round(dup.ratio * 100)}% similar): "${dup.name}"`, {
+              duration: 8000,
+              action: {
+                label: 'Abrir existente',
+                onClick: () => { resolve(false); navigate(`/montar-kit?kit=${dup.id}`); },
+              },
+              cancel: { label: 'Salvar mesmo assim', onClick: () => resolve(true) },
+              onAutoClose: () => resolve(true),
+              onDismiss: () => resolve(true),
+            });
+          });
+          if (!proceed) return;
+        }
+      }
+
+      const result = await saveKit(kitState, kitQuantity, editingId);
       if (result && 'id' in result) setCurrentKitId((result as { id: string }).id);
     } catch { /* handled by hook */ }
   };
@@ -484,6 +514,19 @@ export default function KitBuilderPage() {
                   )}
 
                   {kitState.totalPrice > 0 && <KitHealthCard kitState={kitState} kitQuantity={kitQuantity} />}
+
+                  <IdentitySuggestionButton
+                    kitName={kitState.name}
+                    items={kitState.items.map((i) => ({ name: i.name, sku: i.sku }))}
+                    description={kitState.identity?.description ?? null}
+                    current={kitState.identity}
+                    onApply={(partial) => setIdentity({ ...(kitState.identity ?? {}), ...partial })}
+                  />
+
+                  <SimilarKitsWidget
+                    currentSkus={kitState.items.map((i) => String(i.sku ?? '').toLowerCase()).filter(Boolean)}
+                    excludeId={templateIdParam ?? undefined}
+                  />
 
                   {/* Collapsible details */}
                   {hasContent && (
