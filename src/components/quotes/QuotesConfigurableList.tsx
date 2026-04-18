@@ -19,7 +19,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
@@ -33,8 +32,6 @@ import {
   Trash2,
   Copy,
   Edit,
-  UserPlus,
-  AlertTriangle,
   Settings2,
   GripVertical,
   ChevronLeft,
@@ -44,12 +41,12 @@ import {
   Download,
   RefreshCw,
 } from "lucide-react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import type { Quote } from "@/hooks/useQuotes";
-import { QUOTE_STATUS_CONFIG } from "@/lib/quote-status-config";
-import { BulkActionsBar, type BulkAction } from "@/components/common/BulkActionsBar";
+import { BulkActionsBar } from "@/components/common/BulkActionsBar";
 import { useBulkSelection } from "@/hooks/useBulkSelection";
+import { useQuoteViewedMap } from "@/hooks/useQuoteViewedMap";
+import { QuoteViewedBadge } from "./QuoteViewedBadge";
+import { QuoteRowQuickActions } from "./QuoteRowQuickActions";
 import {
   DndContext,
   closestCenter,
@@ -87,26 +84,6 @@ const ALL_COLUMNS: ColumnDef[] = [
   { id: "quote_number", label: "Nº Orçamento", width: "200px" },
 ];
 
-
-
-const statusConfig = Object.fromEntries(
-  Object.entries(QUOTE_STATUS_CONFIG).map(([k, v]) => [k, { label: v.label, className: v.badgeClassName }])
-) as Record<Quote["status"], { label: string; className?: string }>;
-
-function getValidityInfo(validUntil: string | undefined | null) {
-  if (!validUntil) return null;
-  const date = new Date(validUntil);
-  const days = Math.ceil((date.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const expired = days < 0;
-  if (expired) return { label: "Vencido", color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 7) return { label: `${days}d restantes`, color: "text-warning", bgColor: "bg-warning/10", urgent: true };
-  return null;
-}
-
-const formatCurrency = (value: number) =>
-  new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value);
-
 // ── Sortable Header Cell ──
 function SortableHeaderCell({ column }: { column: ColumnDef }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
@@ -142,6 +119,7 @@ interface QuotesConfigurableListProps {
   onBulkStatusChange?: (ids: string[], status: string) => void;
   onBulkExport?: (ids: string[]) => void;
   onDuplicate: (id: string) => void;
+  onMarkApproved?: (id: string) => void;
 }
 
 const PAGE_SIZE_OPTIONS = [10, 25, 50, 100];
@@ -153,6 +131,7 @@ export function QuotesConfigurableList({
   onBulkStatusChange,
   onBulkExport,
   onDuplicate,
+  onMarkApproved,
 }: QuotesConfigurableListProps) {
   const navigate = useNavigate();
 
@@ -167,6 +146,10 @@ export function QuotesConfigurableList({
     const start = (safePage - 1) * pageSize;
     return quotes.slice(start, start + pageSize);
   }, [quotes, safePage, pageSize]);
+
+  // ── Visualizações pelo cliente (apenas página atual, performance) ──
+  const visibleIds = useMemo(() => paginatedQuotes.map((q) => q.id!).filter(Boolean), [paginatedQuotes]);
+  const viewedMap = useQuoteViewedMap(visibleIds);
 
   // ── Bulk selection (operates on paginated items) ──
   const { selectedIds, selectedCount, toggleItem, toggleAll, clearSelection, isSelected, isAllSelected } =
@@ -204,7 +187,7 @@ export function QuotesConfigurableList({
   );
 
   const gridTemplate = useMemo(
-    () => ["40px", ...visibleColumns.map((c) => c.width), "44px"].join(" "),
+    () => ["40px", ...visibleColumns.map((c) => c.width), "180px"].join(" "),
     [visibleColumns]
   );
 
@@ -351,7 +334,7 @@ export function QuotesConfigurableList({
         {paginatedQuotes.map((quote) => (
           <div
             key={quote.id}
-            className={`grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
+            className={`group grid gap-4 px-4 py-3 items-center border-b border-border/40 cursor-pointer transition-all duration-150 hover:bg-muted/40 hover:border-l-2 hover:border-l-primary/60 ${
               isSelected(quote.id!) || allPagesSelected ? "bg-primary/5 border-l-2 border-l-primary" : ""
             }`}
             style={{ gridTemplateColumns: gridTemplate }}
@@ -363,7 +346,6 @@ export function QuotesConfigurableList({
                 onCheckedChange={() => {
                   if (allPagesSelected) {
                     setAllPagesSelected(false);
-                    // select all on page except this one
                     toggleAll();
                     toggleItem(quote.id!);
                   } else {
@@ -373,31 +355,46 @@ export function QuotesConfigurableList({
               />
             </div>
             {visibleColumns.map((col) => (
-              <div key={col.id} className={col.align === "right" ? "text-right" : ""}>
-                {renderCell(quote, col.id)}
+              <div key={col.id} className={`min-w-0 ${col.align === "right" ? "text-right" : ""}`}>
+                {col.id === "client" ? (
+                  <div className="flex items-center gap-2 min-w-0">
+                    <div className="min-w-0 flex-1">{renderCell(quote, col.id)}</div>
+                    <QuoteViewedBadge info={viewedMap[quote.id!]} />
+                  </div>
+                ) : (
+                  renderCell(quote, col.id)
+                )}
               </div>
             ))}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Mais opções"><MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
-                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
-                  <Eye className="h-4 w-4 mr-2" /> Visualizar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
-                  <Edit className="h-4 w-4 mr-2" /> Editar
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDuplicate(quote.id!)}>
-                  <Copy className="h-4 w-4 mr-2" /> Duplicar
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem className="text-destructive" onClick={() => onDelete(quote.id!)}>
-                  <Trash2 className="h-4 w-4 mr-2" /> Excluir
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center justify-end gap-0.5">
+              <QuoteRowQuickActions
+                quote={quote}
+                onDuplicate={onDuplicate}
+                onMarkApproved={(id) => onMarkApproved?.(id)}
+              />
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" aria-label="Mais opções">
+                    <MoreVertical className="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()}>
+                  <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}`)}>
+                    <Eye className="h-4 w-4 mr-2" /> Visualizar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate(`/orcamentos/${quote.id}/editar`)}>
+                    <Edit className="h-4 w-4 mr-2" /> Editar
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => onDuplicate(quote.id!)}>
+                    <Copy className="h-4 w-4 mr-2" /> Duplicar
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="text-destructive" onClick={() => onDelete(quote.id!)}>
+                    <Trash2 className="h-4 w-4 mr-2" /> Excluir
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         ))}
       </div>

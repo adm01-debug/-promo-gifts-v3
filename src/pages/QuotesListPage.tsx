@@ -35,7 +35,6 @@ import {
   FileText,
   Plus,
   Search,
-  Filter,
   BookTemplate,
   ArrowUpDown,
   AlertTriangle,
@@ -44,29 +43,18 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  Loader2,
 } from "lucide-react";
-import { useQuotes, type Quote } from "@/hooks/useQuotes";
+import { useQuotes } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
-import { format, differenceInDays, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format } from "date-fns";
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
 import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
+import { QuotesStatusChips } from "@/components/quotes/QuotesStatusChips";
 
-// ── Status config with semantic colors ──
-const statusConfig: Record<
-  Quote["status"],
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
-> = {
-  draft: { label: "Rascunho", variant: "secondary", className: "bg-warning/15 text-warning border-warning/30" },
-  pending: { label: "Pendente", variant: "outline", className: "bg-primary/15 text-primary border-primary/30" },
-  sent: { label: "Enviado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
-  approved: { label: "Aprovado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
-  rejected: { label: "Rejeitado", variant: "destructive", className: "bg-destructive/15 text-destructive border-destructive/30" },
-  expired: { label: "Expirado", variant: "secondary", className: "bg-muted text-muted-foreground border-muted" },
-};
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "expiring";
 
@@ -78,18 +66,6 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: "expiring", label: "Vencimento próximo" },
 ];
 
-// ── Validity urgency helper ──
-function getValidityInfo(validUntil: string | undefined | null) {
-  if (!validUntil) return null;
-  const date = new Date(validUntil);
-  const days = differenceInDays(date, new Date());
-  const expired = isPast(date);
-
-  if (expired) return { label: "Vencido", color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 7) return { label: `${days}d restantes`, color: "text-warning", bgColor: "bg-warning/10", urgent: true };
-  return { label: format(date, "dd/MM/yyyy", { locale: ptBR }), color: "text-muted-foreground", bgColor: "", urgent: false };
-}
 
 export default function QuotesListPage() {
   const navigate = useNavigate();
@@ -191,14 +167,19 @@ export default function QuotesListPage() {
   if (isLoading) {
     return (
       <MainLayout>
-        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+        <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4 pb-24 md:pb-6 animate-fade-in">
           <DynamicBreadcrumbs />
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <div className="h-10 w-48 bg-muted animate-pulse rounded" />
-              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground flex items-center gap-2">
+                <FileText className="h-7 w-7" />
+                Orçamentos
+              </h1>
+              <p className="text-xs text-muted-foreground mt-1 inline-flex items-center gap-1.5">
+                <Loader2 className="h-3 w-3 animate-spin" />
+                Carregando orçamentos…
+              </p>
             </div>
-            <div className="h-10 w-32 bg-muted animate-pulse rounded" />
           </div>
           <div className="grid gap-3">
             {[1, 2, 3, 4, 5].map((i) => (
@@ -209,6 +190,13 @@ export default function QuotesListPage() {
       </MainLayout>
     );
   }
+
+  const hasActiveFilters = !!searchTerm || statusFilter !== "all";
+  const handleClearFilters = () => {
+    setSearchTerm("");
+    setStatusFilter("all");
+    setSortBy("newest");
+  };
 
   return (
     <MainLayout>
@@ -329,20 +317,6 @@ export default function QuotesListPage() {
                 className="pl-9"
               />
             </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[170px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos os Status</SelectItem>
-                {Object.entries(statusConfig).map(([key, config]) => (
-                  <SelectItem key={key} value={key}>
-                    {config.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
             <Select value={sortBy} onValueChange={(v) => setSortBy(v as SortOption)}>
               <SelectTrigger className="w-[180px]">
                 <ArrowUpDown className="h-4 w-4 mr-2" />
@@ -358,24 +332,24 @@ export default function QuotesListPage() {
             </Select>
           </div>
 
+          {/* Status chips */}
+          <QuotesStatusChips quotes={quotes} value={statusFilter} onChange={setStatusFilter} />
+
           {/* Quotes List */}
-          <ScrollArea className="h-[calc(100vh-320px)] min-h-[400px]">
+          <ScrollArea className="h-[calc(100vh-360px)] min-h-[400px]">
             {filteredQuotes.length === 0 ? (
               <EmptyState
                 variant="quotes"
-                title="Nenhum orçamento encontrado"
+                title={hasActiveFilters ? "Nenhum resultado para esses filtros" : "Nenhum orçamento encontrado"}
                 description={
-                  searchTerm || statusFilter !== "all"
-                    ? "Tente ajustar seus filtros"
-                    : "Crie seu primeiro orçamento"
+                  hasActiveFilters
+                    ? "Ajuste a busca ou os chips de status, ou limpe todos os filtros."
+                    : "Crie seu primeiro orçamento e comece a vender."
                 }
                 action={
-                  !searchTerm && statusFilter === "all"
-                    ? {
-                        label: "Criar Orçamento",
-                        onClick: () => navigate("/orcamentos/novo"),
-                      }
-                    : undefined
+                  hasActiveFilters
+                    ? { label: "Limpar filtros", onClick: handleClearFilters }
+                    : { label: "Criar Orçamento", onClick: () => navigate("/orcamentos/novo") }
                 }
               />
             ) : (
@@ -412,6 +386,17 @@ export default function QuotesListPage() {
                   });
                 }}
                 onDuplicate={(id) => duplicateQuote(id)}
+                onMarkApproved={async (id) => {
+                  const ok = await updateQuoteStatus(id, "approved");
+                  if (ok) {
+                    confetti({
+                      particleCount: 80,
+                      spread: 60,
+                      origin: { y: 0.7 },
+                      colors: ["hsl(25,100%,50%)", "hsl(142,71%,45%)", "hsl(217,91%,60%)"],
+                    });
+                  }
+                }}
               />
             )}
           </ScrollArea>
