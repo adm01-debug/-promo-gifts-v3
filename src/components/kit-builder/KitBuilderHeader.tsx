@@ -3,9 +3,8 @@
  * Tier 1: Identity (name + status badges)
  * Tier 2: Primary actions (Save, New) + grouped secondary in dropdown
  */
-import { Link } from 'react-router-dom';
 import {
-  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Copy, Trophy, MoreHorizontal, Check,
+  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Copy, MoreHorizontal, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
