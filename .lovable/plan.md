@@ -1,53 +1,20 @@
 
-Todas as 18 melhorias do roadmap visual já foram entregues no último ciclo (header 2-tier, wizard com barra contínua, sidebar sticky com hero pricing, acordeões, fundo gradiente, atalho `?`, motion fade-in, tipografia hero, tokens semânticos). Para realmente avançar rumo ao 10/10 absoluto, vou executar a **Onda Final F — Polimento Cirúrgico** com micro-melhorias que faltam.
+User wants the Kit Maker wizard step bar (image 988) to be more compact/lower height, similar to the Mockup wizard bar (image 989) which is sleeker.
 
-# Kit Maker — Onda Final F (Polimento Cirúrgico)
+Looking at current `WizardSteps.tsx` (Kit Maker): big circles (likely w-14 h-14), large "01" ordinal labels above, bold step name + subtitle below = ~140px tall.
 
-## 1. Animação item → caixa (`layoutId` framer-motion)
-- Em `ItemSelector`: ao clicar "Adicionar", item anima do card até o mini-preview na sidebar usando `motion.div` com `layoutId={"kit-item-" + sku}`.
-- Adicionar `LayoutGroup` envolvendo conteúdo + sidebar.
+Mockup bar reference: smaller circles (~w-12 h-12), no ordinal numbers on top, single label + small subtitle, much more compact ~80px.
 
-## 2. Hover lift + quick actions reveladas
-- Cards de produto/caixa ganham `transition-transform hover:-translate-y-0.5 hover:shadow-lg`.
-- Botões de quick-action (favoritar, info) ficam `opacity-0 group-hover:opacity-100`.
+# Plano
 
-## 3. Toasts contextuais com action "Desfazer"
-- Em `addItem`/`removeItem`/`selectBox` no `useKitBuilder`: chamar `toast.success(..., { action: { label: 'Desfazer', onClick: undo } })`.
+Reduzir altura da `WizardSteps` do Kit Maker:
 
-## 4. Bottom-sheet mobile com drag handle visual + snap points
-- Refatorar `KitMobileSummaryBar`: adicionar barra cinza arredondada no topo do Sheet (`<div className="mx-auto h-1.5 w-12 rounded-full bg-muted-foreground/30 mb-2" />`).
-- Snap points 40%/90% via `vaul` (já usado nos drawers do shadcn) — se não disponível, manter Sheet com `h-[90vh]`.
+1. **Remover** os badges "01/02/03/04" flutuantes acima dos círculos (eles dobram a altura).
+2. **Diminuir círculos**: de `w-14 h-14` para `w-12 h-12`, ícone `h-5 w-5`.
+3. **Reduzir spacing**: gap vertical entre círculo e label de `mt-3` para `mt-2`, label `text-sm` em vez de `text-base`, subtitle `text-[11px]`.
+4. **Padding container**: reduzir `py-` da seção do wizard para algo como `py-3`.
+5. **Manter**: barra de progresso contínua no topo, glow do step ativo, mini-resumos verdes (apenas encolher fonte).
 
-## 5. Empty state ilustrado no step Itens (sem caixa)
-- SVG isométrico custom de caixa aberta + 3 CTAs: Templates, IA, Manual.
-- Substitui o estado desabilitado atual.
+Resultado: barra compacta ~80–90px, alinhada com o padrão do Mockup, preservando identidade premium (glow, progress bar, motion).
 
-## 6. Skeletons com forma do conteúdo
-- `BoxSelector`/`ItemSelector` loading: skeleton com aspect-ratio do card real (imagem quadrada + 2 linhas + badge), não retângulos genéricos.
-
-## 7. Confete sutil ao validar kit pela primeira vez
-- Quando `isValid` muda de `false` → `true`: dispara `canvas-confetti` (lib leve) + toast celebrativo "Seu kit está pronto! 🎉".
-
-## 8. Favicon dinâmico + título da aba
-- `document.title` reflete nome do kit em tempo real: `${kitName || 'Kit sem nome'} · Kit Maker`.
-
-## 9. Ajuste fino dark mode
-- Auditar contraste dos cards `border-border/40` no dark — reforçar para `/60` quando necessário.
-- Hero pricing card ganha `dark:from-card dark:to-primary/[0.08]` para mais presença.
-
-## 10. Micro-detalhes finais
-- `scrollbar-thin` style global na sidebar sticky (já usado, garantir CSS no index.css).
-- Focus rings consistentes `focus-visible:ring-2 focus-visible:ring-primary/60` em todos botões custom.
-
-## Padrões aplicados
-- TS strict, `any` proibido, type imports inline.
-- Tokens semânticos (`var(--primary)`, `success`, `warning`).
-- A11y: `role`/`tabIndex`/`onKeyDown` em divs clicáveis, `aria-live="polite"` no toast de sucesso.
-- Componentes <300 LOC, hooks <500 LOC.
-- `canvas-confetti` será adicionado via `<script>` dinâmico ou import lazy para não pesar bundle.
-- Memória `mem://design/kit-maker-design-10-10` será atualizada com os novos padrões.
-
-## Estratégia de execução
-Sequencial 1→10 sem perguntas. Após cada item: verificação de tipos. Ao fim: nota concisa do que mudou + atualização da memória.
-
-Pronto para executar.
+Arquivo único afetado: `src/components/kit-builder/WizardSteps.tsx`.
