@@ -461,8 +461,12 @@ export type Database = {
         Row: {
           box_data: Json | null
           box_price: number
+          color: string
           created_at: string
+          description: string | null
+          icon: string
           id: string
+          is_favorite: boolean
           items_data: Json
           items_price: number
           kit_quantity: number
@@ -471,6 +475,7 @@ export type Database = {
           personalization_data: Json
           personalization_price: number
           status: string
+          tag: string | null
           total_price: number
           updated_at: string
           user_id: string
@@ -479,8 +484,12 @@ export type Database = {
         Insert: {
           box_data?: Json | null
           box_price?: number
+          color?: string
           created_at?: string
+          description?: string | null
+          icon?: string
           id?: string
+          is_favorite?: boolean
           items_data?: Json
           items_price?: number
           kit_quantity?: number
@@ -489,6 +498,7 @@ export type Database = {
           personalization_data?: Json
           personalization_price?: number
           status?: string
+          tag?: string | null
           total_price?: number
           updated_at?: string
           user_id: string
@@ -497,8 +507,12 @@ export type Database = {
         Update: {
           box_data?: Json | null
           box_price?: number
+          color?: string
           created_at?: string
+          description?: string | null
+          icon?: string
           id?: string
+          is_favorite?: boolean
           items_data?: Json
           items_price?: number
           kit_quantity?: number
@@ -507,6 +521,7 @@ export type Database = {
           personalization_data?: Json
           personalization_price?: number
           status?: string
+          tag?: string | null
           total_price?: number
           updated_at?: string
           user_id?: string
@@ -914,6 +929,69 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      kit_templates: {
+        Row: {
+          box_data: Json | null
+          category: string
+          color: string
+          cover_image_url: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          icon: string
+          id: string
+          is_active: boolean
+          items_data: Json
+          name: string
+          personalization_data: Json
+          tag: string | null
+          total_price: number
+          updated_at: string
+          usage_count: number
+          volume_usage_percent: number
+        }
+        Insert: {
+          box_data?: Json | null
+          category?: string
+          color?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          items_data?: Json
+          name: string
+          personalization_data?: Json
+          tag?: string | null
+          total_price?: number
+          updated_at?: string
+          usage_count?: number
+          volume_usage_percent?: number
+        }
+        Update: {
+          box_data?: Json | null
+          category?: string
+          color?: string
+          cover_image_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          icon?: string
+          id?: string
+          is_active?: boolean
+          items_data?: Json
+          name?: string
+          personalization_data?: Json
+          tag?: string | null
+          total_price?: number
+          updated_at?: string
+          usage_count?: number
+          volume_usage_percent?: number
+        }
+        Relationships: []
       }
       kit_variants: {
         Row: {
@@ -2952,6 +3030,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      increment_kit_template_usage: {
+        Args: { _template_id: string }
+        Returns: undefined
       }
       is_admin: { Args: never; Returns: boolean }
       is_dnd_active: { Args: never; Returns: boolean }
