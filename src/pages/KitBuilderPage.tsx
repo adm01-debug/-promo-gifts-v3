@@ -39,6 +39,7 @@ import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
+import { KitIsometricPreview } from '@/components/kit-builder/KitIsometricPreview';
 
 export default function KitBuilderPage() {
   const { user } = useAuth();
