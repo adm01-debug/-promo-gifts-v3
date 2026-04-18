@@ -45,7 +45,7 @@ import {
   DollarSign,
   Loader2,
 } from "lucide-react";
-import { useQuotes, type Quote } from "@/hooks/useQuotes";
+import { useQuotes } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
 import { format } from "date-fns";
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
