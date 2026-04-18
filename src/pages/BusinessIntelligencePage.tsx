@@ -73,27 +73,8 @@ export default function BusinessIntelligencePage() {
     nextPeakMonth: seas.nextPeakMonth,
   });
 
-  const handleShare = async () => {
-    if (!clientId) return;
-    setSharing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("bi-share-dossier", {
-        body: { clientId, clientName, ramoAtividade, expiresInDays: 7 },
-      });
-      if (error) throw error;
-      const url = (data as { url?: string })?.url;
-      if (url) {
-        await navigator.clipboard.writeText(url);
-        toast.success("Link copiado!", { description: "Válido por 7 dias · read-only." });
-      }
-    } catch (err) {
-      toast.error("Falha ao gerar link", {
-        description: err instanceof Error ? err.message : "Tente novamente.",
-      });
-    } finally {
-      setSharing(false);
-    }
-  };
+
+
 
   return (
     <MainLayout>
