@@ -107,10 +107,6 @@ export default function BusinessIntelligencePage() {
                 <GitCompare className="h-4 w-4" />
                 Comparar
               </Button>
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={handleShare} disabled={sharing}>
-                {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
-                Compartilhar
-              </Button>
               <Button
                 size="sm"
                 variant="outline"
