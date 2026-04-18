@@ -334,8 +334,9 @@ export default function TrendsPage() {
               </h1>
               <RealtimeBadge />
               {demo && (
-                <Badge variant="outline" className="border-chart-4/40 text-chart-4 bg-chart-4/10">
-                  MODO DEMO — dados fictícios
+                <Badge variant="outline" className="border-chart-4/40 text-chart-4 bg-chart-4/10 gap-1">
+                  <span className="inline-block w-1.5 h-1.5 rounded-full bg-chart-4 animate-pulse" />
+                  MODO DEMO — dados fictícios para avaliação
                 </Badge>
               )}
             </div>
