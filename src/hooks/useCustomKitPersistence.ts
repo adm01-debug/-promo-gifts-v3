@@ -33,6 +33,8 @@ export interface CustomKitRow {
   tag: string | null;
   description: string | null;
   is_favorite: boolean;
+  is_pinned: boolean;
+  last_used_at: string | null;
   created_at: string;
   updated_at: string;
 }
