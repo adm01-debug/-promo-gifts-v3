@@ -35,7 +35,6 @@ import {
   FileText,
   Plus,
   Search,
-  Filter,
   BookTemplate,
   ArrowUpDown,
   AlertTriangle,
@@ -44,31 +43,18 @@ import {
   TrendingUp,
   TrendingDown,
   DollarSign,
+  Loader2,
 } from "lucide-react";
 import { useQuotes, type Quote } from "@/hooks/useQuotes";
 import Fuse from "fuse.js";
-import { format, differenceInDays, isPast } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format } from "date-fns";
 import { DynamicBreadcrumbs } from "@/components/navigation/DynamicBreadcrumbs";
 import { EmptyState } from "@/components/common/EmptyState";
 import { QuoteCardSkeleton } from "@/components/common/ContextualSkeleton";
 import { FadeInView, AnimatedCounter } from "@/components/common/MicroInteractions";
 import { QuotesConfigurableList } from "@/components/quotes/QuotesConfigurableList";
 import { QuotesStatusChips } from "@/components/quotes/QuotesStatusChips";
-import { Loader2 } from "lucide-react";
 
-// ── Status config with semantic colors ──
-const statusConfig: Record<
-  Quote["status"],
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; className?: string }
-> = {
-  draft: { label: "Rascunho", variant: "secondary", className: "bg-warning/15 text-warning border-warning/30" },
-  pending: { label: "Pendente", variant: "outline", className: "bg-primary/15 text-primary border-primary/30" },
-  sent: { label: "Enviado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
-  approved: { label: "Aprovado", variant: "default", className: "bg-primary/15 text-primary border-primary/30" },
-  rejected: { label: "Rejeitado", variant: "destructive", className: "bg-destructive/15 text-destructive border-destructive/30" },
-  expired: { label: "Expirado", variant: "secondary", className: "bg-muted text-muted-foreground border-muted" },
-};
 
 type SortOption = "newest" | "oldest" | "highest" | "lowest" | "expiring";
 
@@ -79,9 +65,6 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: "lowest", label: "Menor valor" },
   { value: "expiring", label: "Vencimento próximo" },
 ];
-
-// ── Validity urgency helper ──
-function getValidityInfo(validUntil: string | undefined | null) {
   if (!validUntil) return null;
   const date = new Date(validUntil);
   const days = differenceInDays(date, new Date());

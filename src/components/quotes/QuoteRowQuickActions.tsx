@@ -3,6 +3,7 @@
  * Duplicar · Compartilhar link · WhatsApp · Marcar ganho.
  * Visíveis no hover da linha (desktop) ou sempre (mobile).
  */
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { Copy, Share2, MessageCircle, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
