@@ -3,9 +3,8 @@
  * Tier 1: Identity (name + status badges)
  * Tier 2: Primary actions (Save, New) + grouped secondary in dropdown
  */
-import { Link } from 'react-router-dom';
 import {
-  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Copy, Trophy, MoreHorizontal, Check,
+  Package, Save, Cloud, Loader2, RotateCcw, Undo2, Redo2, Copy, MoreHorizontal, Check,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -132,11 +131,6 @@ export function KitBuilderHeader({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onDuplicate} disabled={!hasContent}>
                   <Copy className="h-4 w-4 mr-2" /> Duplicar kit
-                </DropdownMenuItem>
-                <DropdownMenuItem asChild>
-                  <Link to="/montar-kit/analytics">
-                    <Trophy className="h-4 w-4 mr-2" /> Meus campeões
-                  </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={onReset} className="text-destructive focus:text-destructive">

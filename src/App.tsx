@@ -71,7 +71,7 @@ const PriceSimulatorPage = lazyWithRetry(() => import("./pages/PriceSimulatorPag
 const StockDashboardPage = lazyWithRetry(() => import("./pages/StockDashboardPage"));
 const AdvancedPriceSearchPage = lazyWithRetry(() => import("./pages/AdvancedPriceSearchPage"));
 const KitBuilderPage = lazyWithRetry(() => import("./pages/KitBuilderPage"));
-const KitAnalyticsPage = lazyWithRetry(() => import("./pages/KitAnalyticsPage"));
+
 const MeusKitsPage = lazyWithRetry(() => import("./pages/MeusKitsPage"));
 const MockupHistoryPage = lazyWithRetry(() => import("./pages/MockupHistoryPage"));
 const DropboxBrowserPage = lazyWithRetry(() => import("./pages/DropboxBrowserPage"));
@@ -250,7 +250,6 @@ const App = () => {
                             <Route path="/estoque" element={<StockDashboardPage />} />
                             <Route path="/busca-preco" element={<AdvancedPriceSearchPage />} />
                             <Route path="/montar-kit" element={<KitBuilderPage />} />
-                            <Route path="/montar-kit/analytics" element={<KitAnalyticsPage />} />
                             <Route path="/kit-builder" element={<Navigate to="/montar-kit" replace />} />
                             <Route path="/meus-kits" element={<MeusKitsPage />} />
                             <Route path="/mockup" element={<Navigate to="/mockup-generator" replace />} />
