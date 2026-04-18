@@ -166,6 +166,27 @@ export function KitBuilderHeader({
               </Tooltip>
             </TooltipProvider>
 
+            {isAdmin && kitState && hasContent && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => saveAsTemplate({ kitState, templateId })}
+                      disabled={isSavingTemplate}
+                      className="gap-2 border-primary/40 text-primary hover:bg-primary/10"
+                      aria-label="Salvar como template do sistema"
+                    >
+                      {isSavingTemplate ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      <span className="hidden md:inline">{templateId ? 'Atualizar template' : 'Salvar como template'}</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{templateId ? 'Atualizar template do sistema' : 'Salvar este kit como template do sistema (admin)'}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
+
             <Button
               variant={isValid && hasContent ? 'default' : 'outline'}
               onClick={onSave}
