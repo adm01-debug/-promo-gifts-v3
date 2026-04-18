@@ -85,7 +85,7 @@ const navGroups: NavGroup[] = [
   },
   {
     id: "intelligence",
-    label: "Inteligência",
+    label: "Insights",
     icon: Brain,
     defaultOpen: false,
     items: [
