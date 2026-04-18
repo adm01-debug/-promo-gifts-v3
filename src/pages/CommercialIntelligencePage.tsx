@@ -75,9 +75,9 @@ export default function CommercialIntelligencePage() {
           </div>
         </div>
 
-        {/* Filters — sticky no scroll */}
+        {/* Filters — sticky no scroll · UI controlada por rawFilters (sem latência), refetch debounced */}
         <div className="sticky top-0 z-20 -mx-3 sm:-mx-4 lg:-mx-6 xl:-mx-8 px-3 sm:px-4 lg:px-6 xl:px-8 py-2 bg-background/85 backdrop-blur-md border-b border-border/40">
-          <IntelligenceFilterBar filters={filters} onFiltersChange={setFilters} />
+          <IntelligenceFilterBar filters={rawFilters} onFiltersChange={setFilters} />
         </div>
 
         {/* KPI Summary */}
