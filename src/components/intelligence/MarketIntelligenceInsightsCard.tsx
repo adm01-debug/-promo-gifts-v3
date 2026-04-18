@@ -77,6 +77,17 @@ export function MarketIntelligenceInsightsCard({
 
   const handleRegenerate = async () => {
     setForceRefresh(true);
+    // Telemetria — registra regeneração manual (não bloqueia UI em caso de falha)
+    void supabase.auth.getUser().then(({ data }) => {
+      if (data.user?.id) {
+        void supabase.from("ai_usage_events").insert({
+          user_id: data.user.id,
+          function_name: "market-intelligence-insights",
+          event_type: "manual_regenerate",
+          metadata: { days, categoryId, supplierId, productId } as never,
+        });
+      }
+    });
     await refetch();
     setForceRefresh(false);
   };
@@ -192,7 +203,12 @@ export function MarketIntelligenceInsightsCard({
                   <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Regenerar (ignora cache)</TooltipContent>
+              <TooltipContent className="max-w-[240px]">
+                <p className="text-xs font-medium">Regenerar (ignora cache)</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">
+                  Consome créditos de IA. O cache automático vale 6h — só regenere se os dados mudaram.
+                </p>
+              </TooltipContent>
             </Tooltip>
           </div>
         </CardHeader>
