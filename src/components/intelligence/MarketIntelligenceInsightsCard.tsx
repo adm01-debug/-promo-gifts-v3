@@ -1,17 +1,14 @@
 /**
  * MarketIntelligenceInsightsCard — narrativa em IA dos dados do dashboard de Inteligência de Mercado.
  * Consome a edge function `market-intelligence-insights` (Lovable AI).
- * v2: cache-aware, copiar/exportar, empty state, indicador de cache, animações escalonadas.
  */
-import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from "@/components/ui/tooltip";
 import {
-  Sparkles, RefreshCw, AlertTriangle, TrendingUp, Lightbulb, Star,
-  Copy, Check, Database, Inbox,
+  Sparkles, AlertTriangle, TrendingUp, Lightbulb, Star,
+  Database, Inbox,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -48,17 +45,14 @@ export function MarketIntelligenceInsightsCard({
   productName,
 }: Props) {
   const { toast } = useToast();
-  const [copied, setCopied] = useState(false);
-  const [forceRefresh, setForceRefresh] = useState(false);
 
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: ["market-intelligence-insights", days, categoryId, supplierId, productId],
     queryFn: async (): Promise<InsightResponse> => {
       const { data, error } = await supabase.functions.invoke("market-intelligence-insights", {
         body: {
           days, categoryId, supplierId, productId,
           categoryName, supplierName, productName,
-          forceRefresh,
         },
       });
       if (error) {
@@ -75,50 +69,6 @@ export function MarketIntelligenceInsightsCard({
     retry: false,
   });
 
-  const handleRegenerate = async () => {
-    setForceRefresh(true);
-    // Telemetria — registra regeneração manual (não bloqueia UI em caso de falha)
-    void supabase.auth.getUser().then(({ data }) => {
-      if (data.user?.id) {
-        void supabase.from("ai_usage_events").insert({
-          user_id: data.user.id,
-          function_name: "market-intelligence-insights",
-          event_type: "manual_regenerate",
-          metadata: { days, categoryId, supplierId, productId } as never,
-        });
-      }
-    });
-    await refetch();
-    setForceRefresh(false);
-  };
-
-  const buildText = (d: InsightResponse) => {
-    const filterCtx = [categoryName, supplierName, productName].filter(Boolean).join(" · ");
-    return [
-      `📊 Insights de Mercado — últimos ${days} dias${filterCtx ? ` (${filterCtx})` : ""}`,
-      "",
-      `📌 Resumo: ${d.summary}`,
-      `📈 O que mudou: ${d.what_changed}`,
-      `💡 Por quê: ${d.why}`,
-      `🎯 Próxima ação: ${d.next_action}`,
-      d.highlights?.length ? `\n⭐ Destaques:\n${d.highlights.map((h) => `  • ${h}`).join("\n")}` : "",
-    ].filter(Boolean).join("\n");
-  };
-
-  const handleCopy = async () => {
-    if (!data) return;
-    try {
-      await navigator.clipboard.writeText(buildText(data));
-      setCopied(true);
-      toast({ title: "Copiado!", description: "Insight copiado para a área de transferência." });
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast({ title: "Erro ao copiar", variant: "destructive" });
-    }
-  };
-
-
-
   const filterChips = [
     categoryName && `Categoria: ${categoryName}`,
     supplierName && `Fornecedor: ${supplierName}`,
@@ -128,7 +78,7 @@ export function MarketIntelligenceInsightsCard({
   return (
     <TooltipProvider>
       <Card className="border-primary/30 bg-gradient-to-br from-primary/5 via-background to-chart-2/5 animate-fade-in">
-        <CardHeader className="flex flex-row items-start justify-between gap-3 pb-3">
+        <CardHeader className="pb-3">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-base">
               <Sparkles className="h-5 w-5 text-primary" />
@@ -143,7 +93,6 @@ export function MarketIntelligenceInsightsCard({
                   <TooltipContent>
                     <p className="text-xs">
                       Gerado em {data.generated_at ? new Date(data.generated_at).toLocaleString("pt-BR") : "—"}.
-                      <br />Clique em atualizar para regenerar.
                     </p>
                   </TooltipContent>
                 </Tooltip>
@@ -157,39 +106,6 @@ export function MarketIntelligenceInsightsCard({
                 </Badge>
               ))}
             </CardDescription>
-          </div>
-          <div className="flex items-center gap-1">
-            {data && !data.empty && (
-              <>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="icon" onClick={handleCopy} aria-label="Copiar insight">
-                      {copied ? <Check className="h-4 w-4 text-chart-2" /> : <Copy className="h-4 w-4" />}
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>Copiar para área de transferência</TooltipContent>
-                </Tooltip>
-              </>
-            )}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={handleRegenerate}
-                  disabled={isFetching}
-                  aria-label="Regenerar insights"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isFetching ? "animate-spin" : ""}`} />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="max-w-[240px]">
-                <p className="text-xs font-medium">Regenerar (ignora cache)</p>
-                <p className="text-[10px] text-muted-foreground mt-0.5">
-                  Consome créditos de IA. O cache automático vale 6h — só regenere se os dados mudaram.
-                </p>
-              </TooltipContent>
-            </Tooltip>
           </div>
         </CardHeader>
         <CardContent>
