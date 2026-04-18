@@ -14,12 +14,13 @@ import { Brain, RefreshCw, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
+import { useDebouncedFilters } from "@/hooks/useDebouncedFilters";
 
 export default function CommercialIntelligencePage() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
   const [lastRefresh, setLastRefresh] = useState<Date>(new Date());
-  const [filters, setFilters] = useState<IntelligenceFilters>({
+  const [rawFilters, setRawFilters] = useState<IntelligenceFilters>({
     days: 30,
     categoryId: null,
     categoryName: null,
