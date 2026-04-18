@@ -65,16 +65,7 @@ const sortOptions: { value: SortOption; label: string }[] = [
   { value: "lowest", label: "Menor valor" },
   { value: "expiring", label: "Vencimento próximo" },
 ];
-  if (!validUntil) return null;
-  const date = new Date(validUntil);
-  const days = differenceInDays(date, new Date());
-  const expired = isPast(date);
 
-  if (expired) return { label: "Vencido", color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 3) return { label: `${days}d restante(s)`, color: "text-destructive", bgColor: "bg-destructive/10", urgent: true };
-  if (days <= 7) return { label: `${days}d restantes`, color: "text-warning", bgColor: "bg-warning/10", urgent: true };
-  return { label: format(date, "dd/MM/yyyy", { locale: ptBR }), color: "text-muted-foreground", bgColor: "", urgent: false };
-}
 
 export default function QuotesListPage() {
   const navigate = useNavigate();

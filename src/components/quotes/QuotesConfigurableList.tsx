@@ -19,7 +19,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip as _Tooltip, TooltipContent as _TooltipContent, TooltipTrigger as _TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Select,
   SelectContent,
