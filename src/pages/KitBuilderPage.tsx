@@ -41,6 +41,8 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { logger } from '@/lib/logger';
 import { useKitBuilderQuote } from './kit-builder/useKitBuilderQuote';
 import { useKitWizardShortcuts } from '@/hooks/useKitWizardShortcuts';
+import { useTemplateSnapshot } from '@/hooks/useTemplateSnapshot';
+import { useCustomKitsRealtime } from '@/hooks/useCustomKitsRealtime';
 import { KitMobileSummaryBar } from '@/components/kit-builder/KitMobileSummaryBar';
 import { KitHealthCard } from '@/components/kit-builder/KitHealthCard';
 import { KitOccasionSelector, OCCASIONS, type Occasion } from '@/components/kit-builder/KitOccasionSelector';
@@ -62,10 +64,13 @@ export default function KitBuilderPage() {
   const [searchParams] = useSearchParams();
   const kitIdParam = searchParams.get('kit');
   const productIdParam = searchParams.get('product');
+  const templateIdParam = searchParams.get('template');
   const [currentKitId, setCurrentKitId] = useState<string | undefined>(kitIdParam || undefined);
   const [occasion, setOccasion] = useState<Occasion | null>(null);
   const hasLoadedRef = useRef(false);
   const hasLoadedProductRef = useRef(false);
+  const hasLoadedTemplateRef = useRef(false);
+  const hasBumpedRef = useRef(false);
 
   const {
     kitState, setKitType, wizardState, kitQuantity, availableBoxes, availableItems,
@@ -75,8 +80,10 @@ export default function KitBuilderPage() {
     setKitQuantity, setIdentity, goToStep, nextStep, prevStep, resetKit, loadKit,
   } = useKitBuilder();
 
-  const { saveKit, isSaving } = useCustomKitPersistence();
+  const { saveKit, isSaving, bumpLastUsed } = useCustomKitPersistence();
+  const { saveAsTemplate } = useTemplateSnapshot();
   const { handleAddToQuote, isCreatingQuote } = useKitBuilderQuote();
+  useCustomKitsRealtime();
 
   const { lastSavedAt, isSaving: isAutoSaving, autoSavedKitId } = useKitAutoSave(
     kitState, kitQuantity, currentKitId, (id) => setCurrentKitId(id),
