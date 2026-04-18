@@ -6,10 +6,9 @@ import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
-import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, Share2, HelpCircle, Loader2, X } from "lucide-react";
+import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, HelpCircle, X } from "lucide-react";
 import { toast } from "sonner";
 import { BICategoryFocusProvider, useBICategoryFocus } from "@/contexts/BICategoryFocusContext";
-import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -45,7 +44,6 @@ export default function BusinessIntelligencePage() {
   const [briefingOpen, setBriefingOpen] = useState(false);
   const [copilotOpen, setCopilotOpen] = useState(false);
   const [tourForce, setTourForce] = useState(false);
-  const [sharing, setSharing] = useState(false);
 
   const handleSelect = (id: string | null) => {
     setClientId(id);
@@ -75,27 +73,8 @@ export default function BusinessIntelligencePage() {
     nextPeakMonth: seas.nextPeakMonth,
   });
 
-  const handleShare = async () => {
-    if (!clientId) return;
-    setSharing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("bi-share-dossier", {
-        body: { clientId, clientName, ramoAtividade, expiresInDays: 7 },
-      });
-      if (error) throw error;
-      const url = (data as { url?: string })?.url;
-      if (url) {
-        await navigator.clipboard.writeText(url);
-        toast.success("Link copiado!", { description: "Válido por 7 dias · read-only." });
-      }
-    } catch (err) {
-      toast.error("Falha ao gerar link", {
-        description: err instanceof Error ? err.message : "Tente novamente.",
-      });
-    } finally {
-      setSharing(false);
-    }
-  };
+
+
 
   return (
     <MainLayout>
@@ -127,10 +106,6 @@ export default function BusinessIntelligencePage() {
               <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/ferramentas/bi/comparar?ids=${clientId}`)}>
                 <GitCompare className="h-4 w-4" />
                 Comparar
-              </Button>
-              <Button size="sm" variant="outline" className="gap-1.5" onClick={handleShare} disabled={sharing}>
-                {sharing ? <Loader2 className="h-4 w-4 animate-spin" /> : <Share2 className="h-4 w-4" />}
-                Compartilhar
               </Button>
               <Button
                 size="sm"
