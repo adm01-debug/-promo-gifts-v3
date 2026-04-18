@@ -121,6 +121,22 @@ export default function KitBuilderPage() {
 
   const handleResetKit = () => { resetKit(); setCurrentKitId(undefined); };
 
+  const handleDuplicateKit = () => {
+    setCurrentKitId(undefined);
+    setKitName(`${kitState.name || 'Kit'} (cópia)`);
+    toast.success('Kit duplicado — salve para criar uma nova versão');
+  };
+
+  // Wizard keyboard shortcuts (← → 1-4)
+  useKitWizardShortcuts({
+    canProceed: wizardState.canProceed,
+    currentStep: wizardState.currentStep,
+    completedSteps: wizardState.completedSteps,
+    onPrev: prevStep,
+    onNext: nextStep,
+    onJump: goToStep,
+  });
+
   const itemsWeight = kitState.items.reduce((sum, item) => sum + ((item.weight || 0) * item.quantity), 0);
   const weightExceeded = kitState.box?.maxWeight ? itemsWeight > kitState.box.maxWeight : false;
   const weightPercent = kitState.box?.maxWeight ? (itemsWeight / kitState.box.maxWeight) * 100 : 0;
