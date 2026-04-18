@@ -333,6 +333,11 @@ export default function TrendsPage() {
                 Análise de Tendências
               </h1>
               <RealtimeBadge />
+              {demo && (
+                <Badge variant="outline" className="border-chart-4/40 text-chart-4 bg-chart-4/10">
+                  MODO DEMO — dados fictícios
+                </Badge>
+              )}
             </div>
             <p className="text-muted-foreground mt-1">
               {canManage
