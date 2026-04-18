@@ -343,6 +343,7 @@ export default function KitBuilderPage() {
           onReset={handleResetKit}
           kitState={kitState}
           templateId={templateIdParam || undefined}
+          currentKitId={currentKitId || autoSavedKitId || undefined}
           
           onAIApply={(s) => {
             setKitType(s.kit_type);
