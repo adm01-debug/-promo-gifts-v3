@@ -50,6 +50,75 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_insights_cache: {
+        Row: {
+          cache_key: string
+          created_at: string
+          duration_ms: number | null
+          expires_at: string
+          function_name: string
+          id: string
+          model: string | null
+          payload: Json
+          tokens_input: number | null
+          tokens_output: number | null
+          user_id: string
+        }
+        Insert: {
+          cache_key: string
+          created_at?: string
+          duration_ms?: number | null
+          expires_at?: string
+          function_name: string
+          id?: string
+          model?: string | null
+          payload: Json
+          tokens_input?: number | null
+          tokens_output?: number | null
+          user_id: string
+        }
+        Update: {
+          cache_key?: string
+          created_at?: string
+          duration_ms?: number | null
+          expires_at?: string
+          function_name?: string
+          id?: string
+          model?: string | null
+          payload?: Json
+          tokens_input?: number | null
+          tokens_output?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      ai_usage_events: {
+        Row: {
+          created_at: string
+          event_type: string
+          function_name: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_type: string
+          function_name: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_type?: string
+          function_name?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       ai_usage_logs: {
         Row: {
           created_at: string
