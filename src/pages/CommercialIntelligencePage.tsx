@@ -30,6 +30,10 @@ export default function CommercialIntelligencePage() {
     productName: null,
   });
 
+  // Debounce 300ms — evita refetch em cascata ao trocar filtros rapidamente
+  const filters = useDebouncedFilters(rawFilters, 300);
+  const setFilters = setRawFilters;
+
   const handleGlobalRefresh = async () => {
     await queryClient.invalidateQueries();
     setLastRefresh(new Date());
