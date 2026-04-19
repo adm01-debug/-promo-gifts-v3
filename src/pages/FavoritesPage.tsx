@@ -193,6 +193,18 @@ export default function FavoritesPage() {
                 onConfirm={handleClearAll}
                 itemName="favoritos"
               />
+              <Button
+                variant={selectionMode ? "default" : "outline"}
+                size="sm"
+                onClick={toggleSelectionMode}
+                className={cn(
+                  "h-8 text-xs gap-1.5 transition-all",
+                  selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+                )}
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+              </Button>
               <div className="hidden sm:block">
                 <LayoutPopover
                   viewMode={viewMode}
