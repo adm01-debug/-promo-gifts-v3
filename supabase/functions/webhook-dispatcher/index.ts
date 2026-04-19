@@ -58,7 +58,65 @@ Deno.serve(async (req) => {
       });
     }
     let { event, payload } = parsed.data;
-    const { replay_delivery_id } = parsed.data;
+    const { replay_delivery_id, test_mode, test_webhook_id } = parsed.data;
+
+    // Test mode (Onda 13 #9): single-shot, no retries, no DB write, no breaker
+    if (test_mode) {
+      if (!test_webhook_id) {
+        return new Response(JSON.stringify({ error: "test_webhook_id obrigatório em test_mode" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const { data: hook, error: hookErr } = await supabase
+        .from("outbound_webhooks")
+        .select("id, name, url, secret_ref")
+        .eq("id", test_webhook_id)
+        .maybeSingle();
+      if (hookErr || !hook) {
+        return new Response(JSON.stringify({ error: "Webhook não encontrado" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const bodyJson = JSON.stringify({
+        event,
+        timestamp: new Date().toISOString(),
+        test: true,
+        data: payload ?? null,
+      });
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+        "User-Agent": "PromoGifts-Webhooks/1.0 (test)",
+        "X-Event": event,
+        "X-Webhook-Id": hook.id,
+        "X-Test-Mode": "1",
+      };
+      const secret = hook.secret_ref ? Deno.env.get(hook.secret_ref) : null;
+      if (secret) headers["X-Signature-256"] = "sha256=" + await hmacSign(bodyJson, secret);
+      const start = Date.now();
+      try {
+        const res = await fetch(hook.url, { method: "POST", headers, body: bodyJson });
+        const respText = (await res.text()).slice(0, 4000);
+        return new Response(JSON.stringify({
+          ok: true,
+          test_mode: true,
+          webhook_id: hook.id,
+          status_code: res.status,
+          latency_ms: Date.now() - start,
+          response_body: respText,
+          success: res.ok,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      } catch (err) {
+        return new Response(JSON.stringify({
+          ok: true,
+          test_mode: true,
+          webhook_id: hook.id,
+          status_code: null,
+          latency_ms: Date.now() - start,
+          error: err instanceof Error ? err.message : "Erro de rede",
+          success: false,
+        }), { headers: { ...corsHeaders, "Content-Type": "application/json" } });
+      }
+    }
 
     // Replay mode: load the original delivery and re-target only its webhook
     let replayHookId: string | null = null;
