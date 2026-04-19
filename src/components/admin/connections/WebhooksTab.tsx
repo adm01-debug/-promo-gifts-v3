@@ -239,6 +239,10 @@ export function WebhooksTab() {
         </Card>
       </TabsContent>
 
+      <TabsContent value="events" className="space-y-4">
+        <InboundEventsPanel />
+      </TabsContent>
+
       <TabsContent value="failed" className="space-y-4">
         <FailedDeliveriesPanel />
       </TabsContent>
