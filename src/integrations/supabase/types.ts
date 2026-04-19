@@ -457,6 +457,47 @@ export type Database = {
         }
         Relationships: []
       }
+      connection_test_history: {
+        Row: {
+          connection_id: string
+          created_at: string
+          error_message: string | null
+          id: string
+          latency_ms: number | null
+          status_code: number | null
+          success: boolean
+          tested_at: string
+        }
+        Insert: {
+          connection_id: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          status_code?: number | null
+          success?: boolean
+          tested_at?: string
+        }
+        Update: {
+          connection_id?: string
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          latency_ms?: number | null
+          status_code?: number | null
+          success?: boolean
+          tested_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "connection_test_history_connection_id_fkey"
+            columns: ["connection_id"]
+            isOneToOne: false
+            referencedRelation: "external_connections"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       custom_kits: {
         Row: {
           box_data: Json | null
