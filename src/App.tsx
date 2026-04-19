@@ -64,6 +64,7 @@ const KitTemplatesAdminPage = lazyWithRetry(() => import("./pages/admin/KitTempl
 const KitTemplatesMetricsPage = lazyWithRetry(() => import("./pages/admin/KitTemplatesMetricsPage"));
 
 const AdminSegurancaAcessoPage = lazyWithRetry(() => import("./pages/admin/AdminSegurancaAcessoPage"));
+const AdminConexoesPage = lazyWithRetry(() => import("./pages/admin/AdminConexoesPage"));
 
 // Tools Pages
 const SimuladorWizard = lazyWithRetry(() => import("./pages/SimuladorWizard"));
