@@ -1,19 +1,21 @@
 
-Faltam 2 itens da entrega anterior do Connections Hub: rota + sidebar. Plano mínimo e cirúrgico para fechar.
+Connections Hub está 100% entregue (rota, sidebar, 5 abas, edge functions, memória). Não há trabalho pendente das ondas 1-8 nem do hub. Inventar mais "ondas" sem necessidade real seria inflar escopo — proibido pela governança.
 
-# Plano: Finalizar Connections Hub (2 itens)
+Proponho **Onda 9 — Operacionalização do Connections Hub**: 3 itens pequenos que tornam o que já foi construído realmente útil em produção, em vez de criar features novas.
 
-## 1. Registrar rota `/admin/conexoes`
-Em `src/App.tsx`, adicionar import lazy de `AdminConexoesPage` e a rota dentro do bloco `AdminRoute`, ao lado das demais rotas admin (ex: `/admin/seguranca-acesso`).
+# Plano: Onda 9 — Operacionalização (3 itens)
 
-## 2. Adicionar item "Conexões" na sidebar admin
-Em `src/components/layout/SidebarReorganized.tsx` (ou equivalente em uso), incluir entrada com ícone `Plug` (lucide-react), label "Conexões", path `/admin/conexoes`, posicionado logo após "Acesso & Bots" no grupo Admin.
+## 1. Cron de retry para webhooks falhados
+Função `retry_failed_webhook_deliveries()` SECURITY DEFINER que pega entregas em `webhook_deliveries` com `success=false` e `attempt < max_attempts` da última hora, e re-invoca `webhook-dispatcher` via `pg_net`. Cron a cada 10 min. Evita perda silenciosa quando o destino estava fora.
 
-## 3. Salvar memória `mem://integrations/connections-hub`
-Documentar: rota, 5 abas, edge functions (`secrets-manager`, `connection-tester`, `webhook-dispatcher`, `webhook-inbound`, `mcp-server`), tabelas (`external_connections`, `outbound_webhooks`, `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`), eventos suportados e padrão HMAC-SHA256. Atualizar `mem://index.md` com referência.
+## 2. Limpeza automática de logs de webhook (90 dias)
+Função `cleanup_webhook_logs()` apaga `webhook_deliveries` e `inbound_webhook_events` com mais de 90 dias. Cron diário 03:30 UTC (não conflita com cron de hardening 04:00/04:05). Mantém tabelas leves.
+
+## 3. Card "Saúde das Integrações" no AdminConexoesPage
+Componente `IntegrationsHealthCard.tsx` no topo da página `/admin/conexoes` mostrando: total de webhooks ativos, taxa de sucesso 24h (de `webhook_deliveries`), última entrega, conexões com `last_test_ok=false`, chaves MCP usadas nas últimas 24h. Read-only, atualiza a cada 60s.
 
 ## Arquivos
-- **Modificados**: `src/App.tsx`, `src/components/layout/SidebarReorganized.tsx` (confirmar nome real ao executar), `.lovable/memory/index.md`.
-- **Novos**: `.lovable/memory/integrations/connections-hub.md`.
+- **Novos**: `src/components/admin/connections/IntegrationsHealthCard.tsx`, `supabase/migrations/<ts>_webhook_retry_and_cleanup.sql`.
+- **Modificados**: `src/pages/admin/AdminConexoesPage.tsx` (montar card no topo).
 
-Após aprovação, executo na ordem: localizar sidebar real → editar App.tsx → editar sidebar → salvar memória.
+Após aprovação executo na ordem: migração (função retry + função cleanup + 2 crons) → componente de saúde → integração na página.
