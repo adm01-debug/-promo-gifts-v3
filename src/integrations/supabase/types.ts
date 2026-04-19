@@ -761,6 +761,36 @@ export type Database = {
         }
         Relationships: []
       }
+      hardening_health_snapshots: {
+        Row: {
+          created_at: string
+          details: Json
+          failures: string[]
+          id: string
+          max_score: number
+          score: number
+          snapshot_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          failures?: string[]
+          id?: string
+          max_score?: number
+          score: number
+          snapshot_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          failures?: string[]
+          id?: string
+          max_score?: number
+          score?: number
+          snapshot_at?: string
+        }
+        Relationships: []
+      }
       ip_access_control: {
         Row: {
           created_at: string
@@ -2935,6 +2965,7 @@ export type Database = {
         Args: { _function_name: string; _model: string; _user_id: string }
         Returns: Json
       }
+      auto_block_extreme_offenders: { Args: never; Returns: Json }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
       check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
@@ -3125,6 +3156,7 @@ export type Database = {
         }[]
       }
       seed_discount_test_users: { Args: never; Returns: Json }
+      snapshot_hardening_status: { Args: never; Returns: Json }
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
