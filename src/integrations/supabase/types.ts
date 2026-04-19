@@ -647,6 +647,51 @@ export type Database = {
           },
         ]
       }
+      external_connections: {
+        Row: {
+          config: Json
+          created_at: string
+          created_by: string
+          id: string
+          last_test_at: string | null
+          last_test_message: string | null
+          last_test_ok: boolean | null
+          name: string
+          secret_refs: string[]
+          status: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          config?: Json
+          created_at?: string
+          created_by: string
+          id?: string
+          last_test_at?: string | null
+          last_test_message?: string | null
+          last_test_ok?: boolean | null
+          name: string
+          secret_refs?: string[]
+          status?: string
+          type: string
+          updated_at?: string
+        }
+        Update: {
+          config?: Json
+          created_at?: string
+          created_by?: string
+          id?: string
+          last_test_at?: string | null
+          last_test_message?: string | null
+          last_test_ok?: boolean | null
+          name?: string
+          secret_refs?: string[]
+          status?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       follow_up_reminders: {
         Row: {
           completed_at: string | null
@@ -790,6 +835,101 @@ export type Database = {
           snapshot_at?: string
         }
         Relationships: []
+      }
+      inbound_webhook_endpoints: {
+        Row: {
+          active: boolean
+          allowed_events: string[]
+          created_at: string
+          created_by: string
+          description: string | null
+          hmac_secret_ref: string
+          id: string
+          last_received_at: string | null
+          name: string
+          slug: string
+          source_system: string
+          total_invalid: number
+          total_received: number
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          allowed_events?: string[]
+          created_at?: string
+          created_by: string
+          description?: string | null
+          hmac_secret_ref: string
+          id?: string
+          last_received_at?: string | null
+          name: string
+          slug: string
+          source_system: string
+          total_invalid?: number
+          total_received?: number
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          allowed_events?: string[]
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          hmac_secret_ref?: string
+          id?: string
+          last_received_at?: string | null
+          name?: string
+          slug?: string
+          source_system?: string
+          total_invalid?: number
+          total_received?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      inbound_webhook_events: {
+        Row: {
+          endpoint_id: string
+          error: string | null
+          event_type: string | null
+          id: string
+          payload: Json | null
+          processed: boolean
+          received_at: string
+          signature_valid: boolean
+          source_ip: string | null
+        }
+        Insert: {
+          endpoint_id: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed?: boolean
+          received_at?: string
+          signature_valid?: boolean
+          source_ip?: string | null
+        }
+        Update: {
+          endpoint_id?: string
+          error?: string | null
+          event_type?: string | null
+          id?: string
+          payload?: Json | null
+          processed?: boolean
+          received_at?: string
+          signature_valid?: boolean
+          source_ip?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inbound_webhook_events_endpoint_id_fkey"
+            columns: ["endpoint_id"]
+            isOneToOne: false
+            referencedRelation: "inbound_webhook_endpoints"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ip_access_control: {
         Row: {
@@ -1145,6 +1285,51 @@ export type Database = {
           scene_category?: string | null
           scene_title?: string | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      mcp_api_keys: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          key_hash: string
+          key_prefix: string
+          last_used_at: string | null
+          name: string
+          revoked_at: string | null
+          scopes: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          key_hash: string
+          key_prefix: string
+          last_used_at?: string | null
+          name: string
+          revoked_at?: string | null
+          scopes?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          key_hash?: string
+          key_prefix?: string
+          last_used_at?: string | null
+          name?: string
+          revoked_at?: string | null
+          scopes?: string[]
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1553,6 +1738,57 @@ export type Database = {
           settings?: Json | null
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      outbound_webhooks: {
+        Row: {
+          active: boolean
+          created_at: string
+          created_by: string
+          description: string | null
+          events: string[]
+          id: string
+          last_triggered_at: string | null
+          name: string
+          retry_policy: Json
+          secret_ref: string | null
+          total_failure: number
+          total_success: number
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          created_by: string
+          description?: string | null
+          events?: string[]
+          id?: string
+          last_triggered_at?: string | null
+          name: string
+          retry_policy?: Json
+          secret_ref?: string | null
+          total_failure?: number
+          total_success?: number
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          events?: string[]
+          id?: string
+          last_triggered_at?: string | null
+          name?: string
+          retry_policy?: Json
+          secret_ref?: string | null
+          total_failure?: number
+          total_success?: number
+          updated_at?: string
+          url?: string
         }
         Relationships: []
       }
@@ -2917,6 +3153,56 @@ export type Database = {
         }
         Relationships: []
       }
+      webhook_deliveries: {
+        Row: {
+          attempt: number
+          delivered_at: string
+          error_message: string | null
+          event: string
+          id: string
+          payload: Json | null
+          payload_hash: string | null
+          response_body_truncated: string | null
+          status_code: number | null
+          success: boolean
+          webhook_id: string
+        }
+        Insert: {
+          attempt?: number
+          delivered_at?: string
+          error_message?: string | null
+          event: string
+          id?: string
+          payload?: Json | null
+          payload_hash?: string | null
+          response_body_truncated?: string | null
+          status_code?: number | null
+          success?: boolean
+          webhook_id: string
+        }
+        Update: {
+          attempt?: number
+          delivered_at?: string
+          error_message?: string | null
+          event?: string
+          id?: string
+          payload?: Json | null
+          payload_hash?: string | null
+          response_body_truncated?: string | null
+          status_code?: number | null
+          success?: boolean
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "outbound_webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workspace_notifications: {
         Row: {
           action_url: string | null
@@ -3160,6 +3446,13 @@ export type Database = {
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
+      }
+      validate_mcp_key: {
+        Args: { _key_plain: string }
+        Returns: {
+          key_id: string
+          scopes: string[]
+        }[]
       }
     }
     Enums: {
