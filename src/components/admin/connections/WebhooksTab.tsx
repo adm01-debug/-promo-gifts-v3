@@ -12,11 +12,8 @@ import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
 import { FailedDeliveriesPanel } from "./FailedDeliveriesPanel";
-
-const EVENTS = [
-  "quote.created", "quote.approved", "quote.rejected", "quote.sent",
-  "order.created", "kit.shared", "discount.requested", "discount.approved", "discount.rejected",
-];
+import { InboundEventsPanel } from "./InboundEventsPanel";
+import { EventsMultiSelect } from "./EventsMultiSelect";
 
 interface OutboundHook {
   id: string; name: string; url: string; events: string[]; active: boolean;

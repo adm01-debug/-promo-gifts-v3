@@ -165,7 +165,7 @@ export function EventsMultiSelect({ value, onChange }: Props) {
 
       <div className="text-[10px] text-muted-foreground pt-1 border-t">
         {selected.size} evento{selected.size !== 1 ? "s" : ""} selecionado{selected.size !== 1 ? "s" : ""}
-        {ALL_KNOWN_EVENTS.length} no catálogo SSOT.
+        {" · "}{ALL_KNOWN_EVENTS.length} no catálogo SSOT.
       </div>
     </div>
   );
