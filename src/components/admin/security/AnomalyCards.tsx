@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, ShieldAlert, KeyRound, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BlockIpButton } from "./BlockIpButton";
 
 interface AnomalyStats {
   loginFailures24h: number;
