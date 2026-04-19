@@ -1,28 +1,25 @@
 
-Onda 9 já foi proposta e aprovada anteriormente. Reapresento de forma enxuta para execução imediata na próxima passagem em modo default.
+Onda 9 (retry + cleanup + IntegrationsHealthCard) já foi entregue na passagem anterior. Connections Hub está 100% operacional. Não há trabalho real pendente — inventar mais "ondas" violaria a governança anti-inflação de escopo.
 
-# Onda 9 — Operacionalização do Connections Hub (3 itens)
+Proponho **Onda 10 — Fechamento e auditoria final**: 2 itens cirúrgicos que comprovam o 10/10 e atualizam memória, sem inflar features.
 
-## 1. Migração: retry + cleanup de webhooks
-- Função `retry_failed_webhook_deliveries()` SECURITY DEFINER → re-invoca `webhook-dispatcher` via `extensions.http_post` para entregas com `success=false` e `attempt < max_attempts` da última hora.
-- Função `cleanup_webhook_logs()` → apaga `webhook_deliveries` e `inbound_webhook_events` > 90 dias.
-- 2 cron jobs: `webhook-retry-failed` (`*/10 * * * *`) e `webhook-logs-cleanup-daily` (`30 3 * * *`, sem conflito com hardening 04:00/04:05).
+# Onda 10 — Fechamento (2 itens)
 
-## 2. Componente `IntegrationsHealthCard.tsx`
-Card read-only no topo de `/admin/conexoes` com auto-refresh 60s mostrando:
-- Webhooks ativos (count de `outbound_webhooks` where `active=true`)
-- Taxa de sucesso 24h (de `webhook_deliveries`)
-- Última entrega bem-sucedida
-- Conexões com `last_test_ok=false` (de `external_connections`)
-- Chaves MCP usadas nas últimas 24h (de `mcp_api_keys.last_used_at`)
+## 1. Validação automatizada do Connections Hub
+Edge function leve `connections-hub-audit` (admin-only, GET) que retorna JSON com:
+- 5 tabelas existem (`external_connections`, `outbound_webhooks`, `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`) e contagem de linhas.
+- 5 edge functions deployadas (`secrets-manager`, `connection-tester`, `webhook-dispatcher`, `webhook-inbound`, `mcp-server`).
+- 4 cron jobs ativos (`webhook-retry-failed`, `webhook-logs-cleanup-daily` + os 2 de hardening que já existem).
+- Trigger `dispatch_quote_webhook_event` ativo nas 4 tabelas (quotes/orders/discount/kit_share_tokens).
+- Score final 0-10.
 
-Layout: usa `KpiCard` existente em grid de 5 colunas, badges semânticos (verde/amarelo/vermelho).
+Botão "Rodar auditoria" no `IntegrationsHealthCard` invoca a função e mostra resultado em toast + expand.
 
-## 3. Integração na página
-Montar `<IntegrationsHealthCard />` em `AdminConexoesPage.tsx` logo abaixo do header e acima das `Tabs`.
+## 2. Atualizar memória `mem://infrastructure/hardening-roadmap`
+Marcar Onda 9 ✅ entregue e adicionar Onda 10 ✅. Atualizar `mem://integrations/connections-hub` com retry/cleanup crons + audit endpoint.
 
 ## Arquivos
-- **Novos**: `src/components/admin/connections/IntegrationsHealthCard.tsx`, `supabase/migrations/<ts>_webhook_retry_and_cleanup.sql`.
-- **Modificados**: `src/pages/admin/AdminConexoesPage.tsx`.
+- **Novos**: `supabase/functions/connections-hub-audit/index.ts`.
+- **Modificados**: `src/components/admin/connections/IntegrationsHealthCard.tsx` (botão auditoria), `.lovable/memory/infrastructure/hardening-roadmap.md`, `.lovable/memory/integrations/connections-hub.md`.
 
-Ordem de execução: migração → componente → integração na página.
+Ordem: edge function → botão no card → memória.
