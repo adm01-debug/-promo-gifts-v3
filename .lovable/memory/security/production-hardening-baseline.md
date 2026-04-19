@@ -1,12 +1,12 @@
 ---
 name: production-hardening-baseline
-description: Baseline de hardening pré-produção (Ondas 1-6) — storage privado, realtime isolado, HIBP, MFA admin obrigatório, tokens com expiração + auto-lock após 5 falhas/h, CSP sem unsafe-eval, pg_trgm em schema dedicado, Security Center com anomalias 24h + auditoria + tokens suspeitos + force-global-logout + bloqueio temporário de IP + IPs ativos com gestão completa + saúde do hardening + cleanup automático diário via pg_cron
+description: Baseline de hardening pré-produção (Ondas 1-7) — storage privado, realtime isolado, HIBP, MFA admin obrigatório, tokens com expiração + auto-lock após 5 falhas/h, CSP sem unsafe-eval, pg_trgm em schema dedicado, Security Center com anomalias 24h + auditoria + tokens suspeitos + force-global-logout + bloqueio temporário de IP + IPs ativos + saúde do hardening + cleanup automático diário + Top IPs ofensores 24h + alerta automático de regressão de hardening via pg_cron
 type: feature
 ---
 
 # Production Hardening Baseline
 
-Status: Ondas 1-6 completas. Item de rate-limit em edge functions permanece como gap conhecido (sem primitivos de backend consolidados).
+Status: Ondas 1-7 completas. Linter Supabase 0 warnings. Item de rate-limit em edge functions permanece como gap conhecido (sem primitivos de backend consolidados).
 
 ## Onda 1 — Crítico ✅
 1. **Storage**: 4 buckets privados (`personalization-images`, `product-videos`, `supplier-logos`, `component-media`).
@@ -26,15 +26,20 @@ Status: Ondas 1-6 completas. Item de rate-limit em edge functions permanece como
 10. **Force global logout** (`ForceGlobalLogoutDialog` + edge `force-global-logout`): admin-only, confirmação `FORCE_LOGOUT_ALL`, auditoria automática.
 
 ## Onda 5 — Operacional 10/10 ✅
-11. **Aba "Auditoria recente"** (`RecentAuditTable`): últimas 50 entradas de `admin_audit_log` com filtro por ação/admin, busca, drill-down JSON. Auto-refresh 30s.
-12. **Aba "Tokens suspeitos"** (`SuspiciousTokensPanel`): agrupa `public_token_failures` por `resource_id` (>3 falhas/24h), mostra IPs distintos + razões + timestamps. Botão "Revogar" força `status='expired'` em `quote_approval_tokens` ou `kit_share_tokens`.
-13. **Bloqueio temporário de IP** (`BlockIpButton` + edge `block-ip-temporarily`): botão inline em `AnomalyCards` quando há atividade suspeita (≥10 falhas login OU ≥5 token OU ≥20 bots). Insere em `ip_access_control` com `expires_at` configurável (1-720h, default 24h). Auditoria completa em `admin_audit_log` com action `ip_block_temporary`.
-14. **Runbook operacional**: `docs/SECURITY_RUNBOOK.md` — guia 1 página: como usar Security Center, quando acionar force-logout, interpretação de anomalias, escalation path, checklist pós-incidente.
+11. **Aba "Auditoria recente"** (`RecentAuditTable`).
+12. **Aba "Tokens suspeitos"** (`SuspiciousTokensPanel`).
+13. **Bloqueio temporário de IP** (`BlockIpButton` + edge `block-ip-temporarily`).
+14. **Runbook operacional**: `docs/SECURITY_RUNBOOK.md`.
 
 ## Onda 6 — Polimento Final ✅
-15. **Aba "IPs ativos"** (`ActiveIpsList`): tabela completa de `ip_access_control` com filtros allow/block/ativo/expirado + busca por IP/motivo. Ações inline: revogar, estender +24h, converter temporário em permanente. Gestão direta via Supabase (RLS admin existente).
-16. **Card "Saúde do Hardening"** (`HardeningHealthCard`) no topo de `/admin/seguranca-acesso`: checklist visual (✓/✗) com score X/5 lendo estado real via RPC `check_hardening_status()` (SECURITY DEFINER, admin-only). Verifica: 4 buckets privados, realtime isolado, pg_trgm em extensions, MFA enforced, cleanup job ativo.
-17. **Cleanup automático diário** via pg_cron (`cleanup-security-logs-daily`, 03:30 UTC) executando `cleanup_security_logs()` SECURITY DEFINER que limpa: `public_token_failures` >90d, `bot_detection_log` >90d, `admin_audit_log` >365d, `ip_access_control` com expires_at <30d atrás. Retenção de auditoria preserva 1 ano de histórico.
+15. **Aba "IPs ativos"** (`ActiveIpsList`): gestão completa de `ip_access_control`.
+16. **Card "Saúde do Hardening"** (`HardeningHealthCard`) com score 5/5 via RPC `check_hardening_status()`.
+17. **Cleanup automático diário** via pg_cron `cleanup-security-logs-daily` (03:30 UTC) + função `cleanup_security_logs()`.
+
+## Onda 7 — Defesa em Profundidade ✅
+18. **Linter Supabase**: 0 warnings (verificado em 2026-04-19).
+19. **Top IPs ofensores 24h** (`TopOffenderIpsCard`) na aba Anomalias: agrega `login_attempts` (falhas) + `public_token_failures` + `bot_detection_log` (blocked) por IP, mostra os 10 piores com breakdown por categoria e botão "Bloquear IP" inline (reusa `BlockIpButton`). Auto-refresh 60s.
+20. **Alerta automático de regressão** via pg_cron `hardening-regression-check-daily` (04:00 UTC) executando `notify_hardening_regression()` SECURITY DEFINER. Reavalia os mesmos 5 itens de `check_hardening_status()`; se score < 5, insere `workspace_notification` (categoria `security`, type `warning`) para todos os admins. Deduplicação por janela de 20h evita spam diário caso a regressão persista.
 
 ## Itens não aplicados (decisão arquitetural)
 - **Rate limit em edge functions sensíveis** (item 7): backend não tem primitivos consolidados; finding tratado como gap conhecido.
@@ -42,6 +47,6 @@ Status: Ondas 1-6 completas. Item de rate-limit em edge functions permanece como
 ## Wire-ups pós-deploy
 - Buckets privados: novos uploads usam `getPublicUrl()` ou signed URLs.
 - Force-global-logout: APENAS após incidente confirmado.
-- Bloqueio temporário de IP: usar para resposta rápida (24h padrão); aba "IPs ativos" permite estender ou tornar permanente.
+- Bloqueio temporário de IP: usar para resposta rápida (24h padrão); aba "IPs ativos" permite estender ou tornar permanente. Top ofensores 24h facilita identificação visual.
 - Auditoria: tudo crítico (force-logout, ip_block_temporary, role_change) registrado em `admin_audit_log` com IP+UA. Cleanup preserva 365 dias.
-- Saúde do hardening: monitorar score 5/5 — qualquer regressão (ex: bucket virou público) aparece no card sem precisar consultar logs.
+- Saúde do hardening: monitorar score 5/5 — qualquer regressão (ex: bucket virou público, cron desligado) gera notificação automática para admins na manhã seguinte (04:00 UTC).
