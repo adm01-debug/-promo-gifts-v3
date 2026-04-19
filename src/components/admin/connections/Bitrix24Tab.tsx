@@ -6,6 +6,7 @@ import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
+import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
@@ -38,10 +39,11 @@ export function Bitrix24Tab() {
           secretName="BITRIX24_DOMAIN" status={get("BITRIX24_DOMAIN")} onSaved={list} />
         <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
         <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
-        <div className="pt-2">
+        <div className="pt-2 flex gap-2">
           <Button size="sm" disabled={isTesting} onClick={() => test("bitrix24")}>
             {isTesting ? "Testando…" : "Testar conexão (crm.contact.fields)"}
           </Button>
+          <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
         </div>
       </CardContent>
     </Card>
