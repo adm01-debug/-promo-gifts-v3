@@ -272,6 +272,40 @@ export default function FavoritesPage() {
           </div>
         )}
 
+        {/* Selection action bar */}
+        {selectionMode && favoriteProducts.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5 animate-fade-in">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckSquare className="h-4 w-4 text-primary" />
+              <span className="font-medium text-foreground">
+                {selectedIds.size} {selectedIds.size === 1 ? "selecionado" : "selecionados"}
+              </span>
+              <span className="text-muted-foreground">de {filteredProducts.length}</span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Button variant="ghost" size="sm" onClick={selectAllVisible} disabled={selectedIds.size === filteredProducts.length}>
+                Selecionar tudo
+              </Button>
+              <Button variant="ghost" size="sm" onClick={clearSelection} disabled={selectedIds.size === 0}>
+                <X className="h-3.5 w-3.5 mr-1" />
+                Limpar
+              </Button>
+              <DeleteConfirmDialog
+                trigger={
+                  <Button variant="destructive" size="sm" disabled={selectedIds.size === 0}>
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                    Remover ({selectedIds.size})
+                  </Button>
+                }
+                title="Remover selecionados?"
+                description={`Esta ação irá remover ${selectedIds.size} ${selectedIds.size === 1 ? "produto" : "produtos"} dos favoritos.`}
+                onConfirm={handleRemoveSelected}
+                itemName="favoritos selecionados"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Products view */}
         {filteredProducts.length > 0 ? (
           viewMode === "table" ? (
