@@ -14,3 +14,12 @@ verify_jwt = false
 
 [functions.image-proxy]
 verify_jwt = false
+
+[functions.webhook-dispatcher]
+verify_jwt = false
+
+[functions.webhook-inbound]
+verify_jwt = false
+
+[functions.mcp-server]
+verify_jwt = false
