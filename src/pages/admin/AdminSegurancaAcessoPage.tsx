@@ -18,10 +18,12 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3 } from "lucide-react";
+import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SecurityAnalytics } from "@/components/admin/security/SecurityAnalytics";
+import { AnomalyCards } from "@/components/admin/security/AnomalyCards";
+import { ForceGlobalLogoutDialog } from "@/components/admin/security/ForceGlobalLogoutDialog";
 
 interface BotLog {
   id: string;
@@ -166,10 +168,13 @@ export default function AdminSegurancaAcessoPage() {
             <h1 className="font-display text-2xl font-bold tracking-tight">Segurança e Acesso</h1>
             <p className="text-muted-foreground">Bot detection, rate limits e controle manual de IPs (atualiza a cada 30s)</p>
           </div>
-          <Button variant="outline" size="sm" onClick={fetchAll} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-            Atualizar
-          </Button>
+          <div className="flex items-center gap-2">
+            <ForceGlobalLogoutDialog />
+            <Button variant="outline" size="sm" onClick={fetchAll} disabled={isLoading}>
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
+              Atualizar
+            </Button>
+          </div>
         </div>
 
         <div className="grid gap-3 md:grid-cols-4">
@@ -179,13 +184,31 @@ export default function AdminSegurancaAcessoPage() {
           <StatCard label="Bloqueios ativos" value={stats.activeBlocks} icon={<Clock className="h-4 w-4 text-warning" />} valueClass="text-warning" />
         </div>
 
-        <Tabs defaultValue="analytics" className="w-full">
+        <Tabs defaultValue="anomalias" className="w-full">
           <TabsList>
+            <TabsTrigger value="anomalias"><Siren className="h-3.5 w-3.5 mr-1.5" /> Anomalias 24h</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
             <TabsTrigger value="ips">Allow/Block IPs ({ipList.length})</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="anomalias" className="space-y-3">
+            <AnomalyCards />
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Siren className="h-5 w-5" /> Como interpretar</CardTitle>
+                <CardDescription>Indicadores em vermelho exigem investigação imediata</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-muted-foreground space-y-1.5">
+                <p>• <strong>Falhas de login &gt; 50/24h</strong>: possível brute-force — verifique aba "Bot Detection" e use blocklist.</p>
+                <p>• <strong>Bots bloqueados &gt; 100</strong>: scraping ativo — confirme padrão de IPs e bloqueie em massa.</p>
+                <p>• <strong>Falhas de token &gt; 20</strong>: tentativa de adivinhação — token é auto-expirado após 5 falhas/hora.</p>
+                <p>• <strong>IPs distintos em tokens &gt; 30</strong>: possível link vazado — revogue tokens do recurso afetado.</p>
+                <p className="pt-2 border-t border-border/50">Em caso de comprometimento confirmado, use <strong>Forçar logout global</strong> no topo da página.</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="analytics">
             <SecurityAnalytics botLogs={botLogs} onBlockIp={(ip) => quickAddIp(ip, "block")} />

@@ -89,6 +89,9 @@ Deno.serve(async (req: Request) => {
     const crmKey = Deno.env.get("CRM_SUPABASE_ANON_KEY")!;
     const crmClient = createClient(crmUrl, crmKey);
 
+    const clientIp = getClientIpFromReq(req);
+    const clientUa = req.headers.get("user-agent") || null;
+
     if (action === "get_quote") {
       // Fetch token record
       const { data: tokenData, error: tokenError } = await supabase
@@ -98,6 +101,14 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (tokenError || !tokenData) {
+        await supabase.rpc("record_public_token_failure", {
+          _resource_type: "quote",
+          _resource_id: null,
+          _attempted_token: token.substring(0, 32),
+          _ip: clientIp,
+          _ua: clientUa,
+          _reason: "token_not_found",
+        });
         return new Response(
           JSON.stringify({ error: "Token inválido ou expirado" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -106,6 +117,14 @@ Deno.serve(async (req: Request) => {
 
       // Check if expired
       if (tokenData.expires_at && new Date(tokenData.expires_at) < new Date()) {
+        await supabase.rpc("record_public_token_failure", {
+          _resource_type: "quote",
+          _resource_id: tokenData.quote_id,
+          _attempted_token: token.substring(0, 32),
+          _ip: clientIp,
+          _ua: clientUa,
+          _reason: "token_expired",
+        });
         return new Response(
           JSON.stringify({ error: "Este link expirou", expired: true }),
           { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
