@@ -45,6 +45,12 @@ interface AuthContextType {
   isSeller: boolean;
   canManage: boolean;           // admin ou manager
   isAuthenticated: boolean;
+  // MFA / Authenticator Assurance Level
+  currentAAL: 'aal1' | 'aal2' | null;
+  nextAAL: 'aal1' | 'aal2' | null;
+  hasMFA: boolean;              // true se o user possui ao menos 1 fator TOTP verificado
+  mfaRequired: boolean;         // admin/manager sem aal2
+  refreshAAL: () => Promise<void>;
   // Métodos
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
@@ -60,10 +66,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userRole, setUserRole] = useState<AppRole | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  
+  const [currentAAL, setCurrentAAL] = useState<'aal1' | 'aal2' | null>(null);
+  const [nextAAL, setNextAAL] = useState<'aal1' | 'aal2' | null>(null);
+  const [hasMFA, setHasMFA] = useState(false);
+
   // Guards contra race conditions (#4) — usando Promise para coordenar chamadores
   const fetchPromiseRef = useRef<Promise<void> | null>(null);
   const mountedRef = useRef(true);
+
+  const fetchAAL = useCallback(async () => {
+    try {
+      const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      const { data: factorsData } = await supabase.auth.mfa.listFactors();
+      if (!mountedRef.current) return;
+      setCurrentAAL((aalData?.currentLevel ?? null) as 'aal1' | 'aal2' | null);
+      setNextAAL((aalData?.nextLevel ?? null) as 'aal1' | 'aal2' | null);
+      setHasMFA(!!factorsData?.totp?.some((f) => f.status === 'verified'));
+    } catch (e) {
+      if (import.meta.env.DEV) logger.warn('AAL fetch failed', e instanceof Error ? e.message : String(e));
+    }
+  }, []);
 
   const fetchUserData = useCallback(async (userId: string) => {
     // Se já existe um fetch em andamento para este userId, aguardar ao invés de ignorar
@@ -174,12 +196,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Defer Supabase calls with setTimeout to avoid deadlocks
           setTimeout(() => {
             fetchUserData(session.user.id);
+            fetchAAL();
             // Pre-warm external DB to avoid cold starts
             import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb());
           }, 0);
         } else {
           setProfile(null);
           setUserRole(null);
+          setCurrentAAL(null);
+          setNextAAL(null);
+          setHasMFA(false);
           setIsLoading(false);
         }
         // NÃO seta isLoading=false aqui — espera fetchUserData terminar (#5)
@@ -193,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         fetchUserData(session.user.id);
+        fetchAAL();
       } else {
         setIsLoading(false);
       }
@@ -202,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, [fetchUserData]);
+  }, [fetchUserData, fetchAAL]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
@@ -278,6 +305,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
     setUserRole(null);
+    setCurrentAAL(null);
+    setNextAAL(null);
+    setHasMFA(false);
   };
 
   const refreshProfile = async () => {
@@ -292,6 +322,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isManager = userRole === "manager";
   const isSeller = userRole === "vendedor";
   const canManage = isAdmin || isManager;
+  // MFA exigido para qualquer admin/manager que ainda não autenticou em aal2
+  const mfaRequired = canManage && currentAAL !== 'aal2';
 
   const value: AuthContextType = {
     user,
@@ -304,6 +336,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isSeller,
     canManage,
     isAuthenticated: !!user,
+    currentAAL,
+    nextAAL,
+    hasMFA,
+    mfaRequired,
+    refreshAAL: fetchAAL,
     signUp,
     signIn,
     signOut,

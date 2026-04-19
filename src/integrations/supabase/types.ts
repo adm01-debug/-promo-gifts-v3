@@ -1830,6 +1830,39 @@ export type Database = {
         }
         Relationships: []
       }
+      public_token_failures: {
+        Row: {
+          attempted_token: string | null
+          created_at: string
+          id: string
+          ip_address: string | null
+          reason: string | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+        }
+        Insert: {
+          attempted_token?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          reason?: string | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+        }
+        Update: {
+          attempted_token?: string | null
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          reason?: string | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       query_telemetry: {
         Row: {
           count_mode: string | null
@@ -3061,6 +3094,17 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      record_public_token_failure: {
+        Args: {
+          _attempted_token: string
+          _ip: string
+          _reason: string
+          _resource_id: string
+          _resource_type: string
+          _ua: string
+        }
+        Returns: undefined
+      }
       search_products_semantic: {
         Args: { _limit?: number; _products: Json; _query: string }
         Returns: {
@@ -3078,8 +3122,6 @@ export type Database = {
         }[]
       }
       seed_discount_test_users: { Args: never; Returns: Json }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
