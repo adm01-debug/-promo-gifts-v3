@@ -3096,6 +3096,7 @@ export type Database = {
         Args: { p_notification_id: string }
         Returns: undefined
       }
+      notify_hardening_regression: { Args: never; Returns: Json }
       record_public_token_failure: {
         Args: {
           _attempted_token: string

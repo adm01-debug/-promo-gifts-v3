@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, ShieldAlert, KeyRound, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BlockIpButton } from "./BlockIpButton";
+import { TopOffenderIpsCard } from "./TopOffenderIpsCard";
 
 interface AnomalyStats {
   loginFailures24h: number;
@@ -148,6 +149,8 @@ export function AnomalyCards() {
           <BlockIpButton variant="destructive" defaultReason="Bloqueio rápido — anomalia detectada no Security Center" />
         </div>
       )}
+
+      <TopOffenderIpsCard />
     </div>
   );
 }
