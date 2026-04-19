@@ -218,7 +218,23 @@ export function IntegrationsHealthCard() {
           </div>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        {data && (data.staleSecrets > 0 || data.autoDisabledWebhooks > 0) && (
+          <div className="flex flex-wrap gap-2">
+            {data.staleSecrets > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-warning/10 border border-warning/20 text-xs text-warning">
+                <AlertTriangle className="h-3 w-3" />
+                {data.staleSecrets} {data.staleSecrets === 1 ? "credencial" : "credenciais"} sem rotação há &gt;90 dias
+              </div>
+            )}
+            {data.autoDisabledWebhooks > 0 && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-md bg-destructive/10 border border-destructive/20 text-xs text-destructive">
+                <AlertTriangle className="h-3 w-3" />
+                {data.autoDisabledWebhooks} webhook(s) desativados pelo circuit breaker
+              </div>
+            )}
+          </div>
+        )}
         {isLoading || !data ? (
           <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
             {Array.from({ length: 5 }).map((_, i) => (
