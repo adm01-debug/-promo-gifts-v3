@@ -3,9 +3,11 @@
  * Card read-only no topo de /admin/conexoes com auto-refresh 60s.
  * Mostra saúde agregada de webhooks, conexões e MCP keys.
  */
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import {
   Activity,
@@ -15,10 +17,13 @@ import {
   KeyRound,
   Clock,
   RefreshCw,
+  ShieldCheck,
+  Loader2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { toast } from "sonner";
 
 interface HealthData {
   activeWebhooks: number;
@@ -128,12 +133,32 @@ function Metric({ icon: Icon, label, value, badge, tone = "default" }: MetricPro
 }
 
 export function IntegrationsHealthCard() {
+  const [auditing, setAuditing] = useState(false);
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["integrations-health"],
     queryFn: fetchHealth,
     refetchInterval: 60_000,
     staleTime: 30_000,
   });
+
+  const handleAudit = async () => {
+    setAuditing(true);
+    try {
+      const { data: report, error } = await supabase.functions.invoke("connections-hub-audit");
+      if (error) throw error;
+      const score = report?.score ?? 0;
+      const passed = report?.passed ?? 0;
+      const total = report?.total ?? 0;
+      const msg = `Auditoria: ${score}/10 (${passed}/${total} checks)`;
+      if (score >= 8) toast.success(msg);
+      else if (score >= 5) toast.warning(msg);
+      else toast.error(msg);
+    } catch (err) {
+      toast.error(`Falha na auditoria: ${(err as Error).message}`);
+    } finally {
+      setAuditing(false);
+    }
+  };
 
   const successTone =
     data?.successRate24h === null
@@ -154,15 +179,21 @@ export function IntegrationsHealthCard() {
             <Activity className="h-4 w-4 text-primary" aria-hidden="true" />
             Saúde das Integrações
           </CardTitle>
-          <button
-            type="button"
-            onClick={() => refetch()}
-            className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
-            aria-label="Atualizar saúde das integrações"
-          >
-            <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
-            {isFetching ? "Atualizando…" : "Auto 60s"}
-          </button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" onClick={handleAudit} disabled={auditing} className="h-7 text-xs">
+              {auditing ? <Loader2 className="h-3 w-3 animate-spin" /> : <ShieldCheck className="h-3 w-3" />}
+              Rodar auditoria
+            </Button>
+            <button
+              type="button"
+              onClick={() => refetch()}
+              className="text-xs text-muted-foreground hover:text-foreground inline-flex items-center gap-1 transition-colors"
+              aria-label="Atualizar saúde das integrações"
+            >
+              <RefreshCw className={cn("h-3 w-3", isFetching && "animate-spin")} />
+              {isFetching ? "Atualizando…" : "Auto 60s"}
+            </button>
+          </div>
         </div>
       </CardHeader>
       <CardContent>
