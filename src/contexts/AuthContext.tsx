@@ -45,6 +45,12 @@ interface AuthContextType {
   isSeller: boolean;
   canManage: boolean;           // admin ou manager
   isAuthenticated: boolean;
+  // MFA / Authenticator Assurance Level
+  currentAAL: 'aal1' | 'aal2' | null;
+  nextAAL: 'aal1' | 'aal2' | null;
+  hasMFA: boolean;              // true se o user possui ao menos 1 fator TOTP verificado
+  mfaRequired: boolean;         // admin/manager sem aal2
+  refreshAAL: () => Promise<void>;
   // Métodos
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
