@@ -1,56 +1,51 @@
 
 
-## Plano: Onda 12 — Melhorias #4, #5, #6 do Connections Hub
+## Status: Connections Hub já está em 10/10 ✅
 
-Status atual: #1 (rotação de secrets), #2 (replay), #3 (circuit breaker) entregues na Onda 11. Restam 3 para 10/10. Execução autônoma sequencial conforme `mem://~user`.
+As 6 melhorias do roadmap original foram **todas entregues** nas Ondas 11 e 12:
 
----
+| # | Melhoria | Status | Onda |
+|---|---|---|---|
+| 1 | Rotação de secrets versionada | ✅ | 11 |
+| 2 | Replay manual de webhooks | ✅ | 11 |
+| 3 | Circuit breaker | ✅ | 11 |
+| 4 | Timeline por conexão | ✅ | 12 |
+| 5 | Dashboard inbound | ✅ | 12 |
+| 6 | Editor visual de eventos | ✅ | 12 |
 
-### Etapa 1 — Painel de timeline por conexão (#4)
-
-**Migração:** nova tabela `connection_test_history` (`connection_id`, `tested_at`, `success`, `latency_ms`, `status_code`, `error_message`) + RLS admin-only + índice `(connection_id, tested_at desc)` + trigger de retenção (mantém últimos 200 por conexão).
-
-**Edge function:** `connection-tester` insere 1 linha em `connection_test_history` a cada teste, além de atualizar `external_connections.last_test_*` (já faz).
-
-**UI:** novo `ConnectionTimelineDrawer.tsx` (Sheet lateral) com:
-- Sparkline `recharts` de `latency_ms` últimos 7 dias
-- Tabela paginada dos últimos 50 testes (timestamp / status / latência / erro truncado)
-- Card "Top 5 erros agrupados" (group by `error_message`)
-- Botão "Histórico" em cada card de conexão (Supabase, Bitrix, n8n, MCP).
+Confirmado em `mem://integrations/connections-hub` e nos arquivos do projeto (`ConnectionTimelineDrawer.tsx`, `InboundEventsPanel.tsx`, `EventsMultiSelect.tsx`, `FailedDeliveriesPanel.tsx`, tabela `connection_test_history`, edge functions atualizadas).
 
 ---
 
-### Etapa 2 — Dashboard de eventos inbound (#5)
+## Próximo nível: Onda 13 — Excelência operacional (3 melhorias novas opcionais)
 
-Sem migração — `inbound_webhook_events` já existe.
+Para manter "perfeição contínua" conforme `mem://~user`, identifiquei **3 evoluções de próximo nível** que elevam o Hub de 10/10 funcional para **classe enterprise**:
 
-**UI:** novo `InboundEventsPanel.tsx` adicionado como sub-aba dentro de `WebhooksTab` ("Entrada › Eventos recebidos"):
-- KPIs 7d: total, % HMAC inválido (alerta amarelo >5%, vermelho >15%), % não processado
-- Gráfico de barras `recharts`: volume/dia por endpoint
-- Tabela paginada: `received_at`, endpoint, `event_type`, `signature_valid`, `processed`, `source_ip`
-- Drawer ao clicar em linha → JSON pretty-print do `payload`
-- Filtros: período (24h/7d/30d), endpoint, só inválidos, só não processados.
+### #7 — Notificações proativas de incidentes
+Hoje o `IntegrationsHealthCard` mostra alertas só quando o admin abre `/admin/conexoes`. Adicionar:
+- Cron `connections-health-check` (a cada 15min) que chama `connection-tester` em todas conexões `active`
+- Insere `workspace_notifications` (categoria `integrations`) quando: conexão cai, webhook auto-desabilitado, secret >90d
+- Dedupe 4h por evento (mesmo padrão de `notify_hardening_regression`)
 
----
+### #8 — Métricas exportáveis (CSV/JSON)
+Botão "Exportar" em cada painel:
+- Timeline → CSV dos últimos N testes da conexão
+- Inbound events → CSV filtrado (período/endpoint)
+- Failed deliveries → JSON para debug externo
+- Componente `ExportButton` reusável (já temos `papaparse` no projeto)
 
-### Etapa 3 — Editor visual de eventos do webhook outbound (#6)
-
-**Catálogo SSOT:** novo `src/lib/webhook-events-catalog.ts`:
-- Quote: created/updated/approved/rejected/expired
-- Order: created/approved/fulfilled/cancelled
-- Discount: requested/approved/rejected
-- Kit: created/shared/viewed
-
-**UI:** novo `<EventsMultiSelect>` substitui input livre no formulário de outbound webhook em `WebhooksTab`:
-- Multi-select agrupado por categoria com busca interna
-- "Selecionar todos do grupo" por categoria
-- Eventos legacy (fora do catálogo) preservados como chips com badge "legacy"
-
-**Memória:** atualizar `mem://integrations/connections-hub` registrando Onda 12 + adicionar 5° linha no `IntegrationsHealthCard` ("Histórico de testes ativo") fechando 10/10.
+### #9 — Playground de webhook outbound
+Novo card "Testar payload" no formulário de outbound webhook:
+- Seleciona evento do catálogo SSOT (`webhook-events-catalog`)
+- Mostra payload de exemplo gerado a partir de schema
+- Botão "Disparar teste" → invoca `webhook-dispatcher` com flag `test_mode=true` (não conta no `consecutive_failures`)
+- Exibe status code, latência e response body em tempo real
 
 ---
 
 ### Sequenciamento
 
-Etapa 1 → Etapa 2 → Etapa 3 → atualização de memória. Sem pausas, sem perguntas intermediárias. Cada etapa termina apenas com suggestion de teste no final da Onda completa.
+#7 → #8 → #9 → atualização de `mem://integrations/connections-hub` (Onda 13).
+
+Sem pausas, sem perguntas. Cada etapa termina com confirmação visual. Ao final: Hub em **classe enterprise** com observabilidade ativa, exportação de auditoria e DX de testes.
 
