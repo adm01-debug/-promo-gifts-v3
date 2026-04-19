@@ -219,6 +219,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       
       if (session?.user) {
         fetchUserData(session.user.id);
+        fetchAAL();
       } else {
         setIsLoading(false);
       }
@@ -228,7 +229,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       mountedRef.current = false;
       subscription.unsubscribe();
     };
-  }, [fetchUserData]);
+  }, [fetchUserData, fetchAAL]);
 
   const signUp = async (email: string, password: string, fullName: string) => {
     const redirectUrl = `${window.location.origin}/`;
