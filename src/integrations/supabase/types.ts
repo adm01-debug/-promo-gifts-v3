@@ -1744,6 +1744,9 @@ export type Database = {
       outbound_webhooks: {
         Row: {
           active: boolean
+          auto_disabled_at: string | null
+          auto_disabled_reason: string | null
+          consecutive_failures: number
           created_at: string
           created_by: string
           description: string | null
@@ -1760,6 +1763,9 @@ export type Database = {
         }
         Insert: {
           active?: boolean
+          auto_disabled_at?: string | null
+          auto_disabled_reason?: string | null
+          consecutive_failures?: number
           created_at?: string
           created_by: string
           description?: string | null
@@ -1776,6 +1782,9 @@ export type Database = {
         }
         Update: {
           active?: boolean
+          auto_disabled_at?: string | null
+          auto_disabled_reason?: string | null
+          consecutive_failures?: number
           created_at?: string
           created_by?: string
           description?: string | null
@@ -2863,6 +2872,36 @@ export type Database = {
           search_context?: string | null
           search_term?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      secret_rotation_log: {
+        Row: {
+          id: string
+          new_suffix: string | null
+          notes: string | null
+          previous_suffix: string | null
+          rotated_at: string
+          rotated_by: string
+          secret_name: string
+        }
+        Insert: {
+          id?: string
+          new_suffix?: string | null
+          notes?: string | null
+          previous_suffix?: string | null
+          rotated_at?: string
+          rotated_by: string
+          secret_name: string
+        }
+        Update: {
+          id?: string
+          new_suffix?: string | null
+          notes?: string | null
+          previous_suffix?: string | null
+          rotated_at?: string
+          rotated_by?: string
+          secret_name?: string
         }
         Relationships: []
       }
