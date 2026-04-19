@@ -18,7 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren, History, KeySquare } from "lucide-react";
+import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren, History, KeySquare, Network } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SecurityAnalytics } from "@/components/admin/security/SecurityAnalytics";
@@ -26,6 +26,8 @@ import { AnomalyCards } from "@/components/admin/security/AnomalyCards";
 import { ForceGlobalLogoutDialog } from "@/components/admin/security/ForceGlobalLogoutDialog";
 import { RecentAuditTable } from "@/components/admin/security/RecentAuditTable";
 import { SuspiciousTokensPanel } from "@/components/admin/security/SuspiciousTokensPanel";
+import { HardeningHealthCard } from "@/components/admin/security/HardeningHealthCard";
+import { ActiveIpsList } from "@/components/admin/security/ActiveIpsList";
 
 interface BotLog {
   id: string;
@@ -179,6 +181,8 @@ export default function AdminSegurancaAcessoPage() {
           </div>
         </div>
 
+        <HardeningHealthCard />
+
         <div className="grid gap-3 md:grid-cols-4">
           <StatCard label="Detecções (200 últimas)" value={stats.total} icon={<Activity className="h-4 w-4 text-muted-foreground" />} />
           <StatCard label="Bloqueadas" value={stats.blocked} icon={<Ban className="h-4 w-4 text-destructive" />} valueClass="text-destructive" />
@@ -191,6 +195,7 @@ export default function AdminSegurancaAcessoPage() {
             <TabsTrigger value="anomalias"><Siren className="h-3.5 w-3.5 mr-1.5" /> Anomalias 24h</TabsTrigger>
             <TabsTrigger value="audit"><History className="h-3.5 w-3.5 mr-1.5" /> Auditoria</TabsTrigger>
             <TabsTrigger value="tokens"><KeySquare className="h-3.5 w-3.5 mr-1.5" /> Tokens suspeitos</TabsTrigger>
+            <TabsTrigger value="active-ips"><Network className="h-3.5 w-3.5 mr-1.5" /> IPs ativos</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
@@ -220,6 +225,10 @@ export default function AdminSegurancaAcessoPage() {
 
           <TabsContent value="tokens">
             <SuspiciousTokensPanel />
+          </TabsContent>
+
+          <TabsContent value="active-ips">
+            <ActiveIpsList />
           </TabsContent>
 
           <TabsContent value="analytics">
