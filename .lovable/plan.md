@@ -1,28 +1,21 @@
-# Análise de Segurança — Vetores de Ataque & Plano de Defesa Pré-Produção
 
-Coloquei o "chapéu de atacante" e mapeei como invadiria este sistema hoje, baseado em scan automatizado + leitura do código. Abaixo, **vetores reais** + plano de hardening.
+A onda anterior de hardening (Ondas 1-3) foi entregue. Restam 2 itens marcados como gap conhecido + 3 melhorias incrementais para fechar o baseline 10/10. Plano focado, sem expandir escopo.
 
-## 🎯 Como eu invadiria (vetores priorizados)
+# Plano: Hardening Onda 4 — Fechamento 10/10 (5 itens)
 
-### **CRÍTICO — exploráveis em minutos**
+## Onda A — Fechar gaps conhecidos
+1. **Rate-limit por usuário em edge functions sensíveis** — usar `check_rate_limit(_identifier, _endpoint, ...)` (já existe no DB) em `manage-users` (10/min), `bitrix-sync` (30/min) e `quote-sync` (60/min). Helper compartilhado em `supabase/functions/_shared/rate-limit.ts` para reuso.
+2. **Invocar `record_public_token_failure` nas edge functions públicas** — wire-up em `quote-public-view` e `kit-public-view`: ao detectar token inválido/expirado/já-respondido, gravar falha com IP + UA. Aciona auto-expiração após 5 falhas/h.
 
-1. **Buckets storage públicos com listagem** (`personalization-images`, `product-videos`, `supplier-logos`, `component-media`) — qualquer um faz `GET /storage/v1/object/list/<bucket>` e baixa **todos os arquivos**, incluindo logos de clientes, mockups confidenciais e mídias internas. Scan confirmou 4 buckets vulneráveis.
-2. **Vazamento Realtime de dados sensíveis** — tabelas `discount_approval_requests` (descontos/notas admin), `kit_variants`, `kit_comments` publicadas sem isolamento por tópico. Um vendedor logado pode subscrever o canal e receber alterações de orçamentos/kits de outros vendedores em tempo real.
-3. **Brute-force de senhas** — sem HIBP (leaked password protection) habilitado. Senhas como "Promogifts2024" são aceitas. Combinado com lista de e-mails de vendedores conhecidos = risco real.
+## Onda B — Security Center mínimo
+3. **Página `/admin/seguranca-acesso` ganha aba "Anomalias"** — cards somando últimas 24h: falhas de login, hits de bot_detection, falhas de token público, IPs distintos por token. Só leitura, usa SELECT direto via RLS de admin.
+4. **Botão "Forçar logout global"** na mesma página — edge function `force-global-logout` (admin-only) que revoga refresh tokens via Admin API. Confirmação dupla obrigatória.
 
-### **ALTO — exploráveis com esforço moderado**
+## Onda C — Wire-up & memória
+5. **Atualizar `mem://security/production-hardening-baseline`** marcando itens 4 e 7 como concluídos + documentar Security Center. Ajustar `_headers` se necessário (manter atual).
 
-4. **Brute-force de tokens públicos** (`quote-public-view`, `kit-public-view`) — embora protegidos por bot-detection, o token é a única barreira. Sem **rotação automática + expiração padrão** + alerta em N tentativas inválidas seguidas no mesmo orçamento, um atacante paciente eventualmente acerta.
-5. **CSP permissiva** — `script-src 'unsafe-inline' 'unsafe-eval'` permite XSS via qualquer injeção em campo de texto que seja renderizado sem sanitização (notas de orçamento, descrições de kit, observações de carrinho).
-6. **Sem MFA para admin** — uma única senha admin comprometida = controle total de `/admin/*` (gestão de usuários, IP allowlist, descontos).
-7. **Edge functions sem rate-limit em camada de auth** — `manage-users`, `bitrix-sync`, `quote-sync` aceitam requests autenticadas sem teto. Token de vendedor vazado → exfiltração massiva via paginação.
+## Arquivos esperados
+- **Novos**: `supabase/functions/_shared/rate-limit.ts`, `supabase/functions/force-global-logout/index.ts`, `src/components/admin/security/AnomalyCards.tsx`, `src/components/admin/security/ForceGlobalLogoutDialog.tsx`.
+- **Modificados**: `supabase/functions/manage-users/index.ts`, `supabase/functions/bitrix-sync/index.ts`, `supabase/functions/quote-sync/index.ts`, `supabase/functions/quote-public-view/index.ts`, `supabase/functions/kit-public-view/index.ts`, `src/pages/admin/SecurityAccessPage.tsx` (ou equivalente — verificarei nome real).
 
-### **MÉDIO — pré-condições específicas**
-
-8. `pg_trgm` **no schema** `public` — vetor para function-shadowing se atacante conseguir CREATE em public (improvável, mas má higiene).
-9. **Logs sem retenção/alerta** — `login_attempts`, `bot_detection_log`, `admin_audit_log` crescem indefinidamente, sem dashboard de anomalias nem trigger para alertar admin de padrão suspeito.
-10. **Headers de resposta sem CSRF token** em mutations sensíveis (aprovação de desconto, criação de orçamento) — embora Supabase use Bearer token (mitiga CSRF clássico), endpoints públicos como `quote-public-view` aceitam POST de qualquer origem.
-
----
-
-## 🛡️ Plano de Hardening — 3 Ond
+Sem migrações novas (tudo usa `check_rate_limit` e `record_public_token_failure` já existentes). Após aprovação executo os 5 itens sequencialmente até build TS limpo.
