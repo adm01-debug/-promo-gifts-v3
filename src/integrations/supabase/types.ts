@@ -3078,8 +3078,6 @@ export type Database = {
         }[]
       }
       seed_discount_test_users: { Args: never; Returns: Json }
-      show_limit: { Args: never; Returns: number }
-      show_trgm: { Args: { "": string }; Returns: string[] }
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }
         Returns: boolean
