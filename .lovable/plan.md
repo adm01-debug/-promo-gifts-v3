@@ -1,23 +1,33 @@
 
-A Onda 4 de hardening foi entregue (anomalias 24h + force-global-logout + token failure tracking). O baseline 10/10 do plano original está completo. O único gap conhecido é rate-limit per-user em edge functions, mas a instrução de plataforma proíbe implementar (sem primitivos consolidados).
+Onda 6 já proposta e aprovação pendente. Re-apresento o mesmo plano focado para o usuário aprovar e eu executar.
 
-Não vou inventar trabalho fictício. Proponho **Onda 5 — Polimento Operacional do Security Center**, focado em 4 melhorias reais e mensuráveis que elevam o módulo de segurança ao nível "production-grade observability".
+# Plano: Hardening Onda 6 — Polimento Final (3 itens)
 
-# Plano: Hardening Onda 5 — Security Center Operacional (4 itens)
+## 1. Aba "IPs ativos" no Security Center
+Lista paginada de `ip_access_control` com filtro allow/block, status (ativo/expirado), criado por, motivo. Ações inline: revogar bloqueio antecipadamente, estender expiração, converter temporário em permanente. Read+write via RLS de admin existente. Componente `ActiveIpsList.tsx`.
 
-## Onda A — Visibilidade
-1. **Aba "Auditoria recente"** em `/admin/seguranca-acesso` — tabela paginada das últimas 50 entradas de `admin_audit_log` com filtros por ação (force_global_logout, role_change, ip_block) e por admin. Drill-down mostra `details` JSON formatado + IP + UA. Read-only via RLS de admin existente.
+## 2. Card "Saúde do Hardening" no topo de `/admin/seguranca-acesso`
+Checklist visual (✓/✗) lendo o estado real do sistema:
+- HIBP ativo + sign-up desabilitado (via `auth.config`)
+- 4 buckets storage privados
+- Realtime sem tabelas sensíveis (`discount_approval_requests`, `kit_variants`, `kit_comments`)
+- pg_trgm em schema `extensions`
+- MFA admin obrigatório (já enforced no AdminRoute)
+- Cleanup automático ativo
 
-2. **Aba "Tokens públicos suspeitos"** — lista quotes/kits com >3 falhas em 24h (de `public_token_failures`), agrupado por `resource_id`, mostra: número de falhas, IPs distintos, primeira/última tentativa, status atual do token. Botão "Revogar token agora" (admin-only) que força `status='expired'`.
+Score consolidado (X/6) com badge colorido. Componente `HardeningHealthCard.tsx` — usa `supabase.rpc` em função SECURITY DEFINER nova `check_hardening_status()` para leituras seguras.
 
-## Onda B — Resposta a incidente
-3. **Botão "Bloquear IP suspeito"** inline nos cards de anomalia — quando um IP aparece em ≥10 falhas de login OU ≥5 falhas de token em 1h, mostra ação rápida que insere em `ip_access_control` com `list_type='block'` e `expires_at = now() + 24h`. Usa edge function `block-ip-temporarily` (admin-only, valida formato IPv4/IPv6).
+## 3. Cleanup automático via pg_cron
+Função `cleanup_security_logs()` SECURITY DEFINER que limpa:
+- `public_token_failures` > 90 dias
+- `bot_detection_log` > 90 dias
+- `admin_audit_log` > 365 dias (preserva histórico anual)
+- `ip_access_control` com `expires_at < now() - 30 days`
 
-## Onda C — Documentação
-4. **Atualizar `mem://security/production-hardening-baseline`** + criar `docs/SECURITY_RUNBOOK.md` curto (1 página) documentando: como usar Security Center, quando acionar force-global-logout, como interpretar anomalias 24h, escalation path. Atualizar `mem://architecture/operational-resilience-and-disaster-recovery` referenciando o novo runbook.
+Job pg_cron diário às 03:30 UTC. Migração nova: 1 (função + cron).
 
 ## Arquivos esperados
-- **Novos**: `src/components/admin/security/RecentAuditTable.tsx`, `src/components/admin/security/SuspiciousTokensPanel.tsx`, `src/components/admin/security/BlockIpButton.tsx`, `supabase/functions/block-ip-temporarily/index.ts`, `docs/SECURITY_RUNBOOK.md`.
-- **Modificados**: `src/pages/admin/AdminSegurancaAcessoPage.tsx` (2 novas abas), `src/components/admin/security/AnomalyCards.tsx` (integrar BlockIpButton), `.lovable/memory/security/production-hardening-baseline.md`, `.lovable/memory/architecture/operational-resilience-and-disaster-recovery.md`.
+- **Novos**: `src/components/admin/security/ActiveIpsList.tsx`, `src/components/admin/security/HardeningHealthCard.tsx`, `supabase/migrations/<ts>_cleanup_security_logs.sql`.
+- **Modificados**: `src/pages/admin/AdminSegurancaAcessoPage.tsx` (1 nova aba + card no topo), `.lovable/memory/security/production-hardening-baseline.md` (documentar Onda 6).
 
-Sem migrações novas — usa `admin_audit_log`, `public_token_failures`, `ip_access_control` já existentes. Após aprovação executo os 4 itens sequencialmente até build TS limpo.
+Após aprovação, executo os 3 itens sequencialmente até build TS limpo + migração validada.
