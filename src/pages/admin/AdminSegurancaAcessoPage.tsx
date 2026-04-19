@@ -18,7 +18,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren, History, KeySquare, Network } from "lucide-react";
+import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren, History, KeySquare, Network, TrendingUp } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SecurityAnalytics } from "@/components/admin/security/SecurityAnalytics";
@@ -28,6 +28,7 @@ import { RecentAuditTable } from "@/components/admin/security/RecentAuditTable";
 import { SuspiciousTokensPanel } from "@/components/admin/security/SuspiciousTokensPanel";
 import { HardeningHealthCard } from "@/components/admin/security/HardeningHealthCard";
 import { ActiveIpsList } from "@/components/admin/security/ActiveIpsList";
+import { AutoDefenseTab } from "@/components/admin/security/AutoDefenseTab";
 
 interface BotLog {
   id: string;
@@ -196,6 +197,7 @@ export default function AdminSegurancaAcessoPage() {
             <TabsTrigger value="audit"><History className="h-3.5 w-3.5 mr-1.5" /> Auditoria</TabsTrigger>
             <TabsTrigger value="tokens"><KeySquare className="h-3.5 w-3.5 mr-1.5" /> Tokens suspeitos</TabsTrigger>
             <TabsTrigger value="active-ips"><Network className="h-3.5 w-3.5 mr-1.5" /> IPs ativos</TabsTrigger>
+            <TabsTrigger value="auto-defense"><TrendingUp className="h-3.5 w-3.5 mr-1.5" /> Histórico & Auto-defesa</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
@@ -229,6 +231,10 @@ export default function AdminSegurancaAcessoPage() {
 
           <TabsContent value="active-ips">
             <ActiveIpsList />
+          </TabsContent>
+
+          <TabsContent value="auto-defense">
+            <AutoDefenseTab />
           </TabsContent>
 
           <TabsContent value="analytics">
