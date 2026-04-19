@@ -19,6 +19,9 @@ const BodySchema = z.object({
   payload: z.unknown().optional(),
   // Replay mode: re-deliver a single failed delivery by id
   replay_delivery_id: z.string().uuid().optional(),
+  // Test mode (Onda 13 #9): dispatch to a specific webhook, no metrics, no breaker, no DB log
+  test_mode: z.boolean().optional(),
+  test_webhook_id: z.string().uuid().optional(),
 });
 
 // Circuit breaker: 5 falhas consecutivas → desativa o webhook
