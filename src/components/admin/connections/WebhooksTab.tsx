@@ -185,6 +185,10 @@ export function WebhooksTab() {
             )}
           </CardContent>
         </Card>
+
+        <WebhookPlaygroundPanel
+          webhooks={outbound.map((h) => ({ id: h.id, name: h.name, url: h.url, events: h.events }))}
+        />
       </TabsContent>
 
       <TabsContent value="inbound" className="space-y-4">

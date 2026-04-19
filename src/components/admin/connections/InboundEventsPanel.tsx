@@ -17,6 +17,7 @@ import {
   Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle,
 } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
+import { ExportButton } from "./ExportButton";
 import {
   Inbox, ShieldAlert, ShieldCheck, AlertTriangle, RefreshCw, Code2, Loader2,
 } from "lucide-react";

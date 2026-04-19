@@ -10,6 +10,7 @@ import { RefreshCw, RotateCw, AlertTriangle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { ExportButton } from "./ExportButton";
 
 interface FailedDelivery {
   id: string;
