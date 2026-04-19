@@ -187,8 +187,10 @@ export default function AdminSegurancaAcessoPage() {
         </div>
 
         <Tabs defaultValue="anomalias" className="w-full">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="anomalias"><Siren className="h-3.5 w-3.5 mr-1.5" /> Anomalias 24h</TabsTrigger>
+            <TabsTrigger value="audit"><History className="h-3.5 w-3.5 mr-1.5" /> Auditoria</TabsTrigger>
+            <TabsTrigger value="tokens"><KeySquare className="h-3.5 w-3.5 mr-1.5" /> Tokens suspeitos</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
@@ -210,6 +212,14 @@ export default function AdminSegurancaAcessoPage() {
                 <p className="pt-2 border-t border-border/50">Em caso de comprometimento confirmado, use <strong>Forçar logout global</strong> no topo da página.</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="audit">
+            <RecentAuditTable />
+          </TabsContent>
+
+          <TabsContent value="tokens">
+            <SuspiciousTokensPanel />
           </TabsContent>
 
           <TabsContent value="analytics">
