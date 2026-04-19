@@ -36,7 +36,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         <Label className="text-sm font-medium">{label}</Label>
         {status?.has_value && !editing && (
           <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-            <Check className="h-3 w-3 text-green-600" />
+            <Check className="h-3 w-3 text-success" />
             ••••{status.masked_suffix} ({status.length} chars)
           </span>
         )}
