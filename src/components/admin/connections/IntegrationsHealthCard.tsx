@@ -33,10 +33,13 @@ interface HealthData {
   lastSuccessAt: string | null;
   failingConnections: number;
   mcpKeysUsed24h: number;
+  staleSecrets: number; // secrets sem rotação há >90 dias (ou nunca rotacionados, com webhooks ativos)
+  autoDisabledWebhooks: number;
 }
 
 async function fetchHealth(): Promise<HealthData> {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
   const [
     { count: activeWebhooks },
@@ -45,6 +48,8 @@ async function fetchHealth(): Promise<HealthData> {
     { data: lastSuccess },
     { count: failingConnections },
     { count: mcpKeysUsed24h },
+    { data: rotations },
+    { count: autoDisabledWebhooks },
   ] = await Promise.all([
     supabase.from("outbound_webhooks").select("id", { count: "exact", head: true }).eq("active", true),
     supabase.from("outbound_webhooks").select("id", { count: "exact", head: true }),
@@ -65,11 +70,26 @@ async function fetchHealth(): Promise<HealthData> {
       .select("id", { count: "exact", head: true })
       .gte("last_used_at", since24h)
       .is("revoked_at", null),
+    supabase
+      .from("secret_rotation_log")
+      .select("secret_name, rotated_at")
+      .order("rotated_at", { ascending: false }),
+    supabase
+      .from("outbound_webhooks")
+      .select("id", { count: "exact", head: true })
+      .not("auto_disabled_at", "is", null),
   ]);
 
   const total = deliveries24h?.length ?? 0;
   const success = deliveries24h?.filter((d) => d.success).length ?? 0;
   const rate = total > 0 ? (success / total) * 100 : null;
+
+  // Últimas rotações por nome de secret
+  const lastBySecret = new Map<string, string>();
+  for (const r of rotations ?? []) {
+    if (!lastBySecret.has(r.secret_name)) lastBySecret.set(r.secret_name, r.rotated_at);
+  }
+  const staleSecrets = Array.from(lastBySecret.values()).filter((t) => t < ninetyDaysAgo).length;
 
   return {
     activeWebhooks: activeWebhooks ?? 0,
@@ -79,6 +99,8 @@ async function fetchHealth(): Promise<HealthData> {
     lastSuccessAt: lastSuccess?.delivered_at ?? null,
     failingConnections: failingConnections ?? 0,
     mcpKeysUsed24h: mcpKeysUsed24h ?? 0,
+    staleSecrets,
+    autoDisabledWebhooks: autoDisabledWebhooks ?? 0,
   };
 }
 
