@@ -1,21 +1,23 @@
 
-A onda anterior de hardening (Ondas 1-3) foi entregue. Restam 2 itens marcados como gap conhecido + 3 melhorias incrementais para fechar o baseline 10/10. Plano focado, sem expandir escopo.
+A Onda 4 de hardening foi entregue (anomalias 24h + force-global-logout + token failure tracking). O baseline 10/10 do plano original está completo. O único gap conhecido é rate-limit per-user em edge functions, mas a instrução de plataforma proíbe implementar (sem primitivos consolidados).
 
-# Plano: Hardening Onda 4 — Fechamento 10/10 (5 itens)
+Não vou inventar trabalho fictício. Proponho **Onda 5 — Polimento Operacional do Security Center**, focado em 4 melhorias reais e mensuráveis que elevam o módulo de segurança ao nível "production-grade observability".
 
-## Onda A — Fechar gaps conhecidos
-1. **Rate-limit por usuário em edge functions sensíveis** — usar `check_rate_limit(_identifier, _endpoint, ...)` (já existe no DB) em `manage-users` (10/min), `bitrix-sync` (30/min) e `quote-sync` (60/min). Helper compartilhado em `supabase/functions/_shared/rate-limit.ts` para reuso.
-2. **Invocar `record_public_token_failure` nas edge functions públicas** — wire-up em `quote-public-view` e `kit-public-view`: ao detectar token inválido/expirado/já-respondido, gravar falha com IP + UA. Aciona auto-expiração após 5 falhas/h.
+# Plano: Hardening Onda 5 — Security Center Operacional (4 itens)
 
-## Onda B — Security Center mínimo
-3. **Página `/admin/seguranca-acesso` ganha aba "Anomalias"** — cards somando últimas 24h: falhas de login, hits de bot_detection, falhas de token público, IPs distintos por token. Só leitura, usa SELECT direto via RLS de admin.
-4. **Botão "Forçar logout global"** na mesma página — edge function `force-global-logout` (admin-only) que revoga refresh tokens via Admin API. Confirmação dupla obrigatória.
+## Onda A — Visibilidade
+1. **Aba "Auditoria recente"** em `/admin/seguranca-acesso` — tabela paginada das últimas 50 entradas de `admin_audit_log` com filtros por ação (force_global_logout, role_change, ip_block) e por admin. Drill-down mostra `details` JSON formatado + IP + UA. Read-only via RLS de admin existente.
 
-## Onda C — Wire-up & memória
-5. **Atualizar `mem://security/production-hardening-baseline`** marcando itens 4 e 7 como concluídos + documentar Security Center. Ajustar `_headers` se necessário (manter atual).
+2. **Aba "Tokens públicos suspeitos"** — lista quotes/kits com >3 falhas em 24h (de `public_token_failures`), agrupado por `resource_id`, mostra: número de falhas, IPs distintos, primeira/última tentativa, status atual do token. Botão "Revogar token agora" (admin-only) que força `status='expired'`.
+
+## Onda B — Resposta a incidente
+3. **Botão "Bloquear IP suspeito"** inline nos cards de anomalia — quando um IP aparece em ≥10 falhas de login OU ≥5 falhas de token em 1h, mostra ação rápida que insere em `ip_access_control` com `list_type='block'` e `expires_at = now() + 24h`. Usa edge function `block-ip-temporarily` (admin-only, valida formato IPv4/IPv6).
+
+## Onda C — Documentação
+4. **Atualizar `mem://security/production-hardening-baseline`** + criar `docs/SECURITY_RUNBOOK.md` curto (1 página) documentando: como usar Security Center, quando acionar force-global-logout, como interpretar anomalias 24h, escalation path. Atualizar `mem://architecture/operational-resilience-and-disaster-recovery` referenciando o novo runbook.
 
 ## Arquivos esperados
-- **Novos**: `supabase/functions/_shared/rate-limit.ts`, `supabase/functions/force-global-logout/index.ts`, `src/components/admin/security/AnomalyCards.tsx`, `src/components/admin/security/ForceGlobalLogoutDialog.tsx`.
-- **Modificados**: `supabase/functions/manage-users/index.ts`, `supabase/functions/bitrix-sync/index.ts`, `supabase/functions/quote-sync/index.ts`, `supabase/functions/quote-public-view/index.ts`, `supabase/functions/kit-public-view/index.ts`, `src/pages/admin/SecurityAccessPage.tsx` (ou equivalente — verificarei nome real).
+- **Novos**: `src/components/admin/security/RecentAuditTable.tsx`, `src/components/admin/security/SuspiciousTokensPanel.tsx`, `src/components/admin/security/BlockIpButton.tsx`, `supabase/functions/block-ip-temporarily/index.ts`, `docs/SECURITY_RUNBOOK.md`.
+- **Modificados**: `src/pages/admin/AdminSegurancaAcessoPage.tsx` (2 novas abas), `src/components/admin/security/AnomalyCards.tsx` (integrar BlockIpButton), `.lovable/memory/security/production-hardening-baseline.md`, `.lovable/memory/architecture/operational-resilience-and-disaster-recovery.md`.
 
-Sem migrações novas (tudo usa `check_rate_limit` e `record_public_token_failure` já existentes). Após aprovação executo os 5 itens sequencialmente até build TS limpo.
+Sem migrações novas — usa `admin_audit_log`, `public_token_failures`, `ip_access_control` já existentes. Após aprovação executo os 4 itens sequencialmente até build TS limpo.
