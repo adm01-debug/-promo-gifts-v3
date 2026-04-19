@@ -1,21 +1,28 @@
 
-Connections Hub está 100% entregue (rota, sidebar, 5 abas, edge functions, memória). Não há trabalho pendente das ondas 1-8 nem do hub. Inventar mais "ondas" sem necessidade real seria inflar escopo — proibido pela governança.
+Onda 9 já foi proposta e aprovada anteriormente. Reapresento de forma enxuta para execução imediata na próxima passagem em modo default.
 
-Proponho **Onda 9 — Operacionalização do Connections Hub**: 3 itens pequenos que tornam o que já foi construído realmente útil em produção, em vez de criar features novas.
+# Onda 9 — Operacionalização do Connections Hub (3 itens)
 
-# Plano: Onda 9 — Operacionalização (3 itens)
+## 1. Migração: retry + cleanup de webhooks
+- Função `retry_failed_webhook_deliveries()` SECURITY DEFINER → re-invoca `webhook-dispatcher` via `extensions.http_post` para entregas com `success=false` e `attempt < max_attempts` da última hora.
+- Função `cleanup_webhook_logs()` → apaga `webhook_deliveries` e `inbound_webhook_events` > 90 dias.
+- 2 cron jobs: `webhook-retry-failed` (`*/10 * * * *`) e `webhook-logs-cleanup-daily` (`30 3 * * *`, sem conflito com hardening 04:00/04:05).
 
-## 1. Cron de retry para webhooks falhados
-Função `retry_failed_webhook_deliveries()` SECURITY DEFINER que pega entregas em `webhook_deliveries` com `success=false` e `attempt < max_attempts` da última hora, e re-invoca `webhook-dispatcher` via `pg_net`. Cron a cada 10 min. Evita perda silenciosa quando o destino estava fora.
+## 2. Componente `IntegrationsHealthCard.tsx`
+Card read-only no topo de `/admin/conexoes` com auto-refresh 60s mostrando:
+- Webhooks ativos (count de `outbound_webhooks` where `active=true`)
+- Taxa de sucesso 24h (de `webhook_deliveries`)
+- Última entrega bem-sucedida
+- Conexões com `last_test_ok=false` (de `external_connections`)
+- Chaves MCP usadas nas últimas 24h (de `mcp_api_keys.last_used_at`)
 
-## 2. Limpeza automática de logs de webhook (90 dias)
-Função `cleanup_webhook_logs()` apaga `webhook_deliveries` e `inbound_webhook_events` com mais de 90 dias. Cron diário 03:30 UTC (não conflita com cron de hardening 04:00/04:05). Mantém tabelas leves.
+Layout: usa `KpiCard` existente em grid de 5 colunas, badges semânticos (verde/amarelo/vermelho).
 
-## 3. Card "Saúde das Integrações" no AdminConexoesPage
-Componente `IntegrationsHealthCard.tsx` no topo da página `/admin/conexoes` mostrando: total de webhooks ativos, taxa de sucesso 24h (de `webhook_deliveries`), última entrega, conexões com `last_test_ok=false`, chaves MCP usadas nas últimas 24h. Read-only, atualiza a cada 60s.
+## 3. Integração na página
+Montar `<IntegrationsHealthCard />` em `AdminConexoesPage.tsx` logo abaixo do header e acima das `Tabs`.
 
 ## Arquivos
 - **Novos**: `src/components/admin/connections/IntegrationsHealthCard.tsx`, `supabase/migrations/<ts>_webhook_retry_and_cleanup.sql`.
-- **Modificados**: `src/pages/admin/AdminConexoesPage.tsx` (montar card no topo).
+- **Modificados**: `src/pages/admin/AdminConexoesPage.tsx`.
 
-Após aprovação executo na ordem: migração (função retry + função cleanup + 2 crons) → componente de saúde → integração na página.
+Ordem de execução: migração → componente → integração na página.
