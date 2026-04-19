@@ -15,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp, CheckSquare, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -196,14 +197,31 @@ export default function FavoritesPage() {
               <Button
                 variant={selectionMode ? "default" : "outline"}
                 size="sm"
-                onClick={toggleSelectionMode}
                 className={cn(
-                  "h-8 text-xs gap-1.5 transition-all",
-                  selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+                  "gap-1.5 h-8 transition-all relative",
+                  selectionMode
+                    ? "bg-primary text-primary-foreground shadow-md hover:bg-primary/90"
+                    : "hover:border-primary/50"
                 )}
+                onClick={toggleSelectionMode}
               >
                 <CheckSquare className="h-3.5 w-3.5" />
-                <span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+                <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+                <AnimatePresence>
+                  {selectionMode && selectedIds.size > 0 && (
+                    <motion.div
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                      className="absolute -top-2 -right-2"
+                    >
+                      <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
+                        {selectedIds.size}
+                      </Badge>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </Button>
               <div className="hidden sm:block">
                 <LayoutPopover
