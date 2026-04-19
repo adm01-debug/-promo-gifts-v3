@@ -3269,6 +3269,7 @@ export type Database = {
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
+      cleanup_webhook_logs: { Args: never; Returns: Json }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: string
@@ -3425,6 +3426,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      retry_failed_webhook_deliveries: { Args: never; Returns: Json }
       search_products_semantic: {
         Args: { _limit?: number; _products: Json; _query: string }
         Returns: {
