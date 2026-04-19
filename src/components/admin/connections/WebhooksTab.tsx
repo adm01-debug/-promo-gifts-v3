@@ -14,6 +14,7 @@ import {
 import { FailedDeliveriesPanel } from "./FailedDeliveriesPanel";
 import { InboundEventsPanel } from "./InboundEventsPanel";
 import { EventsMultiSelect } from "./EventsMultiSelect";
+import { WebhookPlaygroundPanel } from "./WebhookPlaygroundPanel";
 
 interface OutboundHook {
   id: string; name: string; url: string; events: string[]; active: boolean;
