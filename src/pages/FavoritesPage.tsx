@@ -13,7 +13,8 @@ import { getGridColsClass, getGridGapClass } from "@/components/replenishments/V
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
+import { Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp, CheckSquare, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -49,6 +50,8 @@ export default function FavoritesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => loadGridColumns());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch {}
@@ -112,6 +115,36 @@ export default function FavoritesPage() {
     toast.success("Todos os favoritos foram removidos");
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode((prev) => {
+      if (prev) setSelectedIds(new Set());
+      return !prev;
+    });
+  };
+
+  const toggleSelected = (productId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    setSelectedIds(new Set(filteredProducts.map((p) => p.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleRemoveSelected = () => {
+    const ids = Array.from(selectedIds);
+    ids.forEach((id) => toggleFavorite(id));
+    toast.success(`${ids.length} ${ids.length === 1 ? "produto removido" : "produtos removidos"} dos favoritos`);
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  };
+
   const handleRemoveFavorite = (productId: string, productName: string) => {
     toggleFavorite(productId);
     toast.success(`"${productName}" removido dos favoritos`);
@@ -160,6 +193,18 @@ export default function FavoritesPage() {
                 onConfirm={handleClearAll}
                 itemName="favoritos"
               />
+              <Button
+                variant={selectionMode ? "default" : "outline"}
+                size="sm"
+                onClick={toggleSelectionMode}
+                className={cn(
+                  "h-8 text-xs gap-1.5 transition-all",
+                  selectionMode && "bg-primary text-primary-foreground shadow-[0_0_12px_hsl(var(--primary)/0.3)]"
+                )}
+              >
+                <CheckSquare className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+              </Button>
               <div className="hidden sm:block">
                 <LayoutPopover
                   viewMode={viewMode}
@@ -227,6 +272,40 @@ export default function FavoritesPage() {
           </div>
         )}
 
+        {/* Selection action bar */}
+        {selectionMode && favoriteProducts.length > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5 animate-fade-in">
+            <div className="flex items-center gap-2 text-sm">
+              <CheckSquare className="h-4 w-4 text-primary" />
+              <span className="font-medium text-foreground">
+                {selectedIds.size} {selectedIds.size === 1 ? "selecionado" : "selecionados"}
+              </span>
+              <span className="text-muted-foreground">de {filteredProducts.length}</span>
+            </div>
+            <div className="flex gap-2 items-center">
+              <Button variant="ghost" size="sm" onClick={selectAllVisible} disabled={selectedIds.size === filteredProducts.length}>
+                Selecionar tudo
+              </Button>
+              <Button variant="ghost" size="sm" onClick={clearSelection} disabled={selectedIds.size === 0}>
+                <X className="h-3.5 w-3.5 mr-1" />
+                Limpar
+              </Button>
+              <DeleteConfirmDialog
+                trigger={
+                  <Button variant="destructive" size="sm" disabled={selectedIds.size === 0}>
+                    <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                    Remover ({selectedIds.size})
+                  </Button>
+                }
+                title="Remover selecionados?"
+                description={`Esta ação irá remover ${selectedIds.size} ${selectedIds.size === 1 ? "produto" : "produtos"} dos favoritos.`}
+                onConfirm={handleRemoveSelected}
+                itemName="favoritos selecionados"
+              />
+            </div>
+          </div>
+        )}
+
         {/* Products view */}
         {filteredProducts.length > 0 ? (
           viewMode === "table" ? (
@@ -252,46 +331,71 @@ export default function FavoritesPage() {
             <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
               {filteredProducts.map((product, index) => {
                 const variant = variantMap.get(product.id);
+                const isSelected = selectedIds.has(product.id);
                 return (
                   <div
                     key={product.id}
-                    className="animate-fade-in relative"
+                    className={cn(
+                      "animate-fade-in relative rounded-xl transition-all",
+                      selectionMode && "cursor-pointer",
+                      isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    )}
                     style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
+                    onClick={selectionMode ? () => toggleSelected(product.id) : undefined}
                   >
-                    <ProductCard
-                      product={product}
-                      onClick={() => navigate(`/produto/${product.id}`)}
-                      onFavorite={() => handleRemoveFavorite(product.id, product.name)}
-                    />
-                    {/* Overlay: heart + saved color badge */}
-                    <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        aria-label="Remover favorito"
-                        className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveFavorite(product.id, product.name);
-                        }}
-                      >
-                        <Heart className="h-4 w-4 fill-destructive text-destructive" />
-                      </Button>
-                      {variant?.color_name && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-card/90 backdrop-blur-sm text-[10px] gap-1 px-1.5 py-0.5"
-                        >
-                          {variant.color_hex && (
-                            <span
-                              className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
-                              style={{ backgroundColor: variant.color_hex }}
-                            />
-                          )}
-                          <span className="truncate max-w-[80px]">{variant.color_name}</span>
-                        </Badge>
-                      )}
+                    <div className={cn(selectionMode && "pointer-events-none")}>
+                      <ProductCard
+                        product={product}
+                        onClick={() => navigate(`/produto/${product.id}`)}
+                        onFavorite={() => handleRemoveFavorite(product.id, product.name)}
+                      />
                     </div>
+                    {/* Selection checkbox overlay */}
+                    {selectionMode && (
+                      <div className="absolute top-3 left-3 z-20">
+                        <div
+                          className={cn(
+                            "h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all backdrop-blur-sm",
+                            isSelected
+                              ? "bg-primary border-primary"
+                              : "bg-card/90 border-border"
+                          )}
+                        >
+                          {isSelected && <CheckSquare className="h-3.5 w-3.5 text-primary-foreground" />}
+                        </div>
+                      </div>
+                    )}
+                    {/* Overlay: heart + saved color badge */}
+                    {!selectionMode && (
+                      <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          aria-label="Remover favorito"
+                          className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFavorite(product.id, product.name);
+                          }}
+                        >
+                          <Heart className="h-4 w-4 fill-destructive text-destructive" />
+                        </Button>
+                        {variant?.color_name && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-card/90 backdrop-blur-sm text-[10px] gap-1 px-1.5 py-0.5"
+                          >
+                            {variant.color_hex && (
+                              <span
+                                className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                                style={{ backgroundColor: variant.color_hex }}
+                              />
+                            )}
+                            <span className="truncate max-w-[80px]">{variant.color_name}</span>
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
