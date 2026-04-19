@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
+import { FailedDeliveriesPanel } from "./FailedDeliveriesPanel";
 
 const EVENTS = [
   "quote.created", "quote.approved", "quote.rejected", "quote.sent",
@@ -96,6 +97,7 @@ export function WebhooksTab() {
       <TabsList>
         <TabsTrigger value="outbound">Saída</TabsTrigger>
         <TabsTrigger value="inbound">Entrada</TabsTrigger>
+        <TabsTrigger value="failed">Entregas falhas</TabsTrigger>
       </TabsList>
 
       <TabsContent value="outbound" className="space-y-4">
@@ -143,18 +145,48 @@ export function WebhooksTab() {
                   <div key={h.id} className="p-3 border border-border rounded-md">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1 min-w-0">
-                        <div className="font-medium">{h.name}</div>
+                        <div className="font-medium flex items-center gap-2">
+                          {h.name}
+                          {!h.active && (
+                            <Badge variant="outline" className="text-[10px] bg-destructive/10 text-destructive border-destructive/20">
+                              Desativado{(h as OutboundHook & { auto_disabled_at?: string }).auto_disabled_at ? " (auto)" : ""}
+                            </Badge>
+                          )}
+                        </div>
                         <div className="text-xs text-muted-foreground font-mono truncate">{h.url}</div>
                         <div className="flex flex-wrap gap-1 mt-1">
                           {h.events.map((e) => <Badge key={e} variant="secondary" className="text-xs">{e}</Badge>)}
                         </div>
                         <div className="text-xs text-muted-foreground mt-1">
                           ✓ {h.total_success} · ✗ {h.total_failure}
+                          {(h as OutboundHook & { consecutive_failures?: number }).consecutive_failures ? (
+                            <span className="ml-2 text-destructive">
+                              · {(h as OutboundHook & { consecutive_failures: number }).consecutive_failures} falhas seguidas
+                            </span>
+                          ) : null}
                         </div>
+                        {(h as OutboundHook & { auto_disabled_reason?: string }).auto_disabled_reason && (
+                          <p className="text-[11px] text-destructive mt-1">
+                            {(h as OutboundHook & { auto_disabled_reason: string }).auto_disabled_reason}
+                          </p>
+                        )}
                       </div>
-                      <Button size="sm" variant="ghost" onClick={() => remove("outbound_webhooks", h.id)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex flex-col gap-1">
+                        {!h.active && (
+                          <Button size="sm" variant="outline" className="h-7 text-xs"
+                            onClick={async () => {
+                              const { error } = await supabase.from("outbound_webhooks")
+                                .update({ active: true, consecutive_failures: 0, auto_disabled_at: null, auto_disabled_reason: null })
+                                .eq("id", h.id);
+                              if (error) toast.error(error.message); else { toast.success("Reativado"); load(); }
+                            }}>
+                            Reativar
+                          </Button>
+                        )}
+                        <Button size="sm" variant="ghost" onClick={() => remove("outbound_webhooks", h.id)}>
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -215,6 +247,10 @@ export function WebhooksTab() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="failed" className="space-y-4">
+        <FailedDeliveriesPanel />
       </TabsContent>
     </Tabs>
   );

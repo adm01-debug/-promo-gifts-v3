@@ -17,7 +17,12 @@ const corsHeaders = {
 const BodySchema = z.object({
   event: z.string().min(1),
   payload: z.unknown().optional(),
+  // Replay mode: re-deliver a single failed delivery by id
+  replay_delivery_id: z.string().uuid().optional(),
 });
+
+// Circuit breaker: 5 falhas consecutivas → desativa o webhook
+const CIRCUIT_BREAKER_THRESHOLD = 5;
 
 async function hmacSign(payload: string, secret: string): Promise<string> {
   const enc = new TextEncoder();
@@ -49,13 +54,37 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { event, payload } = parsed.data;
+    let { event, payload } = parsed.data;
+    const { replay_delivery_id } = parsed.data;
 
-    const { data: hooks, error } = await supabase
+    // Replay mode: load the original delivery and re-target only its webhook
+    let replayHookId: string | null = null;
+    if (replay_delivery_id) {
+      const { data: orig, error: origErr } = await supabase
+        .from("webhook_deliveries")
+        .select("webhook_id, event, payload")
+        .eq("id", replay_delivery_id)
+        .maybeSingle();
+      if (origErr || !orig) {
+        return new Response(JSON.stringify({ error: "Delivery não encontrada" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      event = orig.event;
+      payload = orig.payload;
+      replayHookId = orig.webhook_id;
+    }
+
+    let hooksQuery = supabase
       .from("outbound_webhooks")
       .select("*")
-      .eq("active", true)
       .contains("events", [event]);
+    if (replayHookId) {
+      hooksQuery = hooksQuery.eq("id", replayHookId); // replay ignora active flag
+    } else {
+      hooksQuery = hooksQuery.eq("active", true);
+    }
+    const { data: hooks, error } = await hooksQuery;
     if (error) throw error;
 
     if (!hooks || hooks.length === 0) {
@@ -112,6 +141,7 @@ Deno.serve(async (req) => {
             await supabase.from("outbound_webhooks").update({
               last_triggered_at: new Date().toISOString(),
               total_success: (hook.total_success ?? 0) + 1,
+              consecutive_failures: 0,
             }).eq("id", hook.id);
             results.push({ webhook_id: hook.id, status: "success", attempt });
           } else if (attempt < max) {
@@ -133,10 +163,25 @@ Deno.serve(async (req) => {
       }
 
       if (!success) {
-        await supabase.from("outbound_webhooks").update({
+        const newConsecutive = (hook.consecutive_failures ?? 0) + 1;
+        const shouldAutoDisable = !replayHookId && newConsecutive >= CIRCUIT_BREAKER_THRESHOLD && hook.active;
+        const updatePayload: Record<string, unknown> = {
           total_failure: (hook.total_failure ?? 0) + 1,
-        }).eq("id", hook.id);
-        results.push({ webhook_id: hook.id, status: "failed", attempts: attempt });
+          consecutive_failures: newConsecutive,
+        };
+        if (shouldAutoDisable) {
+          updatePayload.active = false;
+          updatePayload.auto_disabled_at = new Date().toISOString();
+          updatePayload.auto_disabled_reason = `${newConsecutive} falhas consecutivas (circuit breaker)`;
+        }
+        await supabase.from("outbound_webhooks").update(updatePayload).eq("id", hook.id);
+        results.push({
+          webhook_id: hook.id,
+          status: "failed",
+          attempts: attempt,
+          consecutive_failures: newConsecutive,
+          auto_disabled: shouldAutoDisable,
+        });
       }
     }
 

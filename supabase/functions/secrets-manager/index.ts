@@ -45,10 +45,11 @@ function isAllowedSecretName(name: string): boolean {
 }
 
 const BodySchema = z.object({
-  action: z.enum(["list", "set", "delete", "status"]),
+  action: z.enum(["list", "set", "delete", "status", "rotate", "rotation_history"]),
   names: z.array(z.string()).optional(),
   name: z.string().optional(),
   value: z.string().optional(),
+  notes: z.string().max(500).optional(),
 });
 
 function maskValue(v: string | undefined | null): {
@@ -110,7 +111,66 @@ Deno.serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
-    const { action, names, name, value } = parsed.data;
+    const { action, names, name, value, notes } = parsed.data;
+
+    if (action === "rotation_history") {
+      const baseQ = service
+        .from("secret_rotation_log")
+        .select("*")
+        .order("rotated_at", { ascending: false })
+        .limit(100);
+      const { data: history, error: histErr } = name
+        ? await baseQ.eq("secret_name", name)
+        : await baseQ;
+      if (histErr) throw histErr;
+      return new Response(
+        JSON.stringify({ ok: true, history: history ?? [] }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    if (action === "rotate") {
+      if (!name || !isAllowedSecretName(name)) {
+        return new Response(
+          JSON.stringify({ error: "Nome de secret não permitido" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      if (!value || value.length < 4) {
+        return new Response(
+          JSON.stringify({ error: "Valor inválido para rotação" }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
+      const previous = maskValue(Deno.env.get(name) ?? null);
+      const next = maskValue(value);
+      await service.from("secret_rotation_log").insert({
+        secret_name: name,
+        rotated_by: userData.user.id,
+        previous_suffix: previous.masked_suffix,
+        new_suffix: next.masked_suffix,
+        notes: notes ?? null,
+      });
+      await service.from("admin_audit_log").insert({
+        user_id: userData.user.id,
+        action: "secret_rotate_request",
+        resource_type: "secret",
+        resource_id: name,
+        details: { previous_suffix: previous.masked_suffix, new_suffix: next.masked_suffix },
+      });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          stored: false,
+          requires_platform_action: true,
+          previous_suffix: previous.masked_suffix,
+          new_suffix: next.masked_suffix,
+          message:
+            "Rotação registrada. Atualize o valor no painel de Secrets do Lovable para finalizar a propagação.",
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     if (action === "list" || action === "status") {
       const requested = names && names.length > 0

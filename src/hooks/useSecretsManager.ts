@@ -46,5 +46,38 @@ export function useSecretsManager() {
     return data;
   }, []);
 
-  return { secrets, isLoading, list, setSecret };
+  const rotateSecret = useCallback(async (name: string, value: string, notes?: string) => {
+    const { data, error } = await supabase.functions.invoke("secrets-manager", {
+      body: { action: "rotate", name, value, notes },
+    });
+    if (error) {
+      toast.error("Falha ao rotacionar credencial", { description: error.message });
+      return null;
+    }
+    toast.success("Rotação registrada", {
+      description: data?.message ?? "Atualize o valor no painel de Secrets para finalizar.",
+    });
+    return data;
+  }, []);
+
+  const getRotationHistory = useCallback(async (name?: string) => {
+    const { data, error } = await supabase.functions.invoke("secrets-manager", {
+      body: { action: "rotation_history", name },
+    });
+    if (error) {
+      toast.error("Falha ao carregar histórico", { description: error.message });
+      return [];
+    }
+    return (data?.history ?? []) as Array<{
+      id: string;
+      secret_name: string;
+      rotated_by: string;
+      rotated_at: string;
+      previous_suffix: string | null;
+      new_suffix: string | null;
+      notes: string | null;
+    }>;
+  }, []);
+
+  return { secrets, isLoading, list, setSecret, rotateSecret, getRotationHistory };
 }

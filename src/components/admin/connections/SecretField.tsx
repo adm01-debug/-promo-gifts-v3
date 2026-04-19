@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Eye, EyeOff, Save, RefreshCw, Check } from "lucide-react";
+import { Eye, EyeOff, Save, RefreshCw, Check, RotateCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -14,8 +14,9 @@ interface Props {
 }
 
 export function SecretField({ label, secretName, status, helperText, onSaved }: Props) {
-  const { setSecret } = useSecretsManager();
+  const { setSecret, rotateSecret } = useSecretsManager();
   const [editing, setEditing] = useState(false);
+  const [mode, setMode] = useState<"set" | "rotate">("set");
   const [value, setValue] = useState("");
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -23,12 +24,16 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const handleSave = async () => {
     if (!value || value.length < 4) return;
     setSaving(true);
-    await setSecret(secretName, value);
+    if (mode === "rotate") await rotateSecret(secretName, value);
+    else await setSecret(secretName, value);
     setSaving(false);
     setValue("");
     setEditing(false);
+    setMode("set");
     onSaved?.();
   };
+
+  const startEdit = (m: "set" | "rotate") => { setMode(m); setEditing(true); };
 
   return (
     <div className="space-y-1.5">
@@ -48,7 +53,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               type={show ? "text" : "password"}
               value={value}
               onChange={(e) => setValue(e.target.value)}
-              placeholder={`Cole o valor de ${secretName}…`}
+              placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
               autoFocus
             />
             <button
@@ -61,19 +66,24 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             </button>
           </div>
           <Button size="sm" onClick={handleSave} disabled={saving || value.length < 4}>
-            <Save className="h-4 w-4 mr-1" /> Salvar
+            <Save className="h-4 w-4 mr-1" /> {mode === "rotate" ? "Rotacionar" : "Salvar"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setValue(""); }}>
+          <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setValue(""); setMode("set"); }}>
             Cancelar
           </Button>
         </div>
       ) : (
         <div className="flex gap-2">
           <Input value={status?.has_value ? "•••••••••••••••••" : ""} placeholder="Não configurado" readOnly />
-          <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
+          <Button size="sm" variant="outline" onClick={() => startEdit("set")}>
             <RefreshCw className="h-4 w-4 mr-1" />
             {status?.has_value ? "Atualizar" : "Configurar"}
           </Button>
+          {status?.has_value && (
+            <Button size="sm" variant="outline" onClick={() => startEdit("rotate")} title="Rotacionar (registra no log)">
+              <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
+            </Button>
+          )}
         </div>
       )}
       {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
