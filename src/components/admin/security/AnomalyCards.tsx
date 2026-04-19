@@ -39,11 +39,11 @@ export function AnomalyCards() {
           .eq("blocked", true)
           .gte("created_at", since),
         supabase
-          .from("public_token_failures" as never)
+          .from("public_token_failures")
           .select("*", { count: "exact", head: true })
           .gte("created_at", since),
         supabase
-          .from("public_token_failures" as never)
+          .from("public_token_failures")
           .select("ip_address")
           .gte("created_at", since)
           .limit(1000),
