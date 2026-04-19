@@ -1,31 +1,37 @@
 ---
 name: connections-hub
-description: Hub central /admin/conexoes — 5 abas, 7 tabelas, 5 edge functions, crons, health card, auditoria, rotação de secrets, replay, circuit breaker, timeline por conexão, dashboard inbound, catálogo de eventos SSOT
+description: Hub central /admin/conexoes — 5 abas, 7 tabelas, 6 edge functions (incluindo health-check cron 15min), crons, health card, auditoria, rotação de secrets, replay, circuit breaker, timeline por conexão, dashboard inbound, catálogo de eventos SSOT, exportação CSV/JSON, playground de testes
 type: feature
 ---
 
 # Connections Hub — `/admin/conexoes`
 
 ## Abas (5)
-Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída / Entrada / **Eventos recebidos** / Entregas falhas).
+Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída + **Playground** / Entrada / Eventos recebidos / Entregas falhas).
 
 ## Tabelas (7)
-`external_connections`, `outbound_webhooks` (+ `consecutive_failures`, `auto_disabled_at`, `auto_disabled_reason`), `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`, `secret_rotation_log`, **`connection_test_history`** (retenção automática 200/conexão via trigger).
+`external_connections`, `outbound_webhooks` (+ `consecutive_failures`, `auto_disabled_at`, `auto_disabled_reason`), `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`, `secret_rotation_log`, `connection_test_history` (retenção automática 200/conexão via trigger).
 
-## Edge functions (5)
-`secrets-manager` (list/set/delete/rotate/rotation_history), `connection-tester` (+ grava `connection_test_history`), `webhook-dispatcher` (+ replay + circuit breaker 5 falhas), `webhook-inbound`, `mcp-server`.
+## Edge functions (6)
+`secrets-manager` · `connection-tester` (+ grava `connection_test_history`) · `webhook-dispatcher` (+ replay + circuit breaker + **`test_mode`**) · `webhook-inbound` · `mcp-server` · **`connections-health-check`** (cron `*/15 * * * *`, dedupe 4h via `workspace_notifications.metadata.incident_key`).
 
 ## Onda 11 — hardening
-- Rotação de secrets versionada (`SecretField` + `secret_rotation_log`)
-- Replay manual de entregas falhas (`FailedDeliveriesPanel`)
-- Circuit breaker (`active=false` após 5 falhas seguidas, botão "Reativar")
-- Health card: alertas para `staleSecrets >90d` e `autoDisabledWebhooks > 0`
+- Rotação versionada (`SecretField` + `secret_rotation_log`)
+- Replay manual (`FailedDeliveriesPanel`)
+- Circuit breaker (`active=false` após 5 falhas seguidas)
+- Health card com alertas para staleSecrets/autoDisabled
 
-## Onda 12 — observabilidade & DX (10/10)
-- **#4 Timeline por conexão**: `ConnectionTimelineDrawer` (Sheet) com sparkline `recharts` 7d, tabela paginada 50 testes, top 5 erros agrupados; botão "Histórico" em todas as abas (Bancos, Bitrix24, n8n).
-- **#5 Dashboard inbound**: `InboundEventsPanel` (sub-aba "Eventos recebidos"): KPIs 7d (total, % HMAC inválido com tons de alerta, % não processados), gráfico de barras stacked por endpoint, tabela paginada com filtros (período/endpoint/inválidos/não processados), drawer com payload JSON pretty-print.
-- **#6 Editor visual de eventos**: catálogo SSOT em `src/lib/webhook-events-catalog.ts` (4 grupos: quote/order/discount/kit, 16 eventos), componente `EventsMultiSelect` substitui input livre — multi-select agrupado, busca, "todos do grupo", chips warning para legacy.
+## Onda 12 — observabilidade & DX
+- `ConnectionTimelineDrawer` (sparkline 7d + top 5 erros)
+- `InboundEventsPanel` (KPIs + barras stacked + JSON viewer)
+- `EventsMultiSelect` (catálogo SSOT em `webhook-events-catalog.ts`, 16 eventos)
+
+## Onda 13 — classe enterprise (10/10 ⇒ 11/10)
+- **#7 Notificações proativas**: edge `connections-health-check` + cron 15min insere `workspace_notifications` (categoria `integrations`) para webhooks auto-desabilitados, secrets >90d e conexões caídas na última hora. Dedupe 4h por `incident_key`.
+- **#8 Exportação**: componente `ExportButton` reusável (CSV + JSON, sem deps extras — usa `trends-export.ts`). Aplicado em Timeline, Inbound events e Failed deliveries.
+- **#9 Playground**: `WebhookPlaygroundPanel` na sub-aba "Saída" com seleção de webhook + evento do catálogo, payload de exemplo editável (`webhook-events-payload-samples.ts` com 16 amostras), disparo via `webhook-dispatcher` em `test_mode=true` (não conta `consecutive_failures`, não persiste em `webhook_deliveries`, não aciona breaker).
 
 ## Crons
 - `webhook-retry-failed` `*/10 * * * *`
+- `connections-health-check` `*/15 * * * *` (Onda 13)
 - `webhook-logs-cleanup-daily` `30 3 * * *`
