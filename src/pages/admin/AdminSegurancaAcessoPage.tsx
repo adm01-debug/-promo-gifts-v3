@@ -18,12 +18,14 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren } from "lucide-react";
+import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren, History, KeySquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SecurityAnalytics } from "@/components/admin/security/SecurityAnalytics";
 import { AnomalyCards } from "@/components/admin/security/AnomalyCards";
 import { ForceGlobalLogoutDialog } from "@/components/admin/security/ForceGlobalLogoutDialog";
+import { RecentAuditTable } from "@/components/admin/security/RecentAuditTable";
+import { SuspiciousTokensPanel } from "@/components/admin/security/SuspiciousTokensPanel";
 
 interface BotLog {
   id: string;
