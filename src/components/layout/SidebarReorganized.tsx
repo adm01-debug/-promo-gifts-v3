@@ -36,6 +36,7 @@ import {
   ChevronsDownUp,
   Settings,
   Percent,
+  Plug,
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -125,6 +126,7 @@ const navGroups: NavGroup[] = [
       { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", adminOnly: true },
       { icon: ShieldCheck, label: "Acesso & Bots", href: "/admin/seguranca-acesso", adminOnly: true },
+      { icon: Plug, label: "Conexões", href: "/admin/conexoes", adminOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
         { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
         { icon: Truck, label: "Fornecedores", href: "/admin/cadastros?tab=suppliers" },
