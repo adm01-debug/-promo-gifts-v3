@@ -1,56 +1,56 @@
 
 
-## Sugestões de melhoria — Connections Hub
+## Plano: Onda 12 — Melhorias #4, #5, #6 do Connections Hub
 
-Baseado no estado atual (`mem://integrations/connections-hub`: 5 abas, 6 tabelas, 5 edge functions, crons, health card, auditoria), identifiquei **6 melhorias** organizadas por prioridade. Você escolhe quais executar.
-
----
-
-### 🔴 Alta prioridade (segurança & confiabilidade)
-
-**1. Rotação de secrets com versionamento**
-Hoje o `secrets-manager` lista/seta, mas não há histórico nem rotação programada. Adicionar:
-- Tabela `secret_rotation_log` (quem girou, quando, antigo `masked_suffix`)
-- Botão "Rotacionar" no `SecretField` que aceita novo valor + invalida cache
-- Alerta no `IntegrationsHealthCard` quando secret crítico tem >90 dias
-
-**2. Replay manual de webhook delivery falho**
-Hoje o cron retenta automaticamente entregas <1h. Falta UI para:
-- Listar `webhook_deliveries` com `success=false` na aba Webhooks (tabela paginada)
-- Botão "Reenviar" por linha → invoca `webhook-dispatcher` com o payload original (já temos `payload_hash`)
-- Filtro por evento + período
-
-**3. Circuit breaker por webhook**
-Se um endpoint falha N vezes seguidas, marcar `outbound_webhooks.active = false` automaticamente e disparar notificação. Hoje fica retentando para sempre, gastando quota.
+Status atual: #1 (rotação de secrets), #2 (replay), #3 (circuit breaker) entregues na Onda 11. Restam 3 para 10/10. Execução autônoma sequencial conforme `mem://~user`.
 
 ---
 
-### 🟡 Média prioridade (observabilidade)
+### Etapa 1 — Painel de timeline por conexão (#4)
 
-**4. Painel de timeline por conexão**
-Drilldown ao clicar numa conexão em `external_connections`:
-- Gráfico de latência (`last_test_at` + `latency_ms` histórico — exige nova tabela `connection_test_history`)
-- Últimos 50 testes com status code
-- Top 5 erros agrupados
+**Migração:** nova tabela `connection_test_history` (`connection_id`, `tested_at`, `success`, `latency_ms`, `status_code`, `error_message`) + RLS admin-only + índice `(connection_id, tested_at desc)` + trigger de retenção (mantém últimos 200 por conexão).
 
-**5. Dashboard de eventos inbound**
-Hoje `inbound_webhook_events` só é gravado. Adicionar aba/seção:
-- Volume por endpoint (gráfico 7 dias)
-- Taxa de assinatura HMAC inválida (alerta de tentativas suspeitas)
-- Payload viewer com pretty-print JSON
+**Edge function:** `connection-tester` insere 1 linha em `connection_test_history` a cada teste, além de atualizar `external_connections.last_test_*` (já faz).
+
+**UI:** novo `ConnectionTimelineDrawer.tsx` (Sheet lateral) com:
+- Sparkline `recharts` de `latency_ms` últimos 7 dias
+- Tabela paginada dos últimos 50 testes (timestamp / status / latência / erro truncado)
+- Card "Top 5 erros agrupados" (group by `error_message`)
+- Botão "Histórico" em cada card de conexão (Supabase, Bitrix, n8n, MCP).
 
 ---
 
-### 🟢 Baixa prioridade (DX)
+### Etapa 2 — Dashboard de eventos inbound (#5)
 
-**6. Editor visual de eventos do webhook outbound**
-Hoje `events: string[]` é input livre. Substituir por multi-select com catálogo conhecido (`quote.created`, `order.approved`, `discount.requested`, `kit.shared`, etc.) extraído dos triggers existentes — zero erro de digitação.
+Sem migração — `inbound_webhook_events` já existe.
+
+**UI:** novo `InboundEventsPanel.tsx` adicionado como sub-aba dentro de `WebhooksTab` ("Entrada › Eventos recebidos"):
+- KPIs 7d: total, % HMAC inválido (alerta amarelo >5%, vermelho >15%), % não processado
+- Gráfico de barras `recharts`: volume/dia por endpoint
+- Tabela paginada: `received_at`, endpoint, `event_type`, `signature_valid`, `processed`, `source_ip`
+- Drawer ao clicar em linha → JSON pretty-print do `payload`
+- Filtros: período (24h/7d/30d), endpoint, só inválidos, só não processados.
 
 ---
 
-### Recomendação
+### Etapa 3 — Editor visual de eventos do webhook outbound (#6)
 
-Começar por **#1 + #2 + #3** (mesma onda de hardening, todas tocam segurança/confiabilidade). Estimativa: 1 migração + extensão de 2 edge functions + 2 componentes novos. Sem mudança de arquitetura.
+**Catálogo SSOT:** novo `src/lib/webhook-events-catalog.ts`:
+- Quote: created/updated/approved/rejected/expired
+- Order: created/approved/fulfilled/cancelled
+- Discount: requested/approved/rejected
+- Kit: created/shared/viewed
 
-Diga quais quer e eu detalho o plano de implementação de cada uma.
+**UI:** novo `<EventsMultiSelect>` substitui input livre no formulário de outbound webhook em `WebhooksTab`:
+- Multi-select agrupado por categoria com busca interna
+- "Selecionar todos do grupo" por categoria
+- Eventos legacy (fora do catálogo) preservados como chips com badge "legacy"
+
+**Memória:** atualizar `mem://integrations/connections-hub` registrando Onda 12 + adicionar 5° linha no `IntegrationsHealthCard` ("Histórico de testes ativo") fechando 10/10.
+
+---
+
+### Sequenciamento
+
+Etapa 1 → Etapa 2 → Etapa 3 → atualização de memória. Sem pausas, sem perguntas intermediárias. Cada etapa termina apenas com suggestion de teste no final da Onda completa.
 
