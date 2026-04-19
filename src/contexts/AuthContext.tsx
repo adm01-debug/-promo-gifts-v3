@@ -196,12 +196,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           // Defer Supabase calls with setTimeout to avoid deadlocks
           setTimeout(() => {
             fetchUserData(session.user.id);
+            fetchAAL();
             // Pre-warm external DB to avoid cold starts
             import('@/lib/external-db-prewarm').then(m => m.prewarmExternalDb());
           }, 0);
         } else {
           setProfile(null);
           setUserRole(null);
+          setCurrentAAL(null);
+          setNextAAL(null);
+          setHasMFA(false);
           setIsLoading(false);
         }
         // NÃO seta isLoading=false aqui — espera fetchUserData terminar (#5)
