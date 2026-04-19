@@ -137,12 +137,24 @@ Deno.serve(async (req) => {
     }
 
     if (connection_id) {
+      const nowIso = new Date().toISOString();
+      const message = result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`;
       await service.from("external_connections").update({
-        last_test_at: new Date().toISOString(),
+        last_test_at: nowIso,
         last_test_ok: result.ok,
-        last_test_message: result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`,
+        last_test_message: message,
         status: result.ok ? "active" : "error",
       }).eq("id", connection_id);
+
+      // Histórico (Onda 12 #4) — best-effort, não bloqueia resposta
+      await service.from("connection_test_history").insert({
+        connection_id,
+        tested_at: nowIso,
+        success: result.ok,
+        latency_ms: result.latency_ms ?? null,
+        status_code: result.status ?? null,
+        error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
+      }).then(() => undefined, (e) => console.error("history insert failed", e));
     }
 
     return new Response(JSON.stringify({ ok: true, result }), {
