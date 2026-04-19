@@ -90,6 +90,19 @@ export function FailedDeliveriesPanel() {
               placeholder="Filtrar por evento…"
               className="h-8 w-48 text-xs"
             />
+            <ExportButton
+              filename="failed-deliveries"
+              rows={(data?.rows ?? []).map((d) => ({
+                webhook: d.outbound_webhooks?.name ?? "",
+                webhook_url: d.outbound_webhooks?.url ?? "",
+                event: d.event,
+                status_code: d.status_code,
+                attempt: d.attempt,
+                error_message: d.error_message ?? "",
+                delivered_at: d.delivered_at,
+              }))}
+              formats={["csv", "json"]}
+            />
             <Button size="sm" variant="ghost" onClick={() => refetch()} disabled={isFetching}>
               <RefreshCw className={`h-3 w-3 ${isFetching ? "animate-spin" : ""}`} />
             </Button>

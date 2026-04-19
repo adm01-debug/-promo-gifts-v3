@@ -278,7 +278,26 @@ export function ConnectionTimelineDrawer({
 
               <Card>
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-sm">Eventos</CardTitle>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-sm">Eventos</CardTitle>
+                    <ExportButton
+                      filename={`connection-history_${type}`}
+                      rows={rows.map((r) => ({
+                        tested_at: r.tested_at,
+                        success: r.success,
+                        latency_ms: r.latency_ms ?? "",
+                        status_code: r.status_code ?? "",
+                        error_message: r.error_message ?? "",
+                      }))}
+                      columns={[
+                        { key: "tested_at", header: "tested_at" },
+                        { key: "success", header: "success" },
+                        { key: "latency_ms", header: "latency_ms" },
+                        { key: "status_code", header: "status_code" },
+                        { key: "error_message", header: "error_message" },
+                      ]}
+                    />
+                  </div>
                 </CardHeader>
                 <CardContent className="p-0">
                   <Table>

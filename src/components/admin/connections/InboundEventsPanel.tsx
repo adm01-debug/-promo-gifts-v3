@@ -235,7 +235,32 @@ export function InboundEventsPanel() {
       </Card>
 
       <Card>
-        <CardHeader className="pb-2"><CardTitle className="text-sm">Últimos eventos</CardTitle></CardHeader>
+        <CardHeader className="pb-2">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm">Últimos eventos</CardTitle>
+            <ExportButton
+              filename={`inbound-events_${period}`}
+              rows={rows.map((r) => ({
+                received_at: r.received_at,
+                endpoint: epMap.get(r.endpoint_id)?.name ?? r.endpoint_id,
+                event_type: r.event_type ?? "",
+                signature_valid: r.signature_valid,
+                processed: r.processed,
+                source_ip: r.source_ip ?? "",
+                error: r.error ?? "",
+              }))}
+              columns={[
+                { key: "received_at", header: "received_at" },
+                { key: "endpoint", header: "endpoint" },
+                { key: "event_type", header: "event_type" },
+                { key: "signature_valid", header: "signature_valid" },
+                { key: "processed", header: "processed" },
+                { key: "source_ip", header: "source_ip" },
+                { key: "error", header: "error" },
+              ]}
+            />
+          </div>
+        </CardHeader>
         <CardContent className="p-0">
           {loading ? (
             <div className="p-8 text-center text-sm text-muted-foreground flex items-center justify-center gap-2">
