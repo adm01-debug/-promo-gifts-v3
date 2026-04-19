@@ -6,6 +6,7 @@ import { Bitrix24Tab } from "@/components/admin/connections/Bitrix24Tab";
 import { N8nTab } from "@/components/admin/connections/N8nTab";
 import { McpTab } from "@/components/admin/connections/McpTab";
 import { WebhooksTab } from "@/components/admin/connections/WebhooksTab";
+import { IntegrationsHealthCard } from "@/components/admin/connections/IntegrationsHealthCard";
 
 export default function AdminConexoesPage() {
   return (
@@ -22,6 +23,8 @@ export default function AdminConexoesPage() {
           </p>
         </div>
       </div>
+
+      <IntegrationsHealthCard />
 
       <Tabs defaultValue="databases" className="space-y-4">
         <TabsList className="flex-wrap h-auto">
