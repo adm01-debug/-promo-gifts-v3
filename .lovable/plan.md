@@ -1,53 +1,56 @@
 
 
-## Plano: Bulk "Enviar para Orçamento" no módulo Favoritos
+## Sugestões de melhoria — Connections Hub
 
-Replicar o padrão consolidado do módulo Produtos (`useCatalogSelection` + `BulkVariantWizard` + URL params) dentro de `/favoritos`, aproveitando 100% da infraestrutura existente — zero componente novo.
+Baseado no estado atual (`mem://integrations/connections-hub`: 5 abas, 6 tabelas, 5 edge functions, crons, health card, auditoria), identifiquei **6 melhorias** organizadas por prioridade. Você escolhe quais executar.
 
-### Fluxo do vendedor
+---
 
-1. Clica em **Selecionar** (já existe) → entra em selection mode
-2. Marca N favoritos (checkbox no card)
-3. Nova **BulkActionBar** flutuante aparece embaixo (mesma do catálogo) com ações: Orçamento / Carrinho / Coleção / Comparar / Favoritar
-4. Clica em **Orçamento** → abre `BulkVariantWizard` (mode `quote`) para garantir cor/tamanho de cada item (política `mem://architecture/variant-selection-enforcement-policy`)
-5. Wizard completa → navega para `/orcamentos/novo?items[]=...` com payload padronizado (`mem://features/quote-system-url-params-standard`)
+### 🔴 Alta prioridade (segurança & confiabilidade)
 
-### O que muda
+**1. Rotação de secrets com versionamento**
+Hoje o `secrets-manager` lista/seta, mas não há histórico nem rotação programada. Adicionar:
+- Tabela `secret_rotation_log` (quem girou, quando, antigo `masked_suffix`)
+- Botão "Rotacionar" no `SecretField` que aceita novo valor + invalida cache
+- Alerta no `IntegrationsHealthCard` quando secret crítico tem >90 dias
 
-**Único arquivo modificado:** `src/pages/FavoritesPage.tsx`
+**2. Replay manual de webhook delivery falho**
+Hoje o cron retenta automaticamente entregas <1h. Falta UI para:
+- Listar `webhook_deliveries` com `success=false` na aba Webhooks (tabela paginada)
+- Botão "Reenviar" por linha → invoca `webhook-dispatcher` com o payload original (já temos `payload_hash`)
+- Filtro por evento + período
 
-1. **Remover** a lógica manual atual de `selectedIds` + barra inline de "Remover selecionados" e substituir por composição com componentes existentes.
+**3. Circuit breaker por webhook**
+Se um endpoint falha N vezes seguidas, marcar `outbound_webhooks.active = false` automaticamente e disparar notificação. Hoje fica retentando para sempre, gastando quota.
 
-2. **Adicionar**:
-   - Import e uso do hook `useCatalogSelection(filteredProducts, selectionMode, setSelectedCount)` — já encapsula toda a lógica de bulk (favoritar, comparar, coleção, carrinho, orçamento).
-   - `<BulkActionBar>` flutuante quando `selectionMode && selectedCount > 0`, ligando os handlers do hook.
-   - `<BulkVariantWizard>`, `<BulkAddToCartModal>`, `<AddToCollectionModal>` — exatamente como em `CatalogBulkModals.tsx` (podemos inclusive reutilizar o próprio `<CatalogBulkModals>`).
-   - Manter o botão **Remover selecionados** como ação extra específica de Favoritos (não existe em Produtos), via um botão local na BulkActionBar OU atalho `Delete`.
+---
 
-3. **Card overlay**: manter checkbox + ring de seleção já implementados.
+### 🟡 Média prioridade (observabilidade)
 
-### Pré-condição respeitada
+**4. Painel de timeline por conexão**
+Drilldown ao clicar numa conexão em `external_connections`:
+- Gráfico de latência (`last_test_at` + `latency_ms` histórico — exige nova tabela `connection_test_history`)
+- Últimos 50 testes com status code
+- Top 5 erros agrupados
 
-- `mem://architecture/selection-state-controlled-view-pattern` — estado controlado, persistência entre Grid/Lista/Tabela. O hook `useCatalogSelection` já cobre isso e funciona para os 3 view modes (Lista e Tabela só precisam expor `onToggleSelect` e `isSelected`, que `ProductListItem`/`ProductTableView` já aceitam — confirmar no código).
-- `mem://features/quote-system-url-params-standard` — payload `items[]` com `product_id`, `quantity`, `color_name`, `color_hex`, `size_code`, etc. (já implementado dentro de `useCatalogSelection.handleWizardComplete`).
-- `mem://architecture/variant-selection-enforcement-policy` — wizard obrigatório antes de enviar para orçamento.
-- `mem://constraints/ui-redesign-protocol` — zero redesign, só composição de componentes existentes.
+**5. Dashboard de eventos inbound**
+Hoje `inbound_webhook_events` só é gravado. Adicionar aba/seção:
+- Volume por endpoint (gráfico 7 dias)
+- Taxa de assinatura HMAC inválida (alerta de tentativas suspeitas)
+- Payload viewer com pretty-print JSON
 
-### Decisão sobre "Remover selecionados"
+---
 
-A `BulkActionBar` atual não expõe um slot para ação destrutiva customizada. Duas opções:
+### 🟢 Baixa prioridade (DX)
 
-- **A)** Manter um botão "Remover (N)" inline acima da grid, ao lado do contador, e deixar a BulkActionBar flutuante apenas para as ações compartilhadas com Produtos (Orçamento/Carrinho/etc.)
-- **B)** Estender `BulkActionBar` com prop opcional `onBulkDelete` (afeta também o catálogo — fora de escopo)
+**6. Editor visual de eventos do webhook outbound**
+Hoje `events: string[]` é input livre. Substituir por multi-select com catálogo conhecido (`quote.created`, `order.approved`, `discount.requested`, `kit.shared`, etc.) extraído dos triggers existentes — zero erro de digitação.
 
-**Recomendado: A** — isolado em Favoritos, não toca código compartilhado.
+---
 
-### Arquivos
+### Recomendação
 
-- **Modificado**: `src/pages/FavoritesPage.tsx`
+Começar por **#1 + #2 + #3** (mesma onda de hardening, todas tocam segurança/confiabilidade). Estimativa: 1 migração + extensão de 2 edge functions + 2 componentes novos. Sem mudança de arquitetura.
 
-### Fora de escopo
-
-- Alterar `BulkActionBar`, `useCatalogSelection`, `CatalogBulkModals` (são SSOT do catálogo).
-- Implementar bulk em Lista/Tabela: já vem grátis ao reutilizar a infra; apenas validamos que `ProductListItem` e `ProductTableView` recebem `selectionMode/selectedIds/onToggleSelect` (a confirmar na implementação — se não receberem, adicionar nos 3 view modes seguindo o padrão Produtos).
+Diga quais quer e eu detalho o plano de implementação de cada uma.
 
