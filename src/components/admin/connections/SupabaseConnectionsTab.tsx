@@ -7,6 +7,7 @@ import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
+import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 
 const ENVS = [
   {
@@ -70,12 +71,13 @@ export function SupabaseConnectionsTab() {
                   <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} />
                   <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list}
                     helperText="Nunca exposto ao frontend. Usado apenas em edge functions admin." />
-                  <div className="flex gap-2 pt-2">
+                  <div className="flex flex-wrap gap-2 pt-2">
                     <Button size="sm" variant="outline" disabled={isTesting} onClick={() => test("supabase", {
                       url: url?.has_value ? "" : "", key: "",
                     })}>
                       Testar conexão
                     </Button>
+                    <ConnectionTimelineDrawer type="supabase" label={env.name} triggerVariant="ghost" />
                     <Button size="sm" variant="ghost" asChild>
                       <Link to="/admin/external-db">
                         <ExternalLink className="h-4 w-4 mr-1" /> Ver schema
