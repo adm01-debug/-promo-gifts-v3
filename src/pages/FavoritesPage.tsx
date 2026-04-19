@@ -112,22 +112,6 @@ export default function FavoritesPage() {
     toast.success("Todos os favoritos foram removidos");
   };
 
-  const handleShareAll = () => {
-    const productNames = favoriteProducts.map((p) => {
-      const variant = variantMap.get(p.id);
-      const colorSuffix = variant?.color_name ? ` (${variant.color_name})` : '';
-      return `• ${p.name}${colorSuffix}`;
-    }).join("\n");
-    const message = `Meus produtos favoritos:\n\n${productNames}`;
-
-    if (navigator.share) {
-      navigator.share({ title: "Meus Favoritos - PROMO BRINDES", text: message });
-    } else {
-      navigator.clipboard.writeText(message);
-      toast.success("Lista copiada para a área de transferência!");
-    }
-  };
-
   const handleRemoveFavorite = (productId: string, productName: string) => {
     toggleFavorite(productId);
     toast.success(`"${productName}" removido dos favoritos`);
