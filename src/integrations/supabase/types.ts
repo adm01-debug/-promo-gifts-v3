@@ -2936,6 +2936,7 @@ export type Database = {
         Returns: Json
       }
       check_ai_quota: { Args: { _user_id: string }; Returns: Json }
+      check_hardening_status: { Args: never; Returns: Json }
       check_ip_access: { Args: { _ip: string }; Returns: string }
       check_rate_limit: {
         Args: {
@@ -2950,6 +2951,7 @@ export type Database = {
       cleanup_discount_test_data: { Args: never; Returns: Json }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
+      cleanup_security_logs: { Args: never; Returns: Json }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: string
