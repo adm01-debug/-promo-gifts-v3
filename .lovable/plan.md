@@ -1,22 +1,20 @@
 
-Ondas 1-6 entregues. Baseline 10/10 atingido e validado (build TS limpo, cron ativo, score 5/5 no card de saúde). O único gap conhecido (rate-limit per-user em edge functions) é proibido pela plataforma.
+Ondas 1-7 entregues. Baseline 10/10 atingido, validado e auto-monitorado (cron de regressão diário). Não há trabalho de hardening pendente sem inventar escopo. Proponho **Onda 8 — Telemetria executiva e auto-cura** com 3 itens reais e mensuráveis.
 
-Não vou inventar trabalho. Proponho **Onda 7 — Defesa em profundidade**, focada em 3 itens reais, pequenos e mensuráveis que ainda agregam valor sem inflar escopo.
+# Plano: Hardening Onda 8 — Telemetria Executiva (3 itens)
 
-# Plano: Hardening Onda 7 — Defesa em Profundidade (3 itens)
+## 1. Métricas históricas de hardening (7/30 dias)
+Nova tabela `hardening_health_snapshots` (score, failures, snapshot_at). Função `snapshot_hardening_status()` SECURITY DEFINER chamada pelo cron existente das 04:00 UTC (logo após `notify_hardening_regression`). Componente `HardeningTrendChart.tsx` com sparkline 30d ao lado do `HardeningHealthCard`. Permite ver se houve oscilação mesmo que o estado atual seja 5/5.
 
-## 1. Linter Supabase + correção de warnings residuais
-Rodar `supabase--linter` e tratar 100% das advertências restantes (provavelmente: search_path em funções, policies redundantes, índices faltantes em FKs sensíveis). Migração consolidada apenas com o que o linter apontar.
+## 2. Auto-bloqueio de IPs com ≥30 ofensas em 1h
+Função `auto_block_extreme_offenders()` SECURITY DEFINER que detecta IPs com `login_attempts(success=false) + public_token_failures + bot_detection_log(blocked)` ≥30 na última hora e ainda não bloqueados, e os insere em `ip_access_control` com `expires_at = now() + 6h` + entrada em `admin_audit_log` (action=`auto_ip_block`). Cron a cada 15 min. Notifica admins via `workspace_notifications` quando dispara (categoria `security`, dedupe 1h por IP).
 
-## 2. Painel "Top IPs ofensores 24h" no Security Center
-Card compacto na aba Anomalias listando os 10 IPs com mais falhas combinadas (login + token + bot) nas últimas 24h, com ação rápida "Bloquear" ao lado de cada linha. Reusa `BlockIpButton`. Componente novo `TopOffenderIpsCard.tsx`. Read-only via RLS de admin.
-
-## 3. Alerta automático de regressão de hardening
-Se `check_hardening_status()` retornar score < 5/5, disparar `workspace_notification` (categoria `security`, type `warning`) para todos os admins — uma vez por dia, deduplicado. Implementação: nova função `notify_hardening_regression()` SECURITY DEFINER + cron diário às 04:00 UTC (logo após o cleanup das 03:30).
+## 3. Aba "Histórico & Auto-defesa" no Security Center
+Nova aba que mostra: gráfico de saúde 30d, lista dos últimos 20 auto-bloqueios (filtro `action='auto_ip_block'` em `admin_audit_log`), e contador "auto-bloqueios nos últimos 7 dias". Read-only via RLS de admin existente.
 
 ## Arquivos esperados
-- **Novos**: `src/components/admin/security/TopOffenderIpsCard.tsx`.
-- **Modificados**: `src/components/admin/security/AnomalyCards.tsx` (montar o novo card abaixo dos 4 existentes), `.lovable/memory/security/production-hardening-baseline.md` (Onda 7).
-- **Migrações**: 1 — função `notify_hardening_regression()` + cron `hardening-regression-check-daily`. Correções do linter podem somar 1 migração extra dependendo do que aparecer.
+- **Novos**: `src/components/admin/security/HardeningTrendChart.tsx`, `src/components/admin/security/AutoDefenseTab.tsx`.
+- **Modificados**: `src/pages/admin/AdminSegurancaAcessoPage.tsx` (1 nova aba), `.lovable/memory/security/production-hardening-baseline.md` (Onda 8).
+- **Migrações**: 1 — tabela `hardening_health_snapshots` + RLS admin-only + funções `snapshot_hardening_status()` e `auto_block_extreme_offenders()` + 2 crons (`snapshot-hardening-daily` 04:05 UTC, `auto-block-extreme-offenders` `*/15 * * * *`).
 
-Após aprovação executo na ordem: linter → migração de correções → função de regressão + cron → componente do painel → memória.
+Após aprovação executo na ordem: migração → componentes → aba na página → memória.
