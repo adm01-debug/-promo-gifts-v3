@@ -65,6 +65,10 @@ Deno.serve(async (req: Request) => {
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
+    const xff = req.headers.get("x-forwarded-for");
+    const clientIp = xff ? xff.split(",")[0].trim() : (req.headers.get("cf-connecting-ip") || req.headers.get("x-real-ip") || "unknown");
+    const clientUa = req.headers.get("user-agent") || null;
+
     if (action === "get_kit") {
       // Fetch token record
       const { data: tokenData, error: tokenError } = await supabase
@@ -74,6 +78,14 @@ Deno.serve(async (req: Request) => {
         .single();
 
       if (tokenError || !tokenData) {
+        await supabase.rpc("record_public_token_failure", {
+          _resource_type: "kit",
+          _resource_id: null,
+          _attempted_token: token.substring(0, 32),
+          _ip: clientIp,
+          _ua: clientUa,
+          _reason: "token_not_found",
+        });
         return new Response(
           JSON.stringify({ error: "Link inválido ou não encontrado" }),
           { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -82,6 +94,14 @@ Deno.serve(async (req: Request) => {
 
       // Check status
       if (tokenData.status !== "active") {
+        await supabase.rpc("record_public_token_failure", {
+          _resource_type: "kit",
+          _resource_id: tokenData.kit_id,
+          _attempted_token: token.substring(0, 32),
+          _ip: clientIp,
+          _ua: clientUa,
+          _reason: "token_revoked",
+        });
         return new Response(
           JSON.stringify({ error: "Este link foi revogado" }),
           { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -90,6 +110,14 @@ Deno.serve(async (req: Request) => {
 
       // Check expiry
       if (tokenData.expires_at && new Date(tokenData.expires_at) < new Date()) {
+        await supabase.rpc("record_public_token_failure", {
+          _resource_type: "kit",
+          _resource_id: tokenData.kit_id,
+          _attempted_token: token.substring(0, 32),
+          _ip: clientIp,
+          _ua: clientUa,
+          _reason: "token_expired",
+        });
         return new Response(
           JSON.stringify({ error: "Este link expirou", expired: true }),
           { status: 410, headers: { ...corsHeaders, "Content-Type": "application/json" } }
