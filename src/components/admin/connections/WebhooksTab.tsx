@@ -94,6 +94,7 @@ export function WebhooksTab() {
       <TabsList>
         <TabsTrigger value="outbound">Saída</TabsTrigger>
         <TabsTrigger value="inbound">Entrada</TabsTrigger>
+        <TabsTrigger value="events">Eventos recebidos</TabsTrigger>
         <TabsTrigger value="failed">Entregas falhas</TabsTrigger>
       </TabsList>
 
@@ -114,18 +115,10 @@ export function WebhooksTab() {
                     <div><Label>URL</Label><Input value={form.url} onChange={(e) => setForm({ ...form, url: e.target.value })} placeholder="https://…" /></div>
                     <div>
                       <Label className="block mb-2">Eventos</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {EVENTS.map((ev) => {
-                          const a = form.events.includes(ev);
-                          return (
-                            <button key={ev} type="button"
-                              onClick={() => setForm((f) => ({ ...f, events: a ? f.events.filter((x) => x !== ev) : [...f.events, ev] }))}
-                              className={`px-2 py-1 rounded text-xs border ${a ? "bg-primary text-primary-foreground border-primary" : "border-border"}`}>
-                              {ev}
-                            </button>
-                          );
-                        })}
-                      </div>
+                      <EventsMultiSelect
+                        value={form.events}
+                        onChange={(events) => setForm((f) => ({ ...f, events }))}
+                      />
                     </div>
                   </div>
                   <DialogFooter><Button onClick={createOutbound}>Criar</Button></DialogFooter>
