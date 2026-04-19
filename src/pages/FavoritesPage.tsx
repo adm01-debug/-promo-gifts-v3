@@ -115,6 +115,36 @@ export default function FavoritesPage() {
     toast.success("Todos os favoritos foram removidos");
   };
 
+  const toggleSelectionMode = () => {
+    setSelectionMode((prev) => {
+      if (prev) setSelectedIds(new Set());
+      return !prev;
+    });
+  };
+
+  const toggleSelected = (productId: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(productId)) next.delete(productId);
+      else next.add(productId);
+      return next;
+    });
+  };
+
+  const selectAllVisible = () => {
+    setSelectedIds(new Set(filteredProducts.map((p) => p.id)));
+  };
+
+  const clearSelection = () => setSelectedIds(new Set());
+
+  const handleRemoveSelected = () => {
+    const ids = Array.from(selectedIds);
+    ids.forEach((id) => toggleFavorite(id));
+    toast.success(`${ids.length} ${ids.length === 1 ? "produto removido" : "produtos removidos"} dos favoritos`);
+    setSelectedIds(new Set());
+    setSelectionMode(false);
+  };
+
   const handleRemoveFavorite = (productId: string, productName: string) => {
     toggleFavorite(productId);
     toast.success(`"${productName}" removido dos favoritos`);
