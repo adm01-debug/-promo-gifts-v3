@@ -1,6 +1,6 @@
 import { Plug } from "lucide-react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { PageSEO } from "@/components/PageSEO";
+import { PageSEO } from "@/components/seo/PageSEO";
 import { SupabaseConnectionsTab } from "@/components/admin/connections/SupabaseConnectionsTab";
 import { Bitrix24Tab } from "@/components/admin/connections/Bitrix24Tab";
 import { N8nTab } from "@/components/admin/connections/N8nTab";
