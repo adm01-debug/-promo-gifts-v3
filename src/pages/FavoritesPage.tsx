@@ -13,7 +13,7 @@ import { getGridColsClass, getGridGapClass } from "@/components/replenishments/V
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Heart, Trash2, Share2, Search, Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
+import { Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -112,22 +112,6 @@ export default function FavoritesPage() {
     toast.success("Todos os favoritos foram removidos");
   };
 
-  const handleShareAll = () => {
-    const productNames = favoriteProducts.map((p) => {
-      const variant = variantMap.get(p.id);
-      const colorSuffix = variant?.color_name ? ` (${variant.color_name})` : '';
-      return `• ${p.name}${colorSuffix}`;
-    }).join("\n");
-    const message = `Meus produtos favoritos:\n\n${productNames}`;
-
-    if (navigator.share) {
-      navigator.share({ title: "Meus Favoritos - PROMO BRINDES", text: message });
-    } else {
-      navigator.clipboard.writeText(message);
-      toast.success("Lista copiada para a área de transferência!");
-    }
-  };
-
   const handleRemoveFavorite = (productId: string, productName: string) => {
     toggleFavorite(productId);
     toast.success(`"${productName}" removido dos favoritos`);
@@ -164,10 +148,6 @@ export default function FavoritesPage() {
 
           {favoriteProducts.length > 0 && (
             <div className="flex gap-2 items-center">
-              <Button variant="outline" size="sm" onClick={handleShareAll}>
-                <Share2 className="h-4 w-4 mr-2" />
-                Compartilhar
-              </Button>
               <DeleteConfirmDialog
                 trigger={
                   <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
