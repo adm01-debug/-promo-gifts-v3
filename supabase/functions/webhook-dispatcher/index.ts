@@ -17,7 +17,12 @@ const corsHeaders = {
 const BodySchema = z.object({
   event: z.string().min(1),
   payload: z.unknown().optional(),
+  // Replay mode: re-deliver a single failed delivery by id
+  replay_delivery_id: z.string().uuid().optional(),
 });
+
+// Circuit breaker: 5 falhas consecutivas → desativa o webhook
+const CIRCUIT_BREAKER_THRESHOLD = 5;
 
 async function hmacSign(payload: string, secret: string): Promise<string> {
   const enc = new TextEncoder();
@@ -49,13 +54,37 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { event, payload } = parsed.data;
+    let { event, payload } = parsed.data;
+    const { replay_delivery_id } = parsed.data;
 
-    const { data: hooks, error } = await supabase
+    // Replay mode: load the original delivery and re-target only its webhook
+    let replayHookId: string | null = null;
+    if (replay_delivery_id) {
+      const { data: orig, error: origErr } = await supabase
+        .from("webhook_deliveries")
+        .select("webhook_id, event, payload")
+        .eq("id", replay_delivery_id)
+        .maybeSingle();
+      if (origErr || !orig) {
+        return new Response(JSON.stringify({ error: "Delivery não encontrada" }), {
+          status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      event = orig.event;
+      payload = orig.payload;
+      replayHookId = orig.webhook_id;
+    }
+
+    let hooksQuery = supabase
       .from("outbound_webhooks")
       .select("*")
-      .eq("active", true)
       .contains("events", [event]);
+    if (replayHookId) {
+      hooksQuery = hooksQuery.eq("id", replayHookId); // replay ignora active flag
+    } else {
+      hooksQuery = hooksQuery.eq("active", true);
+    }
+    const { data: hooks, error } = await hooksQuery;
     if (error) throw error;
 
     if (!hooks || hooks.length === 0) {
