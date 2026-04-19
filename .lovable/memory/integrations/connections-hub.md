@@ -1,40 +1,26 @@
 ---
 name: connections-hub
-description: Hub central /admin/conexoes com 5 abas (Bancos, Bitrix24, n8n, MCP, Webhooks), edge functions, crons operacionais, card de saúde e endpoint de auditoria
+description: Hub central /admin/conexoes com 5 abas, edge functions, crons, health card, auditoria, rotação de secrets, replay de webhooks falhos e circuit breaker
 type: feature
 ---
 
 # Connections Hub — `/admin/conexoes`
 
 ## Abas (5)
-Bancos de Dados · Bitrix24 · n8n · MCP (Claude) · Webhooks.
+Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída / Entrada / **Entregas falhas**).
 
-## Tabelas (6)
-`external_connections`, `outbound_webhooks`, `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`.
+## Tabelas (7)
+`external_connections`, `outbound_webhooks` (+ `consecutive_failures`, `auto_disabled_at`, `auto_disabled_reason`), `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`, **`secret_rotation_log`**.
 
 ## Edge functions (5)
-`secrets-manager`, `connection-tester`, `webhook-dispatcher`, `webhook-inbound`, `mcp-server`.
+`secrets-manager` (list/set/delete/**rotate**/**rotation_history**), `connection-tester`, `webhook-dispatcher` (+ **replay_delivery_id** + **circuit breaker** 5 falhas → `active=false`), `webhook-inbound`, `mcp-server`.
 
-## Triggers
-`dispatch_quote_webhook_event` em `quotes`, `orders`, `discount_approval_requests`, `kit_share_tokens` — usa `extensions.http_post` (nunca quebra transação principal).
+## Hardening Onda 11 (atual)
+- **Rotação de secrets**: botão "Rotacionar" em `SecretField`, hook `rotateSecret/getRotationHistory`, log em `secret_rotation_log`.
+- **Replay manual**: `FailedDeliveriesPanel` (paginado, filtro por evento, auto-refresh 30s) → `webhook-dispatcher { replay_delivery_id }` re-entrega ignorando `active=false`.
+- **Circuit breaker**: 5 falhas consecutivas desativam o webhook automaticamente (`auto_disabled_at/reason`); botão "Reativar" zera o contador. Sucesso reseta `consecutive_failures=0`.
+- **Health card**: faixas de alerta para `staleSecrets >90d` e `autoDisabledWebhooks > 0`.
 
-## HMAC
-SHA-256 sobre payload JSON, header `X-Signature: sha256=<hex>` em outbound + validação em inbound.
-
-## Operação automatizada (Onda 8)
-- `retry_failed_webhook_deliveries()` SECURITY DEFINER → re-invoca `webhook-dispatcher` para entregas com `success=false` e `attempt < max_attempts` da última hora.
-- `cleanup_webhook_logs()` → apaga `webhook_deliveries` e `inbound_webhook_events` > 90 dias.
-- Crons:
-  - `webhook-retry-failed` — `*/10 * * * *`
-  - `webhook-logs-cleanup-daily` — `30 3 * * *`
-
-## UI de saúde (Onda 9)
-`<IntegrationsHealthCard />` montado no topo de `/admin/conexoes`:
-- 5 KPIs: webhooks ativos, taxa sucesso 24h, última entrega, conexões com falha, MCP keys 24h.
-- Auto-refresh 60s via `useQuery`.
-- Botão "Rodar auditoria" → invoca `connections-hub-audit` e exibe score em toast.
-
-## Auditoria (Onda 10)
-- Endpoint: `GET /functions/v1/connections-hub-audit` (admin Bearer)
-- Verifica: 6 tabelas, 5 edge functions, 2 crons do hub, 4 triggers
-- Retorna JSON `{ score: 0-10, passed, total, checks: {...} }`
+## Crons
+- `webhook-retry-failed` `*/10 * * * *`
+- `webhook-logs-cleanup-daily` `30 3 * * *`
