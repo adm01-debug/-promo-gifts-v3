@@ -18,12 +18,14 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren } from "lucide-react";
+import { Shield, Ban, AlertTriangle, RefreshCw, Plus, Trash2, CheckCircle2, Clock, Activity, BarChart3, Siren, History, KeySquare } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { SecurityAnalytics } from "@/components/admin/security/SecurityAnalytics";
 import { AnomalyCards } from "@/components/admin/security/AnomalyCards";
 import { ForceGlobalLogoutDialog } from "@/components/admin/security/ForceGlobalLogoutDialog";
+import { RecentAuditTable } from "@/components/admin/security/RecentAuditTable";
+import { SuspiciousTokensPanel } from "@/components/admin/security/SuspiciousTokensPanel";
 
 interface BotLog {
   id: string;
@@ -185,8 +187,10 @@ export default function AdminSegurancaAcessoPage() {
         </div>
 
         <Tabs defaultValue="anomalias" className="w-full">
-          <TabsList>
+          <TabsList className="flex-wrap h-auto">
             <TabsTrigger value="anomalias"><Siren className="h-3.5 w-3.5 mr-1.5" /> Anomalias 24h</TabsTrigger>
+            <TabsTrigger value="audit"><History className="h-3.5 w-3.5 mr-1.5" /> Auditoria</TabsTrigger>
+            <TabsTrigger value="tokens"><KeySquare className="h-3.5 w-3.5 mr-1.5" /> Tokens suspeitos</TabsTrigger>
             <TabsTrigger value="analytics"><BarChart3 className="h-3.5 w-3.5 mr-1.5" /> Analytics</TabsTrigger>
             <TabsTrigger value="bots">Bot Detection</TabsTrigger>
             <TabsTrigger value="rate">Rate Limits</TabsTrigger>
@@ -208,6 +212,14 @@ export default function AdminSegurancaAcessoPage() {
                 <p className="pt-2 border-t border-border/50">Em caso de comprometimento confirmado, use <strong>Forçar logout global</strong> no topo da página.</p>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="audit">
+            <RecentAuditTable />
+          </TabsContent>
+
+          <TabsContent value="tokens">
+            <SuspiciousTokensPanel />
           </TabsContent>
 
           <TabsContent value="analytics">

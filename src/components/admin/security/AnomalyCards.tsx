@@ -3,6 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { AlertTriangle, ShieldAlert, KeyRound, Activity } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BlockIpButton } from "./BlockIpButton";
 
 interface AnomalyStats {
   loginFailures24h: number;
@@ -99,37 +100,54 @@ export function AnomalyCards() {
     },
   ] as const;
 
+  const showQuickBlock =
+    stats.loginFailures24h >= 10 || stats.tokenFailures24h >= 5 || stats.botHits24h >= 20;
+
   return (
-    <div className="grid gap-3 md:grid-cols-4">
-      {cards.map((c) => (
-        <Card key={c.label} className="border-[1.5px]">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <p className="text-xs font-medium text-muted-foreground">{c.label}</p>
-              <div
+    <div className="space-y-3">
+      <div className="grid gap-3 md:grid-cols-4">
+        {cards.map((c) => (
+          <Card key={c.label} className="border-[1.5px]">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-medium text-muted-foreground">{c.label}</p>
+                <div
+                  className={cn(
+                    "rounded-md p-1.5",
+                    c.severity === "high" && "bg-destructive/10 text-destructive",
+                    c.severity === "medium" && "bg-warning/10 text-warning",
+                    c.severity === "low" && "bg-muted text-muted-foreground"
+                  )}
+                >
+                  {c.icon}
+                </div>
+              </div>
+              <p
                 className={cn(
-                  "rounded-md p-1.5",
-                  c.severity === "high" && "bg-destructive/10 text-destructive",
-                  c.severity === "medium" && "bg-warning/10 text-warning",
-                  c.severity === "low" && "bg-muted text-muted-foreground"
+                  "mt-2 font-display text-2xl font-bold tabular-nums",
+                  c.severity === "high" && "text-destructive",
+                  c.severity === "medium" && "text-warning"
                 )}
               >
-                {c.icon}
-              </div>
-            </div>
-            <p
-              className={cn(
-                "mt-2 font-display text-2xl font-bold tabular-nums",
-                c.severity === "high" && "text-destructive",
-                c.severity === "medium" && "text-warning"
-              )}
-            >
-              {stats.loading ? "—" : c.value}
+                {stats.loading ? "—" : c.value}
+              </p>
+              <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">Últimas 24h</p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {showQuickBlock && (
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/5 p-3">
+          <div className="text-sm">
+            <p className="font-medium">Atividade suspeita detectada nas últimas 24h</p>
+            <p className="text-xs text-muted-foreground">
+              Identifique o IP nas tabelas abaixo e bloqueie temporariamente.
             </p>
-            <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">Últimas 24h</p>
-          </CardContent>
-        </Card>
-      ))}
+          </div>
+          <BlockIpButton variant="destructive" defaultReason="Bloqueio rápido — anomalia detectada no Security Center" />
+        </div>
+      )}
     </div>
   );
 }
