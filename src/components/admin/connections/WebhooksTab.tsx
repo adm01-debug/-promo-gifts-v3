@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
 } from "@/components/ui/dialog";
+import { FailedDeliveriesPanel } from "./FailedDeliveriesPanel";
 
 const EVENTS = [
   "quote.created", "quote.approved", "quote.rejected", "quote.sent",
@@ -246,6 +247,10 @@ export function WebhooksTab() {
             )}
           </CardContent>
         </Card>
+      </TabsContent>
+
+      <TabsContent value="failed" className="space-y-4">
+        <FailedDeliveriesPanel />
       </TabsContent>
     </Tabs>
   );
