@@ -13,7 +13,8 @@ import { getGridColsClass, getGridGapClass } from "@/components/replenishments/V
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
-import { Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp } from "lucide-react";
+import { Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp, CheckSquare, X } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
@@ -49,6 +50,8 @@ export default function FavoritesPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => loadGridColumns());
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch {}
