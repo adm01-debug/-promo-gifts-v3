@@ -141,6 +141,7 @@ Deno.serve(async (req) => {
             await supabase.from("outbound_webhooks").update({
               last_triggered_at: new Date().toISOString(),
               total_success: (hook.total_success ?? 0) + 1,
+              consecutive_failures: 0,
             }).eq("id", hook.id);
             results.push({ webhook_id: hook.id, status: "success", attempt });
           } else if (attempt < max) {
@@ -162,10 +163,25 @@ Deno.serve(async (req) => {
       }
 
       if (!success) {
-        await supabase.from("outbound_webhooks").update({
+        const newConsecutive = (hook.consecutive_failures ?? 0) + 1;
+        const shouldAutoDisable = !replayHookId && newConsecutive >= CIRCUIT_BREAKER_THRESHOLD && hook.active;
+        const updatePayload: Record<string, unknown> = {
           total_failure: (hook.total_failure ?? 0) + 1,
-        }).eq("id", hook.id);
-        results.push({ webhook_id: hook.id, status: "failed", attempts: attempt });
+          consecutive_failures: newConsecutive,
+        };
+        if (shouldAutoDisable) {
+          updatePayload.active = false;
+          updatePayload.auto_disabled_at = new Date().toISOString();
+          updatePayload.auto_disabled_reason = `${newConsecutive} falhas consecutivas (circuit breaker)`;
+        }
+        await supabase.from("outbound_webhooks").update(updatePayload).eq("id", hook.id);
+        results.push({
+          webhook_id: hook.id,
+          status: "failed",
+          attempts: attempt,
+          consecutive_failures: newConsecutive,
+          auto_disabled: shouldAutoDisable,
+        });
       }
     }
 

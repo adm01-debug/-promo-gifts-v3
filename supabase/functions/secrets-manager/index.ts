@@ -45,10 +45,11 @@ function isAllowedSecretName(name: string): boolean {
 }
 
 const BodySchema = z.object({
-  action: z.enum(["list", "set", "delete", "status"]),
+  action: z.enum(["list", "set", "delete", "status", "rotate", "rotation_history"]),
   names: z.array(z.string()).optional(),
   name: z.string().optional(),
   value: z.string().optional(),
+  notes: z.string().max(500).optional(),
 });
 
 function maskValue(v: string | undefined | null): {
