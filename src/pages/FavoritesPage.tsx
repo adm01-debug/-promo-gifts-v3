@@ -331,46 +331,71 @@ export default function FavoritesPage() {
             <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
               {filteredProducts.map((product, index) => {
                 const variant = variantMap.get(product.id);
+                const isSelected = selectedIds.has(product.id);
                 return (
                   <div
                     key={product.id}
-                    className="animate-fade-in relative"
+                    className={cn(
+                      "animate-fade-in relative rounded-xl transition-all",
+                      selectionMode && "cursor-pointer",
+                      isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    )}
                     style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
+                    onClick={selectionMode ? () => toggleSelected(product.id) : undefined}
                   >
-                    <ProductCard
-                      product={product}
-                      onClick={() => navigate(`/produto/${product.id}`)}
-                      onFavorite={() => handleRemoveFavorite(product.id, product.name)}
-                    />
-                    {/* Overlay: heart + saved color badge */}
-                    <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
-                      <Button
-                        variant="secondary"
-                        size="icon"
-                        aria-label="Remover favorito"
-                        className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRemoveFavorite(product.id, product.name);
-                        }}
-                      >
-                        <Heart className="h-4 w-4 fill-destructive text-destructive" />
-                      </Button>
-                      {variant?.color_name && (
-                        <Badge
-                          variant="secondary"
-                          className="bg-card/90 backdrop-blur-sm text-[10px] gap-1 px-1.5 py-0.5"
-                        >
-                          {variant.color_hex && (
-                            <span
-                              className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
-                              style={{ backgroundColor: variant.color_hex }}
-                            />
-                          )}
-                          <span className="truncate max-w-[80px]">{variant.color_name}</span>
-                        </Badge>
-                      )}
+                    <div className={cn(selectionMode && "pointer-events-none")}>
+                      <ProductCard
+                        product={product}
+                        onClick={() => navigate(`/produto/${product.id}`)}
+                        onFavorite={() => handleRemoveFavorite(product.id, product.name)}
+                      />
                     </div>
+                    {/* Selection checkbox overlay */}
+                    {selectionMode && (
+                      <div className="absolute top-3 left-3 z-20">
+                        <div
+                          className={cn(
+                            "h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all backdrop-blur-sm",
+                            isSelected
+                              ? "bg-primary border-primary"
+                              : "bg-card/90 border-border"
+                          )}
+                        >
+                          {isSelected && <CheckSquare className="h-3.5 w-3.5 text-primary-foreground" />}
+                        </div>
+                      </div>
+                    )}
+                    {/* Overlay: heart + saved color badge */}
+                    {!selectionMode && (
+                      <div className="absolute top-3 right-3 z-10 flex flex-col items-end gap-1.5">
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          aria-label="Remover favorito"
+                          className="h-8 w-8 bg-card/90 backdrop-blur-sm hover:bg-destructive/20"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveFavorite(product.id, product.name);
+                          }}
+                        >
+                          <Heart className="h-4 w-4 fill-destructive text-destructive" />
+                        </Button>
+                        {variant?.color_name && (
+                          <Badge
+                            variant="secondary"
+                            className="bg-card/90 backdrop-blur-sm text-[10px] gap-1 px-1.5 py-0.5"
+                          >
+                            {variant.color_hex && (
+                              <span
+                                className="inline-block w-2.5 h-2.5 rounded-full border border-border/50 shrink-0"
+                                style={{ backgroundColor: variant.color_hex }}
+                              />
+                            )}
+                            <span className="truncate max-w-[80px]">{variant.color_name}</span>
+                          </Badge>
+                        )}
+                      </div>
+                    )}
                   </div>
                 );
               })}
