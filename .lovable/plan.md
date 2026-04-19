@@ -1,39 +1,28 @@
+# Análise de Segurança — Vetores de Ataque & Plano de Defesa Pré-Produção
 
-Análise como Product Designer Strategist do módulo `/carrinhos/novo` (visto nos screenshots) + código atual (`SellerCartsPage.tsx`, `CartSidebar.tsx`, `CartCompanyPicker.tsx`).
+Coloquei o "chapéu de atacante" e mapeei como invadiria este sistema hoje, baseado em scan automatizado + leitura do código. Abaixo, **vetores reais** + plano de hardening.
 
-**Problemas reais observados** (screenshots + código):
-- **Header denso**: ícone 48x48 + título + subtítulo com 3 informações + atalho ocupam altura excessiva
-- **Picker de empresa explode a tela**: 2 níveis de "Cancelar", lista vertical longa empurrando todo o conteúdo, sem busca por CNPJ/segmento, sem favoritos/recentes
-- **Tabs de carrinhos sem contexto**: contador "0" não diferencia de "1+", sem indicação de status, sem reordenação
-- **Cart info bar redundante**: repete logo+nome que já está na tab; status como botão pequeno difícil de descobrir
-- **Empty state genérico**: "Carrinho vazio" + único CTA, sem sugestões inteligentes (templates, último carrinho, kits populares)
-- **Sidebar 340px pesada**: 8 botões empilhados (Compartilhar/Duplicar/CSV/PDF/Salvar/Carregar/Limpar/Adicionar), sem hierarquia visual
-- **Notas escondidas**: collapsible quase invisível, alta fricção para input crítico de contexto comercial
-- **Sem visão analítica**: nenhum gráfico de evolução, nenhuma métrica de saúde do carrinho exposta
+## 🎯 Como eu invadiria (vetores priorizados)
 
-# Plano: Carrinhos — Onda Excelência UX (8 itens)
+### **CRÍTICO — exploráveis em minutos**
 
-## Onda A — Header & Picker (compactação + inteligência)
-1. **Header compactado** estilo `/orcamentos`: H1 + métricas inline (X carrinhos · Y itens · R$ Z total agregado), KPIs minúsculos à direita, atalho `Ctrl+K` como tooltip discreto. Reduz altura ~40%.
-2. **CompanyPicker repensado** — dialog modal (não inline empurrando conteúdo), com 3 abas: **Recentes** (últimas 5 empresas usadas), **Favoritas** (estrela), **Buscar todas** (CNPJ + nome + segmento). Inclui mini-card com últimos 3 produtos comprados pela empresa.
+1. **Buckets storage públicos com listagem** (`personalization-images`, `product-videos`, `supplier-logos`, `component-media`) — qualquer um faz `GET /storage/v1/object/list/<bucket>` e baixa **todos os arquivos**, incluindo logos de clientes, mockups confidenciais e mídias internas. Scan confirmou 4 buckets vulneráveis.
+2. **Vazamento Realtime de dados sensíveis** — tabelas `discount_approval_requests` (descontos/notas admin), `kit_variants`, `kit_comments` publicadas sem isolamento por tópico. Um vendedor logado pode subscrever o canal e receber alterações de orçamentos/kits de outros vendedores em tempo real.
+3. **Brute-force de senhas** — sem HIBP (leaked password protection) habilitado. Senhas como "Promogifts2024" são aceitas. Combinado com lista de e-mails de vendedores conhecidos = risco real.
 
-## Onda B — Tabs & Cart Header (clareza)
-3. **Tabs ricas**: badge de status colorido (pequeno dot), contador com cor (cinza=0, primary=1+), indicador "follow-up necessário" (clock laranja), drag para reordenar, botão `+` no fim para criar.
-4. **Cart Header inline** — fundir info bar com tabs (remove redundância de logo). Cart ativo expande com: status como `Select` óbvio, valor total grande, idade, ações rápidas (compartilhar, duplicar, excluir) em 1 linha.
+### **ALTO — exploráveis com esforço moderado**
 
-## Onda C — Conteúdo (produtividade)
-5. **Empty state inteligente** — 3 CTAs lado a lado: **Aplicar template** (mostra os 3 mais usados com preview), **Duplicar último carrinho** desta empresa, **Explorar catálogo**. Reduz tempo até primeira ação.
-6. **Notas sempre visíveis** — campo textarea inline acima dos produtos (não collapsible), com placeholder rotativo de exemplos ("Cliente quer entrega para evento dia X...", "Negociar prazo 30/60/90..."). Salva em onBlur com debounce visual.
+4. **Brute-force de tokens públicos** (`quote-public-view`, `kit-public-view`) — embora protegidos por bot-detection, o token é a única barreira. Sem **rotação automática + expiração padrão** + alerta em N tentativas inválidas seguidas no mesmo orçamento, um atacante paciente eventualmente acerta.
+5. **CSP permissiva** — `script-src 'unsafe-inline' 'unsafe-eval'` permite XSS via qualquer injeção em campo de texto que seja renderizado sem sanitização (notas de orçamento, descrições de kit, observações de carrinho).
+6. **Sem MFA para admin** — uma única senha admin comprometida = controle total de `/admin/*` (gestão de usuários, IP allowlist, descontos).
+7. **Edge functions sem rate-limit em camada de auth** — `manage-users`, `bitrix-sync`, `quote-sync` aceitam requests autenticadas sem teto. Token de vendedor vazado → exfiltração massiva via paginação.
 
-## Onda D — Sidebar & Insights
-7. **Sidebar reorganizada em 3 zonas**: 
-   - **Hero Pricing** (subtotal grande + peso/volume) 
-   - **Ação primária única** (Gerar Orçamento full-width)  
-   - **Menu de ações** colapsado em DropdownMenu "Mais ações" (CSV/PDF/Compartilhar/Duplicar/Templates/Limpar) — reduz de 8 botões para 1 botão + 1 menu
-8. **Painel de Saúde do Carrinho** — substitui o "Score" atual por checklist visual: ✅ Empresa vinculada, ✅ ≥3 produtos, ⚠️ Sem notas, ⚠️ Sem variantes selecionadas, ✅ Pronto para orçamento. Cada item clicável leva à correção. Mais acionável que um número abstrato.
+### **MÉDIO — pré-condições específicas**
 
-## Arquivos esperados
-- **Novos**: `src/components/cart/CartCompanyPickerDialog.tsx`, `src/components/cart/CartHealthChecklist.tsx`, `src/components/cart/CartEmptyStateSmart.tsx`, `src/components/cart/CartTabsRich.tsx`, `src/components/cart/CartActionsMenu.tsx`.
-- **Modificados**: `src/pages/SellerCartsPage.tsx` (header compacto, fluxo dialog), `src/pages/seller-carts/CartSidebar.tsx` (3 zonas + menu), `src/pages/seller-carts/useSellerCartsPage.ts` (recentes/favoritas), `src/components/cart/CartCompanyPicker.tsx` (refator pra dialog).
+8. `pg_trgm` **no schema** `public` — vetor para function-shadowing se atacante conseguir CREATE em public (improvável, mas má higiene).
+9. **Logs sem retenção/alerta** — `login_attempts`, `bot_detection_log`, `admin_audit_log` crescem indefinidamente, sem dashboard de anomalias nem trigger para alertar admin de padrão suspeito.
+10. **Headers de resposta sem CSRF token** em mutations sensíveis (aprovação de desconto, criação de orçamento) — embora Supabase use Bearer token (mitiga CSRF clássico), endpoints públicos como `quote-public-view` aceitam POST de qualquer origem.
 
-Sem migrações novas — usa tabela `seller_carts` existente + `localStorage` para favoritas/recentes (consistente com padrão do projeto). Após aprovação executo os 8 itens sequencialmente até build TS limpo.
+---
+
+## 🛡️ Plano de Hardening — 3 Ond
