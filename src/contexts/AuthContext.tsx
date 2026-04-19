@@ -305,6 +305,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setSession(null);
     setProfile(null);
     setUserRole(null);
+    setCurrentAAL(null);
+    setNextAAL(null);
+    setHasMFA(false);
   };
 
   const refreshProfile = async () => {
@@ -319,6 +322,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const isManager = userRole === "manager";
   const isSeller = userRole === "vendedor";
   const canManage = isAdmin || isManager;
+  // MFA exigido para qualquer admin/manager que ainda não autenticou em aal2
+  const mfaRequired = canManage && currentAAL !== 'aal2';
 
   const value: AuthContextType = {
     user,
@@ -331,6 +336,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isSeller,
     canManage,
     isAuthenticated: !!user,
+    currentAAL,
+    nextAAL,
+    hasMFA,
+    mfaRequired,
+    refreshAAL: fetchAAL,
     signUp,
     signIn,
     signOut,
