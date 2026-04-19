@@ -19,6 +19,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
+import { useCatalogSelection } from "@/components/catalog/useCatalogSelection";
+import { CatalogBulkModals } from "@/components/catalog/CatalogBulkModals";
 
 type ViewMode = "grid" | "list" | "table";
 const VIEW_MODE_KEY = "favorites-view-mode";
@@ -52,7 +54,6 @@ export default function FavoritesPage() {
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => loadGridColumns());
   const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch {}
@@ -97,6 +98,10 @@ export default function FavoritesPage() {
     );
   }, [productsWithVariant, searchQuery]);
 
+  // Bulk selection (shared with catalog: favoritar/comparar/coleção/carrinho/orçamento)
+  const sel = useCatalogSelection(filteredProducts, selectionMode);
+  const selectedIds = sel.selectedIds;
+
   // Stats
   const stats = useMemo(() => {
     if (favoriteProducts.length === 0) return null;
@@ -118,31 +123,16 @@ export default function FavoritesPage() {
 
   const toggleSelectionMode = () => {
     setSelectionMode((prev) => {
-      if (prev) setSelectedIds(new Set());
+      if (prev) sel.clearSelection();
       return !prev;
     });
   };
-
-  const toggleSelected = (productId: string) => {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(productId)) next.delete(productId);
-      else next.add(productId);
-      return next;
-    });
-  };
-
-  const selectAllVisible = () => {
-    setSelectedIds(new Set(filteredProducts.map((p) => p.id)));
-  };
-
-  const clearSelection = () => setSelectedIds(new Set());
 
   const handleRemoveSelected = () => {
     const ids = Array.from(selectedIds);
     ids.forEach((id) => toggleFavorite(id));
     toast.success(`${ids.length} ${ids.length === 1 ? "produto removido" : "produtos removidos"} dos favoritos`);
-    setSelectedIds(new Set());
+    sel.clearSelection();
     setSelectionMode(false);
   };
 
@@ -290,7 +280,7 @@ export default function FavoritesPage() {
           </div>
         )}
 
-        {/* Selection action bar */}
+        {/* Selection action bar — Favoritos-specific (Remover). Bulk shared actions (Orçamento/Carrinho/etc) ficam na BulkActionBar flutuante */}
         {selectionMode && favoriteProducts.length > 0 && (
           <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5 animate-fade-in">
             <div className="flex items-center gap-2 text-sm">
@@ -301,10 +291,10 @@ export default function FavoritesPage() {
               <span className="text-muted-foreground">de {filteredProducts.length}</span>
             </div>
             <div className="flex gap-2 items-center">
-              <Button variant="ghost" size="sm" onClick={selectAllVisible} disabled={selectedIds.size === filteredProducts.length}>
+              <Button variant="ghost" size="sm" onClick={sel.selectAll} disabled={selectedIds.size === filteredProducts.length}>
                 Selecionar tudo
               </Button>
-              <Button variant="ghost" size="sm" onClick={clearSelection} disabled={selectedIds.size === 0}>
+              <Button variant="ghost" size="sm" onClick={sel.clearSelection} disabled={selectedIds.size === 0}>
                 <X className="h-3.5 w-3.5 mr-1" />
                 Limpar
               </Button>
@@ -332,18 +322,47 @@ export default function FavoritesPage() {
               onProductClick={(productId) => navigate(`/produto/${productId}`)}
               isFavorite={isFavorite}
               onToggleFavorite={handleToggleFavorite}
+              selectionMode={selectionMode}
+              selectedIds={selectedIds}
+              onToggleSelect={sel.toggleSelect}
             />
           ) : viewMode === "list" ? (
             <div className="space-y-1.5">
-              {filteredProducts.map((product) => (
-                <ProductListItem
-                  key={product.id}
-                  product={product}
-                  onClick={() => navigate(`/produto/${product.id}`)}
-                  isFavorited={isFavorite(product.id)}
-                  onToggleFavorite={handleToggleFavorite}
-                />
-              ))}
+              {filteredProducts.map((product) => {
+                const isSelected = selectedIds.has(product.id);
+                return (
+                  <div
+                    key={product.id}
+                    className={cn(
+                      "relative rounded-lg transition-all",
+                      selectionMode && "cursor-pointer",
+                      isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
+                    )}
+                    onClick={selectionMode ? () => sel.toggleSelect(product.id) : undefined}
+                  >
+                    <div className={cn(selectionMode && "pointer-events-none")}>
+                      <ProductListItem
+                        product={product}
+                        onClick={() => navigate(`/produto/${product.id}`)}
+                        isFavorited={isFavorite(product.id)}
+                        onToggleFavorite={handleToggleFavorite}
+                      />
+                    </div>
+                    {selectionMode && (
+                      <div className="absolute top-2 left-2 z-20">
+                        <div
+                          className={cn(
+                            "h-6 w-6 rounded-md border-2 flex items-center justify-center transition-all backdrop-blur-sm",
+                            isSelected ? "bg-primary border-primary" : "bg-card/90 border-border"
+                          )}
+                        >
+                          {isSelected && <CheckSquare className="h-3.5 w-3.5 text-primary-foreground" />}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           ) : (
             <div className={`grid ${getGridColsClass(gridColumns)} ${getGridGapClass(gridColumns)}`}>
@@ -359,7 +378,7 @@ export default function FavoritesPage() {
                       isSelected && "ring-2 ring-primary ring-offset-2 ring-offset-background"
                     )}
                     style={{ animationDelay: `${Math.min(index * 25, 250)}ms` }}
-                    onClick={selectionMode ? () => toggleSelected(product.id) : undefined}
+                    onClick={selectionMode ? () => sel.toggleSelect(product.id) : undefined}
                   >
                     <div className={cn(selectionMode && "pointer-events-none")}>
                       <ProductCard
@@ -441,6 +460,9 @@ export default function FavoritesPage() {
           />
         )}
       </div>
+
+      {/* Bulk actions: BulkActionBar flutuante + wizard (Orçamento/Carrinho/Coleção/Comparar/Favoritar) */}
+      <CatalogBulkModals sel={sel} selectionMode={selectionMode} totalCount={filteredProducts.length} />
     </MainLayout>
   );
 }
