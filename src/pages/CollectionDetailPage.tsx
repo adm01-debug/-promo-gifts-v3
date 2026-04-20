@@ -285,22 +285,38 @@ export default function CollectionDetailPage() {
 
   const handleRemoveFromCollection = (productId: string) => {
     removeProductFromCollection(collection.id, productId);
+    setAnnouncement(`Produto removido da coleção ${collection.name}`);
     toast.success("Produto removido da coleção", {
       action: {
         label: "Desfazer",
         onClick: async () => {
           const ok = await restoreFromTrash(collection.id, productId);
-          if (ok) toast.success("Produto restaurado");
-          else toast.error("Não foi possível restaurar");
+          if (ok) {
+            setAnnouncement("Produto restaurado");
+            toast.success("Produto restaurado");
+          } else toast.error("Não foi possível restaurar");
         },
       },
     });
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = filteredProducts.findIndex((p) => p.id === active.id);
+    const newIndex = filteredProducts.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const ordered = arrayMove(filteredProducts.map((p) => p.id), oldIndex, newIndex);
+    reorderProducts(collection.id, ordered);
+  };
+
   const handleCreateQuote = () => {
+    const localCol = collections.find((c) => c.id === collection.id);
     navigate("/orcamentos/novo", {
       state: {
         fromCollection: collection.name,
+        clientId: localCol?.clientId ?? null,
+        clientName: localCol?.clientName ?? null,
         preloadProducts: products.map((p) => ({
           product_id: p.id,
           product_name: p.name,
