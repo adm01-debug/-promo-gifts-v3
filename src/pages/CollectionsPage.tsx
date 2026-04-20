@@ -10,6 +10,9 @@ import { CollectionTableView } from "@/components/collections/CollectionTableVie
 import { ExternalCollectionTableView } from "@/components/collections/ExternalCollectionTableView";
 import { CollectionFormDialog } from "@/components/collections/CollectionFormDialog";
 import { ExternalCollectionCard } from "@/components/collections/ExternalCollectionCard";
+import { CollectionsHeatmap } from "@/components/collections/CollectionsHeatmap";
+import { CollectionsEmptyStateSmart } from "@/components/collections/CollectionsEmptyStateSmart";
+import { useCollectionsGlobalShortcuts } from "@/hooks/useCollectionsGlobalShortcuts";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -42,6 +45,7 @@ function relativeTime(dateStr: string | undefined) {
 }
 
 export default function CollectionsPage() {
+  useCollectionsGlobalShortcuts();
   const state = useCollectionsPageState();
 
   const {
@@ -100,6 +104,7 @@ export default function CollectionsPage() {
             <Input placeholder="Buscar coleções..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} className="pl-9" />
           </div>
           <div className="hidden sm:flex items-center gap-2 ml-auto">
+            <CollectionsHeatmap />
             {localCollections.length > 0 && (
               <Button
                 size="sm"
@@ -269,19 +274,8 @@ export default function CollectionsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10"
             >
-              <motion.div initial={{ y: 10 }} animate={{ y: [0, -6, 0] }} transition={{ repeat: Infinity, duration: 3, ease: "easeInOut" }}>
-                <FolderOpen className="h-16 w-16 text-primary/40 mx-auto mb-4" />
-              </motion.div>
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhuma coleção criada</h3>
-              <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Crie coleções para organizar seus produtos favoritos e montar apresentações profissionais
-              </p>
-              <Button onClick={() => setIsCreateOpen(true)} className="gap-2 shadow-lg shadow-primary/20">
-                <Plus className="h-4 w-4" />
-                Criar primeira coleção
-              </Button>
+              <CollectionsEmptyStateSmart onAddProduct={() => setIsCreateOpen(true)} />
             </motion.div>
           )}
         </div>
