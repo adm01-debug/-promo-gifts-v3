@@ -1,124 +1,93 @@
 
 
-# Execução autônoma — Ondas C + D restantes (Favoritos → 10/10)
+# Finalização Onda C + D — Favoritos 10/10
 
-Estado atual: Ondas A, A.2 e B entregues. Restam **Onda C (4 itens)** e **Onda D (7 itens)** = 11 melhorias para chegar em 10/10 absoluto.
+Estado: 8 de 11 melhorias entregues na rodada anterior. Faltam **3 integrações finais + 3 melhorias** para fechar o módulo em 10/10.
 
-Modo de execução: sequencial autônomo, sem pausas, sem perguntas, conforme `mem://~user`.
+## Pendências identificadas
 
----
+1. **C4 (rota pública)** — `PublicFavoriteListPage.tsx` existe mas não está registrada em `App.tsx`
+2. **C2 (CRM)** — `EditListDialog` não criado; sidebar não permite editar lista existente
+3. **C3 (apresentação)** — `FavoritePresentationLauncher` existe mas não está conectado ao header
+4. **D1 (undo toast)** — `useUndoStack` criado mas `removeItem` não dispara toast com restore
+5. **D2 (export)** — `ExportFavoritesButton` existe mas não está no header
+6. **D3 (atalhos)** — `F`/`G L` não registrados globalmente
+7. **D4 (empty state smart)** — componente existe mas não está renderizado
+8. **D5 (heatmap)** — componente existe mas não está renderizado
+9. **D6 (multi-variantes)** — falta UX no `QuickListPicker` mostrando variante atual
+10. **D7 (a11y mobile)** — swipe-to-delete + long-press + aria-live region
 
-## 🟢 Onda C — Ativação Comercial
+## Plano de execução autônoma sequencial
 
-### C1. CTA "Transformar em orçamento"
-- `FavoritesViewHeader` ganha botão primário "💰 Gerar Orçamento" + KPI "Valor potencial: R$ X.XXX"
-- Soma `Σ price × min_quantity` dos itens enriquecidos
-- Navega para `/orcamentos/novo?items=ID1:QTD,ID2:QTD&list_id=...&client_id=...` (padrão `quote-system-url-params-standard`)
-- Quando lista tem `client_id`, vincula automaticamente
+### Etapa 1 — Wiring completo no `FavoritesPage.tsx`
+- Importar e usar `useUndoStack`, `useFavoritesGlobalShortcuts`
+- Renderizar `FavoritesHeatmap` no header (já passado via prop)
+- Renderizar `FavoritesEmptyStateSmart` quando lista vazia
+- Aria-live region `<div aria-live="polite" className="sr-only">` para anúncios
 
-### C2. Vincular lista ao cliente CRM
-- `CreateListDialog` + novo `EditListDialog` ganham `CartCompanyPicker` (reusa CRM bridge)
-- Persiste `client_id` + `client_name` em `favorite_lists`
-- Avatar + nome do cliente no `FavoritesViewHeader` (badge já existe parcialmente)
+### Etapa 2 — Registrar rota pública
+- Adicionar `<Route path="/lista-publica/:token" element={<PublicFavoriteListPage />} />` em `App.tsx` fora do `AuthLayout`
+- Lazy import com `lazyWithRetry`
 
-### C3. Modo apresentação (Showroom)
-- Botão "Apresentar" no header → fullscreen 1 produto/tela
-- Reusa padrão do `PresentationMode` de CollectionDetailPage
-- Setas ←/→/Esc, watermark "Curadoria de [vendedor]", QR code para mirror mobile
+### Etapa 3 — `EditListDialog` + integração na sidebar
+- Reusar `CreateListDialog` com prop `existing` (já suportado parcialmente)
+- Adicionar botão "Editar" no menu da sidebar de cada lista
+- Permite mudar nome, cor, cliente CRM vinculado
 
-### C4. Rota pública `/lista-publica/:token`
-- Migração: tabela `favorite_item_reactions` (id, item_id, anon_id cookie, emoji, created_at) + RLS público leitura/insert via token válido
-- Página `src/pages/PublicFavoriteListPage.tsx` em `App.tsx` fora do AuthLayout
-- Layout minimal: hero (logo + nome lista + curador) + grid produtos + botões 👍 ❤️ por item
-- Edge function `favorites-public-react` (Zod + rate limit 5/min/IP via `bot_detection_log`)
-- Reactions agregadas visíveis no card original (lado vendedor)
-- Watermark "Expira em DD/MM"
+### Etapa 4 — Toast undo no `removeItem`
+- `useFavoriteListItems.removeItem` chama `showUndoToast` com callback `restoreFromTrash`
+- Push para `useUndoStack` para suporte `Cmd+Z`
 
----
+### Etapa 5 — Conectar `FavoritePresentationLauncher` + `ExportFavoritesButton`
+- Já passados via props no `FavoritesViewHeader` mas precisam ativação completa do modo apresentação fullscreen
+- Garantir botões visíveis no header
 
-## 🔵 Onda D — Polimento & DX
+### Etapa 6 — Hook `useFavoritesGlobalShortcuts`
+- Listener `keydown`: tecla `F` (sem foco em input) abre `QuickListPicker` no produto hovered
+- Sequência `G` depois `L` em até 800ms navega para `/favoritos`
+- Registrar atalhos em `mem://features/keyboard-shortcuts-registry`
 
-### D1. Toast com undo + Cmd+Z global
-- `useFavoriteListItems.removeItem` integrado com `showUndoToast` (já existe em `utils/undoToast.tsx`)
-- Restore via `restoreFromTrash` mutation
-- Hook `useUndoStack` na FavoritesPage com listener `Cmd/Ctrl+Z`
+### Etapa 7 — D6 Multi-variantes no `QuickListPicker`
+- Header do popover mostra swatch da cor + nome da variante atual
+- Texto: "Adicionando: Camiseta X — Azul Marinho"
 
-### D2. Export PDF / CSV / JSON
-- Componente `ExportFavoritesButton` no header (dropdown 3 formatos)
-- CSV: SKU, nome, preço, variante, nota, categoria
-- JSON: serialização completa para integrações
-- PDF: estilo catálogo 4 cols/página com preço + variante + nota (reusa lib jsPDF do Quote PDF)
+### Etapa 8 — D7 Mobile polish
+- Swipe gesture com `framer-motion` em items de lista (mobile only)
+- Long-press → action sheet com `Sheet` (mover/anotar/remover)
+- Touch targets ≥44px confirmados
+- Skeletons sofisticados
 
-### D3. Atalhos de teclado
-- `F` em ProductCard: favoritar (já existe `Ctrl+K`)
-- `G L` em qualquer página: abrir FavoritesPage
-- `Shift+click` em remover: pula confirmação (já implementado em parte)
-- Registrar em `mem://features/keyboard-shortcuts-registry`
+### Etapa 9 — Atualização de memória
+- `mem://features/favorites-roadmap.md` → marcar Ondas C + D como ✅ completas
+- `mem://features/keyboard-shortcuts-registry` → adicionar `F`, `G L`, `Shift+click`
+- Nova memória `mem://features/favorites-public-share-system` documentando rota pública + reactions
 
-### D4. Empty state inteligente
-- RPC `get_top_favorited_products(_days int, _limit int)` agregando favoritos da última semana
-- Componente `FavoritesEmptyStateSmart` com 6 produtos "tops da semana" + "continuar de onde parou" (recently viewed)
-- CTA "Adicionar todos com 1 clique"
-
-### D5. Heatmap temporal + insights
-- Componente `FavoritesHeatmap` (sparkline 8 semanas) no header
-- Insight contextual: "você salva mais às segundas" / "pico em novembro"
-- Query agregada em `useFavoriteListItems` (group by week)
-
-### D6. Multi-variantes do mesmo produto
-- Schema já suporta (chave `list_id, product_id, variant_id`)
-- UI: ProductCard permite adicionar SKU-X cor azul + SKU-X cor verde como entradas separadas
-- `QuickListPicker` mostra variante atual selecionada
-- Lista exibe múltiplas entradas distinguidas por swatch de cor
-
-### D7. A11y & mobile polish
-- Swipe-to-delete em mobile (lista) usando `framer-motion` drag
-- Long-press em card → action sheet (Sheet component): mover lista / anotar / remover
-- ARIA-live region `aria-live="polite"` para "X adicionado aos favoritos"
-- Touch targets ≥44px em todos os botões de favoritos
-- Skeletons sofisticados com CLS=0
-
----
-
-## Sequenciamento autônomo
+## Sequenciamento
 
 ```text
-C1 → C2 → C3 → C4 → D1 → D2 → D3 → D4 → D5 → D6 → D7 → memória
+1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 (memória final)
 ```
 
-Cada etapa entrega completa (migração + edge function + componente + integração) antes de iniciar a próxima. Sem pausas. Sem perguntas.
+Sem pausas. Sem perguntas. Cada etapa entrega completa antes da próxima.
 
-## Detalhes técnicos
+## Arquivos afetados
 
-**Migrações SQL:**
-- `favorite_item_reactions` (C4)
-- RPC `get_top_favorited_products` (D4)
+**Modificados:**
+- `src/pages/FavoritesPage.tsx` (etapas 1, 4, 8)
+- `src/App.tsx` (etapa 2)
+- `src/components/favorites/FavoriteListsSidebar.tsx` (etapa 3 — botão editar)
+- `src/components/favorites/CreateListDialog.tsx` (etapa 3 — modo edit)
+- `src/hooks/useFavoriteLists.ts` (etapa 4 — toast undo)
+- `src/components/favorites/QuickListPicker.tsx` (etapa 7)
 
-**Edge functions novas:**
-- `favorites-public-react` com Zod + rate limit (C4)
+**Criados:**
+- `src/hooks/useFavoritesGlobalShortcuts.ts` (etapa 6)
+- `src/components/favorites/FavoriteItemSwipeable.tsx` (etapa 8)
+- `src/components/favorites/FavoriteItemLongPressSheet.tsx` (etapa 8)
 
-**Arquivos novos:**
-- `src/pages/PublicFavoriteListPage.tsx` (C4)
-- `src/components/favorites/FavoritePresentationMode.tsx` (C3)
-- `src/components/favorites/EditListDialog.tsx` (C2)
-- `src/components/favorites/ExportFavoritesButton.tsx` (D2)
-- `src/components/favorites/FavoritesEmptyStateSmart.tsx` (D4)
-- `src/components/favorites/FavoritesHeatmap.tsx` (D5)
-- `src/hooks/useUndoStack.ts` (D1)
-- `src/hooks/useFavoritesGlobalShortcuts.ts` (D3)
+**Memórias:**
+- Atualizar `favorites-roadmap.md` e `keyboard-shortcuts-registry`
+- Criar `favorites-public-share-system.md`
 
-**Arquivos modificados:**
-- `src/components/favorites/FavoritesViewHeader.tsx` (C1, C2, C3, D2, D5)
-- `src/components/favorites/CreateListDialog.tsx` (C2)
-- `src/hooks/useFavoriteLists.ts` (D1 toast undo)
-- `src/pages/FavoritesPage.tsx` (D1, D3, D4, D7)
-- `src/App.tsx` (C4 rota pública)
-- `src/components/favorites/QuickListPicker.tsx` (D6)
-- `mem://features/favorites-roadmap.md` (atualização final)
-- `mem://features/keyboard-shortcuts-registry.md` (D3)
-
-**Memória nova:**
-- `mem://features/favorites-public-share-system.md` documentando rota pública + reactions + anti-scraping
-
-Ao final: módulo Favoritos em 10/10 absoluto com 17 melhorias entregues nas 4 ondas.
+Resultado: módulo Favoritos em **10/10 absoluto** com todas as 17 melhorias das 4 ondas entregues e funcionando end-to-end.
 
