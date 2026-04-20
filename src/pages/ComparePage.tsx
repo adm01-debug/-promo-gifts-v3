@@ -1,6 +1,7 @@
 /**
  * ComparePage — Comparador de produtos
  * Onda C1: Score ponderado, radar chart, AI advisor, TCO, highlights expandidos, differences-only.
+ * Onda C2: CRM picker, share público, export PDF/PNG/CSV, sync cross-device, CTA orçamento.
  */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,18 +12,25 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List, Filter } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List, Filter, FileText, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
 import { CompareTableView } from "@/components/compare/CompareTableView";
 import { ComparisonScoreCard } from "@/components/compare/ComparisonScoreCard";
 import { ComparisonRadarChart } from "@/components/compare/ComparisonRadarChart";
 import { AIComparisonAdvisor } from "@/components/compare/AIComparisonAdvisor";
+import { ShareComparisonDialog } from "@/components/compare/ShareComparisonDialog";
+import { ExportComparisonButton } from "@/components/compare/ExportComparisonButton";
+import { FavoritesClientPicker } from "@/components/favorites/FavoritesClientPicker";
+import { useComparisonSync } from "@/hooks/useComparisonSync";
 
 export default function ComparePage() {
+  useComparisonSync();
   const navigate = useNavigate();
   const [differencesOnly, setDifferencesOnly] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [client, setClient] = useState<{ id: string; name: string } | null>(null);
   const { compareItems, removeByIndex, clearCompare, compareCount } = useComparisonStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
@@ -55,15 +63,12 @@ export default function ComparePage() {
     }
   };
 
-  const handleShare = () => {
-    const productNames = products.map((p) => `• ${p.name} - ${formatCurrency(p.price)}`).join("\n");
-    const message = `Comparativo de Produtos:\n\n${productNames}`;
-    if (navigator.share) {
-      navigator.share({ title: "Comparativo de Produtos - PROMO BRINDES", text: message });
-    } else {
-      navigator.clipboard.writeText(message);
-      toast.success("Comparativo copiado para a área de transferência!");
-    }
+  const handleCreateQuote = () => {
+    const productParams = compareItems.map(i => i.productId).join(",");
+    const params = new URLSearchParams({ products: productParams });
+    if (client?.id) params.set("client_id", client.id);
+    if (client?.name) params.set("client_name", client.name);
+    navigate(`/orcamentos/novo?${params.toString()}`);
   };
 
   if (compareCount < 2) {
@@ -87,16 +92,41 @@ export default function ComparePage() {
 
   return (
     <MainLayout>
-      <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+      <ShareComparisonDialog
+        open={shareOpen}
+        onOpenChange={setShareOpen}
+        compareItems={compareItems}
+        clientId={client?.id ?? null}
+        clientName={client?.name ?? null}
+      />
+      <div id="compare-export-area" className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
             <div>
               <h1 className="text-2xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
-              <p className="text-muted-foreground">Comparando {compareCount} produtos</p>
+              <p className="text-muted-foreground">
+                Comparando {compareCount} produtos
+                {client && <> · <span className="text-primary font-medium">{client.name}</span></>}
+              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant={client ? "default" : "outline"} size="sm">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  {client ? client.name.slice(0, 22) : "Cliente CRM"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-3">
+                <FavoritesClientPicker
+                  selectedClientId={client?.id ?? null}
+                  selectedClientName={client?.name ?? null}
+                  onSelect={setClient}
+                />
+              </PopoverContent>
+            </Popover>
             <Button
               variant={differencesOnly ? "default" : "outline"}
               size="sm"
@@ -106,8 +136,15 @@ export default function ComparePage() {
               <Filter className="h-4 w-4 mr-2" />
               {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
             </Button>
-            <Button variant="outline" onClick={handleShare}><Share2 className="h-4 w-4 mr-2" />Compartilhar</Button>
-            <Button variant="outline" onClick={() => { clearCompare(); navigate("/"); }}>Limpar Comparação</Button>
+            <Button variant="default" size="sm" onClick={handleCreateQuote}>
+              <FileText className="h-4 w-4 mr-2" />
+              Criar orçamento
+            </Button>
+            <ExportComparisonButton products={products} formatCurrency={formatCurrency} />
+            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+              <Share2 className="h-4 w-4 mr-2" />Compartilhar
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
           </div>
         </div>
 
