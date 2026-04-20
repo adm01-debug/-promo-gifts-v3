@@ -1,200 +1,301 @@
 
-# Magic Up 10/10 — Próxima execução: Onda 4, depois Ondas 5–13 em sequência
+# Magic Up 10/10 — Próxima execução: Onda 5, depois Ondas 6–13 em sequência
 
-Como estamos em modo somente leitura, a próxima etapa será implementada assim que este plano for aprovado. Vou continuar exatamente no formato solicitado: **uma onda por vez, sem perguntas, com validação técnica ao final de cada onda**.
+A Onda 4 já deixou o Magic Up com direção de arte Pro, refinamentos rápidos, fila local de variações, Brand Kit no payload e metadados completos. A próxima evolução será a **Onda 5 — Magic Score real + curadoria**, transformando a avaliação atual heurística em um sistema de diagnóstico comercial, visual e operacional para escolher a melhor peça antes de enviar ao cliente.
 
-## Onda 4 — Geração Pro e refinamentos criativos
+## Onda 5 — Magic Score real + curadoria
 
-Objetivo: transformar os controles atuais de direção de arte em uma experiência modular, mais poderosa e pronta para geração em lote.
+### Objetivo
 
-### 1. Modularizar os controles criativos
+Criar uma camada de curadoria profissional para cada imagem gerada, com:
 
-Criar componentes dedicados em `src/components/magic-up/`:
+- score 0–100 mais detalhado;
+- checklist por critérios comerciais;
+- recomendações de melhoria;
+- status de curadoria;
+- comparação entre variações;
+- persistência do diagnóstico no histórico;
+- fallback seguro quando a análise por IA não estiver disponível.
 
-- `MagicUpCreativeControls.tsx`
-- `MagicUpRefinementActions.tsx`
-- `MagicUpBatchGenerationPanel.tsx`
+## 1. Expandir tipos e estratégia do Magic Score
 
-Substituir o bloco inline atual `CreativeControlsCard` em `MagicUpConfigPanel.tsx` por componentes reutilizáveis e mais claros.
+Atualizar `src/pages/magic-up/magicUpStrategy.ts` para adicionar uma estrutura mais rica:
 
-### 2. Expandir direção de arte
+- `MagicUpQualityCriterion`
+  - `id`
+  - `label`
+  - `score`
+  - `passed`
+  - `weight`
+  - `recommendation`
 
-Manter e organizar os controles já existentes:
+- `MagicUpQualityDiagnosis`
+  - `total`
+  - `label`
+  - `summary`
+  - `criteria`
+  - `strengths`
+  - `risks`
+  - `recommendations`
+  - `source: "heuristic" | "ai"`
 
-- Modo criativo:
-  - produto herói
-  - lifestyle
-  - flatlay
-  - premium
-  - social ads
-  - catálogo
-  - evento
-  - kit/combinação
-  - mockup realista
+- `MagicUpCurationStatus`
+  - `draft`
+  - `good`
+  - `favorite`
+  - `internal-approved`
+  - `sent-to-client`
+  - `client-approved`
+  - `client-rejected`
+  - `needs-adjustment`
 
-- Composição:
-  - centro limpo
-  - produto à esquerda
-  - produto à direita
-  - close-up
-  - ambiente aberto
-  - com pessoas
-  - com props
+Também manter compatibilidade com o `qualityScore` atual para não quebrar componentes existentes.
 
-- Formato:
-  - 1:1
-  - 4:5
-  - 9:16
-  - 16:9
-  - A4
-  - WhatsApp
+## 2. Criar componentes de curadoria
 
-- Qualidade:
-  - rascunho
-  - alta qualidade
-  - pro final
-  - variação rápida
+Criar em `src/components/magic-up/`:
 
-### 3. Adicionar refinamentos rápidos
+### `MagicUpQualityScore.tsx`
 
-Criar ações de “um clique” para ajustar a intenção criativa sem o usuário reescrever prompt:
+Exibir:
 
-- Mais premium
-- Mais minimalista
-- Mais humano
-- Mais corporativo
-- Mais vibrante
-- Mais realista
-- Mais foco no produto
-- Menos elementos
-- Trocar fundo
-- Manter produto e logo, mudar cenário
+- score visual 0–100;
+- rótulo de qualidade;
+- origem do diagnóstico:
+  - heurístico;
+  - IA;
+- resumo executivo;
+- estado visual claro:
+  - excelente;
+  - bom;
+  - precisa ajuste;
+  - crítico.
 
-Essas ações vão atualizar `additionalDetails` e/ou `creativeControls` de forma controlada, mantendo o briefing e Brand Kit intactos.
+### `MagicUpQualityChecklist.tsx`
 
-### 4. Preparar geração em lote local
+Mostrar critérios:
 
-Adicionar painel de lote com presets:
+- clareza do produto;
+- visibilidade do logo;
+- adequação ao canal;
+- coerência com cliente/Brand Kit;
+- qualidade visual;
+- potencial comercial;
+- realismo;
+- espaço para copy/CTA.
 
-- 3 variações de cena
-- 3 variações de canal
-- 3 variações de tom
-- Pacote completo:
-  - WhatsApp
-  - Instagram
-  - LinkedIn
-  - Orçamento
+Cada item terá:
 
-Nesta onda, o lote será preparado no frontend como fila local controlada. A execução poderá reutilizar `handleGenerate` sequencialmente, sem criar backend novo ainda.
+- aprovado/revisar;
+- score parcial;
+- recomendação objetiva.
 
-### 5. Evoluir payload da geração
+### `MagicUpVariationComparator.tsx`
 
-Atualizar `useMagicUpGeneration.ts` para enviar também:
+Quando houver mais de uma variação:
 
-- Brand Kit resumido
-- Notas de marca estruturadas
-- Refinamento ativo
-- Batch metadata quando aplicável
+- listar variações lado a lado em cards compactos;
+- destacar a melhor pelo score;
+- permitir selecionar a vencedora;
+- indicar pontos fortes/fracos de cada uma;
+- preservar navegação já existente de variações.
 
-Também persistir em `magic_up_generations.metadata`:
+### `MagicUpCurationStatus.tsx`
 
-- `brandKit`
-- `refinement`
-- `batch`
-- `creativeControls`
-- `brief`
+Permitir alterar o status da imagem atual:
 
-### 6. Evoluir `generate-ad-image`
+- Rascunho
+- Boa
+- Favorita
+- Aprovada internamente
+- Enviada ao cliente
+- Aprovada pelo cliente
+- Rejeitada
+- Precisa ajuste
 
-Atualizar `supabase/functions/generate-ad-image/index.ts` para:
+A mudança atualizará a geração salva no banco quando houver `generation.id`.
 
-- aceitar `brandKit`
-- aceitar `refinementInstruction`
-- aceitar `batchVariant`
-- padronizar retorno com:
-  - `imageUrl`
-  - `model`
-  - `qualityMode`
-  - `aspectRatio`
-  - `creativeMode`
-  - `compositionMode`
-  - `message`
+## 3. Criar backend function `magic-up-score`
 
-Também melhorar o prompt interno para separar claramente:
+Criar `supabase/functions/magic-up-score/index.ts`.
+
+A função terá:
+
+- autenticação em código;
+- CORS em todas as respostas;
+- proteção contra abuso/rate limit;
+- validação Zod;
+- uso do Lovable AI;
+- resposta JSON estritamente estruturada.
+
+### Entrada esperada
 
 ```text
-CAMPAIGN BRIEF
-BRAND KIT
-PRODUCT DIRECTION
-CREATIVE MODE
-COMPOSITION
-FORMAT
-NEGATIVE PROMPT
-REFINEMENT INSTRUCTION
+imageUrl
+productName
+clientName
+campaignBrief
+brandKit
+creativeControls
+promptText
+channel
+aspectRatio
 ```
 
-### 7. UX e acessibilidade
+### Saída esperada
 
-Garantir:
+```text
+{
+  "total": 0-100,
+  "label": "...",
+  "summary": "...",
+  "criteria": [
+    {
+      "id": "...",
+      "label": "...",
+      "score": 0-100,
+      "passed": true,
+      "weight": 1-5,
+      "recommendation": "..."
+    }
+  ],
+  "strengths": ["..."],
+  "risks": ["..."],
+  "recommendations": ["..."]
+}
+```
 
-- Botões icon-only com `aria-label`
-- Botões de refinamento acessíveis por teclado
-- Estado visual claro para filtros ativos
-- `aria-live` para:
-  - refinamento aplicado
-  - lote iniciado
-  - variação gerada
-  - erro de geração
+### Modelo
 
-### 8. Validação da Onda 4
+Usar um modelo multimodal do Lovable AI apropriado para avaliar imagem + contexto, priorizando precisão. A função não pedirá chaves externas.
+
+## 4. Integrar análise de score ao frontend
+
+Atualizar `useMagicUpGeneration.ts` para:
+
+- depois que a imagem for gerada, chamar `magic-up-score`;
+- usar fallback heurístico se a função falhar;
+- persistir o diagnóstico em:
+  - `quality_score`
+  - `metadata.qualityDiagnosis`
+  - `metadata.qualitySource`
+  - `metadata.curation`
+
+A geração não deve falhar caso a análise de score falhe. Nesse caso:
+
+- imagem continua salva;
+- score heurístico é aplicado;
+- aviso discreto é exibido.
+
+## 5. Adicionar ações de curadoria no estado
+
+Atualizar `useMagicUpState.ts` e/ou `useMagicUpGeneration.ts` para expor:
+
+- `qualityDiagnosis`
+- `curationStatus`
+- `handleRunQualityScore`
+- `handleSetCurationStatus`
+- `handleSelectWinningVariation`
+
+Regras:
+
+- se não houver imagem, ações ficam desabilitadas;
+- se não houver `generation.id`, status muda apenas localmente;
+- se houver `generation.id`, status é persistido em `magic_up_generations.status`;
+- favoritos continuam usando `is_favorite`.
+
+## 6. Refatorar `AdImageResult`
+
+Atualizar `src/components/magic-up/AdImageResult.tsx` para substituir o bloco simples de Magic Score por componentes modulares:
+
+- `MagicUpQualityScore`
+- `MagicUpQualityChecklist`
+- `MagicUpCurationStatus`
+
+Também corrigir acessibilidade existente:
+
+- cards do histórico clicáveis devem virar `button` ou receber `role`, `tabIndex` e `onKeyDown`;
+- botão de favorito do histórico precisa de `aria-label`;
+- dots de variação precisam de `aria-label`;
+- botões icon-only devem ter labels específicos, não genéricos como “Horário”.
+
+## 7. Integrar comparador ao painel de resultado
+
+Atualizar `src/pages/magic-up/MagicUpResultPanel.tsx` para:
+
+- exibir `MagicUpVariationComparator` quando houver 2+ variações;
+- manter thumbnails existentes;
+- permitir selecionar a melhor variação;
+- mostrar badge “Melhor score” na vencedora;
+- não poluir a UI quando só houver uma variação.
+
+## 8. Persistência e histórico
+
+Atualizar a query de histórico em `useMagicUpState.ts` para buscar campos úteis:
+
+- `quality_score`
+- `status`
+- `channel`
+- `aspect_ratio`
+- `metadata`
+- `copy_pack`
+
+Atualizar `GenerationHistoryItem` para suportar score/status sem quebrar usos atuais.
+
+No histórico:
+
+- mostrar score compacto;
+- mostrar status;
+- permitir filtrar/ordenar futuramente na Onda 8.
+
+## 9. Validação da Onda 5
 
 Ao final da implementação:
 
-- Rodar typecheck.
-- Verificar build quando necessário.
-- Confirmar que os novos componentes compilam sem `any`.
-- Confirmar que o prompt completo reflete:
-  - briefing
-  - Brand Kit
-  - direção de arte
-  - negative prompt
-  - refinamento rápido
-- Confirmar que a imagem gerada continua salvando no histórico.
-- Confirmar que `metadata` registra os novos campos.
+- rodar typecheck;
+- validar que a função `magic-up-score` tem Zod e autenticação;
+- confirmar que a geração de imagem continua funcionando mesmo se o score falhar;
+- confirmar que `quality_score` é salvo;
+- confirmar que `metadata.qualityDiagnosis` é salvo;
+- confirmar que o status de curadoria atualiza a geração;
+- confirmar que variações podem ser comparadas;
+- confirmar que não há `any` novo;
+- revisar acessibilidade dos botões e cards interativos.
 
-## Depois da Onda 4
+## Depois da Onda 5
 
-Assim que a Onda 4 estiver validada, seguirei automaticamente para:
+Assim que a Onda 5 estiver validada, seguirei automaticamente para:
 
-1. **Onda 5 — Magic Score real + curadoria**
-2. **Onda 6 — Copywriter + WhatsApp Pack**
-3. **Onda 7 — Exportação profissional**
-4. **Onda 8 — Biblioteca criativa avançada**
-5. **Onda 9 — Aprovação pública**
-6. **Onda 10 — Integrações comerciais**
-7. **Onda 11 — Produtividade, atalhos e acessibilidade**
-8. **Onda 12 — Analytics e governança de IA**
-9. **Onda 13 — QA e certificação 10/10**
+1. **Onda 6 — Copywriter + WhatsApp Pack**
+2. **Onda 7 — Exportação profissional**
+3. **Onda 8 — Biblioteca criativa avançada**
+4. **Onda 9 — Aprovação pública**
+5. **Onda 10 — Integrações comerciais**
+6. **Onda 11 — Produtividade, atalhos e acessibilidade**
+7. **Onda 12 — Analytics e governança de IA**
+8. **Onda 13 — QA e certificação 10/10**
 
-## Arquivos previstos para a Onda 4
+## Arquivos previstos para a Onda 5
 
-- `src/pages/magic-up/MagicUpConfigPanel.tsx`
 - `src/pages/magic-up/magicUpStrategy.ts`
 - `src/hooks/useMagicUpState.ts`
 - `src/hooks/useMagicUpGeneration.ts`
-- `src/components/magic-up/MagicUpCreativeControls.tsx`
-- `src/components/magic-up/MagicUpRefinementActions.tsx`
-- `src/components/magic-up/MagicUpBatchGenerationPanel.tsx`
-- `supabase/functions/generate-ad-image/index.ts`
+- `src/pages/magic-up/MagicUpResultPanel.tsx`
+- `src/components/magic-up/AdImageResult.tsx`
+- `src/components/magic-up/MagicUpQualityScore.tsx`
+- `src/components/magic-up/MagicUpQualityChecklist.tsx`
+- `src/components/magic-up/MagicUpVariationComparator.tsx`
+- `src/components/magic-up/MagicUpCurationStatus.tsx`
+- `supabase/functions/magic-up-score/index.ts`
 
-## Resultado esperado da Onda 4
+## Resultado esperado da Onda 5
 
-O Magic Up deixará de ter apenas controles básicos e passará a operar como um mini estúdio de direção de arte:
+O Magic Up deixará de apenas gerar imagens e passará a ajudar o vendedor a decidir com segurança qual peça merece ser enviada:
 
-- controles modulares;
-- refinamentos rápidos;
-- preparação para geração em lote;
-- prompt mais estratégico;
-- Brand Kit usado na geração;
-- metadados completos salvos;
-- UX mais premium, acessível e escalável.
+- score real por critérios;
+- diagnóstico visual e comercial;
+- curadoria de status;
+- comparação de variações;
+- fallback heurístico seguro;
+- histórico enriquecido;
+- base pronta para copywriter, exportação e aprovação pública.
