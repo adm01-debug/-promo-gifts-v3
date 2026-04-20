@@ -28,6 +28,7 @@ const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteAppro
 const PublicKitView = lazyWithRetry(() => import("./pages/PublicKitViewPage"));
 const PublicFavoriteList = lazyWithRetry(() => import("./pages/PublicFavoriteListPage"));
 const PublicCollectionPage = lazyWithRetry(() => import("./pages/PublicCollectionPage"));
+const PublicComparisonPage = lazyWithRetry(() => import("./pages/PublicComparisonPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Product Pages
@@ -181,6 +182,7 @@ const App = () => {
                           <Route path="/kit/:token" element={<PublicKitView />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/lista-publica/:token" element={<PublicFavoriteList />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/colecao-publica/:token" element={<PublicCollectionPage />} errorElement={<RouteErrorBoundary />} />
+                          <Route path="/comparar-publica/:token" element={<PublicComparisonPage />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/dossie/:token" element={<PublicDossierPage />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
