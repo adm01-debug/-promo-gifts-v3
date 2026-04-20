@@ -589,6 +589,7 @@ export default function FavoritesPage() {
                         const variant = variantMap.get(product.id);
                         const isSelected = selectedIds.has(product.id);
                         const noteMeta = noteMap.get(product.id);
+                        const priceMeta = enrichedMetaMap.get(product.id);
                         return (
                           <div
                             key={product.id}
@@ -607,6 +608,17 @@ export default function FavoritesPage() {
                                 onFavorite={() => handleRemoveFavorite(product.id, product.name)}
                               />
                             </div>
+                            {/* Price drop badge — canto inferior esquerdo, apenas em listas remotas */}
+                            {isRemoteListView && priceMeta && !selectionMode && (
+                              <div className="absolute bottom-3 left-3 z-10 pointer-events-auto">
+                                <PriceDropBadge
+                                  priceDiffPct={priceMeta.priceDiffPct}
+                                  priceAtSave={priceMeta.priceAtSave}
+                                  currentPrice={product.price}
+                                  savedAt={priceMeta.savedAt}
+                                />
+                              </div>
+                            )}
                             {selectionMode && (
                               <div className="absolute top-3 left-3 z-20">
                                 <div className={cn(
