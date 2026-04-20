@@ -38,6 +38,28 @@ export type MagicUpQualityScore = {
   checks: Array<{ label: string; passed: boolean }>;
 };
 
+export type MagicUpQualityCriterion = {
+  id: string;
+  label: string;
+  score: number;
+  passed: boolean;
+  weight: number;
+  recommendation: string;
+};
+
+export type MagicUpQualityDiagnosis = {
+  total: number;
+  label: string;
+  summary: string;
+  criteria: MagicUpQualityCriterion[];
+  strengths: string[];
+  risks: string[];
+  recommendations: string[];
+  source: "heuristic" | "ai";
+};
+
+export type MagicUpCurationStatus = "draft" | "good" | "favorite" | "internal-approved" | "sent-to-client" | "client-approved" | "client-rejected" | "needs-adjustment";
+
 export type MagicUpCopyPack = {
   whatsapp: string;
   instagram: string;
@@ -189,6 +211,17 @@ export const CAMPAIGN_STATUSES: Array<{ value: MagicUpCampaignStatus; label: str
   { value: "rejected", label: "Rejeitada" },
 ];
 
+export const CURATION_STATUSES: Array<{ value: MagicUpCurationStatus; label: string }> = [
+  { value: "draft", label: "Rascunho" },
+  { value: "good", label: "Boa" },
+  { value: "favorite", label: "Favorita" },
+  { value: "internal-approved", label: "Aprovada internamente" },
+  { value: "sent-to-client", label: "Enviada ao cliente" },
+  { value: "client-approved", label: "Aprovada pelo cliente" },
+  { value: "client-rejected", label: "Rejeitada" },
+  { value: "needs-adjustment", label: "Precisa ajuste" },
+];
+
 export const toHuman = (value: string) => value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 
 export function campaignFromBrief(input: { brief: MagicUpBrief; clientId?: string | null; clientName?: string | null; productName?: string | null }): MagicUpCampaign {
@@ -222,6 +255,28 @@ export function buildMagicScore(input: {
   ];
   const total = Math.min(98, 58 + checks.filter((c) => c.passed).length * 7);
   return { total, label: total >= 88 ? "Excelente para envio" : total >= 75 ? "Boa peça comercial" : "Precisa revisão", checks };
+}
+
+export function buildQualityDiagnosis(score: MagicUpQualityScore): MagicUpQualityDiagnosis {
+  const criteria = score.checks.map((check, index) => ({
+    id: check.label.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || `criterio-${index + 1}`,
+    label: check.label,
+    score: check.passed ? 92 : 58,
+    passed: check.passed,
+    weight: index < 2 ? 5 : 3,
+    recommendation: check.passed ? "Critério pronto para envio comercial." : "Revise este ponto antes de enviar ao cliente.",
+  }));
+  const risks = criteria.filter((criterion) => !criterion.passed).map((criterion) => criterion.label);
+  return {
+    total: score.total,
+    label: score.label,
+    summary: risks.length ? `Peça promissora, mas revise: ${risks.join(", ")}.` : "Peça consistente para uso comercial e apresentação ao cliente.",
+    criteria,
+    strengths: criteria.filter((criterion) => criterion.passed).slice(0, 4).map((criterion) => criterion.label),
+    risks,
+    recommendations: risks.length ? risks.map((risk) => `Melhorar ${risk.toLowerCase()} na próxima variação.`) : ["Usar como versão candidata e adaptar copy ao canal."],
+    source: "heuristic",
+  };
 }
 
 export function buildCopyPack(input: { productName?: string; clientName?: string; cta: string; tone: string; channel: string }): MagicUpCopyPack {
