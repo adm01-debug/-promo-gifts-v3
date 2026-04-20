@@ -733,6 +733,54 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_item_reactions: {
+        Row: {
+          anon_id: string
+          created_at: string
+          emoji: string
+          id: string
+          ip_hash: string | null
+          item_id: string
+          list_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          anon_id: string
+          created_at?: string
+          emoji: string
+          id?: string
+          ip_hash?: string | null
+          item_id: string
+          list_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          anon_id?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          ip_hash?: string | null
+          item_id?: string
+          list_id?: string
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_item_reactions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "favorite_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "favorite_item_reactions_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "favorite_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       favorite_items: {
         Row: {
           added_at: string
@@ -3538,6 +3586,13 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_favorites_weekly_count: {
+        Args: { _weeks?: number }
+        Returns: {
+          item_count: number
+          week_start: string
+        }[]
+      }
       get_industry_benchmark_stats: {
         Args: { _company_ids: string[]; _days?: number }
         Returns: {
@@ -3603,6 +3658,13 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_top_favorited_products: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          fav_count: number
+          product_id: string
+        }[]
       }
       get_unread_count: { Args: never; Returns: number }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
