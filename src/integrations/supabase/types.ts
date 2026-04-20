@@ -517,6 +517,47 @@ export type Database = {
         }
         Relationships: []
       }
+      comparison_reactions: {
+        Row: {
+          anon_id: string
+          comparison_id: string
+          created_at: string
+          emoji: string
+          id: string
+          ip_hash: string | null
+          item_index: number
+          user_agent: string | null
+        }
+        Insert: {
+          anon_id: string
+          comparison_id: string
+          created_at?: string
+          emoji: string
+          id?: string
+          ip_hash?: string | null
+          item_index?: number
+          user_agent?: string | null
+        }
+        Update: {
+          anon_id?: string
+          comparison_id?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          ip_hash?: string | null
+          item_index?: number
+          user_agent?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "comparison_reactions_comparison_id_fkey"
+            columns: ["comparison_id"]
+            isOneToOne: false
+            referencedRelation: "user_comparisons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       component_media: {
         Row: {
           component_id: string
@@ -2165,6 +2206,30 @@ export type Database = {
         }
         Relationships: []
       }
+      price_history: {
+        Row: {
+          id: string
+          price: number
+          product_id: string
+          recorded_at: string
+          variant_id: string | null
+        }
+        Insert: {
+          id?: string
+          price: number
+          product_id: string
+          recorded_at?: string
+          variant_id?: string | null
+        }
+        Update: {
+          id?: string
+          price?: number
+          product_id?: string
+          recorded_at?: string
+          variant_id?: string | null
+        }
+        Relationships: []
+      }
       product_component_locations: {
         Row: {
           component_id: string
@@ -3403,6 +3468,51 @@ export type Database = {
         }
         Relationships: []
       }
+      user_comparisons: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          created_at: string
+          id: string
+          is_public: boolean
+          items: Json
+          name: string | null
+          share_expires_at: string | null
+          share_token: string | null
+          updated_at: string
+          user_id: string
+          view_count: number
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          items?: Json
+          name?: string | null
+          share_expires_at?: string | null
+          share_token?: string | null
+          updated_at?: string
+          user_id: string
+          view_count?: number
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          items?: Json
+          name?: string | null
+          share_expires_at?: string | null
+          share_token?: string | null
+          updated_at?: string
+          user_id?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       user_onboarding: {
         Row: {
           completed_at: string | null
@@ -3641,6 +3751,7 @@ export type Database = {
       cleanup_discount_test_data: { Args: never; Returns: Json }
       cleanup_expired_collection_trash: { Args: never; Returns: number }
       cleanup_expired_favorite_trash: { Args: never; Returns: number }
+      cleanup_expired_public_comparisons: { Args: never; Returns: number }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
@@ -3773,6 +3884,13 @@ export type Database = {
           product_id: string
         }[]
       }
+      get_top_compared_products: {
+        Args: { p_limit?: number }
+        Returns: {
+          comparison_count: number
+          product_id: string
+        }[]
+      }
       get_top_favorited_products: {
         Args: { _days?: number; _limit?: number }
         Returns: {
@@ -3782,6 +3900,17 @@ export type Database = {
       }
       get_unread_count: { Args: never; Returns: number }
       get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_user_recent_comparisons: {
+        Args: { p_limit?: number }
+        Returns: {
+          client_name: string
+          id: string
+          item_count: number
+          items: Json
+          name: string
+          updated_at: string
+        }[]
+      }
       has_org_role: {
         Args: {
           _org_id: string

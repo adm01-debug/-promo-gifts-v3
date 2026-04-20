@@ -1,8 +1,8 @@
 /**
- * ComparePage — Comparador de produtos (refatorado)
- * Tabela extraída para CompareTableView.tsx
+ * ComparePage — Comparador de produtos
+ * Onda C1: Score ponderado, radar chart, AI advisor, TCO, highlights expandidos, differences-only.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -11,14 +11,18 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List } from "lucide-react";
+import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
 import { CompareTableView } from "@/components/compare/CompareTableView";
+import { ComparisonScoreCard } from "@/components/compare/ComparisonScoreCard";
+import { ComparisonRadarChart } from "@/components/compare/ComparisonRadarChart";
+import { AIComparisonAdvisor } from "@/components/compare/AIComparisonAdvisor";
 
 export default function ComparePage() {
   const navigate = useNavigate();
+  const [differencesOnly, setDifferencesOnly] = useState(false);
   const { compareItems, removeByIndex, clearCompare, compareCount } = useComparisonStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
@@ -92,11 +96,27 @@ export default function ComparePage() {
               <p className="text-muted-foreground">Comparando {compareCount} produtos</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={differencesOnly ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDifferencesOnly(v => !v)}
+              aria-pressed={differencesOnly}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
+            </Button>
             <Button variant="outline" onClick={handleShare}><Share2 className="h-4 w-4 mr-2" />Compartilhar</Button>
             <Button variant="outline" onClick={() => { clearCompare(); navigate("/"); }}>Limpar Comparação</Button>
           </div>
         </div>
+
+        {/* Onda C1 — Inteligência de decisão */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ComparisonScoreCard products={products} />
+          <ComparisonRadarChart products={products} />
+        </div>
+        <AIComparisonAdvisor products={products} />
 
         <Tabs defaultValue="gallery" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2 mx-auto mb-6">
