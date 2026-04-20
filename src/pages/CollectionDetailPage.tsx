@@ -136,15 +136,36 @@ export default function CollectionDetailPage() {
     return getCollectionProducts(id);
   }, [id, isExternal, externalProducts, getCollectionProducts]);
 
+  const collectionItems = useMemo(() => {
+    if (!id || isExternal) return [];
+    return getCollectionProductItems(id);
+  }, [id, isExternal, getCollectionProductItems]);
+
   const variantMap = useMemo(() => {
-    if (!id || isExternal) return new Map();
-    const items = getCollectionProductItems(id);
     const map = new Map<string, { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null }>();
-    items.forEach((item) => {
+    collectionItems.forEach((item) => {
       if (item.variant) map.set(item.productId, item.variant);
     });
     return map;
-  }, [id, isExternal, getCollectionProductItems]);
+  }, [collectionItems]);
+
+  const priceAtSaveMap = useMemo(() => {
+    const map = new Map<string, number | null>();
+    collectionItems.forEach((it) => map.set(it.productId, it.priceAtSave ?? null));
+    return map;
+  }, [collectionItems]);
+
+  const addedAtMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    collectionItems.forEach((it) => map.set(it.productId, it.addedAt ?? null));
+    return map;
+  }, [collectionItems]);
+
+  const notesMap = useMemo(() => {
+    const map = new Map<string, string | undefined>();
+    collectionItems.forEach((it) => map.set(it.productId, it.notes));
+    return map;
+  }, [collectionItems]);
 
   const isSelectionMode = selectionModeActive || selectedIds.size > 0;
 
@@ -207,10 +228,17 @@ export default function CollectionDetailPage() {
       const q = searchQuery.toLowerCase();
       filtered = products.filter((p) => p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q));
     }
+    if (onlyDrops) {
+      filtered = filtered.filter((p) => {
+        const saved = priceAtSaveMap.get(p.id);
+        if (!saved || !p.price) return false;
+        return ((p.price - saved) / saved) * 100 <= -2;
+      });
+    }
     if (sortBy === "name") filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
     else if (sortBy === "sku") filtered = [...filtered].sort((a, b) => (a.sku || "").localeCompare(b.sku || ""));
     return filtered;
-  }, [products, searchQuery, sortBy]);
+  }, [products, searchQuery, sortBy, onlyDrops, priceAtSaveMap]);
 
   const productsWithVariant = useMemo(() => {
     return filteredProducts.map((product) => {
