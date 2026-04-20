@@ -382,6 +382,54 @@ export type Database = {
           },
         ]
       }
+      collection_items_trash: {
+        Row: {
+          collection_id: string
+          color_hex: string | null
+          color_name: string | null
+          deleted_at: string
+          expires_at: string
+          id: string
+          notes: string | null
+          original_id: string
+          price_at_save: number | null
+          product_id: string
+          sort_order: number | null
+          thumbnail_url: string | null
+          user_id: string
+        }
+        Insert: {
+          collection_id: string
+          color_hex?: string | null
+          color_name?: string | null
+          deleted_at?: string
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          original_id: string
+          price_at_save?: number | null
+          product_id: string
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          user_id: string
+        }
+        Update: {
+          collection_id?: string
+          color_hex?: string | null
+          color_name?: string | null
+          deleted_at?: string
+          expires_at?: string
+          id?: string
+          notes?: string | null
+          original_id?: string
+          price_at_save?: number | null
+          product_id?: string
+          sort_order?: number | null
+          thumbnail_url?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       collections: {
         Row: {
           created_at: string
@@ -3540,6 +3588,7 @@ export type Database = {
         Returns: Json
       }
       cleanup_discount_test_data: { Args: never; Returns: Json }
+      cleanup_expired_collection_trash: { Args: never; Returns: number }
       cleanup_expired_favorite_trash: { Args: never; Returns: number }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
