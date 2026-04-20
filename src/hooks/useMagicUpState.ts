@@ -4,10 +4,12 @@
  * Generation logic delegated to useMagicUpGeneration.
  */
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAriaLive } from "@/components/a11y";
 import { useProductCustomizationOptionsForMockup } from "@/hooks/useMockupTechniques";
 import { searchCrm, selectCrmById } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
@@ -15,7 +17,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
-import { DEFAULT_BRIEF, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, type MagicUpBrief, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
+import { DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -67,6 +69,8 @@ export interface VariationItem {
 
 export function useMagicUpState() {
   const { user } = useAuth();
+  const { announceStatus, announceAlert } = useAriaLive();
+  const queryClient = useQueryClient();
 
   // Product
   const [products, setProducts] = useState<MagicUpProduct[]>([]);
@@ -92,6 +96,7 @@ export function useMagicUpState() {
   const [showPromptPreview, setShowPromptPreview] = useState(false);
   const [sceneTab, setSceneTab] = useState<"ai" | "bank">("ai");
   const [brief, setBrief] = useState<MagicUpBrief>(DEFAULT_BRIEF);
+  const [activeCampaign, setActiveCampaign] = useState<MagicUpCampaign | null>(null);
   const [creativeControls, setCreativeControls] = useState<MagicUpCreativeControls>(DEFAULT_CREATIVE_CONTROLS);
   const [brandNotes, setBrandNotes] = useState("");
 
@@ -129,6 +134,36 @@ export function useMagicUpState() {
       if (!user?.id) return [];
       const { data } = await supabase.from("magic_up_generations").select("id, generated_image_url, product_name, scene_title, scene_category, is_favorite, created_at, client_name").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
       return (data || []) as GenerationHistoryItem[];
+    },
+    enabled: !!user?.id,
+  });
+
+  const { data: campaigns = [] } = useQuery<MagicUpCampaign[]>({
+    queryKey: ["magic-up-campaigns", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("magic_up_campaigns")
+        .select("id, title, status, client_id, client_name, objective, channel, audience, tone, cta, occasion, created_at, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return (data || []).map((row: Tables<"magic_up_campaigns">) => ({
+        id: row.id,
+        title: row.title,
+        status: row.status as MagicUpCampaignStatus,
+        clientId: row.client_id,
+        clientName: row.client_name,
+        objective: row.objective || DEFAULT_BRIEF.objective,
+        channel: row.channel || DEFAULT_BRIEF.channel,
+        audience: row.audience || DEFAULT_BRIEF.audience,
+        tone: row.tone || DEFAULT_BRIEF.tone,
+        cta: row.cta || DEFAULT_BRIEF.cta,
+        occasion: row.occasion || DEFAULT_BRIEF.occasion,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
     },
     enabled: !!user?.id,
   });
@@ -246,12 +281,60 @@ CENÁRIO: ${effectivePrompt}`;
     channel: brief.channel,
   }), [selectedProduct?.name, selectedClient?.name, brief]);
 
+  const handleSetBrief = useCallback((next: MagicUpBrief) => {
+    setBrief(next);
+    setActiveCampaign((current) => current ? { ...current, ...next } : current);
+  }, []);
+
+  const handleSelectCampaign = useCallback((campaign: MagicUpCampaign) => {
+    setActiveCampaign(campaign);
+    setBrief({ objective: campaign.objective, channel: campaign.channel, audience: campaign.audience, tone: campaign.tone, cta: campaign.cta, occasion: campaign.occasion });
+    announceStatus(`Campanha ${campaign.title} selecionada`);
+  }, [announceStatus]);
+
+  const handleDuplicateCampaign = useCallback((campaign: MagicUpCampaign) => {
+    const copy = { ...campaign, id: null, title: `${campaign.title} · cópia`, status: "draft" as MagicUpCampaignStatus };
+    setActiveCampaign(copy);
+    setBrief({ objective: copy.objective, channel: copy.channel, audience: copy.audience, tone: copy.tone, cta: copy.cta, occasion: copy.occasion });
+    announceStatus("Campanha duplicada como rascunho");
+  }, [announceStatus]);
+
+  const handleSaveCampaign = useCallback(async () => {
+    if (!user?.id) { toast.error("Faça login para salvar campanhas"); announceAlert("Login necessário para salvar campanha"); return; }
+    const draft = activeCampaign ?? campaignFromBrief({ brief, clientId: selectedClient?.id, clientName: selectedClient?.name, productName: selectedProduct?.name });
+    const basePayload = {
+      title: draft.title || DEFAULT_CAMPAIGN.title,
+      client_id: selectedClient?.id || draft.clientId,
+      client_name: selectedClient?.name || draft.clientName,
+      objective: draft.objective,
+      channel: draft.channel,
+      audience: draft.audience,
+      tone: draft.tone,
+      cta: draft.cta,
+      occasion: draft.occasion,
+      status: draft.status,
+      metadata: { source: "magic-up", brand_notes: brandNotes, product_id: selectedProduct?.id || null },
+    };
+    const result = draft.id
+      ? await supabase.from("magic_up_campaigns").update(basePayload satisfies TablesUpdate<"magic_up_campaigns">).eq("id", draft.id).select("id, updated_at").single()
+      : await supabase.from("magic_up_campaigns").insert({ ...basePayload, user_id: user.id } satisfies TablesInsert<"magic_up_campaigns">).select("id, created_at, updated_at").single();
+    if (result.error) { toast.error("Erro ao salvar campanha"); announceAlert("Erro ao salvar campanha"); return; }
+    setActiveCampaign({ ...draft, id: result.data.id, clientId: basePayload.client_id || null, clientName: basePayload.client_name || null, updatedAt: result.data.updated_at });
+    queryClient.invalidateQueries({ queryKey: ["magic-up-campaigns"] });
+    toast.success("Campanha salva");
+    announceStatus("Campanha salva com sucesso");
+  }, [activeCampaign, announceAlert, announceStatus, brandNotes, brief, queryClient, selectedClient, selectedProduct, user?.id]);
+
   // ─── Generation (delegated) ────────────────────────────────────
   const generation = useMagicUpGeneration({
     selectedProduct, currentImage, logoPreview, effectivePrompt,
     selectedColor, selectedTechnique, selectedLocationName, selectedScene, selectedClient, userId: user?.id,
-    brief, creativeControls, qualityScore, copyPack, fullPromptPreview,
+    brief, creativeControls, qualityScore, copyPack, fullPromptPreview, activeCampaign,
   });
+
+  useEffect(() => {
+    if (generation.generating) announceStatus("Geração do Magic Up iniciada");
+  }, [announceStatus, generation.generating]);
 
   // ─── Handlers ──────────────────────────────────────────────────
   const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -272,7 +355,7 @@ CENÁRIO: ${effectivePrompt}`;
 
   const handleSelectProduct = useCallback((p: MagicUpProduct | null) => {
     setSelectedProduct(p); setSelectedColor(null); generation.setVariations([]); generation.setActiveVariation(0);
-  }, [generation]);
+  }, [generation.setActiveVariation, generation.setVariations]);
 
   const handleClearClient = useCallback(() => { setSelectedClient(null); setLogoPreview(null); }, []);
 
@@ -286,7 +369,9 @@ CENÁRIO: ${effectivePrompt}`;
     logoPreview, logoUploading, handleLogoUpload,
     selectedScene, setSelectedScene, additionalDetails, setAdditionalDetails,
     showPromptPreview, setShowPromptPreview, sceneTab, setSceneTab,
-    brief, setBrief, creativeControls, setCreativeControls, brandNotes, setBrandNotes,
+    brief, setBrief: handleSetBrief, activeCampaign, setActiveCampaign, campaigns,
+    handleSaveCampaign, handleSelectCampaign, handleDuplicateCampaign,
+    creativeControls, setCreativeControls, brandNotes, setBrandNotes,
     qualityScore, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,
