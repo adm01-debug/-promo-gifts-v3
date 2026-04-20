@@ -29,6 +29,18 @@ export type MagicUpCopyPack = {
   cta: string;
 };
 
+export type MagicUpCampaignStatus = "draft" | "review" | "sent" | "approved" | "rejected";
+
+export type MagicUpCampaign = MagicUpBrief & {
+  id: string | null;
+  title: string;
+  status: MagicUpCampaignStatus;
+  clientId: string | null;
+  clientName: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+};
+
 export const DEFAULT_BRIEF: MagicUpBrief = {
   objective: "orcamento-rapido",
   channel: "whatsapp",
@@ -36,6 +48,15 @@ export const DEFAULT_BRIEF: MagicUpBrief = {
   tone: "premium",
   cta: "Solicite seu orçamento",
   occasion: "campanha-corporativa",
+};
+
+export const DEFAULT_CAMPAIGN: MagicUpCampaign = {
+  ...DEFAULT_BRIEF,
+  id: null,
+  title: "Campanha Magic Up",
+  status: "draft",
+  clientId: null,
+  clientName: null,
 };
 
 export const DEFAULT_CREATIVE_CONTROLS: MagicUpCreativeControls = {
@@ -66,7 +87,28 @@ export const ASPECT_RATIOS = ["1:1", "4:5", "9:16", "16:9", "A4", "WhatsApp"];
 export const QUALITY_MODES = ["rascunho", "alta-qualidade", "pro-final", "variacao-rapida"];
 export const NEGATIVE_PROMPTS = ["Sem texto na imagem", "Sem mãos deformadas", "Sem logo distorcido", "Sem produto duplicado", "Sem marca concorrente", "Sem fundo poluído", "Sem rosto em destaque", "Sem aparência artificial"];
 
+export const CAMPAIGN_STATUSES: Array<{ value: MagicUpCampaignStatus; label: string }> = [
+  { value: "draft", label: "Rascunho" },
+  { value: "review", label: "Em revisão" },
+  { value: "sent", label: "Enviada" },
+  { value: "approved", label: "Aprovada" },
+  { value: "rejected", label: "Rejeitada" },
+];
+
 export const toHuman = (value: string) => value.replace(/-/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+
+export function campaignFromBrief(input: { brief: MagicUpBrief; clientId?: string | null; clientName?: string | null; productName?: string | null }): MagicUpCampaign {
+  const channel = toHuman(input.brief.channel);
+  const product = input.productName ? ` · ${input.productName}` : "";
+  return {
+    ...input.brief,
+    id: null,
+    title: `${channel}${product}`,
+    status: "draft",
+    clientId: input.clientId ?? null,
+    clientName: input.clientName ?? null,
+  };
+}
 
 export function buildMagicScore(input: {
   hasProduct: boolean;
