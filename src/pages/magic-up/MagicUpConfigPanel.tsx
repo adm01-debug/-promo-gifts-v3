@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Upload, Loader2, MapPin, Paintbrush,
   Wand2, Eye, EyeOff, Building2,
-  Search, X, Sparkles, Briefcase, ShieldCheck, SlidersHorizontal,
+  Search, X, Sparkles, Briefcase, SlidersHorizontal,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
