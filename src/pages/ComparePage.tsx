@@ -22,6 +22,7 @@ import { AIComparisonAdvisor } from "@/components/compare/AIComparisonAdvisor";
 
 export default function ComparePage() {
   const navigate = useNavigate();
+  const [differencesOnly, setDifferencesOnly] = useState(false);
   const { compareItems, removeByIndex, clearCompare, compareCount } = useComparisonStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
