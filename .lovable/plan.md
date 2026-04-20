@@ -1,71 +1,57 @@
 
 
-# QA Abrangente — Comparador 10/10 (Ondas C1→C6)
+# Correção dos 2 bugs do QA + agendamento do cron
 
-Plano de testes end-to-end **somente** sobre o que foi implementado nas ondas C1→C6 do Comparador. Vou executar via browser automation + queries no banco + curl nas edge functions + leitura de logs.
+O QA da sessão anterior identificou 2 bugs bloqueantes nas Ondas C1→C6. Vou corrigir ambos e fechar o último gap operacional.
 
-## Escopo (34 itens implementados)
+## Bug #1 (High) — Cron `comparison-price-watcher` não agendado
 
-**Ondas C1-C5 (26):** score, radar, TCO, highlight expandido, differences toggle, IA advisor, CRM picker, criar orçamento, share público + reactions, export PDF/PNG/CSV, sync cross-device, duel view, sync variantes, mobile carousel, sticky header, hover preview, animações, sparkline 30d, fornecedores alternativos, risco estoque, similar rail, presentation, atalhos globais, ARIA-live, empty state inteligente, recents sidebar.
+A edge function existe e está deployada, mas o job no `pg_cron` nunca foi inserido. Sem isso, ninguém é notificado quando o preço de um produto comparado cai.
 
-**Onda C6 (8):** pesos personalizáveis, histórico 30d overlay, PDF white-label, drag-reorder colunas, focus mode (F), zoom inline, price watcher cron, cheatsheet (Shift+?).
+**Fix:** usar a ferramenta de insert (não migration) para agendar o cron diário às 04:00 BR (07:00 UTC):
 
-## Etapa 1 — QA Backend (queries + curl)
+```sql
+SELECT cron.schedule(
+  'comparison-price-watcher-daily',
+  '0 7 * * *',
+  $$
+  SELECT net.http_post(
+    url := 'https://nmojwpihnslkssljowjh.supabase.co/functions/v1/comparison-price-watcher',
+    headers := '{"Content-Type":"application/json","Authorization":"Bearer <ANON_KEY>"}'::jsonb,
+    body := '{}'::jsonb
+  );
+  $$
+);
+```
 
-| Teste | Como |
-|---|---|
-| Tabelas `user_comparisons`, `comparison_reactions`, `user_preferences` existem com RLS | `supabase--read_query` em `pg_policies` |
-| RPCs `cleanup_expired_public_comparisons`, `get_top_compared_products`, `get_user_recent_comparisons` retornam shape correto | `supabase--read_query` chamando cada RPC |
-| Crons `cleanup-expired-public-comparisons` (03:30) e `comparison-price-watcher` (04:00) ativos | `SELECT * FROM cron.job` |
-| Edge function `comparison-ai-advisor` responde com produtos mock | `supabase--curl_edge_functions` |
-| Edge function `comparisons-public-react` aplica rate limit (5/min/IP) | curl 6× rápido, esperar 429 na 6ª |
-| Edge function `comparison-price-watcher` executa sem erro | curl manual + `supabase--edge_function_logs` |
+Validação: `SELECT jobname, schedule, active FROM cron.job WHERE jobname = 'comparison-price-watcher-daily'`.
 
-## Etapa 2 — QA Frontend (browser automation)
+## Bug #2 (Medium) — Empty state inteligente não renderiza top 6
 
-**Setup:** `navigate_to_sandbox` em `/produtos`, adicionar 3 produtos via botão "Comparar".
+`CompareEmptyStateSmart` chama `supabase.rpc("get_top_compared_products", { p_limit: 6 })` e mostra a grade só quando `products.length > 0`. Investigação necessária:
 
-| Cenário | Verificação |
-|---|---|
-| Navegar `/comparar` com 3 produtos | Carrega sem erro, score badge "Recomendado" visível |
-| Toggle "Differences only" | Linhas idênticas somem |
-| Abrir radar chart (R) | Modal abre, 5 eixos renderizam |
-| Botão "Análise IA" | Loading → 3 bullets de recomendação |
-| Pesos popover (sliders) | Mover preço para 50% recalcula score |
-| `FavoritesClientPicker` no header | Selecionar cliente, persiste |
-| "Criar orçamento" | Navega `/orcamentos/novo?products=...&client_id=...` |
-| Compartilhar (gera token) | Copia URL `/comparar-publica/:token` |
-| Abrir share em aba anônima | Página pública carrega read-only |
-| Reagir 👍 na pública | Insere em `comparison_reactions` |
-| Export PDF white-label | Baixa PDF com logo/cor do cliente |
-| Export PNG e CSV | Ambos baixam com conteúdo válido |
-| Remover 1 produto (ficar com 2) | Auto-renderiza `ComparisonDuelView` |
-| Drag-reorder coluna | Ordem persiste em `user_preferences` |
-| Hover swatch de cor | Imagem do header troca |
-| Hover célula imagem | Zoom 2× inline |
-| Atalho `F` | Focus mode esconde sidebar/header |
-| Atalho `Shift+?` | Cheatsheet abre com lista de atalhos |
-| Atalho `Shift+X` | Limpa, ARIA-live anuncia |
-| Atalho `1`-`4` | Foca produto N |
-| Empty state (0 produtos) | Mostra top 6 da semana + CTA |
-| `RecentComparisonsSidebar` | Últimas 5 recarregam em 1 clique |
-| Mobile (375×812) | `ComparisonMobileView` ativa, carousel vertical |
+1. RPC existe mas pode estar retornando `[]` porque `user_comparisons.items` ainda está vazio em produção (sem dados históricos).
+2. `getProductsByIds` pode estar filtrando IDs que não vêm enriquecidos no contexto.
 
-## Etapa 3 — QA Resiliência
+**Fix planejado em `src/components/compare/CompareEmptyStateSmart.tsx`:**
+- Fallback: se RPC retorna 0 ids OU `getProductsByIds` resolve 0 produtos, buscar top 6 produtos por outro critério (ex.: `useProductsContext().products.slice(0, 6)` ordenados por destaque/popularidade local).
+- Logar `console.warn` quando o fallback dispara para facilitar QA futuro.
+- Renderizar a seção "Os mais comparados da semana" (ou "Sugestões") sempre que houver ≥1 produto resolvido — nunca esconder silenciosamente.
 
-- Token expirado em share público → erro tratado
-- Sem produtos com `price_history` → sparkline cai gracioso
-- IA advisor sem cota → mensagem amigável (não crash)
-- Drag-reorder com 1 produto → desabilitado
-- Logout durante comparação → localStorage permanece
+## Etapa 3 — Re-validação pós-fix
 
-## Etapa 4 — Relatório final
+1. Confirmar `cron.job` lista o novo job ativo.
+2. Disparar manualmente `comparison-price-watcher` via curl e ler logs (sem erro).
+3. Abrir `/comparar` em estado vazio e confirmar que a grade de 6 produtos aparece.
+4. Atualizar o relatório QA: marcar Bug #1 e Bug #2 como **PASS**, fechar a certificação 10/10.
 
-Tabela com **PASS / FAIL / N/A** para cada um dos 34 itens, screenshots dos pontos críticos (radar, duel, mobile, focus mode, cheatsheet, share público), lista de bugs encontrados (se houver) e severidade.
+## Arquivos afetados
 
-Se encontrar bugs, **PARO** o teste, reporto, e aguardo aprovação para fix.
+- `src/components/compare/CompareEmptyStateSmart.tsx` (edit — fallback + logs)
+- Insert SQL via `supabase` insert tool (cron job)
+- Sem novas migrations, sem novas edge functions
 
-## Resultado esperado
+## Resultado final
 
-Certificação independente de que o Comparador está 10/10 funcional end-to-end, ou lista priorizada de correções pré-go-live.
+Comparador 10/10 com **0 bugs abertos**: price watcher rodando diariamente, empty state sempre populado, relatório QA fechado.
 
