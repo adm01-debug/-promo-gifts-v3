@@ -16,6 +16,13 @@ const BodySchema = z.object({
   sceneCategory: z.string().optional(),
   brandColorHex: z.string().optional(),
   brandColorName: z.string().optional(),
+  campaignBrief: z.record(z.unknown()).optional(),
+  outputChannel: z.string().optional(),
+  aspectRatio: z.string().optional(),
+  qualityMode: z.string().optional(),
+  compositionMode: z.string().optional(),
+  creativeMode: z.string().optional(),
+  negativePrompt: z.array(z.string()).optional(),
 }).refine(data => data.logoBase64 || data.logoUrl, {
   message: "Either logoBase64 or logoUrl must be provided",
 });
@@ -65,7 +72,8 @@ Deno.serve(async (req) => {
     const {
       productImageUrl, logoBase64, logoUrl, productName, productColor,
       techniqueName, locationName, scenePrompt, sceneCategory,
-      brandColorHex, brandColorName,
+      brandColorHex, brandColorName, campaignBrief, outputChannel,
+      aspectRatio, qualityMode, compositionMode, creativeMode, negativePrompt,
     } = parsed.data;
 
     const logoImageSrc = logoBase64 || logoUrl!;
@@ -125,6 +133,15 @@ LOGO APPLICATION: ${productHint.logoTip}`
       ? `\nBRAND COLORS: The client brand uses ${brandColorName || brandColorHex} (${brandColorHex}). Subtly incorporate this color in the scene elements (props, background accents, clothing details) for brand harmony.`
       : '';
 
+    const strategyInstruction = `
+CAMPAIGN BRIEF: ${campaignBrief ? JSON.stringify(campaignBrief) : 'general B2B promotional sales campaign'}
+OUTPUT CHANNEL: ${outputChannel || 'whatsapp'}
+ASPECT RATIO / FORMAT: ${aspectRatio || '1:1'}
+QUALITY MODE: ${qualityMode || 'pro-final'}
+CREATIVE MODE: ${creativeMode || 'product hero'}
+COMPOSITION: ${compositionMode || 'clean centered product hero'}
+AVOID: ${(negativePrompt || ['text inside image', 'distorted logo', 'busy background']).join(', ')}`;
+
     const prompt = `Create a HIGH-QUALITY commercial advertising photograph for a promotional product company.
 
 PRODUCT: ${productName}${productColor ? ` in ${productColor} color` : ''}
@@ -132,6 +149,7 @@ CUSTOMIZATION: The product has the company logo applied via ${techniqueName || '
 ${materialInstruction}
 SCENE: ${scenePrompt}
 ${brandColorInstruction}
+${strategyInstruction}
 
 CRITICAL REQUIREMENTS:
 1. The product shown in the reference image MUST appear prominently in the scene, clearly visible
