@@ -1,7 +1,8 @@
 /**
  * CompareTableView — Tabela detalhada de comparação de produtos
+ * Highlights expandidos: preço, qty mín, TCO, estoque, lead time, cores, MOQ, verificado.
+ * Suporta toggle "differences only" via prop.
  */
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +10,7 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { X, Check, Minus, Crown, AlertTriangle } from "lucide-react";
+import { X, Check, Minus, Crown, AlertTriangle, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useComparisonHighlight, highlightClasses } from "./ComparisonHighlights";
 import type { CompareVariantInfo } from "@/stores/useComparisonStore";
@@ -26,10 +27,58 @@ interface CompareTableViewProps {
   formatCurrency: (v: number) => string;
   getStockStatusLabel: (s: string) => { label: string; color: string };
   onRemove: (index: number) => void;
+  differencesOnly?: boolean;
 }
 
-export function CompareTableView({ entries, products, formatCurrency, getStockStatusLabel, onRemove }: CompareTableViewProps) {
+function leadTimeProxy(status: string | undefined): number {
+  switch (status) {
+    case "in-stock": return 1;
+    case "low-stock": return 2;
+    case "out-of-stock": return 4;
+    default: return 2;
+  }
+}
+
+function leadTimeLabel(status: string | undefined): string {
+  switch (status) {
+    case "in-stock": return "1-3 dias";
+    case "low-stock": return "5-10 dias";
+    case "out-of-stock": return "Sob consulta";
+    default: return "—";
+  }
+}
+
+function allEqual<T>(arr: T[]): boolean {
+  if (arr.length < 2) return true;
+  const first = JSON.stringify(arr[0]);
+  return arr.every(v => JSON.stringify(v) === first);
+}
+
+export function CompareTableView({
+  entries,
+  products,
+  formatCurrency,
+  getStockStatusLabel,
+  onRemove,
+  differencesOnly = false,
+}: CompareTableViewProps) {
   const navigate = useNavigate();
+
+  // Compute equality flags for each row (for differences-only mode)
+  const eq = {
+    sku: allEqual(products.map(p => p.sku)),
+    category: allEqual(products.map(p => p.category?.name)),
+    supplier: allEqual(products.map(p => p.supplier?.name)),
+    isKit: allEqual(products.map(p => p.isKit)),
+    materials: allEqual(products.map(p => (p.materials ?? []).slice().sort().join("|"))),
+    publico: allEqual(products.map(p => (p.tags?.publicoAlvo ?? []).slice().sort().join("|"))),
+    datas: allEqual(products.map(p => (p.tags?.datasComemorativas ?? []).slice().sort().join("|"))),
+    description: allEqual(products.map(p => p.description ?? "")),
+    weight: allEqual(products.map(p => p.dimensions?.weight_g ?? null)),
+    dims: allEqual(products.map(p => `${p.dimensions?.height_cm ?? ""}x${p.dimensions?.width_cm ?? ""}x${p.dimensions?.length_cm ?? ""}`)),
+  };
+
+  const showRow = (key: keyof typeof eq) => !differencesOnly || !eq[key];
 
   return (
     <ScrollArea className="w-full">
@@ -63,38 +112,114 @@ export function CompareTableView({ entries, products, formatCurrency, getStockSt
             </TableRow>
           </TableHeader>
           <TableBody>
-            <HighlightedPriceRow products={products} formatCurrency={formatCurrency} />
-            <HighlightedMinQtyRow products={products} />
-            <SimpleRow label="SKU" products={products} render={(p) => <span className="font-mono text-sm">{p.sku}</span>} />
-            <SimpleRow label="Categoria" products={products} render={(p) => <Badge variant="outline">{p.category.icon} {p.category.name}</Badge>} />
-            <SimpleRow label="Fornecedor" products={products} render={(p) => p.supplier.name} />
-            <SimpleRow label="Estoque" products={products} render={(p) => {
+            <HighlightedNumberRow
+              label="Preço unitário"
+              products={products}
+              valueFn={(p) => p.price}
+              renderFn={(v) => formatCurrency(v)}
+              mode="lower-is-better"
+            />
+            <HighlightedNumberRow
+              label="Quantidade mínima"
+              products={products}
+              valueFn={(p) => p.minQuantity}
+              renderFn={(v) => `${v} un.`}
+              mode="lower-is-better"
+            />
+            <HighlightedNumberRow
+              label="Custo total (qtd. mín.)"
+              products={products}
+              valueFn={(p) => Number(p.price ?? 0) * Number(p.minQuantity ?? 1)}
+              renderFn={(v) => formatCurrency(v)}
+              mode="lower-is-better"
+              subtitle="TCO"
+            />
+            <HighlightedNumberRow
+              label="Estoque"
+              products={products}
+              valueFn={(p) => p.stock ?? 0}
+              renderFn={(v) => `${v.toLocaleString("pt-BR")} un.`}
+              mode="higher-is-better"
+            />
+            <HighlightedNumberRow
+              label="Lead time"
+              products={products}
+              valueFn={(p) => leadTimeProxy(p.stockStatus)}
+              renderFn={(v) => {
+                const status = v === 1 ? "in-stock" : v === 2 ? "low-stock" : "out-of-stock";
+                return leadTimeLabel(status);
+              }}
+              mode="lower-is-better"
+            />
+            <HighlightedNumberRow
+              label="Variedade de cores"
+              products={products}
+              valueFn={(p) => (p.colors?.length ?? 0)}
+              renderFn={(v) => `${v} cores`}
+              mode="higher-is-better"
+            />
+            {showRow("sku") && (
+              <SimpleRow label="SKU" products={products} render={(p) => <span className="font-mono text-sm">{p.sku}</span>} />
+            )}
+            {showRow("category") && (
+              <SimpleRow label="Categoria" products={products} render={(p) => <Badge variant="outline">{p.category?.icon} {p.category?.name}</Badge>} />
+            )}
+            {showRow("supplier") && (
+              <SimpleRow label="Fornecedor" products={products} render={(p) => (
+                <div className="flex items-center justify-center gap-1.5">
+                  {p.supplier?.verified && <ShieldCheck className="h-3.5 w-3.5 text-success" />}
+                  <span>{p.supplier?.name}</span>
+                </div>
+              )} />
+            )}
+            <SimpleRow label="Estoque (status)" products={products} render={(p) => {
               const s = getStockStatusLabel(p.stockStatus);
-              return (<div className="flex flex-col items-center gap-1"><span className={cn("font-medium", s.color)}>{s.label}</span><span className="text-sm text-muted-foreground">{p.stock.toLocaleString("pt-BR")} un.</span></div>);
+              return (<span className={cn("font-medium", s.color)}>{s.label}</span>);
             }} />
-            <SimpleRow label="É Kit?" products={products} render={(p) => p.isKit ? <Check className="h-5 w-5 text-success mx-auto" /> : <Minus className="h-5 w-5 text-muted-foreground mx-auto" />} />
-            <SimpleRow label="Cores Disponíveis" products={products} render={(p) => (
+            {showRow("isKit") && (
+              <SimpleRow label="É Kit?" products={products} render={(p) => p.isKit ? <Check className="h-5 w-5 text-success mx-auto" /> : <Minus className="h-5 w-5 text-muted-foreground mx-auto" />} />
+            )}
+            <SimpleRow label="Cores disponíveis" products={products} render={(p) => (
               <div className="flex flex-wrap justify-center gap-1">
-                {p.colors.slice(0, 6).map((c: any, i: number) => <div key={i} className="w-5 h-5 rounded-full border border-border" style={{ backgroundColor: c.hex }} title={c.name} />)}
-                {p.colors.length > 6 && <span className="text-xs text-muted-foreground">+{p.colors.length - 6}</span>}
+                {p.colors?.slice(0, 6).map((c: any, i: number) => <div key={i} className="w-5 h-5 rounded-full border border-border" style={{ backgroundColor: c.hex }} title={c.name} />)}
+                {(p.colors?.length ?? 0) > 6 && <span className="text-xs text-muted-foreground">+{p.colors.length - 6}</span>}
               </div>
             )} />
-            <SimpleRow label="Materiais" products={products} render={(p) => (
-              <div className="flex flex-wrap justify-center gap-1">
-                {p.materials.map((m: string) => <Badge key={m} variant="secondary" className="text-xs">{m}</Badge>)}
-              </div>
-            )} />
-            <SimpleRow label="Público-Alvo" products={products} render={(p) => (
-              <div className="flex flex-wrap justify-center gap-1">
-                {p.tags.publicoAlvo.slice(0, 3).map((t: string) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
-              </div>
-            )} />
-            <SimpleRow label="Datas Comemorativas" products={products} render={(p) =>
-              p.tags.datasComemorativas.length > 0
-                ? <div className="flex flex-wrap justify-center gap-1">{p.tags.datasComemorativas.slice(0, 2).map((d: string) => <Badge key={d} variant="outline" className="text-xs">{d}</Badge>)}</div>
-                : <Minus className="h-4 w-4 text-muted-foreground mx-auto" />
-            } />
-            <SimpleRow label="Descrição" products={products} render={(p) => <p className="text-sm text-muted-foreground line-clamp-3">{p.description}</p>} />
+            {showRow("materials") && (
+              <SimpleRow label="Materiais" products={products} render={(p) => (
+                <div className="flex flex-wrap justify-center gap-1">
+                  {(p.materials ?? []).map((m: string) => <Badge key={m} variant="secondary" className="text-xs">{m}</Badge>)}
+                </div>
+              )} />
+            )}
+            {showRow("weight") && (
+              <SimpleRow label="Peso" products={products} render={(p) => p.dimensions?.weight_g ? <span>{p.dimensions.weight_g} g</span> : <Minus className="h-4 w-4 text-muted-foreground mx-auto" />} />
+            )}
+            {showRow("dims") && (
+              <SimpleRow label="Dimensões" products={products} render={(p) => {
+                const d = p.dimensions;
+                if (!d) return <Minus className="h-4 w-4 text-muted-foreground mx-auto" />;
+                const parts = [d.height_cm, d.width_cm, d.length_cm].filter(Boolean);
+                return parts.length ? <span className="text-xs">{parts.join(" × ")} cm</span> : <Minus className="h-4 w-4 text-muted-foreground mx-auto" />;
+              }} />
+            )}
+            {showRow("publico") && (
+              <SimpleRow label="Público-alvo" products={products} render={(p) => (
+                <div className="flex flex-wrap justify-center gap-1">
+                  {(p.tags?.publicoAlvo ?? []).slice(0, 3).map((t: string) => <Badge key={t} variant="outline" className="text-xs">{t}</Badge>)}
+                </div>
+              )} />
+            )}
+            {showRow("datas") && (
+              <SimpleRow label="Datas comemorativas" products={products} render={(p) =>
+                (p.tags?.datasComemorativas ?? []).length > 0
+                  ? <div className="flex flex-wrap justify-center gap-1">{p.tags.datasComemorativas.slice(0, 2).map((d: string) => <Badge key={d} variant="outline" className="text-xs">{d}</Badge>)}</div>
+                  : <Minus className="h-4 w-4 text-muted-foreground mx-auto" />
+              } />
+            )}
+            {showRow("description") && (
+              <SimpleRow label="Descrição" products={products} render={(p) => <p className="text-sm text-muted-foreground line-clamp-3">{p.description}</p>} />
+            )}
             <SimpleRow label="Ações" products={products} render={(p) => <Button size="sm" onClick={() => navigate(`/produto/${p.id}`)}>Ver Detalhes</Button>} />
           </TableBody>
         </Table>
@@ -113,34 +238,42 @@ function SimpleRow({ label, products, render }: { label: string; products: any[]
   );
 }
 
-function HighlightedPriceRow({ products, formatCurrency }: { products: any[]; formatCurrency: (v: number) => string }) {
-  const highlights = useComparisonHighlight(products.map(p => p.price), "lower-is-better");
+function HighlightedNumberRow({
+  label,
+  products,
+  valueFn,
+  renderFn,
+  mode,
+  subtitle,
+}: {
+  label: string;
+  products: any[];
+  valueFn: (p: any) => number;
+  renderFn: (v: number) => string;
+  mode: "lower-is-better" | "higher-is-better";
+  subtitle?: string;
+}) {
+  const values = products.map(valueFn);
+  const highlights = useComparisonHighlight(values, mode);
   return (
     <TableRow>
-      <TableCell className="font-medium bg-muted/50 sticky left-0">Preço Unitário</TableCell>
-      {products.map((p, idx) => (
-        <TableCell key={`cell-${idx}`} className={cn("text-center", highlightClasses[highlights[idx]])}>
-          <div className="flex items-center justify-center gap-1">
-            {highlights[idx] === "best" && <Crown className="h-4 w-4 text-success" />}
-            <span className={cn("text-lg font-bold", highlights[idx] === "best" ? "text-success" : highlights[idx] === "worst" ? "text-destructive" : "text-primary")}>{formatCurrency(p.price)}</span>
-            {highlights[idx] === "worst" && <AlertTriangle className="h-3.5 w-3.5 text-destructive" />}
-          </div>
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-}
-
-function HighlightedMinQtyRow({ products }: { products: any[] }) {
-  const highlights = useComparisonHighlight(products.map(p => p.minQuantity), "lower-is-better");
-  return (
-    <TableRow>
-      <TableCell className="font-medium bg-muted/50 sticky left-0">Quantidade Mínima</TableCell>
-      {products.map((p, idx) => (
+      <TableCell className="font-medium bg-muted/50 sticky left-0">
+        <div>
+          <div>{label}</div>
+          {subtitle && <div className="text-[10px] uppercase tracking-wider text-muted-foreground">{subtitle}</div>}
+        </div>
+      </TableCell>
+      {products.map((_, idx) => (
         <TableCell key={`cell-${idx}`} className={cn("text-center", highlightClasses[highlights[idx]])}>
           <div className="flex items-center justify-center gap-1">
             {highlights[idx] === "best" && <Crown className="h-3.5 w-3.5 text-success" />}
-            <span className={cn(highlights[idx] === "best" ? "font-semibold text-success" : highlights[idx] === "worst" ? "text-destructive" : "")}>{p.minQuantity} un.</span>
+            <span className={cn(
+              highlights[idx] === "best" ? "font-semibold text-success" :
+              highlights[idx] === "worst" ? "text-destructive" : ""
+            )}>
+              {renderFn(values[idx])}
+            </span>
+            {highlights[idx] === "worst" && <AlertTriangle className="h-3 w-3 text-destructive" />}
           </div>
         </TableCell>
       ))}
