@@ -155,11 +155,13 @@ export function AdImageResult({
         <CardContent className="p-3">
           <div className="grid grid-cols-2 gap-2 max-h-[500px] overflow-y-auto">
             {history.map((item) => (
-              <button
-                type="button"
+              <div
+                role="button"
+                tabIndex={0}
                 key={item.id}
                 className="relative group rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onSelectHistory?.(item)}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelectHistory?.(item); } }}
                 aria-label={`Selecionar histórico ${item.product_name}`}
               >
                 <img
@@ -199,7 +201,7 @@ export function AdImageResult({
                     <Heart className="h-3.5 w-3.5 fill-red-400 text-destructive drop-shadow" />
                   </div>
                 )}
-              </button>
+              </div>
             ))}
           </div>
           {history.length === 0 && (
