@@ -282,9 +282,48 @@ export function useFavoriteListItems(listId: string | null) {
       if (error) throw error;
       return id;
     },
-    onSuccess: () => {
+    onSuccess: (_id, _vars, ctx) => {
       qc.invalidateQueries({ queryKey: ITEMS_KEY(listId ?? "none") });
       qc.invalidateQueries({ queryKey: LISTS_KEY });
+      qc.invalidateQueries({ queryKey: ["favorite-trash"] });
+      // Toast com undo: restaura o último item da lixeira (que acabou de ser movido pelo trigger)
+      if (!user) return;
+      const productName = (ctx as { productName?: string } | undefined)?.productName ?? "Item";
+      toast.success(`${productName} removido`, {
+        description: "Você tem 30 dias para restaurar pela Lixeira.",
+        action: {
+          label: "Desfazer",
+          onClick: async () => {
+            // pega item mais recente da lixeira deste user e restaura
+            const { data: trashed } = await supabase
+              .from("favorite_items_trash")
+              .select("*")
+              .eq("user_id", user.id)
+              .order("deleted_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (!trashed) {
+              toast.error("Nada para desfazer");
+              return;
+            }
+            await supabase.from("favorite_items").insert({
+              list_id: trashed.list_id,
+              user_id: user.id,
+              product_id: trashed.product_id,
+              variant_id: trashed.variant_id,
+              variant_info: trashed.variant_info,
+              note: trashed.note,
+              price_at_save: trashed.price_at_save,
+            } as never);
+            await supabase.from("favorite_items_trash").delete().eq("id", trashed.id);
+            qc.invalidateQueries({ queryKey: ITEMS_KEY(listId ?? "none") });
+            qc.invalidateQueries({ queryKey: LISTS_KEY });
+            qc.invalidateQueries({ queryKey: ["favorite-trash"] });
+            toast.success("Item restaurado");
+          },
+        },
+        duration: 8000,
+      });
     },
   });
 

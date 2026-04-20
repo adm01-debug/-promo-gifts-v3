@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
-import { EmptyState } from "@/components/common/EmptyState";
+
 import { useCatalogSelection } from "@/components/catalog/useCatalogSelection";
 import { CatalogBulkModals } from "@/components/catalog/CatalogBulkModals";
 import { FavoriteListsSidebar } from "@/components/favorites/FavoriteListsSidebar";
@@ -36,6 +36,10 @@ import { FavoritesTrashView } from "@/components/favorites/FavoritesTrashView";
 import { FavoritesViewHeader } from "@/components/favorites/FavoritesViewHeader";
 import { ItemNoteEditor } from "@/components/favorites/ItemNoteEditor";
 import { PriceDropBadge } from "@/components/favorites/PriceDropBadge";
+import { FavoritesEmptyStateSmart } from "@/components/favorites/FavoritesEmptyStateSmart";
+import { FavoritePresentationLauncher } from "@/components/favorites/FavoritePresentationLauncher";
+import { useFavoritesGlobalShortcuts } from "@/hooks/useFavoritesGlobalShortcuts";
+import { useUndoStack } from "@/hooks/useUndoStack";
 import type { FavoritesSort } from "@/components/favorites/FavoritesSortBar";
 
 type ViewMode = "grid" | "list" | "table";
@@ -76,6 +80,10 @@ function loadSort(): FavoritesSort {
 export default function FavoritesPage() {
   const navigate = useNavigate();
 
+  // Atalhos globais (G L / Shift+F) + Cmd+Z undo stack
+  useFavoritesGlobalShortcuts();
+  useUndoStack();
+
   // Migra favoritos do localStorage para a nuvem (idempotente)
   useLegacyFavoritesMigration();
 
@@ -99,6 +107,8 @@ export default function FavoritesPage() {
   });
   const [showTrash, setShowTrash] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [presenting, setPresenting] = useState(false);
+  const [ariaAnnouncement, setAriaAnnouncement] = useState("");
 
   useEffect(() => {
     try {
@@ -284,8 +294,9 @@ export default function FavoritesPage() {
       if (meta) removeItem.mutate(meta.itemId);
     } else {
       toggleFavorite(productId);
+      toast.success(`"${productName}" removido dos favoritos`);
     }
-    toast.success(`"${productName}" removido dos favoritos`);
+    setAriaAnnouncement(`${productName} removido dos favoritos`);
   };
 
   const handleToggleFavorite = (productId: string) => {
@@ -295,8 +306,9 @@ export default function FavoritesPage() {
       if (meta) removeItem.mutate(meta.itemId);
     } else {
       toggleFavorite(productId);
+      if (product) toast.success(`"${product.name}" removido dos favoritos`);
     }
-    if (product) toast.success(`"${product.name}" removido dos favoritos`);
+    if (product) setAriaAnnouncement(`${product.name} removido dos favoritos`);
   };
 
   const handleSaveNote = async (productId: string, note: string | null) => {
@@ -444,6 +456,9 @@ export default function FavoritesPage() {
                   onlyPriceDrops={isRemoteListView ? onlyPriceDrops : undefined}
                   onTogglePriceDrops={isRemoteListView ? setOnlyPriceDrops : undefined}
                   priceDropCount={priceDropCount}
+                  products={productsWithVariant}
+                  rawItems={isRemoteListView ? rawItems : undefined}
+                  onPresent={productsWithVariant.length > 0 ? () => setPresenting(true) : undefined}
                 />
 
                 {/* KPI cards */}
@@ -679,17 +694,14 @@ export default function FavoritesPage() {
                     </p>
                   </div>
                 ) : (
-                  <EmptyState
-                    variant="favorites"
-                    title={isRemoteListView ? "Lista vazia" : "Nenhum favorito ainda"}
-                    description={
-                      isRemoteListView
-                        ? "Adicione produtos a esta lista a partir do catálogo."
-                        : "Navegue pelos produtos e clique no ícone de coração para adicionar."
-                    }
-                    action={{
-                      label: "Explorar Produtos",
-                      onClick: () => navigate("/"),
+                  <FavoritesEmptyStateSmart
+                    onAddProduct={(productId) => {
+                      if (isRemoteListView && activeList) {
+                        toast.info("Abra o produto e use o coração para adicionar a esta lista");
+                        navigate(`/produto/${productId}`);
+                      } else {
+                        navigate(`/produto/${productId}`);
+                      }
                     }}
                   />
                 )}
@@ -701,6 +713,20 @@ export default function FavoritesPage() {
 
       {/* Bulk actions: BulkActionBar flutuante + wizard */}
       <CatalogBulkModals sel={sel} selectionMode={selectionMode} totalCount={filteredProducts.length} />
+
+      {/* ARIA live region para anúncios de favoritar/remover */}
+      <div role="status" aria-live="polite" className="sr-only">
+        {ariaAnnouncement}
+      </div>
+
+      {/* Modo apresentação fullscreen */}
+      {presenting && (
+        <FavoritePresentationLauncher
+          products={productsWithVariant}
+          listName={activeList?.name ?? "Favoritos"}
+          onClose={() => setPresenting(false)}
+        />
+      )}
     </MainLayout>
   );
 }

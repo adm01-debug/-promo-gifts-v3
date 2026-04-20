@@ -26,6 +26,7 @@ const ResetPassword = lazyWithRetry(() => import("./pages/ResetPassword"));
 const Index = lazyWithRetry(() => import("./pages/Index"));
 const PublicQuoteApproval = lazyWithRetry(() => import("./pages/PublicQuoteApprovalPage"));
 const PublicKitView = lazyWithRetry(() => import("./pages/PublicKitViewPage"));
+const PublicFavoriteList = lazyWithRetry(() => import("./pages/PublicFavoriteListPage"));
 const NotFound = lazyWithRetry(() => import("./pages/NotFound"));
 
 // Product Pages
@@ -177,6 +178,7 @@ const App = () => {
                           <Route path="/approve/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/proposta/:token" element={<PublicQuoteApproval />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/kit/:token" element={<PublicKitView />} errorElement={<RouteErrorBoundary />} />
+                          <Route path="/lista-publica/:token" element={<PublicFavoriteList />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/dossie/:token" element={<PublicDossierPage />} errorElement={<RouteErrorBoundary />} />
                           <Route path="/auth/callback" element={<SSOCallbackPage />} errorElement={<RouteErrorBoundary />} />
 
