@@ -41,11 +41,20 @@ export function useCollectionsPageState() {
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
   const [selectedCollectionIds, setSelectedCollectionIds] = useState<Set<string>>(new Set());
   const [hintDismissed, setHintDismissed] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    name: string;
+    description: string;
+    color: string;
+    icon: string;
+    clientId?: string | null;
+    clientName?: string | null;
+  }>({
     name: "",
     description: "",
     color: defaultColors[0],
     icon: defaultIcons[0],
+    clientId: null,
+    clientName: null,
   });
 
   const isSelectionMode = selectedCollectionIds.size > 0;
@@ -79,12 +88,12 @@ export function useCollectionsPageState() {
 
   // CRUD handlers
   const resetForm = useCallback(() => {
-    setFormData({ name: "", description: "", color: defaultColors[0], icon: defaultIcons[0] });
+    setFormData({ name: "", description: "", color: defaultColors[0], icon: defaultIcons[0], clientId: null, clientName: null });
   }, [defaultColors, defaultIcons]);
 
   const handleCreate = useCallback(() => {
     if (!formData.name.trim()) return;
-    createCollection(formData.name, formData.description, formData.color, formData.icon);
+    createCollection(formData.name, formData.description, formData.color, formData.icon, formData.clientId, formData.clientName);
     toast.success(`Coleção "${formData.name}" criada`);
     setIsCreateOpen(false);
     resetForm();
@@ -92,7 +101,14 @@ export function useCollectionsPageState() {
 
   const handleUpdate = useCallback(() => {
     if (!editingCollection || !formData.name.trim()) return;
-    updateCollection(editingCollection, { name: formData.name, description: formData.description, color: formData.color, icon: formData.icon });
+    updateCollection(editingCollection, {
+      name: formData.name,
+      description: formData.description,
+      color: formData.color,
+      icon: formData.icon,
+      clientId: formData.clientId ?? null,
+      clientName: formData.clientName ?? null,
+    });
     toast.success("Coleção atualizada");
     setEditingCollection(null);
     resetForm();
@@ -118,7 +134,14 @@ export function useCollectionsPageState() {
   }, [createCollection, addProductToCollection]);
 
   const openEdit = useCallback((collection: (typeof localCollections)[0]) => {
-    setFormData({ name: collection.name, description: collection.description || "", color: collection.color, icon: collection.icon });
+    setFormData({
+      name: collection.name,
+      description: collection.description || "",
+      color: collection.color,
+      icon: collection.icon,
+      clientId: collection.clientId ?? null,
+      clientName: collection.clientName ?? null,
+    });
     setEditingCollection(collection.id);
   }, []);
 

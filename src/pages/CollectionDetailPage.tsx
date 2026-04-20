@@ -1,10 +1,15 @@
 import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Package, Trash2, Search,
-  FileText, ArrowUpDown, ArrowRight, CheckSquare,
+  Package, Trash2, Search, TrendingDown, Share2,
+  FileText, ArrowUpDown, ArrowRight, CheckSquare, Settings2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -15,8 +20,12 @@ import { getDefaultColumns, type ColumnCount } from "@/components/products/Colum
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { BulkSelectionBar } from "@/components/common/BulkSelectionBar";
 import { CollectionDetailHeader } from "@/components/collections/CollectionDetailHeader";
+import { SortableProductItem } from "@/components/collections/SortableProductItem";
+import { ShareCollectionDialog } from "@/components/collections/ShareCollectionDialog";
+import { CollectionPresentationLauncher } from "@/components/collections/CollectionPresentationLauncher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,9 +40,7 @@ import {
 } from "@/hooks/useExternalCollections";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
-import { PresentationMode } from "@/components/presentation/PresentationMode";
 import { toast } from "sonner";
-import { exportCollectionPDF } from "@/lib/export-collection-pdf";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -56,12 +63,17 @@ export default function CollectionDetailPage() {
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const [showPresentation, setShowPresentation] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectionModeActive, setSelectionModeActive] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [manageMode, setManageMode] = useState(false);
+  const [onlyDrops, setOnlyDrops] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // --- Local collection lookup ---
   const localCollection = useMemo(() => collections.find((c) => c.id === id), [collections, id]);
@@ -124,15 +136,36 @@ export default function CollectionDetailPage() {
     return getCollectionProducts(id);
   }, [id, isExternal, externalProducts, getCollectionProducts]);
 
+  const collectionItems = useMemo(() => {
+    if (!id || isExternal) return [];
+    return getCollectionProductItems(id);
+  }, [id, isExternal, getCollectionProductItems]);
+
   const variantMap = useMemo(() => {
-    if (!id || isExternal) return new Map();
-    const items = getCollectionProductItems(id);
     const map = new Map<string, { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null }>();
-    items.forEach((item) => {
+    collectionItems.forEach((item) => {
       if (item.variant) map.set(item.productId, item.variant);
     });
     return map;
-  }, [id, isExternal, getCollectionProductItems]);
+  }, [collectionItems]);
+
+  const priceAtSaveMap = useMemo(() => {
+    const map = new Map<string, number | null>();
+    collectionItems.forEach((it) => map.set(it.productId, it.priceAtSave ?? null));
+    return map;
+  }, [collectionItems]);
+
+  const addedAtMap = useMemo(() => {
+    const map = new Map<string, string | null>();
+    collectionItems.forEach((it) => map.set(it.productId, it.addedAt ?? null));
+    return map;
+  }, [collectionItems]);
+
+  const notesMap = useMemo(() => {
+    const map = new Map<string, string | undefined>();
+    collectionItems.forEach((it) => map.set(it.productId, it.notes));
+    return map;
+  }, [collectionItems]);
 
   const isSelectionMode = selectionModeActive || selectedIds.size > 0;
 
@@ -195,10 +228,17 @@ export default function CollectionDetailPage() {
       const q = searchQuery.toLowerCase();
       filtered = products.filter((p) => p.name.toLowerCase().includes(q) || p.sku?.toLowerCase().includes(q) || p.brand?.toLowerCase().includes(q));
     }
+    if (onlyDrops) {
+      filtered = filtered.filter((p) => {
+        const saved = priceAtSaveMap.get(p.id);
+        if (!saved || !p.price) return false;
+        return ((p.price - saved) / saved) * 100 <= -2;
+      });
+    }
     if (sortBy === "name") filtered = [...filtered].sort((a, b) => a.name.localeCompare(b.name));
     else if (sortBy === "sku") filtered = [...filtered].sort((a, b) => (a.sku || "").localeCompare(b.sku || ""));
     return filtered;
-  }, [products, searchQuery, sortBy]);
+  }, [products, searchQuery, sortBy, onlyDrops, priceAtSaveMap]);
 
   const productsWithVariant = useMemo(() => {
     return filteredProducts.map((product) => {
@@ -245,22 +285,38 @@ export default function CollectionDetailPage() {
 
   const handleRemoveFromCollection = (productId: string) => {
     removeProductFromCollection(collection.id, productId);
+    setAnnouncement(`Produto removido da coleção ${collection.name}`);
     toast.success("Produto removido da coleção", {
       action: {
         label: "Desfazer",
         onClick: async () => {
           const ok = await restoreFromTrash(collection.id, productId);
-          if (ok) toast.success("Produto restaurado");
-          else toast.error("Não foi possível restaurar");
+          if (ok) {
+            setAnnouncement("Produto restaurado");
+            toast.success("Produto restaurado");
+          } else toast.error("Não foi possível restaurar");
         },
       },
     });
   };
 
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = filteredProducts.findIndex((p) => p.id === active.id);
+    const newIndex = filteredProducts.findIndex((p) => p.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const ordered = arrayMove(filteredProducts.map((p) => p.id), oldIndex, newIndex);
+    reorderProducts(collection.id, ordered);
+  };
+
   const handleCreateQuote = () => {
+    const localCol = collections.find((c) => c.id === collection.id);
     navigate("/orcamentos/novo", {
       state: {
         fromCollection: collection.name,
+        clientId: localCol?.clientId ?? null,
+        clientName: localCol?.clientName ?? null,
         preloadProducts: products.map((p) => ({
           product_id: p.id,
           product_name: p.name,
@@ -288,18 +344,21 @@ export default function CollectionDetailPage() {
         />
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <CollectionDetailHeader
-            collection={collection}
+            collection={{ ...collection, clientName: localCollection?.clientName ?? null }}
             productCount={products.length}
             isLoading={isExternal && isLoadingExternalProducts}
             updatedAgo={updatedAgo}
+            products={products}
+            variantMap={variantMap}
+            notesMap={notesMap}
             onBack={() => navigate("/colecoes")}
             onCreateQuote={handleCreateQuote}
-            onExportPDF={() => {
-              exportCollectionPDF({ collectionName: collection.name, collectionDescription: collection.description, products, variantMap });
-              toast.success("PDF exportado!");
-            }}
             onPresent={() => setShowPresentation(true)}
+            onShare={() => setShowShareDialog(true)}
+            showShare={!isExternal}
           />
+
+          <div role="status" aria-live="polite" className="sr-only">{announcement}</div>
 
           <BulkSelectionBar
             isActive={isSelectionMode}

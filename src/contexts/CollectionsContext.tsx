@@ -10,7 +10,9 @@ interface CollectionsContextType {
     name: string,
     description?: string,
     color?: string,
-    icon?: string
+    icon?: string,
+    clientId?: string | null,
+    clientName?: string | null
   ) => Collection;
   updateCollection: (
     id: string,

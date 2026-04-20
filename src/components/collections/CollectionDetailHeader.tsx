@@ -1,20 +1,23 @@
 /**
  * CollectionDetailHeader — Header section for collection detail page.
- * Contains back button, collection info, and action buttons.
+ * Contains back button, collection info, CRM badge, share, export and action buttons.
  */
 import { motion } from "framer-motion";
 import {
-  ArrowLeft, Monitor, Package, FileText, Clock,
-  Download, ArrowRight,
+  ArrowLeft, Monitor, Package, FileText, Clock, Users, Share2,
+  ArrowRight,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ExportCollectionButton } from "./ExportCollectionButton";
+import type { Product } from "@/hooks/useProducts";
 
 interface CollectionInfo {
   name: string;
   description?: string;
   color: string;
   icon: string;
+  clientName?: string | null;
 }
 
 interface CollectionDetailHeaderProps {
@@ -22,10 +25,14 @@ interface CollectionDetailHeaderProps {
   productCount: number;
   isLoading?: boolean;
   updatedAgo: string | null;
+  products: Product[];
+  variantMap?: Map<string, { color_name?: string | null; color_hex?: string | null; thumbnail?: string | null }>;
+  notesMap?: Map<string, string | undefined>;
   onBack: () => void;
   onCreateQuote: () => void;
-  onExportPDF: () => void;
   onPresent: () => void;
+  onShare?: () => void;
+  showShare?: boolean;
 }
 
 export function CollectionDetailHeader({
@@ -33,10 +40,14 @@ export function CollectionDetailHeader({
   productCount,
   isLoading,
   updatedAgo,
+  products,
+  variantMap,
+  notesMap,
   onBack,
   onCreateQuote,
-  onExportPDF,
   onPresent,
+  onShare,
+  showShare,
 }: CollectionDetailHeaderProps) {
   return (
     <div className="flex flex-col gap-3">
@@ -62,6 +73,12 @@ export function CollectionDetailHeader({
               <Package className="h-3 w-3 mr-1" />
               {isLoading ? "Carregando..." : `${productCount} produtos`}
             </Badge>
+            {collection.clientName && (
+              <Badge variant="outline" className="border-primary/30 text-foreground">
+                <Users className="h-3 w-3 mr-1 text-primary" />
+                {collection.clientName}
+              </Badge>
+            )}
             {updatedAgo && (
               <span className="text-xs text-muted-foreground flex items-center gap-1">
                 <Clock className="h-3 w-3" />
@@ -81,13 +98,21 @@ export function CollectionDetailHeader({
                 <span className="hidden sm:inline">Criar Orçamento</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
-              <Button variant="outline" className="gap-2" onClick={onExportPDF}>
-                <Download className="h-4 w-4" />
-                <span className="hidden sm:inline">PDF</span>
-              </Button>
-              <Button variant="outline" className="gap-2" onClick={onPresent}>
-                <Monitor className="h-4 w-4" />
-                <span className="hidden sm:inline">Apresentar</span>
+              <ExportCollectionButton
+                products={products}
+                variantMap={variantMap}
+                notesMap={notesMap}
+                collectionName={collection.name}
+              />
+              {showShare && onShare && (
+                <Button variant="outline" size="sm" className="gap-1.5" onClick={onShare}>
+                  <Share2 className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">Compartilhar</span>
+                </Button>
+              )}
+              <Button variant="outline" size="sm" className="gap-1.5" onClick={onPresent}>
+                <Monitor className="h-3.5 w-3.5" />
+                <span className="hidden sm:inline text-xs">Apresentar</span>
               </Button>
             </>
           )}

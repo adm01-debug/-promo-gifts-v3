@@ -17,6 +17,8 @@ export interface CollectionProductItem {
   productId: string;
   variant?: CollectionVariantInfo;
   notes?: string;
+  priceAtSave?: number | null;
+  addedAt?: string | null;
 }
 
 export interface Collection {
@@ -26,6 +28,11 @@ export interface Collection {
   color: string;
   icon: string;
   isFeatured: boolean;
+  clientId?: string | null;
+  clientName?: string | null;
+  shareToken?: string | null;
+  shareExpiresAt?: string | null;
+  isPublic?: boolean;
   /** @deprecated Use productItems instead */
   productIds: string[];
   productItems: CollectionProductItem[];
@@ -55,6 +62,8 @@ function dbToCollection(
         }
       : undefined,
     notes: item.notes || undefined,
+    priceAtSave: item.price_at_save ?? null,
+    addedAt: item.created_at ?? null,
   }));
 
   return {
@@ -64,6 +73,11 @@ function dbToCollection(
     color: row.icon_color || DEFAULT_COLORS[0],
     icon: row.icon || "📁",
     isFeatured: row.is_featured ?? false,
+    clientId: row.client_id ?? null,
+    clientName: row.client_name ?? null,
+    shareToken: row.share_token ?? null,
+    shareExpiresAt: row.share_expires_at ?? null,
+    isPublic: row.is_public ?? false,
     productIds: productItems.map((i) => i.productId),
     productItems,
     createdAt: row.created_at,
@@ -187,7 +201,7 @@ export function useCollections() {
   }, [user?.id, loadCollections]);
 
   const createCollection = useCallback(
-    (name: string, description?: string, color?: string, icon?: string): Collection => {
+    (name: string, description?: string, color?: string, icon?: string, clientId?: string | null, clientName?: string | null): Collection => {
       const tempId = `temp-${Date.now()}`;
       const now = new Date().toISOString();
       const chosenColor = color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)];
@@ -199,6 +213,8 @@ export function useCollections() {
         color: chosenColor,
         icon: icon || DEFAULT_ICONS[0],
         isFeatured: false,
+        clientId: clientId ?? null,
+        clientName: clientName ?? null,
         productIds: [],
         productItems: [],
         createdAt: now,
@@ -218,6 +234,8 @@ export function useCollections() {
             description: description || null,
             icon_color: chosenColor,
             icon: icon || DEFAULT_ICONS[0],
+            client_id: clientId ?? null,
+            client_name: clientName ?? null,
           })
           .select()
           .single()
@@ -256,6 +274,11 @@ export function useCollections() {
       if (updates.color !== undefined) dbUpdates.icon_color = updates.color;
       if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
       if (updates.isFeatured !== undefined) dbUpdates.is_featured = updates.isFeatured;
+      if (updates.clientId !== undefined) dbUpdates.client_id = updates.clientId;
+      if (updates.clientName !== undefined) dbUpdates.client_name = updates.clientName;
+      if (updates.shareToken !== undefined) dbUpdates.share_token = updates.shareToken;
+      if (updates.shareExpiresAt !== undefined) dbUpdates.share_expires_at = updates.shareExpiresAt;
+      if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic;
 
       if (Object.keys(dbUpdates).length > 0) {
         supabase.from("collections").update(dbUpdates).eq("id", id).then();
