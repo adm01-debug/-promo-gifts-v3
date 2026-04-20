@@ -202,6 +202,13 @@ export default function FavoritesPage() {
         p.brand?.toLowerCase().includes(q)
       );
     }
+    // Filtro "só com queda" (apenas em listas remotas)
+    if (onlyPriceDrops && isRemoteListView) {
+      list = list.filter((p) => {
+        const meta = enrichedMetaMap.get(p.id);
+        return meta?.priceDiffPct !== null && meta?.priceDiffPct !== undefined && meta.priceDiffPct < -2;
+      });
+    }
     // Aplicar sort
     const sorted = [...list];
     switch (sort) {
@@ -214,7 +221,7 @@ export default function FavoritesPage() {
       case "recent": default: break;
     }
     return sorted;
-  }, [productsWithVariant, searchQuery, sort]);
+  }, [productsWithVariant, searchQuery, sort, onlyPriceDrops, isRemoteListView, enrichedMetaMap]);
 
   // Bulk selection
   const sel = useCatalogSelection(filteredProducts, selectionMode);
