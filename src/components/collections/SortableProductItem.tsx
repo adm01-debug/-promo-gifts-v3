@@ -100,7 +100,18 @@ export function SortableProductItem({
           />
         )}
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium truncate">{product.name}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-medium truncate">{product.name}</p>
+            {priceDiffPct !== null && (
+              <PriceDropBadge
+                priceDiffPct={priceDiffPct}
+                priceAtSave={priceAtSave ?? null}
+                currentPrice={product.price ?? null}
+                savedAt={addedAt ?? undefined}
+                size="sm"
+              />
+            )}
+          </div>
           <div className="flex items-center gap-1.5">
             <p className="text-xs text-muted-foreground">{product.sku}</p>
             {variant?.color_hex && (
