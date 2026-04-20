@@ -338,6 +338,39 @@ export type Database = {
         }
         Relationships: []
       }
+      collection_item_reactions: {
+        Row: {
+          anon_id: string
+          collection_id: string
+          created_at: string
+          emoji: string
+          id: string
+          ip_hash: string | null
+          item_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          anon_id: string
+          collection_id: string
+          created_at?: string
+          emoji: string
+          id?: string
+          ip_hash?: string | null
+          item_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          anon_id?: string
+          collection_id?: string
+          created_at?: string
+          emoji?: string
+          id?: string
+          ip_hash?: string | null
+          item_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       collection_items: {
         Row: {
           collection_id: string
@@ -346,6 +379,7 @@ export type Database = {
           created_at: string
           id: string
           notes: string | null
+          price_at_save: number | null
           product_id: string
           sort_order: number | null
           thumbnail_url: string | null
@@ -357,6 +391,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          price_at_save?: number | null
           product_id: string
           sort_order?: number | null
           thumbnail_url?: string | null
@@ -368,6 +403,7 @@ export type Database = {
           created_at?: string
           id?: string
           notes?: string | null
+          price_at_save?: number | null
           product_id?: string
           sort_order?: number | null
           thumbnail_url?: string | null
@@ -432,35 +468,50 @@ export type Database = {
       }
       collections: {
         Row: {
+          client_id: string | null
+          client_name: string | null
           created_at: string
           description: string | null
           icon: string | null
           icon_color: string | null
           id: string
           is_featured: boolean
+          is_public: boolean
           name: string
+          share_expires_at: string | null
+          share_token: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          client_id?: string | null
+          client_name?: string | null
           created_at?: string
           description?: string | null
           icon?: string | null
           icon_color?: string | null
           id?: string
           is_featured?: boolean
+          is_public?: boolean
           name: string
+          share_expires_at?: string | null
+          share_token?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          client_id?: string | null
+          client_name?: string | null
           created_at?: string
           description?: string | null
           icon?: string | null
           icon_color?: string | null
           id?: string
           is_featured?: boolean
+          is_public?: boolean
           name?: string
+          share_expires_at?: string | null
+          share_token?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -3635,6 +3686,13 @@ export type Database = {
           total_revenue: number
         }[]
       }
+      get_collections_weekly_count: {
+        Args: { _weeks?: number }
+        Returns: {
+          item_count: number
+          week_start: string
+        }[]
+      }
       get_favorites_weekly_count: {
         Args: { _weeks?: number }
         Returns: {
@@ -3707,6 +3765,13 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      get_top_collected_products: {
+        Args: { _days?: number; _limit?: number }
+        Returns: {
+          col_count: number
+          product_id: string
+        }[]
       }
       get_top_favorited_products: {
         Args: { _days?: number; _limit?: number }
