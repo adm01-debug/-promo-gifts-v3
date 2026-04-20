@@ -15,6 +15,23 @@ export type MagicUpCreativeControls = {
   negativePrompt: string[];
 };
 
+export type MagicUpRefinement = {
+  id: string;
+  label: string;
+  instruction: string;
+  creativePatch?: Partial<MagicUpCreativeControls>;
+};
+
+export type MagicUpBatchVariant = {
+  id: string;
+  label: string;
+  scenePrompt?: string;
+  channel?: string;
+  tone?: string;
+  aspectRatio?: string;
+  refinementInstruction?: string;
+};
+
 export type MagicUpQualityScore = {
   total: number;
   label: string;
@@ -126,6 +143,43 @@ export const ASPECT_RATIOS = ["1:1", "4:5", "9:16", "16:9", "A4", "WhatsApp"];
 export const QUALITY_MODES = ["rascunho", "alta-qualidade", "pro-final", "variacao-rapida"];
 export const NEGATIVE_PROMPTS = ["Sem texto na imagem", "Sem mãos deformadas", "Sem logo distorcido", "Sem produto duplicado", "Sem marca concorrente", "Sem fundo poluído", "Sem rosto em destaque", "Sem aparência artificial"];
 export const BRAND_LOGO_VARIANTS: MagicUpBrandLogo["variant"][] = ["principal", "colorida", "branca", "preta", "horizontal", "vertical", "icone"];
+
+export const REFINEMENT_ACTIONS: MagicUpRefinement[] = [
+  { id: "premium", label: "Mais premium", instruction: "Elevar a percepção de valor com iluminação sofisticada, materiais nobres, composição editorial e acabamento de campanha premium.", creativePatch: { creativeMode: "premium", qualityMode: "pro-final" } },
+  { id: "minimalista", label: "Mais minimalista", instruction: "Reduzir elementos visuais, usar fundo limpo, mais respiro e foco absoluto no produto e no logo.", creativePatch: { composition: "centro-limpo", negativePrompt: ["Sem texto na imagem", "Sem fundo poluído", "Sem produto duplicado"] } },
+  { id: "humano", label: "Mais humano", instruction: "Adicionar contexto humano natural, mãos ou pessoas em segundo plano sem roubar protagonismo do produto.", creativePatch: { composition: "com-pessoas" } },
+  { id: "corporativo", label: "Mais corporativo", instruction: "Direcionar para ambiente B2B profissional, mesa executiva, evento ou escritório moderno com linguagem institucional.", creativePatch: { creativeMode: "mockup-realista" } },
+  { id: "vibrante", label: "Mais vibrante", instruction: "Aumentar energia visual com cores vivas controladas, contraste comercial e sensação de campanha social ads.", creativePatch: { creativeMode: "social-ads" } },
+  { id: "realista", label: "Mais realista", instruction: "Priorizar fotografia hiper-realista, luz natural, textura fiel do produto e aplicação do logo sem aparência artificial.", creativePatch: { creativeMode: "mockup-realista", negativePrompt: ["Sem aparência artificial", "Sem logo distorcido"] } },
+  { id: "foco-produto", label: "Mais foco no produto", instruction: "Aproximar câmera e hierarquia visual para o produto ser o herói inequívoco da peça.", creativePatch: { composition: "close-up" } },
+  { id: "menos-elementos", label: "Menos elementos", instruction: "Remover distrações, props excessivos e fundos complexos, mantendo apenas elementos que reforcem a venda.", creativePatch: { negativePrompt: ["Sem fundo poluído", "Sem produto duplicado", "Sem marca concorrente"] } },
+  { id: "trocar-fundo", label: "Trocar fundo", instruction: "Manter produto e logo intactos, mas substituir o fundo por uma ambientação mais forte e coerente com o briefing." },
+  { id: "mudar-cenario", label: "Mudar cenário", instruction: "Preservar produto, cor e logo; criar uma nova variação de cenário com outra atmosfera comercial." },
+];
+
+export const BATCH_PRESETS: Array<{ id: string; label: string; variants: MagicUpBatchVariant[] }> = [
+  { id: "cenas", label: "3 variações de cena", variants: [
+    { id: "scene-office", label: "Escritório premium", scenePrompt: "Ambiente corporativo moderno com luz natural e foco comercial B2B." },
+    { id: "scene-event", label: "Evento corporativo", scenePrompt: "Cenário de evento, feira ou ação promocional com atmosfera profissional." },
+    { id: "scene-gift", label: "Mesa de presente", scenePrompt: "Composição de gifting corporativo organizada, elegante e pronta para apresentação ao cliente." },
+  ] },
+  { id: "canais", label: "3 variações de canal", variants: [
+    { id: "channel-whatsapp", label: "WhatsApp", channel: "whatsapp", aspectRatio: "WhatsApp" },
+    { id: "channel-instagram", label: "Instagram", channel: "instagram-feed", aspectRatio: "1:1" },
+    { id: "channel-linkedin", label: "LinkedIn", channel: "linkedin", aspectRatio: "4:5" },
+  ] },
+  { id: "tons", label: "3 variações de tom", variants: [
+    { id: "tone-premium", label: "Premium", tone: "premium", refinementInstruction: "Tornar a peça mais sofisticada, aspiracional e refinada." },
+    { id: "tone-consultivo", label: "Consultiva", tone: "consultivo", refinementInstruction: "Transmitir confiança, clareza comercial e solução para compras corporativas." },
+    { id: "tone-impactante", label: "Impactante", tone: "impactante", refinementInstruction: "Criar uma peça com maior contraste, energia e chamada visual forte." },
+  ] },
+  { id: "pacote-completo", label: "Pacote completo", variants: [
+    { id: "pack-whatsapp", label: "WhatsApp", channel: "whatsapp", aspectRatio: "WhatsApp" },
+    { id: "pack-instagram", label: "Instagram", channel: "instagram-feed", aspectRatio: "1:1" },
+    { id: "pack-linkedin", label: "LinkedIn", channel: "linkedin", aspectRatio: "4:5" },
+    { id: "pack-orcamento", label: "Orçamento", channel: "orcamento", aspectRatio: "A4" },
+  ] },
+];
 
 export const CAMPAIGN_STATUSES: Array<{ value: MagicUpCampaignStatus; label: string }> = [
   { value: "draft", label: "Rascunho" },

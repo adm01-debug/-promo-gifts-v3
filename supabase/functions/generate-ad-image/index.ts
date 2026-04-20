@@ -23,6 +23,17 @@ const BodySchema = z.object({
   compositionMode: z.string().optional(),
   creativeMode: z.string().optional(),
   negativePrompt: z.array(z.string()).optional(),
+  brandKit: z.object({
+    primaryColor: z.string().nullable().optional(),
+    secondaryColor: z.string().nullable().optional(),
+    toneOfVoice: z.string().optional(),
+    visualStyle: z.string().optional(),
+    requiredWords: z.array(z.string()).optional(),
+    forbiddenWords: z.array(z.string()).optional(),
+    notes: z.string().optional(),
+  }).optional(),
+  refinementInstruction: z.string().nullable().optional(),
+  batchVariant: z.record(z.unknown()).nullable().optional(),
 }).refine(data => data.logoBase64 || data.logoUrl, {
   message: "Either logoBase64 or logoUrl must be provided",
 });
@@ -74,6 +85,7 @@ Deno.serve(async (req) => {
       techniqueName, locationName, scenePrompt, sceneCategory,
       brandColorHex, brandColorName, campaignBrief, outputChannel,
       aspectRatio, qualityMode, compositionMode, creativeMode, negativePrompt,
+      brandKit, refinementInstruction, batchVariant,
     } = parsed.data;
 
     const logoImageSrc = logoBase64 || logoUrl!;
@@ -133,14 +145,30 @@ LOGO APPLICATION: ${productHint.logoTip}`
       ? `\nBRAND COLORS: The client brand uses ${brandColorName || brandColorHex} (${brandColorHex}). Subtly incorporate this color in the scene elements (props, background accents, clothing details) for brand harmony.`
       : '';
 
+    const brandKitInstruction = brandKit
+      ? `\nBRAND KIT:\n- Primary color: ${brandKit.primaryColor || brandColorHex || 'not provided'}\n- Secondary color: ${brandKit.secondaryColor || 'not provided'}\n- Tone of voice: ${brandKit.toneOfVoice || 'premium consultative'}\n- Visual style: ${brandKit.visualStyle || 'clean corporate'}\n- Required words/concepts: ${(brandKit.requiredWords || []).join(', ') || 'none'}\n- Forbidden words/concepts: ${(brandKit.forbiddenWords || []).join(', ') || 'none'}\n- Internal notes: ${brandKit.notes || 'none'}`
+      : '\nBRAND KIT: Use the provided logo and keep a consistent, professional B2B brand expression.';
+
+    const refinementBlock = refinementInstruction
+      ? `\nREFINEMENT INSTRUCTION: ${refinementInstruction}`
+      : '\nREFINEMENT INSTRUCTION: none';
+
+    const batchBlock = batchVariant
+      ? `\nBATCH VARIANT: ${JSON.stringify(batchVariant)}`
+      : '';
+
     const strategyInstruction = `
-CAMPAIGN BRIEF: ${campaignBrief ? JSON.stringify(campaignBrief) : 'general B2B promotional sales campaign'}
-OUTPUT CHANNEL: ${outputChannel || 'whatsapp'}
-ASPECT RATIO / FORMAT: ${aspectRatio || '1:1'}
-QUALITY MODE: ${qualityMode || 'pro-final'}
+CAMPAIGN BRIEF:
+${campaignBrief ? JSON.stringify(campaignBrief, null, 2) : 'general B2B promotional sales campaign'}
+${brandKitInstruction}
+PRODUCT DIRECTION:
+Product must stay faithful to the reference image, color, material, and personalization area.
 CREATIVE MODE: ${creativeMode || 'product hero'}
 COMPOSITION: ${compositionMode || 'clean centered product hero'}
-AVOID: ${(negativePrompt || ['text inside image', 'distorted logo', 'busy background']).join(', ')}`;
+FORMAT: ${aspectRatio || '1:1'} for ${outputChannel || 'whatsapp'}
+QUALITY MODE: ${qualityMode || 'pro-final'}
+NEGATIVE PROMPT: ${(negativePrompt || ['text inside image', 'distorted logo', 'busy background']).join(', ')}
+${refinementBlock}${batchBlock}`;
 
     const prompt = `Create a HIGH-QUALITY commercial advertising photograph for a promotional product company.
 
