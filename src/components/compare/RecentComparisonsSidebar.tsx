@@ -15,7 +15,9 @@ import { ptBR } from "date-fns/locale";
 interface RecentRow {
   id: string;
   name: string | null;
-  product_ids: string[];
+  client_name: string | null;
+  items: Array<{ productId: string; variant?: any }>;
+  item_count: number;
   updated_at: string;
 }
 
@@ -43,8 +45,8 @@ export function RecentComparisonsSidebar() {
   const restore = (row: RecentRow) => {
     clearCompare();
     let added = 0;
-    row.product_ids.slice(0, 4).forEach(id => {
-      if (addToCompare(id)) added++;
+    (row.items ?? []).slice(0, 4).forEach(it => {
+      if (it?.productId && addToCompare(it.productId)) added++;
     });
     toast.success(`${added} produto${added !== 1 ? "s" : ""} restaurado${added !== 1 ? "s" : ""}`);
     setOpen(false);
@@ -71,9 +73,9 @@ export function RecentComparisonsSidebar() {
           )}
           {items.map(item => (
             <div key={item.id} className="rounded-lg border border-border bg-card p-3 hover:border-primary/40 transition-colors">
-              <p className="font-medium text-sm truncate">{item.name || "Sem título"}</p>
+              <p className="font-medium text-sm truncate">{item.name || item.client_name || "Sem título"}</p>
               <p className="text-xs text-muted-foreground mb-2">
-                {item.product_ids.length} produtos · {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true, locale: ptBR })}
+                {item.item_count ?? item.items?.length ?? 0} produtos · {formatDistanceToNow(new Date(item.updated_at), { addSuffix: true, locale: ptBR })}
               </p>
               <Button size="sm" variant="outline" className="w-full h-7 text-xs" onClick={() => restore(item)}>
                 <RotateCcw className="h-3 w-3 mr-1" /> Restaurar
