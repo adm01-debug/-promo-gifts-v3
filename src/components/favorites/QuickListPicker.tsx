@@ -19,6 +19,10 @@ interface Props {
   onCreateAndPick: (name: string) => Promise<string>;
   /** Trigger element (ex.: ícone de coração). */
   children: React.ReactNode;
+  /** Nome do produto sendo adicionado (mostrado no header). */
+  productName?: string;
+  /** Variante atual selecionada (cor) — exibida com swatch. */
+  variantInfo?: { color_name?: string | null; color_hex?: string | null } | null;
 }
 
 /**
@@ -27,6 +31,7 @@ interface Props {
  */
 export function QuickListPicker({
   open, onOpenChange, lists, existingListIds, onPick, onCreateAndPick, children,
+  productName, variantInfo,
 }: Props) {
   const [creating, setCreating] = useState(false);
   const [newName, setNewName] = useState("");
@@ -53,6 +58,22 @@ export function QuickListPicker({
         <div className="px-2 py-1.5 text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
           Salvar em qual lista?
         </div>
+        {(productName || variantInfo?.color_name) && (
+          <div className="px-2 pb-1.5 -mt-1 flex items-center gap-1.5 text-[11px] text-foreground/80 border-b mb-1">
+            {variantInfo?.color_hex && (
+              <span
+                className="inline-block w-3 h-3 rounded-full border border-border shrink-0"
+                style={{ backgroundColor: variantInfo.color_hex }}
+                aria-hidden
+              />
+            )}
+            <span className="truncate">
+              {productName ? <strong className="font-medium">{productName}</strong> : null}
+              {productName && variantInfo?.color_name ? " — " : ""}
+              {variantInfo?.color_name ?? ""}
+            </span>
+          </div>
+        )}
         <ScrollArea className="max-h-60">
           <div className="space-y-0.5">
             {lists.map((l) => {
