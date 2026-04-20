@@ -1,82 +1,76 @@
 
 
-# Continuação Comparador 10/10 — Ondas C2 → C5
+# Comparador 10/10 — Wiring C3 + Ondas C4 + C5 (final)
 
-Onda C1 entregue. Build error é transitório (commit não propagado) — será resolvido na próxima execução. Sigo direto com as 20 melhorias restantes em 4 ondas autônomas.
+C1 e C2 entregues. Componentes da C3 já criados (Duel, Mobile, Presentation, variant-matching). Falta o **wiring** na `ComparePage` + tudo de C4 e C5.
 
-## Onda C2 — CRM + Persistência + Share público (#7-11)
+## Etapa 1 — Wiring Onda C3 (#12, #14, #15, #16, #17)
+
+| # | Ação | Arquivo |
+|---|---|---|
+| 12 | Renderizar `ComparisonDuelView` quando `compareCount === 2` (toggle "Modo Duelo / Tabela") | edit `ComparePage.tsx` |
+| 14 | Renderizar `ComparisonMobileView` em `<768px` (Tailwind `md:hidden` na tabela, `md:hidden` invertido no mobile) | edit `ComparePage.tsx` |
+| 15 | Sticky thumbnails header — IntersectionObserver no topo da tabela; mini-cards fixos com nome + foto | edit `CompareTableView.tsx` |
+| 16 | Hover em swatch troca foto do header (estado `hoveredVariantId`) | edit `CompareTableView.tsx` |
+| 17 | `framer-motion` `AnimatePresence` envolvendo as colunas — `layout` + `initial/animate/exit` (slide+fade) | edit `CompareTableView.tsx` |
+| 13 | Aplicar `findMatchingColorIndex` ao trocar variante na galeria — propaga para os outros produtos | edit `SyncedZoomGallery.tsx` |
+
+## Etapa 2 — Onda C4 — Inteligência comercial (#18-22)
 
 | # | Entrega | Arquivo |
 |---|---|---|
-| 7 | `FavoritesClientPicker` integrado ao header de `ComparePage` | edit `ComparePage.tsx` |
-| 8 | CTA "Criar orçamento desta comparação" usando padrão URL params (`/orcamentos/novo?products=...&client_id=...`) | edit `ComparePage.tsx` |
-| 9 | Edge function `comparisons-public-react` (Zod + IP hash + rate limit 5/min) — espelho de `collections-public-react` | nova EF |
-| 9b | Rota `/comparar-publica/:token` + `PublicComparisonPage.tsx` (read-only com reactions anônimas 👍❤️🔥💡) | nova rota + página |
-| 9c | `ShareComparisonDialog.tsx` (gera token, define `is_public`, copia link, expiração configurável) | novo componente |
-| 10 | `ExportComparisonButton.tsx` — dropdown PDF (jsPDF A4 paisagem) / PNG (html2canvas) / CSV | novo componente |
-| 11 | Hook `useComparisonSync` — upsert em `user_comparisons` ao logar; localStorage cache offline-first; merge inteligente | novo hook |
+| 18 | `PriceSparkline.tsx` — recharts `<LineChart>` mini (60×24, sem axes), badge "↓X% no mês" baseado em `price_history` | novo + edit `CompareTableView` |
+| 19 | `OtherSuppliersRow.tsx` — linha expansível usando `useSupplierComparison` existente | novo + edit `CompareTableView` |
+| 20 | `StockRiskBadge.tsx` — usa `useFutureStock`, vermelho se ruptura < 30d | novo + edit `CompareTableView` |
+| 21 | `SimilarProductsRail.tsx` — bottom rail 4-6 produtos (mesma categoria + preço ±20%) com botão "+ Adicionar" | novo + integra em `ComparePage` |
+| 22 | Botão "▶ Apresentar" no header de `ComparePage` que abre `ComparisonPresentationLauncher` (já criado) | edit `ComparePage.tsx` |
 
-## Onda C3 — UX premium (#12-17)
+## Etapa 3 — Onda C5 — Polimento + A11y + atalhos + empty state (#23-26)
 
-| # | Entrega |
-|---|---|
-| 12 | `ComparisonDuelView.tsx` — layout 2-col "duelo" quando `compareCount === 2`, fotos enormes, diferenças zebra |
-| 13 | Sincronizar troca de variante no `SyncedZoomGallery` — match por nome (case-insensitive) ou hex próximo (distância < 30) entre produtos |
-| 14 | `ComparisonMobileView.tsx` — < 768px renderiza carousel vertical: cada linha = atributo, produtos viram chips horizontais swipeable |
-| 15 | Sticky header com thumbnails miniatura ao rolar tabela (IntersectionObserver) |
-| 16 | Hover em swatch troca imagem do header sem navegar (estado local `hoveredVariantId`) |
-| 17 | `framer-motion` `AnimatePresence` em colunas — slide+fade ao add/remove produto |
+| # | Entrega | Arquivo |
+|---|---|---|
+| 23 | `useComparisonShortcuts.ts` — `G X` navega `/comparar`, `Shift+X` limpa, `1-4` foca produto N (scrollIntoView), `D` toggle differences, `R` toggle radar, `?` abre cheatsheet | novo hook + integra em `App.tsx` ou `Layout` |
+| 24 | ARIA-live `<div aria-live="polite" aria-atomic="true" className="sr-only">` em `ComparePage` — anuncia add/remove/clear | edit `ComparePage.tsx` |
+| 25 | `CompareEmptyStateSmart.tsx` — quando 0-1 produtos, lista top 6 via RPC `get_top_compared_products` (já criada na C1) + CTA "+ Adicionar" inline | novo + integra em `ComparePage` |
+| 26 | `RecentComparisonsSidebar.tsx` — `Sheet` lateral disparado por botão "🕒 Recentes" no header; usa RPC `get_user_recent_comparisons` (já criada na C1); restaura ao clicar | novo + integra em `ComparePage` |
 
-## Onda C4 — Inteligência comercial avançada (#18-22)
+## Etapa 4 — Cron job (insert tool, não migration)
 
-| # | Entrega |
-|---|---|
-| 18 | Sparkline 30d de preço inline (recharts `<LineChart>` mini, sem axes) + badge "↓X% no mês" — usa `price_history` criada na C1 |
-| 19 | Linha expansível "Outros fornecedores deste produto" via `useSupplierComparison` existente — mostra alternativas mais baratas fora da comparação |
-| 20 | Badge "⚠️ Risco de estoque" via `useFutureStock` — vermelho se ruptura < 30d |
-| 21 | Bottom rail "Compare também com…" — 4-6 produtos similares (mesma categoria + faixa preço ±20%) com botão "+ Adicionar" |
-| 22 | `ComparisonPresentationLauncher.tsx` — fullscreen slide deck (1 produto/slide + slide final tabela), atalhos ←/→/F, espelho de `CollectionPresentationLauncher` |
+```sql
+select cron.schedule(
+  'cleanup-expired-public-comparisons',
+  '30 6 * * *',  -- 03:30 BR (UTC-3)
+  $$ select public.cleanup_expired_public_comparisons(); $$
+);
+```
 
-## Onda C5 — Polimento + A11y + atalhos + empty state (#23-26)
+## Etapa 5 — Memórias (atualização final)
 
-| # | Entrega |
-|---|---|
-| 23 | Hook `useComparisonShortcuts` — `G X` navega, `Shift+X` limpa, `1-4` foca produto N, `D` toggle differences, `R` abre/fecha radar |
-| 24 | ARIA-live region (`aria-live="polite"`) em `ComparePage` anuncia "Produto X adicionado/removido", "Comparação limpa" |
-| 25 | `CompareEmptyStateSmart.tsx` — quando 0-1 produtos, lista top 6 da semana via RPC `get_top_compared_products` (criada na C1) + CTA "+ Adicionar" inline |
-| 26 | `RecentComparisonsSidebar.tsx` — últimas 5 comparações via RPC `get_user_recent_comparisons`, recarregáveis em 1 clique |
+- **Atualizar** `mem://features/catalog/comparison-system-spec` — adicionar bloco "Roadmap 10/10 entregue" com as 26 melhorias resumidas
+- **Atualizar** `mem://features/keyboard-shortcuts-registry` — adicionar `G X`, `Shift+X`, `1-4`, `D`, `R`, `F` (presentation)
+- **Criar** `mem://features/comparison-public-share-system` — espelho de `favorites-public-share-system` (token, RLS por token público, edge function reactions)
+- **Atualizar** `mem://index.md` — adicionar 2 entradas: "Comparison Roadmap 10/10" + "Comparison Public Share"
 
-## Cron job (insert tool, pós-migração)
+## Arquivos afetados
 
-- `cleanup-expired-public-comparisons` — diário 03:30 BR → `cleanup_expired_public_comparisons()`
+**Modificados:** `ComparePage.tsx`, `CompareTableView.tsx`, `SyncedZoomGallery.tsx`
 
-## Memórias finais
+**Criados (componentes):** `PriceSparkline`, `OtherSuppliersRow`, `StockRiskBadge`, `SimilarProductsRail`, `CompareEmptyStateSmart`, `RecentComparisonsSidebar`
 
-- Atualizar `mem://features/catalog/comparison-system-spec` com 26 melhorias entregues
-- Atualizar `mem://features/keyboard-shortcuts-registry` com `G X`, `Shift+X`, `1-4`, `D`, `R`, `F` (presentation)
-- Criar `mem://features/comparison-public-share-system`
-- Atualizar `mem://index.md` com entradas "Comparison Roadmap 10/10" + "Comparison Public Share"
+**Criados (hooks):** `useComparisonShortcuts`
+
+**Cron:** `cleanup-expired-public-comparisons` (pg_cron via insert tool)
+
+**Memórias:** 4 atualizações/criações
 
 ## Sequenciamento
 
 ```text
-C2 (5 itens) → C3 (6 itens) → C4 (5 itens) → C5 (4 itens) → cron + memória
+Etapa 1 (wiring C3) → Etapa 2 (C4 5 itens) → Etapa 3 (C5 4 itens) → Etapa 4 (cron) → Etapa 5 (memória)
 ```
 
-Sem pausas, sem perguntas. Cada onda entrega completa antes da próxima.
-
-## Arquivos afetados
-
-**Modificados:** `ComparePage.tsx`, `SyncedZoomGallery.tsx`, `CompareTableView.tsx`, `App.tsx`
-
-**Criados (componentes):** `ShareComparisonDialog`, `ExportComparisonButton`, `ComparisonDuelView`, `ComparisonMobileView`, `ComparisonPresentationLauncher`, `RecentComparisonsSidebar`, `CompareEmptyStateSmart`, `PublicComparisonPage`
-
-**Criados (hooks):** `useComparisonSync`, `useComparisonShortcuts`
-
-**Edge functions:** `comparisons-public-react`
-
-**Memórias:** 4 atualizações/criações
+Sem pausas, sem perguntas. Execução completa até paridade absoluta com Favoritos/Coleções 10/10.
 
 ## Resultado final
-Comparador em **10/10 absoluto** — co-piloto B2B com IA, score ponderado, radar visual, TCO, share público com reactions, persistência cross-device, modo duelo, mobile carousel, presentation fullscreen, atalhos globais, ARIA-live, paridade total com Favoritos/Coleções 10/10.
+Comparador em **10/10 absoluto** — co-piloto B2B com IA, score ponderado, radar visual, TCO, share público com reactions, persistência cross-device, modo duelo, mobile carousel, sticky thumbs, hover preview, animações suaves, sparkline 30d, risco de estoque, sugestões similares, presentation fullscreen, atalhos globais, ARIA-live, empty state inteligente, sidebar de recentes.
 
