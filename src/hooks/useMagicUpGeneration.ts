@@ -10,7 +10,7 @@ import type { VariationItem, MagicUpProduct, Technique, SelectedClient } from ".
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
-import type { MagicUpBatchVariant, MagicUpBrandKit, MagicUpBrief, MagicUpCampaign, MagicUpCopyPack, MagicUpCreativeControls, MagicUpQualityScore, MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
+import { buildQualityDiagnosis, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrief, type MagicUpCampaign, type MagicUpCopyPack, type MagicUpCreativeControls, type MagicUpCurationStatus, type MagicUpQualityDiagnosis, type MagicUpQualityScore, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
 
 interface GenerationDeps {
   selectedProduct: MagicUpProduct | null;
@@ -39,9 +39,25 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
   const [generating, setGenerating] = useState(false);
   const [variations, setVariations] = useState<VariationItem[]>([]);
   const [activeVariation, setActiveVariation] = useState(0);
+  const [qualityDiagnosis, setQualityDiagnosis] = useState<MagicUpQualityDiagnosis>(() => buildQualityDiagnosis(deps.qualityScore));
+  const [curationStatus, setCurationStatus] = useState<MagicUpCurationStatus>("draft");
 
   const canGenerate = !!(deps.selectedProduct && deps.currentImage && deps.logoPreview && deps.effectivePrompt);
   const currentVariation = variations[activeVariation] || null;
+
+  const analyzeQuality = useCallback(async (imageUrl: string, variantBrief: MagicUpBrief, variantControls: MagicUpCreativeControls): Promise<MagicUpQualityDiagnosis> => {
+    const fallback = buildQualityDiagnosis(deps.qualityScore);
+    try {
+      const { data, error } = await supabase.functions.invoke<MagicUpQualityDiagnosis>("magic-up-score", {
+        body: { imageUrl, productName: deps.selectedProduct?.name, clientName: deps.selectedClient?.name || deps.activeCampaign?.clientName, campaignBrief: variantBrief, brandKit: deps.brandKit, creativeControls: variantControls, promptText: deps.fullPromptPreview || deps.effectivePrompt, channel: variantBrief.channel, aspectRatio: variantControls.aspectRatio },
+      });
+      if (error || !data) throw error || new Error("Score indisponível");
+      return { ...data, source: data.source || "ai" };
+    } catch (error) {
+      console.warn("Magic Up score fallback:", error);
+      return fallback;
+    }
+  }, [deps]);
 
   const handleGenerate = useCallback(async (batchVariant?: MagicUpBatchVariant) => {
     if (!canGenerate) return;
@@ -79,6 +95,9 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
       if (error) throw error;
       if (data?.imageUrl) {
         let genId: string | null = null;
+        const diagnosis = await analyzeQuality(data.imageUrl, variantBrief, variantControls);
+        setQualityDiagnosis(diagnosis);
+        setCurationStatus("draft");
         if (deps.userId) {
           const generationPayload: TablesInsert<"magic_up_generations"> = {
             user_id: deps.userId,
@@ -94,12 +113,12 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
             model: data.model || "magic-up-pro",
             channel: data.outputChannel || variantBrief.channel,
             aspect_ratio: data.aspectRatio || variantControls.aspectRatio,
-            quality_score: deps.qualityScore.total,
-            status: deps.activeCampaign?.status || "draft",
+            quality_score: diagnosis.total,
+            status: "draft",
             tags: [variantBrief.channel, variantBrief.objective, variantBrief.tone, batchVariant?.id].filter(Boolean),
             copy_pack: deps.copyPack,
             export_presets: ["png", "jpg-whatsapp", variantControls.aspectRatio],
-            metadata: { brief: variantBrief, creativeControls: variantControls, qualityScore: deps.qualityScore, campaign: deps.activeCampaign, brandKit: deps.brandKit, brandNotes: deps.brandNotes, refinement: deps.activeRefinement, batch: batchVariant || null, functionResult: { qualityMode: data.qualityMode, aspectRatio: data.aspectRatio, creativeMode: data.creativeMode, compositionMode: data.compositionMode } },
+            metadata: { brief: variantBrief, creativeControls: variantControls, qualityScore: diagnosis.total, qualityDiagnosis: diagnosis, qualitySource: diagnosis.source, curation: { status: "draft", selectedAt: new Date().toISOString() }, campaign: deps.activeCampaign, brandKit: deps.brandKit, brandNotes: deps.brandNotes, refinement: deps.activeRefinement, batch: batchVariant || null, functionResult: { qualityMode: data.qualityMode, aspectRatio: data.aspectRatio, creativeMode: data.creativeMode, compositionMode: data.compositionMode } },
           };
           const { data: inserted, error: insertError } = await supabase
             .from("magic_up_generations")
@@ -113,7 +132,7 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
           if (inserted) genId = inserted.id;
           queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
         }
-        const newVariation: VariationItem = { id: genId, imageUrl: data.imageUrl, isFavorite: false };
+        const newVariation: VariationItem = { id: genId, imageUrl: data.imageUrl, isFavorite: false, qualityScore: diagnosis.total, qualityDiagnosis: diagnosis, curationStatus: "draft" };
         setVariations(prev => {
           setActiveVariation(prev.length);
           return [...prev, newVariation];
@@ -128,7 +147,37 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
     } finally {
       setGenerating(false);
     }
-  }, [canGenerate, deps, queryClient]);
+  }, [analyzeQuality, canGenerate, deps, queryClient]);
+
+  const handleRunQualityScore = useCallback(async () => {
+    if (!currentVariation?.imageUrl) return;
+    const diagnosis = await analyzeQuality(currentVariation.imageUrl, deps.brief, deps.creativeControls);
+    setQualityDiagnosis(diagnosis);
+    setVariations(prev => prev.map((variation, index) => index === activeVariation ? { ...variation, qualityScore: diagnosis.total, qualityDiagnosis: diagnosis } : variation));
+    if (currentVariation.id) {
+      await supabase.from("magic_up_generations").update({ quality_score: diagnosis.total }).eq("id", currentVariation.id);
+      queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
+    }
+    toast.success("Magic Score atualizado");
+  }, [activeVariation, analyzeQuality, currentVariation, deps.brief, deps.creativeControls, queryClient]);
+
+  const handleSetCurationStatus = useCallback(async (status: MagicUpCurationStatus) => {
+    setCurationStatus(status);
+    setVariations(prev => prev.map((variation, index) => index === activeVariation ? { ...variation, curationStatus: status } : variation));
+    if (currentVariation?.id) {
+      await supabase.from("magic_up_generations").update({ status }).eq("id", currentVariation.id);
+      queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
+    }
+  }, [activeVariation, currentVariation?.id, queryClient]);
+
+  const handleSelectWinningVariation = useCallback((index: number) => {
+    setActiveVariation(index);
+    const selected = variations[index];
+    if (selected?.qualityDiagnosis) setQualityDiagnosis(selected.qualityDiagnosis);
+    if (selected?.curationStatus) setCurationStatus(selected.curationStatus);
+    setVariations(prev => prev.map((variation, i) => ({ ...variation, isWinner: i === index })));
+    toast.success(`Variação ${index + 1} marcada como vencedora`);
+  }, [variations]);
 
   const handleDownload = useCallback(async (format: "png" | "jpg" = "png") => {
     if (!currentVariation?.imageUrl) return;
@@ -191,15 +240,19 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
   }, [queryClient]);
 
   const handleSelectHistory = useCallback((item: GenerationHistoryItem) => {
-    const newVar: VariationItem = { id: item.id, imageUrl: item.generated_image_url, isFavorite: item.is_favorite };
+    const diagnosis = item.metadata?.qualityDiagnosis;
+    const newVar: VariationItem = { id: item.id, imageUrl: item.generated_image_url, isFavorite: item.is_favorite, qualityScore: item.quality_score || undefined, qualityDiagnosis: diagnosis, curationStatus: item.status as MagicUpCurationStatus };
     setVariations([newVar]);
     setActiveVariation(0);
+    if (diagnosis) setQualityDiagnosis(diagnosis);
+    if (item.status) setCurationStatus(item.status as MagicUpCurationStatus);
   }, []);
 
   return {
     generating, variations, activeVariation, setActiveVariation,
-    currentVariation, canGenerate, setVariations,
+    currentVariation, canGenerate, setVariations, qualityDiagnosis, curationStatus,
     handleGenerate, handleDownload, handleShare,
+    handleRunQualityScore, handleSetCurationStatus, handleSelectWinningVariation,
     handleToggleFavorite, handleToggleHistoryFavorite,
     handleDeleteHistory, handleSelectHistory,
   };
