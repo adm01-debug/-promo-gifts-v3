@@ -1,10 +1,15 @@
 import { useMemo, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Package, Trash2, Search,
-  FileText, ArrowUpDown, ArrowRight, CheckSquare,
+  Package, Trash2, Search, TrendingDown, Share2,
+  FileText, ArrowUpDown, ArrowRight, CheckSquare, Settings2,
 } from "lucide-react";
 import { motion } from "framer-motion";
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
@@ -15,8 +20,12 @@ import { getDefaultColumns, type ColumnCount } from "@/components/products/Colum
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { BulkSelectionBar } from "@/components/common/BulkSelectionBar";
 import { CollectionDetailHeader } from "@/components/collections/CollectionDetailHeader";
+import { SortableProductItem } from "@/components/collections/SortableProductItem";
+import { ShareCollectionDialog } from "@/components/collections/ShareCollectionDialog";
+import { CollectionPresentationLauncher } from "@/components/collections/CollectionPresentationLauncher";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,9 +40,7 @@ import {
 } from "@/hooks/useExternalCollections";
 import { useFavoritesStore } from "@/stores/useFavoritesStore";
 import { useComparisonStore } from "@/stores/useComparisonStore";
-import { PresentationMode } from "@/components/presentation/PresentationMode";
 import { toast } from "sonner";
-import { exportCollectionPDF } from "@/lib/export-collection-pdf";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
