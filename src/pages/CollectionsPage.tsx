@@ -10,6 +10,9 @@ import { CollectionTableView } from "@/components/collections/CollectionTableVie
 import { ExternalCollectionTableView } from "@/components/collections/ExternalCollectionTableView";
 import { CollectionFormDialog } from "@/components/collections/CollectionFormDialog";
 import { ExternalCollectionCard } from "@/components/collections/ExternalCollectionCard";
+import { CollectionsHeatmap } from "@/components/collections/CollectionsHeatmap";
+import { CollectionsEmptyStateSmart } from "@/components/collections/CollectionsEmptyStateSmart";
+import { useCollectionsGlobalShortcuts } from "@/hooks/useCollectionsGlobalShortcuts";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
@@ -42,6 +45,7 @@ function relativeTime(dateStr: string | undefined) {
 }
 
 export default function CollectionsPage() {
+  useCollectionsGlobalShortcuts();
   const state = useCollectionsPageState();
 
   const {
