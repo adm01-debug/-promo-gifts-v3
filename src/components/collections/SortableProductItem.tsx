@@ -10,6 +10,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SelectionCheckbox } from "@/components/common/SelectionCheckbox";
+import { PriceDropBadge } from "@/components/favorites/PriceDropBadge";
 import { cn } from "@/lib/utils";
 
 interface SortableProductItemProps {
@@ -18,12 +19,15 @@ interface SortableProductItemProps {
     name: string;
     sku?: string;
     images?: string[];
+    price?: number | null;
   };
   variant?: {
     color_name?: string | null;
     color_hex?: string | null;
     thumbnail?: string | null;
   };
+  priceAtSave?: number | null;
+  addedAt?: string | null;
   onRemove: () => void;
   isSelected: boolean;
   onToggleSelect: () => void;
@@ -34,6 +38,8 @@ interface SortableProductItemProps {
 export function SortableProductItem({
   product,
   variant,
+  priceAtSave,
+  addedAt,
   onRemove,
   isSelected,
   onToggleSelect,
@@ -42,6 +48,11 @@ export function SortableProductItem({
 }: SortableProductItemProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: product.id });
+
+  const priceDiffPct =
+    priceAtSave && product.price
+      ? ((product.price - priceAtSave) / priceAtSave) * 100
+      : null;
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
