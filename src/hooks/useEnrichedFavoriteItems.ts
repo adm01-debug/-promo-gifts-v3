@@ -33,7 +33,7 @@ export function useEnrichedFavoriteItems(listId: string | null) {
 
       let priceDiffPct: number | null = null;
       if (product && item.price_at_save && item.price_at_save > 0) {
-        const current = product.price ?? product.min_price ?? 0;
+        const current = product.price ?? 0;
         if (current > 0) {
           priceDiffPct = ((current - item.price_at_save) / item.price_at_save) * 100;
         }
