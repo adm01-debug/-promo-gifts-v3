@@ -1,6 +1,7 @@
 /**
  * ComparePage — Comparador de produtos
  * Onda C1: Score ponderado, radar chart, AI advisor, TCO, highlights expandidos, differences-only.
+ * Onda C2: CRM picker, share público, export PDF/PNG/CSV, sync cross-device, CTA orçamento.
  */
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
@@ -11,18 +12,25 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List, Filter } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List, Filter, FileText, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "sonner";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
 import { CompareTableView } from "@/components/compare/CompareTableView";
 import { ComparisonScoreCard } from "@/components/compare/ComparisonScoreCard";
 import { ComparisonRadarChart } from "@/components/compare/ComparisonRadarChart";
 import { AIComparisonAdvisor } from "@/components/compare/AIComparisonAdvisor";
+import { ShareComparisonDialog } from "@/components/compare/ShareComparisonDialog";
+import { ExportComparisonButton } from "@/components/compare/ExportComparisonButton";
+import { FavoritesClientPicker } from "@/components/favorites/FavoritesClientPicker";
+import { useComparisonSync } from "@/hooks/useComparisonSync";
 
 export default function ComparePage() {
+  useComparisonSync();
   const navigate = useNavigate();
   const [differencesOnly, setDifferencesOnly] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [client, setClient] = useState<{ id: string; name: string } | null>(null);
   const { compareItems, removeByIndex, clearCompare, compareCount } = useComparisonStore();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
 
