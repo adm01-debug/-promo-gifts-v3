@@ -244,6 +244,15 @@ export default function CollectionDetailPage() {
     return filtered;
   }, [products, searchQuery, sortBy, onlyDrops, priceAtSaveMap]);
 
+  const priceDropCount = useMemo(() => {
+    let n = 0;
+    products.forEach((p) => {
+      const saved = priceAtSaveMap.get(p.id);
+      if (saved && p.price && ((p.price - saved) / saved) * 100 <= -2) n++;
+    });
+    return n;
+  }, [products, priceAtSaveMap]);
+
   const productsWithVariant = useMemo(() => {
     return filteredProducts.map((product) => {
       const variant = variantMap.get(product.id);
