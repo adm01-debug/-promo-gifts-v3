@@ -11,10 +11,15 @@ interface Props {
   /** Texto alternativo quando não há lista remota selecionada (ex: store legado) */
   fallbackTitle?: string;
   fallbackSubtitle?: string;
+  /** Filtro "só com queda" — passado adiante para a sort bar */
+  onlyPriceDrops?: boolean;
+  onTogglePriceDrops?: (v: boolean) => void;
+  priceDropCount?: number | null;
 }
 
 export function FavoritesViewHeader({
   list, itemCount, sort, onSortChange, fallbackTitle, fallbackSubtitle,
+  onlyPriceDrops, onTogglePriceDrops, priceDropCount,
 }: Props) {
   const color = list?.color ?? "hsl(var(--destructive))";
   const name = list?.name ?? fallbackTitle ?? "Favoritos";
@@ -54,7 +59,13 @@ export function FavoritesViewHeader({
         </div>
       </div>
 
-      <FavoritesSortBar value={sort} onChange={onSortChange} />
+      <FavoritesSortBar
+        value={sort}
+        onChange={onSortChange}
+        onlyPriceDrops={onlyPriceDrops}
+        onTogglePriceDrops={onTogglePriceDrops}
+        priceDropCount={priceDropCount}
+      />
     </div>
   );
 }
