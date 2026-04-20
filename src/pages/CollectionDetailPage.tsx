@@ -344,18 +344,21 @@ export default function CollectionDetailPage() {
         />
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <CollectionDetailHeader
-            collection={collection}
+            collection={{ ...collection, clientName: localCollection?.clientName ?? null }}
             productCount={products.length}
             isLoading={isExternal && isLoadingExternalProducts}
             updatedAgo={updatedAgo}
+            products={products}
+            variantMap={variantMap}
+            notesMap={notesMap}
             onBack={() => navigate("/colecoes")}
             onCreateQuote={handleCreateQuote}
-            onExportPDF={() => {
-              exportCollectionPDF({ collectionName: collection.name, collectionDescription: collection.description, products, variantMap });
-              toast.success("PDF exportado!");
-            }}
             onPresent={() => setShowPresentation(true)}
+            onShare={() => setShowShareDialog(true)}
+            showShare={!isExternal}
           />
+
+          <div role="status" aria-live="polite" className="sr-only">{announcement}</div>
 
           <BulkSelectionBar
             isActive={isSelectionMode}
