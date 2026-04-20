@@ -251,6 +251,21 @@ export function useMagicUpState() {
 
   const loadingPrintAreas = loadingCustomization;
 
+  useEffect(() => {
+    if (!selectedClient) {
+      setBrandKit(DEFAULT_BRAND_KIT);
+      setBrandNotes("");
+      return;
+    }
+    if (loadedBrandKit) {
+      setBrandKit(loadedBrandKit);
+      setBrandNotes(buildBrandKitNotes(loadedBrandKit));
+      if (loadedBrandKit.primaryLogoUrl && !logoPreview) setLogoPreview(loadedBrandKit.primaryLogoUrl);
+      return;
+    }
+    setBrandKit({ ...DEFAULT_BRAND_KIT, clientId: selectedClient.id, clientName: selectedClient.name, primaryLogoUrl: selectedClient.logo_url || null, logoUrls: selectedClient.logo_url ? [{ id: "crm-logo", label: "Logo CRM", url: selectedClient.logo_url, variant: "principal", isPrimary: true }] : [], primaryColor: selectedClient.cor_primaria_hex || null });
+  }, [loadedBrandKit, logoPreview, selectedClient]);
+
   // ─── Derived: Techniques from print areas ───────────────────────
   const availableTechniques = useMemo((): Technique[] => {
     if (!printAreas?.length) return [];
@@ -358,6 +373,41 @@ CENÁRIO: ${effectivePrompt}`;
     announceStatus("Campanha salva com sucesso");
   }, [activeCampaign, announceAlert, announceStatus, brandNotes, brief, queryClient, selectedClient, selectedProduct, user?.id]);
 
+  const handleUpdateBrandKit = useCallback((patch: Partial<MagicUpBrandKit>) => {
+    setBrandKit((current) => {
+      const next = { ...current, ...patch };
+      setBrandNotes(buildBrandKitNotes(next));
+      return next;
+    });
+  }, []);
+
+  const handleUseBrandLogo = useCallback((logo: MagicUpBrandLogo) => {
+    setLogoPreview(logo.url);
+    setBrandKit((current) => ({ ...current, primaryLogoUrl: logo.url, logoUrls: current.logoUrls.map((item) => ({ ...item, isPrimary: item.id === logo.id })) }));
+    announceStatus("Logo do Brand Kit aplicado");
+  }, [announceStatus]);
+
+  const handleAddCurrentLogoToBrandKit = useCallback(() => {
+    if (!logoPreview) return;
+    const nextLogo: MagicUpBrandLogo = { id: crypto.randomUUID(), label: `Logo ${brandKit.logoUrls.length + 1}`, url: logoPreview, variant: brandKit.logoUrls.length ? "colorida" : "principal", isPrimary: brandKit.logoUrls.length === 0 };
+    handleUpdateBrandKit({ logoUrls: [...brandKit.logoUrls, nextLogo], primaryLogoUrl: brandKit.primaryLogoUrl || logoPreview });
+  }, [brandKit.logoUrls, brandKit.primaryLogoUrl, handleUpdateBrandKit, logoPreview]);
+
+  const handleSaveBrandKit = useCallback(async () => {
+    if (!user?.id) { toast.error("Faça login para salvar Brand Kit"); announceAlert("Login necessário para salvar Brand Kit"); return; }
+    if (!selectedClient?.id) { toast.error("Selecione uma empresa para salvar o Brand Kit"); announceAlert("Selecione uma empresa para salvar Brand Kit"); return; }
+    const logos = brandKit.logoUrls.length ? brandKit.logoUrls : logoPreview ? [{ id: "current-logo", label: "Logo atual", url: logoPreview, variant: "principal" as const, isPrimary: true }] : [];
+    const payload = { client_id: selectedClient.id, client_name: selectedClient.name, logo_urls: logos, primary_color: brandKit.primaryColor, secondary_color: brandKit.secondaryColor, tone_of_voice: brandKit.toneOfVoice, visual_style: brandKit.visualStyle, required_words: brandKit.requiredWords, forbidden_words: brandKit.forbiddenWords, notes: brandKit.notes, metadata: { source: "magic-up" } };
+    const result = brandKit.id
+      ? await supabase.from("magic_up_brand_kits").update(payload satisfies TablesUpdate<"magic_up_brand_kits">).eq("id", brandKit.id).select("id, updated_at").single()
+      : await supabase.from("magic_up_brand_kits").insert({ ...payload, user_id: user.id } satisfies TablesInsert<"magic_up_brand_kits">).select("id, updated_at").single();
+    if (result.error) { toast.error("Erro ao salvar Brand Kit"); announceAlert("Erro ao salvar Brand Kit"); return; }
+    setBrandKit((current) => ({ ...current, ...payload, id: result.data.id, clientId: selectedClient.id, clientName: selectedClient.name, primaryLogoUrl: logos.find((logo) => logo.isPrimary)?.url || logos[0]?.url || null, logoUrls: logos, updatedAt: result.data.updated_at }));
+    queryClient.invalidateQueries({ queryKey: ["magic-up-brand-kit"] });
+    toast.success("Brand Kit salvo");
+    announceStatus("Brand Kit salvo com sucesso");
+  }, [announceAlert, announceStatus, brandKit, logoPreview, queryClient, selectedClient, user?.id]);
+
   // ─── Generation (delegated) ────────────────────────────────────
   const generation = useMagicUpGeneration({
     selectedProduct, currentImage, logoPreview, effectivePrompt,
@@ -405,6 +455,7 @@ CENÁRIO: ${effectivePrompt}`;
     brief, setBrief: handleSetBrief, activeCampaign, setActiveCampaign, campaigns,
     handleSaveCampaign, handleSelectCampaign, handleDuplicateCampaign,
     creativeControls, setCreativeControls, brandNotes, setBrandNotes,
+    brandKit, loadingBrandKit, handleUpdateBrandKit, handleUseBrandLogo, handleAddCurrentLogoToBrandKit, handleSaveBrandKit,
     qualityScore, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,
