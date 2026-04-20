@@ -441,6 +441,9 @@ export default function FavoritesPage() {
                   onSortChange={setSort}
                   fallbackTitle={!isRemoteListView ? "Todos os favoritos" : undefined}
                   fallbackSubtitle={!isRemoteListView && lists.length === 0 ? "Crie uma lista para organizar" : undefined}
+                  onlyPriceDrops={isRemoteListView ? onlyPriceDrops : undefined}
+                  onTogglePriceDrops={isRemoteListView ? setOnlyPriceDrops : undefined}
+                  priceDropCount={priceDropCount}
                 />
 
                 {/* KPI cards */}
