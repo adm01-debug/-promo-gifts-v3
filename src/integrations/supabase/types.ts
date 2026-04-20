@@ -733,6 +733,152 @@ export type Database = {
         }
         Relationships: []
       }
+      favorite_items: {
+        Row: {
+          added_at: string
+          id: string
+          list_id: string
+          note: string | null
+          position: number
+          price_at_save: number | null
+          product_id: string
+          updated_at: string
+          user_id: string
+          variant_id: string | null
+          variant_info: Json | null
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          list_id: string
+          note?: string | null
+          position?: number
+          price_at_save?: number | null
+          product_id: string
+          updated_at?: string
+          user_id: string
+          variant_id?: string | null
+          variant_info?: Json | null
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          list_id?: string
+          note?: string | null
+          position?: number
+          price_at_save?: number | null
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+          variant_id?: string | null
+          variant_info?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "favorite_items_list_id_fkey"
+            columns: ["list_id"]
+            isOneToOne: false
+            referencedRelation: "favorite_lists"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      favorite_items_trash: {
+        Row: {
+          deleted_at: string
+          expires_at: string
+          id: string
+          list_id: string
+          note: string | null
+          original_id: string
+          price_at_save: number | null
+          product_id: string
+          user_id: string
+          variant_id: string | null
+          variant_info: Json | null
+        }
+        Insert: {
+          deleted_at?: string
+          expires_at?: string
+          id?: string
+          list_id: string
+          note?: string | null
+          original_id: string
+          price_at_save?: number | null
+          product_id: string
+          user_id: string
+          variant_id?: string | null
+          variant_info?: Json | null
+        }
+        Update: {
+          deleted_at?: string
+          expires_at?: string
+          id?: string
+          list_id?: string
+          note?: string | null
+          original_id?: string
+          price_at_save?: number | null
+          product_id?: string
+          user_id?: string
+          variant_id?: string | null
+          variant_info?: Json | null
+        }
+        Relationships: []
+      }
+      favorite_lists: {
+        Row: {
+          client_id: string | null
+          client_name: string | null
+          color: string
+          created_at: string
+          description: string | null
+          icon: string
+          id: string
+          is_archived: boolean
+          is_default: boolean
+          name: string
+          position: number
+          shared_expires_at: string | null
+          shared_token: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          is_default?: boolean
+          name?: string
+          position?: number
+          shared_expires_at?: string | null
+          shared_token?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          color?: string
+          created_at?: string
+          description?: string | null
+          icon?: string
+          id?: string
+          is_archived?: boolean
+          is_default?: boolean
+          name?: string
+          position?: number
+          shared_expires_at?: string | null
+          shared_token?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       follow_up_reminders: {
         Row: {
           completed_at: string | null
@@ -3346,12 +3492,17 @@ export type Database = {
         Returns: Json
       }
       cleanup_discount_test_data: { Args: never; Returns: Json }
+      cleanup_expired_favorite_trash: { Args: never; Returns: number }
       cleanup_old_notifications: { Args: never; Returns: undefined }
       cleanup_rate_limits: { Args: never; Returns: undefined }
       cleanup_security_logs: { Args: never; Returns: Json }
       cleanup_webhook_logs: { Args: never; Returns: Json }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
+        Returns: string
+      }
+      ensure_default_favorite_list: {
+        Args: { _user_id: string }
         Returns: string
       }
       get_bundle_suggestions: {
