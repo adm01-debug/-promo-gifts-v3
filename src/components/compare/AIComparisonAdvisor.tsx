@@ -98,11 +98,11 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
   if (products.length < 2) return null;
 
   return (
-    <div className="rounded-2xl border-[1.5px] border-purple-500/30 bg-gradient-to-br from-purple-500/5 via-background to-background p-4">
+    <div className="rounded-2xl border-[1.5px] border-accent/40 bg-gradient-to-br from-accent/10 via-background to-background p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-fuchsia-500 shadow-md">
-            <Brain className="h-5 w-5 text-white" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent to-primary shadow-md">
+            <Brain className="h-5 w-5 text-primary-foreground" />
           </div>
           <div>
             <div className="flex items-center gap-2">
@@ -138,7 +138,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
             <ul className="space-y-1.5 text-sm">
               {result.bullets.map((b, i) => (
                 <li key={i} className="flex gap-2">
-                  <span className="text-purple-500 mt-0.5">•</span>
+                  <span className="text-accent mt-0.5">•</span>
                   <span className="text-foreground/90">{b}</span>
                 </li>
               ))}
