@@ -5,26 +5,28 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useMagicUpGeneration } from "@/hooks/useMagicUpGeneration";
 import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, type MagicUpQualityDiagnosis } from "@/pages/magic-up/magicUpStrategy";
 
-const invokeMock = vi.fn();
-const insertMock = vi.fn();
-const updateMock = vi.fn();
-const selectMock = vi.fn();
-const invalidateQueries = vi.fn();
+const mocks = vi.hoisted(() => ({
+  invokeMock: vi.fn(),
+  insertMock: vi.fn(),
+  updateMock: vi.fn(),
+  selectMock: vi.fn(),
+  invalidateQueries: vi.fn(),
+}));
 
 vi.mock("sonner", () => ({ toast: { success: vi.fn(), error: vi.fn(), warning: vi.fn() } }));
 
 vi.mock("@tanstack/react-query", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@tanstack/react-query")>();
-  return { ...actual, useQueryClient: () => ({ invalidateQueries }) };
+  return { ...actual, useQueryClient: () => ({ invalidateQueries: mocks.invalidateQueries }) };
 });
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: {
-    functions: { invoke: invokeMock },
+    functions: { invoke: mocks.invokeMock },
     from: () => ({
-      insert: insertMock,
-      update: updateMock,
-      select: selectMock,
+      insert: mocks.insertMock,
+      update: mocks.updateMock,
+      select: mocks.selectMock,
     }),
   },
 }));
@@ -73,23 +75,23 @@ const wrapper = ({ children }: { children: React.ReactNode }) => (
 
 beforeEach(() => {
   vi.clearAllMocks();
-  insertMock.mockReturnValue({ select: () => ({ single: () => Promise.resolve({ data: { id: "gen-1" }, error: null }) }) });
-  updateMock.mockReturnValue({ eq: () => Promise.resolve({ data: null, error: null }) });
-  selectMock.mockReturnValue({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { metadata: { previous: "kept" }, status: "draft" }, error: null }) }) });
+  mocks.insertMock.mockReturnValue({ select: () => ({ single: () => Promise.resolve({ data: { id: "gen-1" }, error: null }) }) });
+  mocks.updateMock.mockReturnValue({ eq: () => Promise.resolve({ data: null, error: null }) });
+  mocks.selectMock.mockReturnValue({ eq: () => ({ maybeSingle: () => Promise.resolve({ data: { metadata: { previous: "kept" }, status: "draft" }, error: null }) }) });
 });
 
 describe("useMagicUpGeneration Onda 5", () => {
   it("gera imagem, chama Magic Score IA e persiste diagnóstico/metadados", async () => {
-    invokeMock
+    mocks.invokeMock
       .mockResolvedValueOnce({ data: { imageUrl: "https://example.com/generated.png", model: "magic-up-pro" }, error: null })
       .mockResolvedValueOnce({ data: aiDiagnosis(93), error: null });
 
     const { result } = renderHook(() => useMagicUpGeneration(deps), { wrapper });
     await act(async () => { await result.current.handleGenerate(); });
 
-    expect(invokeMock).toHaveBeenNthCalledWith(1, "generate-ad-image", expect.any(Object));
-    expect(invokeMock).toHaveBeenNthCalledWith(2, "magic-up-score", expect.any(Object));
-    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.invokeMock).toHaveBeenNthCalledWith(1, "generate-ad-image", expect.any(Object));
+    expect(mocks.invokeMock).toHaveBeenNthCalledWith(2, "magic-up-score", expect.any(Object));
+    expect(mocks.insertMock).toHaveBeenCalledWith(expect.objectContaining({
       quality_score: 93,
       status: "draft",
       metadata: expect.objectContaining({ qualitySource: "ai", qualityDiagnosis: expect.objectContaining({ total: 93 }), curation: expect.objectContaining({ status: "draft" }) }),
@@ -98,14 +100,14 @@ describe("useMagicUpGeneration Onda 5", () => {
   });
 
   it("mantém a geração salva com fallback heurístico quando o score IA falha", async () => {
-    invokeMock
+    mocks.invokeMock
       .mockResolvedValueOnce({ data: { imageUrl: "https://example.com/generated.png" }, error: null })
       .mockResolvedValueOnce({ data: null, error: new Error("score offline") });
 
     const { result } = renderHook(() => useMagicUpGeneration(deps), { wrapper });
     await act(async () => { await result.current.handleGenerate(); });
 
-    expect(insertMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.insertMock).toHaveBeenCalledWith(expect.objectContaining({
       generated_image_url: "https://example.com/generated.png",
       metadata: expect.objectContaining({ qualitySource: "heuristic", qualityDiagnosis: expect.objectContaining({ source: "heuristic" }) }),
     }));
@@ -113,24 +115,24 @@ describe("useMagicUpGeneration Onda 5", () => {
   });
 
   it("reanálise atualiza quality_score e metadata.qualityDiagnosis sem perder metadados", async () => {
-    invokeMock
+    mocks.invokeMock
       .mockResolvedValueOnce({ data: { imageUrl: "https://example.com/generated.png" }, error: null })
       .mockResolvedValueOnce({ data: aiDiagnosis(88), error: null });
     const { result } = renderHook(() => useMagicUpGeneration(deps), { wrapper });
     await act(async () => { await result.current.handleGenerate(); });
     await waitFor(() => expect(result.current.currentVariation?.id).toBe("gen-1"));
 
-    invokeMock.mockResolvedValueOnce({ data: aiDiagnosis(96), error: null });
+    mocks.invokeMock.mockResolvedValueOnce({ data: aiDiagnosis(96), error: null });
     await act(async () => { await result.current.handleRunQualityScore(); });
 
-    expect(updateMock).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mocks.updateMock).toHaveBeenCalledWith(expect.objectContaining({
       quality_score: 96,
       metadata: expect.objectContaining({ previous: "kept", qualityScore: 96, qualityDiagnosis: expect.objectContaining({ total: 96 }), curation: expect.objectContaining({ status: "draft" }) }),
     }));
   });
 
   it("alteração de status atualiza estado local e metadata.curation", async () => {
-    invokeMock
+    mocks.invokeMock
       .mockResolvedValueOnce({ data: { imageUrl: "https://example.com/generated.png" }, error: null })
       .mockResolvedValueOnce({ data: aiDiagnosis(90), error: null });
     const { result } = renderHook(() => useMagicUpGeneration(deps), { wrapper });
@@ -139,7 +141,7 @@ describe("useMagicUpGeneration Onda 5", () => {
     await act(async () => { await result.current.handleSetCurationStatus("sent-to-client"); });
 
     expect(result.current.curationStatus).toBe("sent-to-client");
-    expect(updateMock).toHaveBeenLastCalledWith(expect.objectContaining({
+    expect(mocks.updateMock).toHaveBeenLastCalledWith(expect.objectContaining({
       status: "sent-to-client",
       metadata: expect.objectContaining({ previous: "kept", curation: expect.objectContaining({ status: "sent-to-client" }) }),
     }));
