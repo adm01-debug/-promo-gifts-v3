@@ -281,12 +281,60 @@ CENÁRIO: ${effectivePrompt}`;
     channel: brief.channel,
   }), [selectedProduct?.name, selectedClient?.name, brief]);
 
+  const handleSetBrief = useCallback((next: MagicUpBrief) => {
+    setBrief(next);
+    setActiveCampaign((current) => current ? { ...current, ...next } : current);
+  }, []);
+
+  const handleSelectCampaign = useCallback((campaign: MagicUpCampaign) => {
+    setActiveCampaign(campaign);
+    setBrief({ objective: campaign.objective, channel: campaign.channel, audience: campaign.audience, tone: campaign.tone, cta: campaign.cta, occasion: campaign.occasion });
+    announceStatus(`Campanha ${campaign.title} selecionada`);
+  }, [announceStatus]);
+
+  const handleDuplicateCampaign = useCallback((campaign: MagicUpCampaign) => {
+    const copy = { ...campaign, id: null, title: `${campaign.title} · cópia`, status: "draft" as MagicUpCampaignStatus };
+    setActiveCampaign(copy);
+    setBrief({ objective: copy.objective, channel: copy.channel, audience: copy.audience, tone: copy.tone, cta: copy.cta, occasion: copy.occasion });
+    announceStatus("Campanha duplicada como rascunho");
+  }, [announceStatus]);
+
+  const handleSaveCampaign = useCallback(async () => {
+    if (!user?.id) { toast.error("Faça login para salvar campanhas"); announceAlert("Login necessário para salvar campanha"); return; }
+    const draft = activeCampaign ?? campaignFromBrief({ brief, clientId: selectedClient?.id, clientName: selectedClient?.name, productName: selectedProduct?.name });
+    const basePayload = {
+      title: draft.title || DEFAULT_CAMPAIGN.title,
+      client_id: selectedClient?.id || draft.clientId,
+      client_name: selectedClient?.name || draft.clientName,
+      objective: draft.objective,
+      channel: draft.channel,
+      audience: draft.audience,
+      tone: draft.tone,
+      cta: draft.cta,
+      occasion: draft.occasion,
+      status: draft.status,
+      metadata: { source: "magic-up", brand_notes: brandNotes, product_id: selectedProduct?.id || null },
+    };
+    const result = draft.id
+      ? await supabase.from("magic_up_campaigns").update(basePayload satisfies TablesUpdate<"magic_up_campaigns">).eq("id", draft.id).select("id, updated_at").single()
+      : await supabase.from("magic_up_campaigns").insert({ ...basePayload, user_id: user.id } satisfies TablesInsert<"magic_up_campaigns">).select("id, created_at, updated_at").single();
+    if (result.error) { toast.error("Erro ao salvar campanha"); announceAlert("Erro ao salvar campanha"); return; }
+    setActiveCampaign({ ...draft, id: result.data.id, clientId: basePayload.client_id || null, clientName: basePayload.client_name || null, updatedAt: result.data.updated_at });
+    queryClient.invalidateQueries({ queryKey: ["magic-up-campaigns"] });
+    toast.success("Campanha salva");
+    announceStatus("Campanha salva com sucesso");
+  }, [activeCampaign, announceAlert, announceStatus, brandNotes, brief, queryClient, selectedClient, selectedProduct, user?.id]);
+
   // ─── Generation (delegated) ────────────────────────────────────
   const generation = useMagicUpGeneration({
     selectedProduct, currentImage, logoPreview, effectivePrompt,
     selectedColor, selectedTechnique, selectedLocationName, selectedScene, selectedClient, userId: user?.id,
-    brief, creativeControls, qualityScore, copyPack, fullPromptPreview,
+    brief, creativeControls, qualityScore, copyPack, fullPromptPreview, activeCampaign,
   });
+
+  useEffect(() => {
+    if (generation.generating) announceStatus("Geração do Magic Up iniciada");
+  }, [announceStatus, generation.generating]);
 
   // ─── Handlers ──────────────────────────────────────────────────
   const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
