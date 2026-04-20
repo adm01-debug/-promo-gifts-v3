@@ -5,12 +5,15 @@ import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesInsert } from "@/integrations/supabase/types";
+import type { Json, TablesInsert } from "@/integrations/supabase/types";
 import type { VariationItem, MagicUpProduct, Technique, SelectedClient } from "./useMagicUpState";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
 import { buildQualityDiagnosis, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrief, type MagicUpCampaign, type MagicUpCopyPack, type MagicUpCreativeControls, type MagicUpCurationStatus, type MagicUpQualityDiagnosis, type MagicUpQualityScore, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
+
+const toJson = (value: unknown): Json => value as Json;
+const toJsonRecord = (value: Json | null | undefined): Record<string, Json> => (value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, Json> : {});
 
 interface GenerationDeps {
   selectedProduct: MagicUpProduct | null;
@@ -155,17 +158,37 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
     setQualityDiagnosis(diagnosis);
     setVariations(prev => prev.map((variation, index) => index === activeVariation ? { ...variation, qualityScore: diagnosis.total, qualityDiagnosis: diagnosis } : variation));
     if (currentVariation.id) {
-      await supabase.from("magic_up_generations").update({ quality_score: diagnosis.total }).eq("id", currentVariation.id);
+      const { data: existing } = await supabase.from("magic_up_generations").select("metadata,status").eq("id", currentVariation.id).maybeSingle();
+      const metadata = toJsonRecord(existing?.metadata);
+      const status = (existing?.status as MagicUpCurationStatus | null) || curationStatus;
+      await supabase.from("magic_up_generations").update({
+        quality_score: diagnosis.total,
+        metadata: {
+          ...metadata,
+          qualityScore: diagnosis.total,
+          qualityDiagnosis: toJson(diagnosis),
+          qualitySource: diagnosis.source,
+          curation: toJson({ ...toJsonRecord(metadata.curation), status, scoreUpdatedAt: new Date().toISOString() }),
+        },
+      }).eq("id", currentVariation.id);
       queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
     }
     toast.success("Magic Score atualizado");
-  }, [activeVariation, analyzeQuality, currentVariation, deps.brief, deps.creativeControls, queryClient]);
+  }, [activeVariation, analyzeQuality, currentVariation, curationStatus, deps.brief, deps.creativeControls, queryClient]);
 
   const handleSetCurationStatus = useCallback(async (status: MagicUpCurationStatus) => {
     setCurationStatus(status);
     setVariations(prev => prev.map((variation, index) => index === activeVariation ? { ...variation, curationStatus: status } : variation));
     if (currentVariation?.id) {
-      await supabase.from("magic_up_generations").update({ status }).eq("id", currentVariation.id);
+      const { data: existing } = await supabase.from("magic_up_generations").select("metadata").eq("id", currentVariation.id).maybeSingle();
+      const metadata = toJsonRecord(existing?.metadata);
+      await supabase.from("magic_up_generations").update({
+        status,
+        metadata: {
+          ...metadata,
+          curation: toJson({ ...toJsonRecord(metadata.curation), status, updatedAt: new Date().toISOString() }),
+        },
+      }).eq("id", currentVariation.id);
       queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
     }
   }, [activeVariation, currentVariation?.id, queryClient]);

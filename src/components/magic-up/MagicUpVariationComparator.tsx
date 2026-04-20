@@ -27,11 +27,18 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
           const score = scores[index];
           const isWinner = index === winnerIndex;
           return (
-            <button
+            <div
               key={`${variation.id || variation.imageUrl}-${index}`}
-              type="button"
+              role="button"
+              tabIndex={0}
               className={cn("group overflow-hidden rounded-lg border text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", index === activeIndex ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40")}
               onClick={() => onSelect(index)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  onSelect(index);
+                }
+              }}
               aria-label={`Selecionar variação ${index + 1}`}
             >
               <div className="relative aspect-square bg-muted">
@@ -43,11 +50,11 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                   <span className="text-xs font-medium">Variação {index + 1}</span>
                   <span className="text-xs font-semibold text-primary">{score || "—"}</span>
                 </div>
-                <Button size="sm" variant="ghost" className="h-6 w-full text-[11px]" onClick={(event) => { event.stopPropagation(); onSelectWinner(index); }}>
+                <Button size="sm" variant="ghost" className="h-6 w-full text-[11px]" onClick={(event) => { event.stopPropagation(); onSelectWinner(index); }} onKeyDown={(event) => event.stopPropagation()}>
                   Marcar vencedora
                 </Button>
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
