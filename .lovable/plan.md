@@ -1,62 +1,71 @@
 
 
-# Comparador 10/10 — Onda C6 (Excelência contínua pós-meta)
+# QA Abrangente — Comparador 10/10 (Ondas C1→C6)
 
-O comparador atingiu 10/10 com as 26 melhorias das ondas C1→C5. Para manter a filosofia de **perfeição contínua**, proponho a **Onda C6** com 8 melhorias incrementais focadas em refinamento, performance e diferenciais competitivos que vão além do estado-da-arte atual.
+Plano de testes end-to-end **somente** sobre o que foi implementado nas ondas C1→C6 do Comparador. Vou executar via browser automation + queries no banco + curl nas edge functions + leitura de logs.
 
-## 8 melhorias propostas
+## Escopo (34 itens implementados)
 
-### 🎯 Inteligência
+**Ondas C1-C5 (26):** score, radar, TCO, highlight expandido, differences toggle, IA advisor, CRM picker, criar orçamento, share público + reactions, export PDF/PNG/CSV, sync cross-device, duel view, sync variantes, mobile carousel, sticky header, hover preview, animações, sparkline 30d, fornecedores alternativos, risco estoque, similar rail, presentation, atalhos globais, ARIA-live, empty state inteligente, recents sidebar.
 
-**1. Score com pesos personalizáveis persistentes** — Popover com sliders (preço/estoque/qtd mín/cores/lead time) salvos em `user_preferences.comparison_weights`. Cada vendedor calibra para seu perfil de cliente (B2B grande vs revenda pequena).
+**Onda C6 (8):** pesos personalizáveis, histórico 30d overlay, PDF white-label, drag-reorder colunas, focus mode (F), zoom inline, price watcher cron, cheatsheet (Shift+?).
 
-**2. Comparação histórica "Como estava há 30 dias"** — Toggle que sobrepõe valores antigos da `price_history` em badges discretos ("era R$X há 30d"). Mostra evolução em 1 clique.
+## Etapa 1 — QA Backend (queries + curl)
 
-**3. Export PDF white-label do cliente vinculado** — Quando há `FavoritesClientPicker` ativo, o PDF leva logo + cores da empresa cliente (busca em `companies.brand_logo_url` / `brand_color`). Hoje é genérico.
+| Teste | Como |
+|---|---|
+| Tabelas `user_comparisons`, `comparison_reactions`, `user_preferences` existem com RLS | `supabase--read_query` em `pg_policies` |
+| RPCs `cleanup_expired_public_comparisons`, `get_top_compared_products`, `get_user_recent_comparisons` retornam shape correto | `supabase--read_query` chamando cada RPC |
+| Crons `cleanup-expired-public-comparisons` (03:30) e `comparison-price-watcher` (04:00) ativos | `SELECT * FROM cron.job` |
+| Edge function `comparison-ai-advisor` responde com produtos mock | `supabase--curl_edge_functions` |
+| Edge function `comparisons-public-react` aplica rate limit (5/min/IP) | curl 6× rápido, esperar 429 na 6ª |
+| Edge function `comparison-price-watcher` executa sem erro | curl manual + `supabase--edge_function_logs` |
 
-### 🎨 UX premium
+## Etapa 2 — QA Frontend (browser automation)
 
-**4. Drag-and-drop para reordenar colunas** — `@dnd-kit/sortable` na tabela; ordem persiste no `useComparisonStore`. Vendedor coloca "favorito" primeiro para apresentar.
+**Setup:** `navigate_to_sandbox` em `/produtos`, adicionar 3 produtos via botão "Comparar".
 
-**5. Modo "Foco" full-screen sem chrome** — Tecla `F` esconde sidebar/header e expande tabela ao máximo. Espelho do padrão usado em apresentações.
+| Cenário | Verificação |
+|---|---|
+| Navegar `/comparar` com 3 produtos | Carrega sem erro, score badge "Recomendado" visível |
+| Toggle "Differences only" | Linhas idênticas somem |
+| Abrir radar chart (R) | Modal abre, 5 eixos renderizam |
+| Botão "Análise IA" | Loading → 3 bullets de recomendação |
+| Pesos popover (sliders) | Mover preço para 50% recalcula score |
+| `FavoritesClientPicker` no header | Selecionar cliente, persiste |
+| "Criar orçamento" | Navega `/orcamentos/novo?products=...&client_id=...` |
+| Compartilhar (gera token) | Copia URL `/comparar-publica/:token` |
+| Abrir share em aba anônima | Página pública carrega read-only |
+| Reagir 👍 na pública | Insere em `comparison_reactions` |
+| Export PDF white-label | Baixa PDF com logo/cor do cliente |
+| Export PNG e CSV | Ambos baixam com conteúdo válido |
+| Remover 1 produto (ficar com 2) | Auto-renderiza `ComparisonDuelView` |
+| Drag-reorder coluna | Ordem persiste em `user_preferences` |
+| Hover swatch de cor | Imagem do header troca |
+| Hover célula imagem | Zoom 2× inline |
+| Atalho `F` | Focus mode esconde sidebar/header |
+| Atalho `Shift+?` | Cheatsheet abre com lista de atalhos |
+| Atalho `Shift+X` | Limpa, ARIA-live anuncia |
+| Atalho `1`-`4` | Foca produto N |
+| Empty state (0 produtos) | Mostra top 6 da semana + CTA |
+| `RecentComparisonsSidebar` | Últimas 5 recarregam em 1 clique |
+| Mobile (375×812) | `ComparisonMobileView` ativa, carousel vertical |
 
-**6. Zoom de imagem inline na tabela** — Hover na célula da foto abre lupa flutuante com zoom 2× (sem abrir modal). Padrão e-commerce premium.
+## Etapa 3 — QA Resiliência
 
-### 🔔 Engajamento
+- Token expirado em share público → erro tratado
+- Sem produtos com `price_history` → sparkline cai gracioso
+- IA advisor sem cota → mensagem amigável (não crash)
+- Drag-reorder com 1 produto → desabilitado
+- Logout durante comparação → localStorage permanece
 
-**7. Notificação "Preço caiu nos seus comparados"** — Edge function diária que cruza `user_comparisons` ativas com `price_history` recente; envia notificação via `notificationService` quando há queda > 5% em produto comparado.
+## Etapa 4 — Relatório final
 
-**8. Atalho `Shift+?` cheatsheet visual** — Dialog com TODOS os atalhos do comparador (`G X`, `Shift+X`, `1-4`, `D`, `R`, `F`, `?`) em grid bonito. Padrão Linear/Notion.
+Tabela com **PASS / FAIL / N/A** para cada um dos 34 itens, screenshots dos pontos críticos (radar, duel, mobile, focus mode, cheatsheet, share público), lista de bugs encontrados (se houver) e severidade.
 
-## Sequenciamento
+Se encontrar bugs, **PARO** o teste, reporto, e aguardo aprovação para fix.
 
-```text
-C6.1 (Inteligência: #1, #2, #3) → C6.2 (UX: #4, #5, #6) → C6.3 (Engajamento: #7, #8)
-```
+## Resultado esperado
 
-## Arquivos previstos
-
-**Modificados:** `ComparePage.tsx`, `CompareTableView.tsx`, `useComparisonStore.ts`, `useComparisonShortcuts.ts`, `ExportComparisonButton.tsx`
-
-**Criados:**
-- `src/components/compare/ComparisonWeightsPopover.tsx` (#1)
-- `src/components/compare/HistoricalPriceOverlay.tsx` (#2)
-- `src/lib/pdf/whitelabel-comparison.ts` (#3)
-- `src/components/compare/SortableColumnWrapper.tsx` (#4)
-- `src/components/compare/FocusModeToggle.tsx` (#5)
-- `src/components/compare/ImageZoomCell.tsx` (#6)
-- `src/components/compare/ComparisonShortcutsCheatsheet.tsx` (#8)
-- `supabase/functions/comparison-price-watcher/index.ts` (#7)
-
-**Migrações DB:**
-- Coluna `comparison_weights jsonb` em `user_preferences` (default pesos padrão)
-- Cron diário 04:00 BR para `comparison-price-watcher`
-
-**Memórias:**
-- Atualizar `mem://features/catalog/comparison-system-spec` com Onda C6
-- Atualizar `mem://features/keyboard-shortcuts-registry` com `F` (foco) e `Shift+?` (cheatsheet)
-
-## Resultado final
-
-Comparador continua 10/10, agora com **8 diferenciais competitivos extras** que elevam o módulo ao nível de ferramentas premium tipo Linear/Notion (cheatsheet, foco, drag-reorder, white-label, watcher proativo).
+Certificação independente de que o Comparador está 10/10 funcional end-to-end, ou lista priorizada de correções pré-go-live.
 
