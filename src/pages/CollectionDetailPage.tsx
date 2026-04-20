@@ -467,97 +467,182 @@ export default function CollectionDetailPage() {
             </div>
           )}
 
-          {/* Products */}
-          {products.length > 0 ? (
-            <div className="space-y-4">
-              {filteredProducts.length > 0 ? (
-                viewMode === "table" ? (
-                  <ProductTableView
-                    products={productsWithVariant}
-                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                    isFavorite={isFavorite}
-                    onToggleFavorite={toggleFavorite}
-                    isInCompare={isInCompare}
-                    onToggleCompare={toggleCompare}
-                    canAddToCompare={canAddMore}
-                    selectionMode={isSelectionMode}
-                    selectedIds={selectedIds}
-                    onToggleSelect={toggleSelect}
-                  />
-                ) : viewMode === "list" ? (
-                  <div className="space-y-1.5">
-                    {productsWithVariant.map((product) => (
-                      <ProductListItem
-                        key={product.id}
-                        product={product}
-                        onClick={() => navigate(`/produto/${product.id}`)}
-                        isFavorited={isFavorite(product.id)}
+          {/* Products + Trash tabs */}
+          {!isExternal ? (
+            <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "products" | "trash")} className="space-y-4">
+              <TabsList>
+                <TabsTrigger value="products" className="gap-1.5">
+                  <Package className="h-3.5 w-3.5" />
+                  Produtos ({products.length})
+                </TabsTrigger>
+                <TabsTrigger value="trash" className="gap-1.5">
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Lixeira{trashCount > 0 && ` (${trashCount})`}
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="products" className="space-y-4">
+                {products.length > 0 ? (
+                  filteredProducts.length > 0 ? (
+                    manageMode ? (
+                      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={filteredProducts.map((p) => p.id)} strategy={verticalListSortingStrategy}>
+                          <div className="space-y-2">
+                            {filteredProducts.map((p) => (
+                              <SortableProductItem
+                                key={p.id}
+                                product={p}
+                                variant={variantMap.get(p.id)}
+                                priceAtSave={priceAtSaveMap.get(p.id)}
+                                addedAt={addedAtMap.get(p.id)}
+                                notes={notesMap.get(p.id)}
+                                onNotesChange={(notes) => updateProductNotes(collection.id, p.id, notes)}
+                                isSelected={selectedIds.has(p.id)}
+                                onToggleSelect={() => toggleSelect(p.id)}
+                                onRemove={() => handleRemoveFromCollection(p.id)}
+                              />
+                            ))}
+                          </div>
+                        </SortableContext>
+                      </DndContext>
+                    ) : viewMode === "table" ? (
+                      <ProductTableView
+                        products={productsWithVariant}
+                        onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                        isFavorite={isFavorite}
                         onToggleFavorite={toggleFavorite}
-                        isInCompare={isInCompare(product.id)}
+                        isInCompare={isInCompare}
                         onToggleCompare={toggleCompare}
                         canAddToCompare={canAddMore}
+                        selectionMode={isSelectionMode}
+                        selectedIds={selectedIds}
+                        onToggleSelect={toggleSelect}
                       />
-                    ))}
-                  </div>
+                    ) : viewMode === "list" ? (
+                      <div className="space-y-1.5">
+                        {productsWithVariant.map((product) => (
+                          <ProductListItem
+                            key={product.id}
+                            product={product}
+                            onClick={() => navigate(`/produto/${product.id}`)}
+                            isFavorited={isFavorite(product.id)}
+                            onToggleFavorite={toggleFavorite}
+                            isInCompare={isInCompare(product.id)}
+                            onToggleCompare={toggleCompare}
+                            canAddToCompare={canAddMore}
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <ProductGrid
+                        products={productsWithVariant}
+                        onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                        isFavorite={isFavorite}
+                        onToggleFavorite={toggleFavorite}
+                        isInCompare={isInCompare}
+                        onToggleCompare={toggleCompare}
+                        canAddToCompare={canAddMore}
+                        columns={gridColumns}
+                        selectionMode={isSelectionMode}
+                        selectedIds={selectedIds}
+                        onToggleSelect={toggleSelect}
+                      />
+                    )
+                  ) : (
+                    <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+                      <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                      <h3 className="font-display text-lg font-semibold mb-1">Nenhum produto encontrado</h3>
+                      <p className="text-muted-foreground text-sm">
+                        {onlyDrops ? "Nenhum produto com queda de preço" : `Nenhum produto corresponde a "${searchQuery}"`}
+                      </p>
+                    </div>
+                  )
                 ) : (
-                  <ProductGrid
-                    products={productsWithVariant}
-                    onProductClick={(productId) => navigate(`/produto/${productId}`)}
-                    isFavorite={isFavorite}
-                    onToggleFavorite={toggleFavorite}
-                    isInCompare={isInCompare}
-                    onToggleCompare={toggleCompare}
-                    canAddToCompare={canAddMore}
-                    columns={gridColumns}
-                    selectionMode={isSelectionMode}
-                    selectedIds={selectedIds}
-                    onToggleSelect={toggleSelect}
-                  />
-                )
-              ) : (
-                <div className="text-center py-12 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
-                  <Search className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-                  <h3 className="font-display text-lg font-semibold mb-1">Nenhum produto encontrado</h3>
-                  <p className="text-muted-foreground text-sm">Nenhum produto corresponde a "{searchQuery}"</p>
-                </div>
-              )}
+                  <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
+                    <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="font-display text-lg font-semibold text-foreground mb-2">Coleção vazia</h3>
+                    <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+                      Adicione produtos a esta coleção clicando no ícone de pasta nos cards de produto
+                    </p>
+                    <Button onClick={() => navigate("/")}>Explorar produtos</Button>
+                  </div>
+                )}
+              </TabsContent>
 
+              <TabsContent value="trash">
+                <CollectionsTrashView collectionId={collection.id} onCountChange={setTrashCount} />
+              </TabsContent>
+            </Tabs>
+          ) : products.length > 0 ? (
+            <div className="space-y-4">
+              {viewMode === "table" ? (
+                <ProductTableView
+                  products={productsWithVariant}
+                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  isInCompare={isInCompare}
+                  onToggleCompare={toggleCompare}
+                  canAddToCompare={canAddMore}
+                />
+              ) : viewMode === "list" ? (
+                <div className="space-y-1.5">
+                  {productsWithVariant.map((product) => (
+                    <ProductListItem
+                      key={product.id}
+                      product={product}
+                      onClick={() => navigate(`/produto/${product.id}`)}
+                      isFavorited={isFavorite(product.id)}
+                      onToggleFavorite={toggleFavorite}
+                      isInCompare={isInCompare(product.id)}
+                      onToggleCompare={toggleCompare}
+                      canAddToCompare={canAddMore}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <ProductGrid
+                  products={productsWithVariant}
+                  onProductClick={(productId) => navigate(`/produto/${productId}`)}
+                  isFavorite={isFavorite}
+                  onToggleFavorite={toggleFavorite}
+                  isInCompare={isInCompare}
+                  onToggleCompare={toggleCompare}
+                  canAddToCompare={canAddMore}
+                  columns={gridColumns}
+                />
+              )}
             </div>
           ) : (
             <div className="text-center py-16 bg-muted/20 rounded-xl border-[1.5px] border-dashed border-primary/10">
               <Package className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="font-display text-lg font-semibold text-foreground mb-2">
-                {isExternal ? "Nenhum produto nesta coleção" : "Coleção vazia"}
-              </h3>
+              <h3 className="font-display text-lg font-semibold text-foreground mb-2">Nenhum produto nesta coleção</h3>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                {isExternal
-                  ? "Esta coleção do catálogo ainda não possui produtos vinculados."
-                  : "Adicione produtos a esta coleção clicando no ícone de pasta nos cards de produto"}
+                Esta coleção do catálogo ainda não possui produtos vinculados.
               </p>
-              <Button onClick={() => navigate(isExternal ? "/colecoes" : "/")}>
-                {isExternal ? "Voltar para coleções" : "Explorar produtos"}
-              </Button>
+              <Button onClick={() => navigate("/colecoes")}>Voltar para coleções</Button>
             </div>
           )}
         </div>
       </MainLayout>
 
       {showPresentation && products.length > 0 && (
-        <PresentationMode
-          title={collection.name}
-          subtitle={collection.description || undefined}
-          brandName="Promo Brindes"
+        <CollectionPresentationLauncher
+          products={products}
+          collectionName={collection.name}
           onClose={() => setShowPresentation(false)}
-          slides={products.map((p) => {
-            const variant = variantMap.get(p.id);
-            return {
-              id: p.id,
-              title: p.name,
-              subtitle: [p.sku ? `SKU: ${p.sku}` : null, variant?.color_name ? `Cor: ${variant.color_name}` : null].filter(Boolean).join(" • ") || undefined,
-              imageUrl: variant?.thumbnail || p.images?.[0] || null,
-              badge: p.brand || null,
-            };
-          })}
+        />
+      )}
+
+      {localCollection && (
+        <ShareCollectionDialog
+          open={showShareDialog}
+          onClose={() => setShowShareDialog(false)}
+          collectionId={localCollection.id}
+          collectionName={localCollection.name}
+          shareToken={localCollection.shareToken}
+          shareExpiresAt={localCollection.shareExpiresAt}
+          isPublic={localCollection.isPublic}
         />
       )}
     </>
