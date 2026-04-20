@@ -36,7 +36,7 @@ function MagicUpSkeleton() {
   );
 }
 
-function MagicUpHeader({ variationsCount, historyCount }: { variationsCount: number; historyCount: number }) {
+function MagicUpHeader({ variationsCount, historyCount, summary }: { variationsCount: number; historyCount: number; summary: string }) {
   return (
     <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-primary/10 via-accent/5 to-transparent p-6 border border-primary/20">
       <div className="absolute -top-24 -right-24 w-48 h-48 bg-accent/10 rounded-full blur-3xl" />
@@ -48,6 +48,7 @@ function MagicUpHeader({ variationsCount, historyCount }: { variationsCount: num
           <div>
             <h1 className="font-display text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text">Magic Up</h1>
             <p className="text-muted-foreground mt-1">Crie imagens publicitárias profissionais com IA ✨</p>
+            <p className="text-xs text-muted-foreground mt-2">{summary}</p>
           </div>
         </div>
         <div className="flex gap-2">
@@ -101,7 +102,7 @@ export default function MagicUp() {
     <MainLayout>
       <PageSEO title="MagicUp — Gerador de Imagens IA" description="Crie imagens publicitárias profissionais com inteligência artificial." path="/magic-up" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
-        <MagicUpHeader variationsCount={m.variations.length} historyCount={m.history.length} />
+        <MagicUpHeader variationsCount={m.variations.length} historyCount={m.history.length} summary={`${m.selectedClient?.name || "Cliente não definido"} · ${m.selectedProduct?.name || "Produto não selecionado"} · ${m.brief.channel} · ${m.brief.objective} · ${m.brief.tone}`} />
         <MagicUpProgress step={m.step} />
 
         {m.loadingProducts && <MagicUpSkeleton />}
