@@ -17,9 +17,10 @@ interface CollectionsContextType {
     updates: Partial<Omit<Collection, "id" | "createdAt">>
   ) => void;
   deleteCollection: (id: string) => void;
-  addProductToCollection: (collectionId: string, productId: string, variant?: CollectionVariantInfo) => void;
+  addProductToCollection: (collectionId: string, productId: string, variant?: CollectionVariantInfo, priceAtSave?: number | null) => void;
   removeProductFromCollection: (collectionId: string, productId: string) => void;
   addProductToMultipleCollections: (productId: string, collectionIds: string[], variant?: CollectionVariantInfo) => void;
+  restoreFromTrash: (collectionId: string, productId: string) => Promise<boolean>;
   reorderProducts: (collectionId: string, orderedProductIds: string[]) => void;
   updateProductNotes: (collectionId: string, productId: string, notes: string) => void;
   getCollectionProducts: (collectionId: string) => Product[];

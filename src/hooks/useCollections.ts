@@ -270,7 +270,7 @@ export function useCollections() {
   }, []);
 
   const addProductToCollection = useCallback(
-    (collectionId: string, productId: string, variant?: CollectionVariantInfo) => {
+    (collectionId: string, productId: string, variant?: CollectionVariantInfo, priceAtSave?: number | null) => {
       setCollections((prev) =>
         prev.map((col) => {
           if (col.id !== collectionId) return col;
@@ -292,12 +292,39 @@ export function useCollections() {
           color_name: variant?.color_name || null,
           color_hex: variant?.color_hex || null,
           thumbnail_url: variant?.thumbnail || null,
+          price_at_save: priceAtSave ?? null,
           sort_order: 0,
-        })
+        } as never)
         .then();
     },
     []
   );
+
+  const restoreFromTrash = useCallback(async (collectionId: string, productId: string) => {
+    const { data: trashed } = await supabase
+      .from("collection_items_trash" as never)
+      .select("*")
+      .eq("collection_id", collectionId)
+      .eq("product_id", productId)
+      .order("deleted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (!trashed) return false;
+    const t = trashed as Record<string, unknown>;
+    await supabase.from("collection_items").insert({
+      collection_id: collectionId,
+      product_id: productId,
+      color_name: t.color_name ?? null,
+      color_hex: t.color_hex ?? null,
+      thumbnail_url: t.thumbnail_url ?? null,
+      notes: t.notes ?? null,
+      price_at_save: t.price_at_save ?? null,
+      sort_order: t.sort_order ?? 0,
+    } as never);
+    await supabase.from("collection_items_trash" as never).delete().eq("id", t.id as string);
+    await loadCollections();
+    return true;
+  }, [loadCollections]);
 
   const removeProductFromCollection = useCallback(
     (collectionId: string, productId: string) => {
@@ -467,6 +494,7 @@ export function useCollections() {
     addProductToMultipleCollections,
     reorderProducts,
     updateProductNotes,
+    restoreFromTrash,
     getCollectionProductsFromMap,
     getCollectionProductItems,
     getCollectionProductVariant,

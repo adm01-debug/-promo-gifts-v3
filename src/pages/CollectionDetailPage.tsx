@@ -50,6 +50,7 @@ export default function CollectionDetailPage() {
     removeProductFromCollection,
     reorderProducts,
     updateProductNotes,
+    restoreFromTrash,
   } = useCollectionsContext();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
   const { isFavorite, toggleFavorite } = useFavoritesStore();
@@ -244,7 +245,16 @@ export default function CollectionDetailPage() {
 
   const handleRemoveFromCollection = (productId: string) => {
     removeProductFromCollection(collection.id, productId);
-    toast.success("Produto removido da coleção");
+    toast.success("Produto removido da coleção", {
+      action: {
+        label: "Desfazer",
+        onClick: async () => {
+          const ok = await restoreFromTrash(collection.id, productId);
+          if (ok) toast.success("Produto restaurado");
+          else toast.error("Não foi possível restaurar");
+        },
+      },
+    });
   };
 
   const handleCreateQuote = () => {
