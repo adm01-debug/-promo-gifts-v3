@@ -197,7 +197,7 @@ export function useCollections() {
   }, [user?.id, loadCollections]);
 
   const createCollection = useCallback(
-    (name: string, description?: string, color?: string, icon?: string): Collection => {
+    (name: string, description?: string, color?: string, icon?: string, clientId?: string | null, clientName?: string | null): Collection => {
       const tempId = `temp-${Date.now()}`;
       const now = new Date().toISOString();
       const chosenColor = color || DEFAULT_COLORS[Math.floor(Math.random() * DEFAULT_COLORS.length)];
@@ -209,6 +209,8 @@ export function useCollections() {
         color: chosenColor,
         icon: icon || DEFAULT_ICONS[0],
         isFeatured: false,
+        clientId: clientId ?? null,
+        clientName: clientName ?? null,
         productIds: [],
         productItems: [],
         createdAt: now,
@@ -228,6 +230,8 @@ export function useCollections() {
             description: description || null,
             icon_color: chosenColor,
             icon: icon || DEFAULT_ICONS[0],
+            client_id: clientId ?? null,
+            client_name: clientName ?? null,
           })
           .select()
           .single()
