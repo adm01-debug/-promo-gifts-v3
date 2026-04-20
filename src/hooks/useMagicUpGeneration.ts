@@ -90,7 +90,7 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
               copy_pack: deps.copyPack,
               export_presets: ["png", "jpg-whatsapp", deps.creativeControls.aspectRatio],
               metadata: { brief: deps.brief, creativeControls: deps.creativeControls, qualityScore: deps.qualityScore },
-            })
+            } as any)
             .select("id")
             .single();
           if (inserted) genId = inserted.id;
