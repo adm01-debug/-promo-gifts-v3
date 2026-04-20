@@ -17,7 +17,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
-import { DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
+import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildBrandKitNotes, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrandKit, type MagicUpBrandLogo, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -99,6 +99,7 @@ export function useMagicUpState() {
   const [activeCampaign, setActiveCampaign] = useState<MagicUpCampaign | null>(null);
   const [creativeControls, setCreativeControls] = useState<MagicUpCreativeControls>(DEFAULT_CREATIVE_CONTROLS);
   const [brandNotes, setBrandNotes] = useState("");
+  const [brandKit, setBrandKit] = useState<MagicUpBrandKit>(DEFAULT_BRAND_KIT);
 
   // Client (CRM externo)
   const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
@@ -166,6 +167,38 @@ export function useMagicUpState() {
       }));
     },
     enabled: !!user?.id,
+  });
+
+  const { data: loadedBrandKit, isFetching: loadingBrandKit } = useQuery<MagicUpBrandKit | null>({
+    queryKey: ["magic-up-brand-kit", user?.id, selectedClient?.id],
+    queryFn: async () => {
+      if (!user?.id || !selectedClient?.id) return null;
+      const { data, error } = await supabase
+        .from("magic_up_brand_kits")
+        .select("id, client_id, client_name, logo_urls, primary_color, secondary_color, tone_of_voice, visual_style, required_words, forbidden_words, notes, updated_at")
+        .eq("user_id", user.id)
+        .eq("client_id", selectedClient.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const logos = Array.isArray(data.logo_urls) ? data.logo_urls as unknown as MagicUpBrandLogo[] : [];
+      return {
+        id: data.id,
+        clientId: data.client_id,
+        clientName: data.client_name,
+        primaryLogoUrl: logos.find((logo) => logo.isPrimary)?.url || logos[0]?.url || selectedClient.logo_url || null,
+        logoUrls: logos,
+        primaryColor: data.primary_color,
+        secondaryColor: data.secondary_color,
+        toneOfVoice: data.tone_of_voice || DEFAULT_BRAND_KIT.toneOfVoice,
+        visualStyle: data.visual_style || DEFAULT_BRAND_KIT.visualStyle,
+        requiredWords: data.required_words || [],
+        forbiddenWords: data.forbidden_words || [],
+        notes: data.notes || "",
+        updatedAt: data.updated_at,
+      };
+    },
+    enabled: !!user?.id && !!selectedClient?.id,
   });
 
   // ─── Load Products ──────────────────────────────────────────────
