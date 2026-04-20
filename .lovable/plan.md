@@ -1,112 +1,88 @@
 
 
-# Paridade Favoritos → Coleções (Onda P — 10/10)
+# Finalização paridade Coleções 10/10 — Wiring + cron
 
-## Estado atual
-**Favoritos (10/10):** 17 melhorias em 4 ondas — multi-listas + lixeira TTL + price drop + watcher cron + CRM link + apresentação + rota pública + reactions + export PDF/CSV/JSON + atalhos + heatmap + smart empty state + undo + a11y.
+Estado: Onda P (P1→P4) entregue na rodada anterior — migrações, edge functions, hooks e componentes criados. Faltam **integrações finais na UI + agendamento dos crons** para módulo ficar 100% funcional end-to-end.
 
-**Coleções (~6/10):** persistência Supabase OK, multi-coleções OK, notas OK, reorder OK, seleção em massa → orçamento OK. **Faltam 11 das 17 melhorias dos Favoritos.**
+## Pendências identificadas
 
-## Gaps identificados (11 melhorias a portar)
+| # | Pendência | Origem |
+|---|---|---|
+| 1 | Rota `/colecao-publica/:token` registrada em `App.tsx`? Verificar | P3 |
+| 2 | `CollectionFormDialog` ainda não usa `FavoritesClientPicker` (CRM) | P3 |
+| 3 | `CollectionDetailHeader` não integra `ExportCollectionButton` nem `CollectionPresentationLauncher` | P3/P4 |
+| 4 | `SortableProductItem` não exibe `PriceDropBadge` | P2 |
+| 5 | Filtro chip "Só com queda" ausente em `CollectionDetailPage` | P2 |
+| 6 | `CollectionsPage` não renderiza `CollectionsHeatmap` nem `CollectionsEmptyStateSmart` | P4 |
+| 7 | `useCollectionsGlobalShortcuts` criado mas não chamado em `App.tsx` ou layout | P4 |
+| 8 | ARIA-live region em `CollectionDetailPage` para anúncios de remoção/restore | P1/A11y |
+| 9 | Cron jobs `collections-watcher-daily` (06:00 BR) + `cleanup-collections-trash-daily` (03:00 BR) — **não agendados via insert tool** | P1/P2 |
+| 10 | Memórias finais: atualizar `mem://index.md` com referência ao roadmap de Coleções + criar `mem://features/collections-public-share-system.md` | docs |
 
-| # | Melhoria | Origem | Onda |
-|---|---|---|---|
-| 1 | Lixeira TTL 30d (`collection_items_trash`) | A | P1 |
-| 2 | Toast undo + `Cmd+Z` no remover item | D1 | P1 |
-| 3 | Snapshot `price_at_save` em `collection_items` | B1 | P2 |
-| 4 | `PriceDropBadge` + filtro "Só com queda" | B1 | P2 |
-| 5 | Edge function `collections-watcher` (cron 06:00 BR) | B3 | P2 |
-| 6 | Vínculo CRM (`client_id`/`client_name`) na coleção | C2 | P3 |
-| 7 | Modo Apresentação fullscreen reusando `PresentationMode` | C3 | P3 |
-| 8 | Rota pública `/colecao-publica/:token` + reactions anônimas | C4 | P3 |
-| 9 | Export PDF/CSV/JSON (`ExportCollectionButton`) | D2 | P4 |
-| 10 | Atalhos globais `G C` + `Shift+C` | D3 | P4 |
-| 11 | Smart empty state + heatmap temporal | D4/D5 | P4 |
+## Plano de execução autônoma sequencial
 
-> **Já entregues** equivalentes (não duplicar): multi-coleções, notas inline, sort/reorder, seleção→orçamento (parcial via `handleSendSelectedToQuote`), bridge catálogo→coleção (`AddToCollectionModal`), multi-variantes (chave `collection_id,product_id,color_name`).
+### Etapa 1 — Verificar e registrar rota pública
+- Conferir `src/App.tsx`. Se ausente, adicionar `<Route path="/colecao-publica/:token" element={<PublicCollectionPage />} />` fora do `AuthLayout` com `lazyWithRetry`.
 
-## Roadmap em 4 ondas autônomas
+### Etapa 2 — `CollectionFormDialog` ganha `FavoritesClientPicker`
+- Importar `FavoritesClientPicker` (genérico) e adicionar campo "Vincular cliente CRM (opcional)".
+- Persistir `client_id` + `client_name` em `collections` via `updateCollection`/`createCollection`.
+- Renderizar badge cliente em `CollectionDetailHeader` (já tem espaço no slot de info).
 
-```text
-Onda P1 (Confiança)         Onda P2 (Inteligência)      Onda P3 (Ativação)         Onda P4 (Polimento)
-┌──────────────────┐        ┌──────────────────┐        ┌──────────────────┐       ┌──────────────────┐
-│ Lixeira + Undo   │   →    │ Snapshot preço   │   →    │ CRM + Apresentar │   →   │ Export + Atalhos │
-│ Cmd+Z global     │        │ Badge + Watcher  │        │ Rota pública     │       │ Empty + Heatmap  │
-└──────────────────┘        └──────────────────┘        └──────────────────┘       └──────────────────┘
-```
+### Etapa 3 — Integrar `ExportCollectionButton` + `CollectionPresentationLauncher` no header
+- `CollectionDetailHeader` recebe novos slots `onExport` e o botão "Apresentar" passa a abrir o launcher fullscreen real (substitui placeholder `onPresent`).
+- Gerar `share_token` on-demand quando cliente clica em "Compartilhar publicamente" → toast com URL `/colecao-publica/:token`.
 
-### 🟥 Onda P1 — Confiança (Lixeira + Undo)
-- **Migração:** tabela `collection_items_trash` (id, original_id, collection_id, user_id, product_id, color_name, color_hex, thumbnail_url, notes, price_at_save, deleted_at, expires_at) com RLS por dono + trigger `move_collection_item_to_trash` espelhando o de favoritos + função `cleanup_expired_collection_trash()` + cron diário.
-- **Hook:** `useCollections.removeProductFromCollection` integra `showUndoToast` chamando `restoreFromCollectionTrash` mutation.
-- **Página:** `useUndoStack` registrado em `CollectionDetailPage` para `Cmd+Z`.
+### Etapa 4 — `PriceDropBadge` + filtro "Só com queda"
+- Em `SortableProductItem`, comparar `product.price` (atual) vs `item.price_at_save` — se queda ≥5%, renderizar `PriceDropBadge` (reusar do favoritos).
+- `CollectionDetailPage`: chip toggle "Só com queda" no header de filtros, filtra `items` antes de renderizar a lista.
 
-### 🟧 Onda P2 — Inteligência de Preço
-- **Migração:** adicionar coluna `price_at_save numeric` em `collection_items`.
-- `addProductToCollection`/`addProductToMultipleCollections` populam `price_at_save = product.price`.
-- **Componente:** reusar `PriceDropBadge` dos favoritos no `SortableProductItem` (CollectionDetailPage).
-- **Filtro:** chip "Só com queda" no header de detalhe.
-- **Edge function:** `collections-watcher/index.ts` (espelha `favorites-watcher`) — cron diário 06:00 BR detecta drops >5%, insere `workspace_notifications` categoria `collections` com dedupe.
+### Etapa 5 — `CollectionsPage` ganha heatmap + smart empty state
+- `CollectionsHeatmap` renderizado no header da grid (sparkline 8 semanas via RPC).
+- Quando `collections.length === 0`, renderizar `CollectionsEmptyStateSmart` com top 6 produtos da semana + CTA "criar coleção com este produto".
 
-### 🟩 Onda P3 — Ativação Comercial
-- **Migração:** colunas `client_id text`, `client_name text`, `share_token text unique`, `share_expires_at timestamptz`, `is_public boolean default false` em `collections` + tabela `collection_item_reactions` (espelha `favorite_item_reactions`) + RLS público via token válido.
-- **CRM:** `CollectionFormDialog` ganha `FavoritesClientPicker` (renomeado para `EntityClientPicker` ou reusado direto). Badge cliente em `CollectionDetailHeader` (já existe slot `onCreateQuote`).
-- **Apresentação:** botão "Apresentar" já existe no `CollectionDetailHeader` — conectar ao `FavoritePresentationLauncher` generalizado (renomear para `EntityPresentationLauncher` aceitando produtos genéricos).
-- **Rota pública:** `src/pages/PublicCollectionPage.tsx` + rota `/colecao-publica/:token` em `App.tsx` fora do AuthLayout. Edge function `collections-public-react` (espelha `favorites-public-react` com Zod + rate limit 5/min/IP + IP hash).
+### Etapa 6 — Atalhos globais
+- Chamar `useCollectionsGlobalShortcuts()` em `src/components/layout/AdminLayout.tsx` (ou layout equivalente que envolve rotas autenticadas) para `G C` e `Shift+C` funcionarem em qualquer página.
 
-### 🟦 Onda P4 — Polimento & DX
-- **Export:** `ExportCollectionButton.tsx` reusando lógica do `ExportFavoritesButton` (PDF 2×3 cards/página com jsPDF, CSV BOM UTF-8, JSON estruturado).
-- **Atalhos:** `useCollectionsGlobalShortcuts` — sequência `G C` (<800ms) + `Shift+C` navegam para `/colecoes`. Registrar em `mem://features/keyboard-shortcuts-registry`.
-- **Empty state inteligente:** RPC `get_top_collected_products(_days, _limit)` agregando produtos mais adicionados a coleções. `CollectionsEmptyStateSmart` mostra top 6 da semana com CTA por produto.
-- **Heatmap:** RPC `get_collections_weekly_count(_weeks)` + `CollectionsHeatmap` (sparkline 8 semanas) no header da `CollectionsPage`.
-- **A11y:** ARIA-live region em `CollectionDetailPage` para anunciar adições/remoções.
+### Etapa 7 — ARIA-live region
+- `CollectionDetailPage`: `<div role="status" aria-live="polite" className="sr-only">{lastAnnouncement}</div>` atualizado em remove/restore/add.
 
-## Detalhes técnicos
+### Etapa 8 — Agendar cron jobs (insert tool, não migration)
+- `cleanup-collections-trash-daily` — diário 03:00 BR → chama RPC `cleanup_expired_collection_trash()`.
+- `collections-watcher-daily` — diário 06:00 BR → invoca edge function `collections-watcher`.
+- Ambos com `pg_cron` + `pg_net` usando URL real do projeto e anon key.
 
-**Migrações SQL (4 arquivos):**
-1. P1: `collection_items_trash` + trigger + função cleanup + cron `cleanup-collections-trash-daily`.
-2. P2: `ALTER TABLE collection_items ADD COLUMN price_at_save numeric`.
-3. P3: alterações em `collections` (client_id, share_token, etc.) + `collection_item_reactions` + RLS pública via token.
-4. P4: RPCs `get_top_collected_products` + `get_collections_weekly_count` + cron `collections-watcher-daily` (P2).
+### Etapa 9 — Atualização de memórias
+- Criar `mem://features/collections-public-share-system.md` (espelha favorites-public-share-system).
+- Atualizar `mem://features/keyboard-shortcuts-registry` adicionando `G C` + `Shift+C`.
+- Atualizar `mem://index.md`: adicionar entrada "Collections Roadmap 10/10" e "Collections Public Share".
 
-**Edge functions novas (2):**
-- `supabase/functions/collections-watcher/index.ts` (P2)
-- `supabase/functions/collections-public-react/index.ts` (P3)
-
-**Hooks novos:**
-- `src/hooks/useCollectionTrash.ts` (P1)
-- `src/hooks/useCollectionReactions.ts` (P3)
-- `src/hooks/useCollectionsGlobalShortcuts.ts` (P4)
-
-**Componentes novos:**
-- `src/components/collections/ExportCollectionButton.tsx` (P4)
-- `src/components/collections/CollectionsEmptyStateSmart.tsx` (P4)
-- `src/components/collections/CollectionsHeatmap.tsx` (P4)
-- `src/components/collections/CollectionPresentationLauncher.tsx` (P3 — wrapper reusando launcher dos favoritos)
-- `src/pages/PublicCollectionPage.tsx` (P3, lazy via `lazyWithRetry`)
-
-**Componentes modificados:**
-- `src/hooks/useCollections.ts` — `addProduct*` aceita `priceAtSave`; `removeProduct*` integra undo; expor `restoreFromTrash`.
-- `src/pages/CollectionDetailPage.tsx` — `useUndoStack`, ARIA-live, filtro "queda de preço".
-- `src/components/collections/SortableProductItem.tsx` — `PriceDropBadge`.
-- `src/components/collections/CollectionDetailHeader.tsx` — conectar export + apresentação + badge cliente.
-- `src/components/collections/CollectionFormDialog.tsx` — `FavoritesClientPicker`.
-- `src/pages/CollectionsPage.tsx` — heatmap + empty state inteligente.
-- `src/App.tsx` — rota `/colecao-publica/:token`.
-
-**Memórias a atualizar:**
-- Nova: `mem://features/collections-roadmap.md` (espelha favorites-roadmap).
-- Nova: `mem://features/collections-public-share-system.md`.
-- Atualizar: `mem://features/keyboard-shortcuts-registry` com `G C` e `Shift+C`.
-- Atualizar: `mem://index.md` referenciando o roadmap de Coleções.
-
-## Sequenciamento autônomo
+## Sequenciamento
 
 ```text
-P1 → P2 → P3 → P4 → memória final
+1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 (cron via insert) → 9 (memória)
 ```
 
-Sem pausas. Sem perguntas. Cada onda entrega completa (migração + edge function + componente + integração) antes de iniciar a próxima, conforme `mem://~user`.
+Sem pausas. Sem perguntas. Cada etapa entrega completa antes da próxima.
+
+## Arquivos afetados
+
+**Modificados:**
+- `src/App.tsx` (etapa 1, se necessário)
+- `src/components/collections/CollectionFormDialog.tsx` (etapa 2)
+- `src/components/collections/CollectionDetailHeader.tsx` (etapas 2, 3)
+- `src/components/collections/SortableProductItem.tsx` (etapa 4)
+- `src/pages/CollectionDetailPage.tsx` (etapas 3, 4, 7)
+- `src/pages/CollectionsPage.tsx` (etapa 5)
+- `src/components/layout/AdminLayout.tsx` ou equivalente (etapa 6)
+- `mem://index.md`, `mem://features/keyboard-shortcuts-registry` (etapa 9)
+
+**Criados:**
+- `mem://features/collections-public-share-system.md` (etapa 9)
+
+**Operações DB (insert tool):**
+- 2 cron jobs via `cron.schedule`
 
 ## Resultado final
-Módulo Coleções em **paridade absoluta 10/10 com Favoritos** — 11 melhorias entregues nas 4 ondas, com confiança (lixeira+undo), inteligência (price watcher), ativação comercial (CRM+apresentação+share público) e polimento (export+atalhos+heatmap).
+Módulo Coleções em **paridade absoluta 10/10 com Favoritos** — todas as 11 melhorias da Onda P funcionando end-to-end com UI integrada, atalhos globais, cron jobs agendados e memória consolidada.
 
