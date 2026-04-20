@@ -13,7 +13,11 @@ import {
   Clock, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { MagicUpCopyPack, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
+import type { MagicUpCopyPack, MagicUpCurationStatus, MagicUpQualityDiagnosis, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
+import { buildQualityDiagnosis } from "@/pages/magic-up/magicUpStrategy";
+import { MagicUpQualityScore as MagicUpQualityScoreCard } from "./MagicUpQualityScore";
+import { MagicUpQualityChecklist } from "./MagicUpQualityChecklist";
+import { MagicUpCurationStatus } from "./MagicUpCurationStatus";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -27,6 +31,12 @@ export interface GenerationHistoryItem {
   is_favorite: boolean;
   created_at: string;
   client_name?: string | null;
+  quality_score?: number | null;
+  status?: string | null;
+  channel?: string | null;
+  aspect_ratio?: string | null;
+  metadata?: { qualityDiagnosis?: MagicUpQualityDiagnosis } | null;
+  copy_pack?: MagicUpCopyPack | null;
 }
 
 interface AdImageResultProps {
@@ -44,6 +54,10 @@ interface AdImageResultProps {
   onDeleteHistory?: (id: string) => void;
   onToggleHistoryFavorite?: (id: string, current: boolean) => void;
   qualityScore?: MagicUpQualityScore;
+  qualityDiagnosis?: MagicUpQualityDiagnosis;
+  curationStatus?: MagicUpCurationStatus;
+  onSetCurationStatus?: (status: MagicUpCurationStatus) => void;
+  onRunQualityScore?: () => void;
   copyPack?: MagicUpCopyPack;
   aspectRatio?: string;
 }
@@ -63,10 +77,15 @@ export function AdImageResult({
   onDeleteHistory,
   onToggleHistoryFavorite,
   qualityScore,
+  qualityDiagnosis,
+  curationStatus = "draft",
+  onSetCurationStatus,
+  onRunQualityScore,
   copyPack,
   aspectRatio,
 }: AdImageResultProps) {
   const [showHistory, setShowHistory] = useState(false);
+  const diagnosis = qualityDiagnosis || (qualityScore ? buildQualityDiagnosis(qualityScore) : null);
 
   if (isLoading) {
     return (
@@ -137,9 +156,13 @@ export function AdImageResult({
           <div className="grid grid-cols-2 gap-2 max-h-[500px] overflow-y-auto">
             {history.map((item) => (
               <div
+                role="button"
+                tabIndex={0}
                 key={item.id}
-                className="relative group rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all"
+                className="relative group rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onSelectHistory?.(item)}
+                onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelectHistory?.(item); } }}
+                aria-label={`Selecionar histórico ${item.product_name}`}
               >
                 <img
                   src={item.generated_image_url}
@@ -151,8 +174,12 @@ export function AdImageResult({
                     <p className="text-[9px] text-primary-foreground/70 truncate">{item.scene_title}</p>
                   )}
                   <div className="flex gap-1 mt-1">
+                    {typeof item.quality_score === "number" && <Badge variant="secondary" className="h-5 text-[9px]">{item.quality_score}</Badge>}
+                    {item.status && <Badge variant="outline" className="h-5 text-[9px]">{item.status}</Badge>}
                     {onToggleHistoryFavorite && (
                       <button
+                        type="button"
+                        aria-label={item.is_favorite ? "Remover favorito do histórico" : "Favoritar histórico"}
                         onClick={(e) => { e.stopPropagation(); onToggleHistoryFavorite(item.id, item.is_favorite); }}
                         className="p-1 rounded bg-white/20 hover:bg-white/30"
                       >
@@ -160,7 +187,7 @@ export function AdImageResult({
                       </button>
                     )}
                     {onDeleteHistory && (
-                      <button aria-label="Excluir"
+                      <button type="button" aria-label="Excluir histórico"
                         onClick={(e) => { e.stopPropagation(); onDeleteHistory(item.id); }}
                         className="p-1 rounded bg-white/20 hover:bg-destructive/50"
                       >
@@ -198,7 +225,7 @@ export function AdImageResult({
             {history.length > 0 && (
               <Button
                 variant="ghost"
-                size="icon" aria-label="Horário"
+                size="icon" aria-label="Abrir histórico de imagens"
                 className="h-7 w-7"
                 onClick={() => setShowHistory(!showHistory)}
                 title="Ver histórico"
@@ -262,21 +289,15 @@ export function AdImageResult({
             <Share2 className="h-4 w-4" /> WhatsApp
           </Button>
         </div>
-        {(qualityScore || copyPack) && (
+        {(diagnosis || copyPack) && (
           <div className="border-t p-3 space-y-3">
-            {qualityScore && (
-              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div>
-                    <p className="text-sm font-semibold">Magic Score {qualityScore.total}/100</p>
-                    <p className="text-xs text-muted-foreground">{qualityScore.label}{aspectRatio ? ` · ${aspectRatio}` : ""}</p>
-                  </div>
-                  <Badge variant="secondary">Curadoria</Badge>
-                </div>
-                <div className="mt-2 grid grid-cols-2 gap-1 text-[11px] text-muted-foreground">
-                  {qualityScore.checks.map((check) => <span key={check.label}>{check.passed ? "✓" : "•"} {check.label}</span>)}
-                </div>
-              </div>
+            {diagnosis && (
+              <>
+                <MagicUpQualityScoreCard diagnosis={diagnosis} aspectRatio={aspectRatio} />
+                <MagicUpQualityChecklist diagnosis={diagnosis} />
+                <MagicUpCurationStatus value={curationStatus} disabled={!onSetCurationStatus} onChange={(status) => onSetCurationStatus?.(status)} />
+                {onRunQualityScore && <Button type="button" size="sm" variant="outline" className="w-full" onClick={onRunQualityScore}>Reanalisar Magic Score</Button>}
+              </>
             )}
             {copyPack && (
               <div className="rounded-lg border bg-muted/30 p-3 space-y-2">

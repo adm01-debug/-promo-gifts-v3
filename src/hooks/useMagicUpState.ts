@@ -17,7 +17,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
-import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildBrandKitNotes, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrandLogo, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
+import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildBrandKitNotes, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrandLogo, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls, type MagicUpCurationStatus, type MagicUpQualityDiagnosis, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -63,6 +63,10 @@ export interface VariationItem {
   id: string | null;
   imageUrl: string;
   isFavorite: boolean;
+  qualityScore?: number;
+  qualityDiagnosis?: MagicUpQualityDiagnosis;
+  curationStatus?: MagicUpCurationStatus;
+  isWinner?: boolean;
 }
 
 // ─── Hook ────────────────────────────────────────────────────────────
@@ -136,7 +140,7 @@ export function useMagicUpState() {
     queryKey: ["magic-up-history", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      const { data } = await supabase.from("magic_up_generations").select("id, generated_image_url, product_name, scene_title, scene_category, is_favorite, created_at, client_name").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
+      const { data } = await supabase.from("magic_up_generations").select("id, generated_image_url, product_name, scene_title, scene_category, is_favorite, created_at, client_name, quality_score, status, channel, aspect_ratio, metadata, copy_pack").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
       return (data || []) as GenerationHistoryItem[];
     },
     enabled: !!user?.id,
@@ -459,6 +463,11 @@ CENÁRIO: ${effectivePrompt}`;
     }
   }, [announceAlert, announceStatus, batchQueue, batchRunning, generation]);
 
+  const handleSetCurationStatus = useCallback(async (status: MagicUpCurationStatus) => {
+    await generation.handleSetCurationStatus(status);
+    announceStatus(`Status de curadoria atualizado: ${status}`);
+  }, [announceStatus, generation]);
+
   // ─── Handlers ──────────────────────────────────────────────────
   const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -497,12 +506,12 @@ CENÁRIO: ${effectivePrompt}`;
     creativeControls, setCreativeControls, brandNotes, setBrandNotes,
     brandKit, loadingBrandKit, handleUpdateBrandKit, handleUseBrandLogo, handleAddCurrentLogoToBrandKit, handleSaveBrandKit,
     activeRefinement, handleApplyRefinement, batchQueue, batchRunning, handleSetBatchQueue, handleRunBatchQueue, handleClearBatchQueue,
-    qualityScore, copyPack,
+    qualityScore, qualityDiagnosis: generation.qualityDiagnosis, curationStatus: generation.curationStatus, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,
     setShowClientResults, clientResults, loadingClients,
     handleSelectClient, handleClearClient,
-    ...generation,
+    ...generation, handleSetCurationStatus,
     currentImage, selectedLocationName, history, step,
   };
 }
