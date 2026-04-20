@@ -7,7 +7,9 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useAuth } from "@/contexts/AuthContext";
+import { useAriaLive } from "@/components/a11y";
 import { useProductCustomizationOptionsForMockup } from "@/hooks/useMockupTechniques";
 import { searchCrm, selectCrmById } from "@/lib/crm-db";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
@@ -15,7 +17,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
-import { DEFAULT_BRIEF, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, type MagicUpBrief, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
+import { DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -67,6 +69,7 @@ export interface VariationItem {
 
 export function useMagicUpState() {
   const { user } = useAuth();
+  const { announceStatus, announceAlert } = useAriaLive();
 
   // Product
   const [products, setProducts] = useState<MagicUpProduct[]>([]);
@@ -92,6 +95,7 @@ export function useMagicUpState() {
   const [showPromptPreview, setShowPromptPreview] = useState(false);
   const [sceneTab, setSceneTab] = useState<"ai" | "bank">("ai");
   const [brief, setBrief] = useState<MagicUpBrief>(DEFAULT_BRIEF);
+  const [activeCampaign, setActiveCampaign] = useState<MagicUpCampaign | null>(null);
   const [creativeControls, setCreativeControls] = useState<MagicUpCreativeControls>(DEFAULT_CREATIVE_CONTROLS);
   const [brandNotes, setBrandNotes] = useState("");
 
