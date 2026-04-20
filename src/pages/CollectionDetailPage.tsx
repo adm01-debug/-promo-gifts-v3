@@ -63,12 +63,17 @@ export default function CollectionDetailPage() {
   const { isFavorite, toggleFavorite } = useFavoritesStore();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const [showPresentation, setShowPresentation] = useState(false);
+  const [showShareDialog, setShowShareDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("added");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [selectionModeActive, setSelectionModeActive] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("grid");
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
+  const [manageMode, setManageMode] = useState(false);
+  const [onlyDrops, setOnlyDrops] = useState(false);
+  const [announcement, setAnnouncement] = useState("");
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // --- Local collection lookup ---
   const localCollection = useMemo(() => collections.find((c) => c.id === id), [collections, id]);
