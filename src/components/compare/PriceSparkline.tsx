@@ -28,7 +28,7 @@ export function PriceSparkline({ productId, className }: Props) {
       try {
         const since = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
         const { data: rows } = await supabase
-          .from("price_history" as any)
+          .from("price_history")
           .select("recorded_at,price")
           .eq("product_id", productId)
           .gte("recorded_at", since)
