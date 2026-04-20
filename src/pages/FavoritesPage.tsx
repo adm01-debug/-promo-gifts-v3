@@ -50,6 +50,8 @@ export default function FavoritesPage() {
   const navigate = useNavigate();
   const { favorites, clearFavorites, favoriteCount, toggleFavorite, isFavorite } =
     useFavoritesStore();
+  // Onda A — migra favoritos do localStorage para a nuvem (idempotente)
+  useLegacyFavoritesMigration();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
