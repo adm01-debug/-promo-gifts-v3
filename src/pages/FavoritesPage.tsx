@@ -35,6 +35,7 @@ import { FavoriteListsSidebar } from "@/components/favorites/FavoriteListsSideba
 import { FavoritesTrashView } from "@/components/favorites/FavoritesTrashView";
 import { FavoritesViewHeader } from "@/components/favorites/FavoritesViewHeader";
 import { ItemNoteEditor } from "@/components/favorites/ItemNoteEditor";
+import { PriceDropBadge } from "@/components/favorites/PriceDropBadge";
 import type { FavoritesSort } from "@/components/favorites/FavoritesSortBar";
 
 type ViewMode = "grid" | "list" | "table";
@@ -42,6 +43,7 @@ const VIEW_MODE_KEY = "favorites-view-mode";
 const GRID_COLS_KEY = "favorites-grid-cols";
 const SELECTED_LIST_KEY = "favorites-selected-list-id";
 const SORT_KEY = "favorites-sort";
+const PRICE_DROP_FILTER_KEY = "favorites-only-drops";
 
 function loadViewMode(): ViewMode {
   try {
@@ -115,10 +117,34 @@ export default function FavoritesPage() {
   const [gridColumns, setGridColumns] = useState<ColumnCount>(() => loadGridColumns());
   const [sort, setSort] = useState<FavoritesSort>(() => loadSort());
   const [selectionMode, setSelectionMode] = useState(false);
+  const [onlyPriceDrops, setOnlyPriceDrops] = useState<boolean>(() => {
+    try { return localStorage.getItem(PRICE_DROP_FILTER_KEY) === "1"; } catch { return false; }
+  });
 
   useEffect(() => { try { localStorage.setItem(VIEW_MODE_KEY, viewMode); } catch {} }, [viewMode]);
   useEffect(() => { try { localStorage.setItem(GRID_COLS_KEY, String(gridColumns)); } catch {} }, [gridColumns]);
   useEffect(() => { try { localStorage.setItem(SORT_KEY, sort); } catch {} }, [sort]);
+  useEffect(() => { try { localStorage.setItem(PRICE_DROP_FILTER_KEY, onlyPriceDrops ? "1" : "0"); } catch {} }, [onlyPriceDrops]);
+
+  // Mapa product_id → meta enriquecida (para badges + filtro de queda)
+  const enrichedMetaMap = useMemo(() => {
+    const m = new Map<string, { priceDiffPct: number | null; priceAtSave: number | null; savedAt: string }>();
+    if (isRemoteListView) {
+      enriched.forEach((e) => {
+        m.set(e.item.product_id, {
+          priceDiffPct: e.priceDiffPct,
+          priceAtSave: e.item.price_at_save,
+          savedAt: e.item.added_at,
+        });
+      });
+    }
+    return m;
+  }, [enriched, isRemoteListView]);
+
+  const priceDropCount = useMemo(() => {
+    if (!isRemoteListView) return null;
+    return enriched.filter((e) => e.priceDiffPct !== null && e.priceDiffPct < -2).length;
+  }, [enriched, isRemoteListView]);
 
   // ===== Produtos da view ativa =====
   const legacyFavoriteProducts = useMemo(
@@ -176,6 +202,13 @@ export default function FavoritesPage() {
         p.brand?.toLowerCase().includes(q)
       );
     }
+    // Filtro "só com queda" (apenas em listas remotas)
+    if (onlyPriceDrops && isRemoteListView) {
+      list = list.filter((p) => {
+        const meta = enrichedMetaMap.get(p.id);
+        return meta?.priceDiffPct !== null && meta?.priceDiffPct !== undefined && meta.priceDiffPct < -2;
+      });
+    }
     // Aplicar sort
     const sorted = [...list];
     switch (sort) {
@@ -188,7 +221,7 @@ export default function FavoritesPage() {
       case "recent": default: break;
     }
     return sorted;
-  }, [productsWithVariant, searchQuery, sort]);
+  }, [productsWithVariant, searchQuery, sort, onlyPriceDrops, isRemoteListView, enrichedMetaMap]);
 
   // Bulk selection
   const sel = useCatalogSelection(filteredProducts, selectionMode);
@@ -408,6 +441,9 @@ export default function FavoritesPage() {
                   onSortChange={setSort}
                   fallbackTitle={!isRemoteListView ? "Todos os favoritos" : undefined}
                   fallbackSubtitle={!isRemoteListView && lists.length === 0 ? "Crie uma lista para organizar" : undefined}
+                  onlyPriceDrops={isRemoteListView ? onlyPriceDrops : undefined}
+                  onTogglePriceDrops={isRemoteListView ? setOnlyPriceDrops : undefined}
+                  priceDropCount={priceDropCount}
                 />
 
                 {/* KPI cards */}
@@ -553,6 +589,7 @@ export default function FavoritesPage() {
                         const variant = variantMap.get(product.id);
                         const isSelected = selectedIds.has(product.id);
                         const noteMeta = noteMap.get(product.id);
+                        const priceMeta = enrichedMetaMap.get(product.id);
                         return (
                           <div
                             key={product.id}
@@ -571,6 +608,17 @@ export default function FavoritesPage() {
                                 onFavorite={() => handleRemoveFavorite(product.id, product.name)}
                               />
                             </div>
+                            {/* Price drop badge — canto inferior esquerdo, apenas em listas remotas */}
+                            {isRemoteListView && priceMeta && !selectionMode && (
+                              <div className="absolute bottom-3 left-3 z-10 pointer-events-auto">
+                                <PriceDropBadge
+                                  priceDiffPct={priceMeta.priceDiffPct}
+                                  priceAtSave={priceMeta.priceAtSave}
+                                  currentPrice={product.price}
+                                  savedAt={priceMeta.savedAt}
+                                />
+                              </div>
+                            )}
                             {selectionMode && (
                               <div className="absolute top-3 left-3 z-20">
                                 <div className={cn(
