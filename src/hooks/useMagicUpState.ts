@@ -355,7 +355,7 @@ CENÁRIO: ${effectivePrompt}`;
 
   const handleSelectProduct = useCallback((p: MagicUpProduct | null) => {
     setSelectedProduct(p); setSelectedColor(null); generation.setVariations([]); generation.setActiveVariation(0);
-  }, [generation]);
+  }, [generation.setActiveVariation, generation.setVariations]);
 
   const handleClearClient = useCallback(() => { setSelectedClient(null); setLogoPreview(null); }, []);
 
@@ -369,7 +369,9 @@ CENÁRIO: ${effectivePrompt}`;
     logoPreview, logoUploading, handleLogoUpload,
     selectedScene, setSelectedScene, additionalDetails, setAdditionalDetails,
     showPromptPreview, setShowPromptPreview, sceneTab, setSceneTab,
-    brief, setBrief, creativeControls, setCreativeControls, brandNotes, setBrandNotes,
+    brief, setBrief: handleSetBrief, activeCampaign, setActiveCampaign, campaigns,
+    handleSaveCampaign, handleSelectCampaign, handleDuplicateCampaign,
+    creativeControls, setCreativeControls, brandNotes, setBrandNotes,
     qualityScore, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,
