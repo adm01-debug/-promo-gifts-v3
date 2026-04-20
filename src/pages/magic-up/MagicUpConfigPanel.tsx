@@ -21,7 +21,8 @@ import { PromptGenerator } from "@/components/magic-up/PromptGenerator";
 import { cn } from "@/lib/utils";
 import { getCompanyDisplayName } from "@/types/crm";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
-import { ASPECT_RATIOS, BRIEF_OPTIONS, BRIEF_PRESETS, COMPOSITIONS, CREATIVE_MODES, NEGATIVE_PROMPTS, QUALITY_MODES, toHuman } from "./magicUpStrategy";
+import { MagicUpCampaignPanel } from "@/components/magic-up/MagicUpCampaignPanel";
+import { ASPECT_RATIOS, BRIEF_OPTIONS, COMPOSITIONS, CREATIVE_MODES, NEGATIVE_PROMPTS, QUALITY_MODES, toHuman, type MagicUpBrief } from "./magicUpStrategy";
 
 type MagicUpStateReturn = ReturnType<typeof useMagicUpState>;
 
@@ -46,6 +47,13 @@ export function MagicUpConfigPanel({ m }: MagicUpConfigPanelProps) {
 }
 
 function BriefingCard({ m }: { m: MagicUpStateReturn }) {
+  const fields: Array<{ field: keyof Pick<MagicUpBrief, "objective" | "channel" | "audience" | "tone">; options: string[] }> = [
+    { field: "objective", options: BRIEF_OPTIONS.objective },
+    { field: "channel", options: BRIEF_OPTIONS.channel },
+    { field: "audience", options: BRIEF_OPTIONS.audience },
+    { field: "tone", options: BRIEF_OPTIONS.tone },
+  ];
+
   return (
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
@@ -55,34 +63,17 @@ function BriefingCard({ m }: { m: MagicUpStateReturn }) {
         <CardDescription className="text-xs">Defina intenção comercial, canal, público e CTA antes de gerar.</CardDescription>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="grid grid-cols-2 gap-2">
-          {BRIEF_PRESETS.map((preset) => (
-            <Button key={preset.label} type="button" variant="outline" size="sm" className="justify-start text-xs" onClick={() => m.setBrief(preset)}>
-              {preset.label}
-            </Button>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {(["objective", "channel", "audience", "tone"] as const).map((field) => (
-            <div key={field} className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{toHuman(field)}</Label>
-              <Select value={m.brief[field]} onValueChange={(value) => m.setBrief({ ...m.brief, [field]: value })}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>{BRIEF_OPTIONS[field].map((option) => <SelectItem key={option} value={option}>{toHuman(option)}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          ))}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">CTA</Label>
-            <Input value={m.brief.cta} onChange={(e) => m.setBrief({ ...m.brief, cta: e.target.value })} className="h-9" />
-          </div>
-          <div className="space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Ocasião</Label>
-            <Input value={m.brief.occasion} onChange={(e) => m.setBrief({ ...m.brief, occasion: e.target.value })} className="h-9" />
-          </div>
-        </div>
+        <MagicUpCampaignPanel
+          brief={m.brief}
+          campaign={m.activeCampaign}
+          campaigns={m.campaigns}
+          onBriefChange={m.setBrief}
+          onCampaignChange={m.setActiveCampaign}
+          onSave={m.handleSaveCampaign}
+          onSelectCampaign={m.handleSelectCampaign}
+          onDuplicateCampaign={m.handleDuplicateCampaign}
+          fields={fields}
+        />
       </CardContent>
     </Card>
   );
