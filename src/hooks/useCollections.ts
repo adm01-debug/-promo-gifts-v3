@@ -17,6 +17,8 @@ export interface CollectionProductItem {
   productId: string;
   variant?: CollectionVariantInfo;
   notes?: string;
+  priceAtSave?: number | null;
+  addedAt?: string | null;
 }
 
 export interface Collection {
@@ -60,6 +62,8 @@ function dbToCollection(
         }
       : undefined,
     notes: item.notes || undefined,
+    priceAtSave: item.price_at_save ?? null,
+    addedAt: item.created_at ?? null,
   }));
 
   return {
