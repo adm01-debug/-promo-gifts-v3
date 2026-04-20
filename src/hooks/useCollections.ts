@@ -69,6 +69,11 @@ function dbToCollection(
     color: row.icon_color || DEFAULT_COLORS[0],
     icon: row.icon || "📁",
     isFeatured: row.is_featured ?? false,
+    clientId: row.client_id ?? null,
+    clientName: row.client_name ?? null,
+    shareToken: row.share_token ?? null,
+    shareExpiresAt: row.share_expires_at ?? null,
+    isPublic: row.is_public ?? false,
     productIds: productItems.map((i) => i.productId),
     productItems,
     createdAt: row.created_at,
@@ -261,6 +266,11 @@ export function useCollections() {
       if (updates.color !== undefined) dbUpdates.icon_color = updates.color;
       if (updates.icon !== undefined) dbUpdates.icon = updates.icon;
       if (updates.isFeatured !== undefined) dbUpdates.is_featured = updates.isFeatured;
+      if (updates.clientId !== undefined) dbUpdates.client_id = updates.clientId;
+      if (updates.clientName !== undefined) dbUpdates.client_name = updates.clientName;
+      if (updates.shareToken !== undefined) dbUpdates.share_token = updates.shareToken;
+      if (updates.shareExpiresAt !== undefined) dbUpdates.share_expires_at = updates.shareExpiresAt;
+      if (updates.isPublic !== undefined) dbUpdates.is_public = updates.isPublic;
 
       if (Object.keys(dbUpdates).length > 0) {
         supabase.from("collections").update(dbUpdates).eq("id", id).then();
