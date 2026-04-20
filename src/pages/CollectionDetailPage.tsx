@@ -26,6 +26,8 @@ import { CollectionDetailHeader } from "@/components/collections/CollectionDetai
 import { SortableProductItem } from "@/components/collections/SortableProductItem";
 import { ShareCollectionDialog } from "@/components/collections/ShareCollectionDialog";
 import { CollectionPresentationLauncher } from "@/components/collections/CollectionPresentationLauncher";
+import { CollectionsTrashView } from "@/components/collections/CollectionsTrashView";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -73,6 +75,8 @@ export default function CollectionDetailPage() {
   const [manageMode, setManageMode] = useState(false);
   const [onlyDrops, setOnlyDrops] = useState(false);
   const [announcement, setAnnouncement] = useState("");
+  const [activeTab, setActiveTab] = useState<"products" | "trash">("products");
+  const [trashCount, setTrashCount] = useState(0);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
 
   // --- Local collection lookup ---
