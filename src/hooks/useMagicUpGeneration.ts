@@ -10,7 +10,7 @@ import type { VariationItem, MagicUpProduct, Technique, SelectedClient } from ".
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
-import type { MagicUpBrief, MagicUpCampaign, MagicUpCopyPack, MagicUpCreativeControls, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
+import type { MagicUpBatchVariant, MagicUpBrandKit, MagicUpBrief, MagicUpCampaign, MagicUpCopyPack, MagicUpCreativeControls, MagicUpQualityScore, MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
 
 interface GenerationDeps {
   selectedProduct: MagicUpProduct | null;
@@ -29,6 +29,9 @@ interface GenerationDeps {
   copyPack: MagicUpCopyPack;
   fullPromptPreview: string;
   activeCampaign: MagicUpCampaign | null;
+  brandKit: MagicUpBrandKit;
+  brandNotes: string;
+  activeRefinement: MagicUpRefinement | null;
 }
 
 export function useMagicUpGeneration(deps: GenerationDeps) {
@@ -40,11 +43,14 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
   const canGenerate = !!(deps.selectedProduct && deps.currentImage && deps.logoPreview && deps.effectivePrompt);
   const currentVariation = variations[activeVariation] || null;
 
-  const handleGenerate = useCallback(async () => {
+  const handleGenerate = useCallback(async (batchVariant?: MagicUpBatchVariant) => {
     if (!canGenerate) return;
     setGenerating(true);
     try {
       const isLogoUrl = deps.logoPreview!.startsWith("http");
+      const variantBrief = batchVariant ? { ...deps.brief, channel: batchVariant.channel || deps.brief.channel, tone: batchVariant.tone || deps.brief.tone } : deps.brief;
+      const variantControls = batchVariant?.aspectRatio ? { ...deps.creativeControls, aspectRatio: batchVariant.aspectRatio } : deps.creativeControls;
+      const variantPrompt = [batchVariant?.scenePrompt || deps.effectivePrompt, batchVariant?.refinementInstruction || deps.activeRefinement?.instruction].filter(Boolean).join("\n\nREFINEMENT INSTRUCTION: ");
       const { data, error } = await supabase.functions.invoke("generate-ad-image", {
         body: {
           productImageUrl: deps.currentImage,
@@ -54,17 +60,20 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
           productColor: deps.selectedColor?.name || null,
           techniqueName: deps.selectedTechnique?.name || null,
           locationName: deps.selectedLocationName || null,
-          scenePrompt: deps.effectivePrompt,
-          sceneCategory: deps.selectedScene?.category || "custom",
+          scenePrompt: variantPrompt,
+          sceneCategory: deps.selectedScene?.category || batchVariant?.id || "custom",
           brandColorHex: deps.selectedClient?.cor_primaria_hex || null,
           brandColorName: deps.selectedClient?.cor_primaria_nome || null,
-          campaignBrief: deps.brief,
-          outputChannel: deps.brief.channel,
-          aspectRatio: deps.creativeControls.aspectRatio,
-          qualityMode: deps.creativeControls.qualityMode,
-          compositionMode: deps.creativeControls.composition,
-          creativeMode: deps.creativeControls.creativeMode,
-          negativePrompt: deps.creativeControls.negativePrompt,
+          campaignBrief: variantBrief,
+          outputChannel: variantBrief.channel,
+          aspectRatio: variantControls.aspectRatio,
+          qualityMode: variantControls.qualityMode,
+          compositionMode: variantControls.composition,
+          creativeMode: variantControls.creativeMode,
+          negativePrompt: variantControls.negativePrompt,
+          brandKit: { primaryColor: deps.brandKit.primaryColor, secondaryColor: deps.brandKit.secondaryColor, toneOfVoice: deps.brandKit.toneOfVoice, visualStyle: deps.brandKit.visualStyle, requiredWords: deps.brandKit.requiredWords, forbiddenWords: deps.brandKit.forbiddenWords, notes: deps.brandNotes },
+          refinementInstruction: batchVariant?.refinementInstruction || deps.activeRefinement?.instruction || null,
+          batchVariant: batchVariant || null,
         },
       });
       if (error) throw error;
@@ -78,19 +87,19 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
             product_id: deps.selectedProduct!.id,
             product_sku: deps.selectedProduct!.sku,
             scene_title: deps.selectedScene?.title || null,
-            scene_category: deps.selectedScene?.category || "custom",
+            scene_category: deps.selectedScene?.category || batchVariant?.id || "custom",
             generated_image_url: data.imageUrl,
             client_name: deps.selectedClient?.name || deps.activeCampaign?.clientName || null,
             prompt_text: deps.fullPromptPreview || deps.effectivePrompt,
             model: data.model || "magic-up-pro",
-            channel: deps.brief.channel,
-            aspect_ratio: deps.creativeControls.aspectRatio,
+            channel: data.outputChannel || variantBrief.channel,
+            aspect_ratio: data.aspectRatio || variantControls.aspectRatio,
             quality_score: deps.qualityScore.total,
             status: deps.activeCampaign?.status || "draft",
-            tags: [deps.brief.channel, deps.brief.objective, deps.brief.tone].filter(Boolean),
+            tags: [variantBrief.channel, variantBrief.objective, variantBrief.tone, batchVariant?.id].filter(Boolean),
             copy_pack: deps.copyPack,
-            export_presets: ["png", "jpg-whatsapp", deps.creativeControls.aspectRatio],
-            metadata: { brief: deps.brief, creativeControls: deps.creativeControls, qualityScore: deps.qualityScore, campaign: deps.activeCampaign },
+            export_presets: ["png", "jpg-whatsapp", variantControls.aspectRatio],
+            metadata: { brief: variantBrief, creativeControls: variantControls, qualityScore: deps.qualityScore, campaign: deps.activeCampaign, brandKit: deps.brandKit, brandNotes: deps.brandNotes, refinement: deps.activeRefinement, batch: batchVariant || null, functionResult: { qualityMode: data.qualityMode, aspectRatio: data.aspectRatio, creativeMode: data.creativeMode, compositionMode: data.compositionMode } },
           };
           const { data: inserted, error: insertError } = await supabase
             .from("magic_up_generations")

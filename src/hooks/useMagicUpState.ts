@@ -17,7 +17,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
-import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildBrandKitNotes, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrandKit, type MagicUpBrandLogo, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
+import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildBrandKitNotes, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBatchVariant, type MagicUpBrandKit, type MagicUpBrandLogo, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls, type MagicUpRefinement } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -100,6 +100,9 @@ export function useMagicUpState() {
   const [creativeControls, setCreativeControls] = useState<MagicUpCreativeControls>(DEFAULT_CREATIVE_CONTROLS);
   const [brandNotes, setBrandNotes] = useState("");
   const [brandKit, setBrandKit] = useState<MagicUpBrandKit>(DEFAULT_BRAND_KIT);
+  const [activeRefinement, setActiveRefinement] = useState<MagicUpRefinement | null>(null);
+  const [batchQueue, setBatchQueue] = useState<MagicUpBatchVariant[]>([]);
+  const [batchRunning, setBatchRunning] = useState(false);
 
   // Client (CRM externo)
   const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
@@ -304,13 +307,14 @@ export function useMagicUpState() {
     if (!selectedProduct || !effectivePrompt) return "";
     return `BRIEFING: objetivo=${brief.objective}; canal=${brief.channel}; público=${brief.audience}; tom=${brief.tone}; CTA=${brief.cta}; ocasião=${brief.occasion}
 CONTROLE CRIATIVO: modo=${creativeControls.creativeMode}; composição=${creativeControls.composition}; formato=${creativeControls.aspectRatio}; qualidade=${creativeControls.qualityMode}; evitar=${creativeControls.negativePrompt.join(", ")}
+REFINAMENTO: ${activeRefinement?.instruction || "Nenhum"}
 ${brandNotes ? `DIRETRIZES DA MARCA: ${brandNotes}` : ""}
 PRODUTO: ${selectedProduct.name}${selectedColor ? ` (${selectedColor.name})` : ""}
 TÉCNICA: ${selectedTechnique?.name || "Não especificada"} @ ${selectedLocationName || "Não especificado"}
 ${selectedClient ? `CLIENTE: ${selectedClient.name}${selectedClient.ramo_atividade ? ` (${selectedClient.ramo_atividade})` : ""}` : ""}
 ${selectedClient?.cor_primaria_hex ? `COR DA MARCA: ${selectedClient.cor_primaria_nome || selectedClient.cor_primaria_hex}` : ""}
 CENÁRIO: ${effectivePrompt}`;
-  }, [brief, creativeControls, brandNotes, selectedProduct, selectedColor, selectedTechnique, selectedLocationName, effectivePrompt, selectedClient]);
+  }, [brief, creativeControls, activeRefinement, brandNotes, selectedProduct, selectedColor, selectedTechnique, selectedLocationName, effectivePrompt, selectedClient]);
 
   const qualityScore = useMemo(() => buildMagicScore({
     hasProduct: !!selectedProduct,
@@ -408,16 +412,52 @@ CENÁRIO: ${effectivePrompt}`;
     announceStatus("Brand Kit salvo com sucesso");
   }, [announceAlert, announceStatus, brandKit, logoPreview, queryClient, selectedClient, user?.id]);
 
+  const handleApplyRefinement = useCallback((refinement: MagicUpRefinement) => {
+    setActiveRefinement(refinement);
+    if (refinement.creativePatch) {
+      setCreativeControls((current) => ({ ...current, ...refinement.creativePatch, negativePrompt: refinement.creativePatch?.negativePrompt || current.negativePrompt }));
+    }
+    setAdditionalDetails((current) => current.includes(refinement.instruction) ? current : [current.trim(), refinement.instruction].filter(Boolean).join("\n"));
+    announceStatus(`Refinamento aplicado: ${refinement.label}`);
+  }, [announceStatus]);
+
   // ─── Generation (delegated) ────────────────────────────────────
   const generation = useMagicUpGeneration({
     selectedProduct, currentImage, logoPreview, effectivePrompt,
     selectedColor, selectedTechnique, selectedLocationName, selectedScene, selectedClient, userId: user?.id,
-    brief, creativeControls, qualityScore, copyPack, fullPromptPreview, activeCampaign,
+    brief, creativeControls, qualityScore, copyPack, fullPromptPreview, activeCampaign, brandKit, brandNotes, activeRefinement,
   });
 
   useEffect(() => {
     if (generation.generating) announceStatus("Geração do Magic Up iniciada");
   }, [announceStatus, generation.generating]);
+
+  const handleSetBatchQueue = useCallback((queue: MagicUpBatchVariant[]) => {
+    setBatchQueue(queue);
+    announceStatus(`${queue.length} variações adicionadas à fila`);
+  }, [announceStatus]);
+
+  const handleClearBatchQueue = useCallback(() => {
+    setBatchQueue([]);
+    announceStatus("Fila de variações limpa");
+  }, [announceStatus]);
+
+  const handleRunBatchQueue = useCallback(async () => {
+    if (!batchQueue.length || batchRunning || !generation.canGenerate) return;
+    setBatchRunning(true);
+    announceStatus("Geração em lote iniciada");
+    try {
+      for (const variant of batchQueue) {
+        await generation.handleGenerate(variant);
+        announceStatus(`Variação gerada: ${variant.label}`);
+      }
+      toast.success("Fila de variações concluída");
+    } catch {
+      announceAlert("Erro ao executar fila de variações");
+    } finally {
+      setBatchRunning(false);
+    }
+  }, [announceAlert, announceStatus, batchQueue, batchRunning, generation]);
 
   // ─── Handlers ──────────────────────────────────────────────────
   const handleLogoUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -456,6 +496,7 @@ CENÁRIO: ${effectivePrompt}`;
     handleSaveCampaign, handleSelectCampaign, handleDuplicateCampaign,
     creativeControls, setCreativeControls, brandNotes, setBrandNotes,
     brandKit, loadingBrandKit, handleUpdateBrandKit, handleUseBrandLogo, handleAddCurrentLogoToBrandKit, handleSaveBrandKit,
+    activeRefinement, handleApplyRefinement, batchQueue, batchRunning, handleSetBatchQueue, handleRunBatchQueue, handleClearBatchQueue,
     qualityScore, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,
