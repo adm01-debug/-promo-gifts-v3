@@ -49,6 +49,7 @@ export function useCatalogState() {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { isFavorite, toggleFavorite, favoriteCount } = useFavoritesStore();
+  const favQuickAdd = useFavoriteQuickAdd();
   const { isInCompare, toggleCompare, canAddMore } = useComparisonStore();
   const { registerProducts } = useProductsContext();
   const { data: promoSalesMap } = usePromoSalesRanking();
@@ -365,9 +366,22 @@ export function useCatalogState() {
     setShareProduct(product);
   }, []);
 
-  const handleFavoriteProduct = useCallback((product: Product) => {
-    toggleFavorite(product.id);
-  }, [toggleFavorite]);
+  const handleFavoriteProduct = useCallback((product: Product, e?: React.MouseEvent) => {
+    const result = favQuickAdd.handleFavoriteClick(product, { shiftKey: e?.shiftKey });
+    if (!result.resolved && result.reason === "picker-needed") {
+      // Fallback amigável: salva na default + toast com link "trocar lista"
+      const target = favQuickAdd.defaultList;
+      if (target) {
+        void favQuickAdd.addToList(target.id, product);
+        toast({
+          title: "Adicionado aos Favoritos",
+          description: `Salvo em "${target.name}". Use Shift+clique para confirmar a lista padrão sem confirmação.`,
+        });
+      } else {
+        toggleFavorite(product.id);
+      }
+    }
+  }, [favQuickAdd, toggleFavorite, toast]);
 
   const handleSearch = useCallback((query: string) => {
     setIsSearching(true);
