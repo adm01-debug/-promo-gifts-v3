@@ -3,13 +3,14 @@ import { Badge } from "@/components/ui/badge";
 import { RotateCcw, Trash2 } from "lucide-react";
 import { useFavoriteTrash } from "@/hooks/useFavoriteLists";
 import { useProductsContext } from "@/contexts/ProductsContext";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { DeleteConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { EmptyState } from "@/components/common/EmptyState";
 
 export function FavoritesTrashView() {
   const { items, isLoading, restoreItem, purgeItem, purgeAll } = useFavoriteTrash();
   const { getProductsByIds } = useProductsContext();
+  const [confirmEmpty, setConfirmEmpty] = useState(false);
 
   const productMap = useMemo(() => {
     const ids = items.map((i) => i.product_id);
@@ -19,8 +20,7 @@ export function FavoritesTrashView() {
 
   const formatDaysLeft = (expiresAt: string) => {
     const ms = new Date(expiresAt).getTime() - Date.now();
-    const days = Math.max(0, Math.ceil(ms / 86400_000));
-    return days;
+    return Math.max(0, Math.ceil(ms / 86400_000));
   };
 
   if (isLoading) {
@@ -43,17 +43,9 @@ export function FavoritesTrashView() {
         <p className="text-sm text-muted-foreground">
           {items.length} {items.length === 1 ? "item removido" : "itens removidos"} • TTL de 30 dias
         </p>
-        <DeleteConfirmDialog
-          trigger={
-            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-              <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Esvaziar lixeira
-            </Button>
-          }
-          title="Esvaziar lixeira?"
-          description={`Excluir definitivamente ${items.length} itens. Esta ação não pode ser desfeita.`}
-          onConfirm={() => purgeAll.mutateAsync()}
-          itemName="lixeira"
-        />
+        <Button variant="outline" size="sm" className="text-destructive hover:text-destructive" onClick={() => setConfirmEmpty(true)}>
+          <Trash2 className="h-3.5 w-3.5 mr-1.5" /> Esvaziar lixeira
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -90,6 +82,13 @@ export function FavoritesTrashView() {
           );
         })}
       </div>
+
+      <DeleteConfirmDialog
+        open={confirmEmpty}
+        onOpenChange={setConfirmEmpty}
+        entityName="lixeira"
+        onConfirm={async () => { await purgeAll.mutateAsync(); setConfirmEmpty(false); }}
+      />
     </div>
   );
 }

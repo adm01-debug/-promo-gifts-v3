@@ -37,6 +37,7 @@ export function FavoriteListsSidebar({
   const [createOpen, setCreateOpen] = useState(false);
   const [editList, setEditList] = useState<FavoriteList | null>(null);
   const [shareList, setShareList] = useState<FavoriteList | null>(null);
+  const [deleteList, setDeleteList] = useState<FavoriteList | null>(null);
 
   return (
     <aside className="w-full lg:w-64 shrink-0 space-y-2">
@@ -129,20 +130,12 @@ export function FavoriteListsSidebar({
                       >
                         <Archive className="h-3.5 w-3.5 mr-2" /> Arquivar
                       </DropdownMenuItem>
-                      <DeleteConfirmDialog
-                        trigger={
-                          <DropdownMenuItem
-                            className="text-destructive focus:text-destructive"
-                            onSelect={(e) => e.preventDefault()}
-                          >
-                            <Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir lista
-                          </DropdownMenuItem>
-                        }
-                        title="Excluir lista?"
-                        description={`Esta ação remove a lista "${list.name}" e todos os ${list.item_count ?? 0} itens dela.`}
-                        onConfirm={() => onDeleteList(list.id)}
-                        itemName={list.name}
-                      />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => setDeleteList(list)}
+                      >
+                        <Trash2 className="h-3.5 w-3.5 mr-2" /> Excluir lista
+                      </DropdownMenuItem>
                     </>
                   )}
                 </DropdownMenuContent>
@@ -199,6 +192,18 @@ export function FavoriteListsSidebar({
           onRevoke={onRevokeShare}
         />
       )}
+      <DeleteConfirmDialog
+        open={!!deleteList}
+        onOpenChange={(o) => !o && setDeleteList(null)}
+        entityName="lista de favoritos"
+        itemName={deleteList?.name}
+        onConfirm={async () => {
+          if (deleteList) {
+            await onDeleteList(deleteList.id);
+            setDeleteList(null);
+          }
+        }}
+      />
     </aside>
   );
 }
