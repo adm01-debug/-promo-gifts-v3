@@ -16,11 +16,15 @@ import {
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
+import { FavoritesClientPicker } from "@/components/favorites/FavoritesClientPicker";
+
 interface FormData {
   name: string;
   description: string;
   color: string;
   icon: string;
+  clientId?: string | null;
+  clientName?: string | null;
 }
 
 interface CollectionFormDialogProps {
@@ -102,6 +106,21 @@ export function CollectionFormDialog({
               placeholder="Descreva esta coleção..."
               value={formData.description}
               onChange={(e) => onFormChange({ ...formData, description: e.target.value })}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Cliente CRM (opcional)</Label>
+            <FavoritesClientPicker
+              selectedClientId={formData.clientId ?? null}
+              selectedClientName={formData.clientName ?? null}
+              onSelect={(client) =>
+                onFormChange({
+                  ...formData,
+                  clientId: client?.id ?? null,
+                  clientName: client?.name ?? null,
+                })
+              }
             />
           </div>
 
