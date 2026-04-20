@@ -41,6 +41,30 @@ export type MagicUpCampaign = MagicUpBrief & {
   updatedAt?: string;
 };
 
+export type MagicUpBrandLogo = {
+  id: string;
+  label: string;
+  url: string;
+  variant: "principal" | "colorida" | "branca" | "preta" | "horizontal" | "vertical" | "icone";
+  isPrimary: boolean;
+};
+
+export type MagicUpBrandKit = {
+  id: string | null;
+  clientId: string | null;
+  clientName: string | null;
+  primaryLogoUrl: string | null;
+  logoUrls: MagicUpBrandLogo[];
+  primaryColor: string | null;
+  secondaryColor: string | null;
+  toneOfVoice: string;
+  visualStyle: string;
+  requiredWords: string[];
+  forbiddenWords: string[];
+  notes: string;
+  updatedAt?: string;
+};
+
 export const DEFAULT_BRIEF: MagicUpBrief = {
   objective: "orcamento-rapido",
   channel: "whatsapp",
@@ -57,6 +81,21 @@ export const DEFAULT_CAMPAIGN: MagicUpCampaign = {
   status: "draft",
   clientId: null,
   clientName: null,
+};
+
+export const DEFAULT_BRAND_KIT: MagicUpBrandKit = {
+  id: null,
+  clientId: null,
+  clientName: null,
+  primaryLogoUrl: null,
+  logoUrls: [],
+  primaryColor: null,
+  secondaryColor: null,
+  toneOfVoice: "premium-consultivo",
+  visualStyle: "limpo-corporativo",
+  requiredWords: [],
+  forbiddenWords: [],
+  notes: "",
 };
 
 export const DEFAULT_CREATIVE_CONTROLS: MagicUpCreativeControls = {
@@ -86,6 +125,7 @@ export const COMPOSITIONS = ["centro-limpo", "produto-esquerda", "produto-direit
 export const ASPECT_RATIOS = ["1:1", "4:5", "9:16", "16:9", "A4", "WhatsApp"];
 export const QUALITY_MODES = ["rascunho", "alta-qualidade", "pro-final", "variacao-rapida"];
 export const NEGATIVE_PROMPTS = ["Sem texto na imagem", "Sem mãos deformadas", "Sem logo distorcido", "Sem produto duplicado", "Sem marca concorrente", "Sem fundo poluído", "Sem rosto em destaque", "Sem aparência artificial"];
+export const BRAND_LOGO_VARIANTS: MagicUpBrandLogo["variant"][] = ["principal", "colorida", "branca", "preta", "horizontal", "vertical", "icone"];
 
 export const CAMPAIGN_STATUSES: Array<{ value: MagicUpCampaignStatus; label: string }> = [
   { value: "draft", label: "Rascunho" },
@@ -140,4 +180,16 @@ export function buildCopyPack(input: { productName?: string; clientName?: string
     email: `Olá! Segue uma sugestão criativa para ${product}, pensada para ${toHuman(input.channel).toLowerCase()}. ${input.cta}.`,
     cta: input.cta,
   };
+}
+
+export function buildBrandKitNotes(kit: MagicUpBrandKit): string {
+  return [
+    kit.toneOfVoice ? `Tom de voz: ${toHuman(kit.toneOfVoice)}` : null,
+    kit.visualStyle ? `Estilo visual: ${toHuman(kit.visualStyle)}` : null,
+    kit.primaryColor ? `Cor primária: ${kit.primaryColor}` : null,
+    kit.secondaryColor ? `Cor secundária: ${kit.secondaryColor}` : null,
+    kit.requiredWords.length ? `Termos obrigatórios: ${kit.requiredWords.join(", ")}` : null,
+    kit.forbiddenWords.length ? `Evitar termos: ${kit.forbiddenWords.join(", ")}` : null,
+    kit.notes.trim() || null,
+  ].filter(Boolean).join("\n");
 }
