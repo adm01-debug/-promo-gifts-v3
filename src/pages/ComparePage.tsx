@@ -96,11 +96,27 @@ export default function ComparePage() {
               <p className="text-muted-foreground">Comparando {compareCount} produtos</p>
             </div>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant={differencesOnly ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDifferencesOnly(v => !v)}
+              aria-pressed={differencesOnly}
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
+            </Button>
             <Button variant="outline" onClick={handleShare}><Share2 className="h-4 w-4 mr-2" />Compartilhar</Button>
             <Button variant="outline" onClick={() => { clearCompare(); navigate("/"); }}>Limpar Comparação</Button>
           </div>
         </div>
+
+        {/* Onda C1 — Inteligência de decisão */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <ComparisonScoreCard products={products} />
+          <ComparisonRadarChart products={products} />
+        </div>
+        <AIComparisonAdvisor products={products} />
 
         <Tabs defaultValue="gallery" className="w-full">
           <TabsList className="grid w-full max-w-md grid-cols-2 mx-auto mb-6">
