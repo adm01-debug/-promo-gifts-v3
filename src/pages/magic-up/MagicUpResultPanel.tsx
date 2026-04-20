@@ -4,6 +4,7 @@
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AdImageResult } from "@/components/magic-up/AdImageResult";
+import { MagicUpVariationComparator } from "@/components/magic-up/MagicUpVariationComparator";
 import { cn } from "@/lib/utils";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
 
@@ -30,6 +31,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
               <button
                 key={i}
                 onClick={() => m.setActiveVariation(i)}
+                aria-label={`Selecionar variação ${i + 1}`}
                 className={cn(
                   "w-2 h-2 rounded-full transition-all",
                   i === m.activeVariation ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
@@ -62,8 +64,19 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
         onDeleteHistory={m.handleDeleteHistory}
         onToggleHistoryFavorite={m.handleToggleHistoryFavorite}
         qualityScore={m.qualityScore}
+        qualityDiagnosis={m.currentVariation?.qualityDiagnosis || m.qualityDiagnosis}
+        curationStatus={m.currentVariation?.curationStatus || m.curationStatus}
+        onSetCurationStatus={m.handleSetCurationStatus}
+        onRunQualityScore={m.handleRunQualityScore}
         copyPack={m.copyPack}
         aspectRatio={m.creativeControls.aspectRatio}
+      />
+
+      <MagicUpVariationComparator
+        variations={m.variations}
+        activeIndex={m.activeVariation}
+        onSelect={m.setActiveVariation}
+        onSelectWinner={m.handleSelectWinningVariation}
       />
 
       {m.variations.length > 1 && (
@@ -72,6 +85,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
             <button
               key={i}
               onClick={() => m.setActiveVariation(i)}
+              aria-label={`Abrir miniatura da variação ${i + 1}`}
               className={cn(
                 "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all",
                 i === m.activeVariation
