@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useFavoritesStore, type FavoriteVariantInfo } from "@/stores/useFavoritesStore";
+import { useLegacyFavoritesMigration } from "@/hooks/useFavoriteLists";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { ProductCard } from "@/components/products/ProductCard";
 import { ProductListItem } from "@/components/products/ProductListItem";
@@ -49,6 +50,8 @@ export default function FavoritesPage() {
   const navigate = useNavigate();
   const { favorites, clearFavorites, favoriteCount, toggleFavorite, isFavorite } =
     useFavoritesStore();
+  // Onda A — migra favoritos do localStorage para a nuvem (idempotente)
+  useLegacyFavoritesMigration();
   const { getProductsByIds, products: _cacheSignal } = useProductsContext();
   const [searchQuery, setSearchQuery] = useState("");
   const [viewMode, setViewMode] = useState<ViewMode>(() => loadViewMode());
