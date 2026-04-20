@@ -13,6 +13,7 @@ import {
   Clock, Trash2, ChevronLeft, ChevronRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { MagicUpCopyPack, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -42,6 +43,9 @@ interface AdImageResultProps {
   onSelectHistory?: (item: GenerationHistoryItem) => void;
   onDeleteHistory?: (id: string) => void;
   onToggleHistoryFavorite?: (id: string, current: boolean) => void;
+  qualityScore?: MagicUpQualityScore;
+  copyPack?: MagicUpCopyPack;
+  aspectRatio?: string;
 }
 
 export function AdImageResult({
@@ -58,6 +62,9 @@ export function AdImageResult({
   onSelectHistory,
   onDeleteHistory,
   onToggleHistoryFavorite,
+  qualityScore,
+  copyPack,
+  aspectRatio,
 }: AdImageResultProps) {
   const [showHistory, setShowHistory] = useState(false);
 
@@ -255,6 +262,35 @@ export function AdImageResult({
             <Share2 className="h-4 w-4" /> WhatsApp
           </Button>
         </div>
+        {(qualityScore || copyPack) && (
+          <div className="border-t p-3 space-y-3">
+            {qualityScore && (
+              <div className="rounded-lg border border-primary/20 bg-primary/5 p-3">
+                <div className="flex items-center justify-between gap-2">
+                  <div>
+                    <p className="text-sm font-semibold">Magic Score {qualityScore.total}/100</p>
+                    <p className="text-xs text-muted-foreground">{qualityScore.label}{aspectRatio ? ` · ${aspectRatio}` : ""}</p>
+                  </div>
+                  <Badge variant="secondary">Curadoria</Badge>
+                </div>
+                <div className="mt-2 grid grid-cols-2 gap-1 text-[11px] text-muted-foreground">
+                  {qualityScore.checks.map((check) => <span key={check.label}>{check.passed ? "✓" : "•"} {check.label}</span>)}
+                </div>
+              </div>
+            )}
+            {copyPack && (
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold">Copy comercial</p>
+                  <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => navigator.clipboard?.writeText(copyPack.whatsapp)}>
+                    <Copy className="h-3.5 w-3.5" /> Copiar WhatsApp
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">{copyPack.whatsapp}</p>
+              </div>
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
   );
