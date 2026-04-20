@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Upload, Loader2, MapPin, Paintbrush,
   Wand2, Eye, EyeOff, Building2,
-  Search, X, Sparkles, Briefcase, SlidersHorizontal,
+  Search, X, Sparkles, Briefcase,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -23,7 +23,10 @@ import { getCompanyDisplayName } from "@/types/crm";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
 import { MagicUpCampaignPanel } from "@/components/magic-up/MagicUpCampaignPanel";
 import { MagicUpBrandKitPanel } from "@/components/magic-up/MagicUpBrandKitPanel";
-import { ASPECT_RATIOS, BRIEF_OPTIONS, COMPOSITIONS, CREATIVE_MODES, NEGATIVE_PROMPTS, QUALITY_MODES, toHuman, type MagicUpBrief } from "./magicUpStrategy";
+import { MagicUpCreativeControls } from "@/components/magic-up/MagicUpCreativeControls";
+import { MagicUpRefinementActions } from "@/components/magic-up/MagicUpRefinementActions";
+import { MagicUpBatchGenerationPanel } from "@/components/magic-up/MagicUpBatchGenerationPanel";
+import { BRIEF_OPTIONS, toHuman, type MagicUpBrief } from "./magicUpStrategy";
 
 type MagicUpStateReturn = ReturnType<typeof useMagicUpState>;
 
@@ -40,7 +43,9 @@ export function MagicUpConfigPanel({ m }: MagicUpConfigPanelProps) {
       <LogoCard m={m} />
       <BrandKitCard m={m} />
       <SceneCard m={m} />
-      <CreativeControlsCard m={m} />
+      <MagicUpCreativeControls value={m.creativeControls} onChange={m.setCreativeControls} />
+      <MagicUpRefinementActions activeRefinement={m.activeRefinement} onApply={m.handleApplyRefinement} />
+      <MagicUpBatchGenerationPanel queue={m.batchQueue} running={m.batchRunning} canGenerate={m.canGenerate} onSetQueue={m.handleSetBatchQueue} onRunQueue={m.handleRunBatchQueue} onClearQueue={m.handleClearBatchQueue} />
       <PreviewCard m={m} />
       <GenerateButton m={m} />
     </div>
@@ -450,47 +455,6 @@ function SceneCard({ m }: { m: MagicUpStateReturn }) {
             )}
           </div>
         )}
-      </CardContent>
-    </Card>
-  );
-}
-
-function CreativeControlsCard({ m }: { m: MagicUpStateReturn }) {
-  return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <SlidersHorizontal className="h-4 w-4 text-primary" /> Direção de arte
-        </CardTitle>
-        <CardDescription className="text-xs">Controle modo criativo, composição, formato, qualidade e restrições visuais.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {[
-            ["creativeMode", "Modo", CREATIVE_MODES],
-            ["composition", "Composição", COMPOSITIONS],
-            ["aspectRatio", "Formato", ASPECT_RATIOS],
-            ["qualityMode", "Qualidade", QUALITY_MODES],
-          ].map(([field, label, options]) => (
-            <div key={field as string} className="space-y-1.5">
-              <Label className="text-xs text-muted-foreground">{label as string}</Label>
-              <Select value={m.creativeControls[field as keyof typeof m.creativeControls] as string} onValueChange={(value) => m.setCreativeControls({ ...m.creativeControls, [field as string]: value })}>
-                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
-                <SelectContent>{(options as string[]).map((option) => <SelectItem key={option} value={option}>{toHuman(option)}</SelectItem>)}</SelectContent>
-              </Select>
-            </div>
-          ))}
-        </div>
-        <div className="flex flex-wrap gap-1.5">
-          {NEGATIVE_PROMPTS.map((item) => {
-            const active = m.creativeControls.negativePrompt.includes(item);
-            return (
-              <button key={item} type="button" onClick={() => m.setCreativeControls({ ...m.creativeControls, negativePrompt: active ? m.creativeControls.negativePrompt.filter((v) => v !== item) : [...m.creativeControls.negativePrompt, item] })} className={cn("px-2.5 py-1 rounded-lg text-xs border transition-all", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50")}>
-                {item}
-              </button>
-            );
-          })}
-        </div>
       </CardContent>
     </Card>
   );
