@@ -1,8 +1,8 @@
 /**
- * ComparePage — Comparador de produtos (refatorado)
- * Tabela extraída para CompareTableView.tsx
+ * ComparePage — Comparador de produtos
+ * Onda C1: Score ponderado, radar chart, AI advisor, TCO, highlights expandidos, differences-only.
  */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
@@ -11,11 +11,14 @@ import { useProductsContext } from "@/contexts/ProductsContext";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List } from "lucide-react";
+import { GitCompare, X, ArrowLeft, ShoppingCart, Share2, Image as ImageIcon, List, Filter } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
 import { CompareTableView } from "@/components/compare/CompareTableView";
+import { ComparisonScoreCard } from "@/components/compare/ComparisonScoreCard";
+import { ComparisonRadarChart } from "@/components/compare/ComparisonRadarChart";
+import { AIComparisonAdvisor } from "@/components/compare/AIComparisonAdvisor";
 
 export default function ComparePage() {
   const navigate = useNavigate();
