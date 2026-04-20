@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Upload, Loader2, MapPin, Paintbrush,
   Wand2, Eye, EyeOff, Building2,
-  Search, X, Sparkles, BriefcaseBusiness, ShieldCheck, SlidersHorizontal,
+  Search, X, Sparkles, Briefcase, ShieldCheck, SlidersHorizontal,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -50,7 +50,7 @@ function BriefingCard({ m }: { m: MagicUpStateReturn }) {
     <Card className="border-primary/20">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
-          <BriefcaseBusiness className="h-4 w-4 text-primary" /> Briefing da campanha
+          <Briefcase className="h-4 w-4 text-primary" /> Briefing da campanha
         </CardTitle>
         <CardDescription className="text-xs">Defina intenção comercial, canal, público e CTA antes de gerar.</CardDescription>
       </CardHeader>
