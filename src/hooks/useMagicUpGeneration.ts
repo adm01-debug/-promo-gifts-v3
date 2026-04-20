@@ -5,11 +5,12 @@ import { useState, useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
 import type { VariationItem, MagicUpProduct, Technique, SelectedClient } from "./useMagicUpState";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
-import type { MagicUpBrief, MagicUpCopyPack, MagicUpCreativeControls, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
+import type { MagicUpBrief, MagicUpCampaign, MagicUpCopyPack, MagicUpCreativeControls, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
 
 interface GenerationDeps {
   selectedProduct: MagicUpProduct | null;
@@ -27,6 +28,7 @@ interface GenerationDeps {
   qualityScore: MagicUpQualityScore;
   copyPack: MagicUpCopyPack;
   fullPromptPreview: string;
+  activeCampaign: MagicUpCampaign | null;
 }
 
 export function useMagicUpGeneration(deps: GenerationDeps) {
@@ -69,30 +71,36 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
       if (data?.imageUrl) {
         let genId: string | null = null;
         if (deps.userId) {
-          const { data: inserted } = await supabase
+          const generationPayload: TablesInsert<"magic_up_generations"> = {
+            user_id: deps.userId,
+            campaign_id: deps.activeCampaign?.id || null,
+            product_name: deps.selectedProduct!.name,
+            product_id: deps.selectedProduct!.id,
+            product_sku: deps.selectedProduct!.sku,
+            scene_title: deps.selectedScene?.title || null,
+            scene_category: deps.selectedScene?.category || "custom",
+            generated_image_url: data.imageUrl,
+            client_name: deps.selectedClient?.name || deps.activeCampaign?.clientName || null,
+            prompt_text: deps.fullPromptPreview || deps.effectivePrompt,
+            model: data.model || "magic-up-pro",
+            channel: deps.brief.channel,
+            aspect_ratio: deps.creativeControls.aspectRatio,
+            quality_score: deps.qualityScore.total,
+            status: deps.activeCampaign?.status || "draft",
+            tags: [deps.brief.channel, deps.brief.objective, deps.brief.tone].filter(Boolean),
+            copy_pack: deps.copyPack,
+            export_presets: ["png", "jpg-whatsapp", deps.creativeControls.aspectRatio],
+            metadata: { brief: deps.brief, creativeControls: deps.creativeControls, qualityScore: deps.qualityScore, campaign: deps.activeCampaign },
+          };
+          const { data: inserted, error: insertError } = await supabase
             .from("magic_up_generations")
-            .insert({
-              user_id: deps.userId,
-              product_name: deps.selectedProduct!.name,
-              product_id: deps.selectedProduct!.id,
-              product_sku: deps.selectedProduct!.sku,
-              scene_title: deps.selectedScene?.title || null,
-              scene_category: deps.selectedScene?.category || "custom",
-              generated_image_url: data.imageUrl,
-              client_name: deps.selectedClient?.name || null,
-              prompt_text: deps.fullPromptPreview || deps.effectivePrompt,
-              model: "magic-up-pro",
-              channel: deps.brief.channel,
-              aspect_ratio: deps.creativeControls.aspectRatio,
-              quality_score: deps.qualityScore.total,
-              status: "draft",
-              tags: [deps.brief.channel, deps.brief.objective, deps.brief.tone].filter(Boolean),
-              copy_pack: deps.copyPack,
-              export_presets: ["png", "jpg-whatsapp", deps.creativeControls.aspectRatio],
-              metadata: { brief: deps.brief, creativeControls: deps.creativeControls, qualityScore: deps.qualityScore },
-            } as any)
+            .insert(generationPayload)
             .select("id")
             .single();
+          if (insertError) {
+            toast.warning("Imagem gerada, mas não foi salva no histórico.");
+            console.error("Magic Up history insert error:", insertError);
+          }
           if (inserted) genId = inserted.id;
           queryClient.invalidateQueries({ queryKey: ["magic-up-history"] });
         }
