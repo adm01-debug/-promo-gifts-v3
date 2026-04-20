@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Upload, Loader2, MapPin, Paintbrush,
   Wand2, Eye, EyeOff, Building2,
-  Search, X, Sparkles,
+  Search, X, Sparkles, Briefcase, ShieldCheck, SlidersHorizontal,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -21,6 +21,7 @@ import { PromptGenerator } from "@/components/magic-up/PromptGenerator";
 import { cn } from "@/lib/utils";
 import { getCompanyDisplayName } from "@/types/crm";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
+import { ASPECT_RATIOS, BRIEF_OPTIONS, BRIEF_PRESETS, COMPOSITIONS, CREATIVE_MODES, NEGATIVE_PROMPTS, QUALITY_MODES, toHuman } from "./magicUpStrategy";
 
 type MagicUpStateReturn = ReturnType<typeof useMagicUpState>;
 
@@ -32,11 +33,58 @@ export function MagicUpConfigPanel({ m }: MagicUpConfigPanelProps) {
   return (
     <div className="space-y-4">
       <ClientCard m={m} />
+      <BriefingCard m={m} />
       <ProductCard m={m} />
       <LogoCard m={m} />
+      <BrandKitCard m={m} />
       <SceneCard m={m} />
+      <CreativeControlsCard m={m} />
+      <PreviewCard m={m} />
       <GenerateButton m={m} />
     </div>
+  );
+}
+
+function BriefingCard({ m }: { m: MagicUpStateReturn }) {
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <Briefcase className="h-4 w-4 text-primary" /> Briefing da campanha
+        </CardTitle>
+        <CardDescription className="text-xs">Defina intenção comercial, canal, público e CTA antes de gerar.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 gap-2">
+          {BRIEF_PRESETS.map((preset) => (
+            <Button key={preset.label} type="button" variant="outline" size="sm" className="justify-start text-xs" onClick={() => m.setBrief(preset)}>
+              {preset.label}
+            </Button>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {(["objective", "channel", "audience", "tone"] as const).map((field) => (
+            <div key={field} className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{toHuman(field)}</Label>
+              <Select value={m.brief[field]} onValueChange={(value) => m.setBrief({ ...m.brief, [field]: value })}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>{BRIEF_OPTIONS[field].map((option) => <SelectItem key={option} value={option}>{toHuman(option)}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">CTA</Label>
+            <Input value={m.brief.cta} onChange={(e) => m.setBrief({ ...m.brief, cta: e.target.value })} className="h-9" />
+          </div>
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Ocasião</Label>
+            <Input value={m.brief.occasion} onChange={(e) => m.setBrief({ ...m.brief, occasion: e.target.value })} className="h-9" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -277,6 +325,39 @@ function LogoCard({ m }: { m: MagicUpStateReturn }) {
   );
 }
 
+function BrandKitCard({ m }: { m: MagicUpStateReturn }) {
+  const warnings = [
+    !m.logoPreview ? "Logo ainda não enviado" : null,
+    !m.selectedClient ? "Cliente não selecionado" : null,
+    !m.brandNotes.trim() ? "Diretrizes de marca não informadas" : null,
+  ].filter(Boolean);
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <ShieldCheck className="h-4 w-4 text-primary" /> Brand Kit & segurança
+        </CardTitle>
+        <CardDescription className="text-xs">Use cores, tom e cuidados de marca para evitar peças genéricas.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <Textarea
+          value={m.brandNotes}
+          onChange={(e) => m.setBrandNotes(e.target.value)}
+          placeholder="Ex: usar paleta azul institucional, evitar linguagem informal, manter logo em área limpa..."
+          rows={3}
+          className="text-sm resize-none"
+        />
+        <div className="flex flex-wrap gap-1.5">
+          {(warnings.length ? warnings : ["Logo pronto", "Briefing consistente", "Peça apta para revisão"]).map((warning) => (
+            <Badge key={warning} variant={warnings.length ? "outline" : "secondary"} className="text-[10px]">{warning}</Badge>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function SceneCard({ m }: { m: MagicUpStateReturn }) {
   return (
     <Card>
@@ -395,6 +476,68 @@ function SceneCard({ m }: { m: MagicUpStateReturn }) {
             )}
           </div>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function CreativeControlsCard({ m }: { m: MagicUpStateReturn }) {
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">
+          <SlidersHorizontal className="h-4 w-4 text-primary" /> Direção de arte
+        </CardTitle>
+        <CardDescription className="text-xs">Controle modo criativo, composição, formato, qualidade e restrições visuais.</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {[
+            ["creativeMode", "Modo", CREATIVE_MODES],
+            ["composition", "Composição", COMPOSITIONS],
+            ["aspectRatio", "Formato", ASPECT_RATIOS],
+            ["qualityMode", "Qualidade", QUALITY_MODES],
+          ].map(([field, label, options]) => (
+            <div key={field as string} className="space-y-1.5">
+              <Label className="text-xs text-muted-foreground">{label as string}</Label>
+              <Select value={m.creativeControls[field as keyof typeof m.creativeControls] as string} onValueChange={(value) => m.setCreativeControls({ ...m.creativeControls, [field as string]: value })}>
+                <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
+                <SelectContent>{(options as string[]).map((option) => <SelectItem key={option} value={option}>{toHuman(option)}</SelectItem>)}</SelectContent>
+              </Select>
+            </div>
+          ))}
+        </div>
+        <div className="flex flex-wrap gap-1.5">
+          {NEGATIVE_PROMPTS.map((item) => {
+            const active = m.creativeControls.negativePrompt.includes(item);
+            return (
+              <button key={item} type="button" onClick={() => m.setCreativeControls({ ...m.creativeControls, negativePrompt: active ? m.creativeControls.negativePrompt.filter((v) => v !== item) : [...m.creativeControls.negativePrompt, item] })} className={cn("px-2.5 py-1 rounded-lg text-xs border transition-all", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50")}>
+                {item}
+              </button>
+            );
+          })}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function PreviewCard({ m }: { m: MagicUpStateReturn }) {
+  return (
+    <Card className="border-primary/20">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-base">Prévia comercial</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="grid grid-cols-2 gap-2 text-xs">
+          <Badge variant="outline" className="justify-center">Canal: {toHuman(m.brief.channel)}</Badge>
+          <Badge variant="outline" className="justify-center">Formato: {m.creativeControls.aspectRatio}</Badge>
+          <Badge variant="outline" className="justify-center">Score: {m.qualityScore.total}/100</Badge>
+          <Badge variant="outline" className="justify-center">Tom: {toHuman(m.brief.tone)}</Badge>
+        </div>
+        <div className="rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
+          {m.qualityScore.checks.map((check) => <p key={check.label}>{check.passed ? "✓" : "•"} {check.label}</p>)}
+        </div>
       </CardContent>
     </Card>
   );

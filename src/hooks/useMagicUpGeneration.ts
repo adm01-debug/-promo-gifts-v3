@@ -9,6 +9,7 @@ import type { VariationItem, MagicUpProduct, Technique, SelectedClient } from ".
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import type { ProductColor } from "./useMagicUpState";
+import type { MagicUpBrief, MagicUpCopyPack, MagicUpCreativeControls, MagicUpQualityScore } from "@/pages/magic-up/magicUpStrategy";
 
 interface GenerationDeps {
   selectedProduct: MagicUpProduct | null;
@@ -21,6 +22,11 @@ interface GenerationDeps {
   selectedScene: ScenePrompt | null;
   selectedClient: SelectedClient | null;
   userId: string | undefined;
+  brief: MagicUpBrief;
+  creativeControls: MagicUpCreativeControls;
+  qualityScore: MagicUpQualityScore;
+  copyPack: MagicUpCopyPack;
+  fullPromptPreview: string;
 }
 
 export function useMagicUpGeneration(deps: GenerationDeps) {
@@ -50,6 +56,13 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
           sceneCategory: deps.selectedScene?.category || "custom",
           brandColorHex: deps.selectedClient?.cor_primaria_hex || null,
           brandColorName: deps.selectedClient?.cor_primaria_nome || null,
+          campaignBrief: deps.brief,
+          outputChannel: deps.brief.channel,
+          aspectRatio: deps.creativeControls.aspectRatio,
+          qualityMode: deps.creativeControls.qualityMode,
+          compositionMode: deps.creativeControls.composition,
+          creativeMode: deps.creativeControls.creativeMode,
+          negativePrompt: deps.creativeControls.negativePrompt,
         },
       });
       if (error) throw error;
@@ -61,11 +74,23 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
             .insert({
               user_id: deps.userId,
               product_name: deps.selectedProduct!.name,
+              product_id: deps.selectedProduct!.id,
+              product_sku: deps.selectedProduct!.sku,
               scene_title: deps.selectedScene?.title || null,
               scene_category: deps.selectedScene?.category || "custom",
               generated_image_url: data.imageUrl,
               client_name: deps.selectedClient?.name || null,
-            })
+              prompt_text: deps.fullPromptPreview || deps.effectivePrompt,
+              model: "magic-up-pro",
+              channel: deps.brief.channel,
+              aspect_ratio: deps.creativeControls.aspectRatio,
+              quality_score: deps.qualityScore.total,
+              status: "draft",
+              tags: [deps.brief.channel, deps.brief.objective, deps.brief.tone].filter(Boolean),
+              copy_pack: deps.copyPack,
+              export_presets: ["png", "jpg-whatsapp", deps.creativeControls.aspectRatio],
+              metadata: { brief: deps.brief, creativeControls: deps.creativeControls, qualityScore: deps.qualityScore },
+            } as any)
             .select("id")
             .single();
           if (inserted) genId = inserted.id;
@@ -125,7 +150,7 @@ export function useMagicUpGeneration(deps: GenerationDeps) {
   const handleShare = useCallback(() => {
     if (!currentVariation?.imageUrl) return;
     const clientGreeting = deps.selectedClient ? `Olá ${deps.selectedClient.name}! ` : "";
-    const text = `${clientGreeting}✨ Confira a imagem publicitária: ${deps.selectedProduct?.name}${deps.selectedColor ? ` (${deps.selectedColor.name})` : ""} com ${deps.selectedTechnique?.name || "personalização"}`;
+    const text = deps.copyPack.whatsapp || `${clientGreeting}✨ Confira a imagem publicitária: ${deps.selectedProduct?.name}${deps.selectedColor ? ` (${deps.selectedColor.name})` : ""} com ${deps.selectedTechnique?.name || "personalização"}`;
     window.open(`https://wa.me/?text=${encodeURIComponent(text + "\n" + currentVariation.imageUrl)}`, "_blank");
   }, [currentVariation, deps]);
 

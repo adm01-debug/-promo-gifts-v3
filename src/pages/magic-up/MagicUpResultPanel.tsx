@@ -61,6 +61,9 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
         onSelectHistory={m.handleSelectHistory}
         onDeleteHistory={m.handleDeleteHistory}
         onToggleHistoryFavorite={m.handleToggleHistoryFavorite}
+        qualityScore={m.qualityScore}
+        copyPack={m.copyPack}
+        aspectRatio={m.creativeControls.aspectRatio}
       />
 
       {m.variations.length > 1 && (

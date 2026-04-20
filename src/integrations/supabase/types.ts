@@ -1627,41 +1627,332 @@ export type Database = {
         }
         Relationships: []
       }
-      magic_up_generations: {
+      magic_up_brand_kits: {
         Row: {
+          client_id: string | null
           client_name: string | null
           created_at: string
-          generated_image_url: string | null
+          forbidden_words: string[]
           id: string
-          is_favorite: boolean | null
-          product_name: string | null
-          scene_category: string | null
-          scene_title: string | null
+          logo_urls: Json
+          metadata: Json
+          notes: string | null
+          primary_color: string | null
+          required_words: string[]
+          secondary_color: string | null
+          tone_of_voice: string | null
+          updated_at: string
+          user_id: string
+          visual_style: string | null
+        }
+        Insert: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          forbidden_words?: string[]
+          id?: string
+          logo_urls?: Json
+          metadata?: Json
+          notes?: string | null
+          primary_color?: string | null
+          required_words?: string[]
+          secondary_color?: string | null
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id: string
+          visual_style?: string | null
+        }
+        Update: {
+          client_id?: string | null
+          client_name?: string | null
+          created_at?: string
+          forbidden_words?: string[]
+          id?: string
+          logo_urls?: Json
+          metadata?: Json
+          notes?: string | null
+          primary_color?: string | null
+          required_words?: string[]
+          secondary_color?: string | null
+          tone_of_voice?: string | null
+          updated_at?: string
+          user_id?: string
+          visual_style?: string | null
+        }
+        Relationships: []
+      }
+      magic_up_campaigns: {
+        Row: {
+          audience: string | null
+          channel: string | null
+          client_id: string | null
+          client_name: string | null
+          created_at: string
+          cta: string | null
+          id: string
+          metadata: Json
+          objective: string | null
+          occasion: string | null
+          status: string
+          title: string
+          tone: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          audience?: string | null
+          channel?: string | null
+          client_id?: string | null
           client_name?: string | null
           created_at?: string
-          generated_image_url?: string | null
+          cta?: string | null
           id?: string
-          is_favorite?: boolean | null
-          product_name?: string | null
-          scene_category?: string | null
-          scene_title?: string | null
+          metadata?: Json
+          objective?: string | null
+          occasion?: string | null
+          status?: string
+          title?: string
+          tone?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          audience?: string | null
+          channel?: string | null
+          client_id?: string | null
           client_name?: string | null
           created_at?: string
-          generated_image_url?: string | null
+          cta?: string | null
           id?: string
-          is_favorite?: boolean | null
-          product_name?: string | null
-          scene_category?: string | null
-          scene_title?: string | null
+          metadata?: Json
+          objective?: string | null
+          occasion?: string | null
+          status?: string
+          title?: string
+          tone?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
+      }
+      magic_up_comments: {
+        Row: {
+          author_name: string
+          comment: string
+          created_at: string
+          generation_id: string
+          id: string
+          is_public: boolean
+          user_id: string
+        }
+        Insert: {
+          author_name?: string
+          comment: string
+          created_at?: string
+          generation_id: string
+          id?: string
+          is_public?: boolean
+          user_id: string
+        }
+        Update: {
+          author_name?: string
+          comment?: string
+          created_at?: string
+          generation_id?: string
+          id?: string
+          is_public?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magic_up_comments_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "magic_up_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      magic_up_generations: {
+        Row: {
+          aspect_ratio: string | null
+          campaign_id: string | null
+          channel: string | null
+          client_name: string | null
+          copy_pack: Json
+          created_at: string
+          export_presets: Json
+          generated_image_url: string | null
+          id: string
+          is_favorite: boolean | null
+          metadata: Json
+          model: string | null
+          product_id: string | null
+          product_name: string | null
+          product_sku: string | null
+          prompt_text: string | null
+          quality_score: number | null
+          scene_category: string | null
+          scene_title: string | null
+          status: string
+          tags: string[]
+          user_id: string
+        }
+        Insert: {
+          aspect_ratio?: string | null
+          campaign_id?: string | null
+          channel?: string | null
+          client_name?: string | null
+          copy_pack?: Json
+          created_at?: string
+          export_presets?: Json
+          generated_image_url?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          metadata?: Json
+          model?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          prompt_text?: string | null
+          quality_score?: number | null
+          scene_category?: string | null
+          scene_title?: string | null
+          status?: string
+          tags?: string[]
+          user_id: string
+        }
+        Update: {
+          aspect_ratio?: string | null
+          campaign_id?: string | null
+          channel?: string | null
+          client_name?: string | null
+          copy_pack?: Json
+          created_at?: string
+          export_presets?: Json
+          generated_image_url?: string | null
+          id?: string
+          is_favorite?: boolean | null
+          metadata?: Json
+          model?: string | null
+          product_id?: string | null
+          product_name?: string | null
+          product_sku?: string | null
+          prompt_text?: string | null
+          quality_score?: number | null
+          scene_category?: string | null
+          scene_title?: string | null
+          status?: string
+          tags?: string[]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magic_up_generations_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "magic_up_campaigns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      magic_up_public_shares: {
+        Row: {
+          allow_comments: boolean
+          allow_download: boolean
+          campaign_id: string | null
+          created_at: string
+          expires_at: string | null
+          generation_id: string | null
+          id: string
+          metadata: Json
+          share_token: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          allow_comments?: boolean
+          allow_download?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          generation_id?: string | null
+          id?: string
+          metadata?: Json
+          share_token?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          allow_comments?: boolean
+          allow_download?: boolean
+          campaign_id?: string | null
+          created_at?: string
+          expires_at?: string | null
+          generation_id?: string | null
+          id?: string
+          metadata?: Json
+          share_token?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magic_up_public_shares_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "magic_up_campaigns"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "magic_up_public_shares_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "magic_up_generations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      magic_up_reactions: {
+        Row: {
+          created_at: string
+          generation_id: string
+          id: string
+          ip_hash: string | null
+          reaction_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          generation_id: string
+          id?: string
+          ip_hash?: string | null
+          reaction_type: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          generation_id?: string
+          id?: string
+          ip_hash?: string | null
+          reaction_type?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "magic_up_reactions_generation_id_fkey"
+            columns: ["generation_id"]
+            isOneToOne: false
+            referencedRelation: "magic_up_generations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       mcp_api_keys: {
         Row: {

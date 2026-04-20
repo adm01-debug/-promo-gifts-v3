@@ -15,6 +15,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
+import { DEFAULT_BRIEF, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, type MagicUpBrief, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -90,6 +91,9 @@ export function useMagicUpState() {
   const [additionalDetails, setAdditionalDetails] = useState("");
   const [showPromptPreview, setShowPromptPreview] = useState(false);
   const [sceneTab, setSceneTab] = useState<"ai" | "bank">("ai");
+  const [brief, setBrief] = useState<MagicUpBrief>(DEFAULT_BRIEF);
+  const [creativeControls, setCreativeControls] = useState<MagicUpCreativeControls>(DEFAULT_CREATIVE_CONTROLS);
+  const [brandNotes, setBrandNotes] = useState("");
 
   // Client (CRM externo)
   const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
@@ -215,17 +219,38 @@ export function useMagicUpState() {
 
   const fullPromptPreview = useMemo(() => {
     if (!selectedProduct || !effectivePrompt) return "";
-    return `PRODUTO: ${selectedProduct.name}${selectedColor ? ` (${selectedColor.name})` : ""}
+    return `BRIEFING: objetivo=${brief.objective}; canal=${brief.channel}; público=${brief.audience}; tom=${brief.tone}; CTA=${brief.cta}; ocasião=${brief.occasion}
+CONTROLE CRIATIVO: modo=${creativeControls.creativeMode}; composição=${creativeControls.composition}; formato=${creativeControls.aspectRatio}; qualidade=${creativeControls.qualityMode}; evitar=${creativeControls.negativePrompt.join(", ")}
+${brandNotes ? `DIRETRIZES DA MARCA: ${brandNotes}` : ""}
+PRODUTO: ${selectedProduct.name}${selectedColor ? ` (${selectedColor.name})` : ""}
 TÉCNICA: ${selectedTechnique?.name || "Não especificada"} @ ${selectedLocationName || "Não especificado"}
 ${selectedClient ? `CLIENTE: ${selectedClient.name}${selectedClient.ramo_atividade ? ` (${selectedClient.ramo_atividade})` : ""}` : ""}
 ${selectedClient?.cor_primaria_hex ? `COR DA MARCA: ${selectedClient.cor_primaria_nome || selectedClient.cor_primaria_hex}` : ""}
 CENÁRIO: ${effectivePrompt}`;
-  }, [selectedProduct, selectedColor, selectedTechnique, selectedLocationName, effectivePrompt, selectedClient]);
+  }, [brief, creativeControls, brandNotes, selectedProduct, selectedColor, selectedTechnique, selectedLocationName, effectivePrompt, selectedClient]);
+
+  const qualityScore = useMemo(() => buildMagicScore({
+    hasProduct: !!selectedProduct,
+    hasLogo: !!logoPreview,
+    hasClient: !!selectedClient,
+    hasTechnique: !!selectedTechnique,
+    hasBrief: !!brief.objective && !!brief.channel,
+    channel: brief.channel,
+  }), [selectedProduct, logoPreview, selectedClient, selectedTechnique, brief]);
+
+  const copyPack = useMemo(() => buildCopyPack({
+    productName: selectedProduct?.name,
+    clientName: selectedClient?.name,
+    cta: brief.cta,
+    tone: brief.tone,
+    channel: brief.channel,
+  }), [selectedProduct?.name, selectedClient?.name, brief]);
 
   // ─── Generation (delegated) ────────────────────────────────────
   const generation = useMagicUpGeneration({
     selectedProduct, currentImage, logoPreview, effectivePrompt,
     selectedColor, selectedTechnique, selectedLocationName, selectedScene, selectedClient, userId: user?.id,
+    brief, creativeControls, qualityScore, copyPack, fullPromptPreview,
   });
 
   // ─── Handlers ──────────────────────────────────────────────────
@@ -261,6 +286,8 @@ CENÁRIO: ${effectivePrompt}`;
     logoPreview, logoUploading, handleLogoUpload,
     selectedScene, setSelectedScene, additionalDetails, setAdditionalDetails,
     showPromptPreview, setShowPromptPreview, sceneTab, setSceneTab,
+    brief, setBrief, creativeControls, setCreativeControls, brandNotes, setBrandNotes,
+    qualityScore, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,
     setShowClientResults, clientResults, loadingClients,
