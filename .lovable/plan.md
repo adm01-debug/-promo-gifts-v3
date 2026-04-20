@@ -1,93 +1,36 @@
 
-# Magic Up 10/10 — Execução sequencial até a meta
+# Magic Up 10/10 — Execução contínua das próximas ondas
 
-Vou continuar a evolução do Magic Up em ondas pequenas, uma por vez, sem perguntas intermediárias, mantendo excelência técnica, segurança, RLS, TypeScript estrito, acessibilidade e validação ao final de cada onda.
+O Magic Up já avançou com hardening inicial e Campaign Studio modular. Vou continuar a execução em sequência, uma melhoria por vez, sem perguntas intermediárias, até fechar o roadmap 10/10.
 
-O que já existe como base recente:
-- Briefing comercial básico.
-- Presets de campanha.
-- Brand notes.
-- Direção de arte básica.
-- Magic Score heurístico inicial.
-- Copy comercial inicial.
-- Persistência expandida em `magic_up_generations`.
-- Tabelas estruturais iniciais para campanhas, brand kits, comentários, reactions e shares.
-- `generate-ad-image` recebendo briefing, formato, qualidade, composição e negative prompt.
+## Estado atual confirmado
 
-Agora vou completar o roadmap para transformar o módulo em uma suíte publicitária B2B 10/10.
+- `magic_up_campaigns`, `magic_up_brand_kits`, `magic_up_generations`, `magic_up_comments`, `magic_up_reactions` e `magic_up_public_shares` já existem.
+- RLS está ativa para o usuário gerenciar seus próprios dados.
+- Índices principais já existem para campanhas, brand kits, gerações, comentários, reações e tokens públicos.
+- Campaign Studio já foi iniciado com:
+  - presets;
+  - título/status;
+  - salvar/atualizar campanha;
+  - listar campanhas recentes;
+  - duplicar campanha como rascunho;
+  - associar geração à campanha ativa.
 
-## Onda 1 — Hardening da base implementada
+## Próxima execução: Onda 3 → Onda 13
 
-Objetivo: deixar a base atual sólida antes de adicionar novas camadas.
+### Onda 3 — Brand Kit 10/10
 
-### Ajustes
-- Revisar o código recém-adicionado em:
-  - `src/pages/MagicUp.tsx`
-  - `src/pages/magic-up/MagicUpConfigPanel.tsx`
-  - `src/pages/magic-up/MagicUpResultPanel.tsx`
-  - `src/pages/magic-up/magicUpStrategy.ts`
-  - `src/hooks/useMagicUpState.ts`
-  - `src/hooks/useMagicUpGeneration.ts`
-  - `supabase/functions/generate-ad-image/index.ts`
-- Corrigir qualquer risco de:
-  - tipo frouxo;
-  - dependências instáveis em callbacks;
-  - botões sem acessibilidade;
-  - arrays inline que causem renderizações desnecessárias;
-  - estados derivados mal memorizados;
-  - inserções Cloud sem tratamento de erro;
-  - layout com excesso visual ou desalinhamento mobile.
+Criar uma camada real de identidade visual por cliente.
 
-### Resultado
-Magic Up atual estabilizado e preparado para receber as próximas ondas sem acumular débito técnico.
-
-## Onda 2 — Campaign Studio completo
-
-Objetivo: transformar o briefing simples em uma estrutura real de campanha.
-
-### Frontend
-Criar componentes modulares:
-- `MagicUpCampaignPanel.tsx`
-- `MagicUpCampaignSummary.tsx`
-- `MagicUpCampaignPresets.tsx`
-
-Funcionalidades:
-- Criar campanha com título, cliente, objetivo, canal, público, tom, CTA e ocasião.
-- Persistir campanha em `magic_up_campaigns`.
-- Associar novas gerações à campanha ativa.
-- Exibir resumo compacto no header.
-- Permitir duplicar uma campanha para outro produto ou cliente.
-- Estados:
-  - rascunho;
-  - em revisão;
-  - enviada;
-  - aprovada;
-  - rejeitada.
-
-### Backend
-- Garantir RLS completa por `user_id`.
-- Adicionar índices se necessário para:
-  - `user_id`;
-  - `client_id`;
-  - `status`;
-  - `created_at`.
-
-### Resultado
-O usuário não gera imagens soltas: ele trabalha dentro de campanhas reutilizáveis.
-
-## Onda 3 — Brand Kit 10/10
-
-Objetivo: tornar marca do cliente um ativo persistente e reutilizável.
-
-### Frontend
-Criar:
-- `MagicUpBrandKitPanel.tsx`
-- `MagicUpLogoLibrary.tsx`
-- `MagicUpBrandSafetyChecklist.tsx`
-
-Funcionalidades:
-- Salvar Brand Kit por cliente:
-  - logos;
+**Implementação:**
+- Criar componentes:
+  - `MagicUpBrandKitPanel`
+  - `MagicUpLogoLibrary`
+  - `MagicUpBrandSafetyChecklist`
+- Integrar `magic_up_brand_kits` ao estado do Magic Up.
+- Permitir salvar/carregar:
+  - logo principal;
+  - lista de logos;
   - cor primária;
   - cor secundária;
   - tom de voz;
@@ -95,45 +38,34 @@ Funcionalidades:
   - palavras obrigatórias;
   - palavras proibidas;
   - notas internas.
-- Carregar automaticamente o Brand Kit ao selecionar cliente.
-- Exibir checklist de marca:
+- Ao selecionar cliente, carregar automaticamente o Brand Kit vinculado.
+- Melhorar o checklist atual de segurança de marca com:
   - logo presente;
   - cliente selecionado;
   - diretrizes preenchidas;
-  - contraste recomendado;
-  - uso de cor institucional.
-- Preparar a UI para múltiplas versões de logo:
-  - colorido;
-  - branco;
-  - preto;
-  - horizontal;
-  - vertical;
-  - ícone.
+  - contraste básico;
+  - uso de cor institucional;
+  - risco de peça genérica.
+- Persistir o Brand Kit sem duplicar dados do CRM externo.
 
-### Edge Function
-Criar ou reaproveitar:
-- `analyze-logo-colors`
+**Validação:**
+- Salvar Brand Kit.
+- Reabrir Magic Up.
+- Selecionar o mesmo cliente.
+- Confirmar carregamento automático.
 
-Para:
-- extrair paleta aproximada do logo;
-- sugerir cor primária/secundária;
-- retornar alertas de contraste e qualidade.
+---
 
-### Resultado
-Cada imagem passa a respeitar a identidade do cliente e reduz aparência genérica.
+### Onda 4 — Geração Pro e refinamentos
 
-## Onda 4 — Geração Pro e refinamento criativo
+Transformar a geração em direção de arte controlável.
 
-Objetivo: dar controle real de direção de arte ao vendedor.
-
-### Frontend
-Criar:
-- `MagicUpCreativeControls.tsx`
-- `MagicUpRefinementActions.tsx`
-- `MagicUpBatchGenerationPanel.tsx`
-
-Funcionalidades:
-- Modos criativos:
+**Implementação:**
+- Modularizar os controles atuais em:
+  - `MagicUpCreativeControls`
+  - `MagicUpRefinementActions`
+  - `MagicUpBatchGenerationPanel`
+- Expandir os modos:
   - produto herói;
   - lifestyle;
   - flatlay;
@@ -143,29 +75,22 @@ Funcionalidades:
   - evento;
   - kit/combinação;
   - mockup realista.
-- Composição:
-  - produto central;
+- Expandir composição:
+  - centro limpo;
   - produto à esquerda;
   - produto à direita;
   - close-up;
-  - fundo limpo;
-  - ambiente com pessoas;
-  - ambiente com props.
-- Formatos:
+  - ambiente aberto;
+  - com pessoas;
+  - com props.
+- Melhorar formato/canal:
   - 1:1;
   - 4:5;
   - 9:16;
   - 16:9;
   - A4;
   - WhatsApp.
-- Negative prompts visuais:
-  - sem texto na imagem;
-  - sem mãos deformadas;
-  - sem logo distorcido;
-  - sem produto duplicado;
-  - sem marca concorrente;
-  - sem fundo poluído.
-- Ações rápidas:
+- Adicionar refinamentos rápidos:
   - mais premium;
   - mais minimalista;
   - mais humano;
@@ -174,56 +99,41 @@ Funcionalidades:
   - mais realista;
   - mais foco no produto;
   - menos elementos;
-  - trocar fundo;
-  - manter produto e logo, mudar cenário.
-- Geração em lote:
-  - 3 variações de cena;
-  - 3 variações de canal;
-  - pacote WhatsApp + Instagram + LinkedIn + orçamento.
+  - trocar fundo.
+- Preparar geração em lote com fila local de variações.
+- Evoluir `generate-ad-image` para padronizar:
+  - `model`;
+  - `qualityMode`;
+  - `aspectRatio`;
+  - `creativeMode`;
+  - `compositionMode`;
+  - mensagens de erro.
 
-### Edge Function
-Evoluir `generate-ad-image` para:
-- respeitar formato/canal;
-- retornar metadados da geração;
-- padronizar mensagens de erro;
-- registrar `model`, `qualityMode`, `aspectRatio`, `creativeMode`.
+**Validação:**
+- Gerar imagem com diferentes formatos.
+- Confirmar metadados salvos em `magic_up_generations`.
+- Confirmar que negative prompts entram no payload.
 
-### Resultado
-Magic Up deixa de ser “gerar uma imagem” e vira um fluxo de direção de arte controlável.
+---
 
-## Onda 5 — Magic Score real + curadoria
+### Onda 5 — Magic Score real + curadoria
 
-Objetivo: ajudar o vendedor a escolher a melhor peça e evitar envio de imagens ruins.
+Elevar o score atual de heurístico para diagnóstico comercial útil.
 
-### Frontend
-Criar:
-- `MagicUpQualityScore.tsx`
-- `MagicUpQualityChecklist.tsx`
-- `MagicUpVariationComparator.tsx`
-- `MagicUpCurationStatus.tsx`
-
-Funcionalidades:
-- Score 0–100 com critérios:
+**Implementação:**
+- Criar componentes:
+  - `MagicUpQualityScore`
+  - `MagicUpQualityChecklist`
+  - `MagicUpVariationComparator`
+  - `MagicUpCurationStatus`
+- Exibir score por critérios:
   - clareza do produto;
   - visibilidade do logo;
   - adequação ao canal;
   - coerência com cliente;
   - qualidade visual;
   - potencial comercial.
-- Checklist pós-geração:
-  - produto visível;
-  - logo legível;
-  - cena coerente;
-  - espaço para copy;
-  - pronto para WhatsApp;
-  - realismo visual;
-  - composição limpa.
-- Comparador de variações:
-  - lado a lado;
-  - destacar melhor score;
-  - pontos fortes/fracos;
-  - marcar vencedora.
-- Status:
+- Adicionar status de curadoria:
   - rascunho;
   - boa;
   - favorita;
@@ -232,28 +142,41 @@ Funcionalidades:
   - aprovada pelo cliente;
   - rejeitada;
   - precisa ajuste.
+- Criar backend function `magic-up-score` com:
+  - autenticação;
+  - validação Zod;
+  - uso do Lovable AI;
+  - retorno estruturado com score, checklist e recomendações.
+- Usar score heurístico como fallback se a análise IA falhar.
 
-### Edge Function
-Criar:
-- `magic-up-score`
+**Validação:**
+- Gerar imagem.
+- Rodar score.
+- Persistir `quality_score` e metadados.
+- Alterar status de curadoria.
 
-Com Zod validation e autenticação, usando Lovable AI para avaliar imagem + prompt + briefing quando houver imagem gerada.
+---
 
-### Resultado
-Cada imagem recebe diagnóstico comercial, não apenas visual.
+### Onda 6 — Copywriter + WhatsApp Pack
 
-## Onda 6 — Copywriter + WhatsApp Pack
+Transformar imagem em peça comercial pronta para envio.
 
-Objetivo: entregar a peça pronta para vender, não apenas a imagem.
-
-### Frontend
-Criar:
-- `MagicUpCopyPanel.tsx`
-- `MagicUpWhatsAppPack.tsx`
-- `MagicUpCommercialMessageTemplates.tsx`
-
-Funcionalidades:
-- Gerar textos:
+**Implementação:**
+- Criar componentes:
+  - `MagicUpCopyPanel`
+  - `MagicUpWhatsAppPack`
+  - `MagicUpCommercialMessageTemplates`
+- Criar backend function `magic-up-copywriter` com:
+  - autenticação;
+  - validação Zod;
+  - briefing;
+  - produto;
+  - cliente;
+  - Brand Kit;
+  - canal;
+  - tom;
+  - CTA.
+- Gerar:
   - WhatsApp curto;
   - Instagram;
   - LinkedIn;
@@ -262,45 +185,28 @@ Funcionalidades:
   - abordagem consultiva;
   - abordagem promocional;
   - abordagem premium.
-- Copiar texto com um clique.
-- Abrir WhatsApp com:
-  - imagem;
-  - mensagem;
-  - CTA;
-  - saudação com cliente;
-  - link do produto/orçamento quando disponível.
-- Salvar copy em `copy_pack`.
+- Permitir copiar cada texto.
+- Abrir WhatsApp com texto pronto e link da imagem.
+- Salvar resultado em `copy_pack`.
 
-### Edge Function
-Criar:
-- `magic-up-copywriter`
+**Validação:**
+- Gerar copy para cada canal.
+- Copiar texto.
+- Abrir WhatsApp.
+- Confirmar persistência no histórico.
 
-Com:
-- briefing;
-- cliente;
-- produto;
-- canal;
-- tom;
-- CTA;
-- Brand Kit;
-- Zod validation;
-- autenticação.
+---
 
-### Resultado
-A imagem vira uma peça comercial pronta para envio.
+### Onda 7 — Exportação profissional
 
-## Onda 7 — Exportação profissional
+Permitir exportar peças prontas por canal.
 
-Objetivo: tornar o resultado utilizável em canais reais imediatamente.
-
-### Frontend
-Criar:
-- `MagicUpExportPackButton.tsx`
-- `MagicUpExportPresetMenu.tsx`
-- `MagicUpOverlayEditor.tsx`
-
-Funcionalidades:
-- Exportar:
+**Implementação:**
+- Criar componentes:
+  - `MagicUpExportPackButton`
+  - `MagicUpExportPresetMenu`
+  - `MagicUpOverlayEditor`
+- Adicionar presets:
   - PNG alta qualidade;
   - JPG leve para WhatsApp;
   - PDF A4;
@@ -308,41 +214,35 @@ Funcionalidades:
   - Post 1:1;
   - LinkedIn 4:5;
   - Banner 16:9.
-- Overlay opcional:
+- Adicionar overlay opcional:
   - headline;
   - subheadline;
   - CTA;
   - logo cliente;
   - rodapé;
-  - QR code de orçamento.
-- White-label:
-  - marca Promo Gifts;
-  - marca do vendedor;
-  - marca do cliente;
-  - sem marca.
+  - QR code futuro para orçamento.
+- Criar backend function `magic-up-export-pack` para preparar exports profissionais.
+- Salvar presets usados em `export_presets`.
 
-### Edge Function
-Criar:
-- `magic-up-export-pack`
+**Validação:**
+- Exportar PNG/JPG.
+- Gerar PDF A4.
+- Confirmar nomes de arquivo e qualidade visual.
+- Testar mobile.
 
-Para gerar pacote de exportação e preparar evolução futura para ZIP.
+---
 
-### Resultado
-O usuário não precisa de Canva ou edição externa para enviar a peça.
+### Onda 8 — Biblioteca criativa avançada
 
-## Onda 8 — Biblioteca criativa avançada
+Transformar histórico em acervo comercial pesquisável.
 
-Objetivo: transformar histórico em acervo comercial pesquisável.
-
-### Frontend
-Criar:
-- `MagicUpCampaignLibrary.tsx`
-- `MagicUpLibraryFilters.tsx`
-- `MagicUpGenerationCard.tsx`
-- `MagicUpDuplicateActions.tsx`
-
-Funcionalidades:
-- Filtros:
+**Implementação:**
+- Criar componentes:
+  - `MagicUpCampaignLibrary`
+  - `MagicUpLibraryFilters`
+  - `MagicUpGenerationCard`
+  - `MagicUpDuplicateActions`
+- Adicionar filtros:
   - cliente;
   - produto;
   - SKU;
@@ -353,266 +253,210 @@ Funcionalidades:
   - data;
   - score;
   - tags.
-- Ações:
+- Adicionar ações:
   - duplicar configuração;
   - gerar variação;
   - aplicar a outro produto;
   - aplicar a outro cliente;
   - criar campanha parecida.
-- Tags e notas internas.
-- Smart empty state com:
-  - presets recomendados;
-  - exemplos;
-  - últimas campanhas;
-  - CTA para começar.
+- Melhorar empty state com presets e campanhas recentes.
+- Preparar busca textual por metadados já persistidos.
 
-### Resultado
-Magic Up vira biblioteca reutilizável de campanhas e ativos.
+**Validação:**
+- Filtrar histórico.
+- Duplicar uma geração.
+- Criar variação a partir da biblioteca.
+- Confirmar que favoritos continuam funcionando.
 
-## Onda 9 — Aprovação pública
+---
 
-Objetivo: profissionalizar aprovação com cliente ou gestor.
+### Onda 9 — Aprovação pública
 
-### Backend
-Revisar/evoluir:
-- `magic_up_public_shares`
-- `magic_up_comments`
-- `magic_up_reactions`
+Criar fluxo profissional de validação com cliente.
 
-Criar funções seguras para:
-- buscar share por token válido;
-- registrar reaction;
-- registrar comentário;
-- aprovar/reprovar;
-- aplicar rate limit por IP hash.
+**Implementação:**
+- Criar rota pública:
+  - `/magic-up/publica/:token`
+- Criar página:
+  - `PublicMagicUpApprovalPage`
+- Criar componentes:
+  - `MagicUpApprovalShareDialog`
+  - `MagicUpPublicReactionBar`
+  - `MagicUpPublicComments`
+- Criar backend function `magic-up-public-react` com:
+  - validação Zod;
+  - rate limit por IP hash;
+  - toggle de reação;
+  - comentário;
+  - aprovação/reprovação;
+  - proteção contra token expirado.
+- Permitir ao dono criar link público com:
+  - expiração;
+  - permissão de download;
+  - permissão de comentários.
+- Garantir que a rota pública exponha somente dados necessários.
 
-### Edge Function
-Criar:
-- `magic-up-public-react`
+**Validação:**
+- Criar link.
+- Abrir rota pública sem login.
+- Reagir.
+- Comentar.
+- Aprovar/reprovar.
+- Testar token expirado.
 
-Com:
-- Zod validation;
-- rate limit;
-- IP hash;
-- toggle de reação;
-- suporte a comentário/aprovação.
+---
 
-### Frontend
-Criar:
-- `MagicUpApprovalShareDialog.tsx`
-- `PublicMagicUpApprovalPage.tsx`
+### Onda 10 — Integrações comerciais
 
-Adicionar rota pública:
-```text
-/magic-up/publica/:token
-```
+Conectar Magic Up aos módulos existentes.
 
-Funcionalidades públicas:
-- ver imagem/campanha;
-- aprovar;
-- reprovar;
-- comentar;
-- reagir;
-- baixar se permitido.
-
-### Resultado
-O fluxo deixa de depender de prints soltos e vira aprovação profissional.
-
-## Onda 10 — Integrações comerciais
-
-Objetivo: conectar Magic Up ao ecossistema inteiro.
-
-### Catálogo
-- Botão “Gerar campanha Magic Up” em produto.
-- Preservar produto, variante/cor e imagem ativa.
-
-### Favoritos/Coleções
-- Gerar campanha para lista/coleção.
-- Criar variações por item.
-- Transformar coleção em campanha visual.
-
-### Comparador
-- Gerar criativo para produto recomendado.
-- Criar criativo lado a lado para duelo.
-
-### Orçamentos
-- Criar orçamento com imagem Magic Up.
-- Anexar imagem à proposta.
-- Usar imagem como capa.
-- Gerar mensagem de envio.
-
-### Notificações
-- Notificar:
+**Implementação:**
+- Catálogo:
+  - botão “Gerar campanha Magic Up” em produto;
+  - preservar variante/cor/imagem ativa via URL params.
+- Favoritos/Coleções:
+  - iniciar campanha a partir de lista/coleção;
+  - carregar múltiplos produtos como contexto.
+- Comparador:
+  - criar criativo para produto recomendado;
+  - gerar criativo do vencedor.
+- Orçamentos:
+  - anexar imagem Magic Up;
+  - usar imagem como capa;
+  - gerar mensagem de envio.
+- Notificações:
   - geração concluída;
   - cliente aprovou;
   - cliente comentou;
-  - geração falhou;
-  - quota próxima do limite.
+  - geração falhou.
 
-### Resultado
-Magic Up vira motor visual transversal do funil comercial.
+**Validação:**
+- Entrar no Magic Up via catálogo.
+- Entrar via comparador.
+- Criar orçamento com imagem.
+- Confirmar navegação sem perda de contexto.
 
-## Onda 11 — Produtividade, atalhos e acessibilidade
+---
 
-Objetivo: dar sensação de ferramenta premium e rápida.
+### Onda 11 — Produtividade, atalhos e acessibilidade
 
-### Atalhos
-Adicionar:
-- `G M` ir para Magic Up.
-- `Ctrl/Cmd + Enter` gerar.
-- `V` gerar variação.
-- `H` histórico.
-- `F` favoritar.
-- `D` download.
-- `W` WhatsApp.
-- `B` banco de prompts.
-- `P` prompt completo.
-- `?` cheatsheet.
+Dar sensação de ferramenta premium e rápida.
 
-### Acessibilidade
-- ARIA live para:
+**Implementação:**
+- Registrar atalhos:
+  - `G M` ir para Magic Up;
+  - `Ctrl/Cmd + Enter` gerar;
+  - `V` gerar variação;
+  - `H` histórico;
+  - `F` favoritar;
+  - `D` download;
+  - `W` WhatsApp;
+  - `B` banco de prompts;
+  - `P` prompt completo;
+  - `?` cheatsheet.
+- Atualizar memória de atalhos.
+- Adicionar ARIA live para:
   - geração iniciada;
   - geração concluída;
   - erro;
-  - imagem favoritada;
-  - copy copiada.
-- Botões icon-only com `aria-label`.
-- Cards clicáveis com `role`, `tabIndex` e teclado.
-- Foco visível.
-- Menus acessíveis.
+  - favorito;
+  - copy copiada;
+  - campanha salva.
+- Garantir `aria-label` em botões icon-only.
+- Garantir foco visível e navegação por teclado.
+- Melhorar mobile:
+  - ações principais sticky;
+  - histórico compacto;
+  - upload otimizado;
+  - export rápido.
 
-### Mobile
-- Resultado em bottom sheet ou painel sticky mobile.
-- Ações principais sempre visíveis.
-- Histórico em carousel.
-- Upload otimizado.
-- Export rápido WhatsApp.
+**Validação:**
+- Testar atalhos.
+- Testar navegação por teclado.
+- Testar fluxo em viewport mobile.
+- Verificar console sem warnings relevantes.
 
-### Resultado
-Magic Up fica rápido, acessível e eficiente no uso diário.
+---
 
-## Onda 12 — Analytics e governança de IA
+### Onda 12 — Analytics e governança de IA
 
-Objetivo: controlar custo, qualidade e aprendizado comercial.
+Criar visibilidade de uso, qualidade e custo.
 
-### Frontend
-Criar:
-- `MagicUpAnalyticsPanel.tsx`
-- `MagicUpQuotaWidget.tsx`
-- `MagicUpCostEstimate.tsx`
-
-Métricas:
-- gerações por usuário;
-- gerações por cliente;
-- produtos mais usados;
-- canais mais usados;
-- score médio;
-- peças aprovadas;
-- exports;
-- uso de IA;
-- status das campanhas.
-
-### Governança
-- Estimativa de custo antes de gerar.
-- Modos:
+**Implementação:**
+- Criar componentes:
+  - `MagicUpAnalyticsPanel`
+  - `MagicUpQuotaWidget`
+  - `MagicUpCostEstimate`
+- Mostrar métricas:
+  - gerações por usuário;
+  - gerações por cliente;
+  - produtos mais usados;
+  - canais mais usados;
+  - score médio;
+  - peças aprovadas;
+  - exports;
+  - status das campanhas.
+- Adicionar estimativa antes da geração:
   - rascunho rápido;
   - alta qualidade;
   - pro final;
   - variação barata;
   - refinamento premium.
-- Evitar custo duplicado com cache por:
+- Preparar cache lógico por:
   - produto;
   - logo;
   - prompt;
   - canal;
   - configuração.
 
-### Resultado
-O módulo fica sustentável, mensurável e administrável.
+**Validação:**
+- Confirmar cards de analytics.
+- Confirmar cálculo de score médio.
+- Confirmar estados sem dados.
+- Confirmar que não há exposição de custos sensíveis indevida.
 
-## Onda 13 — QA abrangente e certificação 10/10
+---
 
-Ao final de cada onda:
-- validar TypeScript/build;
-- revisar console;
-- testar fluxo principal;
-- checar responsividade;
-- checar acessibilidade básica.
+### Onda 13 — QA e certificação 10/10
 
-No fechamento:
-- testar geração completa:
-  - selecionar cliente;
-  - selecionar produto;
-  - carregar logo;
-  - montar briefing;
-  - selecionar Brand Kit;
-  - gerar imagem;
-  - avaliar score;
-  - gerar copy;
-  - exportar;
-  - compartilhar WhatsApp;
-  - favoritar;
-  - reabrir histórico;
-  - criar link público;
-  - comentar/aprovar publicamente.
-- validar Cloud:
-  - tabelas;
-  - RLS;
-  - edge functions;
-  - logs;
-  - rate limit;
-  - token expirado;
-  - usuário sem permissão.
-- validar mobile.
-- corrigir bugs encontrados antes de declarar 10/10.
+Fechar com testes completos do módulo.
 
-## Arquivos previstos
+**Validação final:**
+- Selecionar cliente.
+- Carregar Brand Kit.
+- Selecionar produto.
+- Escolher cor/variante.
+- Enviar logo.
+- Montar briefing.
+- Selecionar direção de arte.
+- Gerar imagem.
+- Rodar Magic Score.
+- Gerar copy.
+- Exportar.
+- Compartilhar WhatsApp.
+- Favoritar.
+- Reabrir histórico.
+- Duplicar geração.
+- Criar link público.
+- Comentar/reagir/aprovar publicamente.
+- Criar orçamento com imagem.
+- Testar mobile.
+- Testar acessibilidade básica.
+- Revisar console e logs.
+- Corrigir qualquer bug antes de declarar 10/10.
 
-### Frontend
-- `src/pages/MagicUp.tsx`
-- `src/pages/magic-up/MagicUpConfigPanel.tsx`
-- `src/pages/magic-up/MagicUpResultPanel.tsx`
-- `src/pages/magic-up/magicUpStrategy.ts`
-- `src/pages/PublicMagicUpApprovalPage.tsx`
-- `src/hooks/useMagicUpState.ts`
-- `src/hooks/useMagicUpGeneration.ts`
-- novos componentes em `src/components/magic-up/`
+## Regras técnicas durante a execução
 
-### Backend functions
-- `supabase/functions/generate-ad-image/index.ts`
-- `supabase/functions/generate-ad-prompt/index.ts`
-- `supabase/functions/magic-up-score/index.ts`
-- `supabase/functions/magic-up-copywriter/index.ts`
-- `supabase/functions/magic-up-public-react/index.ts`
-- `supabase/functions/magic-up-export-pack/index.ts`
+- Não editar manualmente arquivos gerados de integração Cloud.
+- Não duplicar dados do banco externo localmente.
+- Usar RLS e autenticação em todos os dados privados.
+- Usar backend functions com Zod em fluxos sensíveis.
+- Manter TypeScript estrito, sem `any`.
+- Manter componentes modulares.
+- Preservar design system atual.
+- Usar cores semânticas e `var(--primary)` quando aplicável.
+- Validar build/typecheck a cada onda relevante.
 
-### Banco
-- Evoluir tabelas Magic Up já criadas.
-- Adicionar RPCs seguras quando necessário.
-- Garantir RLS por usuário.
-- Garantir rate limit nos fluxos públicos.
-- Não expor dados privados em rota pública.
+## Primeiro passo após aprovação
 
-### Memórias
-Atualizar:
-- `mem://features/magic-up-advertising-suite`
-- `mem://features/keyboard-shortcuts-registry`
-
-## Resultado final
-
-Magic Up 10/10:
-- campanha estruturada;
-- Brand Kit por cliente;
-- direção de arte controlável;
-- geração por formato/canal;
-- refinamentos rápidos;
-- score de qualidade;
-- copy comercial;
-- WhatsApp Pack;
-- export profissional;
-- biblioteca criativa;
-- aprovação pública;
-- integrações com catálogo, favoritos, coleções, comparador e orçamentos;
-- analytics e governança de IA;
-- UX premium, acessível e mobile-first;
-- validação completa de ponta a ponta.
+Começarei pela **Onda 3 — Brand Kit 10/10**, pois ela é a base estratégica para qualidade visual, consistência de marca, copywriter, score e aprovação pública.
