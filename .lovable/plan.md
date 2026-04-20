@@ -1,193 +1,191 @@
 
 
-# Auditoria estratégica — Módulo Favoritos (V2)
-**Perspectiva: Product Designer Strategist | Estado atual: Onda A (fundação) entregue**
+# Auditoria estratégica V3 — Módulo Favoritos
+**Product Designer Strategist | Estado: Ondas A + A.2 entregues | Meta: 10/10 absoluto**
 
-## 1. Onde estamos vs. onde podemos chegar
+## 1. Diagnóstico pós-A.2
 
-**Já entregue (Onda A — fundação técnica):**
-- Schema multi-listas (`favorite_lists` + `favorite_items` + lixeira TTL 30d)
-- Sync Supabase com RLS (dono/admin/público via token)
-- Componentes UI prontos (`FavoriteListsSidebar`, `CreateListDialog`, `ShareListDialog`, `FavoritesTrashView`, `ItemNoteEditor`, `FavoritesSortBar`)
-- Migração idempotente do localStorage → nuvem ativa em background
+**Já entregue:**
+- Multi-listas com sidebar, sort 7 critérios, notas inline, lixeira TTL 30d
+- Sync Supabase + RLS + migração legacy idempotente
+- Layout 2-col responsivo (sheet mobile)
 
-**Gap crítico imediato:** os componentes existem mas **não estão conectados na `FavoritesPage`** — usuário ainda vê a versão flat single-list. Tudo o resto (Ondas B/C/D) depende dessa integração visual.
+**Gaps críticos identificados na revisão:**
 
----
+| # | Gap | Impacto | Onda |
+|---|---|---|---|
+| 1 | `favoritar` no catálogo NÃO grava em lista remota — só no Zustand | 🔴 fundação | B0 |
+| 2 | `price_at_save` nunca é populado (snapshot perdido) | 🔴 inteligência | B1 |
+| 3 | Sem alerta visual de queda de preço (badge calculado mas não renderizado) | 🟡 ROI | B1 |
+| 4 | Sem cron monitorando preços/estoque → vendedor não volta | 🟡 retenção | B2 |
+| 5 | Lista não vira orçamento direto (loop receita aberto) | 🟢 conversão | C1 |
+| 6 | Sem rota pública `/lista-publica/:token` (RLS já permite) | 🟢 viralização | C2 |
+| 7 | Sem modo apresentação fullscreen | 🟢 sales enablement | C3 |
+| 8 | Sem export PDF/CSV da lista | 🔵 entrega | D1 |
+| 9 | Remoção sem undo (lixeira backend pronta, UX faltando) | 🔵 confiança | D2 |
+| 10 | Sem atalhos `F`/`G L`/`Cmd+Z` | 🔵 DX | D3 |
+| 11 | Empty state genérico (sem recomendações) | 🔵 ativação | D4 |
+| 12 | Sem heatmap temporal / insights de uso | 🔵 analytics | D5 |
 
-## 2. Roadmap proposto — 4 ondas (priorizadas por ROI)
+## 2. Roadmap proposto — 4 ondas (sequência de execução)
 
-### 🔴 Onda A.2 — Integração visual (desbloqueio imediato)
+### 🔴 Onda B — Inteligência de Preço & Estoque
 
-**A2.1 Layout 2-coluna na FavoritesPage**
-- Sidebar `FavoriteListsSidebar` à esquerda (lg:w-64) + view principal à direita
-- Em mobile: sidebar vira `Sheet` lateral acionado por botão "Listas"
-- Trocar `useFavoritesStore` por `useFavoriteListItems(selectedListId)` — store fica como fallback offline
-- Persistir `selectedListId` em localStorage para retomar última lista vista
+**B0. Bridge catálogo → listas remotas (pré-requisito)**
+- `useFavoritesStore.toggleFavorite` passa a aceitar `targetListId` opcional
+- Quando usuário tem listas remotas, abrir mini-popover "Adicionar a qual lista?" no clique do coração no catálogo (default = última usada)
+- Atalho: shift+clique adiciona direto à lista padrão sem popover
+- Migração suave: enquanto usuário não cria 2ª lista, comportamento atual preserva
 
-**A2.2 Tabs lista ativa / lixeira**
-- Quando `showTrash=true`, renderiza `FavoritesTrashView`; senão, view atual filtrada
-- Header dinâmico: nome + cor da lista + counter de itens + ação "Apresentar"
+**B1. Snapshot de preço + Price drop badges**
+- `addItem` popula `price_at_save = product.price` automaticamente
+- Componente `PriceDropBadge` no canto inferior do `ProductCard` (apenas em listas remotas):
+  - ↓ verde "−12%" se queda >2%
+  - ↑ cinza "+5%" se alta >2%
+  - sem badge se variação <2%
+- Filtro rápido na sort bar: chip "Só com queda"
+- Tooltip: "Salvo a R$ X em DD/MM • hoje R$ Y"
 
-**A2.3 Sort + notas inline integrados**
-- `FavoritesSortBar` no header do view (7 critérios)
-- `ItemNoteEditor` como overlay no canto superior direito de cada card
-- Indicador visual 📝 quando item tem nota; tooltip preview no hover
+**B2. Stock awareness no card**
+- Cruza com estoque externo via `external-db-bridge` (já existe)
+- Badges sobrepostos: 🚨 "Esgotando" (<10) / ❌ "Indisponível" / ✨ "Voltou ao estoque"
+- Filtro chip "Só em estoque"
 
-**A2.4 Drag-and-drop entre listas**
-- `@dnd-kit` (já no projeto) — arrastar card de produto para item da sidebar = mover
-- Toast com undo (5s) após mover
-
----
-
-### 🟡 Onda B — Inteligência de Preço & Estoque
-
-**B1. Snapshot de preço ao favoritar**
-- Hook `useFavoriteListItems.addItem` já aceita `priceAtSave` — popular automaticamente com `min_price` atual do produto
-- Badge no card: "↓ 12% desde que você salvou" (verde) / "↑ 5%" (cinza neutro) / "—" (sem mudança)
-- Filtro rápido "Só com queda de preço"
-
-**B2. Stock awareness**
-- Cruzar com tabela de estoque externa (já temos via `external-db-bridge`)
-- Badges: 🚨 "Esgotando" (<10 un.) / ❌ "Indisponível" / ✨ "Voltou ao estoque"
-- Filtro "Só em estoque"
-
-**B3. Cron `favorites-watcher` (edge function)**
-- Roda 1x/dia (06:00 BR) via `pg_cron`
-- Detecta drops >5% e items que voltaram ao estoque
-- Insere `workspace_notifications` (categoria `favorites`) com dedupe 24h
-- Toggle nas preferências: notificação push vs digest semanal
-
-**B4. Heatmap temporal no header**
-- Mini-sparkline com items salvos por semana (últimas 8 semanas)
-- Identifica padrões: "você salva mais às segundas" / "pico em novembro"
+**B3. Edge function `favorites-watcher` + cron 06:00 BR**
+- Roda 1x/dia: detecta drops >5% ou items que voltaram ao estoque
+- Insere `workspace_notifications` categoria `favorites` com dedupe 24h via `incident_key`
+- Notificação clica → abre FavoritesPage com filtro "Só com queda" pré-aplicado
 
 ---
 
 ### 🟢 Onda C — Ativação Comercial (favorito → receita)
 
-**C1. Lista → Quote Builder em 1 clique**
-- Botão CTA "💰 Transformar em orçamento" no header de cada lista
-- Pré-popula Quote Builder com items + variantes salvas + qty default da min_quantity
-- KPI no header: "Valor potencial: R$ X.XXX" (soma `min_price × min_quantity`)
-- Reusa parâmetros de URL do `quote-system-url-params-standard`
+**C1. Botão CTA "Transformar em orçamento"**
+- No `FavoritesViewHeader` quando lista tem ≥1 item
+- Pré-popula Quote Builder via URL params (`/orcamentos/novo?items=...&list_id=...`)
+- KPI no header: "Valor potencial: R$ X.XXX" (soma `price × min_quantity`)
+- Quando lista tem `client_id`, vincula automaticamente o orçamento ao cliente
 
 **C2. Vincular lista a cliente CRM**
-- Campos `client_id` / `client_name` já existem no schema
-- Picker no `CreateListDialog` (reusa `CartCompanyPicker`)
-- Avatar + nome do cliente no header da lista
-- Histórico: "Última vez compartilhada com Acme em 14/04"
+- Picker no `CreateListDialog` reusando `CartCompanyPicker`
+- Avatar + nome do cliente no `FavoritesViewHeader`
+- Histórico mini: "Compartilhada 2x • última em 14/04"
 
 **C3. Modo apresentação (Showroom)**
 - Botão "Apresentar" no header → fullscreen 1 produto/tela
-- Reusa `PresentationMode` já existente em CollectionDetailPage
-- Setas de teclado, fullscreen API, watermark "Curadoria de [vendedor]"
-- QR code para cliente acessar do celular
+- Reusa `PresentationMode` do CollectionDetailPage
+- Setas de teclado, watermark "Curadoria de [vendedor]"
+- QR code para cliente espelhar no celular
 
 **C4. Rota pública `/lista-publica/:token`**
-- RLS já permite leitura anônima via `shared_token`
-- Page minimal sem chrome admin: hero (nome lista + curador) + grid produtos
-- Cliente reage 👍/👎/❤️ por item → grava em `favorite_item_reactions`
-- Vendedor vê reactions no card original
-- Watermark + expiração visível
+- Page minimal sem chrome admin (logo Promo Gifts + nome lista + curador)
+- Cliente reage 👍/❤️ por item → grava em `favorite_item_reactions` (anon_id via cookie)
+- Vendedor vê reactions com avatar de "cliente anônimo" no card
 - Anti-scraping aplicado (rate limit já existe)
+- Watermark "Expira em DD/MM"
 
 ---
 
-### 🔵 Onda D — Polimento, DX & Resiliência
+### 🔵 Onda D — Polimento, DX & Entrega
 
-**D1. Toast com undo na remoção**
-- Lixeira backend já implementada — só falta UX
-- Sonner `toast.action({ label: "Desfazer", onClick: restore })` por 5s
-- Atalho `Cmd+Z` global após delete
+**D1. Export PDF / CSV / JSON**
+- Reusa `ExportButton` da Onda 13 do Connections Hub
+- PDF estilo catálogo (4 cols/página) com preço + variante salva + nota
+- CSV com SKU/nome/preço/nota/categoria
+- JSON para integrações externas
 
-**D2. Bulk import/export**
-- Export CSV/JSON (lista atual ou tudo) — reusa `ExportButton` da Onda 13 do Connections Hub
-- Import CSV (coluna SKU) → busca produtos por código e cria lista
-- Export PDF estilo catálogo (4 cols/página, com preço, nota e variante salva) — reusa lib do Quote PDF
+**D2. Toast com undo (5s) + Cmd+Z global**
+- Sonner `toast.action({ label: "Desfazer", onClick: restore })` ao remover
+- Hook `useUndoStack` com `Cmd+Z` listener global na FavoritesPage
 
 **D3. Atalhos de teclado**
-- `F` em qualquer card/produto: favoritar (já existe `Ctrl+K` busca)
+- `F` em qualquer card: favoritar (já existe `Ctrl+K`)
 - `G L` na FavoritesPage: abrir seletor de lista
 - `Shift+click` em remove: pula confirmação
 - Registrar em `mem://features/keyboard-shortcuts-registry`
 
-**D4. Multi-variantes do mesmo produto**
-- Schema já suporta (chave composta `list_id, product_id, variant_id`)
-- UI: permitir favoritar SKU-X cor azul + SKU-X cor verde como entradas separadas
-- Mesmo padrão do Comparison System
-
-**D5. A11y & mobile polish**
-- Swipe-to-delete em mobile (lista)
-- Long-press em card → action sheet (mover lista / anotar / remover)
-- ARIA-live para "X adicionado aos favoritos"
-- Skeletons sofisticados com CLS=0
-- Touch targets ≥44px
-
-**D6. Empty state inteligente**
-- "Top 6 produtos que vendedores como você favoritam esta semana" (RPC com agregação)
+**D4. Empty state inteligente**
+- "Top 6 produtos que vendedores favoritam esta semana" (RPC com agregação)
 - "Continuar de onde parou" (recently viewed × nunca favoritados)
 - CTA "Adicionar todos com 1 clique"
 
+**D5. Heatmap temporal + insights**
+- Mini-sparkline no `FavoritesViewHeader`: items salvos por semana últimas 8
+- Insight contextual: "você salva mais às segundas" / "pico em novembro"
+
+**D6. Multi-variantes do mesmo produto**
+- Schema já suporta (chave composta `list_id, product_id, variant_id`)
+- UI permite favoritar SKU-X cor azul + SKU-X cor verde como entradas separadas
+- Mesmo padrão do Comparison System
+
+**D7. A11y & mobile polish**
+- Swipe-to-delete em mobile (lista)
+- Long-press em card → action sheet (mover lista / anotar / remover)
+- ARIA-live para "X adicionado aos favoritos"
+- Touch targets ≥44px
+
 ---
 
-## 3. Sequenciamento recomendado
+## 3. Sequenciamento e priorização
 
 ```text
-        Sprint atual                  Próxima sprint
-┌──────────────────────┐    ┌──────────────────────────┐
-│  Onda A.2 (4 itens)  │ →  │  Onda B (4 itens)        │
-│  ─────────────────   │    │  + C1 + C4 (rota pub.)   │
-│  desbloqueio visual  │    │  ROI imediato comercial  │
-└──────────────────────┘    └──────────────────────────┘
-                                         ↓
-                            ┌──────────────────────────┐
-                            │  Onda C2/C3 + Onda D     │
-                            │  showroom + polimento    │
-                            └──────────────────────────┘
+       Sprint 1                    Sprint 2                  Sprint 3
+┌────────────────────┐    ┌────────────────────┐    ┌────────────────────┐
+│  Onda B (B0→B3)    │ →  │  Onda C (C1→C4)    │ →  │  Onda D (D1→D7)    │
+│  4 melhorias       │    │  4 melhorias       │    │  7 melhorias       │
+│  fundação + valor  │    │  receita + viral   │    │  polimento 10/10   │
+└────────────────────┘    └────────────────────┘    └────────────────────┘
 ```
 
-**Justificativa:** A.2 é pré-requisito de tudo (sem UI integrada nada do resto aparece). B é a ferramenta que faz o vendedor voltar (notificações = retenção). C1+C4 fecha o loop de receita. D é polimento final 10/10.
-
----
+**Justificativa:**
+- **B primeiro:** sem B0 (catálogo→lista) toda a Onda A.2 fica subutilizada; sem B1+B3 não há retenção
+- **C segundo:** fecha o loop de receita (favorito vira orçamento) e abre canal viral (link público)
+- **D último:** polimento que eleva de 9/10 funcional para 10/10 absoluto
 
 ## 4. Métricas de sucesso
 
-- **Adoção:** % vendedores com ≥1 lista nomeada (meta: >70% em 30d)
-- **Profundidade:** items médios por lista (meta: >12)
-- **Conversão:** % listas que viram orçamento (meta: >25%)
-- **Engajamento:** % listas com share público ativo (meta: >15%)
-- **Retenção:** taxa de notificação price-drop → clique (meta: >18%)
+| Métrica | Meta |
+|---|---|
+| Adoção (vendedores com ≥1 lista nomeada em 30d) | >70% |
+| Profundidade (items médios por lista) | >12 |
+| Conversão (listas → orçamento) | >25% |
+| Engajamento (listas com share público ativo) | >15% |
+| Retenção (CTR de notificação price-drop) | >18% |
 
----
+## 5. Detalhes técnicos para Default Mode
 
-## 5. Detalhes técnicos (para Default Mode executar)
+**Onda B — arquivos:**
+- `src/stores/useFavoritesStore.ts` — estender `toggleFavorite(productId, variant?, targetListId?)`
+- Novo: `src/components/favorites/QuickListPicker.tsx` — popover de seleção de lista no catálogo
+- Novo: `src/components/favorites/PriceDropBadge.tsx` — badge reusável
+- `src/hooks/useFavoriteLists.ts` — `addItem` aceita `priceAtSave`
+- Novo: `supabase/functions/favorites-watcher/index.ts` + cron via migração SQL
+- Reusa `useEnrichedFavoriteItems` (já calcula `priceDiffPct`)
 
-**Onda A.2 — arquivos afetados:**
-- `src/pages/FavoritesPage.tsx` — refatoração layout 2-col
-- Novo: `src/components/favorites/FavoritesViewHeader.tsx` (nome lista + sort + apresentar + CTA orçamento)
-- Novo: `src/components/favorites/FavoritesEnrichedGrid.tsx` (cruza store + items remotos + price snapshots)
-- `src/hooks/useFavoriteLists.ts` — adicionar `useEnrichedFavoriteItems(listId)` que faz join produto + price diff
+**Onda C — arquivos:**
+- `src/components/favorites/FavoritesViewHeader.tsx` — adicionar CTA "Orçamento" + "Apresentar" + KPI valor potencial
+- Novo: `src/pages/PublicFavoriteListPage.tsx` em `App.tsx` fora do AuthLayout
+- Migração: tabela `favorite_item_reactions` (anon_id, emoji, created_at) + RLS público via token
+- Novo: `supabase/functions/favorites-public-react/index.ts` (rate limit 5/min/IP)
+- `src/components/favorites/CreateListDialog.tsx` — adicionar `CartCompanyPicker`
 
-**Onda B — novos artefatos:**
-- Edge function `supabase/functions/favorites-watcher/index.ts` + cron 06:00 BR
-- Tabela `favorite_price_snapshots` (opcional — ou usar `price_at_save` direto)
-- Componente `PriceDropBadge` reusável
+**Onda D — arquivos:**
+- Novo: `src/components/favorites/ExportFavoritesButton.tsx` (reusa `ExportButton`)
+- Novo: `src/hooks/useUndoStack.ts` (Cmd+Z global)
+- Novo: `src/components/favorites/FavoritesEmptyStateSmart.tsx`
+- Novo: `src/components/favorites/FavoritesHeatmap.tsx` (sparkline)
+- RPC novo: `get_top_favorited_products(_days int, _limit int)`
+- `mem://features/keyboard-shortcuts-registry` — registrar `F`, `G L`
 
-**Onda C4 — rota pública:**
-- `src/pages/PublicFavoriteListPage.tsx` no `App.tsx` em rota fora do AuthLayout
-- Tabela `favorite_item_reactions` (anon_id via cookie + emoji)
-- Edge function `favorites-public-react` (rate limit 5/min/IP)
-
-**Memória a atualizar ao fim:**
-- `mem://features/favorites-roadmap.md` registrar progresso de cada onda
-- `mem://features/keyboard-shortcuts-registry` adicionar atalhos da D3
-
----
+**Memória a atualizar ao fim de cada onda:**
+- `mem://features/favorites-roadmap.md` registrar progresso
+- Nova: `mem://features/favorites-intelligence-system` documentando watcher + dedupe
 
 ## 6. Recomendação executiva
 
-Começar **agora** pela **Onda A.2** numa única sprint autônoma — sem ela todo o trabalho da Onda A fica invisível. Depois execução contínua B → C → D em ondas aprovadas.
+Começar **agora** pela **Onda B (B0→B3)** — é o desbloqueio mais crítico. Sem B0 a Onda A.2 não é usada de verdade (vendedor segue salvando no Zustand legacy). Depois execução autônoma sequencial C → D conforme padrão `mem://~user`.
 
-Diga **"executar Onda A.2"** que parto pra refatoração visual completa da FavoritesPage com sidebar + sort + notas + lixeira integrados.
+**Total restante:** 3 ondas, 15 melhorias, ~3 sprints autônomas para 10/10 absoluto.
+
+Diga **"executar Onda B"** e parto pra implementação completa: bridge catálogo→listas + snapshot de preço + badges + cron watcher + notificações.
 
