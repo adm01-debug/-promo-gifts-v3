@@ -421,15 +421,37 @@ export default function CollectionDetailPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               {!isExternal && (
-                <Button
-                  variant={isSelectionMode ? "default" : "outline"}
-                  size="sm"
-                  className="gap-2"
-                  onClick={toggleSelectionMode}
-                >
-                  <CheckSquare className="h-3.5 w-3.5" />
-                  {isSelectionMode ? "Selecionando" : "Selecionar"}
-                </Button>
+                <>
+                  <Button
+                    variant={isSelectionMode ? "default" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={toggleSelectionMode}
+                  >
+                    <CheckSquare className="h-3.5 w-3.5" />
+                    {isSelectionMode ? "Selecionando" : "Selecionar"}
+                  </Button>
+                  <Button
+                    variant={manageMode ? "default" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setManageMode((v) => !v)}
+                  >
+                    <Settings2 className="h-3.5 w-3.5" />
+                    {manageMode ? "Gerenciando" : "Gerenciar"}
+                  </Button>
+                  {priceDropCount > 0 && (
+                    <Button
+                      variant={onlyDrops ? "default" : "outline"}
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setOnlyDrops((v) => !v)}
+                    >
+                      <TrendingDown className="h-3.5 w-3.5" />
+                      Só com queda ({priceDropCount})
+                    </Button>
+                  )}
+                </>
               )}
               <div className="hidden sm:block">
                 <LayoutPopover
