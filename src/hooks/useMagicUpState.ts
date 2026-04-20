@@ -137,6 +137,36 @@ export function useMagicUpState() {
     enabled: !!user?.id,
   });
 
+  const { data: campaigns = [] } = useQuery<MagicUpCampaign[]>({
+    queryKey: ["magic-up-campaigns", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase
+        .from("magic_up_campaigns")
+        .select("id, title, status, client_id, client_name, objective, channel, audience, tone, cta, occasion, created_at, updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(30);
+      if (error) throw error;
+      return (data || []).map((row: Tables<"magic_up_campaigns">) => ({
+        id: row.id,
+        title: row.title,
+        status: row.status as MagicUpCampaignStatus,
+        clientId: row.client_id,
+        clientName: row.client_name,
+        objective: row.objective || DEFAULT_BRIEF.objective,
+        channel: row.channel || DEFAULT_BRIEF.channel,
+        audience: row.audience || DEFAULT_BRIEF.audience,
+        tone: row.tone || DEFAULT_BRIEF.tone,
+        cta: row.cta || DEFAULT_BRIEF.cta,
+        occasion: row.occasion || DEFAULT_BRIEF.occasion,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+      }));
+    },
+    enabled: !!user?.id,
+  });
+
   // ─── Load Products ──────────────────────────────────────────────
   useEffect(() => {
     (async () => {
