@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { FavoritesClientPicker } from "./FavoritesClientPicker";
 import type { FavoriteList } from "@/hooks/useFavoriteLists";
 
 const COLORS = [
@@ -20,13 +21,14 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   existing?: FavoriteList;
-  onCreate: (data: { name: string; color: string; icon: string; description?: string }) => Promise<void>;
+  onCreate: (data: { name: string; color: string; icon: string; description?: string; client_id?: string | null; client_name?: string | null }) => Promise<void>;
 }
 
 export function CreateListDialog({ open, onOpenChange, existing, onCreate }: Props) {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [color, setColor] = useState(COLORS[8]);
+  const [client, setClient] = useState<{ id: string; name: string } | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -34,6 +36,7 @@ export function CreateListDialog({ open, onOpenChange, existing, onCreate }: Pro
       setName(existing?.name ?? "");
       setDescription(existing?.description ?? "");
       setColor(existing?.color ?? COLORS[8]);
+      setClient(existing?.client_id && existing?.client_name ? { id: existing.client_id, name: existing.client_name } : null);
     }
   }, [open, existing]);
 
@@ -41,7 +44,14 @@ export function CreateListDialog({ open, onOpenChange, existing, onCreate }: Pro
     if (!name.trim()) return;
     setBusy(true);
     try {
-      await onCreate({ name: name.trim(), description: description.trim() || undefined, color, icon: "Heart" });
+      await onCreate({
+        name: name.trim(),
+        description: description.trim() || undefined,
+        color,
+        icon: "Heart",
+        client_id: client?.id ?? null,
+        client_name: client?.name ?? null,
+      });
       onOpenChange(false);
     } finally {
       setBusy(false);
@@ -80,6 +90,15 @@ export function CreateListDialog({ open, onOpenChange, existing, onCreate }: Pro
               placeholder="Notas internas sobre esta lista…"
               maxLength={200}
               className="min-h-[60px]"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <Label>Cliente CRM (opcional)</Label>
+            <FavoritesClientPicker
+              selectedClientId={client?.id ?? null}
+              selectedClientName={client?.name ?? null}
+              onSelect={setClient}
             />
           </div>
 
