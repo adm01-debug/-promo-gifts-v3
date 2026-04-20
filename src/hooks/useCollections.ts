@@ -26,6 +26,11 @@ export interface Collection {
   color: string;
   icon: string;
   isFeatured: boolean;
+  clientId?: string | null;
+  clientName?: string | null;
+  shareToken?: string | null;
+  shareExpiresAt?: string | null;
+  isPublic?: boolean;
   /** @deprecated Use productItems instead */
   productIds: string[];
   productItems: CollectionProductItem[];
