@@ -1893,3 +1893,22 @@ html[data-scroll-locked] body {
 .skin-glow {
   box-shadow: 0 0 20px hsl(var(--primary) / 0.25);
 }
+
+/* ===== Comparador — Modo Foco (C6 #5) =====
+   Esconde header/sidebar/footer para máxima área útil da tabela */
+body.compare-focus-mode header,
+body.compare-focus-mode aside,
+body.compare-focus-mode nav,
+body.compare-focus-mode footer,
+body.compare-focus-mode [data-sidebar],
+body.compare-focus-mode [role="banner"],
+body.compare-focus-mode [role="navigation"]:not([data-compare-keep]),
+body.compare-focus-mode [data-floating-bar] {
+  display: none !important;
+}
+body.compare-focus-mode main,
+body.compare-focus-mode [role="main"] {
+  padding: 0 !important;
+  margin: 0 !important;
+  max-width: 100% !important;
+}
