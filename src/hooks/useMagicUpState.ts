@@ -17,7 +17,7 @@ import type { PrintAreaWithTechniques } from "@/types/gravacao";
 import type { ScenePrompt } from "@/components/magic-up/PromptBank";
 import type { GenerationHistoryItem } from "@/components/magic-up/AdImageResult";
 import { useMagicUpGeneration } from "./useMagicUpGeneration";
-import { DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
+import { DEFAULT_BRAND_KIT, DEFAULT_BRIEF, DEFAULT_CAMPAIGN, DEFAULT_CREATIVE_CONTROLS, buildBrandKitNotes, buildCopyPack, buildMagicScore, campaignFromBrief, type MagicUpBrandKit, type MagicUpBrandLogo, type MagicUpBrief, type MagicUpCampaign, type MagicUpCampaignStatus, type MagicUpCreativeControls } from "@/pages/magic-up/magicUpStrategy";
 
 // ─── Types ───────────────────────────────────────────────────────────
 
@@ -99,6 +99,7 @@ export function useMagicUpState() {
   const [activeCampaign, setActiveCampaign] = useState<MagicUpCampaign | null>(null);
   const [creativeControls, setCreativeControls] = useState<MagicUpCreativeControls>(DEFAULT_CREATIVE_CONTROLS);
   const [brandNotes, setBrandNotes] = useState("");
+  const [brandKit, setBrandKit] = useState<MagicUpBrandKit>(DEFAULT_BRAND_KIT);
 
   // Client (CRM externo)
   const [selectedClient, setSelectedClient] = useState<SelectedClient | null>(null);
@@ -168,6 +169,38 @@ export function useMagicUpState() {
     enabled: !!user?.id,
   });
 
+  const { data: loadedBrandKit, isFetching: loadingBrandKit } = useQuery<MagicUpBrandKit | null>({
+    queryKey: ["magic-up-brand-kit", user?.id, selectedClient?.id],
+    queryFn: async () => {
+      if (!user?.id || !selectedClient?.id) return null;
+      const { data, error } = await supabase
+        .from("magic_up_brand_kits")
+        .select("id, client_id, client_name, logo_urls, primary_color, secondary_color, tone_of_voice, visual_style, required_words, forbidden_words, notes, updated_at")
+        .eq("user_id", user.id)
+        .eq("client_id", selectedClient.id)
+        .maybeSingle();
+      if (error) throw error;
+      if (!data) return null;
+      const logos = Array.isArray(data.logo_urls) ? data.logo_urls as unknown as MagicUpBrandLogo[] : [];
+      return {
+        id: data.id,
+        clientId: data.client_id,
+        clientName: data.client_name,
+        primaryLogoUrl: logos.find((logo) => logo.isPrimary)?.url || logos[0]?.url || selectedClient.logo_url || null,
+        logoUrls: logos,
+        primaryColor: data.primary_color,
+        secondaryColor: data.secondary_color,
+        toneOfVoice: data.tone_of_voice || DEFAULT_BRAND_KIT.toneOfVoice,
+        visualStyle: data.visual_style || DEFAULT_BRAND_KIT.visualStyle,
+        requiredWords: data.required_words || [],
+        forbiddenWords: data.forbidden_words || [],
+        notes: data.notes || "",
+        updatedAt: data.updated_at,
+      };
+    },
+    enabled: !!user?.id && !!selectedClient?.id,
+  });
+
   // ─── Load Products ──────────────────────────────────────────────
   useEffect(() => {
     (async () => {
@@ -217,6 +250,21 @@ export function useMagicUpState() {
   }, [customizationData]);
 
   const loadingPrintAreas = loadingCustomization;
+
+  useEffect(() => {
+    if (!selectedClient) {
+      setBrandKit(DEFAULT_BRAND_KIT);
+      setBrandNotes("");
+      return;
+    }
+    if (loadedBrandKit) {
+      setBrandKit(loadedBrandKit);
+      setBrandNotes(buildBrandKitNotes(loadedBrandKit));
+      if (loadedBrandKit.primaryLogoUrl && !logoPreview) setLogoPreview(loadedBrandKit.primaryLogoUrl);
+      return;
+    }
+    setBrandKit({ ...DEFAULT_BRAND_KIT, clientId: selectedClient.id, clientName: selectedClient.name, primaryLogoUrl: selectedClient.logo_url || null, logoUrls: selectedClient.logo_url ? [{ id: "crm-logo", label: "Logo CRM", url: selectedClient.logo_url, variant: "principal", isPrimary: true }] : [], primaryColor: selectedClient.cor_primaria_hex || null });
+  }, [loadedBrandKit, logoPreview, selectedClient]);
 
   // ─── Derived: Techniques from print areas ───────────────────────
   const availableTechniques = useMemo((): Technique[] => {
@@ -325,6 +373,41 @@ CENÁRIO: ${effectivePrompt}`;
     announceStatus("Campanha salva com sucesso");
   }, [activeCampaign, announceAlert, announceStatus, brandNotes, brief, queryClient, selectedClient, selectedProduct, user?.id]);
 
+  const handleUpdateBrandKit = useCallback((patch: Partial<MagicUpBrandKit>) => {
+    setBrandKit((current) => {
+      const next = { ...current, ...patch };
+      setBrandNotes(buildBrandKitNotes(next));
+      return next;
+    });
+  }, []);
+
+  const handleUseBrandLogo = useCallback((logo: MagicUpBrandLogo) => {
+    setLogoPreview(logo.url);
+    setBrandKit((current) => ({ ...current, primaryLogoUrl: logo.url, logoUrls: current.logoUrls.map((item) => ({ ...item, isPrimary: item.id === logo.id })) }));
+    announceStatus("Logo do Brand Kit aplicado");
+  }, [announceStatus]);
+
+  const handleAddCurrentLogoToBrandKit = useCallback(() => {
+    if (!logoPreview) return;
+    const nextLogo: MagicUpBrandLogo = { id: crypto.randomUUID(), label: `Logo ${brandKit.logoUrls.length + 1}`, url: logoPreview, variant: brandKit.logoUrls.length ? "colorida" : "principal", isPrimary: brandKit.logoUrls.length === 0 };
+    handleUpdateBrandKit({ logoUrls: [...brandKit.logoUrls, nextLogo], primaryLogoUrl: brandKit.primaryLogoUrl || logoPreview });
+  }, [brandKit.logoUrls, brandKit.primaryLogoUrl, handleUpdateBrandKit, logoPreview]);
+
+  const handleSaveBrandKit = useCallback(async () => {
+    if (!user?.id) { toast.error("Faça login para salvar Brand Kit"); announceAlert("Login necessário para salvar Brand Kit"); return; }
+    if (!selectedClient?.id) { toast.error("Selecione uma empresa para salvar o Brand Kit"); announceAlert("Selecione uma empresa para salvar Brand Kit"); return; }
+    const logos = brandKit.logoUrls.length ? brandKit.logoUrls : logoPreview ? [{ id: "current-logo", label: "Logo atual", url: logoPreview, variant: "principal" as const, isPrimary: true }] : [];
+    const payload = { client_id: selectedClient.id, client_name: selectedClient.name, logo_urls: logos, primary_color: brandKit.primaryColor, secondary_color: brandKit.secondaryColor, tone_of_voice: brandKit.toneOfVoice, visual_style: brandKit.visualStyle, required_words: brandKit.requiredWords, forbidden_words: brandKit.forbiddenWords, notes: brandKit.notes, metadata: { source: "magic-up" } };
+    const result = brandKit.id
+      ? await supabase.from("magic_up_brand_kits").update(payload satisfies TablesUpdate<"magic_up_brand_kits">).eq("id", brandKit.id).select("id, updated_at").single()
+      : await supabase.from("magic_up_brand_kits").insert({ ...payload, user_id: user.id } satisfies TablesInsert<"magic_up_brand_kits">).select("id, updated_at").single();
+    if (result.error) { toast.error("Erro ao salvar Brand Kit"); announceAlert("Erro ao salvar Brand Kit"); return; }
+    setBrandKit((current) => ({ ...current, ...payload, id: result.data.id, clientId: selectedClient.id, clientName: selectedClient.name, primaryLogoUrl: logos.find((logo) => logo.isPrimary)?.url || logos[0]?.url || null, logoUrls: logos, updatedAt: result.data.updated_at }));
+    queryClient.invalidateQueries({ queryKey: ["magic-up-brand-kit"] });
+    toast.success("Brand Kit salvo");
+    announceStatus("Brand Kit salvo com sucesso");
+  }, [announceAlert, announceStatus, brandKit, logoPreview, queryClient, selectedClient, user?.id]);
+
   // ─── Generation (delegated) ────────────────────────────────────
   const generation = useMagicUpGeneration({
     selectedProduct, currentImage, logoPreview, effectivePrompt,
@@ -372,6 +455,7 @@ CENÁRIO: ${effectivePrompt}`;
     brief, setBrief: handleSetBrief, activeCampaign, setActiveCampaign, campaigns,
     handleSaveCampaign, handleSelectCampaign, handleDuplicateCampaign,
     creativeControls, setCreativeControls, brandNotes, setBrandNotes,
+    brandKit, loadingBrandKit, handleUpdateBrandKit, handleUseBrandLogo, handleAddCurrentLogoToBrandKit, handleSaveBrandKit,
     qualityScore, copyPack,
     effectivePrompt, fullPromptPreview,
     selectedClient, clientSearch, setClientSearch, showClientResults,

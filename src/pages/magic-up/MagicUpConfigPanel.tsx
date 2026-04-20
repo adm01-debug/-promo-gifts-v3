@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import {
   Upload, Loader2, MapPin, Paintbrush,
   Wand2, Eye, EyeOff, Building2,
-  Search, X, Sparkles, Briefcase, ShieldCheck, SlidersHorizontal,
+  Search, X, Sparkles, Briefcase, SlidersHorizontal,
 } from "lucide-react";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import { getCompanyDisplayName } from "@/types/crm";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
 import { MagicUpCampaignPanel } from "@/components/magic-up/MagicUpCampaignPanel";
+import { MagicUpBrandKitPanel } from "@/components/magic-up/MagicUpBrandKitPanel";
 import { ASPECT_RATIOS, BRIEF_OPTIONS, COMPOSITIONS, CREATIVE_MODES, NEGATIVE_PROMPTS, QUALITY_MODES, toHuman, type MagicUpBrief } from "./magicUpStrategy";
 
 type MagicUpStateReturn = ReturnType<typeof useMagicUpState>;
@@ -317,35 +318,17 @@ function LogoCard({ m }: { m: MagicUpStateReturn }) {
 }
 
 function BrandKitCard({ m }: { m: MagicUpStateReturn }) {
-  const warnings = [
-    !m.logoPreview ? "Logo ainda não enviado" : null,
-    !m.selectedClient ? "Cliente não selecionado" : null,
-    !m.brandNotes.trim() ? "Diretrizes de marca não informadas" : null,
-  ].filter(Boolean);
-
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-base">
-          <ShieldCheck className="h-4 w-4 text-primary" /> Brand Kit & segurança
-        </CardTitle>
-        <CardDescription className="text-xs">Use cores, tom e cuidados de marca para evitar peças genéricas.</CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <Textarea
-          value={m.brandNotes}
-          onChange={(e) => m.setBrandNotes(e.target.value)}
-          placeholder="Ex: usar paleta azul institucional, evitar linguagem informal, manter logo em área limpa..."
-          rows={3}
-          className="text-sm resize-none"
-        />
-        <div className="flex flex-wrap gap-1.5">
-          {(warnings.length ? warnings : ["Logo pronto", "Briefing consistente", "Peça apta para revisão"]).map((warning) => (
-            <Badge key={warning} variant={warnings.length ? "outline" : "secondary"} className="text-[10px]">{warning}</Badge>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+    <MagicUpBrandKitPanel
+      kit={m.brandKit}
+      loading={m.loadingBrandKit}
+      selectedClientName={m.selectedClient?.name}
+      logoPreview={m.logoPreview}
+      onUpdate={m.handleUpdateBrandKit}
+      onUseLogo={m.handleUseBrandLogo}
+      onAddCurrentLogo={m.handleAddCurrentLogoToBrandKit}
+      onSave={m.handleSaveBrandKit}
+    />
   );
 }
 
