@@ -3,18 +3,20 @@
  * Usa RPC get_top_compared_products (criada na C1).
  */
 import { useEffect, useState } from "react";
-import { GitCompare, Plus, Flame } from "lucide-react";
+import { GitCompare, Plus, Flame, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { useComparisonStore } from "@/stores/useComparisonStore";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { logger } from "@/lib/logger";
 
 export function CompareEmptyStateSmart() {
   const [topIds, setTopIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-  const { getProductsByIds } = useProductsContext();
+  const [usedFallback, setUsedFallback] = useState(false);
+  const { getProductsByIds, products: allProducts } = useProductsContext();
   const { addToCompare, isInCompare, canAddMore } = useComparisonStore();
   const navigate = useNavigate();
 
@@ -24,9 +26,13 @@ export function CompareEmptyStateSmart() {
       try {
         const { data } = await supabase.rpc("get_top_compared_products", { p_limit: 6 });
         if (cancelled) return;
-        setTopIds((data ?? []).map((r: any) => r.product_id));
-      } catch {
-        // ignore
+        const ids = (data ?? []).map((r: any) => r.product_id);
+        setTopIds(ids);
+        if (ids.length === 0) {
+          logger.warn("[CompareEmptyStateSmart] RPC retornou 0 ids — fallback acionado");
+        }
+      } catch (err) {
+        logger.warn("[CompareEmptyStateSmart] RPC falhou — fallback acionado", err as any);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -34,7 +40,15 @@ export function CompareEmptyStateSmart() {
     return () => { cancelled = true; };
   }, []);
 
-  const products = getProductsByIds(topIds);
+  const rpcProducts = getProductsByIds(topIds);
+  let products = rpcProducts;
+  if (rpcProducts.length === 0 && allProducts.length > 0) {
+    products = allProducts.slice(0, 6);
+    if (!usedFallback) {
+      setUsedFallback(true);
+      logger.warn("[CompareEmptyStateSmart] Usando fallback de produtos do contexto");
+    }
+  }
 
   const handleAdd = (id: string, name: string) => {
     if (!canAddMore) {
@@ -62,9 +76,9 @@ export function CompareEmptyStateSmart() {
       {!loading && products.length > 0 && (
         <section className="w-full max-w-5xl space-y-3">
           <header className="flex items-center gap-2 justify-center">
-            <Flame className="h-4 w-4 text-primary" />
+            {usedFallback ? <Sparkles className="h-4 w-4 text-primary" /> : <Flame className="h-4 w-4 text-primary" />}
             <h2 className="font-display text-sm font-semibold uppercase tracking-wider text-muted-foreground">
-              Os mais comparados da semana
+              {usedFallback ? "Sugestões para começar" : "Os mais comparados da semana"}
             </h2>
           </header>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
