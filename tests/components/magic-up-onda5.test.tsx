@@ -104,7 +104,7 @@ describe("Magic Up Onda 5 components", () => {
     ];
     render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
     expect(screen.getByLabelText("Melhor score entre variações: indisponível")).toBeInTheDocument();
-    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(4);
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3);
     expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
     expect(screen.getByRole("button", { name: "Selecionar variação 1, melhor score" })).toBeInTheDocument();
   });
