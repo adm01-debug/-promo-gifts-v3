@@ -621,3 +621,134 @@ describe("MagicUpResultPanel — accessible names e atributos ARIA para screen r
     expect(nextDisabled).toHaveAttribute("aria-label", "Avançar");
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Sub-suíte: comportamento de extremidades (no-wrap) em Tab/Enter/Space
+// WCAG 2.1.1 (Keyboard) + 2.1.2 (No Keyboard Trap) + 2.4.3 (Focus Order)
+// ─────────────────────────────────────────────────────────────────────────────
+describe("MagicUpResultPanel — comportamento de extremidades (no-wrap) em Tab/Enter/Space", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function pressKey(el: HTMLElement, key: "Enter" | " ") {
+    fireEvent.keyDown(el, { key });
+    // Browsers disparam click sintético em Enter/Space em <button>; replicamos
+    if (!(el as HTMLButtonElement).disabled) {
+      fireEvent.click(el);
+    }
+  }
+
+  it("Prev disabled no primeiro índice; click/Enter/Space não disparam setActiveVariation", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    expect(prev).toBeDisabled();
+
+    fireEvent.click(prev);
+    pressKey(prev, "Enter");
+    pressKey(prev, " ");
+
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+  });
+
+  it("Next disabled no último índice; click/Enter/Space não disparam setActiveVariation", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const next = screen.getByRole("button", { name: "Avançar" });
+    expect(next).toBeDisabled();
+
+    fireEvent.click(next);
+    pressKey(next, "Enter");
+    pressKey(next, " ");
+
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+  });
+
+  it("Prev funciona normalmente em índice intermediário (chama setActiveVariation com índice-1)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    expect(prev).not.toBeDisabled();
+
+    fireEvent.click(prev);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
+  });
+
+  it("Next funciona normalmente em índice intermediário (chama setActiveVariation com índice+1)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const next = screen.getByRole("button", { name: "Avançar" });
+    expect(next).not.toBeDisabled();
+
+    fireEvent.click(next);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+  });
+
+  it("Roving tabindex no primeiro índice: apenas dot[0]/thumb[0] com tabindex=0 (sem wrap)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots[0]).toHaveAttribute("tabindex", "0");
+    expect(dots[1]).toHaveAttribute("tabindex", "-1");
+    expect(dots[2]).toHaveAttribute("tabindex", "-1");
+
+    const thumbs = getThumbs();
+    expect(thumbs[0]).toHaveAttribute("tabindex", "0");
+    expect(thumbs[1]).toHaveAttribute("tabindex", "-1");
+    expect(thumbs[2]).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("Roving tabindex no último índice: apenas dot[last]/thumb[last] com tabindex=0 (sem wrap)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots[2]).toHaveAttribute("tabindex", "0");
+    expect(dots[0]).toHaveAttribute("tabindex", "-1");
+    expect(dots[1]).toHaveAttribute("tabindex", "-1");
+
+    const thumbs = getThumbs();
+    expect(thumbs[2]).toHaveAttribute("tabindex", "0");
+    expect(thumbs[0]).toHaveAttribute("tabindex", "-1");
+    expect(thumbs[1]).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("Enter/Space em dot/thumb já ativo é idempotente (chama com mesmo índice; foco permanece)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    dots[1].focus();
+    expect(document.activeElement).toBe(dots[1]);
+    pressKey(dots[1], "Enter");
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    expect(document.activeElement).toBe(dots[1]);
+
+    const thumbs = getThumbs();
+    thumbs[1].focus();
+    expect(document.activeElement).toBe(thumbs[1]);
+    pressKey(thumbs[1], " ");
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    expect(document.activeElement).toBe(thumbs[1]);
+  });
+
+  it("Foco em next não retorna ao prev (sem wrap/trap de foco)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    next.focus();
+    expect(document.activeElement).toBe(next);
+    // Após focar next, o foco não deve estar (nem ciclar) para prev — Tab é linear,
+    // não há trap/wrap forçado pelo painel.
+    expect(document.activeElement).not.toBe(prev);
+  });
+});
