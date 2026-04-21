@@ -1965,24 +1965,99 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       );
     };
 
+    const captureSnapshot = (clickedIndex: number) => {
+      const cards = screen.getAllByRole("listitem");
+      const clickedButton = within(cards[clickedIndex]).getByRole("button", {
+        name: /^Selecionar variação/,
+      });
+      const winnerButton = within(cards[winnerIndex]).getByRole("button", {
+        name: /^Selecionar variação/,
+      });
+      return {
+        clickedAriaPressed: clickedButton.getAttribute("aria-pressed"),
+        winnerAriaPressed: winnerButton.getAttribute("aria-pressed"),
+        winnerBadgePresent: within(cards[winnerIndex]).queryByLabelText("Melhor score") !== null,
+        winnerBadgeText: within(cards[winnerIndex]).queryByText("Melhor score") !== null,
+      };
+    };
+
+    const clickAndAssertSnapshot = async (
+      clickIndex: number,
+      newActiveIndex: number,
+      expectedBefore: ReturnType<typeof captureSnapshot>,
+      expectedAfter: ReturnType<typeof captureSnapshot>
+    ) => {
+      const beforeSnapshot = captureSnapshot(clickIndex);
+      expect(beforeSnapshot).toEqual(expectedBefore);
+
+      const cardsForClick = screen.getAllByRole("listitem");
+      await user.click(
+        within(cardsForClick[clickIndex]).getByRole("button", { name: /^Selecionar variação/ })
+      );
+      expect(onSelect).toHaveBeenLastCalledWith(clickIndex);
+      rerender(renderWithActive(newActiveIndex));
+
+      const afterSnapshot = captureSnapshot(clickIndex);
+      expect(afterSnapshot).toEqual(expectedAfter);
+    };
+
     assertWinnerInvariant(0);
 
-    const cardsInitial = screen.getAllByRole("listitem");
-    await user.click(within(cardsInitial[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
-    expect(onSelect).toHaveBeenLastCalledWith(1);
-    rerender(renderWithActive(1));
+    // CLIQUE 1: var-B (winner) — clicado === winner
+    await clickAndAssertSnapshot(
+      1,
+      1,
+      {
+        clickedAriaPressed: "false",
+        winnerAriaPressed: "false",
+        winnerBadgePresent: true,
+        winnerBadgeText: true,
+      },
+      {
+        clickedAriaPressed: "true",
+        winnerAriaPressed: "true",
+        winnerBadgePresent: true,
+        winnerBadgeText: true,
+      }
+    );
     assertWinnerInvariant(1);
 
-    const cardsAfter1 = screen.getAllByRole("listitem");
-    await user.click(within(cardsAfter1[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
-    expect(onSelect).toHaveBeenLastCalledWith(2);
-    rerender(renderWithActive(2));
+    // CLIQUE 2: var-C — clicado ≠ winner; winner perde aria-pressed mas mantém badge
+    await clickAndAssertSnapshot(
+      2,
+      2,
+      {
+        clickedAriaPressed: "false",
+        winnerAriaPressed: "true",
+        winnerBadgePresent: true,
+        winnerBadgeText: true,
+      },
+      {
+        clickedAriaPressed: "true",
+        winnerAriaPressed: "false",
+        winnerBadgePresent: true,
+        winnerBadgeText: true,
+      }
+    );
     assertWinnerInvariant(2);
 
-    const cardsAfter2 = screen.getAllByRole("listitem");
-    await user.click(within(cardsAfter2[0]).getByRole("button", { name: /^Selecionar variação 1/ }));
-    expect(onSelect).toHaveBeenLastCalledWith(0);
-    rerender(renderWithActive(0));
+    // CLIQUE 3: var-A — badge persiste em var-B
+    await clickAndAssertSnapshot(
+      0,
+      0,
+      {
+        clickedAriaPressed: "false",
+        winnerAriaPressed: "false",
+        winnerBadgePresent: true,
+        winnerBadgeText: true,
+      },
+      {
+        clickedAriaPressed: "true",
+        winnerAriaPressed: "false",
+        winnerBadgePresent: true,
+        winnerBadgeText: true,
+      }
+    );
     assertWinnerInvariant(0);
 
     expect(onSelect).toHaveBeenCalledTimes(3);
