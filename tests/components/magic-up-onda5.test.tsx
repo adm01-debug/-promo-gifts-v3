@@ -1217,4 +1217,24 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
     expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
   });
+
+  it.each([2, 3, 5])(
+    "empate em score 0 com %i variações: exatamente 1 badge 'Melhor score', sempre no índice 0",
+    (count) => {
+      const variations = Array.from({ length: count }, (_, i) =>
+        buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, i)
+      );
+      renderTied(variations);
+
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+
+      const cards = screen.getAllByRole("listitem");
+      expect(cards).toHaveLength(count);
+      const { within } = require("@testing-library/react");
+      expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+      for (let i = 1; i < count; i++) {
+        expect(within(cards[i]).queryByLabelText("Melhor score")).toBeNull();
+      }
+    }
+  );
 });
