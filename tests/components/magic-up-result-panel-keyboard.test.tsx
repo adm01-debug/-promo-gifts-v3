@@ -1506,3 +1506,170 @@ describe("MagicUpResultPanel — hit area 44×44 responsiva (WCAG 2.5.5 AAA, 2.5
     expect(container.className).toMatch(/\bflex-wrap\b/);
   });
 });
+
+// ───────── Foco + roving tabindex após click em controle INATIVO ─────────
+// WCAG 2.4.3 (Focus Order) + APG Tabs (roving tabindex sincronizado pós-ativação)
+
+describe("MagicUpResultPanel — foco e roving após click em dot/thumbnail inativo", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  /**
+   * Simula o ciclo real: usuário clica num controle INATIVO →
+   * componente chama setActiveVariation(i) → estado sobe → re-render
+   * com novo activeVariation. Validamos que:
+   *   1) setActiveVariation foi chamado com o índice correto
+   *   2) o foco permanece/migra para o novo controle ativo
+   *   3) roving tabindex está 100% sincronizado nos DOIS grupos (dots + thumbs)
+   *   4) aria-selected acompanha o tabindex
+   */
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  function expectRovingState(elements: HTMLElement[], activeIndex: number) {
+    elements.forEach((el, i) => {
+      expect(el.tabIndex).toBe(i === activeIndex ? 0 : -1);
+      expect(el.getAttribute("aria-selected")).toBe(i === activeIndex ? "true" : "false");
+    });
+  }
+
+  function clickInactiveAndSyncState(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    el: HTMLButtonElement,
+    targetIndex: number
+  ) {
+    expect(el.tabIndex).toBe(-1); // sanity: precisa estar inativo no início
+    el.focus();
+    expect(document.activeElement).toBe(el);
+    fireEvent.click(el);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(targetIndex);
+    rerenderWithActive(rerender, m, targetIndex);
+  }
+
+  // ── Dots ────────────────────────────────────────────────────────────
+
+  it.each([
+    { from: 0, to: 2 },
+    { from: 0, to: 1 },
+    { from: 1, to: 0 },
+    { from: 2, to: 0 },
+  ])(
+    "Click em dot[$to] inativo (active=$from): foco fica em dot[$to] e roving migra",
+    ({ from, to }) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: from });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      clickInactiveAndSyncState(rerender, m, getDots()[to] as HTMLButtonElement, to);
+
+      // Após re-render: foco no novo controle ativo (mesmo índice, novo nó React)
+      const dotsAfter = getDots();
+      expect(document.activeElement).toBe(dotsAfter[to]);
+      expectRovingState(dotsAfter, to);
+      // Roving deve estar sincronizado também no grupo paralelo de thumbnails
+      expectRovingState(getThumbs(), to);
+    }
+  );
+
+  it("Click em dot inativo: dot anterior perde tabindex=0 e ganha tabindex=-1", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(getDots()[0].tabIndex).toBe(0);
+    expect(getDots()[2].tabIndex).toBe(-1);
+
+    clickInactiveAndSyncState(rerender, m, getDots()[2] as HTMLButtonElement, 2);
+
+    const dotsAfter = getDots();
+    expect(dotsAfter[0].tabIndex).toBe(-1);
+    expect(dotsAfter[2].tabIndex).toBe(0);
+  });
+
+  // ── Thumbnails ──────────────────────────────────────────────────────
+
+  it.each([
+    { from: 0, to: 2 },
+    { from: 0, to: 1 },
+    { from: 1, to: 0 },
+    { from: 2, to: 0 },
+  ])(
+    "Click em thumbnail[$to] inativo (active=$from): foco fica em thumb[$to] e roving migra",
+    ({ from, to }) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: from });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      clickInactiveAndSyncState(rerender, m, getThumbs()[to] as HTMLButtonElement, to);
+
+      const thumbsAfter = getThumbs();
+      expect(document.activeElement).toBe(thumbsAfter[to]);
+      expectRovingState(thumbsAfter, to);
+      // Grupo paralelo de dots também recebe roving sincronizado
+      expectRovingState(getDots(), to);
+    }
+  );
+
+  it("Click em thumbnail inativo: thumb anterior perde tabindex=0 e ganha tabindex=-1", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(getThumbs()[1].tabIndex).toBe(0);
+    expect(getThumbs()[0].tabIndex).toBe(-1);
+
+    clickInactiveAndSyncState(rerender, m, getThumbs()[0] as HTMLButtonElement, 0);
+
+    const thumbsAfter = getThumbs();
+    expect(thumbsAfter[1].tabIndex).toBe(-1);
+    expect(thumbsAfter[0].tabIndex).toBe(0);
+  });
+
+  // ── Cliques sequenciais em controles inativos ───────────────────────
+
+  it("Cliques sequenciais em dots inativos (0 → 2 → 1) mantêm foco e roving sincronizados a cada passo", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    // Passo 1: 0 → 2
+    clickInactiveAndSyncState(rerender, m, getDots()[2] as HTMLButtonElement, 2);
+    expect(document.activeElement).toBe(getDots()[2]);
+    expectRovingState(getDots(), 2);
+    expectRovingState(getThumbs(), 2);
+
+    // Passo 2: 2 → 1 (novo dot inativo)
+    clickInactiveAndSyncState(rerender, m, getDots()[1] as HTMLButtonElement, 1);
+    expect(document.activeElement).toBe(getDots()[1]);
+    expectRovingState(getDots(), 1);
+    expectRovingState(getThumbs(), 1);
+  });
+
+  it("Click em thumbnail inativo NÃO desloca foco para o dot correspondente", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    clickInactiveAndSyncState(rerender, m, getThumbs()[2] as HTMLButtonElement, 2);
+
+    expect(document.activeElement).toBe(getThumbs()[2]);
+    expect(document.activeElement).not.toBe(getDots()[2]);
+    // mas o dot correspondente também recebeu roving=0 (sincronia entre grupos)
+    expect(getDots()[2].tabIndex).toBe(0);
+  });
+
+  it("Click em dot inativo NÃO desloca foco para o thumbnail correspondente", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    clickInactiveAndSyncState(rerender, m, getDots()[1] as HTMLButtonElement, 1);
+
+    expect(document.activeElement).toBe(getDots()[1]);
+    expect(document.activeElement).not.toBe(getThumbs()[1]);
+    expect(getThumbs()[1].tabIndex).toBe(0);
+  });
+});
