@@ -1,8 +1,8 @@
 
 
-# Plano — Teste de duas variações com `isWinner: true` simultâneo
+# Plano — Teste de clique em card empatado não-vencedor não move a badge
 
-Adiciono 1 teste cobrindo cenário onde duas variações têm `isWinner: true` ao mesmo tempo, validando que apenas a primeira (menor índice) recebe a badge "Melhor score" — comportamento esperado dado o `findIndex` no componente.
+Adiciono 1 teste validando que, em cenário de empate, clicar em um card que tem o mesmo score do vencedor mas NÃO é o `winnerIndex` (não é o primeiro índice empatado) **não move a badge "Melhor score"**. O `onSelect` é chamado, mas o `winnerIndex` é puramente derivado de `variations` + `scores`, não do `activeIndex` — portanto a badge permanece no índice 0.
 
 ## Justificativa
 
@@ -11,78 +11,93 @@ A lógica em `MagicUpVariationComparator.tsx`:
 const winnerIndex = variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore);
 ```
 
-Cenário: scores diferentes (`[60, 70, 50]`) com `isWinner: true` nas variações 1 e 3 (índices 0 e 2). O `findIndex`:
-- Índice 0: `isWinner=true` → **match**, retorna 0
+`winnerIndex` é independente de `activeIndex`. Clicar em um card chama `onSelect(index)` mas:
+- Não muta `variations`
+- Não recalcula `winnerIndex` baseado em seleção
+- A badge permanece ancorada ao primeiro empatado
 
-Resultado: winnerIndex = 0 (primeira ocorrência de `isWinner: true`). A variação 2 (score 70, maior) NÃO ganha badge porque não tem `isWinner: true` e não é o primeiro match. A variação 3 (também `isWinner: true`) é ignorada.
-
-**Contrato travado:** quando há múltiplos `isWinner: true`, vence o primeiro índice. Score mais alto é irrelevante se não é o primeiro `isWinner` ou se outro índice anterior já satisfez o predicate.
+**Contrato travado:** seleção (UI state) é ortogonal a winner (data state). Clicar no card 2 (empatado, não-vencedor) chama `onSelect(1)` mas a badge continua no card 1.
 
 Protege contra refatorações como:
-- `filter(v => v.isWinner)` retornando múltiplos winners
-- Priorizar `isWinner` com maior score (`isWinner && score === bestScore`)
-- Validações que rejeitariam múltiplos `isWinner: true` como inválido
+- Mover badge para o card ativo
+- Fazer `winnerIndex = activeIndex` quando há empate
+- Adicionar lógica de "winner = último clicado entre empatados"
 
 ## Arquivo alterado
 
-`tests/components/magic-up-onda5.test.tsx` — adicionar 1 teste no `describe` do `MagicUpVariationComparator`, após os testes de empate existentes.
+`tests/components/magic-up-onda5.test.tsx` — adicionar 1 teste no `describe` do `MagicUpVariationComparator`, após os testes de empate/isWinner existentes.
 
 ## Caso coberto
 
 ```ts
-it("dois isWinner: true simultâneos: badge vai para o primeiro índice marcado, ignorando o segundo", () => {
+it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", () => {
+  const onSelect = vi.fn();
   const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 60, isWinner: true },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50, isWinner: true },
+    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 80 },
+    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 80 },
+    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 80 },
   ];
-  render(
+  const { rerender } = render(
     <MagicUpVariationComparator
       variations={variations}
       activeIndex={0}
-      onSelect={vi.fn()}
+      onSelect={onSelect}
       onSelectWinner={vi.fn()}
     />
   );
-  // Apenas 1 badge mesmo com 2 isWinner: true
+  // Estado inicial: badge no card 1 (índice 0, primeiro empatado)
   expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-  // Variação 1 (índice 0, primeiro isWinner) recebe sufixo
   expect(
-    screen.getByRole("button", { name: "Selecionar variação 1, score 60, melhor score" })
+    screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
   ).toBeInTheDocument();
-  // Variação 2 (score 70, sem isWinner) não recebe badge — score mais alto é ignorado
+
+  // Clica no card 2 (empatado, mas não é winner)
+  fireEvent.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
+  expect(onSelect).toHaveBeenCalledWith(1);
+
+  // Simula update do parent: activeIndex agora é 1
+  rerender(
+    <MagicUpVariationComparator
+      variations={variations}
+      activeIndex={1}
+      onSelect={onSelect}
+      onSelectWinner={vi.fn()}
+    />
+  );
+
+  // Badge AINDA está no card 1 — winnerIndex independe de activeIndex
+  expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
   expect(
-    screen.getByRole("button", { name: "Selecionar variação 2, score 70" })
+    screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
   ).toBeInTheDocument();
+  // Card 2 (agora ativo) continua sem o sufixo de winner
   expect(
     screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
   ).not.toBeInTheDocument();
-  // Variação 3 (segundo isWinner) NÃO recebe badge — findIndex já parou no índice 0
+  // aria-pressed do card 2 deve refletir seleção (sanity check da seleção real)
   expect(
-    screen.getByRole("button", { name: "Selecionar variação 3, score 50" })
-  ).toBeInTheDocument();
-  expect(
-    screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })
-  ).not.toBeInTheDocument();
+    screen.getByRole("button", { name: "Selecionar variação 2, score 80" })
+  ).toHaveAttribute("aria-pressed", "true");
 });
 ```
 
 ## Estratégia
 
-- Reutiliza imports e padrão dos testes adjacentes
-- Scores intencionalmente diferentes (60/70/50) para isolar o efeito de `isWinner` (não confunde com tie-break por score)
-- Variação 2 com score MAIOR (70) sem `isWinner` confirma que `isWinner` tem precedência sobre score quando aparece antes no array
-- Asserts negativos com `queryByRole` + regex para variações 2 e 3 garantem ausência inequívoca da badge
+- Usa `rerender` da Testing Library para simular o ciclo controlled-component (parent atualiza `activeIndex` após `onSelect`)
+- Verifica `onSelect` foi chamado com índice correto (contrato de callback intacto)
+- Asserts pré e pós-clique confirmam invariância da badge
+- `aria-pressed="true"` no card 2 pós-rerender confirma que a seleção realmente mudou (descarta hipótese de "rerender não funcionou")
+- Reutiliza `fireEvent` (já importado nos testes adjacentes da suíte)
 
 ## Restrições
 
 - Sem alterar `MagicUpVariationComparator.tsx`
-- Sem novos mocks ou dependências
-- 1 teste novo (27 → 28 testes)
+- Sem novos mocks ou imports além de `fireEvent` (já presente)
+- 1 teste novo (28 → 29 testes)
 
 ## Entregável
 
 - 1 teste novo em `tests/components/magic-up-onda5.test.tsx`
-- Trava contrato: múltiplos `isWinner: true` → vence o primeiro índice, demais são ignorados, score mais alto sem `isWinner` é ignorado
-- Completa a matriz de tie-break: total, zero, parcial 2/3, triplo+isWinner, e agora múltiplos isWinner
+- Trava contrato: `winnerIndex` é função pura de `variations`, ortogonal a `activeIndex`
+- Cobertura UX: clicar em empatado não "rouba" o status de winner
 
