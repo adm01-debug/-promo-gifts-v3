@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AdImageResult } from "@/components/magic-up/AdImageResult";
 import { MagicUpVariationComparator } from "@/components/magic-up/MagicUpVariationComparator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
 
