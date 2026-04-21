@@ -1789,6 +1789,73 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       expect(lastCardB2).toHaveAttribute("aria-pressed", "true");
       expect(card1B).toHaveAttribute("aria-pressed", "false");
     });
+
+    it("aria-pressed permanece exclusivo (1 ativo) em sequência de setas, Home, End e wrap-around", async () => {
+      const user = userEvent.setup();
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        return (
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={vi.fn()}
+          />
+        );
+      }
+
+      render(<ControlledWrapper />);
+      const total = navVariations.length;
+
+      const getActiveCardIndex = (): number => {
+        const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+        const activeCards = cards.filter((c) => c.getAttribute("aria-pressed") === "true");
+        expect(activeCards).toHaveLength(1);
+        const match = activeCards[0].getAttribute("aria-label")?.match(/variação (\d+)/);
+        return Number(match?.[1] ?? 0);
+      };
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1.focus();
+      expect(getActiveCardIndex()).toBe(1);
+
+      for (let step = 1; step <= total + 1; step++) {
+        await user.keyboard("{ArrowRight}");
+        const expectedActive = (step % total) + 1;
+        expect(getActiveCardIndex()).toBe(expectedActive);
+        const activeByLabel = screen.getByRole("button", {
+          name: new RegExp(`^Selecionar variação ${expectedActive}`),
+        });
+        expect(activeByLabel).toHaveFocus();
+      }
+
+      for (let step = 1; step <= total + 1; step++) {
+        await user.keyboard("{ArrowLeft}");
+        expect(getActiveCardIndex()).toBeGreaterThanOrEqual(1);
+        expect(getActiveCardIndex()).toBeLessThanOrEqual(total);
+      }
+
+      await user.keyboard("{Home}");
+      expect(getActiveCardIndex()).toBe(1);
+
+      await user.keyboard("{End}");
+      expect(getActiveCardIndex()).toBe(total);
+
+      const winnerButtons = screen.queryAllByRole("button", { name: /vencedora/i });
+      winnerButtons.forEach((btn) => {
+        const labelStartsWithSelecionar = btn.getAttribute("aria-label")?.startsWith("Selecionar");
+        if (!labelStartsWithSelecionar) {
+          expect(btn.hasAttribute("aria-pressed")).toBe(false);
+        }
+      });
+
+      const sequence = ["{ArrowRight}", "{Home}", "{End}", "{ArrowLeft}", "{ArrowLeft}", "{End}"];
+      for (const key of sequence) {
+        await user.keyboard(key);
+        getActiveCardIndex();
+      }
+    });
   });
 });
 
