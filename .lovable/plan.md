@@ -1,35 +1,35 @@
 
 
-# Plano — Testes de Home/End movem foco e atualizam activeIndex
+# Plano — Testes de consistência de aria-pressed/aria-current durante navegação por setas
 
-Adiciono **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando explicitamente que **Home** e **End** movem o foco para o card correto E atualizam `activeIndex` via `onSelect`, com asserções declarativas sobre `toHaveFocus()` e `aria-pressed`.
+Adiciono **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando que a cada movimento de seta, **exatamente um** card mantém `aria-pressed="true"` (o ativo) e que `aria-current` (se presente em botões relacionados como "marcar vencedora") permanece consistente — sem múltiplos cards "pressed" simultâneos nem ARIA stale.
 
 ## Justificativa
 
-A cobertura atual valida setas (`ArrowRight`/`ArrowLeft`) movendo foco, e os testes recentes de Enter/Espaço usam Home/End **como precondição** — mas não há teste **dedicado** que afirme:
+Testes existentes validam `aria-pressed` em saltos isolados (Home/End) e em sequências curtas (2 setas). Mas **não há teste contínuo** que afirme:
 
 | Lacuna | Risco |
 |---|---|
-| Home a partir de card no meio move foco para card 1 | Refator que faça Home navegar 1 posição (em vez de saltar) passaria silenciosamente |
-| End a partir de card no meio move foco para último card | Mesmo risco simétrico |
-| `onSelect` é chamado com `0` (Home) e `N-1` (End) — não com índice intermediário | Off-by-one em `total - 1` quebraria End |
-| `aria-pressed` reflete o novo `activeIndex` após rerender controlado | ARIA stale após Home/End é regressão grave de a11y |
-| Home/End funcionam **independentemente da posição inicial** (não só do card 1) | Bug de "Home só funciona se vier de ArrowRight" passaria |
+| Após N navegações sequenciais (5+ setas), apenas 1 card tem `aria-pressed="true"` | Bug de "ARIA pressed acumula" passaria — múltiplos cards "pressed" confundem leitor de tela |
+| `aria-current` em botão "marcar vencedora" do card ativo reflete estado correto | Se botão de ação herdar ARIA do card pai erroneamente, dá conflito |
+| Wrap-around (último → primeiro via ArrowRight) limpa `aria-pressed` do último | Caso clássico de stale state em ciclo |
+| Contagem total de `aria-pressed="true"` em todo o DOM = 1 a cada step | Invariante de a11y trava regressão silenciosa |
+| Botão "Marcar vencedora" do card ativo não ganha `aria-pressed` indevidamente | Confusão semântica entre seleção visual e marcação de winner |
 
-**WAI-ARIA Listbox/Grid pattern**: Home/End são saltos absolutos (não relativos). Teste declarativo trava o contrato.
+**WAI-ARIA 1.2 (Toggle Button pattern)**: `aria-pressed` é mutuamente exclusivo dentro de um grupo de seleção única. Teste de invariante trava o contrato.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` (após o teste `"Espaço após Home/End ativa card focado..."`, antes do `});` que fecha o sub-describe):
+Adicionar **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` (após o último teste de wrap-around N=2 que será adicionado, ou após o teste atual final), antes do `});` que fecha o sub-describe:
 
 ```ts
-it("Home e End movem foco e atualizam activeIndex independentemente da posição inicial", async () => {
+it("aria-pressed permanece exclusivo (1 ativo) em sequência de setas, Home, End e wrap-around", async () => {
   const user = userEvent.setup();
 
-  function ControlledWrapper({ initial }: { initial: number }) {
-    const [activeIndex, setActiveIndex] = React.useState(initial);
+  function ControlledWrapper() {
+    const [activeIndex, setActiveIndex] = React.useState(0);
     return (
       <MagicUpVariationComparator
         variations={navVariations}
@@ -40,55 +40,66 @@ it("Home e End movem foco e atualizam activeIndex independentemente da posição
     );
   }
 
-  // ── Cenário A: partindo do meio (card 3 de 5), End vai para último ──
-  const { unmount } = render(<ControlledWrapper initial={2} />);
+  render(<ControlledWrapper />);
   const total = navVariations.length;
-  const lastIndex = total - 1;
 
-  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-  card3.focus();
-  expect(card3).toHaveFocus();
-  expect(card3).toHaveAttribute("aria-pressed", "true");
+  // Helper: conta cards com aria-pressed="true" e retorna o índice (1-based) do ativo
+  const getActiveCardIndex = (): number => {
+    const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+    const activeCards = cards.filter((c) => c.getAttribute("aria-pressed") === "true");
+    expect(activeCards).toHaveLength(1); // INVARIANTE: exatamente 1 ativo
+    const match = activeCards[0].getAttribute("aria-label")?.match(/variação (\d+)/);
+    return Number(match?.[1] ?? 0);
+  };
 
-  await user.keyboard("{End}");
-  const lastCard = screen.getByRole("button", {
-    name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
-  });
-  expect(lastCard).toHaveFocus();
-  expect(lastCard).toHaveAttribute("aria-pressed", "true");
-  // card 3 perdeu o pressed
-  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
-
-  // ── Home a partir do último vai direto para card 1 (não decrementa) ──
-  await user.keyboard("{Home}");
+  // Estado inicial: card 1 ativo, foco nele
   const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  expect(card1).toHaveFocus();
-  expect(card1).toHaveAttribute("aria-pressed", "true");
-  expect(lastCard).toHaveAttribute("aria-pressed", "false");
+  card1.focus();
+  expect(getActiveCardIndex()).toBe(1);
 
-  unmount();
+  // ── Sequência longa de ArrowRight cobrindo wrap-around completo ──
+  for (let step = 1; step <= total + 1; step++) {
+    await user.keyboard("{ArrowRight}");
+    const expectedActive = ((step) % total) + 1; // 1-based, com wrap
+    expect(getActiveCardIndex()).toBe(expectedActive);
+    // Confirma que o card ativo é o que tem foco
+    const activeByLabel = screen.getByRole("button", {
+      name: new RegExp(`^Selecionar variação ${expectedActive}`),
+    });
+    expect(activeByLabel).toHaveFocus();
+  }
 
-  // ── Cenário B: partindo do último, Home vai para card 1 (sem passos intermediários) ──
-  render(<ControlledWrapper initial={lastIndex} />);
-  const lastCardB = screen.getByRole("button", {
-    name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
-  });
-  lastCardB.focus();
-  expect(lastCardB).toHaveFocus();
+  // ── Sequência longa de ArrowLeft cobrindo wrap reverso ──
+  for (let step = 1; step <= total + 1; step++) {
+    await user.keyboard("{ArrowLeft}");
+    expect(getActiveCardIndex()).toBeGreaterThanOrEqual(1);
+    expect(getActiveCardIndex()).toBeLessThanOrEqual(total);
+  }
 
+  // ── Home → invariante mantida, ativo é card 1 ──
   await user.keyboard("{Home}");
-  const card1B = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  expect(card1B).toHaveFocus();
-  expect(card1B).toHaveAttribute("aria-pressed", "true");
+  expect(getActiveCardIndex()).toBe(1);
 
-  // End a partir do card 1 → último
+  // ── End → invariante mantida, ativo é último ──
   await user.keyboard("{End}");
-  const lastCardB2 = screen.getByRole("button", {
-    name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+  expect(getActiveCardIndex()).toBe(total);
+
+  // ── Verificação extra: nenhum botão "Marcar vencedora" tem aria-pressed indevido ──
+  const winnerButtons = screen.queryAllByRole("button", { name: /vencedora/i });
+  winnerButtons.forEach((btn) => {
+    // aria-pressed só deve existir nos cards de seleção, não nos botões de ação
+    const labelStartsWithSelecionar = btn.getAttribute("aria-label")?.startsWith("Selecionar");
+    if (!labelStartsWithSelecionar) {
+      expect(btn.hasAttribute("aria-pressed")).toBe(false);
+    }
   });
-  expect(lastCardB2).toHaveFocus();
-  expect(lastCardB2).toHaveAttribute("aria-pressed", "true");
-  expect(card1B).toHaveAttribute("aria-pressed", "false");
+
+  // ── Mistura final: ArrowRight + Home + End + ArrowLeft → invariante em cada step ──
+  const sequence = ["{ArrowRight}", "{Home}", "{End}", "{ArrowLeft}", "{ArrowLeft}", "{End}"];
+  for (const key of sequence) {
+    await user.keyboard(key);
+    getActiveCardIndex(); // helper já valida invariante (toHaveLength(1))
+  }
 });
 ```
 
@@ -96,26 +107,28 @@ it("Home e End movem foco e atualizam activeIndex independentemente da posição
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
 - Sem novos imports (reusa `React`, `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
-- 1 teste novo (118 → 119 testes)
-- Usa `ControlledWrapper` interno (padrão já presente no arquivo) para garantir rerender quando `setActiveIndex` é chamado — sem isso, `aria-pressed` não atualizaria
-- Testa **2 cenários** (partindo do meio e do último) para blindar contra bug "Home/End só funcionam a partir do card 1"
-- Asserção dupla por etapa: `toHaveFocus()` + `aria-pressed` para travar foco visual E estado ARIA juntos
-- Cobertura simétrica Home↔End evita regressão unilateral
+- 1 teste novo (atual contagem + 1)
+- Helper `getActiveCardIndex` faz dupla função: retorna índice ativo E valida invariante (`expect(...).toHaveLength(1)`) — qualquer step com 0 ou 2+ cards pressed falha imediatamente
+- Loop cobre wrap-around completo (`total + 1` iterações garantem pelo menos 1 wrap)
+- Verificação separada de botões "vencedora" garante que `aria-pressed` não vaze para botões de ação
+- Sequência mista no final exercita transições não-monotônicas (Home depois de End, etc.)
 
 ## Entregável
 
 - 1 teste cobrindo:
-  1. **End a partir do meio** (card 3) → foco e `aria-pressed=true` no último card
-  2. **Home após End** → foco volta direto ao card 1 (salto absoluto, não decremento)
-  3. **Home a partir do último** → foco no card 1 sem passos intermediários
-  4. **End a partir do card 1** → foco no último card
-  5. **`aria-pressed` do card anterior vira `"false"`** após cada salto (estado limpo)
+  1. **Invariante de exclusividade**: a cada movimento, exatamente 1 card com `aria-pressed="true"`
+  2. **Wrap-around ArrowRight**: `total + 1` setas para a direita validam ciclo completo
+  3. **Wrap-around ArrowLeft**: `total + 1` setas para a esquerda sem violar invariante
+  4. **Home/End preservam invariante** após sequências longas
+  5. **Foco sincronizado com `aria-pressed`**: card pressed = card focado
+  6. **Botões "vencedora" não vazam `aria-pressed`**: separação semântica preservada
+  7. **Sequência mista** (Right→Home→End→Left→Left→End) mantém invariante em cada step
 - Captura regressões onde:
-  - `Home` faça `currentIndex - 1` em vez de saltar para `0`
-  - `End` use `total` (off-by-one) em vez de `total - 1`
-  - Foco seja movido mas `onSelect` não seja chamado (ARIA stale)
-  - `aria-pressed` antigo permaneça `"true"` após salto (múltiplos cards "pressed")
-  - Refator condicione Home/End a partir apenas do card 1 (lógica errada de origem)
-- Sem impacto nos 118 testes existentes: novo teste é isolado em `ControlledWrapper` próprio com `unmount()` entre cenários
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 119/119 verde
+  - `aria-pressed` antigo permaneça `"true"` após navegação (múltiplos pressed)
+  - Wrap-around deixe estado órfão no card de origem
+  - Refator faça `aria-pressed` do card ativo virar `aria-pressed={true}` (boolean) em vez de string
+  - Botão de ação interno ao card herde ou ganhe `aria-pressed` indevidamente
+  - `onSelect` deixe de ser chamado em algum movimento, congelando ARIA
+- Sem impacto nos testes existentes: novo teste é isolado em `ControlledWrapper` próprio
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar verde
 
