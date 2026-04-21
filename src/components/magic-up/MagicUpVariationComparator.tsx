@@ -15,13 +15,20 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   if (variations.length < 2) return null;
-  const scores = variations.map((variation) => variation.qualityDiagnosis?.total || variation.qualityScore || 0);
-  const bestScore = Math.max(...scores);
-  const hasValidScores = bestScore > 0;
+  // Resolve score explicitamente: number (incluindo 0) ou null (ausente).
+  // qualityDiagnosis.total tem prioridade absoluta sobre qualityScore.
+  const resolveScore = (variation: VariationItem): number | null => {
+    if (typeof variation.qualityDiagnosis?.total === "number") return variation.qualityDiagnosis.total;
+    if (typeof variation.qualityScore === "number") return variation.qualityScore;
+    return null;
+  };
+  const scores = variations.map(resolveScore);
+  const numericScores = scores.filter((s): s is number => s !== null);
+  const bestScore: number | null = numericScores.length > 0 ? Math.max(...numericScores) : null;
   const explicitWinnerIndex = variations.findIndex((variation) => variation.isWinner);
   const winnerIndex = explicitWinnerIndex >= 0
     ? explicitWinnerIndex
-    : (hasValidScores ? variations.findIndex((_, index) => scores[index] === bestScore) : -1);
+    : (bestScore !== null ? scores.findIndex((s) => s === bestScore) : -1);
 
   const handleArrowKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     const total = variations.length;
