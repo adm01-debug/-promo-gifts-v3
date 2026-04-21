@@ -1,149 +1,121 @@
 
 
-# Plano — Testes de Enter/Espaço após navegação por setas selecionam variação correta
+# Plano — Testes de Home/End movem foco e atualizam activeIndex
 
-Adiciono **2 testes** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando que após navegar via teclado (setas/Home/End) e pressionar **Enter** ou **Espaço**, o `onSelect` é chamado com o índice do card focado, sem quebrar a contagem de chamadas dos testes existentes.
+Adiciono **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando explicitamente que **Home** e **End** movem o foco para o card correto E atualizam `activeIndex` via `onSelect`, com asserções declarativas sobre `toHaveFocus()` e `aria-pressed`.
 
 ## Justificativa
 
-Cobertura atual valida que setas/Home/End movem foco e atualizam `activeIndex` via `onSelect` no próprio `onKeyDown`. Mas **não há teste** que confirme:
+A cobertura atual valida setas (`ArrowRight`/`ArrowLeft`) movendo foco, e os testes recentes de Enter/Espaço usam Home/End **como precondição** — mas não há teste **dedicado** que afirme:
 
 | Lacuna | Risco |
 |---|---|
-| Enter no card focado dispara seleção | Se `<button>` perder `type="button"` implícito ou ganhar `onKeyDown` que `preventDefault` em Enter, ativação por teclado quebra silenciosamente |
-| Espaço no card focado dispara seleção | Espaço é o ativador WAI-ARIA padrão para `role="button"` — refator que use `<div>` quebraria isso |
-| Navegar com seta + ativar com Enter chama `onSelect` com **índice novo** (não com índice antigo) | Race condition: se ativação ler `activeIndex` stale, seleciona card errado |
-| Após Espaço, página não rola (preventDefault na ativação) | Espaço default é scroll — sem preventDefault, página pula durante navegação |
+| Home a partir de card no meio move foco para card 1 | Refator que faça Home navegar 1 posição (em vez de saltar) passaria silenciosamente |
+| End a partir de card no meio move foco para último card | Mesmo risco simétrico |
+| `onSelect` é chamado com `0` (Home) e `N-1` (End) — não com índice intermediário | Off-by-one em `total - 1` quebraria End |
+| `aria-pressed` reflete o novo `activeIndex` após rerender controlado | ARIA stale após Home/End é regressão grave de a11y |
+| Home/End funcionam **independentemente da posição inicial** (não só do card 1) | Bug de "Home só funciona se vier de ArrowRight" passaria |
 
-**WAI-ARIA Authoring Practices**: `role="button"` (implícito em `<button>`) deve responder a Enter **e** Espaço. Teste declarativo previne refator que use elemento não-semântico.
+**WAI-ARIA Listbox/Grid pattern**: Home/End são saltos absolutos (não relativos). Teste declarativo trava o contrato.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar **2 testes** após o último teste do sub-describe `"navegação por setas/Home/End"` (após o teste `"auto-scroll respeita prefers-reduced-motion"`, antes do `});` que fecha o sub-describe):
-
-#### Teste 1 — Enter após ArrowRight chama onSelect com novo índice
+Adicionar **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` (após o teste `"Espaço após Home/End ativa card focado..."`, antes do `});` que fecha o sub-describe):
 
 ```ts
-it("Enter após navegar com seta seleciona a variação focada (não a anterior)", async () => {
+it("Home e End movem foco e atualizam activeIndex independentemente da posição inicial", async () => {
   const user = userEvent.setup();
-  const onSelect = vi.fn();
 
-  render(
-    <MagicUpVariationComparator
-      variations={navVariations}
-      activeIndex={0}
-      onSelect={onSelect}
-      onSelectWinner={vi.fn()}
-    />
-  );
+  function ControlledWrapper({ initial }: { initial: number }) {
+    const [activeIndex, setActiveIndex] = React.useState(initial);
+    return (
+      <MagicUpVariationComparator
+        variations={navVariations}
+        activeIndex={activeIndex}
+        onSelect={setActiveIndex}
+        onSelectWinner={vi.fn()}
+      />
+    );
+  }
 
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  card1.focus();
-  expect(card1).toHaveFocus();
-  onSelect.mockClear();
+  // ── Cenário A: partindo do meio (card 3 de 5), End vai para último ──
+  const { unmount } = render(<ControlledWrapper initial={2} />);
+  const total = navVariations.length;
+  const lastIndex = total - 1;
 
-  // ArrowRight → foca card 2 e chama onSelect(1)
-  await user.keyboard("{ArrowRight}");
-  expect(onSelect).toHaveBeenLastCalledWith(1);
-  const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
-  expect(card2).toHaveFocus();
-
-  // Enter no card 2 → chama onSelect(1) novamente (ativação explícita)
-  onSelect.mockClear();
-  await user.keyboard("{Enter}");
-  expect(onSelect).toHaveBeenCalledWith(1);
-  expect(onSelect).not.toHaveBeenCalledWith(0);
-
-  // Sequência: ArrowRight → ArrowRight → Enter chama com índice 2
-  onSelect.mockClear();
-  await user.keyboard("{ArrowRight}");
-  expect(onSelect).toHaveBeenLastCalledWith(2);
   const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+  card3.focus();
   expect(card3).toHaveFocus();
+  expect(card3).toHaveAttribute("aria-pressed", "true");
 
-  onSelect.mockClear();
-  await user.keyboard("{Enter}");
-  expect(onSelect).toHaveBeenCalledWith(2);
-  expect(onSelect).not.toHaveBeenCalledWith(1);
-});
-```
-
-#### Teste 2 — Espaço após Home/End ativa card focado e previne scroll
-
-```ts
-it("Espaço após Home/End ativa card focado, previne scroll e respeita índice", async () => {
-  const user = userEvent.setup();
-  const onSelect = vi.fn();
-
-  render(
-    <MagicUpVariationComparator
-      variations={navVariations}
-      activeIndex={0}
-      onSelect={onSelect}
-      onSelectWinner={vi.fn()}
-    />
-  );
-
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  card1.focus();
-  onSelect.mockClear();
-
-  // End → foca último card e chama onSelect(N-1)
   await user.keyboard("{End}");
-  const lastIndex = navVariations.length - 1;
-  expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
   const lastCard = screen.getByRole("button", {
     name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
   });
   expect(lastCard).toHaveFocus();
+  expect(lastCard).toHaveAttribute("aria-pressed", "true");
+  // card 3 perdeu o pressed
+  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
 
-  // Espaço no último card → ativação WAI-ARIA padrão
-  onSelect.mockClear();
-  await user.keyboard(" ");
-  expect(onSelect).toHaveBeenCalledWith(lastIndex);
-
-  // Home → volta para card 1
-  onSelect.mockClear();
+  // ── Home a partir do último vai direto para card 1 (não decrementa) ──
   await user.keyboard("{Home}");
-  expect(onSelect).toHaveBeenLastCalledWith(0);
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
   expect(card1).toHaveFocus();
+  expect(card1).toHaveAttribute("aria-pressed", "true");
+  expect(lastCard).toHaveAttribute("aria-pressed", "false");
 
-  // Espaço no card 1 → ativação
-  onSelect.mockClear();
-  await user.keyboard(" ");
-  expect(onSelect).toHaveBeenCalledWith(0);
-  expect(onSelect).not.toHaveBeenCalledWith(lastIndex);
+  unmount();
 
-  // Smoke test: Espaço não causou scroll do body (preventDefault implícito de <button>)
-  // (jsdom não mede scroll, mas se Espaço gerasse erro ou warning, o teste falharia)
+  // ── Cenário B: partindo do último, Home vai para card 1 (sem passos intermediários) ──
+  render(<ControlledWrapper initial={lastIndex} />);
+  const lastCardB = screen.getByRole("button", {
+    name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+  });
+  lastCardB.focus();
+  expect(lastCardB).toHaveFocus();
+
+  await user.keyboard("{Home}");
+  const card1B = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+  expect(card1B).toHaveFocus();
+  expect(card1B).toHaveAttribute("aria-pressed", "true");
+
+  // End a partir do card 1 → último
+  await user.keyboard("{End}");
+  const lastCardB2 = screen.getByRole("button", {
+    name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+  });
+  expect(lastCardB2).toHaveFocus();
+  expect(lastCardB2).toHaveAttribute("aria-pressed", "true");
+  expect(card1B).toHaveAttribute("aria-pressed", "false");
 });
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (reusa `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
-- 2 testes novos (116 → 118 testes)
-- Cada teste usa `onSelect.mockClear()` entre fases para isolar contagem (não interfere com outros testes)
-- Teste 1 valida sequência seta+Enter chamando com **índice novo**, blindando contra leitura stale
-- Teste 2 valida tanto Home→Espaço quanto End→Espaço (cobertura simétrica)
-- Sem `act()` explícito (userEvent já encapsula)
+- Sem novos imports (reusa `React`, `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
+- 1 teste novo (118 → 119 testes)
+- Usa `ControlledWrapper` interno (padrão já presente no arquivo) para garantir rerender quando `setActiveIndex` é chamado — sem isso, `aria-pressed` não atualizaria
+- Testa **2 cenários** (partindo do meio e do último) para blindar contra bug "Home/End só funcionam a partir do card 1"
+- Asserção dupla por etapa: `toHaveFocus()` + `aria-pressed` para travar foco visual E estado ARIA juntos
+- Cobertura simétrica Home↔End evita regressão unilateral
 
 ## Entregável
 
-- 2 testes cobrindo:
-  1. **Enter após ArrowRight**: `onSelect` chamado com índice do card focado, não com índice anterior
-  2. **Sequência Arrow + Arrow + Enter**: índice acumula corretamente (1 → 2)
-  3. **Espaço após End**: `onSelect` chamado com `lastIndex`
-  4. **Espaço após Home**: `onSelect` chamado com `0`, não com `lastIndex` stale
-  5. **Foco preservado durante ativação**: `toHaveFocus()` confirma que Enter/Espaço não muda foco para outro elemento
+- 1 teste cobrindo:
+  1. **End a partir do meio** (card 3) → foco e `aria-pressed=true` no último card
+  2. **Home após End** → foco volta direto ao card 1 (salto absoluto, não decremento)
+  3. **Home a partir do último** → foco no card 1 sem passos intermediários
+  4. **End a partir do card 1** → foco no último card
+  5. **`aria-pressed` do card anterior vira `"false"`** após cada salto (estado limpo)
 - Captura regressões onde:
-  - `<button>` vire `<div>` sem handler para Enter/Espaço
-  - `onKeyDown` ganhe `e.preventDefault()` no Enter sem chamar `onSelect`
-  - Refator leia `activeIndex` stale ao processar Enter (chamaria com índice errado)
-  - Espaço deixe de funcionar (regressão WAI-ARIA crítica)
-- Sem impacto nos 116 testes existentes: novos testes usam `mockClear()` entre fases e renderizam instâncias isoladas
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 118/118 verde
+  - `Home` faça `currentIndex - 1` em vez de saltar para `0`
+  - `End` use `total` (off-by-one) em vez de `total - 1`
+  - Foco seja movido mas `onSelect` não seja chamado (ARIA stale)
+  - `aria-pressed` antigo permaneça `"true"` após salto (múltiplos cards "pressed")
+  - Refator condicione Home/End a partir apenas do card 1 (lógica errada de origem)
+- Sem impacto nos 118 testes existentes: novo teste é isolado em `ControlledWrapper` próprio com `unmount()` entre cenários
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 119/119 verde
 
