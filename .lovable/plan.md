@@ -1,8 +1,8 @@
 
 
-# Plano — Teste defensivo: ausência de `bestScore` → nenhuma badge "Melhor score"
+# Plano — Teste: estabilidade do `winnerIndex` em empate sob permutação
 
-Adiciono teste validando o invariante defensivo do `MagicUpVariationComparator`: quando `bestScore === null` (todas variações sem score numérico) **e** nenhuma variação tem `isWinner=true`, nenhuma badge "Melhor score" é renderizada em nenhum card.
+Adiciono teste validando que `findIndex` mantém o contrato "primeiro índice do array vence em empate" mesmo quando a ordem das variações é permutada — o vencedor sempre é o **primeiro do array atual**, não da ordem semântica anterior.
 
 ## Justificativa
 
@@ -14,11 +14,12 @@ const winnerIndex = explicitWinnerIndex >= 0
   : (bestScore !== null ? scores.findIndex((s) => s === bestScore) : -1);
 ```
 
-Dois caminhos garantem `winnerIndex = -1`:
-1. **`bestScore === null`** (sem scores numéricos) E sem `isWinner` → `-1`
-2. **Caso "impossível"**: `bestScore` numérico mas nenhum `scores[i] === bestScore` — pelo `Math.max`, sempre existe pelo menos um match, então `findIndex` nunca retorna `-1`. Esse cenário é **logicamente inalcançável** dado o invariante de `Math.max`, mas vale travar como contrato defensivo.
+`findIndex` percorre o array na ordem fornecida e retorna o **primeiro** match. Em empate de score, isso significa:
+- Array `[A=80, B=80, C=80]` → vencedor = A (índice 0)
+- Array permutado `[B=80, A=80, C=80]` → vencedor = B (índice 0)
+- Array permutado `[C=80, B=80, A=80]` → vencedor = C (índice 0)
 
-**Cobertura atual:** já existem testes para "todos undefined → -1" e "todos null → nenhuma badge". O gap é validar a propriedade **defensiva** explicitamente: nenhuma badge nem mesmo no DOM (não só no índice 0), incluindo verificação de `aria-label` em todos os botões e ausência de menção a "melhor score" no header.
+O contrato é: **a ordem do array recebido em `props.variations` define quem vence em empate** — sempre o índice 0 dentre os empatados no maior score.
 
 ## Alteração
 
@@ -27,55 +28,75 @@ Dois caminhos garantem `winnerIndex = -1`:
 Adicionar 1 teste ao final da sub-suíte de empate:
 
 ```ts
-it("invariante defensivo: sem bestScore (todas null) e sem isWinner — nenhuma badge 'Melhor score' renderiza em nenhum card", () => {
-  const variations = [
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 0),
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 1),
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 2),
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 3),
-  ];
-  renderTied(variations);
+it("estabilidade sob permutação: empate triplo (80) — vencedor é sempre o índice 0 do array, independente de qual variação ocupe essa posição", () => {
+  const variantA = { id: "var-A", qualityScore: 80 };
+  const variantB = { id: "var-B", qualityScore: 80 };
+  const variantC = { id: "var-C", qualityScore: 80 };
 
-  // 1. Zero badges "Melhor score" no DOM inteiro
-  expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
+  // Permutação 1: [A, B, C] → vencedor = A (índice 0)
+  const { unmount: unmount1 } = renderTied([
+    buildVariation(variantA, 0),
+    buildVariation(variantB, 1),
+    buildVariation(variantC, 2),
+  ]);
+  let badges = screen.getAllByLabelText("Melhor score");
+  expect(badges).toHaveLength(1);
+  let cards = screen.getAllByRole("listitem");
+  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+  unmount1();
 
-  // 2. Cada card individualmente: nenhuma badge
-  const cards = screen.getAllByRole("listitem");
-  expect(cards).toHaveLength(4);
-  cards.forEach((card) => {
-    expect(within(card).queryByLabelText("Melhor score")).toBeNull();
-  });
+  // Permutação 2: [B, A, C] → vencedor = B (índice 0)
+  const { unmount: unmount2 } = renderTied([
+    buildVariation(variantB, 0),
+    buildVariation(variantA, 1),
+    buildVariation(variantC, 2),
+  ]);
+  badges = screen.getAllByLabelText("Melhor score");
+  expect(badges).toHaveLength(1);
+  cards = screen.getAllByRole("listitem");
+  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+  unmount2();
 
-  // 3. Nenhum aria-label de botão menciona "melhor score" nem "score N"
-  for (let i = 1; i <= 4; i++) {
-    const btn = screen.getByRole("button", { name: new RegExp(`Selecionar variação ${i}`) });
-    const label = btn.getAttribute("aria-label") ?? "";
-    expect(label).not.toContain("melhor score");
-    expect(label).not.toMatch(/, score \d/);
-  }
-
-  // 4. Header global mostra "—" (placeholder) e aria-label "indisponível"
-  const headerBadge = screen.getByLabelText(/Melhor score entre variações/);
-  expect(headerBadge).toHaveTextContent("Melhor score: —");
-  expect(headerBadge.getAttribute("aria-label")).toContain("indisponível");
-
-  // 5. Cada card mostra "Score indisponível" no span de score
-  cards.forEach((card) => {
-    expect(within(card).getByLabelText("Score indisponível")).toBeInTheDocument();
-  });
+  // Permutação 3: [C, B, A] → vencedor = C (índice 0)
+  renderTied([
+    buildVariation(variantC, 0),
+    buildVariation(variantB, 1),
+    buildVariation(variantA, 2),
+  ]);
+  badges = screen.getAllByLabelText("Melhor score");
+  expect(badges).toHaveLength(1);
+  cards = screen.getAllByRole("listitem");
+  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
 });
 ```
+
+**Verificação prévia:** se `renderTied` não retorna `unmount`, ajustar para usar `cleanup()` do `@testing-library/react` entre permutações, ou separar em 3 `it()` independentes (Vitest já isola DOM por teste). Caso `renderTied` retorne o objeto `RenderResult` completo, `unmount` está disponível nativamente.
+
+**Plano B (se `renderTied` ofuscar `unmount`):** dividir em 3 testes consecutivos:
+```ts
+it("permutação [A,B,C]: vencedor = A no índice 0", () => { /* ... */ });
+it("permutação [B,A,C]: vencedor = B no índice 0", () => { /* ... */ });
+it("permutação [C,B,A]: vencedor = C no índice 0", () => { /* ... */ });
+```
+
+Cobertura: 65 → 66 testes (1 teste com 3 permutações) ou 65 → 68 (3 testes separados).
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx` — comportamento atual já é o contrato correto
 - Reusa helpers `buildVariation`, `renderTied`, `within` já importados
 - Sem novos imports
-- Caso "impossível" (`bestScore` numérico sem match) é inalcançável por invariante de `Math.max` — não testável sem mock
+- Validação adicional: `id` distinto por variação garante que o teste rastreia a identidade real, não apenas a posição
 
 ## Entregável
 
-- 1 novo teste defensivo cobrindo 5 invariantes simultâneos: zero badges no DOM, zero badges por card, zero menções em aria-labels, header com "—" e "indisponível", spans de score com "Score indisponível"
-- Cobertura: 64 → 65 testes
-- Trava propriedade defensiva: ausência de `bestScore` nunca renderiza vencedor falso, em nenhum nível do DOM
+- 1 novo teste (ou 3, conforme assinatura de `renderTied`) validando estabilidade do `winnerIndex` sob permutação
+- Trava contrato: empate em score → vencedor é sempre `array[0]` dentre os empatados, **determinístico pela ordem de entrada**
+- Cobertura WCAG 4.1.2 (Name/Role/Value) preservada: badge sempre no índice 0 com `aria-label="Melhor score"`
 
