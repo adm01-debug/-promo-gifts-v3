@@ -3594,5 +3594,104 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("DOM permanece estruturalmente estável após Enter/Space — só mudam atributos do estado controlado", async () => {
+      const user = userEvent.setup();
+      const onSelectWinner = vi.fn();
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        return (
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={onSelectWinner}
+          />
+        );
+      }
+
+      const { container } = render(<ControlledWrapper />);
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+      const section = container.querySelector('[aria-label="Comparador de variações"]')!;
+      const initialNodeCount = section.querySelectorAll("*").length;
+
+      const initialCard1Ref = card1;
+      const initialCard2Ref = card2;
+      const initialCard3Ref = card3;
+
+      const collectStableAttrs = (el: HTMLElement) => ({
+        role: el.getAttribute("role"),
+        type: el.getAttribute("type"),
+        tabindex: el.getAttribute("tabindex"),
+        ariaKeyshortcuts: el.getAttribute("aria-keyshortcuts"),
+        ariaLabel: el.getAttribute("aria-label"),
+      });
+      const card1StableBefore = collectStableAttrs(card1);
+      const card2StableBefore = collectStableAttrs(card2);
+      const card3StableBefore = collectStableAttrs(card3);
+
+      const initialTagSequence = Array.from(section.querySelectorAll("*"))
+        .map((el) => el.tagName)
+        .join(",");
+
+      // ── Ação: Enter no card2 ──
+      card2.focus();
+      expect(card2).toHaveFocus();
+      await user.keyboard("{Enter}");
+
+      const postEnterNodeCount = section.querySelectorAll("*").length;
+      const postEnterTagSequence = Array.from(section.querySelectorAll("*"))
+        .map((el) => el.tagName)
+        .join(",");
+
+      expect(postEnterNodeCount).toBe(initialNodeCount);
+      expect(postEnterTagSequence).toBe(initialTagSequence);
+
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toBe(initialCard1Ref);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).toBe(initialCard2Ref);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toBe(initialCard3Ref);
+
+      expect(collectStableAttrs(card1)).toEqual(card1StableBefore);
+      expect(collectStableAttrs(card2)).toEqual(card2StableBefore);
+      expect(collectStableAttrs(card3)).toEqual(card3StableBefore);
+
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-current", "true");
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+      expect(card1).not.toHaveAttribute("aria-current");
+
+      // ── Ação: Space no card3 ──
+      card3.focus();
+      expect(card3).toHaveFocus();
+      await user.keyboard(" ");
+
+      const postSpaceNodeCount = section.querySelectorAll("*").length;
+      const postSpaceTagSequence = Array.from(section.querySelectorAll("*"))
+        .map((el) => el.tagName)
+        .join(",");
+
+      expect(postSpaceNodeCount).toBe(initialNodeCount);
+      expect(postSpaceTagSequence).toBe(initialTagSequence);
+
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toBe(initialCard1Ref);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).toBe(initialCard2Ref);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toBe(initialCard3Ref);
+
+      expect(collectStableAttrs(card1)).toEqual(card1StableBefore);
+      expect(collectStableAttrs(card2)).toEqual(card2StableBefore);
+      expect(collectStableAttrs(card3)).toEqual(card3StableBefore);
+
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+      expect(card3).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
