@@ -1095,3 +1095,118 @@ describe("MagicUpResultPanel — retenção de foco em click no dot", () => {
     });
   });
 });
+
+// ───────── Atributos ARIA dinâmicos refletem variação ativa (WCAG 4.1.2) ─────────
+
+describe("MagicUpResultPanel — atributos ARIA dinâmicos refletem variação ativa", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function expectAriaSelectedState(elements: HTMLElement[], activeIndex: number) {
+    elements.forEach((el, i) => {
+      const expected = i === activeIndex ? "true" : "false";
+      expect(el.getAttribute("aria-selected")).toBe(expected);
+    });
+  }
+
+  function expectTabIndexState(elements: HTMLElement[], activeIndex: number) {
+    elements.forEach((el, i) => {
+      expect(el.tabIndex).toBe(i === activeIndex ? 0 : -1);
+    });
+  }
+
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  it("aria-selected inicial reflete activeVariation=0 nos dots", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    expectAriaSelectedState(getDots(), 0);
+  });
+
+  it("aria-selected migra após re-render com novo active (0 → 2)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+    expectAriaSelectedState(getDots(), 0);
+
+    rerenderWithActive(rerender, m, 2);
+    expectAriaSelectedState(getDots(), 2);
+  });
+
+  it("aria-selected em thumbnails segue mesmo contrato após re-render (1 → 0)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+    expectAriaSelectedState(getThumbs(), 1);
+
+    rerenderWithActive(rerender, m, 0);
+    expectAriaSelectedState(getThumbs(), 0);
+  });
+
+  it("tabIndex sincronizado com aria-selected nos dots após re-render (1 → 2)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+    expectTabIndexState(getDots(), 1);
+    expectAriaSelectedState(getDots(), 1);
+
+    rerenderWithActive(rerender, m, 2);
+    expectTabIndexState(getDots(), 2);
+    expectAriaSelectedState(getDots(), 2);
+  });
+
+  it("aria-current='true' reflete o ativo apenas no dot ativo após re-render", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+    rerenderWithActive(rerender, m, 2);
+
+    const dots = getDots();
+    expect(dots[0]).not.toHaveAttribute("aria-current");
+    expect(dots[1]).not.toHaveAttribute("aria-current");
+    expect(dots[2]).toHaveAttribute("aria-current", "true");
+  });
+
+  it("múltiplas trocas sequenciais (0 → 2 → 1 → 0) atualizam ARIA sem estado fantasma", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+    expectAriaSelectedState(getDots(), 0);
+    expectTabIndexState(getDots(), 0);
+
+    rerenderWithActive(rerender, m, 2);
+    expectAriaSelectedState(getDots(), 2);
+    expectTabIndexState(getDots(), 2);
+
+    rerenderWithActive(rerender, m, 1);
+    expectAriaSelectedState(getDots(), 1);
+    expectTabIndexState(getDots(), 1);
+
+    rerenderWithActive(rerender, m, 0);
+    expectAriaSelectedState(getDots(), 0);
+    expectTabIndexState(getDots(), 0);
+
+    // Também valida thumbnails no estado final
+    expectAriaSelectedState(getThumbs(), 0);
+    expectTabIndexState(getThumbs(), 0);
+  });
+
+  it("após ArrowRight + re-render, ARIA reflete novo ativo nos dots", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    dots[0].focus();
+    fireEvent.keyDown(dots[0], { key: "ArrowRight" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+
+    rerenderWithActive(rerender, m, 1);
+    expectAriaSelectedState(getDots(), 1);
+    expectTabIndexState(getDots(), 1);
+  });
+});
