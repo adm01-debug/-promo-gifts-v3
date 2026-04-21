@@ -3038,5 +3038,92 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       expect(onSelect).not.toHaveBeenCalled();
     });
+
+    it("Home salta foco e seleção para o primeiro card de variação e Enter/Space disparam onSelect(0)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={2}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      card3.focus();
+      expect(card3).toHaveFocus();
+
+      await user.keyboard("{Home}");
+      expect(onSelect).toHaveBeenCalledWith(0);
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(card1).toHaveFocus();
+
+      expect(card1).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("Home"));
+
+      onSelect.mockClear();
+      await user.keyboard("{Enter}");
+      expect(onSelect).toHaveBeenCalledWith(0);
+
+      onSelect.mockClear();
+      await user.keyboard(" ");
+      expect(onSelect).toHaveBeenCalledWith(0);
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("End salta foco e seleção para o último card de variação e Enter/Space disparam onSelect(last)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const lastIndex = navVariations.length - 1;
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1.focus();
+      expect(card1).toHaveFocus();
+
+      await user.keyboard("{End}");
+      expect(onSelect).toHaveBeenCalledWith(lastIndex);
+      const cardLast = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      expect(cardLast).toHaveFocus();
+
+      expect(cardLast).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("End"));
+
+      onSelect.mockClear();
+      await user.keyboard("{Enter}");
+      expect(onSelect).toHaveBeenCalledWith(lastIndex);
+
+      onSelect.mockClear();
+      await user.keyboard(" ");
+      expect(onSelect).toHaveBeenCalledWith(lastIndex);
+
+      onSelect.mockClear();
+      await user.keyboard("{Home}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
+
+      await user.keyboard("{End}");
+      expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
+
+      await user.keyboard("{Home}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
