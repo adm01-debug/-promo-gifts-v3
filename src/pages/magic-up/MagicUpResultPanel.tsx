@@ -26,14 +26,17 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="flex gap-1.5">
+          <div className="flex gap-1.5" role="tablist" aria-label="Variações geradas">
             {m.variations.map((_, i) => (
               <button
                 key={i}
                 onClick={() => m.setActiveVariation(i)}
                 aria-label={`Selecionar variação ${i + 1}`}
+                aria-current={i === m.activeVariation ? "true" : undefined}
+                role="tab"
+                aria-selected={i === m.activeVariation}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all",
+                  "w-2 h-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                   i === m.activeVariation ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                 )}
               />
