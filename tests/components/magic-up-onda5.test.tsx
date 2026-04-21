@@ -3125,5 +3125,122 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("scroll do container e do window não rouba foco do botão atualmente focado", async () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const { container } = render(
+        <div style={{ height: "200px", overflow: "auto" }} data-testid="scroll-container">
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={1}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+          />
+        </div>
+      );
+
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      card2.focus();
+      expect(card2).toHaveFocus();
+      expect(document.activeElement).toBe(card2);
+
+      const scrollContainer = screen.getByTestId("scroll-container");
+      for (let i = 0; i < 10; i++) {
+        fireEvent.scroll(scrollContainer, { target: { scrollTop: i * 50 } });
+      }
+      expect(card2).toHaveFocus();
+      expect(document.activeElement).toBe(card2);
+
+      fireEvent.scroll(window, { target: { scrollY: 300 } });
+      fireEvent.scroll(window, { target: { scrollY: 600 } });
+      expect(card2).toHaveFocus();
+
+      const section = container.querySelector('[aria-label="Comparador de variações"]');
+      if (section) {
+        fireEvent.scroll(section, { target: { scrollTop: 100 } });
+      }
+      expect(card2).toHaveFocus();
+
+      const winnerBtn3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+      winnerBtn3.focus();
+      expect(winnerBtn3).toHaveFocus();
+
+      for (let i = 0; i < 5; i++) {
+        fireEvent.scroll(scrollContainer, { target: { scrollTop: 200 + i * 30 } });
+      }
+      fireEvent.scroll(window, { target: { scrollY: 0 } });
+      expect(winnerBtn3).toHaveFocus();
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("Shift+Tab percorre os botões do comparador em ordem reversa (last → first), mantendo Enter/Space funcionais em cada parada", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <div>
+          <button type="button" data-testid="before-sentinel">antes</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+          />
+          <button type="button" data-testid="after-sentinel">depois</button>
+        </div>
+      );
+
+      const afterSentinel = screen.getByTestId("after-sentinel");
+      afterSentinel.focus();
+      expect(afterSentinel).toHaveFocus();
+
+      const expectedReverseOrder: Array<{ name: string | RegExp }> = [
+        { name: "Marcar variação 3 como vencedora" },
+        { name: /^Selecionar variação 3/ },
+        { name: "Marcar variação 2 como vencedora" },
+        { name: /^Selecionar variação 2/ },
+        { name: "Marcar variação 1 como vencedora" },
+        { name: /^Selecionar variação 1/ },
+      ];
+
+      for (const target of expectedReverseOrder) {
+        await user.tab({ shift: true });
+        const btn = screen.getByRole("button", target);
+        expect(btn).toHaveFocus();
+      }
+
+      await user.tab({ shift: true });
+      expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+      await user.tab();
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(card1).toHaveFocus();
+      await user.keyboard("{Enter}");
+      expect(onSelect).toHaveBeenCalledWith(0);
+
+      onSelect.mockClear();
+      await user.tab({ shift: true });
+      expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+      await user.tab(); // card1
+      await user.tab(); // marcar1
+      await user.tab(); // card2
+      await user.tab(); // marcar2
+      const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      expect(winnerBtn2).toHaveFocus();
+      await user.keyboard(" ");
+      expect(onSelectWinner).toHaveBeenCalledWith(1);
+
+      await user.tab({ shift: true });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(card2).toHaveFocus();
+      await user.keyboard("{Enter}");
+      expect(onSelect).toHaveBeenCalledWith(1);
+    });
   });
 });
