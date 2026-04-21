@@ -673,6 +673,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     await user.keyboard("{Enter}");
     expect(onSelectWinner).not.toHaveBeenCalled();
 
+    expect(marcar2).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -681,6 +682,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const marcar1 = select.marcar(1);
     marcar1.focus();
+    expect(marcar1).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(onSelectWinner).toHaveBeenCalledWith(0);
     expect(onSelectWinner).toHaveBeenCalledTimes(1);
@@ -2932,10 +2934,12 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Re-foca sentinel (click em disabled remove foco para body)
       screen.getByTestId("external-sentinel").focus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
       // 5) Enter/Space via userEvent.keyboard com foco no sentinel — botão disabled
       //    nunca recebe o evento porque não está na cadeia de foco
       await user.keyboard("{Enter}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -2981,11 +2985,15 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Re-foca sentinel (click em disabled remove foco para body)
       screen.getByTestId("external-sentinel").focus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
       // 3) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
       await user.keyboard("{Control>}{Enter}{/Control}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard("{Meta>}{Enter}{/Meta}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard("{Shift>}{Enter}{/Shift}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard("{Alt>}{Enter}{/Alt}");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -3028,18 +3036,25 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(onSelectWinner).not.toHaveBeenCalled();
 
       // Re-foca sentinel (click em disabled remove foco para body)
-      screen.getByTestId("external-sentinel").focus();
+      const sentinel = screen.getByTestId("external-sentinel");
+      sentinel.focus();
+      expect(sentinel).toHaveFocus();
 
       // 3) Múltiplas pressões Space sequenciais (15 no total — emula auto-repeat) com foco no sentinel
       for (let i = 0; i < 15; i++) {
         await user.keyboard(" ");
       }
+      expect(sentinel).toHaveFocus();
       expect(onSelectWinner).not.toHaveBeenCalled();
 
       // 4) Combinação Space + modificadores via atalho global
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Control>} {/Control}");
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Meta>} {/Meta}");
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Shift>} {/Shift}");
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Alt>} {/Alt}");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -3047,6 +3062,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
       expect(winnerBtn1).not.toBeDisabled();
       winnerBtn1.focus();
+      expect(winnerBtn1).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
       expect(onSelectWinner).toHaveBeenCalledWith(0);
