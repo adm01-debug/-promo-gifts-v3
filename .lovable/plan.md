@@ -1,175 +1,149 @@
 
 
-# Plano — Testes de atributos ARIA do MagicUpVariationComparator
+# Plano — Navegação por setas (←/→ e ↑/↓) no MagicUpVariationComparator
 
-Adiciono 3 testes ao `describe("MagicUpVariationComparator")` em `tests/components/magic-up-onda5.test.tsx` cobrindo de forma exaustiva: (1) atributos ARIA do cartão **ativo** (`aria-pressed="true"` + `aria-current="true"` + ausência condicional em inativos); (2) **nomes acessíveis** dos botões de seleção em diferentes cenários (com score, sem score, com badge "melhor score"); (3) ARIA dos botões "Marcar vencedora" — `aria-label` único e descritivo por índice, sem `aria-pressed` (não é toggle).
+Adiciono suporte a navegação por setas entre os cards de variação seguindo o padrão WAI-ARIA APG **Composite Widget / Roving Tabindex** simplificado, e cubro com testes determinísticos.
 
 ## Justificativa
 
-Cobertura atual valida re-render visual após Enter/Space, mas falta auditoria isolada e exaustiva dos contratos ARIA estáticos por estado:
-- **`aria-current` em inativos**: o componente só seta `aria-current` no ativo (não força `"false"`); precisa teste explícito do **NOT.toHaveAttribute**
-- **Composição do `aria-label` de seleção**: muda dinamicamente conforme `score` existe/não existe e `isWinner` true/false — 4 combinações nunca testadas isoladamente
-- **`aria-label` de "Marcar vencedora"**: deve ser único por índice (`"Marcar variação N como vencedora"`) — sem isso, screen readers anunciam todos os botões com mesmo nome
+Hoje o usuário precisa pressionar Tab repetidamente para alternar entre cards (cada card tem 2 botões: selecionar + marcar vencedora, então atravessar 3 variações exige 6 Tabs). Setas ←/→ (e ↑/↓ para grids responsivos) são o padrão APG para listas/grids selecionáveis e melhoram drasticamente a UX de teclado e leitores de tela.
 
-## Arquivo alterado
+## Arquivos alterados
 
-`tests/components/magic-up-onda5.test.tsx` — 3 testes novos no `describe("MagicUpVariationComparator")`, agrupados após o teste de regressão Enter/Space.
+1. **`src/components/magic-up/MagicUpVariationComparator.tsx`** — adicionar handler `onKeyDown` no botão "Selecionar" para tratar `ArrowRight`/`ArrowDown` (próximo) e `ArrowLeft`/`ArrowUp` (anterior), com wrap-around. Foco move programaticamente para o novo botão via `ref`.
+2. **`tests/components/magic-up-onda5.test.tsx`** — 4 testes novos cobrindo: avanço, retrocesso, wrap-around, e teclas não-seta ignoradas.
+
+## Mudanças no componente
+
+### Comportamento
+
+- **`ArrowRight`** ou **`ArrowDown`**: avança para o próximo card. No último, faz wrap para o primeiro (`(activeIndex + 1) % variations.length`).
+- **`ArrowLeft`** ou **`ArrowUp`**: volta ao anterior. No primeiro, faz wrap para o último.
+- **`Home`**: vai ao primeiro card.
+- **`End`**: vai ao último card.
+- Toda navegação por seta:
+  1. Chama `onSelect(newIndex)` (atualiza estado no parent)
+  2. Move foco programaticamente para o botão "Selecionar" do novo card via `ref` (array de refs)
+  3. `event.preventDefault()` para evitar scroll da página
+- Outras teclas (Tab, Enter, Space, letras) **não** são interceptadas — comportamento atual preservado.
+
+### Implementação
+
+- Criar `cardRefs = useRef<(HTMLButtonElement | null)[]>([])` no topo do componente.
+- Atribuir `ref={(el) => { cardRefs.current[index] = el; }}` em cada botão "Selecionar".
+- Após `onSelect(newIndex)`, usar `requestAnimationFrame` ou `setTimeout(0)` para focar o novo botão depois do re-render do parent (alternativa: `useEffect` que observa `activeIndex` — mas como o componente não controla quando focar, melhor focar imediatamente após chamar `onSelect`, confiando que o ref já existe).
+- **Decisão**: focar imediatamente via `cardRefs.current[newIndex]?.focus()` dentro do handler — funciona porque o ref já está atribuído ao DOM atual; o re-render do parent virá depois mas o foco persiste no elemento.
+
+### Snippet ilustrativo
+
+```tsx
+const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+function handleArrowKey(e: React.KeyboardEvent, currentIndex: number) {
+  const total = variations.length;
+  let nextIndex: number | null = null;
+  if (e.key === "ArrowRight" || e.key === "ArrowDown") nextIndex = (currentIndex + 1) % total;
+  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") nextIndex = (currentIndex - 1 + total) % total;
+  else if (e.key === "Home") nextIndex = 0;
+  else if (e.key === "End") nextIndex = total - 1;
+  if (nextIndex === null) return;
+  e.preventDefault();
+  onSelect(nextIndex);
+  cardRefs.current[nextIndex]?.focus();
+}
+
+// no <button> de seleção:
+<button
+  ref={(el) => { cardRefs.current[index] = el; }}
+  onKeyDown={(e) => handleArrowKey(e, index)}
+  // ...resto inalterado
+>
+```
+
+### Atualização de aria-label dos cards
+
+Adicionar dica de navegação no `aria-label` do card ativo: `"Selecionar variação N, score X (use setas para navegar)"`. **Decisão**: NÃO fazer — quebraria os 3 testes ARIA recém-adicionados que travam o formato exato. Em vez disso, adicionar `aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"` no botão "Selecionar" — atributo padrão WAI-ARIA, não muda nome acessível, anuncia atalhos a leitores de tela compatíveis.
 
 ## Testes a adicionar
 
-### Teste 1 — Cartão ativo: `aria-pressed` + `aria-current` simétricos com `activeIndex`
+Em `describe("MagicUpVariationComparator")`, novo sub-bloco `describe("navegação por setas (APG composite widget)")`:
 
-Valida que em qualquer `activeIndex` (testando 0, 1, 2 via re-renders), apenas o cartão correspondente tem `aria-pressed="true"` + `aria-current="true"`, e os outros têm `aria-pressed="false"` + ausência de `aria-current` (não `"false"`, ausência total — contrato APG).
+### Teste 1 — ArrowRight/ArrowDown avançam e movem foco
 
 ```ts
-it("ARIA do cartão ativo: aria-pressed='true' + aria-current='true' apenas no activeIndex; demais sem aria-current", () => {
-  const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
-  ];
-
-  for (const activeIdx of [0, 1, 2]) {
-    const { unmount } = render(
-      <MagicUpVariationComparator
-        variations={variations}
-        activeIndex={activeIdx}
-        onSelect={vi.fn()}
-        onSelectWinner={vi.fn()}
-      />
-    );
-
-    const cards = [
-      screen.getByRole("button", { name: /Selecionar variação 1/ }),
-      screen.getByRole("button", { name: /Selecionar variação 2/ }),
-      screen.getByRole("button", { name: /Selecionar variação 3/ }),
-    ];
-
-    cards.forEach((card, i) => {
-      if (i === activeIdx) {
-        expect(card).toHaveAttribute("aria-pressed", "true");
-        expect(card).toHaveAttribute("aria-current", "true");
-      } else {
-        expect(card).toHaveAttribute("aria-pressed", "false");
-        // Inativos NÃO devem ter aria-current (nem "false") — APG: undefined removes
-        expect(card).not.toHaveAttribute("aria-current");
-      }
-    });
-
-    unmount();
+it("ArrowRight e ArrowDown avançam activeIndex e movem foco para o próximo card", async () => {
+  const user = userEvent.setup();
+  const variations = [/* 3 variações */];
+  function Harness() {
+    const [active, setActive] = useState(0);
+    return <MagicUpVariationComparator variations={variations} activeIndex={active} onSelect={setActive} onSelectWinner={vi.fn()} />;
   }
+  render(<Harness />);
+  const card1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+  card1.focus();
+  await user.keyboard("{ArrowRight}");
+  const card2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+  expect(card2).toHaveFocus();
+  expect(card2).toHaveAttribute("aria-pressed", "true");
+  await user.keyboard("{ArrowDown}");
+  const card3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+  expect(card3).toHaveFocus();
+  expect(card3).toHaveAttribute("aria-pressed", "true");
 });
 ```
 
-### Teste 2 — Nomes acessíveis dinâmicos do botão "Selecionar"
+### Teste 2 — ArrowLeft/ArrowUp retrocedem
 
-Matriz 4 casos: com score / sem score × winner / não-winner. Valida que `aria-label` reflete cada combinação corretamente para screen readers.
+Análogo ao Teste 1, partindo do índice 2 e voltando até 0.
+
+### Teste 3 — Wrap-around (último → primeiro com →; primeiro → último com ←) + Home/End
 
 ```ts
-it("aria-label do botão 'Selecionar' compõe corretamente: índice + score (opcional) + 'melhor score' (opcional)", () => {
-  const variations: VariationItem[] = [
-    // 1: com score, é winner explícito → "Selecionar variação 1, score 95, melhor score"
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 95, isWinner: true },
-    // 2: com score, não é winner → "Selecionar variação 2, score 70"
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-    // 3: sem score → "Selecionar variação 3"
-    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false },
-  ];
-
-  render(
-    <MagicUpVariationComparator
-      variations={variations}
-      activeIndex={0}
-      onSelect={vi.fn()}
-      onSelectWinner={vi.fn()}
-    />
-  );
-
-  // Match exato (sem regex permissivo) para travar formato
-  expect(
-    screen.getByRole("button", { name: "Selecionar variação 1, score 95, melhor score" })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: "Selecionar variação 2, score 70" })
-  ).toBeInTheDocument();
-  expect(
-    screen.getByRole("button", { name: "Selecionar variação 3" })
-  ).toBeInTheDocument();
-
-  // Garante que NÃO existem botões com nomes ambíguos/genéricos
-  expect(screen.queryByRole("button", { name: "Selecionar variação 2, melhor score" })).not.toBeInTheDocument();
-  expect(screen.queryByRole("button", { name: "Selecionar variação 3, score 0" })).not.toBeInTheDocument();
+it("ArrowRight no último faz wrap para o primeiro; ArrowLeft no primeiro faz wrap para o último; Home/End funcionam", async () => {
+  // ...
+  card3.focus();
+  await user.keyboard("{ArrowRight}"); // wrap
+  expect(card1).toHaveFocus();
+  await user.keyboard("{ArrowLeft}"); // wrap reverso
+  expect(card3).toHaveFocus();
+  await user.keyboard("{Home}");
+  expect(card1).toHaveFocus();
+  await user.keyboard("{End}");
+  expect(card3).toHaveFocus();
 });
 ```
 
-### Teste 3 — ARIA dos botões "Marcar vencedora": nomes únicos, sem `aria-pressed`/`aria-current`
-
-Valida que cada botão "Marcar vencedora" tem `aria-label` único por índice (essencial para screen readers diferenciarem) e que NÃO carregam `aria-pressed`/`aria-current` (não são toggles, são ações).
+### Teste 4 — Teclas não-seta não interceptam (Tab e letras)
 
 ```ts
-it("aria-label dos botões 'Marcar vencedora' é único por índice; botões de ação não têm aria-pressed/aria-current", () => {
-  const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90, isWinner: true },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
-  ];
-
-  render(
-    <MagicUpVariationComparator
-      variations={variations}
-      activeIndex={0}
-      onSelect={vi.fn()}
-      onSelectWinner={vi.fn()}
-    />
-  );
-
-  const marcar1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
-  const marcar2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
-  const marcar3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
-
-  // Nomes únicos garantidos por busca exata
-  expect(marcar1).toBeInTheDocument();
-  expect(marcar2).toBeInTheDocument();
-  expect(marcar3).toBeInTheDocument();
-  expect(marcar1).not.toBe(marcar2);
-  expect(marcar2).not.toBe(marcar3);
-
-  // Botões de ação NÃO devem ter aria-pressed nem aria-current (não são toggles/seleção)
-  for (const btn of [marcar1, marcar2, marcar3]) {
-    expect(btn).not.toHaveAttribute("aria-pressed");
-    expect(btn).not.toHaveAttribute("aria-current");
-  }
-
-  // Mesmo o botão da variação winner não tem estado ARIA especial — ele permanece habilitado
-  // (o componente atual não desabilita o botão do winner; isso é responsabilidade do parent)
-  expect(marcar1).toBeEnabled();
-
-  // Total de botões "Marcar" = exatamente N variações
-  const allMarcar = screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ });
-  expect(allMarcar).toHaveLength(3);
+it("Tab continua funcionando normalmente; teclas alfabéticas não disparam onSelect", async () => {
+  const onSelect = vi.fn();
+  // render com onSelect mockado
+  card1.focus();
+  await user.keyboard("a");
+  expect(onSelect).not.toHaveBeenCalled();
+  await user.keyboard("{Tab}");
+  // Foco vai para "Marcar vencedora 1", não pula via setas
+  expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
 });
 ```
 
-## Estratégia
+### Atualização de testes existentes
 
-- **Loop sobre `activeIndex` 0/1/2 com unmount** garante que o contrato vale para qualquer posição, sem depender de re-render via state
-- **`not.toHaveAttribute("aria-current")` (sem valor)** trava o contrato APG: ausência ≠ `"false"` (algumas implementações tratam diferente, e o componente atual não emite o atributo em inativos)
-- **Match exato de `aria-label` por string literal** (não regex) trava o formato exato para screen readers — qualquer mudança no texto quebra o teste deliberadamente
-- **Asserts negativos** (`queryByRole(...).not.toBeInTheDocument()`) garantem ausência de nomes ambíguos/edge cases (ex: `score 0` quando score é undefined)
-- **Regex `^Marcar variação \d+ como vencedora$`** valida formato consistente sem permitir variações como "Marcar como vencedora" sem índice
-- **Asserts sobre ausência de `aria-pressed`/`aria-current` em botões de ação** travam o princípio APG: only toggles/selectables carregam esses atributos
+- Os 3 testes ARIA recém-adicionados continuam válidos (formato de `aria-label` inalterado).
+- O teste de estabilidade do DOM continua válido (refs não criam nós novos).
+- Total: 41 → 45 testes.
 
 ## Restrições
 
-- Sem alterar `MagicUpVariationComparator.tsx`
-- Sem novos mocks ou imports
-- 3 testes novos (38 → 41 testes)
+- Sem mudar layout visual nem classes existentes.
+- Sem alterar `aria-label` (preserva os 3 testes ARIA novos).
+- `aria-keyshortcuts` adicionado é atributo passivo (não afeta `accessible name`).
+- Wrap-around é decisão deliberada (padrão APG para listboxes/grids cíclicos).
 
 ## Entregável
 
-- 3 testes novos em `tests/components/magic-up-onda5.test.tsx`
-- Trava contrato ARIA do cartão ativo: `aria-pressed`/`aria-current` simétricos com `activeIndex` em todas as posições
-- Trava contrato de nome acessível: `aria-label` de seleção compõe corretamente em 4 cenários (com/sem score × winner/não-winner)
-- Trava contrato APG: botões de ação ("Marcar vencedora") têm nomes únicos e NÃO carregam atributos de toggle
-- Cobertura WCAG 4.1.2 (Name, Role, Value) com asserts determinísticos
+- `MagicUpVariationComparator.tsx`: handler `onKeyDown` com setas + Home/End + foco programático via refs + `aria-keyshortcuts`.
+- `magic-up-onda5.test.tsx`: 4 testes novos (avanço, retrocesso, wrap+Home/End, não-interferência).
+- Cobertura WCAG 2.1.1 (Keyboard) avançada via padrão APG composite widget; UX de teclado reduz Tabs necessários de 6 → 0 para alternar entre cards.
 
