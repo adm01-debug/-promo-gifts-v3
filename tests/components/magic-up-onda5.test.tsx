@@ -184,4 +184,37 @@ describe("Magic Up Onda 5 components", () => {
     expect(radioCls).toContain("disabled:text-muted-foreground");
     expect(radio).toBeDisabled();
   });
+
+  it("resolve empate de scores de forma determinística e respeita prioridade de isWinner", () => {
+    const tied: VariationItem[] = [
+      { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70 },
+      { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 90 },
+      { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 90 },
+    ];
+    const { rerender, unmount } = render(
+      <MagicUpVariationComparator variations={tied} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />
+    );
+
+    expect(screen.getByLabelText("Melhor score entre variações: 90")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(screen.getByRole("button", { name: "Selecionar variação 2, score 90, melhor score" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 90" })).toBeInTheDocument();
+
+    // Determinismo: re-render mantém winner no índice 1
+    rerender(<MagicUpVariationComparator variations={tied} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    expect(screen.getByRole("button", { name: "Selecionar variação 2, score 90, melhor score" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Selecionar variação 3, score 90, melhor score" })).not.toBeInTheDocument();
+    unmount();
+
+    // isWinner explícito tem prioridade sobre empate por score
+    const tiedWithFlag: VariationItem[] = [
+      { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70 },
+      { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 90 },
+      { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 90, isWinner: true },
+    ];
+    render(<MagicUpVariationComparator variations={tiedWithFlag} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 90, melhor score" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Selecionar variação 2, score 90, melhor score" })).not.toBeInTheDocument();
+  });
 });
