@@ -390,7 +390,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
 </section>
 `;
 
-exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exibe placeholders e winner no índice 0 1`] = `
+exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exibe placeholders e nenhum vencedor (sem badge) 1`] = `
 <section
   aria-label="Comparador de variações"
   class="rounded-lg border bg-card p-3"
@@ -422,7 +422,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
       <button
         aria-current="true"
         aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
-        aria-label="Selecionar variação 1, melhor score"
+        aria-label="Selecionar variação 1"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         type="button"
@@ -436,12 +436,6 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
             loading="lazy"
             src="https://example.com/a.png"
           />
-          <div
-            aria-label="Melhor score"
-            class="inline-flex items-center rounded-full border px-2.5 py-0.5 font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground hover:bg-primary/80 absolute left-1 top-1 text-[10px]"
-          >
-            Melhor score
-          </div>
         </div>
         <div
           class="space-y-1 p-2"
