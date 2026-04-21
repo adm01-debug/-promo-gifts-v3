@@ -44,7 +44,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
     onSelect(nextIndex);
     const nextCard = cardRefs.current[nextIndex];
     nextCard?.focus();
-    if (nextCard) {
+    if (nextCard && typeof nextCard.scrollIntoView === "function") {
       const prefersReducedMotion =
         typeof window !== "undefined" &&
         window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
