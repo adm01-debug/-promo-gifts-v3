@@ -551,6 +551,45 @@ describe("Magic Up Onda 5 components", () => {
         select.cardExact(variationCardLabel(2, { score: 70 }))
       );
     });
+
+    it("expectFocusVisible aceita níveis 'base' e 'full' e detecta classes ausentes", () => {
+      const ok = document.createElement("button");
+      ok.className = FOCUS_VISIBLE_FULL_CLASSES.join(" ");
+      expectFocusVisible(ok, "base");
+      expectFocusVisible(ok, "full");
+
+      const partial = document.createElement("button");
+      partial.className = FOCUS_VISIBLE_BASE_CLASSES.join(" ");
+      expectFocusVisible(partial, "base");
+      expect(() => expectFocusVisible(partial, "full")).toThrow();
+
+      const broken = document.createElement("button");
+      broken.className = "focus:ring-2 focus:ring-primary"; // sem -visible: → proibido
+      expect(() => expectFocusVisible(broken, "base")).toThrow();
+    });
+
+    it("expectAllCardsFocusVisible valida o bloco padrão em todos os cards renderizados", () => {
+      renderComparatorScenario({ scores: [90, 70, 50] });
+      expectAllCardsFocusVisible("base");
+    });
+
+    it("expectAllWinnerButtonsFocusVisible valida o bloco padrão em todos os botões 'Marcar vencedora'", () => {
+      renderComparatorScenario({ scores: [90, 70, 50] });
+      expectAllWinnerButtonsFocusVisible("base");
+    });
+
+    it("expectActiveElementFocusVisible falha quando foco está no body e passa após focar elemento válido", async () => {
+      const { user } = renderComparatorScenario({ scores: [90, 70, 50] });
+
+      // Foco inicial no body → deve falhar
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      expect(() => expectActiveElementFocusVisible()).toThrow();
+
+      // Após Tab para o primeiro card, passa
+      await user.tab();
+      const focused = expectActiveElementFocusVisible("base");
+      expect(focused.getAttribute("aria-label")).toMatch(labelPatterns.anyCard);
+    });
   });
 });
 
