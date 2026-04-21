@@ -57,6 +57,78 @@ function renderComparator(props: {
   return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
 }
 
+/**
+ * Cenário pronto para testes de foco/seleção/winner.
+ * Centraliza o boilerplate: scores → variações, isWinner por índice,
+ * activeIndex inicial, spies vi.fn() e userEvent.setup().
+ */
+function renderComparatorScenario(opts: {
+  scores: number[];
+  winnerIndex?: number;
+  activeIndex?: number;
+  onSelect?: (i: number) => void;
+  onSelectWinner?: (i: number) => void;
+} = { scores: [90, 70, 50] }) {
+  const variations = opts.scores.map<VariationItem>((score, i) => ({
+    id: `v${i + 1}`,
+    imageUrl: `https://example.com/v${i + 1}.png`,
+    isFavorite: false,
+    qualityScore: score,
+    isWinner: opts.winnerIndex === i ? true : undefined,
+  }));
+  return renderComparator({
+    variations,
+    activeIndex: opts.activeIndex ?? 0,
+    onSelect: opts.onSelect,
+    onSelectWinner: opts.onSelectWinner,
+  });
+}
+
+/**
+ * Wrapper controlado: `activeIndex` e `winnerIndex` viram estado React.
+ * Útil para testes que precisam ver o componente reagir a callbacks
+ * sem reescrever um ControlledWrapper em cada `it(...)`.
+ */
+function renderControlledComparator(opts: {
+  scores: number[];
+  initialActiveIndex?: number;
+  initialWinnerIndex?: number;
+} = { scores: [90, 70, 50] }) {
+  const onSelect = vi.fn();
+  const onSelectWinner = vi.fn();
+
+  function Controlled() {
+    const [activeIndex, setActiveIndex] = React.useState(opts.initialActiveIndex ?? 0);
+    const [winnerIndex, setWinnerIndex] = React.useState<number | undefined>(opts.initialWinnerIndex);
+
+    const variations = opts.scores.map<VariationItem>((score, i) => ({
+      id: `v${i + 1}`,
+      imageUrl: `https://example.com/v${i + 1}.png`,
+      isFavorite: false,
+      qualityScore: score,
+      isWinner: winnerIndex === i ? true : undefined,
+    }));
+
+    return (
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={activeIndex}
+        onSelect={(i) => {
+          onSelect(i);
+          setActiveIndex(i);
+        }}
+        onSelectWinner={(i) => {
+          onSelectWinner(i);
+          setWinnerIndex(i);
+        }}
+      />
+    );
+  }
+
+  const utils = render(<Controlled />);
+  return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
+}
+
 // ───────── Builders centralizados de aria-label ─────────
 // Fonte única de verdade: qualquer mudança no formato do aria-label do componente
 // é refletida aqui e propaga para todos os asserts do arquivo.
@@ -499,6 +571,48 @@ describe("Magic Up Onda 5 components", () => {
       expect(select.cardByScore(2, 70)).toBe(
         select.cardExact(variationCardLabel(2, { score: 70 }))
       );
+    });
+
+    it("renderComparatorScenario monta variações com isWinner por índice e expõe spies", () => {
+      const { onSelectWinner, user } = renderComparatorScenario({
+        scores: [80, 80, 80],
+        winnerIndex: 1,
+        activeIndex: 1,
+      });
+
+      // isWinner=true no índice 1 → card 2 carrega "melhor score"
+      expectVariationCard(2, 80, { best: true });
+      expectNotBestScore(1);
+      expectNotBestScore(3);
+      expect(expectExactlyOneBestScore().getAttribute("aria-label")).toBe(
+        variationCardLabel(2, { score: 80, best: true })
+      );
+
+      // activeIndex=1 → card 2 está aria-pressed=true
+      expect(select.card(2)).toHaveAttribute("aria-pressed", "true");
+
+      // Spy de onSelectWinner é o vi.fn() default e responde a clique
+      expect(onSelectWinner).not.toHaveBeenCalled();
+      expect(user).toBeDefined();
+    });
+
+    it("renderControlledComparator reage a clique em card e em 'Marcar vencedora' sem boilerplate", async () => {
+      const { user, onSelect, onSelectWinner } = renderControlledComparator({
+        scores: [90, 70, 50],
+      });
+
+      // Clique em card 2 → onSelect(1) e estado interno migra aria-pressed
+      await user.click(select.cardByScore(2, 70));
+      expect(onSelect).toHaveBeenCalledWith(1);
+      expect(select.card(2)).toHaveAttribute("aria-pressed", "true");
+
+      // Clique em "Marcar vencedora" do card 3 → onSelectWinner(2) + sufixo migra
+      await user.click(select.marcar(3));
+      expect(onSelectWinner).toHaveBeenCalledWith(2);
+      // Após rerender controlado, card 3 ganha "melhor score"
+      expectVariationCard(3, 50, { best: true });
+      expectNotBestScore(1);
+      expectNotBestScore(2);
     });
   });
 });
