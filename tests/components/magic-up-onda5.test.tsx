@@ -1190,17 +1190,18 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
   });
 
-  it("caso degenerado (todos sem score): bestScore=0, badge ainda aparece no índice 0", () => {
+  it("caso degenerado (todos sem score): bestScore=0, NENHUMA badge em nenhum card", () => {
     const variations = [0, 1, 2].map((i) =>
       buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, i)
     );
     renderTied(variations);
     const cards = screen.getAllByRole("listitem");
     const { within } = require("@testing-library/react");
-    // Contrato atual: scores[index] === bestScore (0===0) → findIndex retorna 0
-    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    // Novo contrato: hasValidScores = false → winnerIndex = -1 → sem badge em qualquer card
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
     expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
     expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+    expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
   });
 
   it("empate parcial [60, 90, 90]: badge no primeiro com bestScore (índice 1), nunca no 2", () => {
@@ -1219,10 +1220,10 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
   });
 
   it.each([2, 3, 5])(
-    "empate em score 0 com %i variações: exatamente 1 badge 'Melhor score', sempre no índice 0",
+    "empate em score válido (75) com %i variações: exatamente 1 badge 'Melhor score', sempre no índice 0",
     (count) => {
       const variations = Array.from({ length: count }, (_, i) =>
-        buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, i)
+        buildVariation({ qualityScore: 75 }, i)
       );
       renderTied(variations);
 
@@ -1238,7 +1239,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     }
   );
 
-  it("score=0 (empate degenerado): aria-label do vencedor inclui 'melhor score' mas omite 'score 0'", () => {
+  it("nenhum score (todos undefined): badge 'Melhor score' não aparece em nenhum card e nenhum aria-label menciona vencedor", () => {
     const variations = [
       buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
       buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 1),
@@ -1246,19 +1247,22 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     ];
     renderTied(variations);
 
-    // Vencedor (índice 0): aria-label deve conter "melhor score" mas NÃO "score 0"
-    const winnerButton = screen.getByRole("button", { name: /Selecionar variação 1/ });
-    const winnerLabel = winnerButton.getAttribute("aria-label") || "";
-    expect(winnerLabel).toContain("melhor score");
-    expect(winnerLabel).not.toMatch(/score 0\b/);
-    expect(winnerLabel).not.toContain(", score 0");
+    // Nenhuma badge "Melhor score" nos cards
+    const cards = screen.getAllByRole("listitem");
+    expect(cards).toHaveLength(3);
+    cards.forEach((card) => {
+      expect(within(card).queryByLabelText("Melhor score")).toBeNull();
+    });
 
-    // Não-vencedores (índices 1, 2): aria-label não menciona "score 0" nem "melhor score"
-    const loser1 = screen.getByRole("button", { name: /Selecionar variação 2/ });
-    const loser2 = screen.getByRole("button", { name: /Selecionar variação 3/ });
-    expect(loser1.getAttribute("aria-label")).not.toMatch(/score 0\b/);
-    expect(loser1.getAttribute("aria-label")).not.toContain("melhor score");
-    expect(loser2.getAttribute("aria-label")).not.toMatch(/score 0\b/);
-    expect(loser2.getAttribute("aria-label")).not.toContain("melhor score");
+    // Nenhum aria-label de botão menciona "melhor score" nem "score N"
+    for (let i = 1; i <= 3; i++) {
+      const btn = screen.getByRole("button", { name: new RegExp(`Selecionar variação ${i}`) });
+      const label = btn.getAttribute("aria-label") || "";
+      expect(label).not.toContain("melhor score");
+      expect(label).not.toMatch(/score \d/);
+    }
+
+    // Badge global do header mostra "—" (placeholder)
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
   });
 });
