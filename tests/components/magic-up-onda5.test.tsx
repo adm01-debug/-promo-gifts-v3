@@ -27,28 +27,6 @@ const diagnosis = (total: number, source: "ai" | "heuristic" = "ai"): MagicUpQua
 
 // ───────── Helpers de teste ─────────
 
-/**
- * Setup padronizado do userEvent para todo o arquivo.
- *
- * Defaults:
- *  - `delay: null` → sem timers reais entre eventos (testes determinísticos e ~10x mais rápidos)
- *  - `pointerEventsCheck: 0` → ignora `pointer-events: none` em layouts virtuais (jsdom não calcula CSS layout)
- *  - `skipHover: true` → evita disparo de hover transitório que confunde foco
- *  - `writeToClipboard: false` → não toca em clipboard real do ambiente
- *
- * Permite override pontual via `userSetup({ delay: 50 })` quando um teste precisar simular timing humano.
- */
-function userSetup(overrides: Parameters<typeof userEvent.setup>[0] = {}) {
-  return userEvent.setup({
-    delay: null,
-    pointerEventsCheck: 0,
-    skipHover: true,
-    writeToClipboard: false,
-    ...overrides,
-  });
-}
-
-
 /** Fixture padrão: 3 variações com scores [90, 70, 50] — cobre maioria dos testes de comparator/keyboard/focus */
 function buildVariations(overrides: Partial<VariationItem>[] = []): VariationItem[] {
   const base: VariationItem[] = [
@@ -76,79 +54,58 @@ function renderComparator(props: {
       onSelectWinner={onSelectWinner}
     />
   );
-  return { ...utils, onSelect, onSelectWinner, user: userSetup() };
+  return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
 }
 
-/**
- * Cenário pronto para testes de foco/seleção/winner.
- * Centraliza o boilerplate: scores → variações, isWinner por índice,
- * activeIndex inicial, spies vi.fn() e userSetup().
- */
-function renderComparatorScenario(opts: {
-  scores: number[];
-  winnerIndex?: number;
-  activeIndex?: number;
-  onSelect?: (i: number) => void;
-  onSelectWinner?: (i: number) => void;
-} = { scores: [90, 70, 50] }) {
-  const variations = opts.scores.map<VariationItem>((score, i) => ({
-    id: `v${i + 1}`,
-    imageUrl: `https://example.com/v${i + 1}.png`,
-    isFavorite: false,
-    qualityScore: score,
-    isWinner: opts.winnerIndex === i ? true : undefined,
-  }));
-  return renderComparator({
-    variations,
-    activeIndex: opts.activeIndex ?? 0,
-    onSelect: opts.onSelect,
-    onSelectWinner: opts.onSelectWinner,
+// ───────── Helpers de focus-visible / focus ring (WCAG 2.4.7) ─────────
+
+/** Classes obrigatórias do bloco padrão de focus-visible (guideline `docs/MAGIC_UP_ONDA5_A11Y.md` §1). */
+const FOCUS_VISIBLE_BASE_CLASSES = [
+  "focus-visible:outline-none",
+  "focus-visible:ring-2",
+  "focus-visible:ring-ring",
+] as const;
+
+/** Bloco completo: base + offset (cards/dots/thumbnails sobre background). */
+const FOCUS_VISIBLE_FULL_CLASSES = [
+  ...FOCUS_VISIBLE_BASE_CLASSES,
+  "focus-visible:ring-offset-2",
+  "focus-visible:ring-offset-background",
+] as const;
+
+/** Regex que casa `focus:ring-*` SEM o prefixo `-visible:` — proibido pelo guideline. */
+const FORBIDDEN_FOCUS_RING_RE = /(?<!focus-visible:)focus:ring-/;
+
+/** Asserção fundamental: elemento aplica o bloco de focus-visible esperado. */
+function expectFocusVisible(el: HTMLElement, level: "base" | "full" = "base"): void {
+  const required = level === "full" ? FOCUS_VISIBLE_FULL_CLASSES : FOCUS_VISIBLE_BASE_CLASSES;
+  required.forEach((cls) => {
+    expect(el.className).toContain(cls);
   });
+  expect(el.className).not.toMatch(FORBIDDEN_FOCUS_RING_RE);
 }
 
-/**
- * Wrapper controlado: `activeIndex` e `winnerIndex` viram estado React.
- * Útil para testes que precisam ver o componente reagir a callbacks
- * sem reescrever um ControlledWrapper em cada `it(...)`.
- */
-function renderControlledComparator(opts: {
-  scores: number[];
-  initialActiveIndex?: number;
-  initialWinnerIndex?: number;
-} = { scores: [90, 70, 50] }) {
-  const onSelect = vi.fn();
-  const onSelectWinner = vi.fn();
+/** Valida focus-visible em todos os cards de variação. */
+function expectAllCardsFocusVisible(level: "base" | "full" = "base"): void {
+  const cards = select.allCards();
+  expect(cards.length).toBeGreaterThan(0);
+  cards.forEach((c) => expectFocusVisible(c, level));
+}
 
-  function Controlled() {
-    const [activeIndex, setActiveIndex] = React.useState(opts.initialActiveIndex ?? 0);
-    const [winnerIndex, setWinnerIndex] = React.useState<number | undefined>(opts.initialWinnerIndex);
+/** Valida focus-visible em todos os botões "Marcar vencedora". */
+function expectAllWinnerButtonsFocusVisible(level: "base" | "full" = "base"): void {
+  const btns = select.allMarcar();
+  expect(btns.length).toBeGreaterThan(0);
+  btns.forEach((b) => expectFocusVisible(b, level));
+}
 
-    const variations = opts.scores.map<VariationItem>((score, i) => ({
-      id: `v${i + 1}`,
-      imageUrl: `https://example.com/v${i + 1}.png`,
-      isFavorite: false,
-      qualityScore: score,
-      isWinner: winnerIndex === i ? true : undefined,
-    }));
-
-    return (
-      <MagicUpVariationComparator
-        variations={variations}
-        activeIndex={activeIndex}
-        onSelect={(i) => {
-          onSelect(i);
-          setActiveIndex(i);
-        }}
-        onSelectWinner={(i) => {
-          onSelectWinner(i);
-          setWinnerIndex(i);
-        }}
-      />
-    );
-  }
-
-  const utils = render(<Controlled />);
-  return { ...utils, onSelect, onSelectWinner, user: userSetup() };
+/** Valida que o elemento focado não é body e tem focus-visible. */
+function expectActiveElementFocusVisible(level: "base" | "full" = "base"): HTMLElement {
+  const active = document.activeElement as HTMLElement | null;
+  expect(active).not.toBeNull();
+  expect(active).not.toBe(document.body);
+  expectFocusVisible(active!, level);
+  return active!;
 }
 
 // ───────── Builders centralizados de aria-label ─────────
@@ -595,46 +552,43 @@ describe("Magic Up Onda 5 components", () => {
       );
     });
 
-    it("renderComparatorScenario monta variações com isWinner por índice e expõe spies", () => {
-      const { onSelectWinner, user } = renderComparatorScenario({
-        scores: [80, 80, 80],
-        winnerIndex: 1,
-        activeIndex: 1,
-      });
+    it("expectFocusVisible aceita níveis 'base' e 'full' e detecta classes ausentes", () => {
+      const ok = document.createElement("button");
+      ok.className = FOCUS_VISIBLE_FULL_CLASSES.join(" ");
+      expectFocusVisible(ok, "base");
+      expectFocusVisible(ok, "full");
 
-      // isWinner=true no índice 1 → card 2 carrega "melhor score"
-      expectVariationCard(2, 80, { best: true });
-      expectNotBestScore(1);
-      expectNotBestScore(3);
-      expect(expectExactlyOneBestScore().getAttribute("aria-label")).toBe(
-        variationCardLabel(2, { score: 80, best: true })
-      );
+      const partial = document.createElement("button");
+      partial.className = FOCUS_VISIBLE_BASE_CLASSES.join(" ");
+      expectFocusVisible(partial, "base");
+      expect(() => expectFocusVisible(partial, "full")).toThrow();
 
-      // activeIndex=1 → card 2 está aria-pressed=true
-      expect(select.card(2)).toHaveAttribute("aria-pressed", "true");
-
-      // Spy de onSelectWinner é o vi.fn() default e responde a clique
-      expect(onSelectWinner).not.toHaveBeenCalled();
-      expect(user).toBeDefined();
+      const broken = document.createElement("button");
+      broken.className = "focus:ring-2 focus:ring-primary"; // sem -visible: → proibido
+      expect(() => expectFocusVisible(broken, "base")).toThrow();
     });
 
-    it("renderControlledComparator reage a clique em card e em 'Marcar vencedora' sem boilerplate", async () => {
-      const { user, onSelect, onSelectWinner } = renderControlledComparator({
-        scores: [90, 70, 50],
-      });
+    it("expectAllCardsFocusVisible valida o bloco padrão em todos os cards renderizados", () => {
+      renderComparator({ variations: buildVariations() });
+      expectAllCardsFocusVisible("base");
+    });
 
-      // Clique em card 2 → onSelect(1) e estado interno migra aria-pressed
-      await user.click(select.cardByScore(2, 70));
-      expect(onSelect).toHaveBeenCalledWith(1);
-      expect(select.card(2)).toHaveAttribute("aria-pressed", "true");
+    it("expectAllWinnerButtonsFocusVisible valida o bloco padrão em todos os botões 'Marcar vencedora'", () => {
+      renderComparator({ variations: buildVariations() });
+      expectAllWinnerButtonsFocusVisible("base");
+    });
 
-      // Clique em "Marcar vencedora" do card 3 → onSelectWinner(2) + sufixo migra
-      await user.click(select.marcar(3));
-      expect(onSelectWinner).toHaveBeenCalledWith(2);
-      // Após rerender controlado, card 3 ganha "melhor score"
-      expectVariationCard(3, 50, { best: true });
-      expectNotBestScore(1);
-      expectNotBestScore(2);
+    it("expectActiveElementFocusVisible falha quando foco está no body e passa após focar elemento válido", async () => {
+      const { user } = renderComparator({ variations: buildVariations() });
+
+      // Foco inicial no body → deve falhar
+      (document.activeElement as HTMLElement | null)?.blur?.();
+      expect(() => expectActiveElementFocusVisible()).toThrow();
+
+      // Após Tab para o primeiro card, passa
+      await user.tab();
+      const focused = expectActiveElementFocusVisible("base");
+      expect(focused.getAttribute("aria-label")).toMatch(labelPatterns.anyCard);
     });
   });
 });
@@ -851,7 +805,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
   });
 
   it("'Marcar vencedora' com disabled nativo: removido do Tab e Enter/Space não disparam onSelectWinner", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const onSelectWinner = vi.fn();
 
     function Harness() {
@@ -906,7 +860,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
   });
 
   it("'Marcar vencedora' com aria-disabled=true: mantém no Tab mas Enter/Space/click são ignorados via guarda", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const onSelectWinner = vi.fn();
 
     function Harness() {
@@ -1038,7 +992,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
   });
 
   it("Enter/Space disparam re-render que atualiza border-primary + aria-pressed + aria-current no novo card ativo", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const variations = buildVariations();
 
     function ControlledHarness() {
@@ -1091,7 +1045,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
   });
 
   it("Enter/Space não alteram quantidade de botões, listitems, imagens nem criam portais/tooltips", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const onSelectWinner = vi.fn();
     const variations = buildVariations();
 
@@ -1235,7 +1189,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     }
 
     it("ArrowRight e ArrowDown avançam activeIndex e movem foco para o próximo card", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       render(<ArrowHarness initial={0} />);
 
       const card1 = select.card(1);
@@ -1255,7 +1209,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("ArrowLeft e ArrowUp retrocedem activeIndex e movem foco para o card anterior", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       render(<ArrowHarness initial={2} />);
 
       const card3 = select.card(3);
@@ -1274,7 +1228,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("ArrowRight no último faz wrap para o primeiro; ArrowLeft no primeiro faz wrap para o último; Home/End funcionam", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       render(<ArrowHarness initial={2} />);
 
       const card1 = select.card(1);
@@ -1342,7 +1296,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     ];
 
     it("ArrowRight chama onSelect com próximo índice e aria-pressed/aria-current acompanham após rerender", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -1374,7 +1328,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("ArrowLeft retrocede e faz wrap-around do índice 0 para o último", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
       render(
@@ -1396,7 +1350,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("ArrowUp/ArrowDown comportam-se como ArrowLeft/ArrowRight (eixo vertical equivalente)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
       render(
@@ -1418,7 +1372,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Home vai para o primeiro índice e End vai para o último", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
       render(
@@ -1439,7 +1393,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Tab/Enter/Space/letras não chamam onSelect nem onSelectWinner via handleArrowKey", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
       render(
@@ -1463,7 +1417,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Tab percorre os 3 cards e botões 'Marcar vencedora' em ordem DOM, Shift+Tab faz o reverso", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelectWinner = vi.fn();
 
       function ControlledWrapper() {
@@ -1514,7 +1468,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Tab move foco sem alterar aria-pressed; mudança externa de activeIndex sincroniza ARIA em todos os cards", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelectWinner = vi.fn();
       let setActiveIndexExternal: ((i: number) => void) | null = null;
 
@@ -1813,7 +1767,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("auto-scroll: setas/Home/End disparam scrollIntoView com block:nearest e behavior:smooth", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const scrollSpy = vi.fn();
       const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
       window.HTMLElement.prototype.scrollIntoView = scrollSpy;
@@ -1875,7 +1829,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("auto-scroll respeita prefers-reduced-motion: behavior vira 'auto' (instantâneo)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const scrollSpy = vi.fn();
       const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
       window.HTMLElement.prototype.scrollIntoView = scrollSpy;
@@ -1921,7 +1875,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Enter após navegar com seta seleciona a variação focada (não a anterior)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
 
       render(
@@ -1961,7 +1915,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Espaço após Home/End ativa card focado, previne scroll e respeita índice", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
 
       render(
@@ -2001,7 +1955,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Home e End movem foco e atualizam activeIndex independentemente da posição inicial", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
 
       function ControlledWrapper({ initial }: { initial: number }) {
         const [activeIndex, setActiveIndex] = React.useState(initial);
@@ -2074,7 +2028,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("aria-pressed permanece exclusivo (1 ativo) em sequência de setas, Home, End e wrap-around", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
 
       function ControlledWrapper() {
         const [activeIndex, setActiveIndex] = React.useState(0);
@@ -2141,7 +2095,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     });
 
     it("Shift+Tab navega na ordem inversa entre cards e botões 'Marcar vencedora' mantendo focus-visible", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
 
       render(
         <MagicUpVariationComparator
@@ -3067,7 +3021,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
   );
 
   it("badge 'Melhor score' permanece no winnerIndex mesmo quando outro card é selecionado (activeIndex controlado)", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
 
@@ -3227,7 +3181,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
   });
 
   it("badge 'Melhor score' não migra ao clicar em sequência em cards empatados não vencedores", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
 
@@ -3311,7 +3265,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
   });
 
   it("badge fica no menor índice quando 2 cards têm isWinner: true e usuário clica no empatado de maior índice", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
 
@@ -3394,7 +3348,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
   });
 
   it("roving tabindex: apenas card ativo tem tabIndex=0; demais cards tabIndex=-1; ativo migra ao mudar activeIndex", async () => {
-    const user = userSetup();
+    const user = userEvent.setup();
     const navVariations: VariationItem[] = [
       { id: "rv-1", imageUrl: "https://example.com/rv1.png", qualityScore: 80 } as VariationItem,
       { id: "rv-2", imageUrl: "https://example.com/rv2.png", qualityScore: 70 } as VariationItem,
@@ -3498,7 +3452,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     ];
 
     it("Enter no botão 'Selecionar variação N' chama onSelect(N-1) e aria-pressed/aria-current acompanham após rerender", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -3530,7 +3484,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Espaço no botão 'Selecionar variação N' chama onSelect(N-1) com mesmo comportamento de Enter", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -3554,7 +3508,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Enter e Espaço no botão 'Marcar vencedora' chamam onSelectWinner(index) e badge migra após rerender com isWinner", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -3623,7 +3577,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("foco DOM move para o novo card ativo após ArrowRight/ArrowLeft e segue activeIndex após rerender", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -3827,7 +3781,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Tab a partir de elemento externo move foco para o primeiro botão 'Selecionar variação 1' na ordem DOM correta", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -3863,7 +3817,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Tab pula o botão 'Marcar vencedora' quando em loading (disabled remove do tab order)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -3901,7 +3855,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Enter e Space não disparam onSelectWinner quando o botão 'Marcar vencedora' está em loading", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4021,7 +3975,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("transição habilitado→loading preserva foco no elemento atual e suspende Enter/Space enquanto aria-busy=true", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4091,7 +4045,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("combinações com modificador (Ctrl/Cmd/Shift/Alt + Enter) não disparam onSelectWinner em botão 'Marcar vencedora' desabilitado", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4143,7 +4097,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Space com auto-repeat e múltiplas pressões sequenciais não disparam onSelectWinner em botão 'Marcar vencedora' desabilitado", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4211,7 +4165,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Home salta foco e seleção para o primeiro card de variação e Enter/Space disparam onSelect(0)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4249,7 +4203,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("End salta foco e seleção para o último card de variação e Enter/Space disparam onSelect(last)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4356,7 +4310,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("Shift+Tab percorre os botões do comparador em ordem reversa (last → first), mantendo Enter/Space funcionais em cada parada", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4422,7 +4376,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("não cria keyboard trap: Tab no último botão sai para sentinel 'depois' e Shift+Tab no primeiro botão sai para sentinel 'antes' (WCAG 2.1.2)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4486,7 +4440,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("não cria keyboard trap mesmo com loadingWinnerIndex ativo: botão disabled é pulado e Tab/Shift+Tab saem do comparador (WCAG 2.1.2)", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelect = vi.fn();
       const onSelectWinner = vi.fn();
 
@@ -4563,7 +4517,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("aria-pressed e aria-current refletem o estado correto após ativação por Enter/Space, mantendo exclusividade entre cards", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelectWinner = vi.fn();
 
       function ControlledWrapper() {
@@ -4638,7 +4592,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("aria-pressed e aria-current permanecem consistentes em sequência mista Tab→Enter→clique→Space, sem dessincronizar atributos", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelectWinner = vi.fn();
 
       function ControlledWrapper() {
@@ -4716,7 +4670,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("DOM permanece estruturalmente estável após Enter/Space — só mudam atributos do estado controlado", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelectWinner = vi.fn();
 
       function ControlledWrapper() {
@@ -4815,7 +4769,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     });
 
     it("foco permanece visível e consistente após clicar em card e em 'Marcar vencedora'", async () => {
-      const user = userSetup();
+      const user = userEvent.setup();
       const onSelectWinner = vi.fn();
       const navVariations: VariationItem[] = [
         { id: "fv-1", imageUrl: "https://example.com/fv1.png", qualityScore: 80 } as VariationItem,
