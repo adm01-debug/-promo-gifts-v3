@@ -1,49 +1,32 @@
 
 
-# Plano — Auditoria de acessibilidade da Onda 5
+# Plano — Testes de edge cases do MagicUpVariationComparator
 
-Vou auditar os 4 componentes novos da Onda 5 (`MagicUpQualityScore`, `MagicUpQualityChecklist`, `MagicUpCurationStatus`, `MagicUpVariationComparator`) + os pontos de integração no `MagicUpResultPanel` e `AdImageResult` (botão "Reanalisar Magic Score"), e corrigir tudo numa única passada.
+Adiciono casos cobrindo cenários não testados hoje, sem alterar produção.
 
-## Critérios auditados
+## Arquivo único alterado
 
-Para cada elemento interativo:
-- **`aria-label`** descritivo quando o conteúdo visual não é suficiente (ícones puros, badges clicáveis)
-- **Navegação por teclado** — `<button>` nativo, `tabIndex` correto, `Enter`/`Space` funcionando
-- **Estados de foco** — `focus-visible:ring-2 focus-visible:ring-ring` ou equivalente do design system
-- **Roles e landmarks** — `role="group"`, `aria-pressed`, `aria-current`, `aria-label` em `<section>`
-- **Contraste de status** — selo "Melhor score", origem "IA"/"Heurístico", curadoria ativa
-- **Leitura por screen reader** — score numérico exposto como texto, não só visual
+`tests/components/magic-up-onda5.test.tsx` — 4 novos `it()` no bloco existente.
 
-## Componentes que serão revisados
+## Casos cobertos
 
-| Arquivo | Falhas prováveis a corrigir |
-|---|---|
-| `MagicUpQualityScore.tsx` | `<section>` ok, mas `Progress` precisa de `aria-valuenow/min/max/label` explícito; badge de origem precisa de `title`/`aria-label` |
-| `MagicUpQualityChecklist.tsx` | Lista deveria ser `<ul>/<li>` com `role="list"`; ícones de status precisam de `aria-hidden` + texto sr-only ("aprovado"/"reprovado"); score numérico precisa de `aria-label` ("Score 94 de 100") |
-| `MagicUpCurationStatus.tsx` | Botões precisam de `aria-pressed` quando ativo; container `role="radiogroup"` ou manter `group` mas reforçar `aria-label`; scroll horizontal precisa de `tabIndex={0}` quando overflow |
-| `MagicUpVariationComparator.tsx` | Cards clicáveis precisam de `aria-pressed`/`aria-current="true"`; "Marcar vencedora" precisa de `aria-label` único por variação; selo "Melhor score" precisa estar associado semanticamente |
-| `MagicUpResultPanel.tsx` | Dots de paginação ✅ já têm aria-label; thumbnails ✅ ok; verificar `aria-current` nos dots |
-| `AdImageResult.tsx` (apenas botão Reanalisar e bloco curadoria) | Confirmar `aria-label`, `disabled` correto e foco visível |
+1. **Todos os scores ausentes** — variações sem `qualityScore` nem `qualityDiagnosis`. Asserts: badge "Melhor score" exibe "—", cada card mostra "—" no score, e o primeiro item ainda recebe a badge "Melhor score" (winnerIndex cai no índice 0 por `findIndex` quando todos empatam em 0). Garante que a UI não quebra com `Math.max(0, 0, 0) = 0`.
 
-## Plano de execução
+2. **Scores parciais (mistura de presente/ausente)** — uma variação com score 80, duas sem score. Asserts: winner é a de score 80 com badge "Melhor score", outras mostram "—" sem badge. Previne regressão onde `score || "—"` poderia confundir `0` com ausente.
 
-1. **Audit pass** — `code--view` em cada um dos 5 arquivos, anotar exatamente quais linhas falham em quais critérios
-2. **Correções cirúrgicas** via `code--line_replace` (sem refator visual; só atributos a11y e classes `focus-visible:*`)
-3. **Atualização do teste** `tests/components/magic-up-onda5.test.tsx` para cobrir as novas asserts (`aria-pressed`, `aria-current`, `role="list"`, score com `aria-label`)
-4. **Re-run** dos testes Onda 5 para garantir 0 regressão
-5. **Relatório final** listando: falhas encontradas → correções aplicadas → testes atualizados
+3. **Lista longa (8 variações)** — render com 8 itens, todos com scores diferentes. Asserts: 8 `listitem`, 8 botões "Marcar … como vencedora" únicos, exatamente 1 badge "Melhor score" no topo (pelo maior score), aria-label do card vencedor inclui "melhor score".
+
+4. **Seleção após marcação de vencedora** — `isWinner` da variação 2 vem `true` via prop. Asserts: aria-pressed reflete `activeIndex` (não `isWinner`); clicar em card diferente do vencedor chama `onSelect` com o índice clicado; clicar "Marcar vencedora" em outro card chama `onSelectWinner` sem disparar `onSelect` (evento isolado no botão interno).
 
 ## Restrições
 
-- **Sem mudanças visuais** — apenas atributos ARIA, `role`, `tabIndex`, `aria-hidden` e classes `focus-visible:*` que já existem no design system
-- **Sem alteração de comportamento** — handlers `onClick` permanecem idênticos
-- **Sem dependência de browser** — auditoria por código + testes unitários, suficiente para validar a11y estática
+- Sem alterar `MagicUpVariationComparator.tsx` nem outros componentes.
+- Sem novos mocks; reutiliza `diagnosis()` helper já existente.
+- Sem dependência de browser; tudo via `@testing-library/react` + `vitest`.
 
 ## Entregável
 
-Resumo por componente com:
-- 🐛 falhas detectadas (linha + critério)
-- ✅ correção aplicada (atributo adicionado)
-- 🧪 teste novo cobrindo a regra
-- Status final: "Onda 5 a11y compliant"
+- 4 novos testes verdes
+- Total do arquivo: 7 → 11 testes
+- Relatório com nome de cada caso e o que ele protege
 
