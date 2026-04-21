@@ -1725,4 +1725,49 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       `"Melhor score entre variações: 80"`
     );
   });
+
+  it("dois isWinner: true simultâneos: apenas o primeiro marcado recebe badge (findIndex determinístico)", () => {
+    const variations = [
+      buildVariation({ id: "var-A", qualityScore: 60, isWinner: true }, 0),
+      buildVariation({ id: "var-B", qualityScore: 95, isWinner: false }, 1),
+      buildVariation({ id: "var-C", qualityScore: 80, isWinner: true }, 2),
+    ];
+
+    expect(variations.filter((v) => v.isWinner === true)).toHaveLength(2);
+    expect(variations[0].isWinner).toBe(true);
+    expect(variations[2].isWinner).toBe(true);
+
+    renderTied(variations);
+
+    const badges = screen.getAllByLabelText("Melhor score");
+    expect(badges).toHaveLength(1);
+
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const winnerBtn = screen.getByRole("button", {
+      name: "Selecionar variação 1, score 60, melhor score",
+    });
+    expect(winnerBtn).toBeInTheDocument();
+
+    const varBBtn = screen.getByRole("button", {
+      name: "Selecionar variação 2, score 95",
+    });
+    expect(varBBtn).toBeInTheDocument();
+
+    const varCBtn = screen.getByRole("button", {
+      name: "Selecionar variação 3, score 80",
+    });
+    expect(varCBtn).toBeInTheDocument();
+
+    const allSelectButtons = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+    const withSuffix = allSelectButtons.filter((btn) =>
+      (btn.getAttribute("aria-label") ?? "").includes("melhor score")
+    );
+    expect(withSuffix).toHaveLength(1);
+
+    expect(screen.getByLabelText(/Melhor score entre variações: 95/)).toBeInTheDocument();
+  });
 });
