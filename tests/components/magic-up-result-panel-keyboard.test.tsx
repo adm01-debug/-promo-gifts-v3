@@ -896,3 +896,130 @@ describe("MagicUpResultPanel — retorno de foco após troca de variação ativa
     expect(next).toBeDisabled();
   });
 });
+
+// ───────────────────────────────────────────────────────────────────
+// Sub-suíte: navegação por setas (APG Tabs Pattern) nos dots e thumbnails
+// ───────────────────────────────────────────────────────────────────
+describe("MagicUpResultPanel — navegação por setas nos dots e thumbnails", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("ArrowRight em dot[0] move foco para dot[1] e chama setActiveVariation(1)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[0].focus();
+    fireEvent.keyDown(dots[0], { key: "ArrowRight" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    expect(document.activeElement).toBe(getDots()[1]);
+  });
+
+  it("ArrowLeft em dot[1] move foco para dot[0] e chama setActiveVariation(0)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[1].focus();
+    fireEvent.keyDown(dots[1], { key: "ArrowLeft" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
+    expect(document.activeElement).toBe(getDots()[0]);
+  });
+
+  it("ArrowRight em dot[last] faz wrap para dot[0] (ciclo APG)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[2].focus();
+    fireEvent.keyDown(dots[2], { key: "ArrowRight" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
+    expect(document.activeElement).toBe(getDots()[0]);
+  });
+
+  it("ArrowLeft em dot[0] faz wrap para dot[last] (ciclo APG)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[0].focus();
+    fireEvent.keyDown(dots[0], { key: "ArrowLeft" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+    expect(document.activeElement).toBe(getDots()[2]);
+  });
+
+  it("Home em dot[2] move foco para dot[0]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[2].focus();
+    fireEvent.keyDown(dots[2], { key: "Home" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
+    expect(document.activeElement).toBe(getDots()[0]);
+  });
+
+  it("End em dot[0] move foco para dot[last]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[0].focus();
+    fireEvent.keyDown(dots[0], { key: "End" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+    expect(document.activeElement).toBe(getDots()[2]);
+  });
+
+  it("ArrowDown e ArrowUp funcionam idênticos a ArrowRight/Left (suporte vertical)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[1].focus();
+    fireEvent.keyDown(dots[1], { key: "ArrowDown" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(2);
+    expect(document.activeElement).toBe(getDots()[2]);
+
+    getDots()[1].focus();
+    fireEvent.keyDown(getDots()[1], { key: "ArrowUp" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(0);
+    expect(document.activeElement).toBe(getDots()[0]);
+  });
+
+  it("preventDefault é chamado para setas — não causa scroll da página", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dot = getDots()[0];
+    dot.focus();
+    const event = createEvent.keyDown(dot, { key: "ArrowRight" });
+    fireEvent(dot, event);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  it("Mesma navegação por setas funciona em thumbnails (ArrowRight/Left/Home/End)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumbs = getThumbs();
+    thumbs[0].focus();
+    fireEvent.keyDown(thumbs[0], { key: "ArrowRight" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(1);
+    expect(document.activeElement).toBe(getThumbs()[1]);
+
+    getThumbs()[1].focus();
+    fireEvent.keyDown(getThumbs()[1], { key: "ArrowLeft" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(0);
+    expect(document.activeElement).toBe(getThumbs()[0]);
+
+    getThumbs()[0].focus();
+    fireEvent.keyDown(getThumbs()[0], { key: "End" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(2);
+    expect(document.activeElement).toBe(getThumbs()[2]);
+  });
+
+  it("Atributo aria-keyshortcuts presente em todos os dots e thumbnails", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const expected = "ArrowLeft ArrowRight ArrowUp ArrowDown Home End";
+    getDots().forEach((dot) => {
+      expect(dot).toHaveAttribute("aria-keyshortcuts", expected);
+    });
+    getThumbs().forEach((thumb) => {
+      expect(thumb).toHaveAttribute("aria-keyshortcuts", expected);
+    });
+  });
+});
