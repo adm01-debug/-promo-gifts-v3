@@ -2668,3 +2668,285 @@ describe("MagicUpResultPanel — Enter/Space no item ativo: foco e estado preser
     expect(m.handleDeleteHistory).not.toHaveBeenCalled();
   });
 });
+
+// ───────── Consistência de styling/estado disabled de prev/next nos extremos ─────────
+// WCAG 1.4.3 (contraste) + 2.4.7 (focus visible) + 4.1.2 (name, role, value):
+// Em ambos os extremos (primeiro e último índice), o botão desabilitado precisa expor:
+//  • disabled HTML + aria-disabled coerente (sem mismatch entre DOM e ARIA)
+//  • par token-on-token (`disabled:bg-muted` + `disabled:text-muted-foreground` + `disabled:opacity-100`)
+//    — NUNCA `disabled:opacity-50` sozinho (cai abaixo de 4.5:1 — ver MAGIC_UP_ONDA5_A11Y.md §2)
+//  • bloco completo de focus-visible mantido mesmo quando disabled (pode reabilitar e voltar a focar)
+//  • aria-label preservado (descobribilidade por SR mesmo desabilitado)
+//  • o botão IRMÃO (oposto) permanece enabled, sem herdar classes disabled e funcionalmente ativo
+//  • o conjunto de classes disabled deve ser IDÊNTICO entre prev (no índice 0) e next (no último) —
+//    sem divergência de design system entre os dois extremos
+describe("MagicUpResultPanel — Onda 5: prev/next disabled styling consistente nos extremos", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  // Conjunto canônico exigido pela guideline Onda 5 a11y para botões de navegação por teclado
+  const REQUIRED_DISABLED_CLASSES = [
+    "disabled:bg-muted",
+    "disabled:text-muted-foreground",
+    "disabled:opacity-100",
+  ] as const;
+
+  // Bloco completo de focus-visible (deve estar presente independentemente do estado disabled)
+  const REQUIRED_FOCUS_VISIBLE_CLASSES = [
+    "focus-visible:outline-none",
+    "focus-visible:ring-2",
+    "focus-visible:ring-ring",
+    "focus-visible:ring-offset-2",
+    "focus-visible:ring-offset-background",
+  ] as const;
+
+  // Classe PROIBIDA (cai abaixo de 4.5:1 em botão de navegação)
+  const FORBIDDEN_DISABLED_CLASS = "disabled:opacity-50";
+
+  /** Asserta o contrato completo de um botão de navegação desabilitado. */
+  function expectDisabledNavContract(btn: HTMLButtonElement, label: string) {
+    // 1. Estado HTML
+    expect(btn, `${label}: deve estar disabled`).toBeDisabled();
+    expect(btn.hasAttribute("disabled"), `${label}: atributo disabled presente`).toBe(true);
+
+    // 2. aria coerente com DOM (sem mismatch)
+    const ariaDisabled = btn.getAttribute("aria-disabled");
+    if (ariaDisabled !== null) {
+      expect(ariaDisabled, `${label}: aria-disabled coerente`).toBe("true");
+    }
+
+    // 3. aria-label preservado
+    expect(btn.getAttribute("aria-label"), `${label}: aria-label presente`).toBeTruthy();
+
+    // 4. Classes disabled token-on-token presentes
+    REQUIRED_DISABLED_CLASSES.forEach((cls) => {
+      expect(btn.className, `${label}: deve conter ${cls}`).toContain(cls);
+    });
+
+    // 5. Classe proibida ausente
+    expect(btn.className, `${label}: NÃO deve usar ${FORBIDDEN_DISABLED_CLASS}`).not.toContain(
+      FORBIDDEN_DISABLED_CLASS
+    );
+
+    // 6. Bloco focus-visible mantido (não desaparece quando disabled)
+    REQUIRED_FOCUS_VISIBLE_CLASSES.forEach((cls) => {
+      expect(btn.className, `${label}: deve manter ${cls} mesmo desabilitado`).toContain(cls);
+    });
+  }
+
+  /** Asserta o contrato de um botão de navegação habilitado (irmão oposto). */
+  function expectEnabledNavContract(btn: HTMLButtonElement, label: string) {
+    expect(btn, `${label}: deve estar enabled`).not.toBeDisabled();
+    expect(btn.hasAttribute("disabled"), `${label}: sem atributo disabled`).toBe(false);
+
+    // aria-disabled não pode estar "true" se o botão está habilitado
+    const ariaDisabled = btn.getAttribute("aria-disabled");
+    if (ariaDisabled !== null) {
+      expect(ariaDisabled, `${label}: aria-disabled NÃO pode ser "true"`).not.toBe("true");
+    }
+
+    // aria-label preservado
+    expect(btn.getAttribute("aria-label"), `${label}: aria-label presente`).toBeTruthy();
+
+    // Bloco focus-visible obrigatório
+    REQUIRED_FOCUS_VISIBLE_CLASSES.forEach((cls) => {
+      expect(btn.className, `${label}: deve conter ${cls}`).toContain(cls);
+    });
+  }
+
+  /** Extrai apenas as classes que comecem com `disabled:` (para comparar entre botões). */
+  function disabledClassSet(btn: HTMLButtonElement): Set<string> {
+    return new Set(btn.className.split(/\s+/).filter((c) => c.startsWith("disabled:")));
+  }
+
+  /** Extrai apenas as classes que comecem com `focus-visible:`. */
+  function focusVisibleClassSet(btn: HTMLButtonElement): Set<string> {
+    return new Set(btn.className.split(/\s+/).filter((c) => c.startsWith("focus-visible:")));
+  }
+
+  // ── PRIMEIRO ÍNDICE: Voltar disabled, Avançar enabled ──────────────
+
+  it("primeiro índice (0): 'Voltar' cumpre contrato disabled completo (HTML + ARIA + tokens)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    expectDisabledNavContract(prev, "prev@idx=0");
+  });
+
+  it("primeiro índice (0): 'Avançar' (irmão oposto) permanece enabled e acessível", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    expectEnabledNavContract(next, "next@idx=0");
+
+    // Funcionalmente ativo
+    fireEvent.click(next);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+  });
+
+  // ── ÚLTIMO ÍNDICE: Avançar disabled, Voltar enabled ───────────────
+
+  it("último índice (n-1): 'Avançar' cumpre contrato disabled completo (HTML + ARIA + tokens)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    expectDisabledNavContract(next, "next@idx=last");
+  });
+
+  it("último índice (n-1): 'Voltar' (irmão oposto) permanece enabled e acessível", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    expectEnabledNavContract(prev, "prev@idx=last");
+
+    fireEvent.click(prev);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+  });
+
+  // ── Simetria entre extremos: o styling disabled DEVE ser idêntico ──
+
+  it("simetria de extremos: classes `disabled:*` de Voltar@0 == classes `disabled:*` de Avançar@last", () => {
+    const mFirst = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { unmount } = render(<MagicUpResultPanel m={mFirst} />);
+    const prevAtFirst = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    const prevDisabledClasses = disabledClassSet(prevAtFirst);
+    unmount();
+
+    const mLast = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={mLast} />);
+    const nextAtLast = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    const nextDisabledClasses = disabledClassSet(nextAtLast);
+
+    // Conjunto idêntico de classes `disabled:*` — sem divergência de design system entre extremos
+    expect(prevDisabledClasses, "Voltar@0 e Avançar@last devem compartilhar exatamente as mesmas classes disabled:*").toEqual(
+      nextDisabledClasses
+    );
+  });
+
+  it("simetria de extremos: classes `focus-visible:*` de Voltar@0 == classes `focus-visible:*` de Avançar@last", () => {
+    const mFirst = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { unmount } = render(<MagicUpResultPanel m={mFirst} />);
+    const prevAtFirst = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    const prevFV = focusVisibleClassSet(prevAtFirst);
+    unmount();
+
+    const mLast = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={mLast} />);
+    const nextAtLast = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    const nextFV = focusVisibleClassSet(nextAtLast);
+
+    expect(prevFV, "Voltar e Avançar devem expor o mesmo bloco focus-visible:*").toEqual(nextFV);
+  });
+
+  // ── Estabilidade entre estados: classes disabled não dependem do índice ─
+
+  it("classes `disabled:*` de prev@0 são idênticas às classes `disabled:*` de next@last", () => {
+    // Coleta classes do prev quando ele está disabled (índice 0)
+    const m1 = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    const { unmount: u1 } = render(<MagicUpResultPanel m={m1} />);
+    const prev0 = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    const prev0Disabled = disabledClassSet(prev0);
+    u1();
+
+    // Coleta classes do next quando ele está disabled (último índice)
+    const m2 = buildStubState({ variationsCount: 4, activeVariation: 3 });
+    render(<MagicUpResultPanel m={m2} />);
+    const nextLast = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    const nextLastDisabled = disabledClassSet(nextLast);
+
+    REQUIRED_DISABLED_CLASSES.forEach((cls) => {
+      expect(prev0Disabled.has(cls), `prev@0 contém ${cls}`).toBe(true);
+      expect(nextLastDisabled.has(cls), `next@last contém ${cls}`).toBe(true);
+    });
+    expect(prev0Disabled.has(FORBIDDEN_DISABLED_CLASS), `prev@0 NÃO usa ${FORBIDDEN_DISABLED_CLASS}`).toBe(false);
+    expect(nextLastDisabled.has(FORBIDDEN_DISABLED_CLASS), `next@last NÃO usa ${FORBIDDEN_DISABLED_CLASS}`).toBe(false);
+  });
+
+  // ── Variação de tamanho de lista: contrato vale para qualquer N ────
+
+  it.each([2, 3, 5, 8])(
+    "lista com %i variações: prev disabled em idx=0 cumpre contrato completo",
+    (count) => {
+      const m = buildStubState({ variationsCount: count, activeVariation: 0 });
+      render(<MagicUpResultPanel m={m} />);
+      const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+      const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+      expectDisabledNavContract(prev, `prev@idx=0 [N=${count}]`);
+      expectEnabledNavContract(next, `next@idx=0 [N=${count}]`);
+    }
+  );
+
+  it.each([2, 3, 5, 8])(
+    "lista com %i variações: next disabled em idx=last cumpre contrato completo",
+    (count) => {
+      const m = buildStubState({ variationsCount: count, activeVariation: count - 1 });
+      render(<MagicUpResultPanel m={m} />);
+      const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+      const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+      expectDisabledNavContract(next, `next@idx=last [N=${count}]`);
+      expectEnabledNavContract(prev, `prev@idx=last [N=${count}]`);
+    }
+  );
+
+  // ── Índices intermediários: ambos enabled, nenhum carrega "estado disabled visual" ──
+
+  it.each([1, 2, 3])(
+    "índice intermediário (%i de 5): NEM prev NEM next aplicam classes disabled (ambos enabled)",
+    (mid) => {
+      const m = buildStubState({ variationsCount: 5, activeVariation: mid });
+      render(<MagicUpResultPanel m={m} />);
+      const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+      const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+
+      expectEnabledNavContract(prev, `prev@idx=${mid}`);
+      expectEnabledNavContract(next, `next@idx=${mid}`);
+
+      // Mesmo enabled, as classes `disabled:*` ficam declaradas no className (Tailwind)
+      // mas NÃO devem se aplicar — o atributo `disabled` está ausente, o que é o gate
+      // real do CSS (`button:disabled`). Verificamos que o atributo está ausente:
+      expect(prev.hasAttribute("disabled")).toBe(false);
+      expect(next.hasAttribute("disabled")).toBe(false);
+    }
+  );
+
+  // ── Garantia anti-regressão: classe proibida nunca aparece em nenhum extremo ────
+
+  it("nem prev@0 nem next@last contêm a classe proibida `disabled:opacity-50`", () => {
+    const m1 = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { unmount } = render(<MagicUpResultPanel m={m1} />);
+    const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    expect(prev.className).not.toContain(FORBIDDEN_DISABLED_CLASS);
+    unmount();
+
+    const m2 = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m2} />);
+    const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    expect(next.className).not.toContain(FORBIDDEN_DISABLED_CLASS);
+  });
+
+  // ── Coerência entre disabled HTML e role/label expostos ao SR ────
+
+  it("prev@0 disabled mantém role=button + name='Voltar' descobríveis por SR (não some de Acessibility Tree)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    // getByRole busca na Accessibility Tree; se o nome sumisse, isto lançaria
+    const prev = screen.getByRole("button", { name: "Voltar" }) as HTMLButtonElement;
+    expect(prev).toBeDisabled();
+    expect(prev.tagName).toBe("BUTTON");
+    expect(prev.getAttribute("aria-label")).toBe("Voltar");
+  });
+
+  it("next@last disabled mantém role=button + name='Avançar' descobríveis por SR", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const next = screen.getByRole("button", { name: "Avançar" }) as HTMLButtonElement;
+    expect(next).toBeDisabled();
+    expect(next.tagName).toBe("BUTTON");
+    expect(next.getAttribute("aria-label")).toBe("Avançar");
+  });
+});
