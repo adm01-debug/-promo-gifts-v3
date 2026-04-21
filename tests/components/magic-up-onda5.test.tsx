@@ -693,7 +693,8 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(marcar2).not.toHaveFocus();
 
     marcar2.focus();
-    expect(document.activeElement).toBe(document.body);
+    // .focus() em botão disabled é no-op: foco permanece no elemento anterior (select-3)
+    expect(marcar2).not.toHaveFocus();
 
     await user.click(marcar2);
     expect(onSelectWinner).not.toHaveBeenCalled();
