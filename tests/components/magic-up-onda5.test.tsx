@@ -2971,7 +2971,10 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       await user.click(winnerBtn);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 2) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
+      // Re-foca sentinel (click em disabled remove foco para body)
+      screen.getByTestId("external-sentinel").focus();
+
+      // 3) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
       await user.keyboard("{Control>}{Enter}{/Control}");
       await user.keyboard("{Meta>}{Enter}{/Meta}");
       await user.keyboard("{Shift>}{Enter}{/Shift}");
