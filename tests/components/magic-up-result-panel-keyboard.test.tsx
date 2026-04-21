@@ -1880,3 +1880,145 @@ describe("MagicUpResultPanel — identidade acessível e single tab stop", () =>
     expect(tabbable).toHaveLength(4);
   });
 });
+
+// ───────── Live region: anúncio de variação para leitores de tela ─────────
+// WCAG 4.1.3 Status Messages: trocar de variação via prev/next, dot ou thumb
+// deve atualizar um live region (role="status" + aria-live="polite") com texto
+// "Variação N de TOTAL selecionada".
+
+describe("MagicUpResultPanel — live region anuncia variação ativa (WCAG 4.1.3)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function getLiveRegion(): HTMLElement {
+    const el = screen.getByTestId("magic-up-variation-live-region");
+    return el;
+  }
+
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  // ── Contrato base do live region ────────────────────────────────────
+
+  it("expõe role='status', aria-live='polite' e aria-atomic='true' (sr-only)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const live = getLiveRegion();
+    expect(live.getAttribute("role")).toBe("status");
+    expect(live.getAttribute("aria-live")).toBe("polite");
+    expect(live.getAttribute("aria-atomic")).toBe("true");
+    expect(live.className).toContain("sr-only");
+  });
+
+  it("anuncio inicial reflete a variação ativa do estado inicial", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    expect(getLiveRegion().textContent).toBe("Variação 2 de 3 selecionada");
+  });
+
+  it("não anuncia quando há apenas 1 variação (sem prev/next/dots)", () => {
+    const m = buildStubState({ variationsCount: 1, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    expect(getLiveRegion().textContent).toBe("");
+  });
+
+  // ── Prev / Next ─────────────────────────────────────────────────────
+
+  it("clicar em 'Avançar' atualiza o anúncio para a próxima variação", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(getLiveRegion().textContent).toBe("Variação 1 de 3 selecionada");
+
+    fireEvent.click(screen.getByRole("button", { name: /avançar/i }));
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    rerenderWithActive(rerender, m, 1);
+
+    expect(getLiveRegion().textContent).toBe("Variação 2 de 3 selecionada");
+  });
+
+  it("clicar em 'Voltar' atualiza o anúncio para a variação anterior", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(getLiveRegion().textContent).toBe("Variação 3 de 3 selecionada");
+
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    rerenderWithActive(rerender, m, 1);
+
+    expect(getLiveRegion().textContent).toBe("Variação 2 de 3 selecionada");
+  });
+
+  // ── Dots ────────────────────────────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "selecionar dot[%i] atualiza o anúncio para 'Variação %s de 3 selecionada'",
+    (target) => {
+      const initialActive = target === 0 ? 2 : 0;
+      const m = buildStubState({ variationsCount: 3, activeVariation: initialActive });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      expect(getLiveRegion().textContent).toBe(`Variação ${initialActive + 1} de 3 selecionada`);
+
+      fireEvent.click(getDots()[target]);
+      expect(m.setActiveVariation).toHaveBeenCalledWith(target);
+      rerenderWithActive(rerender, m, target);
+
+      expect(getLiveRegion().textContent).toBe(`Variação ${target + 1} de 3 selecionada`);
+    }
+  );
+
+  // ── Thumbnails ──────────────────────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "selecionar thumb[%i] atualiza o anúncio para 'Variação %s de 3 selecionada'",
+    (target) => {
+      const initialActive = target === 0 ? 2 : 0;
+      const m = buildStubState({ variationsCount: 3, activeVariation: initialActive });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      expect(getLiveRegion().textContent).toBe(`Variação ${initialActive + 1} de 3 selecionada`);
+
+      fireEvent.click(getThumbs()[target]);
+      expect(m.setActiveVariation).toHaveBeenCalledWith(target);
+      rerenderWithActive(rerender, m, target);
+
+      expect(getLiveRegion().textContent).toBe(`Variação ${target + 1} de 3 selecionada`);
+    }
+  );
+
+  // ── Sequência intercalada prev/next + dot/thumb ─────────────────────
+
+  it("sequência prev/next + dot + thumb: anúncio sempre reflete a variação ativa", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(getLiveRegion().textContent).toBe("Variação 1 de 4 selecionada");
+
+    fireEvent.click(screen.getByRole("button", { name: /avançar/i }));
+    rerenderWithActive(rerender, m, 1);
+    expect(getLiveRegion().textContent).toBe("Variação 2 de 4 selecionada");
+
+    fireEvent.click(getDots()[3]);
+    rerenderWithActive(rerender, m, 3);
+    expect(getLiveRegion().textContent).toBe("Variação 4 de 4 selecionada");
+
+    fireEvent.click(screen.getByRole("button", { name: /voltar/i }));
+    rerenderWithActive(rerender, m, 2);
+    expect(getLiveRegion().textContent).toBe("Variação 3 de 4 selecionada");
+
+    fireEvent.click(getThumbs()[0]);
+    rerenderWithActive(rerender, m, 0);
+    expect(getLiveRegion().textContent).toBe("Variação 1 de 4 selecionada");
+  });
+});
