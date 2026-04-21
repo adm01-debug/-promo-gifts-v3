@@ -569,17 +569,17 @@ describe("Magic Up Onda 5 components", () => {
     });
 
     it("expectAllCardsFocusVisible valida o bloco padrão em todos os cards renderizados", () => {
-      renderComparatorScenario({ scores: [90, 70, 50] });
+      renderComparator({ variations: buildVariations() });
       expectAllCardsFocusVisible("base");
     });
 
     it("expectAllWinnerButtonsFocusVisible valida o bloco padrão em todos os botões 'Marcar vencedora'", () => {
-      renderComparatorScenario({ scores: [90, 70, 50] });
+      renderComparator({ variations: buildVariations() });
       expectAllWinnerButtonsFocusVisible("base");
     });
 
     it("expectActiveElementFocusVisible falha quando foco está no body e passa após focar elemento válido", async () => {
-      const { user } = renderComparatorScenario({ scores: [90, 70, 50] });
+      const { user } = renderComparator({ variations: buildVariations() });
 
       // Foco inicial no body → deve falhar
       (document.activeElement as HTMLElement | null)?.blur?.();
