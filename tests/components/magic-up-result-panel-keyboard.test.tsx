@@ -925,24 +925,24 @@ describe("MagicUpResultPanel — navegação por setas nos dots e thumbnails", (
     expect(document.activeElement).toBe(getDots()[0]);
   });
 
-  it("ArrowRight em dot[last] faz wrap para dot[0] (ciclo APG)", () => {
+  it("ArrowRight em dot[last] NÃO faz wrap (não-wrap APG): foco e estado intactos", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     dots[2].focus();
     fireEvent.keyDown(dots[2], { key: "ArrowRight" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
-    expect(document.activeElement).toBe(getDots()[0]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[2]);
   });
 
-  it("ArrowLeft em dot[0] faz wrap para dot[last] (ciclo APG)", () => {
+  it("ArrowLeft em dot[0] NÃO faz wrap (não-wrap APG): foco e estado intactos", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     dots[0].focus();
     fireEvent.keyDown(dots[0], { key: "ArrowLeft" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
-    expect(document.activeElement).toBe(getDots()[2]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[0]);
   });
 
   it("Home em dot[2] move foco para dot[0]", () => {
@@ -1032,25 +1032,25 @@ describe("MagicUpResultPanel — setas APG (cobertura adicional de bordas e thum
 
   // ── Bordas N=2 (menor caso com wrap) e N=1 (no-op) ──
 
-  it("N=2: ArrowRight em dot[1] faz wrap para dot[0]", () => {
+  it("N=2: ArrowRight em dot[1] NÃO faz wrap (não-wrap APG)", () => {
     const m = buildStubState({ variationsCount: 2, activeVariation: 1 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     expect(dots).toHaveLength(2);
     dots[1].focus();
     fireEvent.keyDown(dots[1], { key: "ArrowRight" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
-    expect(document.activeElement).toBe(getDots()[0]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[1]);
   });
 
-  it("N=2: ArrowLeft em dot[0] faz wrap para dot[1]", () => {
+  it("N=2: ArrowLeft em dot[0] NÃO faz wrap (não-wrap APG)", () => {
     const m = buildStubState({ variationsCount: 2, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     dots[0].focus();
     fireEvent.keyDown(dots[0], { key: "ArrowLeft" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
-    expect(document.activeElement).toBe(getDots()[1]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[0]);
   });
 
   it("N=1: dots/thumbs não são renderizados; setActiveVariation não é chamado", () => {
@@ -1084,24 +1084,24 @@ describe("MagicUpResultPanel — setas APG (cobertura adicional de bordas e thum
     expect(document.activeElement).toBe(getThumbs()[0]);
   });
 
-  it("Thumbnails: ArrowRight em thumb[last] faz wrap para thumb[0]", () => {
+  it("Thumbnails: ArrowRight em thumb[last] NÃO faz wrap (não-wrap APG)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
     render(<MagicUpResultPanel m={m} />);
     const thumbs = getThumbs();
     thumbs[2].focus();
     fireEvent.keyDown(thumbs[2], { key: "ArrowRight" });
-    expect(m.setActiveVariation).toHaveBeenLastCalledWith(0);
-    expect(document.activeElement).toBe(getThumbs()[0]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getThumbs()[2]);
   });
 
-  it("Thumbnails: ArrowLeft em thumb[0] faz wrap para thumb[last]", () => {
+  it("Thumbnails: ArrowLeft em thumb[0] NÃO faz wrap (não-wrap APG)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
     const thumbs = getThumbs();
     thumbs[0].focus();
     fireEvent.keyDown(thumbs[0], { key: "ArrowLeft" });
-    expect(m.setActiveVariation).toHaveBeenLastCalledWith(2);
-    expect(document.activeElement).toBe(getThumbs()[2]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getThumbs()[0]);
   });
 
   it("Thumbnails: Home em thumb[2] move para thumb[0]", () => {
