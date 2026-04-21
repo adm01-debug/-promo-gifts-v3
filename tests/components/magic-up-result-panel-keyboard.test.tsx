@@ -752,3 +752,147 @@ describe("MagicUpResultPanel — comportamento de extremidades (no-wrap) em Tab/
     expect(document.activeElement).not.toBe(prev);
   });
 });
+
+// ───────── Retorno de foco após troca de variação ativa (WCAG 2.4.3, 2.4.7, 3.2.1) ─────────
+
+describe("MagicUpResultPanel — retorno de foco após troca de variação ativa", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function activate(el: HTMLElement, key: "click" | "Enter" | " " = "click") {
+    el.focus();
+    if (key === "click") {
+      fireEvent.click(el);
+    } else {
+      fireEvent.keyDown(el, { key });
+      fireEvent.click(el);
+    }
+  }
+
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  it("Click em dot[2] mantém foco em dot[2] após re-render com active=2", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getDots()[2], "click");
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+
+    rerenderWithActive(rerender, m, 2);
+
+    const dotsAfter = getDots();
+    expect(document.activeElement).toBe(dotsAfter[2]);
+    expect(dotsAfter[0]).toHaveAttribute("tabindex", "-1");
+    expect(dotsAfter[1]).toHaveAttribute("tabindex", "-1");
+    expect(dotsAfter[2]).toHaveAttribute("tabindex", "0");
+  });
+
+  it("Enter em dot[1] mantém foco em dot[1] após re-render com active=1", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getDots()[1], "Enter");
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+
+    rerenderWithActive(rerender, m, 1);
+
+    const dotsAfter = getDots();
+    expect(document.activeElement).toBe(dotsAfter[1]);
+    expect(dotsAfter[0]).toHaveAttribute("tabindex", "-1");
+    expect(dotsAfter[1]).toHaveAttribute("tabindex", "0");
+    expect(dotsAfter[2]).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("Click em thumb[2] mantém foco em thumb[2] após re-render com active=2", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getThumbs()[2], "click");
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+
+    rerenderWithActive(rerender, m, 2);
+
+    const thumbsAfter = getThumbs();
+    expect(document.activeElement).toBe(thumbsAfter[2]);
+    expect(thumbsAfter[2]).toHaveAttribute("tabindex", "0");
+  });
+
+  it("Space em thumb[1] mantém foco em thumb[1] após re-render com active=1", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getThumbs()[1], " ");
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+
+    rerenderWithActive(rerender, m, 1);
+
+    const thumbsAfter = getThumbs();
+    expect(document.activeElement).toBe(thumbsAfter[1]);
+    expect(thumbsAfter[0]).toHaveAttribute("tabindex", "-1");
+    expect(thumbsAfter[1]).toHaveAttribute("tabindex", "0");
+    expect(thumbsAfter[2]).toHaveAttribute("tabindex", "-1");
+  });
+
+  it("Ativar dot[N] NÃO desloca foco para thumb[N] (grupos independentes)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getDots()[2], "Enter");
+    rerenderWithActive(rerender, m, 2);
+
+    const dotsAfter = getDots();
+    const thumbsAfter = getThumbs();
+    expect(document.activeElement).toBe(dotsAfter[2]);
+    expect(document.activeElement).not.toBe(thumbsAfter[2]);
+    // Roving da thumbnail também atualizou, mas foco DOM permanece no dot
+    expect(thumbsAfter[2]).toHaveAttribute("tabindex", "0");
+  });
+
+  it("Ativar thumb[N] NÃO desloca foco para dot[N] (espelho do anterior)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getThumbs()[1], "click");
+    rerenderWithActive(rerender, m, 1);
+
+    const dotsAfter = getDots();
+    const thumbsAfter = getThumbs();
+    expect(document.activeElement).toBe(thumbsAfter[1]);
+    expect(document.activeElement).not.toBe(dotsAfter[1]);
+    expect(dotsAfter[1]).toHaveAttribute("tabindex", "0");
+  });
+
+  it("Após ativar dot[2], roving tabindex está totalmente re-sincronizado nos dois grupos", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    activate(getDots()[2], "Enter");
+    rerenderWithActive(rerender, m, 2);
+
+    const dotsAfter = getDots();
+    const thumbsAfter = getThumbs();
+
+    expect(dotsAfter[0]).toHaveAttribute("tabindex", "-1");
+    expect(dotsAfter[1]).toHaveAttribute("tabindex", "-1");
+    expect(dotsAfter[2]).toHaveAttribute("tabindex", "0");
+    expect(thumbsAfter[0]).toHaveAttribute("tabindex", "-1");
+    expect(thumbsAfter[1]).toHaveAttribute("tabindex", "-1");
+    expect(thumbsAfter[2]).toHaveAttribute("tabindex", "0");
+
+    // Boundary correto pós-ativação: active=2 (último) → next disabled, prev enabled
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+    expect(prev).not.toBeDisabled();
+    expect(next).toBeDisabled();
+  });
+});
