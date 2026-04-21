@@ -57,6 +57,78 @@ function renderComparator(props: {
   return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
 }
 
+/**
+ * Cenário pronto para testes de foco/seleção/winner.
+ * Centraliza o boilerplate: scores → variações, isWinner por índice,
+ * activeIndex inicial, spies vi.fn() e userEvent.setup().
+ */
+function renderComparatorScenario(opts: {
+  scores: number[];
+  winnerIndex?: number;
+  activeIndex?: number;
+  onSelect?: (i: number) => void;
+  onSelectWinner?: (i: number) => void;
+} = { scores: [90, 70, 50] }) {
+  const variations = opts.scores.map<VariationItem>((score, i) => ({
+    id: `v${i + 1}`,
+    imageUrl: `https://example.com/v${i + 1}.png`,
+    isFavorite: false,
+    qualityScore: score,
+    isWinner: opts.winnerIndex === i ? true : undefined,
+  }));
+  return renderComparator({
+    variations,
+    activeIndex: opts.activeIndex ?? 0,
+    onSelect: opts.onSelect,
+    onSelectWinner: opts.onSelectWinner,
+  });
+}
+
+/**
+ * Wrapper controlado: `activeIndex` e `winnerIndex` viram estado React.
+ * Útil para testes que precisam ver o componente reagir a callbacks
+ * sem reescrever um ControlledWrapper em cada `it(...)`.
+ */
+function renderControlledComparator(opts: {
+  scores: number[];
+  initialActiveIndex?: number;
+  initialWinnerIndex?: number;
+} = { scores: [90, 70, 50] }) {
+  const onSelect = vi.fn();
+  const onSelectWinner = vi.fn();
+
+  function Controlled() {
+    const [activeIndex, setActiveIndex] = React.useState(opts.initialActiveIndex ?? 0);
+    const [winnerIndex, setWinnerIndex] = React.useState<number | undefined>(opts.initialWinnerIndex);
+
+    const variations = opts.scores.map<VariationItem>((score, i) => ({
+      id: `v${i + 1}`,
+      imageUrl: `https://example.com/v${i + 1}.png`,
+      isFavorite: false,
+      qualityScore: score,
+      isWinner: winnerIndex === i ? true : undefined,
+    }));
+
+    return (
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={activeIndex}
+        onSelect={(i) => {
+          onSelect(i);
+          setActiveIndex(i);
+        }}
+        onSelectWinner={(i) => {
+          onSelectWinner(i);
+          setWinnerIndex(i);
+        }}
+      />
+    );
+  }
+
+  const utils = render(<Controlled />);
+  return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
+}
+
 // ───────── Builders centralizados de aria-label ─────────
 // Fonte única de verdade: qualquer mudança no formato do aria-label do componente
 // é refletida aqui e propaga para todos os asserts do arquivo.
