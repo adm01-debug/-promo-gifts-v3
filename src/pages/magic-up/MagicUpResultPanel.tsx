@@ -1,6 +1,7 @@
 /**
  * MagicUp Result Panel — Right side with generated image variations
  */
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AdImageResult } from "@/components/magic-up/AdImageResult";
@@ -15,6 +16,27 @@ interface MagicUpResultPanelProps {
 }
 
 export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
+  const dotRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const thumbRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
+  const handleArrowKey = (
+    e: React.KeyboardEvent<HTMLButtonElement>,
+    currentIndex: number,
+    refs: React.MutableRefObject<(HTMLButtonElement | null)[]>,
+  ) => {
+    const total = m.variations.length;
+    if (total < 2) return;
+    let nextIndex: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") nextIndex = (currentIndex + 1) % total;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") nextIndex = (currentIndex - 1 + total) % total;
+    else if (e.key === "Home") nextIndex = 0;
+    else if (e.key === "End") nextIndex = total - 1;
+    if (nextIndex === null) return;
+    e.preventDefault();
+    m.setActiveVariation(nextIndex);
+    refs.current[nextIndex]?.focus();
+  };
+
   return (
     <div className="lg:sticky lg:top-4 lg:self-start space-y-3">
       {m.variations.length > 1 && (
@@ -30,9 +52,12 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
             {m.variations.map((_, i) => (
               <button
                 key={i}
+                ref={(el) => { dotRefs.current[i] = el; }}
                 onClick={() => m.setActiveVariation(i)}
+                onKeyDown={(e) => handleArrowKey(e, i, dotRefs)}
                 aria-label={`Selecionar variação ${i + 1}`}
                 aria-current={i === m.activeVariation ? "true" : undefined}
+                aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
                 role="tab"
                 aria-selected={i === m.activeVariation}
                 tabIndex={i === m.activeVariation ? 0 : -1}
@@ -95,8 +120,11 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
           {m.variations.map((v, i) => (
             <button
               key={i}
+              ref={(el) => { thumbRefs.current[i] = el; }}
               onClick={() => m.setActiveVariation(i)}
+              onKeyDown={(e) => handleArrowKey(e, i, thumbRefs)}
               aria-label={`Abrir miniatura da variação ${i + 1}`}
+              aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
               role="tab"
               aria-selected={i === m.activeVariation}
               tabIndex={i === m.activeVariation ? 0 : -1}
