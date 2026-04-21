@@ -487,6 +487,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const card3 = select.card(3);
     card3.focus();
+    expect(card3).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelect).toHaveBeenCalledTimes(2);
     expect(onSelect).toHaveBeenLastCalledWith(2);
@@ -2371,6 +2372,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       const selectBtn2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
       selectBtn2.focus();
+      expect(selectBtn2).toHaveFocus();
       await user.keyboard("{Enter}");
 
       expect(onSelect).toHaveBeenCalledTimes(1);
@@ -2401,6 +2403,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       const selectBtn3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
       selectBtn3.focus();
+      expect(selectBtn3).toHaveFocus();
       await user.keyboard(" ");
 
       expect(onSelect).toHaveBeenCalledTimes(1);
@@ -2431,6 +2434,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       // Enter em "Marcar variação 1 como vencedora"
       const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
       winnerBtn1.focus();
+      expect(winnerBtn1).toHaveFocus();
       await user.keyboard("{Enter}");
 
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
@@ -2456,6 +2460,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       onSelectWinner.mockClear();
       const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
       winnerBtn2.focus();
+      expect(winnerBtn2).toHaveFocus();
       await user.keyboard(" ");
 
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
