@@ -1303,3 +1303,75 @@ describe("MagicUpResultPanel — tooltip acessível nos dots (WCAG 1.4.13, 4.1.2
     expect(getDots()[2]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-2");
   });
 });
+
+// ───────── Hit area 44×44 responsiva (WCAG 2.5.5 AAA, 2.5.8 AA, 1.4.10 Reflow) ─────────
+
+describe("MagicUpResultPanel — hit area 44×44 responsiva (WCAG 2.5.5 AAA, 2.5.8 AA)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("cada dot tem classes w-11 e h-11 (44×44 base)", () => {
+    const m = buildStubState({ variationsCount: 3 });
+    render(<MagicUpResultPanel m={m} />);
+    getDots().forEach((dot) => {
+      expect(dot.className).toMatch(/\bw-11\b/);
+      expect(dot.className).toMatch(/\bh-11\b/);
+    });
+  });
+
+  it("cada dot tem min-w-11 e min-h-11 (defesa contra colapso flex)", () => {
+    const m = buildStubState({ variationsCount: 3 });
+    render(<MagicUpResultPanel m={m} />);
+    getDots().forEach((dot) => {
+      expect(dot.className).toMatch(/\bmin-w-11\b/);
+      expect(dot.className).toMatch(/\bmin-h-11\b/);
+    });
+  });
+
+  it("cada dot tem margens negativas -mx-[18px] e -my-[18px] (visual 8px sem alterar)", () => {
+    const m = buildStubState({ variationsCount: 3 });
+    render(<MagicUpResultPanel m={m} />);
+    getDots().forEach((dot) => {
+      expect(dot.className).toContain("-mx-[18px]");
+      expect(dot.className).toContain("-my-[18px]");
+    });
+  });
+
+  it("container dos dots tem flex-wrap (previne overflow horizontal em mobile)", () => {
+    const m = buildStubState({ variationsCount: 3 });
+    render(<MagicUpResultPanel m={m} />);
+    const container = screen.getByTestId("magic-up-dots-container");
+    expect(container.className).toMatch(/\bflex-wrap\b/);
+  });
+
+  it("container dos dots tem gap-3 mínimo (isola hit areas adjacentes)", () => {
+    const m = buildStubState({ variationsCount: 3 });
+    render(<MagicUpResultPanel m={m} />);
+    const container = screen.getByTestId("magic-up-dots-container");
+    expect(container.className).toMatch(/\bgap-(3|4|5|6)\b/);
+  });
+
+  it("dots NÃO usam classes responsivas que reduzem o tamanho abaixo de 44px", () => {
+    const m = buildStubState({ variationsCount: 3 });
+    render(<MagicUpResultPanel m={m} />);
+    // qualquer prefixo de breakpoint que reduza w/h/min-w/min-h para <11 é proibido
+    const shrinkRegex = /\b(sm|md|lg|xl|2xl|max-sm|max-md|max-lg):(w|h|min-w|min-h)-(0|0\.5|1|1\.5|2|2\.5|3|3\.5|4|5|6|7|8|9|10)\b/;
+    getDots().forEach((dot) => {
+      expect(dot.className).not.toMatch(shrinkRegex);
+    });
+  });
+
+  it("com 5 variações (carga), todos os dots mantêm 44×44 e container mantém flex-wrap", () => {
+    const m = buildStubState({ variationsCount: 5 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    expect(dots).toHaveLength(5);
+    dots.forEach((dot) => {
+      expect(dot.className).toMatch(/\bw-11\b/);
+      expect(dot.className).toMatch(/\bh-11\b/);
+      expect(dot.className).toMatch(/\bmin-w-11\b/);
+      expect(dot.className).toMatch(/\bmin-h-11\b/);
+    });
+    const container = screen.getByTestId("magic-up-dots-container");
+    expect(container.className).toMatch(/\bflex-wrap\b/);
+  });
+});
