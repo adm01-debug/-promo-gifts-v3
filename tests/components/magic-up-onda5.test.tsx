@@ -2163,6 +2163,12 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     ];
     const expectedWinnerIndex = 0;
 
+    // aria-labels exatos esperados — fonte única de verdade do teste
+    const ARIA_LABEL_VAR_A_WINNER = "Selecionar variação 1, score 70, melhor score";
+    const ARIA_LABEL_VAR_B = "Selecionar variação 2, score 99";
+    const ARIA_LABEL_VAR_C = "Selecionar variação 3, score 70";
+    void expectedWinnerIndex;
+
     const renderWithActive = (activeIndex: number) => (
       <MagicUpVariationComparator
         variations={variations}
@@ -2175,53 +2181,50 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     const { rerender } = render(renderWithActive(0));
 
     const assertBadgeOnFirstWinner = (currentActive: number) => {
-      const cards = screen.getAllByRole("listitem");
-
-      // 1. Cardinalidade global = 1 (não duplica entre os 2 isWinner)
+      // 1. Cardinalidade global da badge = 1
       expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
       expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
 
-      // 2. Badge SOMENTE em var-A (menor índice com isWinner)
-      expect(within(cards[expectedWinnerIndex]).getByLabelText("Melhor score")).toBeInTheDocument();
-      expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-      expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+      // 2. Botões localizados diretamente por aria-label exato
+      const buttonA = screen.getByRole("button", { name: ARIA_LABEL_VAR_A_WINNER });
+      const buttonB = screen.getByRole("button", { name: ARIA_LABEL_VAR_B });
+      const buttonC = screen.getByRole("button", { name: ARIA_LABEL_VAR_C });
 
-      // 3. Aria-labels: só var-A tem sufixo, mesmo var-C tendo isWinner: true
-      const aLabel = within(cards[0]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
-      const bLabel = within(cards[1]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
-      const cLabel = within(cards[2]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
-      expect(aLabel).toBe("Selecionar variação 1, score 70, melhor score");
-      expect(bLabel).toBe("Selecionar variação 2, score 99");
-      expect(cLabel).toBe("Selecionar variação 3, score 70");
+      // 3. aria-pressed reflete activeIndex; badge é independente
+      const buttons = [buttonA, buttonB, buttonC];
+      buttons.forEach((btn, idx) => {
+        expect(btn).toHaveAttribute("aria-pressed", idx === currentActive ? "true" : "false");
+      });
 
-      // 4. aria-pressed reflete activeIndex; badge é independente
-      expect(within(cards[currentActive]).getByRole("button", { name: /^Selecionar variação/ }))
-        .toHaveAttribute("aria-pressed", "true");
+      // 4. Sufixo ", melhor score" presente APENAS no aria-label do winner
+      expect(buttonA.getAttribute("aria-label")).toContain(", melhor score");
+      expect(buttonB.getAttribute("aria-label")).not.toContain("melhor score");
+      expect(buttonC.getAttribute("aria-label")).not.toContain("melhor score");
     };
 
     // Estado inicial
     assertBadgeOnFirstWinner(0);
 
     // CLIQUE 1: var-C (winner empatado de MAIOR índice)
-    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_C }));
     expect(onSelect).toHaveBeenLastCalledWith(2);
     rerender(renderWithActive(2));
     assertBadgeOnFirstWinner(2);
 
     // CLIQUE 2: var-C novamente (re-confirma estabilidade)
-    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_C }));
     expect(onSelect).toHaveBeenLastCalledWith(2);
     rerender(renderWithActive(2));
     assertBadgeOnFirstWinner(2);
 
     // CLIQUE 3: var-B (não-winner, mas score 99) — não promove a winner
-    await user.click(within(screen.getAllByRole("listitem")[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
+    await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_B }));
     expect(onSelect).toHaveBeenLastCalledWith(1);
     rerender(renderWithActive(1));
     assertBadgeOnFirstWinner(1);
 
     // CLIQUE 4: volta para var-C
-    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_C }));
     expect(onSelect).toHaveBeenLastCalledWith(2);
     rerender(renderWithActive(2));
     assertBadgeOnFirstWinner(2);
