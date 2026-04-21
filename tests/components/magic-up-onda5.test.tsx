@@ -643,6 +643,125 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(card3Btn.parentElement).toHaveClass("border-primary");
     expect(card1Btn.parentElement).not.toHaveClass("border-primary");
   });
+
+  it("'Marcar vencedora' com disabled nativo: removido do Tab e Enter/Space não disparam onSelectWinner", async () => {
+    const user = userEvent.setup();
+    const onSelectWinner = vi.fn();
+
+    function Harness() {
+      return (
+        <section className="rounded-lg border bg-card p-3">
+          <div role="list" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+            {[0, 1, 2].map((i) => (
+              <div key={i} role="listitem" className="overflow-hidden rounded-lg border">
+                <button
+                  type="button"
+                  aria-pressed={i === 0}
+                  aria-label={`Selecionar variação ${i + 1}, score 80`}
+                  onClick={vi.fn()}
+                >
+                  card {i + 1}
+                </button>
+                <button
+                  type="button"
+                  disabled={i === 1}
+                  aria-label={`Marcar variação ${i + 1} como vencedora`}
+                  onClick={() => onSelectWinner(i)}
+                >
+                  Marcar vencedora
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    render(<Harness />);
+
+    const marcar2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+    expect(marcar2).toBeDisabled();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Selecionar variação 1, score 80" })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Selecionar variação 2, score 80" })).toHaveFocus();
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 80" })).toHaveFocus();
+    expect(marcar2).not.toHaveFocus();
+
+    marcar2.focus();
+    expect(document.activeElement).toBe(document.body);
+
+    await user.click(marcar2);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+  });
+
+  it("'Marcar vencedora' com aria-disabled=true: mantém no Tab mas Enter/Space/click são ignorados via guarda", async () => {
+    const user = userEvent.setup();
+    const onSelectWinner = vi.fn();
+
+    function Harness() {
+      const handleClick = (i: number) => (e: React.MouseEvent | React.KeyboardEvent) => {
+        if ((e.currentTarget as HTMLElement).getAttribute("aria-disabled") === "true") return;
+        onSelectWinner(i);
+      };
+      return (
+        <section>
+          <div role="list" className="grid grid-cols-3 gap-2">
+            {[0, 1, 2].map((i) => (
+              <div key={i} role="listitem">
+                <button
+                  type="button"
+                  aria-label={`Selecionar variação ${i + 1}, score 80`}
+                  onClick={vi.fn()}
+                >
+                  card {i + 1}
+                </button>
+                <button
+                  type="button"
+                  aria-disabled={i === 1 ? "true" : undefined}
+                  aria-label={`Marcar variação ${i + 1} como vencedora`}
+                  onClick={handleClick(i)}
+                >
+                  Marcar vencedora
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      );
+    }
+
+    render(<Harness />);
+
+    const marcar2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+    expect(marcar2).toHaveAttribute("aria-disabled", "true");
+    expect(marcar2).not.toBeDisabled();
+
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    expect(marcar2).toHaveFocus();
+
+    await user.keyboard("{Enter}");
+    expect(onSelectWinner).not.toHaveBeenCalled();
+
+    await user.keyboard(" ");
+    expect(onSelectWinner).not.toHaveBeenCalled();
+
+    await user.click(marcar2);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+
+    const marcar1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+    marcar1.focus();
+    await user.keyboard("{Enter}");
+    expect(onSelectWinner).toHaveBeenCalledWith(0);
+    expect(onSelectWinner).toHaveBeenCalledTimes(1);
+  });
 });
 
 describe("MagicUpVariationComparator focus-visible classes", () => {
