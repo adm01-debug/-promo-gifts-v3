@@ -293,16 +293,18 @@ describe("Magic Up Onda 5 components", () => {
     expect(select.cardExact("Selecionar variação 3, score 85")).toBeInTheDocument();
   });
 
-  it("empate em score 0: trata 0 como ausência de score válido e NÃO atribui 'Melhor score'", () => {
+  it("empate em score 0: trata 0 como avaliação real (ruim) — badge 'Melhor score' vai para o primeiro índice", () => {
     const variations: VariationItem[] = [
       { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 0 },
       { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 0 },
     ];
     renderComparator({ variations });
-    // bestScore = 0 → guard `hasValidScores` falsy → nenhuma badge
-    expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
-    expect(select.cardExact("Selecionar variação 1")).toBeInTheDocument();
-    expect(select.cardExact("Selecionar variação 2")).toBeInTheDocument();
+    // bestScore = 0 (avaliação real) → winnerIndex = 0 → 1 badge no primeiro card
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    expect(select.cardExact("Selecionar variação 1, score 0, melhor score")).toBeInTheDocument();
+    expect(select.cardExact("Selecionar variação 2, score 0")).toBeInTheDocument();
+    // Badge global mostra "0" explícito (não "—")
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: 0");
   });
 
   it("dois isWinner: true simultâneos: badge vai para o primeiro índice marcado, ignorando o segundo", () => {
