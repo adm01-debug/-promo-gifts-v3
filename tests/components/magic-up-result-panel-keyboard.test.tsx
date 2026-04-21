@@ -1210,3 +1210,94 @@ describe("MagicUpResultPanel — atributos ARIA dinâmicos refletem variação a
     expectTabIndexState(getDots(), 1);
   });
 });
+
+describe("MagicUpResultPanel — tooltip acessível nos dots (WCAG 1.4.13, 4.1.2)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("cada dot tem aria-describedby apontando para id único 'magic-up-dot-tooltip-{i}'", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+
+    expect(dots[0]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-0");
+    expect(dots[1]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-1");
+    expect(dots[2]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-2");
+
+    const ids = dots.map((d) => d.getAttribute("aria-describedby"));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it("tooltip aparece no hover (mouse) com texto 'Variação N'", async () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+
+    fireEvent.pointerEnter(dots[1]);
+    fireEvent.mouseEnter(dots[1]);
+
+    const tooltip = await screen.findByRole("tooltip", {}, { timeout: 1500 });
+    expect(tooltip).toHaveTextContent("Variação 2");
+  });
+
+  it("tooltip aparece no foco do teclado (WCAG 1.4.13 — equivalência hover/foco)", async () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+
+    fireEvent.focus(dots[2]);
+
+    const tooltip = await screen.findByRole("tooltip", {}, { timeout: 1500 });
+    expect(tooltip).toHaveTextContent("Variação 3");
+  });
+
+  it("tooltip desaparece após blur do dot", async () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+
+    fireEvent.focus(dots[1]);
+    await screen.findByRole("tooltip", {}, { timeout: 1500 });
+
+    fireEvent.blur(dots[1]);
+    // Radix marca data-state="closed" ou remove do DOM — ambos contam como fechado
+    await new Promise((r) => setTimeout(r, 50));
+    const tooltip = screen.queryByRole("tooltip");
+    if (tooltip) {
+      expect(tooltip.getAttribute("data-state")).toBe("closed");
+    } else {
+      expect(tooltip).toBeNull();
+    }
+  });
+
+  it.each([0, 1, 2])("tooltip do dot[%i] mostra texto correspondente 'Variação N'", async (i) => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+
+    fireEvent.focus(dots[i]);
+    const tooltip = await screen.findByRole("tooltip", {}, { timeout: 1500 });
+    expect(tooltip).toHaveTextContent(`Variação ${i + 1}`);
+  });
+
+  it("aria-describedby permanece estável após re-render com novo activeVariation", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(getDots()[0]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-0");
+    expect(getDots()[2]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-2");
+
+    const updated = {
+      ...m,
+      activeVariation: 2,
+      currentVariation: m.variations[2],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+
+    // ids NÃO dependem de active — devem permanecer idênticos
+    expect(getDots()[0]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-0");
+    expect(getDots()[1]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-1");
+    expect(getDots()[2]).toHaveAttribute("aria-describedby", "magic-up-dot-tooltip-2");
+  });
+});
