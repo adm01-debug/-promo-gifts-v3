@@ -572,6 +572,48 @@ describe("Magic Up Onda 5 components", () => {
         select.cardExact(variationCardLabel(2, { score: 70 }))
       );
     });
+
+    it("renderComparatorScenario monta variações com isWinner por índice e expõe spies", () => {
+      const { onSelectWinner, user } = renderComparatorScenario({
+        scores: [80, 80, 80],
+        winnerIndex: 1,
+        activeIndex: 1,
+      });
+
+      // isWinner=true no índice 1 → card 2 carrega "melhor score"
+      expectVariationCard(2, 80, { best: true });
+      expectNotBestScore(1);
+      expectNotBestScore(3);
+      expect(expectExactlyOneBestScore().getAttribute("aria-label")).toBe(
+        variationCardLabel(2, { score: 80, best: true })
+      );
+
+      // activeIndex=1 → card 2 está aria-pressed=true
+      expect(select.card(2)).toHaveAttribute("aria-pressed", "true");
+
+      // Spy de onSelectWinner é o vi.fn() default e responde a clique
+      expect(onSelectWinner).not.toHaveBeenCalled();
+      expect(user).toBeDefined();
+    });
+
+    it("renderControlledComparator reage a clique em card e em 'Marcar vencedora' sem boilerplate", async () => {
+      const { user, onSelect, onSelectWinner } = renderControlledComparator({
+        scores: [90, 70, 50],
+      });
+
+      // Clique em card 2 → onSelect(1) e estado interno migra aria-pressed
+      await user.click(select.cardByScore(2, 70));
+      expect(onSelect).toHaveBeenCalledWith(1);
+      expect(select.card(2)).toHaveAttribute("aria-pressed", "true");
+
+      // Clique em "Marcar vencedora" do card 3 → onSelectWinner(2) + sufixo migra
+      await user.click(select.marcar(3));
+      expect(onSelectWinner).toHaveBeenCalledWith(2);
+      // Após rerender controlado, card 3 ganha "melhor score"
+      expectVariationCard(3, 50, { best: true });
+      expectNotBestScore(1);
+      expectNotBestScore(2);
+    });
   });
 });
 
