@@ -266,6 +266,27 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.getByRole("button", { name: "Selecionar variação 2, score 85" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Selecionar variação 3, score 85" })).toBeInTheDocument();
   });
+
+  it("empate em score 0: trata 0 como valor válido e atribui 'Melhor score' ao primeiro índice", () => {
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 0 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 0 },
+    ];
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+    // bestScore = 0 é válido → exatamente 1 badge "Melhor score"
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    // Winner determinístico: índice 0 recebe sufixo "melhor score"
+    // (aria-label omite ", score N" quando score é 0/falsy — comportamento atual)
+    expect(screen.getByRole("button", { name: "Selecionar variação 1, melhor score" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Selecionar variação 2" })).toBeInTheDocument();
+  });
 });
 
 describe("MagicUpVariationComparator snapshots", () => {
