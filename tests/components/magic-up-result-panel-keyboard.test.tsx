@@ -2022,3 +2022,207 @@ describe("MagicUpResultPanel — live region anuncia variação ativa (WCAG 4.1.
     expect(getLiveRegion().textContent).toBe("Variação 1 de 4 selecionada");
   });
 });
+
+// ───────── Regressão: Enter/Space NÃO faz wrap entre dot[last] ↔ dot[0] ─────────
+// Diferente das setas (ArrowLeft/Right/Home/End — que navegam por roving),
+// Enter e Space APENAS ativam o item já focado. Eles NUNCA podem mover o
+// foco/ativação para o extremo oposto da lista (sem wrap acidental).
+
+describe("MagicUpResultPanel — Enter/Space não wrap entre extremos (dot[last] ↔ dot[0])", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  /** Asserta: tabindex=0 SOMENTE no índice esperado; demais = -1. */
+  function expectExactlyOneTabbable(elements: HTMLElement[], expectedIndex: number) {
+    const tabbable = elements
+      .map((el, i) => ({ i, value: el.getAttribute("tabindex") }))
+      .filter((entry) => entry.value === "0")
+      .map((entry) => entry.i);
+    expect(tabbable).toEqual([expectedIndex]);
+    elements.forEach((el, i) => {
+      expect(el.getAttribute("tabindex")).toBe(i === expectedIndex ? "0" : "-1");
+    });
+  }
+
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  // ── DOTS: foco no último, Enter/Space NÃO ativa o primeiro ──────────
+
+  it.each([
+    { key: "Enter" as const, code: "Enter" },
+    { key: " " as const, code: "Space" },
+  ])(
+    "foco no dot[last] + $code → ativa dot[last] e NUNCA dot[0] (sem wrap)",
+    ({ key, code }) => {
+      const total = 4;
+      const last = total - 1;
+      const m = buildStubState({ variationsCount: total, activeVariation: last });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      expectExactlyOneTabbable(getDots(), last);
+
+      const lastDot = getDots()[last] as HTMLButtonElement;
+      lastDot.focus();
+      expect(document.activeElement).toBe(lastDot);
+
+      fireEvent.keyDown(lastDot, { key, code });
+      fireEvent.click(lastDot);
+
+      // Anti-wrap: setActiveVariation NUNCA chamado com 0
+      expect(m.setActiveVariation).not.toHaveBeenCalledWith(0);
+      // Apenas chamadas com `last` são aceitas
+      const calls = (m.setActiveVariation as ReturnType<typeof vi.fn>).mock.calls;
+      calls.forEach(([idx]) => expect(idx).toBe(last));
+
+      rerenderWithActive(rerender, m, last);
+
+      // Estado permanece no último — invariante preservada
+      expectExactlyOneTabbable(getDots(), last);
+      expectExactlyOneTabbable(getThumbs(), last);
+
+      // aria-selected também não migrou
+      expect(getDots()[last].getAttribute("aria-selected")).toBe("true");
+      expect(getDots()[0].getAttribute("aria-selected")).toBe("false");
+    }
+  );
+
+  // ── DOTS: foco no primeiro, Enter/Space NÃO ativa o último ──────────
+
+  it.each([
+    { key: "Enter" as const, code: "Enter" },
+    { key: " " as const, code: "Space" },
+  ])(
+    "foco no dot[0] + $code → ativa dot[0] e NUNCA dot[last] (sem wrap reverso)",
+    ({ key, code }) => {
+      const total = 4;
+      const last = total - 1;
+      const m = buildStubState({ variationsCount: total, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      expectExactlyOneTabbable(getDots(), 0);
+
+      const firstDot = getDots()[0] as HTMLButtonElement;
+      firstDot.focus();
+      expect(document.activeElement).toBe(firstDot);
+
+      fireEvent.keyDown(firstDot, { key, code });
+      fireEvent.click(firstDot);
+
+      expect(m.setActiveVariation).not.toHaveBeenCalledWith(last);
+      const calls = (m.setActiveVariation as ReturnType<typeof vi.fn>).mock.calls;
+      calls.forEach(([idx]) => expect(idx).toBe(0));
+
+      rerenderWithActive(rerender, m, 0);
+
+      expectExactlyOneTabbable(getDots(), 0);
+      expectExactlyOneTabbable(getThumbs(), 0);
+
+      expect(getDots()[0].getAttribute("aria-selected")).toBe("true");
+      expect(getDots()[last].getAttribute("aria-selected")).toBe("false");
+    }
+  );
+
+  // ── THUMBS: mesma garantia anti-wrap nos dois extremos ──────────────
+
+  it.each([
+    { key: "Enter" as const, code: "Enter" },
+    { key: " " as const, code: "Space" },
+  ])(
+    "foco no thumb[last] + $code → ativa thumb[last] e NUNCA thumb[0]",
+    ({ key, code }) => {
+      const total = 4;
+      const last = total - 1;
+      const m = buildStubState({ variationsCount: total, activeVariation: last });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      expectExactlyOneTabbable(getThumbs(), last);
+
+      const lastThumb = getThumbs()[last] as HTMLButtonElement;
+      lastThumb.focus();
+      fireEvent.keyDown(lastThumb, { key, code });
+      fireEvent.click(lastThumb);
+
+      expect(m.setActiveVariation).not.toHaveBeenCalledWith(0);
+      const calls = (m.setActiveVariation as ReturnType<typeof vi.fn>).mock.calls;
+      calls.forEach(([idx]) => expect(idx).toBe(last));
+
+      rerenderWithActive(rerender, m, last);
+      expectExactlyOneTabbable(getThumbs(), last);
+      expectExactlyOneTabbable(getDots(), last);
+    }
+  );
+
+  it.each([
+    { key: "Enter" as const, code: "Enter" },
+    { key: " " as const, code: "Space" },
+  ])(
+    "foco no thumb[0] + $code → ativa thumb[0] e NUNCA thumb[last]",
+    ({ key, code }) => {
+      const total = 4;
+      const last = total - 1;
+      const m = buildStubState({ variationsCount: total, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      expectExactlyOneTabbable(getThumbs(), 0);
+
+      const firstThumb = getThumbs()[0] as HTMLButtonElement;
+      firstThumb.focus();
+      fireEvent.keyDown(firstThumb, { key, code });
+      fireEvent.click(firstThumb);
+
+      expect(m.setActiveVariation).not.toHaveBeenCalledWith(last);
+      const calls = (m.setActiveVariation as ReturnType<typeof vi.fn>).mock.calls;
+      calls.forEach(([idx]) => expect(idx).toBe(0));
+
+      rerenderWithActive(rerender, m, 0);
+      expectExactlyOneTabbable(getThumbs(), 0);
+      expectExactlyOneTabbable(getDots(), 0);
+    }
+  );
+
+  // ── Sequência: várias ativações nos extremos não acumulam wrap ─────
+
+  it("pressionar Enter repetidas vezes em dot[last] e dot[0] alternadamente: nunca wrap", () => {
+    const total = 5;
+    const last = total - 1;
+    const m = buildStubState({ variationsCount: total, activeVariation: last });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    // Enter no último (3×) → continua no último
+    for (let n = 0; n < 3; n++) {
+      const dot = getDots()[last] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+      rerenderWithActive(rerender, m, last);
+      expectExactlyOneTabbable(getDots(), last);
+    }
+
+    // Enter no primeiro (3×) → continua no primeiro (sem ir para o último)
+    rerenderWithActive(rerender, m, 0);
+    for (let n = 0; n < 3; n++) {
+      const dot = getDots()[0] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+      rerenderWithActive(rerender, m, 0);
+      expectExactlyOneTabbable(getDots(), 0);
+    }
+
+    // Em nenhum momento setActiveVariation foi chamado com índice intermediário fora dos extremos
+    const calls = (m.setActiveVariation as ReturnType<typeof vi.fn>).mock.calls;
+    calls.forEach(([idx]) => {
+      expect([0, last]).toContain(idx);
+    });
+  });
+});
