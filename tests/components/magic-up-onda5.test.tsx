@@ -1662,4 +1662,67 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
     expect(screen.getByLabelText(/Melhor score entre variações: 75/)).toBeInTheDocument();
   });
+
+  it("snapshot estrutural: empate triplo renderiza DOM estável com exatamente 1 badge 'Melhor score'", () => {
+    const variations = [
+      buildVariation({ id: "var-snap-1", qualityScore: 80 }, 0),
+      buildVariation({ id: "var-snap-2", qualityScore: 80 }, 1),
+      buildVariation({ id: "var-snap-3", qualityScore: 80 }, 2),
+    ];
+    const { container } = renderTied(variations);
+
+    // 1. Assertions defensivas (independentes do snapshot)
+    const badges = screen.getAllByLabelText("Melhor score");
+    expect(badges).toHaveLength(1);
+    const listItems = screen.getAllByRole("listitem");
+    expect(listItems).toHaveLength(3);
+
+    // 2. Snapshot estrutural focado: extrai apenas a região de badges + scores
+    const comparatorSection = container.querySelector('[aria-label="Comparador de variações"]');
+    expect(comparatorSection).not.toBeNull();
+
+    const structuralSummary = Array.from(listItems).map((item, idx) => {
+      const badge = item.querySelector('[aria-label="Melhor score"]');
+      const scoreSpan = item.querySelector('[aria-label^="Score"]');
+      return {
+        index: idx,
+        hasBadge: badge !== null,
+        badgeText: badge?.textContent?.trim() ?? null,
+        scoreLabel: scoreSpan?.getAttribute("aria-label") ?? null,
+        ariaPressed: item.querySelector('button[aria-pressed]')?.getAttribute("aria-pressed") ?? null,
+      };
+    });
+
+    expect(structuralSummary).toMatchInlineSnapshot(`
+      [
+        {
+          "ariaPressed": "true",
+          "badgeText": "Melhor score",
+          "hasBadge": true,
+          "index": 0,
+          "scoreLabel": "Score 80 de 100",
+        },
+        {
+          "ariaPressed": "false",
+          "badgeText": null,
+          "hasBadge": false,
+          "index": 1,
+          "scoreLabel": "Score 80 de 100",
+        },
+        {
+          "ariaPressed": "false",
+          "badgeText": null,
+          "hasBadge": false,
+          "index": 2,
+          "scoreLabel": "Score 80 de 100",
+        },
+      ]
+    `);
+
+    // 3. Snapshot do header (bestScore badge) — região independente
+    const header = container.querySelector('[aria-label^="Melhor score entre variações"]');
+    expect(header?.getAttribute("aria-label")).toMatchInlineSnapshot(
+      `"Melhor score entre variações: 80"`
+    );
+  });
 });
