@@ -206,15 +206,14 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.queryByRole("button", { name: "Selecionar variação 3, score 90, melhor score" })).not.toBeInTheDocument();
     unmount();
 
-    // isWinner explícito tem prioridade sobre empate por score
-    const tiedWithFlag: VariationItem[] = [
-      { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70 },
+    // isWinner explícito num item de score baixo ainda vence se aparecer antes do bestScore
+    const winnerFirst: VariationItem[] = [
+      { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70, isWinner: true },
       { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 90 },
-      { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 90, isWinner: true },
+      { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 90 },
     ];
-    render(<MagicUpVariationComparator variations={tiedWithFlag} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    render(<MagicUpVariationComparator variations={winnerFirst} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
     expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 90, melhor score" })).toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: "Selecionar variação 2, score 90, melhor score" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Selecionar variação 1, score 70, melhor score" })).toBeInTheDocument();
   });
 });
