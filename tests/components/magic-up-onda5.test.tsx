@@ -1237,4 +1237,28 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       }
     }
   );
+
+  it("score=0 (empate degenerado): aria-label do vencedor inclui 'melhor score' mas omite 'score 0'", () => {
+    const variations = [
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 1),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
+    ];
+    renderTied(variations);
+
+    // Vencedor (índice 0): aria-label deve conter "melhor score" mas NÃO "score 0"
+    const winnerButton = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    const winnerLabel = winnerButton.getAttribute("aria-label") || "";
+    expect(winnerLabel).toContain("melhor score");
+    expect(winnerLabel).not.toMatch(/score 0\b/);
+    expect(winnerLabel).not.toContain(", score 0");
+
+    // Não-vencedores (índices 1, 2): aria-label não menciona "score 0" nem "melhor score"
+    const loser1 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    const loser2 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+    expect(loser1.getAttribute("aria-label")).not.toMatch(/score 0\b/);
+    expect(loser1.getAttribute("aria-label")).not.toContain("melhor score");
+    expect(loser2.getAttribute("aria-label")).not.toMatch(/score 0\b/);
+    expect(loser2.getAttribute("aria-label")).not.toContain("melhor score");
+  });
 });
