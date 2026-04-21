@@ -1812,6 +1812,31 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
         (btn.getAttribute("aria-label") ?? "").includes("melhor score")
       );
       expect(withSuffix).toHaveLength(1);
+
+      // 6. Verificações negativas dirigidas a var-C (segundo isWinner: true que perde)
+      const varCCard = cards[2];
+      expect(within(varCCard).queryByLabelText("Melhor score")).toBeNull();
+      expect(within(varCCard).queryByText("Melhor score")).toBeNull();
+
+      const varCButton = within(varCCard).getByRole("button", { name: /^Selecionar variação 3/ });
+      expect(varCButton.getAttribute("aria-label")).not.toMatch(/melhor score/);
+      expect(varCButton.getAttribute("aria-label")).toBe(`Selecionar variação 3, score ${scoreC}`);
+      expect(varCButton).toHaveAttribute("aria-pressed", "false");
+      expect(varCButton).not.toHaveAttribute("aria-current");
+
+      const varBCard = cards[1];
+      expect(within(varBCard).queryByLabelText("Melhor score")).toBeNull();
+      const varBButton = within(varBCard).getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(varBButton.getAttribute("aria-label")).not.toMatch(/melhor score/);
+      expect(varBButton.getAttribute("aria-label")).toBe("Selecionar variação 2, score 50");
+
+      const winnerButtons = screen
+        .getAllByRole("button", { name: /^Selecionar variação/ })
+        .filter((btn) => (btn.getAttribute("aria-label") ?? "").endsWith(", melhor score"));
+      expect(winnerButtons).toHaveLength(1);
+      expect(winnerButtons[0].getAttribute("aria-label")).toBe(
+        `Selecionar variação 1, score ${scoreA}, melhor score`
+      );
     }
   );
 });
