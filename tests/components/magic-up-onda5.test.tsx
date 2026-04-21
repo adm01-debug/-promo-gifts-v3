@@ -278,19 +278,18 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })).not.toBeInTheDocument();
   });
 
-  it("empate triplo com isWinner explícito: ainda exibe exatamente 1 badge 'Melhor score'", () => {
+  it("empate triplo com isWinner explícito: badge vai para o índice marcado (prioridade absoluta de isWinner)", () => {
     const variations = buildVariations([
       { qualityScore: 85 },
       { qualityScore: 85, isWinner: true },
       { qualityScore: 85 },
     ]);
     renderComparator({ variations });
-    // Mesmo com isWinner explícito + 3 empatados, apenas 1 badge
+    // Apenas 1 badge no total
     expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-    // findIndex retorna o primeiro match (índice 0 satisfaz scores[0] === bestScore)
-    expect(select.cardExact("Selecionar variação 1, score 85, melhor score")).toBeInTheDocument();
-    // Variação 2 (com isWinner: true) NÃO recebe badge — comportamento atual do findIndex
-    expect(select.cardExact("Selecionar variação 2, score 85")).toBeInTheDocument();
+    // isWinner=true tem prioridade absoluta sobre o cálculo automático por bestScore
+    expect(select.cardExact("Selecionar variação 1, score 85")).toBeInTheDocument();
+    expect(select.cardExact("Selecionar variação 2, score 85, melhor score")).toBeInTheDocument();
     expect(select.cardExact("Selecionar variação 3, score 85")).toBeInTheDocument();
   });
 
