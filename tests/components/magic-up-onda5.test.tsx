@@ -1389,4 +1389,42 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     // Header mostra o maior (50)
     expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: 50");
   });
+
+  it("invariante defensivo: sem bestScore (todas null) e sem isWinner — nenhuma badge 'Melhor score' renderiza em nenhum card", () => {
+    const variations = [
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 0),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 1),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 2),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 3),
+    ];
+    renderTied(variations);
+
+    // 1. Zero badges "Melhor score" no DOM inteiro
+    expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
+
+    // 2. Cada card individualmente: nenhuma badge
+    const cards = screen.getAllByRole("listitem");
+    expect(cards).toHaveLength(4);
+    cards.forEach((card) => {
+      expect(within(card).queryByLabelText("Melhor score")).toBeNull();
+    });
+
+    // 3. Nenhum aria-label de botão menciona "melhor score" nem "score N"
+    for (let i = 1; i <= 4; i++) {
+      const btn = screen.getByRole("button", { name: new RegExp(`Selecionar variação ${i}`) });
+      const label = btn.getAttribute("aria-label") ?? "";
+      expect(label).not.toContain("melhor score");
+      expect(label).not.toMatch(/, score \d/);
+    }
+
+    // 4. Header global mostra "—" (placeholder) e aria-label "indisponível"
+    const headerBadge = screen.getByLabelText(/Melhor score entre variações/);
+    expect(headerBadge).toHaveTextContent("Melhor score: —");
+    expect(headerBadge.getAttribute("aria-label")).toContain("indisponível");
+
+    // 5. Cada card mostra "Score indisponível" no span de score
+    cards.forEach((card) => {
+      expect(within(card).getByLabelText("Score indisponível")).toBeInTheDocument();
+    });
+  });
 });
