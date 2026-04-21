@@ -1,192 +1,185 @@
 
 
-# Plano — Testes anti-keyboard-trap no comparador
+# Plano — Testes de aria-pressed/aria-current após Enter/Space e cliques pós-teclado
 
-Adiciono **2 testes** ao final do sub-describe `"ativação por Enter/Espaço nos botões"` em `tests/components/magic-up-onda5.test.tsx`, validando WCAG 2.1.2 (No Keyboard Trap): Tab/Shift+Tab sempre conseguem sair do `MagicUpVariationComparator` em qualquer direção, mesmo com loading ativo.
+Adiciono **2 testes** ao final do sub-describe `"ativação por Enter/Espaço nos botões"` em `tests/components/magic-up-onda5.test.tsx`, validando que `aria-pressed` e `aria-current` refletem corretamente o estado de seleção após ativação por teclado (Enter/Space) e após cliques mouse subsequentes a navegação por teclado.
 
 ## Justificativa
 
-Cobertura existente (105 testes): Home/End, Shift+Tab interno, scroll preserva foco, modificadores e auto-repeat em loading.
+Cobertura existente (107 testes): keyboard trap, scroll preserva foco, Home/End, Shift+Tab reverso, modificadores em loading.
 
-**Lacuna**: nenhum teste valida explicitamente WCAG 2.1.2 — que o foco nunca fica preso dentro do comparador. Cenários críticos não cobertos:
-1. **Tab forward exit**: a partir do último botão (marcar var-N), Tab vai para o sentinel "depois"
-2. **Shift+Tab backward exit**: a partir do primeiro botão (card var-1), Shift+Tab vai para o sentinel "antes"
-3. **Round-trip completo**: Tab N vezes atravessa todo o comparador sem loop
-4. **Exit funciona com loading ativo**: mesmo com `loadingWinnerIndex` desabilitando um botão, a saída por Tab/Shift+Tab continua funcionando (botão disabled é simplesmente pulado)
+**Lacuna**: o componente expõe `aria-pressed={isActive}` e `aria-current={isActive ? "true" : undefined}` (linhas 73-74 do componente), mas nenhum teste valida que esses atributos:
+1. São atualizados corretamente quando o pai re-renderiza com novo `activeIndex` após Enter/Space
+2. Permanecem consistentes quando o usuário alterna entre teclado e mouse (clique após Tab)
+3. Mantêm exclusividade: apenas UM card tem `aria-pressed="true"` / `aria-current="true"` por vez
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar 2 testes ao final do sub-describe `"ativação por Enter/Espaço nos botões"`, reusando `navVariations` (3 variações = 6 botões focáveis: card1, marcar1, card2, marcar2, card3, marcar3):
+Adicionar 2 testes ao final do sub-describe `"ativação por Enter/Espaço nos botões"`, usando wrapper controlado que sincroniza `activeIndex` via `onSelect` (simulando o pai real):
 
 ---
 
-**Teste 1 — Sem keyboard trap: Tab forward sai pelo último botão e Shift+Tab sai pelo primeiro botão**
+**Teste 1 — `aria-pressed` e `aria-current` atualizam após Enter/Space e mantêm exclusividade**
 
 ```ts
-it("não cria keyboard trap: Tab no último botão sai para sentinel 'depois' e Shift+Tab no primeiro botão sai para sentinel 'antes' (WCAG 2.1.2)", async () => {
+it("aria-pressed e aria-current refletem o estado correto após ativação por Enter/Space, mantendo exclusividade entre cards", async () => {
   const user = userEvent.setup();
-  const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
-  render(
-    <div>
-      <button type="button" data-testid="before-sentinel">antes</button>
+  function ControlledWrapper() {
+    const [activeIndex, setActiveIndex] = React.useState(0);
+    return (
       <MagicUpVariationComparator
         variations={navVariations}
-        activeIndex={0}
-        onSelect={onSelect}
+        activeIndex={activeIndex}
+        onSelect={setActiveIndex}
         onSelectWinner={onSelectWinner}
       />
-      <button type="button" data-testid="after-sentinel">depois</button>
-    </div>
-  );
-
-  // ─── Cenário A: Shift+Tab a partir do PRIMEIRO botão sai para "antes" ───
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  card1.focus();
-  expect(card1).toHaveFocus();
-
-  await user.tab({ shift: true });
-  expect(screen.getByTestId("before-sentinel")).toHaveFocus();
-
-  // Shift+Tab novamente sai para fora do DOM de teste (body) — confirma que não há loop interno
-  await user.tab({ shift: true });
-  expect(screen.getByTestId("before-sentinel")).not.toHaveFocus();
-  expect(card1).not.toHaveFocus();
-
-  // ─── Cenário B: Tab forward a partir do ÚLTIMO botão sai para "depois" ───
-  const winnerBtn3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
-  winnerBtn3.focus();
-  expect(winnerBtn3).toHaveFocus();
-
-  await user.tab();
-  expect(screen.getByTestId("after-sentinel")).toHaveFocus();
-
-  // Tab novamente sai para fora — não há loop interno do comparador
-  await user.tab();
-  expect(screen.getByTestId("after-sentinel")).not.toHaveFocus();
-  expect(winnerBtn3).not.toHaveFocus();
-
-  // ─── Cenário C: Round-trip Tab forward atravessa todo o comparador (sentinel "antes" → 6 botões → sentinel "depois") ───
-  screen.getByTestId("before-sentinel").focus();
-  expect(screen.getByTestId("before-sentinel")).toHaveFocus();
-
-  const expectedForwardOrder = [
-    { name: /^Selecionar variação 1/ },
-    { name: "Marcar variação 1 como vencedora" },
-    { name: /^Selecionar variação 2/ },
-    { name: "Marcar variação 2 como vencedora" },
-    { name: /^Selecionar variação 3/ },
-    { name: "Marcar variação 3 como vencedora" },
-  ];
-
-  for (const target of expectedForwardOrder) {
-    await user.tab();
-    expect(screen.getByRole("button", target)).toHaveFocus();
+    );
   }
 
-  // 7º Tab sai para sentinel "depois"
-  await user.tab();
-  expect(screen.getByTestId("after-sentinel")).toHaveFocus();
+  render(<ControlledWrapper />);
 
-  // Nenhum handler de seleção foi disparado por simples navegação Tab
-  expect(onSelect).not.toHaveBeenCalled();
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+  const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+  // Estado inicial: card1 ativo
+  expect(card1).toHaveAttribute("aria-pressed", "true");
+  expect(card1).toHaveAttribute("aria-current", "true");
+  expect(card2).toHaveAttribute("aria-pressed", "false");
+  expect(card2).not.toHaveAttribute("aria-current");
+  expect(card3).toHaveAttribute("aria-pressed", "false");
+  expect(card3).not.toHaveAttribute("aria-current");
+
+  // Foca card2 e ativa com Enter
+  card2.focus();
+  await user.keyboard("{Enter}");
+
+  // Aguarda re-render (state update via onSelect)
+  await screen.findByRole("button", { name: /^Selecionar variação 2/ });
+
+  expect(card1).toHaveAttribute("aria-pressed", "false");
+  expect(card1).not.toHaveAttribute("aria-current");
+  expect(card2).toHaveAttribute("aria-pressed", "true");
+  expect(card2).toHaveAttribute("aria-current", "true");
+  expect(card3).toHaveAttribute("aria-pressed", "false");
+  expect(card3).not.toHaveAttribute("aria-current");
+
+  // Foca card3 e ativa com Space
+  card3.focus();
+  await user.keyboard(" ");
+
+  expect(card1).toHaveAttribute("aria-pressed", "false");
+  expect(card1).not.toHaveAttribute("aria-current");
+  expect(card2).toHaveAttribute("aria-pressed", "false");
+  expect(card2).not.toHaveAttribute("aria-current");
+  expect(card3).toHaveAttribute("aria-pressed", "true");
+  expect(card3).toHaveAttribute("aria-current", "true");
+
+  // Volta para card1 com Home
+  await user.keyboard("{Home}");
+
+  expect(card1).toHaveAttribute("aria-pressed", "true");
+  expect(card1).toHaveAttribute("aria-current", "true");
+  expect(card2).toHaveAttribute("aria-pressed", "false");
+  expect(card3).toHaveAttribute("aria-pressed", "false");
+
+  // Exclusividade: contar exatamente 1 card com aria-current="true"
+  const allCards = [card1, card2, card3];
+  const currentCount = allCards.filter((c) => c.getAttribute("aria-current") === "true").length;
+  expect(currentCount).toBe(1);
+
+  const pressedCount = allCards.filter((c) => c.getAttribute("aria-pressed") === "true").length;
+  expect(pressedCount).toBe(1);
+
+  // onSelectWinner intocado durante toda a sequência
   expect(onSelectWinner).not.toHaveBeenCalled();
 });
 ```
 
 ---
 
-**Teste 2 — Sem trap mesmo com loading ativo: botão disabled é pulado e exit por Tab/Shift+Tab continua funcionando**
+**Teste 2 — `aria-pressed`/`aria-current` consistentes em sequência mista teclado→clique→teclado**
 
 ```ts
-it("não cria keyboard trap mesmo com loadingWinnerIndex ativo: botão disabled é pulado e Tab/Shift+Tab saem do comparador (WCAG 2.1.2)", async () => {
+it("aria-pressed e aria-current permanecem consistentes em sequência mista Tab→Enter→clique→Space, sem dessincronizar atributos", async () => {
   const user = userEvent.setup();
-  const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
-  render(
-    <div>
-      <button type="button" data-testid="before-sentinel">antes</button>
-      <MagicUpVariationComparator
-        variations={navVariations}
-        activeIndex={0}
-        onSelect={onSelect}
-        onSelectWinner={onSelectWinner}
-        loadingWinnerIndex={1}
-      />
-      <button type="button" data-testid="after-sentinel">depois</button>
-    </div>
-  );
-
-  // Sanity: marcar-var-2 está disabled e aria-busy
-  const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
-  expect(winnerBtn2).toBeDisabled();
-  expect(winnerBtn2).toHaveAttribute("aria-busy", "true");
-
-  // ─── Cenário A: Tab forward a partir de "antes" pula marcar-var-2 mas chega ao final ───
-  screen.getByTestId("before-sentinel").focus();
-
-  // Ordem esperada: card1, marcar1, card2, [marcar2 pulado], card3, marcar3, after-sentinel
-  const expectedForwardOrder = [
-    { name: /^Selecionar variação 1/ },
-    { name: "Marcar variação 1 como vencedora" },
-    { name: /^Selecionar variação 2/ },
-    { name: /^Selecionar variação 3/ },
-    { name: "Marcar variação 3 como vencedora" },
-  ];
-
-  for (const target of expectedForwardOrder) {
-    await user.tab();
-    const btn = screen.getByRole("button", target);
-    expect(btn).toHaveFocus();
-    // Confirma que marcar-var-2 nunca recebeu foco durante a travessia
-    expect(winnerBtn2).not.toHaveFocus();
+  function ControlledWrapper() {
+    const [activeIndex, setActiveIndex] = React.useState(0);
+    return (
+      <div>
+        <button type="button" data-testid="before-sentinel">antes</button>
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={activeIndex}
+          onSelect={setActiveIndex}
+          onSelectWinner={onSelectWinner}
+        />
+      </div>
+    );
   }
 
-  // Próximo Tab sai para sentinel "depois" — exit funciona com loading
-  await user.tab();
-  expect(screen.getByTestId("after-sentinel")).toHaveFocus();
+  render(<ControlledWrapper />);
 
-  // ─── Cenário B: Shift+Tab a partir de "depois" volta percorrendo, pula marcar-var-2 e sai para "antes" ───
-  const expectedReverseOrder = [
-    { name: "Marcar variação 3 como vencedora" },
-    { name: /^Selecionar variação 3/ },
-    { name: /^Selecionar variação 2/ },
-    { name: "Marcar variação 1 como vencedora" },
-    { name: /^Selecionar variação 1/ },
-  ];
-
-  for (const target of expectedReverseOrder) {
-    await user.tab({ shift: true });
-    const btn = screen.getByRole("button", target);
-    expect(btn).toHaveFocus();
-    expect(winnerBtn2).not.toHaveFocus();
-  }
-
-  // Próximo Shift+Tab sai para sentinel "antes" — exit reverso funciona com loading
-  await user.tab({ shift: true });
-  expect(screen.getByTestId("before-sentinel")).toHaveFocus();
-
-  // ─── Cenário C: Foco direto no card var-2 (vizinho do botão em loading) e Tab forward pula marcar-var-2 ───
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
   const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
-  card2.focus();
+  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+  // ─── Etapa 1: Tab até card2 e Enter ───
+  screen.getByTestId("before-sentinel").focus();
+  await user.tab(); // card1
+  await user.tab(); // marcar1
+  await user.tab(); // card2
   expect(card2).toHaveFocus();
+  await user.keyboard("{Enter}");
 
-  await user.tab();
-  // Tab a partir de card2 deve ir direto para card3 (pulando marcar-var-2 disabled)
-  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
-  expect(winnerBtn2).not.toHaveFocus();
+  expect(card2).toHaveAttribute("aria-pressed", "true");
+  expect(card2).toHaveAttribute("aria-current", "true");
+  expect(card1).toHaveAttribute("aria-pressed", "false");
+  expect(card3).toHaveAttribute("aria-pressed", "false");
 
-  // Shift+Tab volta para card2 (pulando marcar-var-2 na direção reversa)
-  await user.tab({ shift: true });
+  // ─── Etapa 2: Clique direto no card3 (mouse após teclado) ───
+  await user.click(card3);
+
+  expect(card3).toHaveAttribute("aria-pressed", "true");
+  expect(card3).toHaveAttribute("aria-current", "true");
+  expect(card2).toHaveAttribute("aria-pressed", "false");
+  expect(card2).not.toHaveAttribute("aria-current");
+  expect(card1).toHaveAttribute("aria-pressed", "false");
+
+  // ─── Etapa 3: Volta ao teclado — Shift+Tab até card3 já está focado pelo clique; usa setas ───
+  card3.focus();
+  // ArrowLeft (handler usa ArrowLeft/ArrowUp para anterior) → card2
+  await user.keyboard("{ArrowLeft}");
   expect(card2).toHaveFocus();
-  expect(winnerBtn2).not.toHaveFocus();
+  await user.keyboard(" ");
 
-  // Sanity: handlers de seleção não foram disparados por navegação Tab
-  expect(onSelect).not.toHaveBeenCalled();
+  expect(card2).toHaveAttribute("aria-pressed", "true");
+  expect(card2).toHaveAttribute("aria-current", "true");
+  expect(card3).toHaveAttribute("aria-pressed", "false");
+  expect(card3).not.toHaveAttribute("aria-current");
+
+  // ─── Etapa 4: Clique em card1 (mouse novamente) ───
+  await user.click(card1);
+
+  expect(card1).toHaveAttribute("aria-pressed", "true");
+  expect(card1).toHaveAttribute("aria-current", "true");
+  expect(card2).toHaveAttribute("aria-pressed", "false");
+  expect(card2).not.toHaveAttribute("aria-current");
+  expect(card3).toHaveAttribute("aria-pressed", "false");
+
+  // ─── Etapa 5: Validação final de exclusividade após 4 alternâncias teclado/mouse ───
+  const allCards = [card1, card2, card3];
+  expect(allCards.filter((c) => c.getAttribute("aria-pressed") === "true")).toHaveLength(1);
+  expect(allCards.filter((c) => c.getAttribute("aria-current") === "true")).toHaveLength(1);
+  expect(allCards.filter((c) => c.getAttribute("aria-pressed") === "false")).toHaveLength(2);
+  expect(allCards.filter((c) => !c.hasAttribute("aria-current"))).toHaveLength(2);
+
   expect(onSelectWinner).not.toHaveBeenCalled();
 });
 ```
@@ -194,21 +187,21 @@ it("não cria keyboard trap mesmo com loadingWinnerIndex ativo: botão disabled 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (reusa `render`, `screen`, `userEvent`, `vi`, `MagicUpVariationComparator`, `navVariations`)
-- 2 testes novos (105 → 107 testes)
-- Sentinels `before-sentinel`/`after-sentinel` simulam contexto da página (elementos antes/depois do comparador)
-- Validação cumulativa: foco entra → percorre → sai em ambas direções, sem loop e sem prender em botão disabled
+- Necessário import de `React` (provavelmente já presente; se não, usar `import * as React` ou `useState` direto). Verificação: o arquivo já usa hooks/JSX, então `React` deve estar acessível — caso contrário adicionar `import { useState } from "react"` e usar `useState` direto no wrapper
+- Sem novos imports adicionais (reusa `render`, `screen`, `userEvent`, `vi`, `MagicUpVariationComparator`, `navVariations`)
+- 2 testes novos (107 → 109 testes)
+- Wrapper controlado simula o comportamento real do pai (sincroniza `activeIndex` via `onSelect`)
 
 ## Entregável
 
-- 2 testes cobrindo WCAG 2.1.2 (No Keyboard Trap):
-  1. **Sem trap básico**: Shift+Tab no primeiro botão sai para "antes"; Tab no último botão sai para "depois"; nova tentativa de Tab/Shift+Tab além dos sentinels não retorna ao comparador (sem loop); round-trip completo de 6 botões + saída funcional
-  2. **Sem trap com loading**: com `loadingWinnerIndex={1}` desabilitando marcar-var-2, Tab forward pula o botão disabled e ainda sai para "depois"; Shift+Tab reverso pula o botão disabled e sai para "antes"; navegação a partir do vizinho (card-var-2) salta direto para card-var-3 em ambas direções
+- 2 testes cobrindo:
+  1. **Atualização e exclusividade**: após Enter no card2, card2 ganha `aria-pressed="true"` + `aria-current="true"` e os outros voltam a `aria-pressed="false"` sem `aria-current`; mesmo padrão para Space no card3 e Home retornando ao card1; contagem final confirma exatamente 1 card pressed/current
+  2. **Consistência teclado↔mouse**: sequência Tab+Enter (card2) → clique mouse (card3) → ArrowLeft+Space (card2) → clique mouse (card1) mantém atributos sincronizados em cada etapa; validação final de exclusividade após 4 alternâncias
 - Captura regressões onde:
-  - `tabIndex={-1}` ou `tabIndex` positivo indevido criasse loop interno
-  - Foco fosse interceptado e devolvido programaticamente ao comparador (focus trap acidental via `onBlur`/`useEffect`)
-  - Botão `disabled` ainda fosse focável (browser quirk ou implementação custom)
-  - Atributo `aria-disabled="true"` sem `disabled` real permitisse foco mas bloqueasse interação (anti-padrão)
-  - Saída por Tab/Shift+Tab quebrasse com loading ativo
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 107/107 verde
+  - `aria-pressed` não atualizasse após re-render (state stale)
+  - `aria-current` ficasse `"true"` em múltiplos cards (perda de exclusividade)
+  - `aria-current` permanecesse como string vazia ou `"false"` em vez de ausente (componente usa `undefined`)
+  - Clique mouse não atualizasse atributos (handler `onClick` desconectado de `onSelect`)
+  - Alternância teclado→mouse→teclado dessincronizasse `aria-pressed` e `aria-current` (ex: um atributo atualiza e outro não)
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 109/109 verde
 
