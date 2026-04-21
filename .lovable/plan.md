@@ -1,71 +1,74 @@
 
 
-# Plano — Expandir hit area dos dots de paginação (mantendo visual)
+# Plano — Doc de guideline de foco e disabled para componentes Onda 5
 
-Os dots de paginação no `MagicUpResultPanel` têm `w-2 h-2` (8px) — visual elegante, mas hit area abaixo do mínimo WCAG 2.5.5 (24×24 AA / 44×44 AAA). Já existe um pseudo-elemento `before:-inset-2` (expande +8px de cada lado = ~24px), mas **falta `before:absolute`** garantido com `inset` real e o pseudo não é clicável de forma testável. Vou expandir formalmente para 44×44px usando pseudo-elemento posicionado, mantendo o pixel visual em 8px.
+Adiciono um doc curto em `docs/` consolidando as classes obrigatórias de `focus-visible:ring-*` e `disabled:*` que os testes em `magic-up-onda5.test.tsx` e `onda5-a11y.test.tsx` já travam em CI.
 
-## Arquivos alterados
+## Arquivo novo
 
-### 1. `src/pages/magic-up/MagicUpResultPanel.tsx`
-Trocar a classe do `<button>` do dot:
+`docs/MAGIC_UP_ONDA5_A11Y.md` (~120 linhas, markdown puro, sem código novo)
 
-**Antes:**
-```
-"relative w-2 h-2 rounded-full transition-all ... before:absolute before:-inset-2 before:content-['']"
-```
+## Estrutura
 
-**Depois:**
-```
-"relative inline-flex items-center justify-center w-11 h-11 -m-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-```
+### 1. Contexto (4 linhas)
+Objetivo: garantir foco visível (WCAG 2.4.7) e contraste em estados disabled (WCAG 1.4.3) em todos os componentes interativos da Onda 5 do Magic Up. Travado por testes automatizados — qualquer regressão quebra CI.
 
-E adicionar um `<span>` interno como o "ponto visual":
-```tsx
-<span
-  aria-hidden="true"
-  className={cn(
-    "block h-2 rounded-full transition-all",
-    i === m.activeVariation ? "bg-primary w-6" : "bg-muted-foreground/30 w-2 group-hover:bg-muted-foreground/50"
-  )}
-/>
-```
+### 2. Classes obrigatórias — Focus Visible
 
-Detalhes:
-- `w-11 h-11` = 44×44px (WCAG AAA target)
-- `-m-[18px]` neutraliza o tamanho extra no fluxo do layout — o container `flex gap-1.5` continua visualmente igual
-- `inline-flex items-center justify-center` centraliza o ponto visual
-- O `<span>` interno é `aria-hidden` (texto a11y já está no `aria-label` do botão)
-- Hover muda cor do span via `group-hover` (botão recebe `group`)
+Tabela:
 
-### 2. `tests/components/magic-up-result-panel-keyboard.test.tsx` — adicionar 3 testes
+| Token | Classes Tailwind | Quando usar |
+|-------|------------------|-------------|
+| Ring padrão | `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background` | Botões `<Button variant="outline">`, dots de paginação, thumbnails, tabs |
+| Ring sobre input | `focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-primary/20 focus-visible:border-primary` | `<Input>`, `<Textarea>` (já no design system) |
 
-Novo `describe("MagicUpResultPanel — hit area dos dots (WCAG 2.5.5)")`:
+Regra: **todo elemento focável customizado** (não-input) deve incluir o bloco padrão completo. `outline-none` sozinho é proibido.
 
-1. **Click no botão dot (área expandida) ativa setActiveVariation**
-   - Renderiza com 3 variações
-   - `fireEvent.click(dots[2])` (clique no `<button>`, não no span visual)
-   - Assert: `setActiveVariation(2)`
+### 3. Classes obrigatórias — Disabled
 
-2. **Click no span visual interno também ativa (event bubbling)**
-   - Localiza span `aria-hidden` dentro do dot 2 via `dots[1].querySelector("span[aria-hidden='true']")`
-   - `fireEvent.click(span)`
-   - Assert: `setActiveVariation(1)` (clique borbulha para o button)
+| Cenário | Classes obrigatórias | Por quê |
+|---------|---------------------|---------|
+| Botão prev/next variação | `disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100` | `opacity-50` padrão do shadcn cai abaixo de 4.5:1 — substituímos por par token-on-token que mantém legibilidade |
+| Botão de ação (gerar, baixar) | `disabled:opacity-50` (padrão shadcn aceito) | Ação destrutiva ou bloqueada por validação — usuário entende rapidamente |
 
-3. **Botão dot tem dimensões mínimas WCAG 2.5.5**
-   - Para cada dot: `className` contém `w-11` E `h-11`
-   - Garante que regressões de classe (volta para `w-2 h-2` no próprio button) quebram CI
+Regra: **botões de navegação por teclado** (prev/next, paginação) **não podem** usar `disabled:opacity-50` — sempre par `bg-muted` + `text-muted-foreground` + `opacity-100`.
+
+### 4. Hit area mínima
+
+- Dots de paginação, thumbnails, ícones interativos: `w-11 h-11` (44×44px, WCAG 2.5.5 AAA)
+- Para manter visual menor: usar `<span aria-hidden>` interno + negative margin (`-mx-[18px] -my-[18px]`) no botão para neutralizar layout
+
+### 5. Componentes cobertos
+
+Lista com link relativo:
+- `MagicUpResultPanel` — prev/next, dots, thumbnails
+- `MagicUpVariationComparator` — cards de variação, botão "winner"
+- `MagicUpQualityScore` — score badge
+- `MagicUpQualityChecklist` — itens de checklist
+- `AdImageResult` — ações de download/share/regenerate
+
+### 6. Testes que travam regressões
+
+Referência cruzada:
+- `tests/components/magic-up-onda5.test.tsx` — classes literais via `expect(button.className).toContain(...)`
+- `tests/a11y/onda5-a11y.test.tsx` — axe-core (WCAG 2.1 AA)
+- `tests/components/magic-up-result-panel-keyboard.test.tsx` — tab order, Enter/Space, hit area `w-11 h-11`
+
+### 7. Checklist para PRs novos
+
+5 bullets curtos: copiar bloco focus-visible, escolher disabled correto, hit area 44px se ícone-only, rodar `npm test -- magic-up`, garantir `aria-label` em ícone-only.
 
 ## Restrições
 
-- Sem alterar comportamento — só hit area
-- Visual idêntico (gap, tamanho do ponto, cor ativa)
-- Sem novas dependências
-- Mantém todos os testes existentes verdes (selectors continuam válidos: `role="tab"`, `aria-label="Selecionar variação N"`)
+- Sem alterar código de produção
+- Sem novos testes (este doc descreve os existentes)
+- Markdown puro, sem dependências
+- Linka apenas arquivos já existentes no repo
 
 ## Entregável
 
-- 1 arquivo de produção alterado (`MagicUpResultPanel.tsx`) — só classes do dot button + span interno
-- 3 novos testes (total: 6 → 9 no arquivo de keyboard)
-- Hit area de 44×44px (WCAG AAA) sem mudança visual
-- Atalho de regressão: testes detectam se hit area encolher de novo
+- 1 arquivo novo: `docs/MAGIC_UP_ONDA5_A11Y.md`
+- ~120 linhas, lê em ~3min
+- Referência canônica para devs ao adicionar/editar componentes Onda 5
+- Reduz risco de PRs removerem classes que quebram CI sem entender o porquê
 
