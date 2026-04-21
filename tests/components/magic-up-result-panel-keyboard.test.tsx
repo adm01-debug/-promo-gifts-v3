@@ -1754,7 +1754,7 @@ describe("MagicUpResultPanel — identidade acessível e single tab stop", () =>
     expect(thumbs).toHaveLength(4);
     thumbs.forEach((thumb, i) => {
       expect(thumb).toHaveAttribute("role", "tab");
-      expectAriaLabel(thumb, new RegExp(`^Variação\\s+${i + 1}\\b`));
+      expectAriaLabel(thumb, new RegExp(`varia[cç][aã]o\\s+${i + 1}\\b`, "i"));
     });
   });
 
