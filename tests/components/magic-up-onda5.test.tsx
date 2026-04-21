@@ -996,18 +996,22 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       const card3 = select.card(3);
 
       card3.focus();
+      expect(card3).toHaveFocus();
       await user.keyboard("{ArrowRight}");
       expect(card1).toHaveFocus();
       expect(card1).toHaveAttribute("aria-pressed", "true");
 
+      expect(card1).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(card3).toHaveFocus();
       expect(card3).toHaveAttribute("aria-pressed", "true");
 
+      expect(card3).toHaveFocus();
       await user.keyboard("{Home}");
       expect(card1).toHaveFocus();
       expect(card1).toHaveAttribute("aria-pressed", "true");
 
+      expect(card1).toHaveFocus();
       await user.keyboard("{End}");
       expect(card3).toHaveFocus();
       expect(card3).toHaveAttribute("aria-pressed", "true");
@@ -1077,7 +1081,9 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
 
       rerender(renderWith(2));
-      screen.getByRole("button", { name: /^Selecionar variação 3/ }).focus();
+      const card3Sel = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      card3Sel.focus();
+      expect(card3Sel).toHaveFocus();
       await user.keyboard("{ArrowRight}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
     });
@@ -1090,12 +1096,16 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
         <MagicUpVariationComparator variations={navVariations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />
       );
 
-      screen.getByRole("button", { name: /^Selecionar variação 1/ }).focus();
+      const card1A = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1A.focus();
+      expect(card1A).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(onSelect).toHaveBeenLastCalledWith(2);
 
       onSelect.mockClear();
-      screen.getByRole("button", { name: /^Selecionar variação 3/ }).focus();
+      const card3B = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      card3B.focus();
+      expect(card3B).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(onSelect).toHaveBeenLastCalledWith(1);
     });
@@ -1110,12 +1120,14 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
       card1.focus();
+      expect(card1).toHaveFocus();
 
       await user.keyboard("{ArrowDown}");
       expect(onSelect).toHaveBeenLastCalledWith(2);
 
       onSelect.mockClear();
       card1.focus();
+      expect(card1).toHaveFocus();
       await user.keyboard("{ArrowUp}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
     });
@@ -1130,11 +1142,13 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
       card1.focus();
+      expect(card1).toHaveFocus();
       await user.keyboard("{Home}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
 
       onSelect.mockClear();
       card1.focus();
+      expect(card1).toHaveFocus();
       await user.keyboard("{End}");
       expect(onSelect).toHaveBeenLastCalledWith(2);
     });
@@ -1149,12 +1163,16 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       const card0 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
       card0.focus();
+      expect(card0).toHaveFocus();
 
       await user.keyboard("a");
+      expect(card0).toHaveFocus();
       await user.keyboard("{Escape}");
+      expect(card0).toHaveFocus();
       await user.keyboard("{PageDown}");
       expect(onSelect).not.toHaveBeenCalled();
 
+      expect(card0).toHaveFocus();
       await user.keyboard("{Enter}");
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
