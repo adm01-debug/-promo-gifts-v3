@@ -1,39 +1,66 @@
 
-# Execução completa da suíte Onda 5
 
-A Onda 5 já passou nas execuções anteriores (10/10 verdes), mas o pedido agora é uma **execução completa formal** cobrindo as 4 camadas — frontend (componentes), strategy, hooks e backend function. Vou rodar tudo e apresentar relatório consolidado.
+# Plano — QA manual no preview: Magic Up cenários A–D
 
-## O que será executado
+Vou abrir o preview com o navegador automatizado e percorrer, na ordem, os 4 cenários da Onda 5, registrando inconsistências de UI, estado e histórico.
 
-### 1. Frontend (vitest)
-- `tests/components/magic-up-onda5.test.tsx` — `MagicUpQualityScore`, `MagicUpQualityChecklist`, `MagicUpCurationStatus`, `MagicUpVariationComparator`
-- `tests/components/magic-up-strategy-onda5.test.ts` — `buildMagicScore`, `buildQualityDiagnosis`, `CURATION_STATUSES`
-- `tests/hooks/useMagicUpGeneration-onda5.test.tsx` — fluxos de geração, fallback heurístico, reanálise, curadoria, vencedora
-- `tests/components/pages/MagicUp.test.tsx` — smoke test de regressão da página
+## Pré-checagem
+- `navigate_to_sandbox` em `/magic-up`
+- `screenshot` inicial + `read_console_logs` para detectar erros antes de interagir
+- Confirmar que header, stepper e painel de configuração renderizaram (sem skeleton preso, sem layout shift)
 
-Comando: `npx vitest run tests/components/magic-up-onda5.test.tsx tests/components/magic-up-strategy-onda5.test.ts tests/hooks/useMagicUpGeneration-onda5.test.tsx tests/components/pages/MagicUp.test.tsx --reporter=verbose`
+## Cenário A — primeira geração comercial
+1. Selecionar cliente, produto, logo e cenário (usando `observe` + `act` em cada etapa do stepper)
+2. Disparar **Gerar imagem**
+3. Aguardar resposta da `generate-ad-image` + `magic-up-score` (poll com `screenshot` curtos)
+4. Validar:
+   - loading visível durante geração
+   - `AdImageResult` mostra a imagem final
+   - `MagicUpQualityScore` aparece com nota + origem (`IA` esperada)
+   - `MagicUpQualityChecklist` lista critérios
+   - `MagicUpCurationStatus` inicia em **Rascunho**
+   - botão **Reanalisar Magic Score** presente
+   - histórico recebeu novo item com score + status
 
-### 2. Backend function `magic-up-score` (curl real)
-Validação ao vivo via `supabase--curl_edge_functions`:
+## Cenário B — fallback heurístico
+1. Disparar nova geração (sem mexer em config)
+2. Após imagem aparecer, observar diagnóstico:
+   - Se `magic-up-score` falhar/retornar quota, badge deve mostrar **Heurístico**
+   - UI não trava, score numérico ainda aparece, histórico salva o item
+3. Se a IA responder normalmente, registro como **não reproduzido em ambiente real** (não é bug; comportamento simulado já coberto em testes unitários)
 
-| Cenário | Método | Esperado |
-|---|---|---|
-| Pré-flight CORS | `OPTIONS` | 200/204 + headers CORS |
-| Sem auth | `POST` (sem token) | 401 |
-| Body vazio | `POST {}` | 400 + detalhes Zod |
-| `imageUrl` curto | `POST { imageUrl: "x" }` | 400 |
-| Payload válido | `POST` completo | 200 com `source: "ai"` ou erro controlado |
+## Cenário C — curadoria operacional
+1. Sobre a variação atual, alterar status na sequência: Boa → Aprovada internamente → Enviada ao cliente
+2. Após cada clique:
+   - confirmar destaque visual no botão ativo
+   - `screenshot` para conferir badge sincronizada no `AdImageResult`
+3. Recarregar histórico (clicar em outro item e voltar) e verificar persistência do último status
 
-### 3. Logs da function
-Após os curls, leitura de `magic-up-score` via `supabase--edge_function_logs` para confirmar autenticação, validação Zod e tracking de IA.
+## Cenário D — comparação de variações
+1. Voltar para config e gerar com **N=2 ou 3 variações** (controle criativo)
+2. Validar:
+   - dots de paginação aparecem
+   - thumbnails inferiores sincronizam com a imagem ativa
+   - `MagicUpVariationComparator` renderiza com badge **Melhor score**
+   - clique em outra variação troca imagem principal + score + checklist
+   - botão **Marcar vencedora** atualiza variação ativa e dispara toast
+
+## Checagens transversais durante o percurso
+- `read_console_logs` ao final → listar erros JS
+- `list_network_requests` → conferir 200/4xx em `generate-ad-image`, `magic-up-score`, `magic-up-generations`
+- `supabase--edge_function_logs` em `magic-up-score` para correlacionar respostas
+
+## Restrições
+- **Sem ações destrutivas no histórico** (não excluir gerações de outros usuários)
+- Se o preview pedir login, parar e avisar o usuário
+- Se a geração de IA for bloqueada por quota/protection, registrar como ressalva, não como bug
 
 ## Entregável
+Relatório consolidado por cenário (A/B/C/D) com:
+- ✅ aprovado / ⚠️ ressalva / 🐛 bug
+- screenshots-chave referenciadas
+- lista de inconsistências encontradas (UI, estado, histórico, network)
+- recomendações de correção quando houver bug
 
-Relatório consolidado contendo:
-- Total de testes frontend (passados / falhados / duração)
-- Resultado de cada cenário curl da edge function
-- Confirmação dos logs (auth, Zod, AI tracking)
-- Status final da Onda 5: **aprovado**, **aprovado com ressalvas** ou **bloqueado**
-- Lista de bugs encontrados (se houver) e correções recomendadas
+Sem alterações de código nesta rodada — apenas diagnóstico.
 
-Sem alterações de código nesta rodada — apenas execução e relatório. Caso algum teste falhe, identifico o arquivo afetado e proponho a correção numa próxima rodada.
