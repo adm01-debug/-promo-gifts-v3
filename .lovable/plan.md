@@ -1,109 +1,135 @@
 
 
-# Plano — Refatorar `magic-up-onda5.test.tsx` extraindo helpers de render, fixtures e seletores
+# Plano — Testes de roving tabindex / aria-selected nos dots, thumbnails e prev/next do `MagicUpResultPanel`
 
-Reduzir duplicação massiva no arquivo de testes (1385 linhas) extraindo 4 helpers reutilizáveis no topo do arquivo, sem alterar nenhuma asserção, descrição ou comportamento dos 49 testes.
+Adiciono uma nova suíte de testes em `tests/components/magic-up-result-panel-keyboard.test.tsx` (arquivo já mencionado no `MAGIC_UP_ONDA5_A11Y.md` como guardião de teclado deste painel) cobrindo o comportamento APG **Tabs + Roving Tabindex** dos três grupos de navegação visual da variação ativa.
 
 ## Justificativa
 
-Auditoria do arquivo revela duplicação em 4 padrões:
-1. **`MagicUpVariationComparator variations={…} activeIndex={…} onSelect={…} onSelectWinner={…}`** repetido ~50× — sempre com `vi.fn()` em pelo menos 2 das 4 props
-2. **Arrays inline `const variations: VariationItem[] = [...]`** com 3 variações triviais (id v1/v2/v3, scores variados) repetidos ~13× (apenas 1 helper `buildVariations` existe, isolado em 1 describe)
-3. **`userEvent.setup()`** chamado em ~30 testes
-4. **`screen.getByRole("button", { name: /Selecionar variação N/ })`** e `screen.getByRole("button", { name: "Marcar variação N como vencedora" })` repetidos ~80× — strings/regex copiadas literalmente
+`MagicUpResultPanel` expõe três grupos de controles que navegam entre variações: (1) botões **Voltar/Avançar** (prev/next), (2) **dots** dentro de `role="tablist"`, (3) **thumbnails** abaixo do `AdImageResult`. Para conformidade com WAI-ARIA APG **Tabs Pattern** + WCAG 2.1.1 (Keyboard) e 4.1.2 (Name, Role, Value), o tablist precisa:
 
-Manter cada teste autocontido prejudica leitura e faz refactors do componente (ex: mudar o formato do `aria-label`) cascatearem em ~80 ocorrências.
+- Apenas a tab ativa (`aria-selected="true"`) ser alcançável via Tab — demais com `tabindex="-1"` (roving)
+- `aria-selected` sincronizado com `activeVariation` em todos os 3 grupos
+- prev/next manterem `disabled` correto nos extremos (já coberto via `disabled:bg-muted` mas sem teste de comportamento)
+- Foco visual permanecer no controle correto após navegação
 
-## Arquivo alterado
+Hoje a inspeção do `MagicUpResultPanel.tsx` (linhas 19-83) revela que **dots têm `role="tab"` + `aria-selected` + `aria-current` mas NÃO têm `tabindex` controlado** — todos ficam alcançáveis via Tab simultaneamente, violando o APG Tabs pattern. Os testes vão **detectar essa lacuna** e travar o contrato após o ajuste no componente.
 
-`tests/components/magic-up-onda5.test.tsx` apenas — sem mudar componentes, snapshots, nem outros testes.
+## Arquivos alterados
 
-## Helpers a adicionar (no topo, após imports e antes do primeiro `describe`)
+### 1. `src/pages/magic-up/MagicUpResultPanel.tsx`
+
+Adicionar **roving tabindex** ao tablist de dots:
+
+- Cada dot recebe `tabindex={i === m.activeVariation ? 0 : -1}` — apenas o ativo é alcançável via Tab
+- Thumbnails (segundo loop, linhas 73-83) recebem o mesmo padrão: `tabindex={i === m.activeVariation ? 0 : -1}` + `aria-selected={i === m.activeVariation}` + `role="tab"` (atualmente são botões "soltos" sem semântica de tab)
+- Wrapper das thumbnails ganha `role="tablist"` + `aria-label="Miniaturas das variações"` para parear com o tablist dos dots
+- Sem alterar layout, classes Tailwind, handlers existentes ou aria-labels já presentes
+
+### 2. `tests/components/magic-up-result-panel-keyboard.test.tsx`
+
+Novo arquivo com 3 sub-suítes (~10 testes). Como `MagicUpResultPanel` recebe um objeto `m` enorme do `useMagicUpState`, os testes usam um **harness mínimo** que monta apenas as partes do retorno necessárias (variations, activeVariation, setActiveVariation, currentVariation) com stubs `vi.fn()` e dados vazios para o resto. `AdImageResult` e `MagicUpVariationComparator` filhos são mockados via `vi.mock()` para isolar o painel.
+
+#### Helpers no topo do arquivo
 
 ```ts
-// ───────── Helpers de teste ─────────
-
-/** Fixture padrão: 3 variações com scores [90, 70, 50] — cobre maioria dos testes de comparator/keyboard/focus */
-function buildVariations(overrides: Partial<VariationItem>[] = []): VariationItem[] {
-  const base: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
-  ];
-  return base.map((v, i) => ({ ...v, ...(overrides[i] ?? {}) }));
+function buildPanelState(activeVariation = 0, total = 3) {
+  const variations = Array.from({ length: total }, (_, i) => ({
+    id: `v${i + 1}`,
+    imageUrl: `https://example.com/${i + 1}.png`,
+    isFavorite: false,
+    qualityScore: 80 + i,
+  }));
+  const setActiveVariation = vi.fn();
+  return {
+    variations,
+    activeVariation,
+    setActiveVariation,
+    currentVariation: variations[activeVariation],
+    selectedProduct: null,
+    selectedScene: null,
+    generating: false,
+    history: [],
+    qualityScore: null,
+    qualityDiagnosis: null,
+    curationStatus: "draft",
+    copyPack: null,
+    creativeControls: { aspectRatio: "1:1" },
+    handleDownload: vi.fn(),
+    handleShare: vi.fn(),
+    handleGenerate: vi.fn(),
+    handleToggleFavorite: vi.fn(),
+    handleSelectHistory: vi.fn(),
+    handleDeleteHistory: vi.fn(),
+    handleToggleHistoryFavorite: vi.fn(),
+    handleSetCurationStatus: vi.fn(),
+    handleRunQualityScore: vi.fn(),
+    handleSelectWinningVariation: vi.fn(),
+  } as any;
 }
 
-/** Render do comparador com defaults vi.fn() para handlers; retorna spies + utilitários */
-function renderComparator(props: {
-  variations?: VariationItem[];
-  activeIndex?: number;
-  onSelect?: (i: number) => void;
-  onSelectWinner?: (i: number) => void;
-} = {}) {
-  const onSelect = props.onSelect ?? vi.fn();
-  const onSelectWinner = props.onSelectWinner ?? vi.fn();
-  const utils = render(
-    <MagicUpVariationComparator
-      variations={props.variations ?? buildVariations()}
-      activeIndex={props.activeIndex ?? 0}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-    />
-  );
-  return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
+function renderPanel(activeVariation = 0, total = 3) {
+  const m = buildPanelState(activeVariation, total);
+  const utils = render(<MagicUpResultPanel m={m} />);
+  return { ...utils, m, user: userEvent.setup() };
 }
-
-/** Seletores ARIA estáveis para elementos do comparador */
-const select = {
-  card: (n: number) => screen.getByRole("button", { name: new RegExp(`^Selecionar variação ${n}(,|$)`) }),
-  cardExact: (name: string) => screen.getByRole("button", { name }),
-  marcar: (n: number) => screen.getByRole("button", { name: `Marcar variação ${n} como vencedora` }),
-  allCards: () => screen.getAllByRole("button", { name: /^Selecionar variação \d+/ }),
-  allMarcar: () => screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ }),
-};
 ```
 
-## Refactors aplicados aos testes existentes
+Mocks de filhos (no topo, antes do `describe`):
 
-Para cada teste do comparator (≈40 dos 49):
+```ts
+vi.mock("@/components/magic-up/AdImageResult", () => ({
+  AdImageResult: () => <div data-testid="ad-image-result-stub" />,
+}));
+vi.mock("@/components/magic-up/MagicUpVariationComparator", () => ({
+  MagicUpVariationComparator: () => <div data-testid="comparator-stub" />,
+}));
+```
 
-- **Substituir** array inline `[{ id: "1"…}, …]` por `buildVariations()` quando o teste só precisa do default; usar `buildVariations([{}, { qualityScore: 92 }, …])` para sobrescrever campos específicos; manter array literal apenas onde a estrutura é genuinamente diferente (ex: empate triplo, scores ausentes, isWinner explícito — ~8 testes)
-- **Substituir** chamada `render(<MagicUpVariationComparator … vi.fn() … />)` por `const { onSelect, onSelectWinner, user } = renderComparator({ … })`
-- **Substituir** `screen.getByRole("button", { name: /Selecionar variação 2/ })` por `select.card(2)` quando match parcial; manter `select.cardExact("Selecionar variação 2, score 80, melhor score")` para asserts de formato exato
-- **Substituir** `screen.getByRole("button", { name: "Marcar variação 3 como vencedora" })` por `select.marcar(3)`
-- **Substituir** loop manual de coleta por `select.allCards()` / `select.allMarcar()`
+#### Sub-suíte 1 — Dots: roving tabindex + aria-selected + tablist semantics
 
-### O que NÃO mudar
+- **Teste 1**: tablist tem `role="tablist"` e `aria-label="Variações geradas"`; contém exatamente N tabs com `role="tab"`
+- **Teste 2**: apenas o dot do `activeVariation` tem `tabindex="0"`; todos os outros têm `tabindex="-1"` (roving) — varre cada índice de 0 a 2 via re-render
+- **Teste 3**: `aria-selected="true"` apenas no dot ativo; `aria-selected="false"` (ou ausente) nos demais; `aria-current="true"` apenas no ativo
+- **Teste 4**: clicar (ou Enter via teclado) em dot inativo chama `setActiveVariation(i)` com índice correto; foco do teclado pula apenas para o dot ativo via Tab (loop com `user.tab()` confirma que demais dots são pulados)
 
-- Strings de descrição dos testes (`it("...")`) — preservadas integralmente
-- Asserts (`expect(...).toBeInTheDocument()`, `toHaveAttribute`, etc.) — preservados
-- Snapshots existentes (`MagicUpVariationComparator snapshots` describe) — testes lá usam variações com IDs/imagens específicas para snapshot determinístico; manter inline para não alterar snapshot files
-- Testes que assertam aria-labels exatos com formato dinâmico (matriz com/sem score, com/sem winner) — manter `cardExact` para travar formato
-- Testes dos outros componentes (`MagicUpQualityScore`, `MagicUpQualityChecklist`, `MagicUpCurationStatus`) — sem refactor; helpers são específicos do comparator
-- `buildVariations` local existente em `MagicUpVariationComparator keyboard navigation` (linha 447) — remover e usar o global
+#### Sub-suíte 2 — Thumbnails: mesmo contrato APG Tabs
 
-## Estratégia
+- **Teste 5**: wrapper das thumbnails expõe `role="tablist"` + `aria-label="Miniaturas das variações"`
+- **Teste 6**: cada thumbnail tem `role="tab"`, `aria-selected` sincronizado, e `tabindex` roving (apenas a ativa = 0)
+- **Teste 7**: clicar/Enter em thumbnail inativa chama `setActiveVariation(i)` correto
 
-- **Helpers adicionados no topo** ficam acessíveis a todos os 4 describes
-- **`renderComparator` retorna spies já criados** (`onSelect`, `onSelectWinner`) — permite assert direto sem precisar declarar `const onSelect = vi.fn()` antes
-- **`select` como namespace de seletores** — colisão de nome com `screen` evitada; nome curto facilita leitura
-- **Match por regex `^Selecionar variação N(,|$)`** em `select.card(n)` evita match parcial ambíguo (ex: `select.card(1)` não matcha "Selecionar variação 10")
-- **`buildVariations` aceita overrides parciais por índice** — flexível para isWinner, qualityDiagnosis, qualityScore variados sem repetir id/imageUrl/isFavorite
+#### Sub-suíte 3 — Prev/Next: estados disabled + comportamento
+
+- **Teste 8**: no `activeVariation=0`, botão "Voltar" tem `disabled` + classes `disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100` (contraste WCAG 1.4.3, não usa `opacity-50`); "Avançar" enabled e clicável dispara `setActiveVariation(1)`
+- **Teste 9**: no `activeVariation=2` (último), inverso — "Avançar" disabled, "Voltar" enabled dispara `setActiveVariation(1)`
+- **Teste 10**: ambos prev/next têm classes `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background` (WCAG 2.4.7); `aria-label` "Voltar" / "Avançar" expostos
+
+#### Sub-suíte 4 — Sincronização cross-grupo
+
+- **Teste 11**: re-render com `activeVariation=1` propaga `aria-selected="true"` simultaneamente no dot 2 E no thumbnail 2; demais ficam `aria-selected="false"`/`tabindex="-1"` em ambos os grupos — garante que os dois tablists nunca dessincronizam
+
+## Estratégia técnica
+
+- **Mock `useMagicUpState`**: não montar o hook real (depende de Supabase, IA, history). Apenas o subset necessário do retorno é injetado via `m` prop direta.
+- **Mock filhos pesados** (`AdImageResult`, `MagicUpVariationComparator`): isola o painel em si; ambos têm suítes próprias.
+- **Loop sobre `[0, 1, 2]`** para validar roving: re-renderiza com cada `activeVariation`, confirma simetria sem hardcodar índices.
+- **`screen.getByRole("tablist", { name: "Variações geradas" })`** e `within(tablist).getAllByRole("tab")` para escopo isolado.
+- **`expect(tab).toHaveAttribute("tabindex", "0" | "-1")`** trava roving tabindex.
+- **Não usar `userEvent.tab()` extensivamente** entre dots (roving torna inúteis Tabs entre tabs); usar para confirmar que apenas 1 dot é alcançável.
 
 ## Restrições
 
-- Sem alterar `MagicUpVariationComparator.tsx`
-- Sem alterar snapshots (`__snapshots__/magic-up-onda5.test.tsx.snap`)
-- Sem alterar nenhuma asserção, descrição de `it()` ou contagem de testes
-- Total continua: 49 testes
-- Diff esperado: -250 a -350 linhas no arquivo (1385 → ~1050)
+- Sem alterar `MagicUpVariationComparator`, `AdImageResult`, snapshots existentes, ou outros testes.
+- Mudança no componente é **aditiva** (adicionar `tabindex`/`role`/`aria-label`), não remove nada.
+- Padrão APG Tabs aplicado: dots e thumbnails ficam **funcionalmente equivalentes** (dois tablists espelhados navegando o mesmo `activeVariation`) — comportamento intencional já presente no design.
+- Testes não dependem de tema, fontes ou Supabase.
 
 ## Entregável
 
-- 1 arquivo refatorado: `tests/components/magic-up-onda5.test.tsx`
-- 3 helpers no topo: `buildVariations`, `renderComparator`, `select`
-- Boilerplate de render reduzido em ~50 ocorrências
-- Arrays de fixture reduzidos em ~13 ocorrências (mantidos onde divergem do default)
-- Seletores ARIA padronizados em ~80 ocorrências
-- Suite continua passando 49/49 sem mudança em snapshots
+- `MagicUpResultPanel.tsx`: roving tabindex nos dots + thumbnails promovidas a `role="tab"` dentro de `role="tablist"` com `aria-label`
+- `tests/components/magic-up-result-panel-keyboard.test.tsx`: ~11 testes em 4 sub-suítes
+- Trava contrato WAI-ARIA APG Tabs Pattern: apenas tab ativa alcançável via Tab, `aria-selected` sincronizado, roving tabindex correto
+- Trava contrato WCAG 2.1.1 (Keyboard) + 2.4.7 (Focus Visible) + 4.1.2 (Name, Role, Value) para os 3 grupos de navegação visual
+- Cobertura nova: 49 → 60 testes na suíte Onda 5
 
