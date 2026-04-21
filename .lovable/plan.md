@@ -1,18 +1,26 @@
 
 
-# Plano — Teste: empate triplo sem `isWinner` → badge única no primeiro índice
+# Plano — Snapshot do `MagicUpVariationComparator` em empate triplo
 
-Adiciono teste que valida o cenário canônico de empate triplo: **3 variações com mesmo score, nenhuma com `isWinner`**, garantindo que (1) renderiza exatamente 1 badge "Melhor score" e (2) o winner é o primeiro índice do array.
+Adiciono teste de **snapshot estrutural** focado em capturar o DOM renderizado no cenário canônico de empate triplo, servindo como guarda visual contra regressões que afetem layout, estrutura ou cardinalidade de elementos críticos (badges, botões, scores).
 
 ## Justificativa
 
-Embora testes existentes cubram empate triplo com permutações (validando ordem) e cardinalidade do sufixo aria-label, **falta um teste canônico isolado** que sirva como "smoke test" do contrato mais básico: empate puro + ausência de `isWinner` + badge única + winner no índice 0. Este é o cenário base que protege contra:
+Os 72 testes atuais validam comportamento via assertions semânticas (cardinalidade, aria-labels, posições). **Gap:** não há um teste que **congele a estrutura completa do DOM** em empate triplo. Snapshots detectam regressões silenciosas que assertions explícitas podem deixar passar:
 
-1. Regressão onde múltiplas badges renderizem em empate (bug de loop que não respeita `isWinner` flag)
-2. Regressão onde o winner deslize para outro índice em empate puro
-3. Regressão onde o componente exija `isWinner` explícito para renderizar qualquer badge
+1. Adição acidental de elementos visuais (badge duplicada em wrapper diferente)
+2. Mudança de hierarquia DOM que quebre scrapers/testes E2E
+3. Alteração de classes CSS que afete layout sem quebrar semântica
+4. Reordenação de atributos críticos (data-*, aria-*)
 
-Difere dos testes existentes pelo **foco**: asserção mínima e direta sobre o caso base, sem permutações ou variações de score, servindo como documentação executável do contrato canônico.
+## Estratégia: snapshot inline + assertions complementares
+
+Uso **`toMatchInlineSnapshot()`** em vez de snapshot externo para:
+- Manter o snapshot **versionado junto ao teste** (revisão de PR mais clara)
+- Evitar arquivos `.snap` órfãos
+- Forçar revisão consciente em qualquer mudança estrutural
+
+Combino com 2 assertions defensivas que validam invariantes mesmo se o snapshot for atualizado descuidadamente (defesa em profundidade).
 
 ## Alteração
 
@@ -21,55 +29,105 @@ Difere dos testes existentes pelo **foco**: asserção mínima e direta sobre o 
 Adicionar 1 teste ao final da sub-suíte de empate:
 
 ```ts
-it("empate triplo sem isWinner: renderiza exatamente 1 badge 'Melhor score' no primeiro índice", () => {
+it("snapshot estrutural: empate triplo renderiza DOM estável com exatamente 1 badge 'Melhor score'", () => {
   const variations = [
-    buildVariation({ id: "var-1", qualityScore: 75 }, 0),
-    buildVariation({ id: "var-2", qualityScore: 75 }, 1),
-    buildVariation({ id: "var-3", qualityScore: 75 }, 2),
+    buildVariation({ id: "var-snap-1", qualityScore: 80 }, 0),
+    buildVariation({ id: "var-snap-2", qualityScore: 80 }, 1),
+    buildVariation({ id: "var-snap-3", qualityScore: 80 }, 2),
   ];
+  const { container } = renderTied(variations);
 
-  // Pré-condição: nenhuma variação tem isWinner explícito
-  variations.forEach((v) => {
-    expect(v.isWinner).toBeFalsy();
-  });
-
-  renderTied(variations);
-
-  // 1. Cardinalidade: exatamente 1 badge no DOM
+  // 1. Assertions defensivas (independentes do snapshot)
   const badges = screen.getAllByLabelText("Melhor score");
   expect(badges).toHaveLength(1);
+  const listItems = screen.getAllByRole("listitem");
+  expect(listItems).toHaveLength(3);
 
-  // 2. Winner está no primeiro índice (var-1)
-  const cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+  // 2. Snapshot estrutural focado: extrai apenas a região de badges + scores
+  //    Filtra ruído (URLs de imagens com timestamp, classes utilitárias longas)
+  //    e congela a estrutura crítica que define cardinalidade visual.
+  const comparatorSection = container.querySelector('[aria-label="Comparador de variações"]');
+  expect(comparatorSection).not.toBeNull();
 
-  // 3. Aria-label do vencedor confirma índice 1 (UI 1-based) com sufixo
-  const winnerBtn = screen.getByRole("button", {
-    name: "Selecionar variação 1, score 75, melhor score",
+  // Extrai estrutura crítica: badges + spans de score por listitem
+  const structuralSummary = Array.from(listItems).map((item, idx) => {
+    const badge = item.querySelector('[aria-label="Melhor score"]');
+    const scoreSpan = item.querySelector('[aria-label^="Score"]');
+    return {
+      index: idx,
+      hasBadge: badge !== null,
+      badgeText: badge?.textContent?.trim() ?? null,
+      scoreLabel: scoreSpan?.getAttribute("aria-label") ?? null,
+      ariaPressed: item.querySelector('button[aria-pressed]')?.getAttribute("aria-pressed") ?? null,
+    };
   });
-  expect(winnerBtn).toBeInTheDocument();
 
-  // 4. Header confirma bestScore = 75
-  expect(screen.getByLabelText(/Melhor score entre variações: 75/)).toBeInTheDocument();
+  expect(structuralSummary).toMatchInlineSnapshot(`
+    [
+      {
+        "ariaPressed": "true",
+        "badgeText": "Melhor score",
+        "hasBadge": true,
+        "index": 0,
+        "scoreLabel": "Score 80 de 100",
+      },
+      {
+        "ariaPressed": "false",
+        "badgeText": null,
+        "hasBadge": false,
+        "index": 1,
+        "scoreLabel": "Score 80 de 100",
+      },
+      {
+        "ariaPressed": "false",
+        "badgeText": null,
+        "hasBadge": false,
+        "index": 2,
+        "scoreLabel": "Score 80 de 100",
+      },
+    ]
+  `);
+
+  // 3. Snapshot do header (bestScore badge) — região independente
+  const header = container.querySelector('[aria-label^="Melhor score entre variações"]');
+  expect(header?.getAttribute("aria-label")).toMatchInlineSnapshot(
+    `"Melhor score entre variações: 80"`
+  );
 });
 ```
+
+## Por que snapshot **estruturado** em vez de HTML completo
+
+Snapshot de HTML cru (`container.innerHTML`) seria frágil: quebra a cada mudança de classe Tailwind, ordem de atributos, ou URL de imagem. O snapshot **estruturado** (objeto extraído) captura apenas as invariantes que importam:
+
+- Cardinalidade de badges (`hasBadge` boolean)
+- Conteúdo textual da badge
+- Score formatado (aria-label)
+- Estado de seleção (`aria-pressed`)
+
+Resultado: teste **estável** contra refatorações cosméticas, **rigoroso** contra regressões funcionais.
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Reusa helpers `buildVariation`, `renderTied`, `within`, `screen` já presentes
-- Sem novos imports
-- Match literal `.toBe()` no aria-label completo detecta regressões sutis
+- Reusa `buildVariation`, `renderTied`, `screen` já presentes
+- Sem novos imports (usa `container` já retornado por `renderTied`/`render`)
+- Snapshot **inline** versionado no próprio arquivo
+- Defesa em profundidade: 2 assertions diretas + 2 snapshots focados
+
+## Pré-requisito de validação
+
+Confirmar que `renderTied` retorna `{ container }` (padrão do `render()` do Testing Library). Caso já desestruture só `unmount`, ajustar para incluir `container`. Se `renderTied` for um wrapper que não exponha `container`, usar `screen` + `document.body` como fallback no snapshot.
 
 ## Entregável
 
-- 1 novo teste no grupo de empate (71 → 72 testes)
-- Trava 4 invariantes do contrato canônico:
-  1. Pré-condição explícita: `isWinner` falsy em todas
-  2. Cardinalidade: exatamente 1 badge
-  3. Posição: winner no índice 0
-  4. Aria-label literal completo do vencedor
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 72/72 verde
+- 1 novo teste no grupo de empate (72 → 73 testes)
+- Trava 5 invariantes:
+  1. Cardinalidade de listitem (=3)
+  2. Cardinalidade de badge (=1)
+  3. Posição do winner (índice 0)
+  4. Score formatado correto em todos os cards
+  5. Estado de seleção inicial (`aria-pressed=true` apenas no índice 0)
+- Snapshot inline força revisão consciente em qualquer mudança estrutural
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 73/73 verde
 
