@@ -547,6 +547,102 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(onSelectWinner).toHaveBeenCalledTimes(1);
     expect(onSelect).not.toHaveBeenCalled();
   });
+
+  it("Tab/Shift+Tab navega na ordem DOM: select-1 → marcar-1 → select-2 → marcar-2 → select-3 → marcar-3", async () => {
+    const user = userEvent.setup();
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    expect(document.body).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: /Selecionar variação 1, score 90, melhor score/i })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Selecionar variação 2, score 70" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 50" })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 50" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
+  });
+
+  it("card ativo reflete activeIndex via aria-pressed/aria-current/border-primary, independente do foco do teclado", () => {
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+    const { rerender } = render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const card1Btn = screen.getByRole("button", { name: /Selecionar variação 1, score 90, melhor score/i });
+    const card2Btn = screen.getByRole("button", { name: "Selecionar variação 2, score 70" });
+    const card3Btn = screen.getByRole("button", { name: "Selecionar variação 3, score 50" });
+
+    expect(card1Btn).toHaveAttribute("aria-pressed", "true");
+    expect(card1Btn).toHaveAttribute("aria-current", "true");
+    expect(card2Btn).toHaveAttribute("aria-pressed", "false");
+    expect(card2Btn).not.toHaveAttribute("aria-current");
+    expect(card3Btn).toHaveAttribute("aria-pressed", "false");
+    expect(card3Btn).not.toHaveAttribute("aria-current");
+
+    expect(card1Btn.parentElement).toHaveClass("border-primary");
+    expect(card2Btn.parentElement).not.toHaveClass("border-primary");
+
+    // Foco programático no card 3 não muda o estado ativo
+    card3Btn.focus();
+    expect(card3Btn).toHaveFocus();
+    expect(card1Btn).toHaveAttribute("aria-pressed", "true");
+    expect(card3Btn).toHaveAttribute("aria-pressed", "false");
+    expect(card3Btn.parentElement).not.toHaveClass("border-primary");
+
+    rerender(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={2}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    expect(card1Btn).toHaveAttribute("aria-pressed", "false");
+    expect(card1Btn).not.toHaveAttribute("aria-current");
+    expect(card3Btn).toHaveAttribute("aria-pressed", "true");
+    expect(card3Btn).toHaveAttribute("aria-current", "true");
+    expect(card3Btn.parentElement).toHaveClass("border-primary");
+    expect(card1Btn.parentElement).not.toHaveClass("border-primary");
+  });
 });
 
 describe("MagicUpVariationComparator focus-visible classes", () => {
