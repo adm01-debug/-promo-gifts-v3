@@ -1,137 +1,108 @@
 
 
-# Plano — Teste de invariância da badge com múltiplos `isWinner: true` + cliques no empatado de maior índice
+# Plano — Refatorar queries do teste para usar `aria-label` específicos
 
-Adiciono novo teste ao `tests/components/magic-up-onda5.test.tsx` que cobre o cenário onde **duas variações têm `isWinner: true` explicitamente** (não derivado de score) e o usuário clica repetidamente no empatado de **maior índice**. A badge "Melhor score" deve permanecer fixa no **menor índice** conforme a regra `findIndex` em `MagicUpVariationComparator.tsx`:
-
-```ts
-const explicitWinnerIndex = variations.findIndex((variation) => variation.isWinner);
-```
-
-`findIndex` retorna o primeiro match — logo, mesmo com 2 winners, o de menor índice ganha. Cliques no outro empatado mudam `aria-pressed` mas não migram a badge.
+Substituo no teste `badge fica no menor índice quando 2 cards têm isWinner: true...` as queries genéricas (`getByLabelText("Melhor score")`, `getByRole("button", { name: /^Selecionar variação/ })`) por queries direcionadas pelo **aria-label completo e exato** de cada botão. Isso elimina dependência da estrutura DOM (`role="listitem"` + `within`) e torna o teste robusto contra refatorações de wrapper/markup.
 
 ## Justificativa
 
-Cobertura existente:
-- Teste paramétrico (`múltiplos isWinner: true — vencedor é sempre o de menor índice...`) — valida regra estática
-- Invariância sob `activeIndex` (scores distintos)
-- Invariância sob empate de **score** entre perdedores
+Queries atuais dependem de:
+1. `role="listitem"` no wrapper externo — quebra se o componente trocar `<div role="listitem">` por `<li>` ou outro container
+2. `within(cards[i])` para escopar busca — acopla o teste à hierarquia DOM
+3. Regex genérica `/^Selecionar variação/` — não distingue entre os 3 botões individualmente
 
-Lacuna: **dinâmica de `activeIndex` com múltiplos `isWinner: true` explícitos**. Risco de regressão onde:
-1. `findIndex` fosse trocado por `findLastIndex` ou lógica que reagisse ao `activeIndex`
-2. Empate de `isWinner` fosse resolvido pelo card focado/ativo em vez do menor índice
-3. Badge migrasse para o segundo winner ao receber `aria-pressed="true"`
+Queries por `aria-label` exato:
+- Localizam diretamente o botão alvo sem navegar pela árvore
+- Falham com mensagem clara se o `aria-label` mudar de formato (regressão real)
+- Passam mesmo se o wrapper mudar de tag/role (resiliente a refactor visual)
+- Servem como **especificação executável** dos labels esperados
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar teste após o último (`badge 'Melhor score' não migra ao clicar em sequência em cards empatados não vencedores`):
+Refatorar **apenas** o helper `assertBadgeOnFirstWinner` e os 4 cliques dentro do teste `badge fica no menor índice quando 2 cards têm isWinner: true e usuário clica no empatado de maior índice`. Demais testes ficam inalterados.
+
+**Constantes locais no início do teste** (após declarar `variations`):
 
 ```ts
-it("badge fica no menor índice quando 2 cards têm isWinner: true e usuário clica no empatado de maior índice", async () => {
-  const user = userEvent.setup();
-  const onSelect = vi.fn();
-  const onSelectWinner = vi.fn();
+// aria-labels exatos esperados — fonte única de verdade do teste
+const ARIA_LABEL_VAR_A_WINNER = "Selecionar variação 1, score 70, melhor score";
+const ARIA_LABEL_VAR_B = "Selecionar variação 2, score 99";
+const ARIA_LABEL_VAR_C = "Selecionar variação 3, score 70";
+```
 
-  // Setup: var-A (idx 0) E var-C (idx 2) com isWinner: true; var-B (idx 1) sem
-  // Score var-B é maior (99) para provar que isWinner explícito tem precedência
-  const variations: VariationItem[] = [
-    { id: "var-A", imageUrl: "https://example.com/a.png", qualityScore: 70, isWinner: true },
-    { id: "var-B", imageUrl: "https://example.com/b.png", qualityScore: 99, isWinner: false },
-    { id: "var-C", imageUrl: "https://example.com/c.png", qualityScore: 70, isWinner: true },
-  ];
-  const expectedWinnerIndex = 0; // findIndex retorna primeiro match
+**Helper `assertBadgeOnFirstWinner` refatorado**:
 
-  const renderWithActive = (activeIndex: number) => (
-    <MagicUpVariationComparator
-      variations={variations}
-      activeIndex={activeIndex}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-    />
-  );
+```ts
+const assertBadgeOnFirstWinner = (currentActive: number) => {
+  // 1. Cardinalidade global da badge = 1
+  expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
+  expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
 
-  const { rerender } = render(renderWithActive(0));
+  // 2. Botões localizados diretamente por aria-label exato
+  const buttonA = screen.getByRole("button", { name: ARIA_LABEL_VAR_A_WINNER });
+  const buttonB = screen.getByRole("button", { name: ARIA_LABEL_VAR_B });
+  const buttonC = screen.getByRole("button", { name: ARIA_LABEL_VAR_C });
 
-  const assertBadgeOnFirstWinner = (currentActive: number) => {
-    const cards = screen.getAllByRole("listitem");
+  // 3. aria-pressed reflete activeIndex; badge é independente
+  const buttons = [buttonA, buttonB, buttonC];
+  buttons.forEach((btn, idx) => {
+    expect(btn).toHaveAttribute("aria-pressed", idx === currentActive ? "true" : "false");
+  });
 
-    // 1. Cardinalidade global = 1 (não duplica entre os 2 isWinner)
-    expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
-    expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
+  // 4. Sufixo ", melhor score" presente APENAS no aria-label do winner
+  expect(buttonA.getAttribute("aria-label")).toContain(", melhor score");
+  expect(buttonB.getAttribute("aria-label")).not.toContain("melhor score");
+  expect(buttonC.getAttribute("aria-label")).not.toContain("melhor score");
+};
+```
 
-    // 2. Badge SOMENTE em var-A (menor índice com isWinner)
-    expect(within(cards[expectedWinnerIndex]).getByLabelText("Melhor score")).toBeInTheDocument();
-    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+**Cliques refatorados** (cada `user.click` localiza o botão direto pelo aria-label):
 
-    // 3. Aria-labels: só var-A tem sufixo, mesmo var-C tendo isWinner: true
-    const aLabel = within(cards[0]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
-    const bLabel = within(cards[1]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
-    const cLabel = within(cards[2]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
-    expect(aLabel).toBe("Selecionar variação 1, score 70, melhor score");
-    expect(bLabel).toBe("Selecionar variação 2, score 99");
-    expect(cLabel).toBe("Selecionar variação 3, score 70");
+```ts
+// CLIQUE 1: var-C
+await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_C }));
+expect(onSelect).toHaveBeenLastCalledWith(2);
+rerender(renderWithActive(2));
+assertBadgeOnFirstWinner(2);
 
-    // 4. aria-pressed reflete activeIndex; badge é independente
-    expect(within(cards[currentActive]).getByRole("button", { name: /^Selecionar variação/ }))
-      .toHaveAttribute("aria-pressed", "true");
-  };
+// CLIQUE 2: var-C novamente
+await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_C }));
+expect(onSelect).toHaveBeenLastCalledWith(2);
+rerender(renderWithActive(2));
+assertBadgeOnFirstWinner(2);
 
-  // Estado inicial
-  assertBadgeOnFirstWinner(0);
+// CLIQUE 3: var-B
+await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_B }));
+expect(onSelect).toHaveBeenLastCalledWith(1);
+rerender(renderWithActive(1));
+assertBadgeOnFirstWinner(1);
 
-  // CLIQUE 1: var-C (winner empatado de MAIOR índice)
-  await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(2);
-  rerender(renderWithActive(2));
-  assertBadgeOnFirstWinner(2); // badge AINDA em var-A
-
-  // CLIQUE 2: var-C novamente (re-confirma estabilidade)
-  await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(2);
-  rerender(renderWithActive(2));
-  assertBadgeOnFirstWinner(2);
-
-  // CLIQUE 3: var-B (não-winner, mas score 99) — não promove a winner
-  await user.click(within(screen.getAllByRole("listitem")[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(1);
-  rerender(renderWithActive(1));
-  assertBadgeOnFirstWinner(1);
-
-  // CLIQUE 4: volta para var-C
-  await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(2);
-  rerender(renderWithActive(2));
-  assertBadgeOnFirstWinner(2);
-
-  // Auditoria final
-  expect(onSelect).toHaveBeenCalledTimes(4);
-  expect(onSelect.mock.calls.map((c) => c[0])).toEqual([2, 2, 1, 2]);
-  expect(onSelectWinner).not.toHaveBeenCalled();
-});
+// CLIQUE 4: var-C
+await user.click(screen.getByRole("button", { name: ARIA_LABEL_VAR_C }));
+expect(onSelect).toHaveBeenLastCalledWith(2);
+rerender(renderWithActive(2));
+assertBadgeOnFirstWinner(2);
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports
-- Cenário ortogonal: combina **`isWinner` duplicado** + **`activeIndex` dinâmico** + **score divergente do `isWinner`**
-- 5 estados (inicial + 4 cliques) × 4 invariantes = **20 verificações**
+- Sem alteração nos demais 79 testes (queries antigas com `within`/`listitem` permanecem onde já validam estrutura listada explicitamente)
+- Sem novos imports (`screen`, `user`, `expect` já disponíveis; `within` deixa de ser usado dentro deste teste mas continua importado para os outros)
+- Mantém todas as 4 invariantes originais (cardinalidade, presença, ausência, aria-pressed) — só muda como o teste **localiza** os elementos
+- Volume de asserts: aumenta ligeiramente (3 asserts de sufixo + 3 de `aria-pressed` por estado vs. 2 anteriores)
 
 ## Entregável
 
-- 1 novo teste (79 → 80 testes)
-- Trava 4 invariantes específicas:
-  1. `findIndex` (menor índice) é a regra única para resolver múltiplos `isWinner: true`
-  2. `isWinner` explícito tem precedência sobre `qualityScore` (var-B com score 99 não vence)
-  3. Cliques no winner empatado de maior índice (var-C) **nunca** migram a badge
-  4. Cliques em não-winner (var-B) **nunca** promovem a badge a outro card
-- Captura regressões onde:
-  - `findLastIndex` fosse usado em vez de `findIndex`
-  - Lógica de desempate considerasse `activeIndex`
-  - Badge fosse duplicada quando há múltiplos `isWinner: true`
-  - Score sobrescrevesse `isWinner` explícito
+- Teste refatorado com queries 100% baseadas em `aria-label` exato
+- 3 constantes locais (`ARIA_LABEL_VAR_A_WINNER`, `ARIA_LABEL_VAR_B`, `ARIA_LABEL_VAR_C`) servem como contrato visual do teste
+- Resiliência aumentada: teste passa mesmo se o wrapper mudar de `<div role="listitem">` para `<li>`, `<article>`, ou estrutura aninhada diferente
+- Mensagens de falha mais claras: erro aponta diretamente "botão com aria-label X não encontrado" em vez de "índice 2 do listitem array"
+- Captura regressões mais precisas:
+  - Mudança de formato do aria-label (vírgula extra, espaçamento, ordem)
+  - Sufixo `, melhor score` aplicado a card errado
+  - Sufixo ausente do card winner
 - Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 80/80 verde
 
