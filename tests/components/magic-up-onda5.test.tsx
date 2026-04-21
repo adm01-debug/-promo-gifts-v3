@@ -131,9 +131,27 @@ const labelPatterns = {
   anyWinner: /^Marcar variação \d+ como vencedora$/,
   cardN: (n: number) => new RegExp(`^Selecionar variação ${n}(,|$)`),
   cardNWithBest: (n: number) => new RegExp(`^Selecionar variação ${n}.*melhor score`, "i"),
+  /** Padrões tolerantes a alterações futuras de pontuação/sufixos no aria-label. */
+  cardNFuzzy: (n: number) => new RegExp(`Selecionar.*varia[cç][aã]o\\s*${n}\\b`, "i"),
+  winnerNFuzzy: (n: number) => new RegExp(`Marcar.*varia[cç][aã]o\\s*${n}.*vencedor`, "i"),
 };
 
-/** Seletores ARIA estáveis para elementos do comparador */
+/** TestIds estáveis expostos pelo componente (resilientes a mudanças de copy/ARIA). */
+const testIds = {
+  comparator: "magic-up-variation-comparator",
+  list: "variation-list",
+  card: (n: number) => `variation-card-${n}`,
+  item: (n: number) => `variation-item-${n}`,
+  winnerButton: (n: number) => `variation-winner-button-${n}`,
+};
+
+/**
+ * Seletores estáveis para elementos do comparador.
+ * Estratégia: helpers `*ByTid` preferem `data-testid` (independem de strings ARIA);
+ * helpers legacy permanecem para asserts dedicados a acessibilidade. Mudanças em
+ * aria-label só quebram os testes que validam acessibilidade — os demais testes
+ * usam testid e continuam estáveis.
+ */
 const select = {
   card: (n: number) => screen.getByRole("button", { name: labelPatterns.cardN(n) }),
   cardExact: (name: string) => screen.getByRole("button", { name }),
@@ -146,6 +164,27 @@ const select = {
   /** Query (não throw) para asserções de ausência de "melhor score" em um card. */
   queryCardWithBest: (n: number) =>
     screen.queryByRole("button", { name: labelPatterns.cardNWithBest(n) }),
+
+  // ───── Variantes resilientes baseadas em data-testid ─────
+  /** Card N via testid. Não depende de aria-label/score/winner suffix. */
+  cardByTid: (n: number) => screen.getByTestId(testIds.card(n)) as HTMLButtonElement,
+  queryCardByTid: (n: number) => screen.queryByTestId(testIds.card(n)) as HTMLButtonElement | null,
+  /** Botão "marcar vencedora" N via testid. */
+  marcarByTid: (n: number) => screen.getByTestId(testIds.winnerButton(n)) as HTMLButtonElement,
+  queryMarcarByTid: (n: number) =>
+    screen.queryByTestId(testIds.winnerButton(n)) as HTMLButtonElement | null,
+  /** Lista (role + testid). */
+  listByTid: () => screen.getByTestId(testIds.list),
+  /** Todos os cards via padrão de testid (resiliente a mudanças no aria-label). */
+  allCardsByTid: () => screen.getAllByTestId(/^variation-card-\d+$/) as HTMLButtonElement[],
+  allMarcarByTid: () =>
+    screen.getAllByTestId(/^variation-winner-button-\d+$/) as HTMLButtonElement[],
+
+  // ───── Asserts de estado via data-attributes (sem acoplar a aria-pressed) ─────
+  /** Indica se o card N está marcado como ativo via `data-active="true"`. */
+  isCardActiveByTid: (n: number) => select.cardByTid(n).getAttribute("data-active") === "true",
+  /** Indica se o card N está marcado como vencedor via `data-winner="true"`. */
+  isCardWinnerByTid: (n: number) => select.cardByTid(n).getAttribute("data-winner") === "true",
 };
 
 // ───────── Asserts de alto nível para aria-labels ─────────
