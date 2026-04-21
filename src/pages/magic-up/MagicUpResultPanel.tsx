@@ -35,11 +35,18 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
                 aria-current={i === m.activeVariation ? "true" : undefined}
                 role="tab"
                 aria-selected={i === m.activeVariation}
-                className={cn(
-                  "relative w-2 h-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background before:absolute before:-inset-2 before:content-['']",
-                  i === m.activeVariation ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
-                )}
-              />
+                className="group relative inline-flex items-center justify-center w-11 h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              >
+                <span
+                  aria-hidden="true"
+                  className={cn(
+                    "block h-2 rounded-full transition-all",
+                    i === m.activeVariation
+                      ? "bg-primary w-6"
+                      : "bg-muted-foreground/30 w-2 group-hover:bg-muted-foreground/50"
+                  )}
+                />
+              </button>
             ))}
           </div>
           <Button

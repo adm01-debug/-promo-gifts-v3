@@ -175,3 +175,43 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
     expect(m.setActiveVariation).toHaveBeenCalledWith(2);
   });
 });
+
+describe("MagicUpResultPanel — hit area dos dots (WCAG 2.5.5)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("Click no botão dot (área expandida 44x44) ativa setActiveVariation", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = screen.getAllByRole("tab");
+    fireEvent.click(dots[2]);
+
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+  });
+
+  it("Click no span visual interno borbulha e ativa setActiveVariation", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = screen.getAllByRole("tab");
+    const innerSpan = dots[1].querySelector("span[aria-hidden='true']");
+    expect(innerSpan).not.toBeNull();
+
+    fireEvent.click(innerSpan!);
+
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+  });
+
+  it("Cada botão dot expõe dimensões mínimas WCAG 2.5.5 (w-11 h-11)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = screen.getAllByRole("tab");
+    dots.forEach((dot) => {
+      expect(dot.className).toMatch(/\bw-11\b/);
+      expect(dot.className).toMatch(/\bh-11\b/);
+    });
+  });
+});
