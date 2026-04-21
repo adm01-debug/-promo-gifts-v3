@@ -278,19 +278,18 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })).not.toBeInTheDocument();
   });
 
-  it("empate triplo com isWinner explícito: ainda exibe exatamente 1 badge 'Melhor score'", () => {
+  it("empate triplo com isWinner explícito: badge vai para o índice marcado (prioridade absoluta de isWinner)", () => {
     const variations = buildVariations([
       { qualityScore: 85 },
       { qualityScore: 85, isWinner: true },
       { qualityScore: 85 },
     ]);
     renderComparator({ variations });
-    // Mesmo com isWinner explícito + 3 empatados, apenas 1 badge
+    // Apenas 1 badge no total
     expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-    // findIndex retorna o primeiro match (índice 0 satisfaz scores[0] === bestScore)
-    expect(select.cardExact("Selecionar variação 1, score 85, melhor score")).toBeInTheDocument();
-    // Variação 2 (com isWinner: true) NÃO recebe badge — comportamento atual do findIndex
-    expect(select.cardExact("Selecionar variação 2, score 85")).toBeInTheDocument();
+    // isWinner=true tem prioridade absoluta sobre o cálculo automático por bestScore
+    expect(select.cardExact("Selecionar variação 1, score 85")).toBeInTheDocument();
+    expect(select.cardExact("Selecionar variação 2, score 85, melhor score")).toBeInTheDocument();
     expect(select.cardExact("Selecionar variação 3, score 85")).toBeInTheDocument();
   });
 
@@ -1263,6 +1262,57 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     }
 
     // Badge global do header mostra "—" (placeholder)
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
+  });
+
+  it("isWinner=true em índice 0 com score menor (50) vence sobre índice 1 com score maior (90)", () => {
+    const variations = [
+      buildVariation({ qualityScore: 50, isWinner: true }, 0),
+      buildVariation({ qualityScore: 90 }, 1),
+      buildVariation({ qualityScore: 70 }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    expect(winnerBtn.getAttribute("aria-label")).toContain("melhor score");
+    expect(winnerBtn.getAttribute("aria-label")).toContain("score 50");
+  });
+
+  it("isWinner=true em índice 2 com score menor (30) vence sobre índices 0/1 com scores maiores (70/80)", () => {
+    const variations = [
+      buildVariation({ qualityScore: 70 }, 0),
+      buildVariation({ qualityScore: 80 }, 1),
+      buildVariation({ qualityScore: 30, isWinner: true }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).not.toBeNull();
+  });
+
+  it("isWinner=true sem scores válidos: vence mesmo com bestScore=0", () => {
+    const variations = [
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: true }, 1),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
     expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
   });
 });

@@ -18,9 +18,10 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
   const scores = variations.map((variation) => variation.qualityDiagnosis?.total || variation.qualityScore || 0);
   const bestScore = Math.max(...scores);
   const hasValidScores = bestScore > 0;
-  const winnerIndex = hasValidScores
-    ? variations.findIndex((variation, index) => variation.isWinner || scores[index] === bestScore)
-    : -1;
+  const explicitWinnerIndex = variations.findIndex((variation) => variation.isWinner);
+  const winnerIndex = explicitWinnerIndex >= 0
+    ? explicitWinnerIndex
+    : (hasValidScores ? variations.findIndex((_, index) => scores[index] === bestScore) : -1);
 
   const handleArrowKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     const total = variations.length;
