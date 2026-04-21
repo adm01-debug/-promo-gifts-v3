@@ -1,128 +1,122 @@
 
 
-# Plano — Testes de roving tabindex: apenas card ativo recebe `tabIndex=0`, demais `tabIndex=-1`
+# Plano — Testes de foco visível e consistente após alterar variação ativa (clique em card / marcar vencedora)
 
-Adiciono **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando o padrão **roving tabindex** (WAI-ARIA Authoring Practices): apenas o card ativo deve ter `tabIndex=0` e ser alcançável via Tab; os demais cards devem ter `tabIndex=-1` e só podem receber foco via setas/programaticamente.
+Adiciono **1 teste** ao final do sub-describe `"setas atualizam activeIndex e ARIA acompanha após rerender"` em `tests/components/magic-up-onda5.test.tsx`, validando que após interações de **clique em card** e **clique em "Marcar vencedora"**, o foco permanece no elemento correto e mantém as classes `focus-visible:*` exigidas pelo guideline `docs/MAGIC_UP_ONDA5_A11Y.md`.
 
 ## Justificativa
 
-Cobertura atual valida foco, `aria-pressed` e classes focus-visible. Mas **não há teste** que afirme o contrato de **roving tabindex** — padrão obrigatório para composite widgets (radiogroup, listbox, toolbar):
+Cobertura atual valida foco/ARIA durante navegação por **teclado** (setas, Home, End, Tab, Shift+Tab). Mas **não há teste** que afirme o comportamento de foco após **mutações via clique/Enter**:
 
 | Lacuna | Risco |
 |---|---|
-| Apenas 1 card no DOM tem `tabIndex=0` (o ativo) | Bug onde todos os cards têm `tabIndex=0` faria Tab parar em cada card individualmente, quebrando UX (deveria pular o grupo inteiro) |
-| Cards inativos têm `tabIndex=-1` (não `tabIndex=0`, não ausente) | `tabIndex` ausente em `<button>` permite Tab stop padrão, quebrando roving |
-| Após mudança de `activeIndex`, o `tabIndex=0` migra para o novo ativo e o anterior recebe `tabIndex=-1` | Drift acumulativo: múltiplos cards com `tabIndex=0` após N navegações |
-| Tab a partir de fora do grupo entra no card ativo (não no primeiro) | Regressão: Tab ignora `activeIndex` e sempre vai para card 1 |
-| Tab a partir do card ativo SAI do grupo (vai para próximo focável fora) | Regressão: Tab cicla dentro do grupo (errado para roving — só setas ciclam) |
+| Após clicar em card N, foco permanece no card N (não pula para outro) | Bug onde `onSelect` causa rerender que perde foco (volta ao body) — quebra navegação por teclado mista (mouse → teclado) |
+| Após clicar em "Marcar vencedora" do card ativo, foco permanece no botão (ou migra para card vencedor) de forma previsível | Foco perdido após ação destrutiva = leitor de tela perde contexto |
+| Em ambos os casos, elemento focado mantém classes `focus-visible:*` corretas | Refator que remova focus-visible em estado pós-ação passaria sem detecção |
+| `aria-pressed`/`aria-current` no elemento focado refletem o novo estado | Drift entre foco visual e estado ARIA pós-ação |
+| Ativação via teclado (Enter/Espaço) preserva foco igual a clique | Diferença entre mouse e teclado quebraria WCAG 2.1.1 (Keyboard) |
 
-**WAI-ARIA APG (Roving Tabindex pattern)**: "Only one element in the container has `tabindex='0'`. All other focusable elements have `tabindex='-1'`." Teste declarativo trava o contrato.
+**WCAG 2.4.3 (Focus Order)** + **2.4.7 (Focus Visible)** + **3.2.1 (On Focus)**: mudanças de contexto não devem mover foco inesperadamente; ações pós-clique/Enter devem preservar contexto focável.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` (após o último teste de setas ←/→/↑/↓ que está sendo adicionado, ou após o teste atual final), antes do `});` que fecha o sub-describe:
+Adicionar **1 teste** ao final do sub-describe `"setas atualizam activeIndex e ARIA acompanha após rerender"` (linha ~3111, antes do `});` que fecha o sub-describe — mesmo local dos testes anteriores aprovados):
 
 ```ts
-it("roving tabindex: apenas card ativo tem tabIndex=0; demais cards tabIndex=-1; ativo migra ao mudar activeIndex", async () => {
+it("foco permanece visível e consistente após clicar em card e em 'Marcar vencedora'", async () => {
   const user = userEvent.setup();
+  const onSelectWinner = vi.fn();
 
   function ControlledWrapper() {
     const [activeIndex, setActiveIndex] = React.useState(0);
     return (
-      <>
-        <button type="button" data-testid="before">Antes</button>
-        <MagicUpVariationComparator
-          variations={navVariations}
-          activeIndex={activeIndex}
-          onSelect={setActiveIndex}
-          onSelectWinner={vi.fn()}
-        />
-        <button type="button" data-testid="after">Depois</button>
-      </>
+      <MagicUpVariationComparator
+        variations={navVariations}
+        activeIndex={activeIndex}
+        onSelect={setActiveIndex}
+        onSelectWinner={onSelectWinner}
+      />
     );
   }
 
   render(<ControlledWrapper />);
-  const total = navVariations.length;
 
-  // Helper: retorna array de tabIndex dos cards na ordem 1..N
-  const getCardTabIndices = (): number[] => {
-    return Array.from({ length: total }, (_, i) => {
-      const card = screen.getByRole("button", {
-        name: new RegExp(`^Selecionar variação ${i + 1}`),
-      });
-      return card.tabIndex;
+  const REQUIRED_FOCUS_CLASSES = [
+    "focus-visible:outline-none",
+    "focus-visible:ring-2",
+    "focus-visible:ring-ring",
+  ];
+
+  const expectFocusVisible = (el: HTMLElement) => {
+    REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+      expect(el.className).toContain(cls);
     });
+    expect(el.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
   };
 
-  // Helper: valida invariante — exatamente 1 card com tabIndex=0 (no índice esperado), demais -1
-  const expectRovingState = (oneBasedActiveIndex: number) => {
-    const tabIndices = getCardTabIndices();
-    const zeros = tabIndices.filter((t) => t === 0);
-    expect(zeros).toHaveLength(1); // INVARIANTE: exatamente 1 ativo
-    expect(tabIndices[oneBasedActiveIndex - 1]).toBe(0);
-    // Todos os demais devem ser -1 (não ausente, não 0)
-    tabIndices.forEach((t, i) => {
-      if (i !== oneBasedActiveIndex - 1) {
-        expect(t).toBe(-1);
-      }
-    });
-  };
-
-  // ── Estado inicial: card 1 ativo ──
-  expectRovingState(1);
-
-  // ── Tab a partir do botão "before" entra no card ATIVO (não necessariamente o card 1) ──
-  const beforeBtn = screen.getByTestId("before");
-  beforeBtn.focus();
-  expect(beforeBtn).toHaveFocus();
-  await user.tab();
-  // Foco deve estar no card ativo (card 1)
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  expect(card1).toHaveFocus();
-
-  // ── Tab a partir do card ativo SAI do grupo (não cicla para card 2) ──
-  // Pode haver botões intermediários (vencedora). Validamos que eventualmente chega em "after"
-  // sem voltar para outro card de seleção.
-  await user.tab();
-  // Foco NÃO pode estar em outro card "Selecionar variação N" (deveria sair do roving)
-  const cardsAfterTab = screen.getAllByRole("button", { name: /^Selecionar variação/ });
-  cardsAfterTab.forEach((c) => {
-    expect(c).not.toHaveFocus();
-  });
-
-  // ── ArrowRight: card 1 → card 2; tabIndex migra ──
-  card1.focus();
-  await user.keyboard("{ArrowRight}");
-  expectRovingState(2);
-
-  // ── ArrowRight: card 2 → card 3; tabIndex migra ──
-  await user.keyboard("{ArrowRight}");
-  expectRovingState(3);
-
-  // ── End: → último; tabIndex no último ──
-  await user.keyboard("{End}");
-  expectRovingState(total);
-
-  // ── Home: → primeiro; tabIndex no primeiro ──
-  await user.keyboard("{Home}");
-  expectRovingState(1);
-
-  // ── Após Home, Tab a partir de "before" deve entrar no card 1 (ativo) ──
-  beforeBtn.focus();
-  await user.tab();
-  expect(card1).toHaveFocus();
-
-  // ── Mude activeIndex para 2 via setas e valide novamente ──
-  await user.keyboard("{ArrowRight}");
-  expectRovingState(2);
-  beforeBtn.focus();
-  await user.tab();
-  // Agora Tab deve entrar no card 2 (novo ativo)
+  // ── Cenário 1: clique em card 2 mantém foco no card 2 + focus-visible + aria-pressed ──
   const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  await user.click(card2);
   expect(card2).toHaveFocus();
+  expect(card2).toHaveAttribute("aria-pressed", "true");
+  expectFocusVisible(card2);
+
+  // Demais cards perderam aria-pressed
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+  expect(card1).toHaveAttribute("aria-pressed", "false");
+
+  // ── Cenário 2: clique em card 3 mantém foco no card 3 + focus-visible + aria-pressed ──
+  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+  await user.click(card3);
+  expect(card3).toHaveFocus();
+  expect(card3).toHaveAttribute("aria-pressed", "true");
+  expectFocusVisible(card3);
+  expect(card2).toHaveAttribute("aria-pressed", "false");
+
+  // ── Cenário 3: ativação via teclado (Enter) preserva foco igual a clique ──
+  card1.focus();
+  await user.keyboard("{Enter}");
+  expect(card1).toHaveFocus();
+  expect(card1).toHaveAttribute("aria-pressed", "true");
+  expectFocusVisible(card1);
+
+  // ── Cenário 4: ativação via Espaço também preserva foco ──
+  card2.focus();
+  await user.keyboard(" ");
+  expect(card2).toHaveFocus();
+  expect(card2).toHaveAttribute("aria-pressed", "true");
+  expectFocusVisible(card2);
+
+  // ── Cenário 5: clique em "Marcar vencedora" do card ativo mantém foco previsível ──
+  // Localiza o botão "vencedora" associado ao card ativo (card 2)
+  const winnerButtons = screen.getAllByRole("button", { name: /vencedora/i });
+  expect(winnerButtons.length).toBeGreaterThan(0);
+
+  // Clica no primeiro botão "vencedora" disponível
+  const firstWinnerBtn = winnerButtons[0];
+  await user.click(firstWinnerBtn);
+
+  // Callback foi disparado
+  expect(onSelectWinner).toHaveBeenCalledTimes(1);
+
+  // Foco deve permanecer em algum elemento focável do componente (não no body)
+  expect(document.activeElement).not.toBe(document.body);
+
+  // O elemento focado (qualquer que seja: botão vencedora ou card) deve ter focus-visible
+  const focusedAfterWinner = document.activeElement as HTMLElement;
+  expect(focusedAfterWinner).not.toBeNull();
+  // Valida que tem AO MENOS as classes base focus-visible (outline-none + ring-2)
+  expect(focusedAfterWinner.className).toContain("focus-visible:outline-none");
+  expect(focusedAfterWinner.className).toContain("focus-visible:ring-2");
+  expect(focusedAfterWinner.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
+
+  // ── Cenário 6: após ação de winner, card ativo continua com aria-pressed correto ──
+  // (mudança de winner não deve afetar activeIndex/aria-pressed)
+  const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+  const pressedCards = cards.filter((c) => c.getAttribute("aria-pressed") === "true");
+  expect(pressedCards).toHaveLength(1); // INVARIANTE preservada após winner click
 });
 ```
 
@@ -130,37 +124,35 @@ it("roving tabindex: apenas card ativo tem tabIndex=0; demais cards tabIndex=-1;
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
 - Sem novos imports (reusa `React`, `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
-- 1 teste novo (122 → 123 testes)
-- Helper `expectRovingState` valida 3 invariantes em 1 chamada: contagem exata (1), índice correto (0 no ativo), demais (-1)
-- Botões "before"/"after" externos validam entrada/saída do grupo via Tab (contrato de roving)
-- `tabIndex` é lido como propriedade DOM (`element.tabIndex`), garantindo que JSDOM resolva valores numéricos consistentes
-- Cobre 3 transições de `activeIndex` (1→2→3, End, Home, ArrowRight pós-Home) — drift seria detectado
+- 1 teste novo (123 → 124 testes)
+- Helper `expectFocusVisible` valida 3 classes base + ausência de `focus:` puro em 1 chamada
+- 6 cenários cobertos: clique card 2, clique card 3, Enter no card 1, Espaço no card 2, clique vencedora, invariante pós-winner
+- Cenário 5 é **defensivo**: aceita que foco fique no botão vencedora OU no card ativo (qualquer comportamento previsível), desde que não vá para `body` e tenha focus-visible
+- Negative lookbehind `(?<!focus-visible:)focus:ring-` mantém contrato WCAG 2.4.7
 
 ## Risco do teste
 
-Este teste pode **falhar na primeira execução** se o componente atual NÃO implementa roving tabindex (ou seja, todos os cards têm `tabIndex=0` ou `tabIndex` ausente). Nesse caso há 2 caminhos:
+Este teste pode **falhar** se o componente atual:
+- Perde foco após `onSelect` (foco volta ao body durante rerender) — comportamento comum sem `useRef` para preservar foco
+- Não tem botões "Marcar vencedora" visíveis em todos os cards (cenário 5 pode precisar de ajuste)
 
-1. **Componente já implementa roving** → teste passa, contrato fica travado.
-2. **Componente NÃO implementa roving** → teste falha, e o usuário precisa decidir:
-   - **(a) Implementar roving no componente** (mudança em `MagicUpVariationComparator.tsx`: adicionar `tabIndex={isActive ? 0 : -1}` em cada card)
-   - **(b) Ajustar o teste para refletir o comportamento atual** (e perder o contrato)
-
-Recomendação: rodar o teste primeiro. Se falhar, abrir novo plano para implementar roving tabindex no componente (alinhado com WAI-ARIA APG).
+Se falhar, a saída do teste indicará exatamente qual cenário e abriremos plano de correção (adicionar gerenciamento de foco no `onSelect`/`onSelectWinner`).
 
 ## Entregável
 
 - 1 teste cobrindo:
-  1. **Invariante de exclusividade**: exatamente 1 card com `tabIndex=0` em qualquer momento
-  2. **`tabIndex=-1` (não ausente)** nos demais cards
-  3. **Migração correta** de `tabIndex=0` ao mudar `activeIndex` via setas/Home/End
-  4. **Tab entra no card ativo** (não no primeiro card sempre)
-  5. **Tab sai do grupo** a partir do card ativo (não cicla internamente)
-  6. **Persistência da entrada via Tab** após mudança de `activeIndex`
+  1. **Clique em card** preserva foco + `aria-pressed=true` + focus-visible
+  2. **Clique em card diferente** transfere foco corretamente, limpa pressed do anterior
+  3. **Enter** no card focado tem comportamento idêntico ao clique
+  4. **Espaço** no card focado tem comportamento idêntico ao clique
+  5. **Clique em "Marcar vencedora"** dispara callback e mantém foco em elemento focável (não body) com focus-visible
+  6. **Invariante de exclusividade `aria-pressed`** preservada após ação de winner
 - Captura regressões onde:
-  - Refator esqueça `tabIndex={isActive ? 0 : -1}` em cards
-  - Todos os cards ganhem `tabIndex=0` (Tab para em cada um, UX quebrada)
-  - `tabIndex=-1` vire `tabIndex={undefined}` (cards inativos viram Tab stops)
-  - `activeIndex` mude mas `tabIndex` não migre (drift)
-- Sem impacto nos 122 testes existentes: novo teste é isolado em `ControlledWrapper` próprio com botões externos
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 123/123 verde (ou abrir plano de implementação de roving caso falhe)
+  - `onSelect`/`onSelectWinner` causem perda de foco (foco vai para body após rerender)
+  - Refator quebre paridade entre clique/Enter/Espaço (WCAG 2.1.1)
+  - Ação de winner mude `activeIndex` indevidamente (acoplamento errado)
+  - Classes focus-visible sejam removidas de algum estado pós-ação
+  - Aparecimento de `focus:ring-*` puro (sem `-visible`) em elementos pós-mutação
+- Sem impacto nos 123 testes existentes: novo teste é isolado em `ControlledWrapper` próprio
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 124/124 verde (ou abrir plano de correção caso falhe)
 
