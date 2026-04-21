@@ -1041,6 +1041,121 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       }
     });
   });
+
+  describe("setas atualizam activeIndex e ARIA acompanha após rerender", () => {
+    const navVariations: VariationItem[] = [
+      { id: "var-1", imageUrl: "https://example.com/1.png", qualityScore: 80 } as VariationItem,
+      { id: "var-2", imageUrl: "https://example.com/2.png", qualityScore: 70 } as VariationItem,
+      { id: "var-3", imageUrl: "https://example.com/3.png", qualityScore: 90 } as VariationItem,
+    ];
+
+    it("ArrowRight chama onSelect com próximo índice e aria-pressed/aria-current acompanham após rerender", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const renderWith = (activeIndex: number) => (
+        <MagicUpVariationComparator variations={navVariations} activeIndex={activeIndex} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+      );
+      const { rerender } = render(renderWith(0));
+
+      const card0 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card0.focus();
+      expect(card0).toHaveFocus();
+
+      await user.keyboard("{ArrowRight}");
+      expect(onSelect).toHaveBeenLastCalledWith(1);
+
+      rerender(renderWith(1));
+      const card1After = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(card1After).toHaveAttribute("aria-pressed", "true");
+      expect(card1After).toHaveAttribute("aria-current", "true");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveAttribute("aria-pressed", "false");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
+
+      rerender(renderWith(2));
+      screen.getByRole("button", { name: /^Selecionar variação 3/ }).focus();
+      await user.keyboard("{ArrowRight}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+    });
+
+    it("ArrowLeft retrocede e faz wrap-around do índice 0 para o último", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      render(
+        <MagicUpVariationComparator variations={navVariations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+      );
+
+      screen.getByRole("button", { name: /^Selecionar variação 1/ }).focus();
+      await user.keyboard("{ArrowLeft}");
+      expect(onSelect).toHaveBeenLastCalledWith(2);
+
+      onSelect.mockClear();
+      screen.getByRole("button", { name: /^Selecionar variação 3/ }).focus();
+      await user.keyboard("{ArrowLeft}");
+      expect(onSelect).toHaveBeenLastCalledWith(1);
+    });
+
+    it("ArrowUp/ArrowDown comportam-se como ArrowLeft/ArrowRight (eixo vertical equivalente)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      render(
+        <MagicUpVariationComparator variations={navVariations} activeIndex={1} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+      );
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      card1.focus();
+
+      await user.keyboard("{ArrowDown}");
+      expect(onSelect).toHaveBeenLastCalledWith(2);
+
+      onSelect.mockClear();
+      card1.focus();
+      await user.keyboard("{ArrowUp}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+    });
+
+    it("Home vai para o primeiro índice e End vai para o último", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      render(
+        <MagicUpVariationComparator variations={navVariations} activeIndex={1} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+      );
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      card1.focus();
+      await user.keyboard("{Home}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+
+      onSelect.mockClear();
+      card1.focus();
+      await user.keyboard("{End}");
+      expect(onSelect).toHaveBeenLastCalledWith(2);
+    });
+
+    it("Tab/Enter/Space/letras não chamam onSelect nem onSelectWinner via handleArrowKey", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      render(
+        <MagicUpVariationComparator variations={navVariations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+      );
+
+      const card0 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card0.focus();
+
+      await user.keyboard("a");
+      await user.keyboard("{Escape}");
+      await user.keyboard("{PageDown}");
+      expect(onSelect).not.toHaveBeenCalled();
+
+      await user.keyboard("{Enter}");
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe("MagicUpVariationComparator focus-visible classes", () => {
