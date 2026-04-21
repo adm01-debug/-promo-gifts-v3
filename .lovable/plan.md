@@ -1,66 +1,50 @@
 
 
-# Plano — QA manual no preview: Magic Up cenários A–D
+# Plano — Teste do fluxo "Reanalisar Magic Score"
 
-Vou abrir o preview com o navegador automatizado e percorrer, na ordem, os 4 cenários da Onda 5, registrando inconsistências de UI, estado e histórico.
+## Limitação herdada do QA anterior
 
-## Pré-checagem
-- `navigate_to_sandbox` em `/magic-up`
-- `screenshot` inicial + `read_console_logs` para detectar erros antes de interagir
-- Confirmar que header, stepper e painel de configuração renderizaram (sem skeleton preso, sem layout shift)
+O QA manual A–D ficou **bloqueado pelo upload de logo** (`<input type="file">` que o browser-bot não aciona). Reanalisar exige uma variação já gerada com `id` persistido em `magic_up_generations`, então **não consigo disparar o fluxo end-to-end pelo preview** sem que você faça pelo menos uma geração manual.
 
-## Cenário A — primeira geração comercial
-1. Selecionar cliente, produto, logo e cenário (usando `observe` + `act` em cada etapa do stepper)
-2. Disparar **Gerar imagem**
-3. Aguardar resposta da `generate-ad-image` + `magic-up-score` (poll com `screenshot` curtos)
-4. Validar:
-   - loading visível durante geração
-   - `AdImageResult` mostra a imagem final
-   - `MagicUpQualityScore` aparece com nota + origem (`IA` esperada)
-   - `MagicUpQualityChecklist` lista critérios
-   - `MagicUpCurationStatus` inicia em **Rascunho**
-   - botão **Reanalisar Magic Score** presente
-   - histórico recebeu novo item com score + status
+Mesmo assim, posso entregar uma validação **rigorosa em três camadas** sem depender do upload, combinando código + DB + logs + curl real da edge function.
 
-## Cenário B — fallback heurístico
-1. Disparar nova geração (sem mexer em config)
-2. Após imagem aparecer, observar diagnóstico:
-   - Se `magic-up-score` falhar/retornar quota, badge deve mostrar **Heurístico**
-   - UI não trava, score numérico ainda aparece, histórico salva o item
-3. Se a IA responder normalmente, registro como **não reproduzido em ambiente real** (não é bug; comportamento simulado já coberto em testes unitários)
+## O que vou executar
 
-## Cenário C — curadoria operacional
-1. Sobre a variação atual, alterar status na sequência: Boa → Aprovada internamente → Enviada ao cliente
-2. Após cada clique:
-   - confirmar destaque visual no botão ativo
-   - `screenshot` para conferir badge sincronizada no `AdImageResult`
-3. Recarregar histórico (clicar em outro item e voltar) e verificar persistência do último status
+### 1. Auditoria de código do fluxo (read-only)
+Reler e cruzar:
+- `useMagicUpGeneration.handleRunQualityScore` — chamada à `magic-up-score`, atualização de `variations[activeVariation]`, `setQualityDiagnosis`, `setQualityScore`, update em `magic_up_generations.quality_score`, `queryClient.invalidateQueries(['magic-up-history'])`, toast de sucesso/erro
+- `useMagicUpState` — exposição de `handleRunQualityScore` e propagação para `MagicUpResultPanel` → `AdImageResult`
+- `AdImageResult` — botão "Reanalisar Magic Score" e gating por `currentVariation?.id`
+- Confirmar se o update em DB também grava `metadata.qualityDiagnosis` e `metadata.qualitySource` (ponto de atenção mapeado na Onda 5)
 
-## Cenário D — comparação de variações
-1. Voltar para config e gerar com **N=2 ou 3 variações** (controle criativo)
-2. Validar:
-   - dots de paginação aparecem
-   - thumbnails inferiores sincronizam com a imagem ativa
-   - `MagicUpVariationComparator` renderiza com badge **Melhor score**
-   - clique em outra variação troca imagem principal + score + checklist
-   - botão **Marcar vencedora** atualiza variação ativa e dispara toast
+### 2. Validação backend ao vivo
+- `supabase--curl_edge_functions` em `magic-up-score` com payload mínimo válido (sem `imageUrl` real para não consumir IA): confirmar 400 Zod
+- Tentar payload válido (com URL pública pequena) só se quota permitir; caso contrário, registrar como ressalva
+- `supabase--edge_function_logs` filtrando por `magic-up-score` para correlacionar a chamada acima
 
-## Checagens transversais durante o percurso
-- `read_console_logs` ao final → listar erros JS
-- `list_network_requests` → conferir 200/4xx em `generate-ad-image`, `magic-up-score`, `magic-up-generations`
-- `supabase--edge_function_logs` em `magic-up-score` para correlacionar respostas
+### 3. Inspeção do estado atual no banco
+- `supabase--read_query` em `magic_up_generations` (últimos 5 registros do usuário logado): conferir colunas `quality_score`, `status`, `metadata->qualityDiagnosis`, `metadata->qualitySource`, `metadata->curation`, `updated_at`
+- Identificar se já existe ao menos uma geração com `id` que possa servir como caso real para você reanalisar manualmente no preview enquanto observo
 
-## Restrições
-- **Sem ações destrutivas no histórico** (não excluir gerações de outros usuários)
-- Se o preview pedir login, parar e avisar o usuário
-- Se a geração de IA for bloqueada por quota/protection, registrar como ressalva, não como bug
+### 4. Cobertura por testes automatizados (já verde)
+Confirmar que `tests/hooks/useMagicUpGeneration-onda5.test.tsx` cobre o caso "reanalisar Magic Score" — atualização de diagnóstico, score, update em DB, invalidação do histórico e toast — e citar como evidência substituta da execução manual bloqueada.
+
+### 5. (Opcional, mediante seu OK) QA assistido
+Se você fizer **uma única geração manual** com upload de logo enquanto eu acompanho, eu:
+- Acompanho a inserção em `magic_up_generations` por `read_query`
+- Capturo a chamada à `magic-up-score` por logs
+- Você clica em "Reanalisar Magic Score"
+- Eu confirmo update do score na linha + invalidação do histórico (recontagem) + diferença em `metadata`
 
 ## Entregável
-Relatório consolidado por cenário (A/B/C/D) com:
-- ✅ aprovado / ⚠️ ressalva / 🐛 bug
-- screenshots-chave referenciadas
-- lista de inconsistências encontradas (UI, estado, histórico, network)
-- recomendações de correção quando houver bug
 
-Sem alterações de código nesta rodada — apenas diagnóstico.
+Relatório consolidado com:
+- ✅ trecho de código do `handleRunQualityScore` com pontos confirmados/divergentes
+- ✅ resultado do curl + log da edge function
+- ✅ snapshot do estado atual em `magic_up_generations`
+- ✅ confirmação dos testes automatizados que cobrem o caso
+- ⚠️ ressalva clara sobre QA manual interativo bloqueado pelo upload de logo
+- 🐛 lista de bugs/divergências caso encontre (ex.: update sem regravar `metadata.qualityDiagnosis`)
+
+Sem alterações de código nesta rodada.
 
