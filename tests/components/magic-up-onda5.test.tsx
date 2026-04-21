@@ -294,16 +294,15 @@ describe("Magic Up Onda 5 components", () => {
     expect(select.cardExact("Selecionar variação 3, score 85")).toBeInTheDocument();
   });
 
-  it("empate em score 0: trata 0 como valor válido e atribui 'Melhor score' ao primeiro índice", () => {
+  it("empate em score 0: trata 0 como ausência de score válido e NÃO atribui 'Melhor score'", () => {
     const variations: VariationItem[] = [
       { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 0 },
       { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 0 },
     ];
     renderComparator({ variations });
-    // bestScore = 0 é válido → exatamente 1 badge "Melhor score"
-    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-    // Winner determinístico: índice 0 recebe sufixo "melhor score"
-    expect(select.cardExact("Selecionar variação 1, melhor score")).toBeInTheDocument();
+    // bestScore = 0 → guard `hasValidScores` falsy → nenhuma badge
+    expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
+    expect(select.cardExact("Selecionar variação 1")).toBeInTheDocument();
     expect(select.cardExact("Selecionar variação 2")).toBeInTheDocument();
   });
 
