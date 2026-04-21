@@ -38,8 +38,24 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
     refs.current[nextIndex]?.focus();
   };
 
+  const totalVariations = m.variations.length;
+  const liveAnnouncement = totalVariations > 1
+    ? `Variação ${m.activeVariation + 1} de ${totalVariations} selecionada`
+    : "";
+
   return (
     <div className="lg:sticky lg:top-4 lg:self-start space-y-3">
+      {/* Live region para leitores de tela: anuncia troca de variação (WCAG 4.1.3) */}
+      <div
+        role="status"
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+        data-testid="magic-up-variation-live-region"
+      >
+        {liveAnnouncement}
+      </div>
+
       {m.variations.length > 1 && (
         <div className="flex items-center justify-between">
           <Button
