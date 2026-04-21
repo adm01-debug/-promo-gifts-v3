@@ -1468,4 +1468,34 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     ]);
     assertWinnerAtIndexZero();
   });
+
+  it("aria-labels completos: cenário com vencedor claro — apenas o card vencedor recebe sufixo ', melhor score'; demais terminam exatamente em ', score N'", () => {
+    const variations = [
+      buildVariation({ id: "var-A", qualityScore: 60 }, 0),
+      buildVariation({ id: "var-B", qualityScore: 95 }, 1), // vencedor
+      buildVariation({ id: "var-C", qualityScore: 78 }, 2),
+    ];
+    renderTied(variations);
+
+    const btn1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    const btn2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    const btn3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+
+    // Match literal completo (string igual, sem regex)
+    expect(btn1.getAttribute("aria-label")).toBe("Selecionar variação 1, score 60");
+    expect(btn2.getAttribute("aria-label")).toBe("Selecionar variação 2, score 95, melhor score");
+    expect(btn3.getAttribute("aria-label")).toBe("Selecionar variação 3, score 78");
+
+    // Validação cruzada: apenas 1 ocorrência de ", melhor score" em todo o DOM de aria-labels
+    const allButtons = [btn1, btn2, btn3];
+    const labelsWithWinner = allButtons.filter((b) =>
+      (b.getAttribute("aria-label") ?? "").includes(", melhor score")
+    );
+    expect(labelsWithWinner).toHaveLength(1);
+    expect(labelsWithWinner[0]).toBe(btn2);
+
+    // Validação defensiva: não-vencedores não terminam com sufixo de winner
+    expect(btn1.getAttribute("aria-label")).not.toMatch(/, melhor score$/);
+    expect(btn3.getAttribute("aria-label")).not.toMatch(/, melhor score$/);
+  });
 });
