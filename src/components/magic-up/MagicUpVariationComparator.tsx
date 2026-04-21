@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -11,10 +12,25 @@ interface MagicUpVariationComparatorProps {
 }
 
 export function MagicUpVariationComparator({ variations, activeIndex, onSelect, onSelectWinner }: MagicUpVariationComparatorProps) {
+  const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
+
   if (variations.length < 2) return null;
   const scores = variations.map((variation) => variation.qualityDiagnosis?.total || variation.qualityScore || 0);
   const bestScore = Math.max(...scores);
   const winnerIndex = variations.findIndex((variation, index) => variation.isWinner || scores[index] === bestScore);
+
+  const handleArrowKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
+    const total = variations.length;
+    let nextIndex: number | null = null;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") nextIndex = (currentIndex + 1) % total;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") nextIndex = (currentIndex - 1 + total) % total;
+    else if (e.key === "Home") nextIndex = 0;
+    else if (e.key === "End") nextIndex = total - 1;
+    if (nextIndex === null) return;
+    e.preventDefault();
+    onSelect(nextIndex);
+    cardRefs.current[nextIndex]?.focus();
+  };
 
   return (
     <section className="rounded-lg border bg-card p-3" aria-label="Comparador de variações">
@@ -34,11 +50,14 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
               className={cn("overflow-hidden rounded-lg border", isActive ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40")}
             >
               <button
+                ref={(el) => { cardRefs.current[index] = el; }}
                 type="button"
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
+                aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
                 aria-label={`Selecionar variação ${index + 1}${score ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
                 onClick={() => onSelect(index)}
+                onKeyDown={(e) => handleArrowKey(e, index)}
                 className="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <div className="relative aspect-square bg-muted">
