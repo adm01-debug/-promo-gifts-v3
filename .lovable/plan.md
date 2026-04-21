@@ -1,121 +1,89 @@
 
 
-# Plano — Teste: duas variações com `isWinner: true` simultâneo → primeira vence, badge única
+# Plano — Reforçar teste de múltiplos `isWinner: true` com asserts paramétricos por permutação de scores
 
-Adiciono teste validando o comportamento quando o contrato `isWinner` é violado por upstream (duas variações marcadas como vencedoras). O componente deve ser **resiliente**: usar `findIndex` (não `findLastIndex` nem `filter`), garantindo que apenas a **primeira** ocorrência receba a badge.
+Estendo o teste existente (`dois isWinner: true simultâneos...`) com um **bloco paramétrico** que prova que o vencedor é sempre o de **menor índice** entre os marcados, **independentemente do score** de cada variação. Isso fecha o contrato `findIndex` contra regressões onde score possa influenciar a desambiguação entre múltiplos `isWinner`.
 
 ## Justificativa
 
-A linha-chave em `MagicUpVariationComparator.tsx`:
-```ts
-const explicitWinnerIndex = variations.findIndex((variation) => variation.isWinner);
-```
+O teste atual (74) prova UM cenário: var-A (score 60, winner) vence var-C (score 80, winner). Mas não prova a invariante **independente de score**. Um bug onde alguém adicione tie-break por score (`variations.filter(v => v.isWinner).sort((a,b) => b.score - a.score)[0]`) passaria se o menor índice por acaso tiver maior score.
 
-`findIndex` retorna o **primeiro** match. Se 2+ variações vierem com `isWinner: true` (bug de upstream, race condition de seleção, payload inconsistente), o componente deve degradar graciosamente exibindo **apenas 1 badge no primeiro índice marcado**, sem quebrar a UI nem renderizar múltiplas badges.
+Cobrir 3 permutações elimina esse falso-negativo:
+1. Menor índice tem **menor** score (var-A=10, var-C=99) — atual ampliado
+2. Menor índice tem **maior** score (var-A=99, var-C=10) — novo
+3. Menor índice tem score **igual** (var-A=50, var-C=50) — novo
 
-**Gap nos 73 testes atuais:** todos os cenários com `isWinner` usam exatamente 1 variação marcada. Nenhum cobre a violação de contrato (2 marcadas), que é exatamente o tipo de regressão que aparece quando alguém troca `findIndex` por `filter().map()` ou `findLastIndex` numa refatoração.
-
-Regressões que este teste captura:
-1. Troca de `findIndex` por `findLastIndex` → badge no segundo marcado em vez do primeiro
-2. Troca por `filter()` → múltiplas badges renderizadas
-3. Remoção do early-return de `explicitWinnerIndex` → fallback para score escolhe outro índice
-4. Bug onde score maior "rouba" o título mesmo com `isWinner` explícito
-
-## Cenário do teste
-
-3 variações com scores **diferentes** (para isolar o caminho `isWinner` do caminho score-fallback):
-- `var-A`: score 60, `isWinner: true` ← deve vencer (primeiro marcado)
-- `var-B`: score 95, `isWinner: false` ← maior score, mas perde
-- `var-C`: score 80, `isWinner: true` ← segundo marcado, perde
-
-Confirma simultaneamente que:
-- `isWinner` tem prioridade sobre score (var-B com 95 não vence)
-- `findIndex` retorna o primeiro (var-A vence, não var-C)
-- Apenas 1 badge no DOM
+Em todos: vencedor = índice 0 (var-A).
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar 1 teste ao final da sub-suíte de empate:
+Adicionar 1 novo teste (`it.each`) após o teste `dois isWinner: true simultâneos...`:
 
 ```ts
-it("dois isWinner: true simultâneos: apenas o primeiro marcado recebe badge (findIndex determinístico)", () => {
-  const variations = [
-    buildVariation({ id: "var-A", qualityScore: 60, isWinner: true }, 0),
-    buildVariation({ id: "var-B", qualityScore: 95, isWinner: false }, 1),
-    buildVariation({ id: "var-C", qualityScore: 80, isWinner: true }, 2),
-  ];
+it.each([
+  { label: "menor índice tem menor score", scoreA: 10, scoreC: 99 },
+  { label: "menor índice tem maior score", scoreA: 99, scoreC: 10 },
+  { label: "ambos têm o mesmo score", scoreA: 50, scoreC: 50 },
+])(
+  "múltiplos isWinner: true — vencedor é sempre o de menor índice ($label)",
+  ({ scoreA, scoreC }) => {
+    const variations = [
+      buildVariation({ id: "var-A", qualityScore: scoreA, isWinner: true }, 0),
+      buildVariation({ id: "var-B", qualityScore: 50, isWinner: false }, 1),
+      buildVariation({ id: "var-C", qualityScore: scoreC, isWinner: true }, 2),
+    ];
 
-  // Pré-condições: confirma cenário (2 com isWinner=true, scores distintos)
-  expect(variations.filter((v) => v.isWinner === true)).toHaveLength(2);
-  expect(variations[0].isWinner).toBe(true);
-  expect(variations[2].isWinner).toBe(true);
+    // Pré-condições: 2 winners, var-A no menor índice
+    expect(variations.filter((v) => v.isWinner === true)).toHaveLength(2);
+    expect(variations[0].isWinner).toBe(true);
+    expect(variations[2].isWinner).toBe(true);
 
-  renderTied(variations);
+    renderTied(variations);
 
-  // 1. Cardinalidade: exatamente 1 badge no DOM (não 2)
-  const badges = screen.getAllByLabelText("Melhor score");
-  expect(badges).toHaveLength(1);
+    // 1. Cardinalidade: 1 badge
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
 
-  // 2. Badge está no primeiro índice (var-A), NÃO no segundo marcado (var-C)
-  //    e NÃO no de maior score (var-B)
-  const cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+    // 2. Badge sempre no índice 0 (var-A), independente do score
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
 
-  // 3. Aria-label completo do vencedor: var-A com score 60 + sufixo "melhor score"
-  const winnerBtn = screen.getByRole("button", {
-    name: "Selecionar variação 1, score 60, melhor score",
-  });
-  expect(winnerBtn).toBeInTheDocument();
+    // 3. Aria-label do vencedor confirma score de var-A (não de var-C)
+    const winnerBtn = screen.getByRole("button", {
+      name: `Selecionar variação 1, score ${scoreA}, melhor score`,
+    });
+    expect(winnerBtn).toBeInTheDocument();
 
-  // 4. var-B (maior score) NÃO recebe sufixo, mesmo sendo o melhor numérico
-  const varBBtn = screen.getByRole("button", {
-    name: "Selecionar variação 2, score 95",
-  });
-  expect(varBBtn).toBeInTheDocument();
+    // 4. var-C (segundo winner) não recebe sufixo, mesmo se score for maior
+    const varCBtn = screen.getByRole("button", {
+      name: `Selecionar variação 3, score ${scoreC}`,
+    });
+    expect(varCBtn).toBeInTheDocument();
 
-  // 5. var-C (segundo marcado como winner) NÃO recebe sufixo
-  const varCBtn = screen.getByRole("button", {
-    name: "Selecionar variação 3, score 80",
-  });
-  expect(varCBtn).toBeInTheDocument();
-
-  // 6. Asserção agregada: nenhum outro botão de seleção contém "melhor score"
-  const allSelectButtons = screen.getAllByRole("button", { name: /^Selecionar variação/ });
-  const withSuffix = allSelectButtons.filter((btn) =>
-    (btn.getAttribute("aria-label") ?? "").includes("melhor score")
-  );
-  expect(withSuffix).toHaveLength(1);
-
-  // 7. Header confirma bestScore = 95 (var-B), provando que score e winner são lógicas independentes
-  expect(screen.getByLabelText(/Melhor score entre variações: 95/)).toBeInTheDocument();
-});
+    // 5. Asserção agregada: sufixo aparece em exatamente 1 botão
+    const allSelectButtons = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+    const withSuffix = allSelectButtons.filter((btn) =>
+      (btn.getAttribute("aria-label") ?? "").includes("melhor score")
+    );
+    expect(withSuffix).toHaveLength(1);
+  }
+);
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Reusa helpers `buildVariation`, `renderTied`, `within`, `screen` já presentes
-- Sem novos imports
-- Pré-condição explícita do cenário documenta a violação de contrato testada
-- Asserção 7 valida que o header bestScore (numérico) **diverge** da badge winner (`isWinner`), confirmando que são caminhos independentes
-
-## Pré-requisito
-
-Confirmar que `buildVariation` aceita `isWinner` no override. Pelos testes anteriores aprovados (que usam `qualityScore` em overrides), o helper já faz spread do override sobre defaults, então `isWinner: true` deve funcionar sem ajuste.
+- Reusa `buildVariation`, `renderTied`, `within`, `screen` já presentes
+- Sem novos imports (`it.each` é nativo do Vitest)
+- 3 permutações em uma única definição paramétrica = 3 casos de teste
 
 ## Entregável
 
-- 1 novo teste no grupo de empate (73 → 74 testes)
-- Trava 6 invariantes:
-  1. Cardinalidade: exatamente 1 badge mesmo com 2 marcados
-  2. Determinismo: primeiro `isWinner` vence (var-A no índice 0), não o segundo (var-C)
-  3. Prioridade: `isWinner` vence sobre score (var-B com 95 não recebe badge)
-  4. Aria-label literal completo do vencedor
-  5. Asserção agregada: sufixo "melhor score" aparece em exatamente 1 aria-label
-  6. Independência: header bestScore (95) ≠ winner score (60)
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 74/74 verde
+- 3 novos casos de teste (74 → 77 testes)
+- Trava a invariante: **`findIndex` é o único critério de desambiguação entre múltiplos `isWinner`**, score não interfere
+- Captura regressões onde alguém introduza tie-break por score sobre `isWinner`
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 77/77 verde
 
