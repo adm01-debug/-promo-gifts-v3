@@ -143,7 +143,8 @@ describe("Magic Up Onda 5 components", () => {
     }
   });
 
-  it("mantém aria-pressed alinhado com activeIndex e isola clique de marcar vencedora", () => {
+  it("mantém aria-pressed alinhado com activeIndex e isola clique de marcar vencedora", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     const variations: VariationItem[] = [
@@ -157,11 +158,11 @@ describe("Magic Up Onda 5 components", () => {
     expect(winnerCard).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: /Selecionar variação 1/ })).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.click(winnerCard);
+    await user.click(winnerCard);
     expect(onSelect).toHaveBeenCalledWith(1);
     expect(onSelectWinner).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" }));
+    await user.click(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" }));
     expect(onSelectWinner).toHaveBeenCalledWith(2);
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
