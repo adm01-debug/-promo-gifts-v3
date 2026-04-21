@@ -1,139 +1,170 @@
 
 
-# Plano — Testes de acessibilidade do botão "Marcar vencedora" desabilitado
+# Plano — Testes de atalhos (Ctrl+Enter, Space com repetição) bloqueados em "Marcar vencedora" desabilitado
 
-Adiciono **2 testes** ao sub-describe `"ativação por Enter/Espaço nos botões"` em `tests/components/magic-up-onda5.test.tsx` validando que, quando `loadingWinnerIndex` desabilita o botão "Marcar vencedora", o texto acessível (`aria-label`) permanece intacto e os atributos ARIA expõem corretamente o estado para leitores de tela.
+Adiciono **2 testes** ao final do sub-describe `"ativação por Enter/Espaço nos botões"` em `tests/components/magic-up-onda5.test.tsx` validando que combinações de teclado avançadas (Ctrl+Enter, Space com auto-repeat) **não** disparam `onSelectWinner` quando o botão "Marcar vencedora" está em loading (`disabled` + `aria-busy="true"`).
 
 ## Justificativa
 
-Cobertura existente (testes 95-96):
+Cobertura existente (testes 95-99):
 - Tab pula botão em loading
-- Enter/Space não disparam `onSelectWinner` em loading
+- Enter/Space simples não disparam em loading
+- `aria-label` estável e `aria-busy` correto
+- Cardinalidade isolada
+- Transições loading↔habilitado preservam foco
 
-Lacuna específica de acessibilidade assistiva:
-1. **Estabilidade do nome acessível**: o `aria-label="Marcar variação N como vencedora"` deve permanecer **idêntico** entre estado normal e loading — leitor de tela não pode "perder" o botão por mudança de nome
-2. **`aria-busy` exposto corretamente**: deve ser `"true"` em loading, **ausente** quando habilitado (não `"false"` — atributo opcional)
-3. **Texto sr-only "Marcando vencedora…"** presente apenas em loading para anunciar estado de progresso
-4. **Spinner `Loader2` com `aria-hidden="true"`** para não poluir leitura
-5. **Cardinalidade isolada**: apenas o botão de índice = `loadingWinnerIndex` exibe estado de loading; os demais botões "Marcar vencedora" continuam plenamente acessíveis e habilitados
+Lacunas específicas de teclado avançado:
+1. **Ctrl+Enter (e Cmd+Enter)**: combinação usada como atalho global de "submit" no projeto (ex: `KeyboardShortcuts.tsx` para gerar mockup). Validar que **não vaza** para o botão de loading mesmo se foco estiver em elemento neutro.
+2. **Space com auto-repeat**: usuário segurando barra de espaço gera múltiplos `keydown` com `repeat: true`. Botão `disabled` deve ignorar **todos** os eventos repetidos, não apenas o primeiro.
+3. **Modificadores combinados** (Shift/Alt/Meta + Enter/Space): nenhum deve acionar o botão em loading.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar **2 testes** ao final do sub-describe `"ativação por Enter/Espaço nos botões"` (após o último teste de Enter/Space em loading), reusando `navVariations`.
+Adicionar 2 testes ao final do sub-describe `"ativação por Enter/Espaço nos botões"`, reusando `navVariations`:
 
 ---
 
-**Teste 1 — `aria-label` permanece estável entre estado normal e loading; `aria-busy` exposto apenas em loading**
+**Teste 1 — Ctrl+Enter, Cmd+Enter, Shift+Enter, Alt+Enter não disparam `onSelectWinner` em loading**
 
 ```ts
-it("botão 'Marcar vencedora' preserva aria-label e expõe aria-busy/disabled apenas durante loading", () => {
+it("combinações com modificador (Ctrl/Cmd/Shift/Alt + Enter) não disparam onSelectWinner em botão 'Marcar vencedora' desabilitado", async () => {
+  const user = userEvent.setup();
   const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
-  const renderWith = (loadingIdx: number | null) => (
-    <MagicUpVariationComparator
-      variations={navVariations}
-      activeIndex={0}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-      loadingWinnerIndex={loadingIdx}
-    />
+
+  render(
+    <div>
+      <button type="button" data-testid="external-sentinel">externo</button>
+      <MagicUpVariationComparator
+        variations={navVariations}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+        loadingWinnerIndex={0}
+      />
+    </div>
   );
 
-  // Estado 1: nenhum loading → todos habilitados, sem aria-busy
-  const { rerender } = render(renderWith(null));
-  const btn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
-  expect(btn1).toHaveAttribute("aria-label", "Marcar variação 1 como vencedora");
-  expect(btn1).not.toBeDisabled();
-  expect(btn1).not.toHaveAttribute("aria-busy");
-  expect(screen.queryByText("Marcando vencedora…")).not.toBeInTheDocument();
+  // Sanity: var-1 em loading
+  const winnerBtn = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+  expect(winnerBtn).toBeDisabled();
+  expect(winnerBtn).toHaveAttribute("aria-busy", "true");
 
-  // Estado 2: var-1 em loading → aria-label idêntico, disabled+aria-busy true, sr-only presente
-  rerender(renderWith(0));
-  const btn1Loading = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
-  expect(btn1Loading).toHaveAttribute("aria-label", "Marcar variação 1 como vencedora");
-  expect(btn1Loading).toBeDisabled();
-  expect(btn1Loading).toHaveAttribute("aria-busy", "true");
-  expect(screen.getByText("Marcando vencedora…")).toBeInTheDocument();
+  // Foco em sentinel neutro (botão disabled é unfocusable)
+  screen.getByTestId("external-sentinel").focus();
 
-  // Estado 3: remove loading → aria-label permanece, aria-busy some, sr-only some
-  rerender(renderWith(null));
-  const btn1Restored = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
-  expect(btn1Restored).toHaveAttribute("aria-label", "Marcar variação 1 como vencedora");
-  expect(btn1Restored).not.toBeDisabled();
-  expect(btn1Restored).not.toHaveAttribute("aria-busy");
-  expect(screen.queryByText("Marcando vencedora…")).not.toBeInTheDocument();
+  // 1) fireEvent direto no botão em loading com modificadores — nada deve vazar via onClick sintético
+  fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", ctrlKey: true });
+  fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", ctrlKey: true });
+  fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", metaKey: true });
+  fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", metaKey: true });
+  fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", shiftKey: true });
+  fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", shiftKey: true });
+  fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", altKey: true });
+  fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", altKey: true });
+  fireEvent.click(winnerBtn);
+  expect(onSelectWinner).not.toHaveBeenCalled();
+
+  // 2) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
+  await user.keyboard("{Control>}{Enter}{/Control}");
+  await user.keyboard("{Meta>}{Enter}{/Meta}");
+  await user.keyboard("{Shift>}{Enter}{/Shift}");
+  await user.keyboard("{Alt>}{Enter}{/Alt}");
+  expect(onSelectWinner).not.toHaveBeenCalled();
+
+  // 3) Foco continua no sentinel — botão disabled não capturou foco
+  expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+  expect(onSelect).not.toHaveBeenCalled();
 });
 ```
 
 ---
 
-**Teste 2 — Loading isolado por índice: spinner `aria-hidden`, sr-only único, demais botões intactos**
+**Teste 2 — Space com auto-repeat (`repeat: true`) e múltiplos Space sequenciais não disparam `onSelectWinner` em loading**
 
 ```ts
-it("loading em um botão não afeta acessibilidade dos demais botões 'Marcar vencedora' (cardinalidade isolada)", () => {
+it("Space com auto-repeat e múltiplas pressões sequenciais não disparam onSelectWinner em botão 'Marcar vencedora' desabilitado", async () => {
+  const user = userEvent.setup();
   const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
-  const { container } = render(
-    <MagicUpVariationComparator
-      variations={navVariations}
-      activeIndex={0}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-      loadingWinnerIndex={1}
-    />
+  render(
+    <div>
+      <button type="button" data-testid="external-sentinel">externo</button>
+      <MagicUpVariationComparator
+        variations={navVariations}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+        loadingWinnerIndex={1}
+      />
+    </div>
   );
 
-  // Apenas var-2 em loading
-  const btn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
-  expect(btn2).toBeDisabled();
-  expect(btn2).toHaveAttribute("aria-busy", "true");
+  // Sanity: var-2 em loading
+  const winnerBtn = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+  expect(winnerBtn).toBeDisabled();
+  expect(winnerBtn).toHaveAttribute("aria-busy", "true");
 
-  // var-1 e var-3 permanecem totalmente acessíveis e habilitadas
-  const btn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
-  const btn3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
-  expect(btn1).not.toBeDisabled();
-  expect(btn1).not.toHaveAttribute("aria-busy");
-  expect(btn3).not.toBeDisabled();
-  expect(btn3).not.toHaveAttribute("aria-busy");
+  screen.getByTestId("external-sentinel").focus();
 
-  // sr-only "Marcando vencedora…" tem cardinalidade exata = 1 (apenas no botão em loading)
-  const srOnlyMatches = screen.getAllByText("Marcando vencedora…");
-  expect(srOnlyMatches).toHaveLength(1);
-  expect(btn2.contains(srOnlyMatches[0])).toBe(true);
+  // 1) Auto-repeat de Space: 10 keyDowns com repeat:true seguidos de keyUp único
+  // Simula usuário segurando a barra de espaço (browser dispara keydown repetido)
+  for (let i = 0; i < 10; i++) {
+    fireEvent.keyDown(winnerBtn, { key: " ", code: "Space", repeat: i > 0 });
+  }
+  fireEvent.keyUp(winnerBtn, { key: " ", code: "Space" });
+  fireEvent.click(winnerBtn);
+  expect(onSelectWinner).not.toHaveBeenCalled();
 
-  // Spinner Loader2 está presente e marcado como aria-hidden (não poluir leitura)
-  const spinners = container.querySelectorAll('svg[aria-hidden="true"].animate-spin');
-  expect(spinners).toHaveLength(1);
-  expect(btn2.contains(spinners[0])).toBe(true);
+  // 2) 5 pressões Space sequenciais (sem repeat) via userEvent
+  for (let i = 0; i < 5; i++) {
+    await user.keyboard(" ");
+  }
+  expect(onSelectWinner).not.toHaveBeenCalled();
 
-  // Botões de seleção (cards) permanecem todos habilitados — loading do "Marcar vencedora" não vaza
-  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).not.toBeDisabled();
-  expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).not.toBeDisabled();
-  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).not.toBeDisabled();
+  // 3) Combinação Space + modificadores
+  fireEvent.keyDown(winnerBtn, { key: " ", code: "Space", ctrlKey: true });
+  fireEvent.keyUp(winnerBtn, { key: " ", code: "Space", ctrlKey: true });
+  await user.keyboard("{Control>} {/Control}");
+  await user.keyboard("{Meta>} {/Meta}");
+  expect(onSelectWinner).not.toHaveBeenCalled();
+
+  // 4) Sanity reverso: removendo loading, Space simples volta a disparar normalmente
+  // (garante que os eventos anteriores não envenenaram listeners)
+  // Não usamos rerender aqui — apenas confirmamos que outros botões não-loading respondem
+  const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+  expect(winnerBtn1).not.toBeDisabled();
+  winnerBtn1.focus();
+  await user.keyboard(" ");
+  expect(onSelectWinner).toHaveBeenCalledTimes(1);
+  expect(onSelectWinner).toHaveBeenCalledWith(0);
+
+  // onSelect (cards de seleção) intocado durante toda a sequência
+  expect(onSelect).not.toHaveBeenCalled();
 });
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (reusa `render`, `rerender`, `screen`, `vi`, `MagicUpVariationComparator`, `navVariations`)
-- 2 testes novos (96 → 98 testes)
-- Queries por `aria-label` exato + `getByText` para sr-only seguem padrão estabelecido
-- Verificação de spinner via `container.querySelectorAll` (única forma confiável de validar `aria-hidden` em SVG)
+- Sem novos imports (reusa `render`, `screen`, `fireEvent`, `userEvent`, `vi`, `MagicUpVariationComparator`, `navVariations`)
+- 2 testes novos (99 → 101 testes)
+- Sentinel externo `data-testid="external-sentinel"` neutraliza foco, evitando que `user.keyboard` ative outros botões reais
+- `for` loop simula auto-repeat realista (browsers reais disparam dezenas de `keydown` por segundo com `repeat: true`)
+- Sanity reverso no teste 2 garante que botões habilitados continuam funcionais — captura regressões de "envenenamento" de listeners
 
 ## Entregável
 
-- 2 testes cobrindo perspectiva de **leitor de tela** sobre o botão desabilitado:
-  1. `aria-label="Marcar variação N como vencedora"` é **idêntico** em normal/loading/restaurado — leitor de tela mantém referência estável ao botão; `aria-busy="true"` aparece apenas em loading; texto sr-only "Marcando vencedora…" aparece/desaparece junto com o estado
-  2. Loading isolado por índice: spinner com `aria-hidden="true"` (não poluiu leitura), sr-only com cardinalidade = 1, demais botões "Marcar vencedora" e botões de seleção plenamente acessíveis
+- 2 testes cobrindo combinações de teclado avançadas em estado de loading:
+  1. **Modificadores + Enter** (Ctrl/Cmd/Shift/Alt) via `fireEvent` direto no botão e via `user.keyboard` com sintaxe `{Control>}…{/Control}` — todos bloqueados
+  2. **Space com auto-repeat** (10× `keydown` com `repeat: true`) + 5× Space sequenciais + Space com modificadores — todos bloqueados; sanity reverso confirma que botão habilitado vizinho responde normalmente a Space simples
 - Captura regressões onde:
-  - `aria-label` mudasse durante loading (ex: virar "Marcando vencedora variação N…") — quebraria queries de testes e referência de screen reader
-  - `aria-busy` virasse `"false"` ao invés de ausente quando habilitado (inflação de atributos)
-  - Spinner perdesse `aria-hidden="true"` (leitor anunciaria SVG vazio)
-  - `loadingWinnerIndex` afetasse mais de um botão (ex: por engano usar `>=` em vez de `===`)
-  - Loading do "Marcar vencedora" desabilitasse o botão de seleção do mesmo card
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 98/98 verde
+  - Handler customizado de `onKeyDown` no botão ignorasse o atributo `disabled` e disparasse `onSelectWinner`
+  - Combinação com modificador (Ctrl+Enter como atalho global) acidentalmente fosse roteada para botões em loading
+  - Auto-repeat de Space gerasse múltiplas chamadas indevidas se a guarda de `disabled` fosse aplicada apenas no primeiro evento
+  - Listeners ficassem "envenenados" após sequência longa de eventos bloqueados
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 101/101 verde
 
