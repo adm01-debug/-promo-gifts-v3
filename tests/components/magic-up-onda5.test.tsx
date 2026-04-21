@@ -73,7 +73,8 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.getByLabelText("Score 58 de 100")).toBeInTheDocument();
   });
 
-  it("compara variações com aria-pressed e botão vencedora único por variação", () => {
+  it("compara variações com aria-pressed e botão vencedora único por variação", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     const variations: VariationItem[] = [
@@ -87,9 +88,9 @@ describe("Magic Up Onda 5 components", () => {
     const firstBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
     expect(firstBtn).toHaveAttribute("aria-pressed", "true");
     expect(firstBtn).toHaveAttribute("aria-current", "true");
-    fireEvent.click(screen.getByRole("button", { name: /Selecionar variação 2/ }));
+    await user.click(screen.getByRole("button", { name: /Selecionar variação 2/ }));
     expect(onSelect).toHaveBeenCalledWith(1);
-    fireEvent.click(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" }));
+    await user.click(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" }));
     expect(onSelectWinner).toHaveBeenCalledWith(1);
   });
 
@@ -142,7 +143,8 @@ describe("Magic Up Onda 5 components", () => {
     }
   });
 
-  it("mantém aria-pressed alinhado com activeIndex e isola clique de marcar vencedora", () => {
+  it("mantém aria-pressed alinhado com activeIndex e isola clique de marcar vencedora", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     const variations: VariationItem[] = [
@@ -156,11 +158,11 @@ describe("Magic Up Onda 5 components", () => {
     expect(winnerCard).toHaveAttribute("aria-pressed", "false");
     expect(screen.getByRole("button", { name: /Selecionar variação 1/ })).toHaveAttribute("aria-pressed", "true");
 
-    fireEvent.click(winnerCard);
+    await user.click(winnerCard);
     expect(onSelect).toHaveBeenCalledWith(1);
     expect(onSelectWinner).not.toHaveBeenCalled();
 
-    fireEvent.click(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" }));
+    await user.click(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" }));
     expect(onSelectWinner).toHaveBeenCalledWith(2);
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
@@ -340,7 +342,8 @@ describe("Magic Up Onda 5 components", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", () => {
+  it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const variations: VariationItem[] = [
       { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 80 },
@@ -360,7 +363,7 @@ describe("Magic Up Onda 5 components", () => {
       screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
+    await user.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
     expect(onSelect).toHaveBeenCalledWith(1);
 
     rerender(
@@ -481,7 +484,8 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     }
   });
 
-  it("Enter no card de variação dispara onSelect com índice correto", () => {
+  it("Enter no card de variação dispara onSelect com índice correto", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     render(
@@ -495,16 +499,17 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const card = screen.getByRole("button", { name: /Selecionar variação 2/ });
     card.focus();
-    expect(document.activeElement).toBe(card);
-    // Botões nativos invocam onClick em Enter; simulamos via click() no elemento focado
-    fireEvent.keyDown(card, { key: "Enter", code: "Enter" });
-    fireEvent.click(card);
+    expect(card).toHaveFocus();
+    // userEvent.keyboard sintetiza a sequência completa: keydown→keypress→click→keyup
+    // que o browser nativamente dispara em <button> ao receber Enter
+    await user.keyboard("{Enter}");
 
     expect(onSelect).toHaveBeenCalledWith(1);
     expect(onSelectWinner).not.toHaveBeenCalled();
   });
 
-  it("Space no card de variação dispara onSelect com índice correto", () => {
+  it("Space no card de variação dispara onSelect com índice correto", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     render(
@@ -518,15 +523,15 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const card = screen.getByRole("button", { name: /Selecionar variação 3/ });
     card.focus();
-    expect(document.activeElement).toBe(card);
-    fireEvent.keyUp(card, { key: " ", code: "Space" });
-    fireEvent.click(card);
+    expect(card).toHaveFocus();
+    await user.keyboard(" ");
 
     expect(onSelect).toHaveBeenCalledWith(2);
     expect(onSelectWinner).not.toHaveBeenCalled();
   });
 
-  it("Enter no botão 'Marcar vencedora' chama onSelectWinner sem disparar onSelect", () => {
+  it("Enter no botão 'Marcar vencedora' chama onSelectWinner sem disparar onSelect", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     render(
@@ -540,13 +545,44 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const winnerBtn = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
     winnerBtn.focus();
-    expect(document.activeElement).toBe(winnerBtn);
-    fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter" });
-    fireEvent.click(winnerBtn);
+    expect(winnerBtn).toHaveFocus();
+    await user.keyboard("{Enter}");
 
     expect(onSelectWinner).toHaveBeenCalledWith(2);
     expect(onSelectWinner).toHaveBeenCalledTimes(1);
     expect(onSelect).not.toHaveBeenCalled();
+  });
+
+  it("regressão: Enter em botão focado dispara onClick nativo (semântica HTML preservada, sem keyDown handler custom)", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const card = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    card.focus();
+    expect(card).toHaveFocus();
+    // O componente NÃO tem onKeyDown custom; depende da semântica nativa do <button>
+    // que sintetiza click ao receber Enter/Space. user.keyboard reproduz fielmente esse fluxo.
+    await user.keyboard("{Enter}");
+    expect(onSelect).toHaveBeenCalledTimes(1);
+
+    // Space também: ambos disparam exatamente 1 click cada (sem disparos duplicados ou perdidos)
+    const card3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+    card3.focus();
+    await user.keyboard(" ");
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+
+    // onSelectWinner não deve ter sido invocado por nenhuma das ativações em cards
+    expect(onSelectWinner).not.toHaveBeenCalled();
   });
 
   it("Tab/Shift+Tab navega na ordem DOM: select-1 → marcar-1 → select-2 → marcar-2 → select-3 → marcar-3", async () => {
