@@ -1315,6 +1315,129 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("hierarquia acessível: cards e botões 'Marcar vencedora' expõem role=button com nomes únicos e dinâmicos", async () => {
+      const onSelectWinner = vi.fn();
+      let setActiveIndexExternal: ((i: number) => void) | null = null;
+
+      const variationsWithWinner = navVariations.map((v, i) =>
+        i === 1 ? { ...v, isWinner: true } : v
+      );
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        setActiveIndexExternal = setActiveIndex;
+        return (
+          <MagicUpVariationComparator
+            variations={variationsWithWinner}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={onSelectWinner}
+          />
+        );
+      }
+
+      render(<ControlledWrapper />);
+
+      // 1) Estrutura semântica: list + listitems
+      const list = screen.getByRole("list");
+      expect(list).toBeInTheDocument();
+      const listitems = within(list).getAllByRole("listitem");
+      expect(listitems).toHaveLength(variationsWithWinner.length);
+
+      // 2) Contagem exata: N cards + N botões "Marcar vencedora"
+      const allButtonsInList = within(list).getAllByRole("button");
+      expect(allButtonsInList).toHaveLength(variationsWithWinner.length * 2);
+
+      // 3) Cards expostos como role=button com accessible name único
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+      expect(card1.tagName).toBe("BUTTON");
+      expect(card2.tagName).toBe("BUTTON");
+      expect(card3.tagName).toBe("BUTTON");
+
+      const cardNames = [card1, card2, card3].map((c) => c.getAttribute("aria-label"));
+      expect(new Set(cardNames).size).toBe(3);
+
+      // 4) Card vencedor tem rótulo com "melhor score"
+      expect(card2.getAttribute("aria-label")).toMatch(/melhor score/i);
+      expect(card1.getAttribute("aria-label")).not.toMatch(/melhor score/i);
+      expect(card3.getAttribute("aria-label")).not.toMatch(/melhor score/i);
+
+      // 5) Score mencionado no accessible name
+      expect(card1.getAttribute("aria-label")).toMatch(/score/i);
+      expect(card2.getAttribute("aria-label")).toMatch(/score/i);
+      expect(card3.getAttribute("aria-label")).toMatch(/score/i);
+
+      // 6) Botões "Marcar vencedora" — nomes únicos e distintos dos cards
+      const winner1 = screen.getByRole("button", { name: /Marcar variação 1 como vencedora/ });
+      const winner2 = screen.getByRole("button", { name: /Marcar variação 2 como vencedora/ });
+      const winner3 = screen.getByRole("button", { name: /Marcar variação 3 como vencedora/ });
+
+      expect(winner1.tagName).toBe("BUTTON");
+      expect(winner2.tagName).toBe("BUTTON");
+      expect(winner3.tagName).toBe("BUTTON");
+
+      const winnerNames = [winner1, winner2, winner3].map(
+        (w) => w.getAttribute("aria-label") ?? w.textContent
+      );
+      const allNames = [...cardNames, ...winnerNames];
+      expect(new Set(allNames).size).toBe(6);
+
+      expect(winner1).not.toBe(card1);
+      expect(winner2).not.toBe(card2);
+      expect(winner3).not.toBe(card3);
+
+      // 7) Pareamento card↔winner por listitem
+      listitems.forEach((item, idx) => {
+        const buttonsInItem = within(item).getAllByRole("button");
+        expect(buttonsInItem).toHaveLength(2);
+
+        const selectBtn = within(item).getByRole("button", {
+          name: new RegExp(`^Selecionar variação ${idx + 1}`),
+        });
+        const winnerBtn = within(item).getByRole("button", {
+          name: new RegExp(`Marcar variação ${idx + 1} como vencedora`),
+        });
+        expect(selectBtn).toBeInTheDocument();
+        expect(winnerBtn).toBeInTheDocument();
+      });
+
+      // 8) Card ativo descobrível via role + aria-pressed
+      const pressedButtons = within(list)
+        .getAllByRole("button")
+        .filter((b) => b.getAttribute("aria-pressed") === "true");
+      expect(pressedButtons).toHaveLength(1);
+      expect(pressedButtons[0]).toBe(card1);
+
+      // 9) Mudança de activeIndex re-anuncia o card correto
+      await act(async () => {
+        setActiveIndexExternal!(2);
+      });
+
+      const pressedAfter = within(list)
+        .getAllByRole("button")
+        .filter((b) => b.getAttribute("aria-pressed") === "true");
+      expect(pressedAfter).toHaveLength(1);
+      expect(pressedAfter[0]).toBe(card3);
+
+      // 10) aria-label estável após mudança de seleção
+      expect(card1.getAttribute("aria-label")).toBe(cardNames[0]);
+      expect(card2.getAttribute("aria-label")).toBe(cardNames[1]);
+      expect(card3.getAttribute("aria-label")).toBe(cardNames[2]);
+
+      // 11) Sem roles indevidos dentro dos listitems
+      listitems.forEach((item) => {
+        const interactiveRoles = ["link", "checkbox", "radio", "tab", "menuitem"];
+        interactiveRoles.forEach((role) => {
+          expect(within(item).queryAllByRole(role)).toHaveLength(0);
+        });
+      });
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
 
