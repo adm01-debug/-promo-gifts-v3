@@ -1024,6 +1024,137 @@ describe("MagicUpResultPanel — navegação por setas nos dots e thumbnails", (
   });
 });
 
+// ───────── APG Tabs — gaps de cobertura: N=2/N=1, thumbnails verticais, teclas ignoradas, sincronia com tabindex ─────────
+describe("MagicUpResultPanel — setas APG (cobertura adicional de bordas e thumbnails)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  // ── Bordas N=2 (menor caso com wrap) e N=1 (no-op) ──
+
+  it("N=2: ArrowRight em dot[1] faz wrap para dot[0]", () => {
+    const m = buildStubState({ variationsCount: 2, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    expect(dots).toHaveLength(2);
+    dots[1].focus();
+    fireEvent.keyDown(dots[1], { key: "ArrowRight" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
+    expect(document.activeElement).toBe(getDots()[0]);
+  });
+
+  it("N=2: ArrowLeft em dot[0] faz wrap para dot[1]", () => {
+    const m = buildStubState({ variationsCount: 2, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    dots[0].focus();
+    fireEvent.keyDown(dots[0], { key: "ArrowLeft" });
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    expect(document.activeElement).toBe(getDots()[1]);
+  });
+
+  it("N=1: dots/thumbs não são renderizados; setActiveVariation não é chamado", () => {
+    // Com N=1 o painel não renderiza prev/next/dots/thumbs (gating `variations.length > 1`).
+    const m = buildStubState({ variationsCount: 1, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    expect(screen.queryByRole("tablist", { name: "Variações geradas" })).toBeNull();
+    expect(screen.queryByRole("tablist", { name: "Miniaturas das variações" })).toBeNull();
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+  });
+
+  // ── Thumbnails: paridade completa com dots em ArrowUp/Down + wrap + Home + preventDefault ──
+
+  it("Thumbnails: ArrowDown em thumb[0] move para thumb[1] (suporte vertical)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const thumbs = getThumbs();
+    thumbs[0].focus();
+    fireEvent.keyDown(thumbs[0], { key: "ArrowDown" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(1);
+    expect(document.activeElement).toBe(getThumbs()[1]);
+  });
+
+  it("Thumbnails: ArrowUp em thumb[1] move para thumb[0] (suporte vertical)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    const thumbs = getThumbs();
+    thumbs[1].focus();
+    fireEvent.keyDown(thumbs[1], { key: "ArrowUp" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(0);
+    expect(document.activeElement).toBe(getThumbs()[0]);
+  });
+
+  it("Thumbnails: ArrowRight em thumb[last] faz wrap para thumb[0]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+    const thumbs = getThumbs();
+    thumbs[2].focus();
+    fireEvent.keyDown(thumbs[2], { key: "ArrowRight" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(0);
+    expect(document.activeElement).toBe(getThumbs()[0]);
+  });
+
+  it("Thumbnails: ArrowLeft em thumb[0] faz wrap para thumb[last]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const thumbs = getThumbs();
+    thumbs[0].focus();
+    fireEvent.keyDown(thumbs[0], { key: "ArrowLeft" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(2);
+    expect(document.activeElement).toBe(getThumbs()[2]);
+  });
+
+  it("Thumbnails: Home em thumb[2] move para thumb[0]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+    const thumbs = getThumbs();
+    thumbs[2].focus();
+    fireEvent.keyDown(thumbs[2], { key: "Home" });
+    expect(m.setActiveVariation).toHaveBeenLastCalledWith(0);
+    expect(document.activeElement).toBe(getThumbs()[0]);
+  });
+
+  it("Thumbnails: preventDefault chamado para setas (consistente com dots)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const thumb = getThumbs()[0];
+    thumb.focus();
+    const event = createEvent.keyDown(thumb, { key: "ArrowRight" });
+    fireEvent(thumb, event);
+    expect(event.defaultPrevented).toBe(true);
+  });
+
+  // ── Teclas ignoradas: não causam side-effects (handler retorna sem preventDefault) ──
+
+  it.each(["a", "Tab", "Shift", "Escape", "Backspace"])(
+    "Tecla '%s' em dot é ignorada — não chama setActiveVariation e não previne default",
+    (key) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      render(<MagicUpResultPanel m={m} />);
+      const dot = getDots()[0];
+      dot.focus();
+      const event = createEvent.keyDown(dot, { key });
+      fireEvent(dot, event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(m.setActiveVariation).not.toHaveBeenCalled();
+    }
+  );
+
+  it.each(["a", "Tab", "Escape"])(
+    "Tecla '%s' em thumbnail é ignorada — não chama setActiveVariation e não previne default",
+    (key) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      render(<MagicUpResultPanel m={m} />);
+      const thumb = getThumbs()[0];
+      thumb.focus();
+      const event = createEvent.keyDown(thumb, { key });
+      fireEvent(thumb, event);
+      expect(event.defaultPrevented).toBe(false);
+      expect(m.setActiveVariation).not.toHaveBeenCalled();
+    }
+  );
+});
+
 describe("MagicUpResultPanel — retenção de foco em click no dot", () => {
   beforeEach(() => {
     vi.clearAllMocks();
