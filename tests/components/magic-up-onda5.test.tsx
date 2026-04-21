@@ -471,10 +471,11 @@ describe("Magic Up Onda 5 components", () => {
       ]);
       renderComparator({ variations });
 
-      // Em todas as variações, o botão "Marcar vencedora" existe e é localizável
-      // pelo aria-label exato montado por winnerButtonLabel.
+      // Em todas as variações, o botão "Marcar vencedora" existe e seu aria-label
+      // bate exatamente com o produzido por winnerButtonLabel(n).
       [1, 2, 3].forEach((n) => {
-        expect(expectWinnerButton(n)).toBe(select.cardExact(winnerButtonLabel(n)));
+        const btn = expectWinnerButton(n);
+        expect(btn.getAttribute("aria-label")).toBe(winnerButtonLabel(n));
       });
     });
 
