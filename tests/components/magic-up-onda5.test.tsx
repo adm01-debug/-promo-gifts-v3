@@ -1869,18 +1869,22 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
         />
       );
 
-      const REQUIRED_FOCUS_CLASSES = [
+      const REQUIRED_FOCUS_CLASSES_BASE = [
         "focus-visible:outline-none",
         "focus-visible:ring-2",
         "focus-visible:ring-ring",
+      ];
+      const REQUIRED_FOCUS_CLASSES_WINNER = [
+        ...REQUIRED_FOCUS_CLASSES_BASE,
         "focus-visible:ring-offset-2",
         "focus-visible:ring-offset-background",
       ];
 
-      const allFocusables = [
-        ...screen.getAllByRole("button", { name: /^Selecionar variação/ }),
-        ...screen.getAllByRole("button", { name: /vencedora/i }),
-      ].sort((a, b) => {
+      const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+      const winnerBtns = screen.getAllByRole("button", { name: /vencedora/i });
+      const winnerSet = new Set(winnerBtns);
+
+      const allFocusables = [...cards, ...winnerBtns].sort((a, b) => {
         const pos = a.compareDocumentPosition(b);
         if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
         if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
@@ -1893,7 +1897,10 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       last.focus();
       expect(last).toHaveFocus();
 
-      REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+      const expectedClassesFor = (el: Element) =>
+        winnerSet.has(el as HTMLElement) ? REQUIRED_FOCUS_CLASSES_WINNER : REQUIRED_FOCUS_CLASSES_BASE;
+
+      expectedClassesFor(last).forEach((cls) => {
         expect(last.className).toContain(cls);
       });
 
@@ -1902,7 +1909,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
         const expected = allFocusables[i];
         expect(expected).toHaveFocus();
 
-        REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+        expectedClassesFor(expected).forEach((cls) => {
           expect(expected.className).toContain(cls);
         });
 
