@@ -27,6 +27,28 @@ const diagnosis = (total: number, source: "ai" | "heuristic" = "ai"): MagicUpQua
 
 // ───────── Helpers de teste ─────────
 
+/**
+ * Setup padronizado do userEvent para todo o arquivo.
+ *
+ * Defaults:
+ *  - `delay: null` → sem timers reais entre eventos (testes determinísticos e ~10x mais rápidos)
+ *  - `pointerEventsCheck: 0` → ignora `pointer-events: none` em layouts virtuais (jsdom não calcula CSS layout)
+ *  - `skipHover: true` → evita disparo de hover transitório que confunde foco
+ *  - `writeToClipboard: false` → não toca em clipboard real do ambiente
+ *
+ * Permite override pontual via `userSetup({ delay: 50 })` quando um teste precisar simular timing humano.
+ */
+function userSetup(overrides: Parameters<typeof userEvent.setup>[0] = {}) {
+  return userEvent.setup({
+    delay: null,
+    pointerEventsCheck: 0,
+    skipHover: true,
+    writeToClipboard: false,
+    ...overrides,
+  });
+}
+
+
 /** Fixture padrão: 3 variações com scores [90, 70, 50] — cobre maioria dos testes de comparator/keyboard/focus */
 function buildVariations(overrides: Partial<VariationItem>[] = []): VariationItem[] {
   const base: VariationItem[] = [
