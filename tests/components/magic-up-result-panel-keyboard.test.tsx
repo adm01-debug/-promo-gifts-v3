@@ -1540,6 +1540,18 @@ describe("MagicUpResultPanel — foco e roving após click em dot/thumbnail inat
       expect(el.tabIndex).toBe(i === activeIndex ? 0 : -1);
       expect(el.getAttribute("aria-selected")).toBe(i === activeIndex ? "true" : "false");
     });
+    expectSingleTabStop(elements, activeIndex);
+  }
+
+  /**
+   * Garante que apenas UM elemento da coleção tem tabindex=0
+   * (contrato APG: roving tabindex == single tab stop por tablist).
+   */
+  function expectSingleTabStop(elements: HTMLElement[], expectedIndex: number) {
+    const zeros = elements
+      .map((el, i) => (el.tabIndex === 0 ? i : -1))
+      .filter((i) => i !== -1);
+    expect(zeros).toEqual([expectedIndex]);
   }
 
   function clickInactiveAndSyncState(
@@ -1671,5 +1683,200 @@ describe("MagicUpResultPanel — foco e roving após click em dot/thumbnail inat
     expect(document.activeElement).toBe(getDots()[1]);
     expect(document.activeElement).not.toBe(getThumbs()[1]);
     expect(getThumbs()[1].tabIndex).toBe(0);
+  });
+});
+
+// ───────── Identidade acessível: id/role/aria-label + single tab stop global ─────────
+// WCAG 4.1.2 (Name, Role, Value) + WAI-ARIA APG Tabs (1 único tabindex=0 por widget)
+
+describe("MagicUpResultPanel — identidade acessível e single tab stop", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  // ── Helpers locais ──────────────────────────────────────────────────
+
+  /** Coleta todos os tab stops do widget de variações (dots + thumbs + prev/next). */
+  function collectVariationTabStops() {
+    const dots = getDots();
+    const thumbs = getThumbs();
+    const prev = screen.queryByRole("button", { name: "Voltar" });
+    const next = screen.queryByRole("button", { name: "Avançar" });
+    return { dots, thumbs, prev, next, all: [...dots, ...thumbs, ...(prev ? [prev] : []), ...(next ? [next] : [])] };
+  }
+
+  /** Conta quantos elementos da lista têm tabindex=0 explicitamente. */
+  function countTabIndexZero(elements: HTMLElement[]) {
+    return elements.filter((el) => el.tabIndex === 0).length;
+  }
+
+  /** Asserta presença de aria-label não vazio. */
+  function expectAriaLabel(el: HTMLElement, pattern: RegExp | string) {
+    const label = el.getAttribute("aria-label");
+    expect(label).toBeTruthy();
+    if (typeof pattern === "string") expect(label).toBe(pattern);
+    else expect(label).toMatch(pattern);
+  }
+
+  // ── role nos containers e nos itens ─────────────────────────────────
+
+  it("Cada tablist tem role='tablist' com aria-label único e descritivo", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dotsList = getDotsTablist();
+    const thumbsList = getThumbsTablist();
+
+    expect(dotsList).toHaveAttribute("role", "tablist");
+    expect(thumbsList).toHaveAttribute("role", "tablist");
+    expectAriaLabel(dotsList, "Variações geradas");
+    expectAriaLabel(thumbsList, "Miniaturas das variações");
+
+    // labels distintos (não pode haver dois tablists com mesmo nome acessível)
+    expect(dotsList.getAttribute("aria-label")).not.toBe(thumbsList.getAttribute("aria-label"));
+  });
+
+  it("Todos os dots têm role='tab' e aria-label 'Selecionar variação N'", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots).toHaveLength(4);
+    dots.forEach((dot, i) => {
+      expect(dot).toHaveAttribute("role", "tab");
+      expectAriaLabel(dot, `Selecionar variação ${i + 1}`);
+    });
+  });
+
+  it("Todos os thumbnails têm role='tab' e aria-label começando com 'Variação N'", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumbs = getThumbs();
+    expect(thumbs).toHaveLength(4);
+    thumbs.forEach((thumb, i) => {
+      expect(thumb).toHaveAttribute("role", "tab");
+      expectAriaLabel(thumb, new RegExp(`varia[cç][aã]o\\s+${i + 1}\\b`, "i"));
+    });
+  });
+
+  it("Botões prev/next têm role implícito de button e aria-label 'Voltar'/'Avançar'", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    expect(prev.tagName).toBe("BUTTON");
+    expect(next.tagName).toBe("BUTTON");
+    expectAriaLabel(prev, "Voltar");
+    expectAriaLabel(next, "Avançar");
+  });
+
+  // ── ids únicos (aria-describedby tooltip) ──────────────────────────
+
+  it("Cada dot tem id implícito via aria-describedby único — sem colisão", () => {
+    const m = buildStubState({ variationsCount: 5, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const ids = getDots().map((d) => d.getAttribute("aria-describedby"));
+    ids.forEach((id) => expect(id).toMatch(/^magic-up-dot-tooltip-\d+$/));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  // ── Single tab stop por tablist ─────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "Apenas UM dot com tabindex=0 (active=%i) — nenhuma duplicidade",
+    (active) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      render(<MagicUpResultPanel m={m} />);
+      expect(countTabIndexZero(getDots())).toBe(1);
+      expect(getDots()[active].tabIndex).toBe(0);
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Apenas UM thumbnail com tabindex=0 (active=%i) — nenhuma duplicidade",
+    (active) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      render(<MagicUpResultPanel m={m} />);
+      expect(countTabIndexZero(getThumbs())).toBe(1);
+      expect(getThumbs()[active].tabIndex).toBe(0);
+    }
+  );
+
+  // ── Single tab stop por tablist mantido após troca de active ───────
+
+  it("Após re-render para novo active, ainda há exatamente 1 tabindex=0 em cada tablist", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    expect(countTabIndexZero(getDots())).toBe(1);
+    expect(countTabIndexZero(getThumbs())).toBe(1);
+
+    for (const next of [3, 1, 2, 0]) {
+      const updated = {
+        ...m,
+        activeVariation: next,
+        currentVariation: m.variations[next],
+      } as StubState;
+      rerender(<MagicUpResultPanel m={updated} />);
+
+      expect(countTabIndexZero(getDots())).toBe(1);
+      expect(countTabIndexZero(getThumbs())).toBe(1);
+      expect(getDots()[next].tabIndex).toBe(0);
+      expect(getThumbs()[next].tabIndex).toBe(0);
+    }
+  });
+
+  // ── Garante que dots e thumbs NÃO contam como duplicidade indevida ─
+
+  it("Dots e thumbnails do MESMO índice ativo coexistem com tabindex=0 (são tablists separados)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dotZero = getDots()[1];
+    const thumbZero = getThumbs()[1];
+    expect(dotZero.tabIndex).toBe(0);
+    expect(thumbZero.tabIndex).toBe(0);
+
+    // mas pertencem a tablists distintos com aria-label diferente
+    const dotsList = getDotsTablist();
+    const thumbsList = getThumbsTablist();
+    expect(dotsList.contains(dotZero)).toBe(true);
+    expect(thumbsList.contains(thumbZero)).toBe(true);
+    expect(dotsList).not.toBe(thumbsList);
+  });
+
+  // ── Verifica que itens INATIVOS nunca regridem para tabindex=0 ─────
+
+  it("Nenhum item inativo (não-active) tem tabindex=0 em qualquer momento", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    getDots().forEach((dot, i) => {
+      if (i !== 2) expect(dot.tabIndex).toBe(-1);
+    });
+    getThumbs().forEach((thumb, i) => {
+      if (i !== 2) expect(thumb.tabIndex).toBe(-1);
+    });
+  });
+
+  // ── Sanity check: tabStops globais coletados batem com expectativa ─
+
+  it("Snapshot semântico de tab stops: prev/next + 1 dot + 1 thumb = 4 elementos focáveis via Tab", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const { all, prev, next } = collectVariationTabStops();
+    const tabbable = all.filter((el) => el.tabIndex === 0);
+
+    // prev e next são sempre focáveis (tabindex padrão = 0 em <button>)
+    expect(prev).not.toBeNull();
+    expect(next).not.toBeNull();
+    expect(tabbable).toContain(prev!);
+    expect(tabbable).toContain(next!);
+
+    // exatamente 1 dot ativo + 1 thumb ativo + prev + next
+    expect(tabbable).toHaveLength(4);
   });
 });
