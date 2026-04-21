@@ -504,3 +504,120 @@ describe("MagicUpResultPanel — Sincronização cross-grupo entre dots e thumbn
     });
   });
 });
+
+// ───── Accessible names + ARIA roles para screen readers (WCAG 4.1.2 / 2.4.6 / 1.3.1) ─────
+
+function expectAccessibleName(el: HTMLElement, expected: string | RegExp) {
+  const name = el.getAttribute("aria-label") ?? el.textContent?.trim() ?? "";
+  if (expected instanceof RegExp) {
+    expect(name).toMatch(expected);
+  } else {
+    expect(name).toBe(expected);
+  }
+}
+
+function expectUniqueNames(elements: HTMLElement[]) {
+  const names = elements.map((el) => el.getAttribute("aria-label") ?? el.textContent?.trim() ?? "");
+  expect(new Set(names).size).toBe(names.length);
+}
+
+describe("MagicUpResultPanel — accessible names e atributos ARIA para screen readers", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("Prev e Next têm accessible names 'Voltar' e 'Avançar' via aria-label", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    expect(prev).toHaveAttribute("aria-label", "Voltar");
+    expect(next).toHaveAttribute("aria-label", "Avançar");
+    expectAccessibleName(prev, "Voltar");
+    expectAccessibleName(next, "Avançar");
+  });
+
+  it("Dots têm accessible names únicos no formato 'Selecionar variação N' (1-based)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots).toHaveLength(3);
+    dots.forEach((dot, i) => {
+      expectAccessibleName(dot, `Selecionar variação ${i + 1}`);
+    });
+    expectUniqueNames(dots);
+  });
+
+  it("Thumbnails têm accessible names únicos no formato 'Abrir miniatura da variação N'", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumbs = getThumbs();
+    expect(thumbs).toHaveLength(3);
+    thumbs.forEach((thumb, i) => {
+      expectAccessibleName(thumb, `Abrir miniatura da variação ${i + 1}`);
+    });
+    expectUniqueNames(thumbs);
+
+    // Thumbnails devem ter nomes distintos dos dots para evitar duplicação no SR
+    const dotNames = getDots().map((d) => d.getAttribute("aria-label"));
+    const thumbNames = thumbs.map((t) => t.getAttribute("aria-label"));
+    thumbNames.forEach((name) => {
+      expect(dotNames).not.toContain(name);
+    });
+  });
+
+  it("Tablists têm aria-label distintos ('Variações geradas' vs 'Miniaturas das variações')", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dotsTablist = screen.getByRole("tablist", { name: "Variações geradas" });
+    const thumbsTablist = screen.getByRole("tablist", { name: "Miniaturas das variações" });
+
+    expect(dotsTablist).toHaveAttribute("aria-label", "Variações geradas");
+    expect(thumbsTablist).toHaveAttribute("aria-label", "Miniaturas das variações");
+    expect(dotsTablist).not.toBe(thumbsTablist);
+  });
+
+  it("Roles corretos: prev/next=button, dots/thumbnails=tab dentro de tablist", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+    expect(prev.tagName).toBe("BUTTON");
+    expect(next.tagName).toBe("BUTTON");
+
+    expect(getDotsTablist()).toHaveAttribute("role", "tablist");
+    expect(getThumbsTablist()).toHaveAttribute("role", "tablist");
+
+    getDots().forEach((dot) => expect(dot).toHaveAttribute("role", "tab"));
+    getThumbs().forEach((thumb) => expect(thumb).toHaveAttribute("role", "tab"));
+  });
+
+  it("Dot ativo expõe aria-current='true'; demais dots não expõem aria-current", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots[1]).toHaveAttribute("aria-current", "true");
+    expect(dots[0]).not.toHaveAttribute("aria-current");
+    expect(dots[2]).not.toHaveAttribute("aria-current");
+  });
+
+  it("Prev/Next mantêm accessible name quando disabled (SR anuncia 'Voltar/Avançar, indisponível')", () => {
+    const mFirst = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { unmount } = render(<MagicUpResultPanel m={mFirst} />);
+    const prevDisabled = screen.getByRole("button", { name: "Voltar" });
+    expect(prevDisabled).toBeDisabled();
+    expect(prevDisabled).toHaveAttribute("aria-label", "Voltar");
+    unmount();
+
+    const mLast = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={mLast} />);
+    const nextDisabled = screen.getByRole("button", { name: "Avançar" });
+    expect(nextDisabled).toBeDisabled();
+    expect(nextDisabled).toHaveAttribute("aria-label", "Avançar");
+  });
+});
