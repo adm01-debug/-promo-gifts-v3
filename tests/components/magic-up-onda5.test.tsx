@@ -1548,4 +1548,38 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(btn2.getAttribute("aria-label")).toBe("Selecionar variação 2, score 90, melhor score");
     expect(btn3.getAttribute("aria-label")).toBe("Selecionar variação 3, score 90");
   });
+
+  it("cardinalidade do sufixo 'melhor score' em empate: exatamente 1 aria-label contém o sufixo; demais não contêm em nenhuma posição", () => {
+    const variations = [
+      buildVariation({ id: "var-A", qualityScore: 85 }, 0),
+      buildVariation({ id: "var-B", qualityScore: 85 }, 1),
+      buildVariation({ id: "var-C", qualityScore: 85 }, 2),
+    ];
+    renderTied(variations);
+
+    const allSelectButtons = screen.getAllByRole("button", { name: /^Selecionar variação \d+/ });
+    expect(allSelectButtons).toHaveLength(3);
+
+    const withWinnerSuffix = allSelectButtons.filter((btn) =>
+      (btn.getAttribute("aria-label") ?? "").includes(", melhor score")
+    );
+    expect(withWinnerSuffix).toHaveLength(1);
+
+    expect(withWinnerSuffix[0].getAttribute("aria-label")).toBe(
+      "Selecionar variação 1, score 85, melhor score"
+    );
+
+    const withoutWinnerSuffix = allSelectButtons.filter((btn) =>
+      !(btn.getAttribute("aria-label") ?? "").includes(", melhor score")
+    );
+    expect(withoutWinnerSuffix).toHaveLength(2);
+    withoutWinnerSuffix.forEach((btn) => {
+      const label = btn.getAttribute("aria-label") ?? "";
+      expect(label).not.toContain("melhor score");
+      expect(label).not.toMatch(/melhor/i);
+    });
+
+    const badges = screen.getAllByLabelText("Melhor score");
+    expect(badges).toHaveLength(1);
+  });
 });
