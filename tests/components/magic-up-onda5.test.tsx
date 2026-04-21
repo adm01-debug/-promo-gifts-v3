@@ -2148,4 +2148,87 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(onSelect.mock.calls.map((c) => c[0])).toEqual([1, 2, 1, 2]);
     expect(onSelectWinner).not.toHaveBeenCalled();
   });
+
+  it("badge fica no menor índice quando 2 cards têm isWinner: true e usuário clica no empatado de maior índice", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+
+    // Setup: var-A (idx 0) E var-C (idx 2) com isWinner: true; var-B (idx 1) sem
+    // Score var-B é maior (99) para provar que isWinner explícito tem precedência
+    const variations: VariationItem[] = [
+      { id: "var-A", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70, curationStatus: "draft", isWinner: true },
+      { id: "var-B", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 99, curationStatus: "draft", isWinner: false },
+      { id: "var-C", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 70, curationStatus: "draft", isWinner: true },
+    ];
+    const expectedWinnerIndex = 0;
+
+    const renderWithActive = (activeIndex: number) => (
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={activeIndex}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const { rerender } = render(renderWithActive(0));
+
+    const assertBadgeOnFirstWinner = (currentActive: number) => {
+      const cards = screen.getAllByRole("listitem");
+
+      // 1. Cardinalidade global = 1 (não duplica entre os 2 isWinner)
+      expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
+      expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
+
+      // 2. Badge SOMENTE em var-A (menor índice com isWinner)
+      expect(within(cards[expectedWinnerIndex]).getByLabelText("Melhor score")).toBeInTheDocument();
+      expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+      expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+      // 3. Aria-labels: só var-A tem sufixo, mesmo var-C tendo isWinner: true
+      const aLabel = within(cards[0]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
+      const bLabel = within(cards[1]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
+      const cLabel = within(cards[2]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
+      expect(aLabel).toBe("Selecionar variação 1, score 70, melhor score");
+      expect(bLabel).toBe("Selecionar variação 2, score 99");
+      expect(cLabel).toBe("Selecionar variação 3, score 70");
+
+      // 4. aria-pressed reflete activeIndex; badge é independente
+      expect(within(cards[currentActive]).getByRole("button", { name: /^Selecionar variação/ }))
+        .toHaveAttribute("aria-pressed", "true");
+    };
+
+    // Estado inicial
+    assertBadgeOnFirstWinner(0);
+
+    // CLIQUE 1: var-C (winner empatado de MAIOR índice)
+    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+    rerender(renderWithActive(2));
+    assertBadgeOnFirstWinner(2);
+
+    // CLIQUE 2: var-C novamente (re-confirma estabilidade)
+    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+    rerender(renderWithActive(2));
+    assertBadgeOnFirstWinner(2);
+
+    // CLIQUE 3: var-B (não-winner, mas score 99) — não promove a winner
+    await user.click(within(screen.getAllByRole("listitem")[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(1);
+    rerender(renderWithActive(1));
+    assertBadgeOnFirstWinner(1);
+
+    // CLIQUE 4: volta para var-C
+    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+    rerender(renderWithActive(2));
+    assertBadgeOnFirstWinner(2);
+
+    // Auditoria final
+    expect(onSelect).toHaveBeenCalledTimes(4);
+    expect(onSelect.mock.calls.map((c) => c[0])).toEqual([2, 2, 1, 2]);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+  });
 });
