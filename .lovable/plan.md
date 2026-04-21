@@ -1,147 +1,159 @@
 
 
-# Plano — Teste de invariância da badge "Melhor score" sob mudança de `activeIndex`
+# Plano — Asserts dedicados de `aria-pressed` antes/depois do clique no teste de invariância
 
-Adiciono um novo teste ao `tests/components/magic-up-onda5.test.tsx` que prova que a badge "Melhor score" permanece **fixa no `winnerIndex`** mesmo quando o usuário clica em outro card e ele se torna o `activeIndex`. Usa `rerender` do React Testing Library para simular o ciclo controlado: `onSelect` → pai atualiza `activeIndex` → re-render → badge não migra.
+Reforço o teste `badge 'Melhor score' permanece no winnerIndex...` com um **bloco focal de asserts de `aria-pressed`** capturados **antes e depois** de cada clique, comparando lado a lado o estado do card clicado vs. o card do winner. Isso isola explicitamente as duas dimensões ortogonais (seleção vs. vencedor) em snapshots diretos.
 
 ## Justificativa
 
-O componente `MagicUpVariationComparator` recebe `activeIndex` como prop controlada pelo pai. Há risco de regressão onde:
-1. Alguém vincule a badge "Melhor score" ao `activeIndex` em vez do `winnerIndex` (confusão semântica entre "selecionado" e "vencedor")
-2. Refatoração que use `useState` interno para "selected" e mova a badge para o item selecionado
-3. CSS condicional que troque a badge pelo ring de seleção
+O teste atual valida `aria-pressed` dentro do helper `assertWinnerInvariant` (em todos os 3 cards), mas:
 
-O teste prova invariância da badge sob **3 mudanças sucessivas** de `activeIndex` (0 → 1 → 2 → 0), garantindo que:
-- Badge nunca migra do `winnerIndex` (índice 1, com score mais alto)
-- `aria-pressed` e `aria-current` migram corretamente para o `activeIndex`
-- `onSelect` é chamado com o índice correto a cada clique
-- Cardinalidade global de "Melhor score" permanece 1 em todos os estados
+1. As asserções de `aria-pressed` ficam **misturadas** com 6 outras invariantes — fica difícil ler "o que mudou no clique" isoladamente
+2. Não há **comparação direta** entre o estado **antes** e **depois** do mesmo clique no mesmo card
+3. Falta um snapshot focal que prove "este clique mudou `aria-pressed` deste card de false→true, e o card do winner manteve sua badge"
+
+O novo bloco captura, para cada um dos 3 cliques, um **par de tuplas** `[clickedAriaPressed, winnerAriaPressed, winnerBadgePresent]` antes e depois, provando:
+- Card clicado: `aria-pressed` muda de `"false"` → `"true"` (exceto quando já era ativo)
+- Card do winner: `aria-pressed` muda **apenas** se for o card clicado; badge nunca desaparece
+- Caso especial coberto: clique no próprio winner (var-B) — `aria-pressed` vira `"true"` E badge permanece
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar novo teste no `describe` existente do `MagicUpVariationComparator`, após o `it.each` paramétrico, antes do fechamento do bloco:
+Adicionar dentro do teste `badge 'Melhor score' permanece no winnerIndex...`, **substituindo** os 3 blocos de clique existentes por uma versão refatorada que captura snapshots antes/depois:
 
 ```ts
-it("badge 'Melhor score' permanece no winnerIndex mesmo quando outro card é selecionado (activeIndex controlado)", async () => {
-  const user = userEvent.setup();
-  const onSelect = vi.fn();
-  const onSelectWinner = vi.fn();
-
-  // Setup: 3 variações, var-B (índice 1) é vencedora por score (90 > 60 > 40)
-  const variations: VariationItem[] = [
-    { id: "var-A", imageUrl: "https://example.com/a.png", qualityScore: 60 },
-    { id: "var-B", imageUrl: "https://example.com/b.png", qualityScore: 90 },
-    { id: "var-C", imageUrl: "https://example.com/c.png", qualityScore: 40 },
-  ];
-  const winnerIndex = 1;
-
-  // Helper: re-renderiza com novo activeIndex e valida invariantes
-  const renderWithActive = (activeIndex: number) => (
-    <MagicUpVariationComparator
-      variations={variations}
-      activeIndex={activeIndex}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-    />
-  );
-
-  const { rerender } = render(renderWithActive(0));
-
-  // Helper: valida invariância da badge + estado de seleção
-  const assertWinnerInvariant = (currentActive: number) => {
-    const cards = screen.getAllByRole("listitem");
-
-    // 1. Badge "Melhor score" sempre no winnerIndex (índice 1)
-    expect(within(cards[winnerIndex]).getByLabelText("Melhor score")).toBeInTheDocument();
-    expect(within(cards[winnerIndex]).getByText("Melhor score")).toBeInTheDocument();
-
-    // 2. Cardinalidade global: exatamente 1 badge em todo o DOM
-    expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
-    expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
-
-    // 3. Outros cards NÃO têm badge (incluindo o activeIndex se for diferente)
-    [0, 1, 2].filter((i) => i !== winnerIndex).forEach((i) => {
-      expect(within(cards[i]).queryByLabelText("Melhor score")).toBeNull();
-    });
-
-    // 4. aria-pressed/aria-current refletem o activeIndex (não o winnerIndex)
-    cards.forEach((card, i) => {
-      const button = within(card).getByRole("button", { name: /^Selecionar variação/ });
-      const isActive = i === currentActive;
-      expect(button).toHaveAttribute("aria-pressed", String(isActive));
-      if (isActive) {
-        expect(button).toHaveAttribute("aria-current", "true");
-      } else {
-        expect(button).not.toHaveAttribute("aria-current");
-      }
-    });
-
-    // 5. Aria-label do winner mantém sufixo independente do activeIndex
-    const winnerButton = within(cards[winnerIndex]).getByRole("button", {
-      name: /^Selecionar variação 2/,
-    });
-    expect(winnerButton.getAttribute("aria-label")).toBe(
-      "Selecionar variação 2, score 90, melhor score"
-    );
+// Helper: captura snapshot focal de aria-pressed + presença da badge do winner
+const captureSnapshot = (clickedIndex: number) => {
+  const cards = screen.getAllByRole("listitem");
+  const clickedButton = within(cards[clickedIndex]).getByRole("button", {
+    name: /^Selecionar variação/,
+  });
+  const winnerButton = within(cards[winnerIndex]).getByRole("button", {
+    name: /^Selecionar variação/,
+  });
+  return {
+    clickedAriaPressed: clickedButton.getAttribute("aria-pressed"),
+    winnerAriaPressed: winnerButton.getAttribute("aria-pressed"),
+    winnerBadgePresent: within(cards[winnerIndex]).queryByLabelText("Melhor score") !== null,
+    winnerBadgeText: within(cards[winnerIndex]).queryByText("Melhor score") !== null,
   };
+};
 
-  // Estado inicial: activeIndex=0 (var-A selecionada, var-B vencedora)
-  assertWinnerInvariant(0);
+// Helper: executa ciclo clique → rerender com snapshots antes/depois
+const clickAndAssertSnapshot = async (
+  clickIndex: number,
+  newActiveIndex: number,
+  expectedBefore: ReturnType<typeof captureSnapshot>,
+  expectedAfter: ReturnType<typeof captureSnapshot>
+) => {
+  const beforeSnapshot = captureSnapshot(clickIndex);
+  expect(beforeSnapshot).toEqual(expectedBefore);
 
-  // Clique 1: usuário clica em var-B (winner) → activeIndex=1
-  const cardsInitial = screen.getAllByRole("listitem");
-  await user.click(within(cardsInitial[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(1);
-  rerender(renderWithActive(1));
-  // Caso especial: activeIndex === winnerIndex (badge + ring no mesmo card)
-  assertWinnerInvariant(1);
+  const cardsForClick = screen.getAllByRole("listitem");
+  await user.click(
+    within(cardsForClick[clickIndex]).getByRole("button", { name: /^Selecionar variação/ })
+  );
+  expect(onSelect).toHaveBeenLastCalledWith(clickIndex);
+  rerender(renderWithActive(newActiveIndex));
 
-  // Clique 2: usuário clica em var-C → activeIndex=2 (badge NÃO migra para var-C)
-  const cardsAfter1 = screen.getAllByRole("listitem");
-  await user.click(within(cardsAfter1[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(2);
-  rerender(renderWithActive(2));
-  assertWinnerInvariant(2);
+  const afterSnapshot = captureSnapshot(clickIndex);
+  expect(afterSnapshot).toEqual(expectedAfter);
+};
 
-  // Clique 3: volta para var-A → activeIndex=0 (badge ainda em var-B)
-  const cardsAfter2 = screen.getAllByRole("listitem");
-  await user.click(within(cardsAfter2[0]).getByRole("button", { name: /^Selecionar variação 1/ }));
-  expect(onSelect).toHaveBeenLastCalledWith(0);
-  rerender(renderWithActive(0));
-  assertWinnerInvariant(0);
+// Estado inicial: activeIndex=0
+assertWinnerInvariant(0);
 
-  // 6. Auditoria final: onSelect chamado exatamente 3 vezes com sequência correta
-  expect(onSelect).toHaveBeenCalledTimes(3);
-  expect(onSelect.mock.calls.map((c) => c[0])).toEqual([1, 2, 0]);
+// CLIQUE 1: var-B (winnerIndex=1) — caso especial: clicado === winner
+// Antes: var-B não está pressed (active=0), badge presente
+// Depois: var-B pressed=true, badge AINDA presente (mesmo card)
+await clickAndAssertSnapshot(
+  1,
+  1,
+  {
+    clickedAriaPressed: "false",
+    winnerAriaPressed: "false", // mesmo card, mesmo valor
+    winnerBadgePresent: true,
+    winnerBadgeText: true,
+  },
+  {
+    clickedAriaPressed: "true",
+    winnerAriaPressed: "true", // mesmo card, mesmo valor
+    winnerBadgePresent: true, // INVARIANTE: badge não some
+    winnerBadgeText: true,
+  }
+);
+assertWinnerInvariant(1);
 
-  // 7. onSelectWinner NUNCA foi chamado (clique no card ≠ clique em "Marcar vencedora")
-  expect(onSelectWinner).not.toHaveBeenCalled();
-});
+// CLIQUE 2: var-C (clickIndex=2) — clicado ≠ winner
+// Antes: var-C pressed=false, var-B pressed=true (era active)
+// Depois: var-C pressed=true, var-B pressed=false, badge AINDA em var-B
+await clickAndAssertSnapshot(
+  2,
+  2,
+  {
+    clickedAriaPressed: "false",
+    winnerAriaPressed: "true", // var-B era active
+    winnerBadgePresent: true,
+    winnerBadgeText: true,
+  },
+  {
+    clickedAriaPressed: "true",
+    winnerAriaPressed: "false", // seleção saiu de var-B
+    winnerBadgePresent: true, // INVARIANTE: badge não migra para var-C
+    winnerBadgeText: true,
+  }
+);
+assertWinnerInvariant(2);
+
+// CLIQUE 3: var-A (clickIndex=0) — clicado ≠ winner, vinha de var-C
+// Antes: var-A pressed=false, var-B pressed=false (active=2)
+// Depois: var-A pressed=true, var-B pressed=false (badge intacta em var-B)
+await clickAndAssertSnapshot(
+  0,
+  0,
+  {
+    clickedAriaPressed: "false",
+    winnerAriaPressed: "false",
+    winnerBadgePresent: true,
+    winnerBadgeText: true,
+  },
+  {
+    clickedAriaPressed: "true",
+    winnerAriaPressed: "false",
+    winnerBadgePresent: true, // INVARIANTE: badge persiste em var-B
+    winnerBadgeText: true,
+  }
+);
+assertWinnerInvariant(0);
+
+// Auditoria final preservada
+expect(onSelect).toHaveBeenCalledTimes(3);
+expect(onSelect.mock.calls.map((c) => c[0])).toEqual([1, 2, 0]);
+expect(onSelectWinner).not.toHaveBeenCalled();
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Reusa imports existentes (`render`, `rerender`, `screen`, `within`, `userEvent`, `vi`, `VariationItem`)
-- Sem novos imports
-- Padrão controlado: pai (teste) é fonte da verdade do `activeIndex`, componente apenas notifica via `onSelect`
-- 4 estados validados (inicial + 3 cliques) × 7 invariantes por estado = 28 verificações totais
+- Sem alteração nos demais testes (77 outros casos preservados)
+- Sem novos imports (reusa `within`, `screen`, `user`, `rerender`)
+- Mantém o helper `assertWinnerInvariant` existente — os novos snapshots **complementam**, não substituem
+- Estrutura de helper local (`captureSnapshot` + `clickAndAssertSnapshot`) torna cada clique auto-documentado
 
 ## Entregável
 
-- 1 novo teste (77 → 78 testes)
-- Trava 5 invariantes críticas:
-  1. Badge "Melhor score" é função pura de `winnerIndex`, **independente** de `activeIndex`
-  2. Cardinalidade global da badge permanece 1 em qualquer estado de seleção
-  3. `aria-pressed`/`aria-current` migram corretamente com `activeIndex`
-  4. Aria-label do vencedor mantém sufixo `, melhor score` em todos os estados
-  5. `onSelect` é chamado com índice correto; `onSelectWinner` não é chamado por clique no card
-- Caso especial coberto: `activeIndex === winnerIndex` (badge + ring coexistem no mesmo card)
-- Captura regressões de:
-  - Migração indevida da badge para o card selecionado
-  - Confusão entre `aria-current` (seleção) e badge (vencedor)
-  - Vazamento de chamadas de `onSelectWinner` em cliques de seleção
+- 1 teste reforçado (78 → 78 testes; volume de asserts dentro do teste cresce)
+- 3 ciclos antes/depois × 4 campos por snapshot = **24 asserts focais adicionais** sobre `aria-pressed` e badge
+- Trava 4 invariantes lado a lado:
+  1. Clique muda `aria-pressed` do card clicado de `"false"` → `"true"`
+  2. Card do winner perde `aria-pressed="true"` apenas se a seleção sair dele
+  3. Badge do winner (`aria-label` + texto visível) **nunca** desaparece em nenhum dos 3 cliques
+  4. Caso especial `clickedIndex === winnerIndex`: `aria-pressed` do winner vira `"true"` E badge permanece
+- Captura regressões onde:
+  - Badge fosse vinculada acidentalmente a `aria-pressed` (sumiria no clique fora do winner)
+  - `aria-pressed` ficasse "preso" em `"true"` no card que perdeu seleção
+  - Re-render acidentalmente desmontasse a badge
 - Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 78/78 verde
 
