@@ -1,50 +1,49 @@
 
 
-# Plano — Teste do fluxo "Reanalisar Magic Score"
+# Plano — Auditoria de acessibilidade da Onda 5
 
-## Limitação herdada do QA anterior
+Vou auditar os 4 componentes novos da Onda 5 (`MagicUpQualityScore`, `MagicUpQualityChecklist`, `MagicUpCurationStatus`, `MagicUpVariationComparator`) + os pontos de integração no `MagicUpResultPanel` e `AdImageResult` (botão "Reanalisar Magic Score"), e corrigir tudo numa única passada.
 
-O QA manual A–D ficou **bloqueado pelo upload de logo** (`<input type="file">` que o browser-bot não aciona). Reanalisar exige uma variação já gerada com `id` persistido em `magic_up_generations`, então **não consigo disparar o fluxo end-to-end pelo preview** sem que você faça pelo menos uma geração manual.
+## Critérios auditados
 
-Mesmo assim, posso entregar uma validação **rigorosa em três camadas** sem depender do upload, combinando código + DB + logs + curl real da edge function.
+Para cada elemento interativo:
+- **`aria-label`** descritivo quando o conteúdo visual não é suficiente (ícones puros, badges clicáveis)
+- **Navegação por teclado** — `<button>` nativo, `tabIndex` correto, `Enter`/`Space` funcionando
+- **Estados de foco** — `focus-visible:ring-2 focus-visible:ring-ring` ou equivalente do design system
+- **Roles e landmarks** — `role="group"`, `aria-pressed`, `aria-current`, `aria-label` em `<section>`
+- **Contraste de status** — selo "Melhor score", origem "IA"/"Heurístico", curadoria ativa
+- **Leitura por screen reader** — score numérico exposto como texto, não só visual
 
-## O que vou executar
+## Componentes que serão revisados
 
-### 1. Auditoria de código do fluxo (read-only)
-Reler e cruzar:
-- `useMagicUpGeneration.handleRunQualityScore` — chamada à `magic-up-score`, atualização de `variations[activeVariation]`, `setQualityDiagnosis`, `setQualityScore`, update em `magic_up_generations.quality_score`, `queryClient.invalidateQueries(['magic-up-history'])`, toast de sucesso/erro
-- `useMagicUpState` — exposição de `handleRunQualityScore` e propagação para `MagicUpResultPanel` → `AdImageResult`
-- `AdImageResult` — botão "Reanalisar Magic Score" e gating por `currentVariation?.id`
-- Confirmar se o update em DB também grava `metadata.qualityDiagnosis` e `metadata.qualitySource` (ponto de atenção mapeado na Onda 5)
+| Arquivo | Falhas prováveis a corrigir |
+|---|---|
+| `MagicUpQualityScore.tsx` | `<section>` ok, mas `Progress` precisa de `aria-valuenow/min/max/label` explícito; badge de origem precisa de `title`/`aria-label` |
+| `MagicUpQualityChecklist.tsx` | Lista deveria ser `<ul>/<li>` com `role="list"`; ícones de status precisam de `aria-hidden` + texto sr-only ("aprovado"/"reprovado"); score numérico precisa de `aria-label` ("Score 94 de 100") |
+| `MagicUpCurationStatus.tsx` | Botões precisam de `aria-pressed` quando ativo; container `role="radiogroup"` ou manter `group` mas reforçar `aria-label`; scroll horizontal precisa de `tabIndex={0}` quando overflow |
+| `MagicUpVariationComparator.tsx` | Cards clicáveis precisam de `aria-pressed`/`aria-current="true"`; "Marcar vencedora" precisa de `aria-label` único por variação; selo "Melhor score" precisa estar associado semanticamente |
+| `MagicUpResultPanel.tsx` | Dots de paginação ✅ já têm aria-label; thumbnails ✅ ok; verificar `aria-current` nos dots |
+| `AdImageResult.tsx` (apenas botão Reanalisar e bloco curadoria) | Confirmar `aria-label`, `disabled` correto e foco visível |
 
-### 2. Validação backend ao vivo
-- `supabase--curl_edge_functions` em `magic-up-score` com payload mínimo válido (sem `imageUrl` real para não consumir IA): confirmar 400 Zod
-- Tentar payload válido (com URL pública pequena) só se quota permitir; caso contrário, registrar como ressalva
-- `supabase--edge_function_logs` filtrando por `magic-up-score` para correlacionar a chamada acima
+## Plano de execução
 
-### 3. Inspeção do estado atual no banco
-- `supabase--read_query` em `magic_up_generations` (últimos 5 registros do usuário logado): conferir colunas `quality_score`, `status`, `metadata->qualityDiagnosis`, `metadata->qualitySource`, `metadata->curation`, `updated_at`
-- Identificar se já existe ao menos uma geração com `id` que possa servir como caso real para você reanalisar manualmente no preview enquanto observo
+1. **Audit pass** — `code--view` em cada um dos 5 arquivos, anotar exatamente quais linhas falham em quais critérios
+2. **Correções cirúrgicas** via `code--line_replace` (sem refator visual; só atributos a11y e classes `focus-visible:*`)
+3. **Atualização do teste** `tests/components/magic-up-onda5.test.tsx` para cobrir as novas asserts (`aria-pressed`, `aria-current`, `role="list"`, score com `aria-label`)
+4. **Re-run** dos testes Onda 5 para garantir 0 regressão
+5. **Relatório final** listando: falhas encontradas → correções aplicadas → testes atualizados
 
-### 4. Cobertura por testes automatizados (já verde)
-Confirmar que `tests/hooks/useMagicUpGeneration-onda5.test.tsx` cobre o caso "reanalisar Magic Score" — atualização de diagnóstico, score, update em DB, invalidação do histórico e toast — e citar como evidência substituta da execução manual bloqueada.
+## Restrições
 
-### 5. (Opcional, mediante seu OK) QA assistido
-Se você fizer **uma única geração manual** com upload de logo enquanto eu acompanho, eu:
-- Acompanho a inserção em `magic_up_generations` por `read_query`
-- Capturo a chamada à `magic-up-score` por logs
-- Você clica em "Reanalisar Magic Score"
-- Eu confirmo update do score na linha + invalidação do histórico (recontagem) + diferença em `metadata`
+- **Sem mudanças visuais** — apenas atributos ARIA, `role`, `tabIndex`, `aria-hidden` e classes `focus-visible:*` que já existem no design system
+- **Sem alteração de comportamento** — handlers `onClick` permanecem idênticos
+- **Sem dependência de browser** — auditoria por código + testes unitários, suficiente para validar a11y estática
 
 ## Entregável
 
-Relatório consolidado com:
-- ✅ trecho de código do `handleRunQualityScore` com pontos confirmados/divergentes
-- ✅ resultado do curl + log da edge function
-- ✅ snapshot do estado atual em `magic_up_generations`
-- ✅ confirmação dos testes automatizados que cobrem o caso
-- ⚠️ ressalva clara sobre QA manual interativo bloqueado pelo upload de logo
-- 🐛 lista de bugs/divergências caso encontre (ex.: update sem regravar `metadata.qualityDiagnosis`)
-
-Sem alterações de código nesta rodada.
+Resumo por componente com:
+- 🐛 falhas detectadas (linha + critério)
+- ✅ correção aplicada (atributo adicionado)
+- 🧪 teste novo cobrindo a regra
+- Status final: "Onda 5 a11y compliant"
 
