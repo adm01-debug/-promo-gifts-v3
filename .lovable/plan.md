@@ -1,71 +1,76 @@
 
 
-# Plano — Reforçar teste de empate em score 0 no `MagicUpVariationComparator`
+# Plano — Teste do `aria-label` correto quando `qualityScore` é 0
 
-O teste de score 0 já existe na sub-suíte criada anteriormente (`tests/components/magic-up-onda5.test.tsx`), mas valida apenas o posicionamento da badge no índice 0 — **não** assegura explicitamente que existe **exatamente 1** badge no total. Adiciono novo teste dedicado e mais rigoroso para esse caso degenerado.
+Adiciono teste validando que o `aria-label` do botão de seleção de variação **não inclui "score 0"** quando o score é 0 (falsy), mas a variação **ainda é destacada como vencedora** ("melhor score") no caso degenerado de empate em zero.
 
 ## Justificativa
 
-O teste atual de score 0:
-```ts
-it("caso degenerado (todos sem score): bestScore=0, badge ainda aparece no índice 0", () => {
-  // verifica within(cards[0/1/2]).queryByLabelText("Melhor score")
-  // mas NÃO verifica getAllByLabelText("Melhor score").toHaveLength(1)
-});
+A lógica atual em `MagicUpVariationComparator.tsx` (linha 60):
+
+```tsx
+aria-label={`Selecionar variação ${index + 1}${score ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
 ```
 
-Falta a asserção global de contagem (`toHaveLength(1)`), presente nos outros testes da sub-suíte (qualityScore=75, qualityDiagnosis=90, empate parcial). Isso cria assimetria: se aparecesse uma badge extra fora dos cards listados, o teste passaria silenciosamente.
+Comportamento contratual:
+- `score ? ...` é **falsy quando score=0** → trecho `, score 0` é **omitido**
+- `isWinner` continua avaliado independentemente → trecho `, melhor score` aparece se a variação for vencedora
 
-Riscos cobertos pelo novo teste:
-- **Contagem global** de badges "Melhor score" no caso degenerado (todos com score 0)
-- **Determinismo do winnerIndex=0** mesmo quando `bestScore` é falsy (`0`)
-- **Variação no número de cards** (testa com 2, 3 e 5 variações zeradas) — garante que o índice 0 sempre vence independentemente do tamanho do array
+Esse comportamento é o correto: anunciar "score 0" para screen readers seria ruído sem valor (significa "score indisponível"), mas omitir o destaque de vencedor seria perda de informação semântica.
+
+**Gap atual:** nenhum teste valida explicitamente que o `aria-label` da variação vencedora com score 0 contém "melhor score" mas **não** contém "score 0". Refactor que troque `score ?` por `score !== undefined` quebraria o contrato silenciosamente (passaria a anunciar "score 0").
 
 ## Arquivo alterado
 
 Apenas testes:
-- **`tests/components/magic-up-onda5.test.tsx`** — adiciona 1 teste paramétrico ao final da sub-suíte `MagicUpVariationComparator — empate total de scores (determinismo)`
+- **`tests/components/magic-up-onda5.test.tsx`** — adiciona 1 teste ao final da sub-suíte `MagicUpVariationComparator — empate total de scores (determinismo)`
 
 ## Novo teste
 
 ```ts
-it.each([2, 3, 5])(
-  "empate em score 0 com %i variações: exatamente 1 badge 'Melhor score', sempre no índice 0",
-  (count) => {
-    const variations = Array.from({ length: count }, (_, i) =>
-      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, i)
-    );
-    renderTied(variations);
+it("score=0 (empate degenerado): aria-label do vencedor inclui 'melhor score' mas omite 'score 0'", () => {
+  const variations = [
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 1),
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
+  ];
+  renderTied(variations);
 
-    // Asserção global: apenas 1 badge no DOM inteiro
-    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+  // Vencedor (índice 0): aria-label deve conter "melhor score" mas NÃO "score 0"
+  const winnerButton = screen.getByRole("button", { name: /Selecionar variação 1/ });
+  const winnerLabel = winnerButton.getAttribute("aria-label") || "";
+  expect(winnerLabel).toContain("melhor score");
+  expect(winnerLabel).not.toMatch(/score 0\b/);
+  expect(winnerLabel).not.toContain(", score 0");
 
-    // Asserção de posicionamento: badge no card[0], ausente nos demais
-    const cards = screen.getAllByRole("listitem");
-    expect(cards).toHaveLength(count);
-    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-    for (let i = 1; i < count; i++) {
-      expect(within(cards[i]).queryByLabelText("Melhor score")).toBeNull();
-    }
-  }
-);
+  // Não-vencedores (índices 1, 2): aria-label não menciona "score 0" nem "melhor score"
+  const loser1 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+  const loser2 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+  expect(loser1.getAttribute("aria-label")).not.toMatch(/score 0\b/);
+  expect(loser1.getAttribute("aria-label")).not.toContain("melhor score");
+  expect(loser2.getAttribute("aria-label")).not.toMatch(/score 0\b/);
+  expect(loser2.getAttribute("aria-label")).not.toContain("melhor score");
+});
 ```
 
-**Cobre:**
-- Contagem global (`toHaveLength(1)`) — fechava o gap do teste anterior
-- 3 cenários de tamanho (2, 5, 5) confirmam que o comportamento é estável independentemente do número de variações
-- Asserção de posicionamento determinístico no índice 0 mantida e aplicada a TODOS os índices `i ≥ 1` (não apenas 1 e 2)
+**Cobre 3 contratos de a11y:**
+1. **Omissão de "score 0"** no vencedor — evita ruído para screen readers
+2. **Presença de "melhor score"** no vencedor mesmo com score=0 — preserva destaque semântico
+3. **Não-vencedores não recebem "melhor score"** — confirma que `isWinner` é exclusivo do índice 0 no empate degenerado (consistente com testes anteriores da sub-suíte)
+
+**Regex `\b` em `score 0`** garante que matches como "score 05" (improvável mas possível) não falseiem o assertion.
 
 ## Restrições
 
 - Sem alterar `MagicUpVariationComparator.tsx` — comportamento atual é o contrato
-- Sem alterar testes existentes da sub-suíte — apenas adiciona
-- Reusa helper `buildVariation` e `renderTied` já definidos
-- `it.each` já é padrão Vitest, sem novos imports
+- Sem alterar testes existentes — apenas adiciona 1 novo teste
+- Reusa helpers `buildVariation` e `renderTied` já definidos
+- Sem novos imports
 
 ## Entregável
 
-- 1 novo teste paramétrico (3 execuções: 2, 3, 5 variações) ao final da sub-suíte de empate
-- Cobertura final do arquivo: 54 → 55 testes (3 execuções via `it.each`)
-- Trava reforçada: empate em score 0 → exatamente 1 badge no índice 0, em qualquer cardinalidade
+- 1 novo teste ao final da sub-suíte de empate em `tests/components/magic-up-onda5.test.tsx`
+- Cobertura final: 57 → 58 testes
+- Trava contrato a11y: `aria-label` do vencedor com score 0 contém "melhor score" e omite "score 0"
+- Conformidade WCAG 4.1.2 (Name/Role/Value) para caso degenerado de score zerado
 
