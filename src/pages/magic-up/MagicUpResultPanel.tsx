@@ -35,6 +35,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
                 aria-current={i === m.activeVariation ? "true" : undefined}
                 role="tab"
                 aria-selected={i === m.activeVariation}
+                tabIndex={i === m.activeVariation ? 0 : -1}
                 className="group relative inline-flex items-center justify-center w-11 h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span
@@ -90,12 +91,15 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
       />
 
       {m.variations.length > 1 && (
-        <div className="flex gap-2 overflow-x-auto pb-1">
+        <div className="flex gap-2 overflow-x-auto pb-1" role="tablist" aria-label="Miniaturas das variações">
           {m.variations.map((v, i) => (
             <button
               key={i}
               onClick={() => m.setActiveVariation(i)}
               aria-label={`Abrir miniatura da variação ${i + 1}`}
+              role="tab"
+              aria-selected={i === m.activeVariation}
+              tabIndex={i === m.activeVariation ? 0 : -1}
               className={cn(
                 "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 i === m.activeVariation
