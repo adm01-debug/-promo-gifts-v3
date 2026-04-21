@@ -272,3 +272,113 @@ describe("MagicUpVariationComparator snapshots", () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 });
+
+describe("MagicUpVariationComparator keyboard navigation", () => {
+  const buildVariations = (): VariationItem[] => [
+    { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70 },
+    { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 85 },
+    { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 92 },
+  ];
+
+  it("Tab percorre cards e botões 'Marcar vencedora' na ordem do DOM", () => {
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const expectedOrder = [
+      screen.getByRole("button", { name: /Selecionar variação 1/ }),
+      screen.getByRole("button", { name: "Marcar variação 1 como vencedora" }),
+      screen.getByRole("button", { name: /Selecionar variação 2/ }),
+      screen.getByRole("button", { name: "Marcar variação 2 como vencedora" }),
+      screen.getByRole("button", { name: /Selecionar variação 3/ }),
+      screen.getByRole("button", { name: "Marcar variação 3 como vencedora" }),
+    ];
+
+    // Todos os elementos são <button> nativos, focáveis via Tab por padrão (sem tabindex=-1)
+    for (const el of expectedOrder) {
+      expect(el.tagName).toBe("BUTTON");
+      expect(el.getAttribute("tabindex")).not.toBe("-1");
+    }
+
+    // Confirma ordem do DOM: cada elemento aparece depois do anterior
+    for (let i = 1; i < expectedOrder.length; i++) {
+      const prev = expectedOrder[i - 1];
+      const curr = expectedOrder[i];
+      const position = prev.compareDocumentPosition(curr);
+      expect(position & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
+  });
+
+  it("Enter no card de variação dispara onSelect com índice correto", () => {
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const card = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    card.focus();
+    expect(document.activeElement).toBe(card);
+    // Botões nativos invocam onClick em Enter; simulamos via click() no elemento focado
+    fireEvent.keyDown(card, { key: "Enter", code: "Enter" });
+    fireEvent.click(card);
+
+    expect(onSelect).toHaveBeenCalledWith(1);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+  });
+
+  it("Space no card de variação dispara onSelect com índice correto", () => {
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const card = screen.getByRole("button", { name: /Selecionar variação 3/ });
+    card.focus();
+    expect(document.activeElement).toBe(card);
+    fireEvent.keyUp(card, { key: " ", code: "Space" });
+    fireEvent.click(card);
+
+    expect(onSelect).toHaveBeenCalledWith(2);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+  });
+
+  it("Enter no botão 'Marcar vencedora' chama onSelectWinner sem disparar onSelect", () => {
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const winnerBtn = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+    winnerBtn.focus();
+    expect(document.activeElement).toBe(winnerBtn);
+    fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter" });
+    fireEvent.click(winnerBtn);
+
+    expect(onSelectWinner).toHaveBeenCalledWith(2);
+    expect(onSelectWinner).toHaveBeenCalledTimes(1);
+    expect(onSelect).not.toHaveBeenCalled();
+  });
+});
