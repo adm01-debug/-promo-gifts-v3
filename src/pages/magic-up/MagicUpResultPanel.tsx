@@ -90,7 +90,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
               onClick={() => m.setActiveVariation(i)}
               aria-label={`Abrir miniatura da variação ${i + 1}`}
               className={cn(
-                "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all",
+                "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 i === m.activeVariation
                   ? "border-primary ring-2 ring-primary/20"
                   : "border-border hover:border-primary/40"
