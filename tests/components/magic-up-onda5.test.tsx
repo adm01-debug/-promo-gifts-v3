@@ -2474,5 +2474,102 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
         ", melhor score"
       );
     });
+
+    it("foco DOM move para o novo card ativo após ArrowRight/ArrowLeft e segue activeIndex após rerender", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const renderWith = (activeIndex: number) => (
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={activeIndex}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+      const { rerender } = render(renderWith(0));
+
+      const card0 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card0.focus();
+      expect(card0).toHaveFocus();
+
+      await user.keyboard("{ArrowRight}");
+      expect(onSelect).toHaveBeenLastCalledWith(1);
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(card1).toHaveFocus();
+      expect(card0).not.toHaveFocus();
+
+      rerender(renderWith(1));
+      const card1AfterRerender = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(card1AfterRerender).toHaveFocus();
+
+      await user.keyboard("{ArrowLeft}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
+
+      rerender(renderWith(0));
+      await user.keyboard("{End}");
+      expect(onSelect).toHaveBeenLastCalledWith(2);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
+
+      rerender(renderWith(2));
+      await user.keyboard("{Home}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
+    });
+
+    it("wrapper do card ativo recebe classes de destaque (border-primary ring-2) e apenas um card por vez", () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const renderWith = (activeIndex: number) => (
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={activeIndex}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+      const { rerender } = render(renderWith(0));
+
+      const getWrapper = (variationNum: number): HTMLElement => {
+        const btn = screen.getByRole("button", { name: new RegExp(`^Selecionar variação ${variationNum}`) });
+        const wrapper = btn.parentElement;
+        expect(wrapper).not.toBeNull();
+        return wrapper as HTMLElement;
+      };
+
+      // border-primary "exato" (sem /xx) — exclui border-primary/40 dos cards inativos
+      const hasActiveBorder = (el: HTMLElement) => /(?:^|\s)border-primary(?:\s|$)/.test(el.className);
+
+      expect(hasActiveBorder(getWrapper(1))).toBe(true);
+      expect(getWrapper(1).className).toContain("ring-2");
+      expect(getWrapper(1).className).toContain("ring-primary/20");
+      expect(hasActiveBorder(getWrapper(2))).toBe(false);
+      expect(getWrapper(2).className).toContain("border-border");
+      expect(hasActiveBorder(getWrapper(3))).toBe(false);
+      expect(getWrapper(3).className).toContain("border-border");
+
+      const allWrappers = [getWrapper(1), getWrapper(2), getWrapper(3)];
+      expect(allWrappers.filter(hasActiveBorder)).toHaveLength(1);
+
+      rerender(renderWith(2));
+      expect(hasActiveBorder(getWrapper(1))).toBe(false);
+      expect(getWrapper(1).className).toContain("border-border");
+      expect(hasActiveBorder(getWrapper(2))).toBe(false);
+      expect(hasActiveBorder(getWrapper(3))).toBe(true);
+      expect(getWrapper(3).className).toContain("ring-2");
+      expect(getWrapper(3).className).toContain("ring-primary/20");
+
+      rerender(renderWith(1));
+      expect(hasActiveBorder(getWrapper(1))).toBe(false);
+      expect(hasActiveBorder(getWrapper(2))).toBe(true);
+      expect(getWrapper(2).className).toContain("ring-2");
+      expect(hasActiveBorder(getWrapper(3))).toBe(false);
+
+      const wrappersAfter = [getWrapper(1), getWrapper(2), getWrapper(3)];
+      expect(wrappersAfter.filter((w) => w.className.includes("ring-2"))).toHaveLength(1);
+    });
   });
 });
