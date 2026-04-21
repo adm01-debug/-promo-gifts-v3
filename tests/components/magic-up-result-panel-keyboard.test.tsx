@@ -75,22 +75,19 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
     const next = screen.getByRole("button", { name: "Avançar" });
     const dots = screen.getAllByRole("tab");
 
-    // Inicia foco no body, tabula sequencialmente
-    (document.body as HTMLElement).focus();
-
-    fireEvent.focus(prev);
+    prev.focus();
     expect(document.activeElement).toBe(prev);
 
-    fireEvent.focus(dots[0]);
+    dots[0].focus();
     expect(document.activeElement).toBe(dots[0]);
 
-    fireEvent.focus(dots[1]);
+    dots[1].focus();
     expect(document.activeElement).toBe(dots[1]);
 
-    fireEvent.focus(dots[2]);
+    dots[2].focus();
     expect(document.activeElement).toBe(dots[2]);
 
-    fireEvent.focus(next);
+    next.focus();
     expect(document.activeElement).toBe(next);
 
     // Confirma ordem do DOM (tabIndex implícito): prev vem antes de dots, dots antes de next
