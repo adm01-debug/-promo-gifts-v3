@@ -1528,6 +1528,114 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("auto-scroll: setas/Home/End disparam scrollIntoView com block:nearest e behavior:smooth", async () => {
+      const user = userEvent.setup();
+      const scrollSpy = vi.fn();
+      const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
+      window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+
+      const originalMatchMedia = window.matchMedia;
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: false,
+        media: query,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })) as unknown as typeof window.matchMedia;
+
+      try {
+        function ControlledWrapper() {
+          const [activeIndex, setActiveIndex] = React.useState(0);
+          return (
+            <MagicUpVariationComparator
+              variations={navVariations}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              onSelectWinner={vi.fn()}
+            />
+          );
+        }
+        render(<ControlledWrapper />);
+
+        const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+        card1.focus();
+        scrollSpy.mockClear();
+
+        await user.keyboard("{ArrowRight}");
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        expect(scrollSpy).toHaveBeenCalledWith({
+          block: "nearest",
+          inline: "nearest",
+          behavior: "smooth",
+        });
+
+        scrollSpy.mockClear();
+        await user.keyboard("{End}");
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        expect(scrollSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ block: "nearest", behavior: "smooth" })
+        );
+
+        scrollSpy.mockClear();
+        await user.keyboard("{Home}");
+        expect(scrollSpy).toHaveBeenCalledTimes(1);
+        expect(scrollSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ block: "nearest", behavior: "smooth" })
+        );
+      } finally {
+        window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+        window.matchMedia = originalMatchMedia;
+      }
+    });
+
+    it("auto-scroll respeita prefers-reduced-motion: behavior vira 'auto' (instantâneo)", async () => {
+      const user = userEvent.setup();
+      const scrollSpy = vi.fn();
+      const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
+      window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+
+      const originalMatchMedia = window.matchMedia;
+      window.matchMedia = vi.fn().mockImplementation((query: string) => ({
+        matches: query.includes("reduce"),
+        media: query,
+        addListener: vi.fn(),
+        removeListener: vi.fn(),
+        addEventListener: vi.fn(),
+        removeEventListener: vi.fn(),
+        dispatchEvent: vi.fn(),
+      })) as unknown as typeof window.matchMedia;
+
+      try {
+        render(
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={vi.fn()}
+            onSelectWinner={vi.fn()}
+          />
+        );
+        const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+        card1.focus();
+        scrollSpy.mockClear();
+
+        await user.keyboard("{ArrowRight}");
+        expect(scrollSpy).toHaveBeenCalledWith({
+          block: "nearest",
+          inline: "nearest",
+          behavior: "auto",
+        });
+
+        scrollSpy.mockClear();
+        await user.click(screen.getByRole("button", { name: /^Selecionar variação 3/ }));
+        expect(scrollSpy).not.toHaveBeenCalled();
+      } finally {
+        window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
+        window.matchMedia = originalMatchMedia;
+      }
+    });
   });
 });
 

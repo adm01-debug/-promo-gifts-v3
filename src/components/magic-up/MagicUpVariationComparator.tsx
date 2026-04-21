@@ -42,7 +42,18 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
     if (nextIndex === null) return;
     e.preventDefault();
     onSelect(nextIndex);
-    cardRefs.current[nextIndex]?.focus();
+    const nextCard = cardRefs.current[nextIndex];
+    nextCard?.focus();
+    if (nextCard && typeof nextCard.scrollIntoView === "function") {
+      const prefersReducedMotion =
+        typeof window !== "undefined" &&
+        window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+      nextCard.scrollIntoView({
+        block: "nearest",
+        inline: "nearest",
+        behavior: prefersReducedMotion ? "auto" : "smooth",
+      });
+    }
   };
 
   return (
