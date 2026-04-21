@@ -16,14 +16,21 @@ export function MagicUpQualityScore({ diagnosis, aspectRatio }: MagicUpQualitySc
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold">Magic Score</p>
-          <p className={cn("text-2xl font-bold leading-tight", tone)}>{diagnosis.total}/100</p>
+          <p className={cn("text-2xl font-bold leading-tight", tone)} aria-label={`Score ${diagnosis.total} de 100`}>{diagnosis.total}/100</p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          <Badge variant="secondary">{diagnosis.source === "ai" ? "IA" : "Heurístico"}</Badge>
-          {aspectRatio && <span className="text-[10px] text-muted-foreground">{aspectRatio}</span>}
+          <Badge variant="secondary" aria-label={`Origem do diagnóstico: ${diagnosis.source === "ai" ? "Inteligência Artificial" : "Heurístico"}`}>{diagnosis.source === "ai" ? "IA" : "Heurístico"}</Badge>
+          {aspectRatio && <span className="text-[10px] text-muted-foreground" aria-label={`Formato ${aspectRatio}`}>{aspectRatio}</span>}
         </div>
       </div>
-      <Progress value={diagnosis.total} className="mt-2 h-2" />
+      <Progress
+        value={diagnosis.total}
+        className="mt-2 h-2"
+        aria-label="Magic Score"
+        aria-valuenow={diagnosis.total}
+        aria-valuemin={0}
+        aria-valuemax={100}
+      />
       <div className="mt-2 space-y-1">
         <p className="text-xs font-medium text-foreground">{diagnosis.label}</p>
         <p className="text-xs text-muted-foreground">{diagnosis.summary}</p>
