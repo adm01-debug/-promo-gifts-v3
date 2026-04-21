@@ -15,13 +15,20 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   if (variations.length < 2) return null;
-  const scores = variations.map((variation) => variation.qualityDiagnosis?.total || variation.qualityScore || 0);
-  const bestScore = Math.max(...scores);
-  const hasValidScores = bestScore > 0;
+  // Resolve score explicitamente: number (incluindo 0) ou null (ausente).
+  // qualityDiagnosis.total tem prioridade absoluta sobre qualityScore.
+  const resolveScore = (variation: VariationItem): number | null => {
+    if (typeof variation.qualityDiagnosis?.total === "number") return variation.qualityDiagnosis.total;
+    if (typeof variation.qualityScore === "number") return variation.qualityScore;
+    return null;
+  };
+  const scores = variations.map(resolveScore);
+  const numericScores = scores.filter((s): s is number => s !== null);
+  const bestScore: number | null = numericScores.length > 0 ? Math.max(...numericScores) : null;
   const explicitWinnerIndex = variations.findIndex((variation) => variation.isWinner);
   const winnerIndex = explicitWinnerIndex >= 0
     ? explicitWinnerIndex
-    : (hasValidScores ? variations.findIndex((_, index) => scores[index] === bestScore) : -1);
+    : (bestScore !== null ? scores.findIndex((s) => s === bestScore) : -1);
 
   const handleArrowKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
     const total = variations.length;
@@ -40,7 +47,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
     <section className="rounded-lg border bg-card p-3" aria-label="Comparador de variações">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">Comparar variações</p>
-        <Badge variant="secondary" aria-label={`Melhor score entre variações: ${bestScore || "indisponível"}`}>Melhor score: {bestScore || "—"}</Badge>
+        <Badge variant="secondary" aria-label={`Melhor score entre variações: ${bestScore !== null ? bestScore : "indisponível"}`}>Melhor score: {bestScore !== null ? bestScore : "—"}</Badge>
       </div>
       <div role="list" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {variations.map((variation, index) => {
@@ -59,7 +66,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
                 aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
-                aria-label={`Selecionar variação ${index + 1}${score ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
+                aria-label={`Selecionar variação ${index + 1}${score !== null ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
                 onClick={() => onSelect(index)}
                 onKeyDown={(e) => handleArrowKey(e, index)}
                 className="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -71,7 +78,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                 <div className="space-y-1 p-2">
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-medium">Variação {index + 1}</span>
-                    <span className="text-xs font-semibold text-primary" aria-label={score ? `Score ${score} de 100` : "Score indisponível"}>{score || "—"}</span>
+                    <span className="text-xs font-semibold text-primary" aria-label={score !== null ? `Score ${score} de 100` : "Score indisponível"}>{score !== null ? score : "—"}</span>
                   </div>
                 </div>
               </button>

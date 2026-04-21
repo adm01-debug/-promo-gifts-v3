@@ -293,16 +293,18 @@ describe("Magic Up Onda 5 components", () => {
     expect(select.cardExact("Selecionar variação 3, score 85")).toBeInTheDocument();
   });
 
-  it("empate em score 0: trata 0 como ausência de score válido e NÃO atribui 'Melhor score'", () => {
+  it("empate em score 0: trata 0 como avaliação real (ruim) — badge 'Melhor score' vai para o primeiro índice", () => {
     const variations: VariationItem[] = [
       { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 0 },
       { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 0 },
     ];
     renderComparator({ variations });
-    // bestScore = 0 → guard `hasValidScores` falsy → nenhuma badge
-    expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
-    expect(select.cardExact("Selecionar variação 1")).toBeInTheDocument();
-    expect(select.cardExact("Selecionar variação 2")).toBeInTheDocument();
+    // bestScore = 0 (avaliação real) → winnerIndex = 0 → 1 badge no primeiro card
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    expect(select.cardExact("Selecionar variação 1, score 0, melhor score")).toBeInTheDocument();
+    expect(select.cardExact("Selecionar variação 2, score 0")).toBeInTheDocument();
+    // Badge global mostra "0" explícito (não "—")
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: 0");
   });
 
   it("dois isWinner: true simultâneos: badge vai para o primeiro índice marcado, ignorando o segundo", () => {
@@ -1314,5 +1316,77 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
 
     expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
+  });
+
+  it("todos com qualityScore=0 (avaliados ruins): bestScore=0, badge no índice 0, header mostra '0' (não '—')", () => {
+    const variations = [
+      buildVariation({ qualityScore: 0 }, 0),
+      buildVariation({ qualityScore: 0 }, 1),
+      buildVariation({ qualityScore: 0 }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    // Header mostra o "0" real (não placeholder "—")
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: 0");
+
+    // aria-label do vencedor inclui "score 0" explícito
+    const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    expect(winnerBtn.getAttribute("aria-label")).toContain("score 0");
+    expect(winnerBtn.getAttribute("aria-label")).toContain("melhor score");
+  });
+
+  it("mix de null e numéricos [null, 60, null, 40]: vencedor é o numérico maior (índice 1)", () => {
+    const variations = [
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
+      buildVariation({ qualityScore: 60 }, 1),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
+      buildVariation({ qualityScore: 40 }, 3),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[3]).queryByLabelText("Melhor score")).toBeNull();
+
+    // Cards sem score mostram "—" no aria-label do span de score (Score indisponível)
+    expect(within(cards[0]).getByLabelText("Score indisponível")).toBeInTheDocument();
+    expect(within(cards[2]).getByLabelText("Score indisponível")).toBeInTheDocument();
+    // Cards com score mostram valor numérico
+    expect(within(cards[1]).getByLabelText("Score 60 de 100")).toBeInTheDocument();
+    expect(within(cards[3]).getByLabelText("Score 40 de 100")).toBeInTheDocument();
+
+    // Header mostra o melhor numérico (60)
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: 60");
+  });
+
+  it("qualityDiagnosis.total=0 tem prioridade absoluta sobre qualityScore=80 (não cai no fallback falsy)", () => {
+    const variations = [
+      // diagnóstico explícito = 0 deve ser respeitado (não cair em qualityScore=80)
+      buildVariation({ qualityDiagnosis: diagnosis(0, "ai"), qualityScore: 80 }, 0),
+      buildVariation({ qualityScore: 50 }, 1),
+    ];
+    renderTied(variations);
+
+    // Variação 1: diagnóstico=0 (não 80) → variação 2 (score 50) é a vencedora
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+
+    // Card 1 expõe score 0 (não 80) — diagnosis tem prioridade
+    expect(within(cards[0]).getByLabelText("Score 0 de 100")).toBeInTheDocument();
+    expect(within(cards[1]).getByLabelText("Score 50 de 100")).toBeInTheDocument();
+
+    // Header mostra o maior (50)
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: 50");
   });
 });
