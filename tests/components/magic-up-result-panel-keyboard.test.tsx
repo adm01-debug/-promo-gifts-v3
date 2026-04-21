@@ -2427,3 +2427,244 @@ describe("MagicUpResultPanel — Tab no fim do painel sai sem ciclar de volta ao
     expect(order[order.length - 1]).toBe(after);
   });
 });
+
+// ───────── Enter/Space no item JÁ ATIVO: foco permanece, sem side effect de estado ─────────
+// WAI-ARIA APG Tabs: ativar a tab atualmente selecionada é um no-op visual.
+//  • o foco permanece no MESMO controle
+//  • activeVariation NÃO muda — toda chamada a setActiveVariation é com o
+//    mesmo índice (idempotente), nunca com índice diferente
+//  • aria-selected="true" e tabindex="0" continuam no elemento
+//  • o grupo paralelo (dots ↔ thumbs) permanece sincronizado, sem oscilar
+//  • handlers “terminais” (generate/download/share/winner) não disparam
+
+describe("MagicUpResultPanel — Enter/Space no item ativo: foco e estado preservados", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  /** Asserta que toda chamada a setActiveVariation foi com o mesmo índice (idempotente). */
+  function expectIdempotentOnly(
+    setter: ReturnType<typeof vi.fn>,
+    activeIndex: number
+  ) {
+    const calls = setter.mock.calls;
+    calls.forEach(([idx], n) => {
+      expect(idx, `chamada #${n} deve ser idempotente (=${activeIndex})`).toBe(activeIndex);
+    });
+  }
+
+  // ── DOTS: Enter no já ativo ─────────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "Enter no dot[%i] JÁ ATIVO: foco permanece, sem mudar activeVariation",
+    (activeIdx) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: activeIdx });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[activeIdx] as HTMLButtonElement;
+      dot.focus();
+      expect(document.activeElement).toBe(dot);
+      expect(dot.getAttribute("aria-selected")).toBe("true");
+      expect(dot.getAttribute("tabindex")).toBe("0");
+
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+
+      // FOCO: permanece no MESMO dot
+      expect(document.activeElement).toBe(dot);
+
+      // ESTADO: idempotente — re-render não muda o índice ativo
+      expectIdempotentOnly(m.setActiveVariation as ReturnType<typeof vi.fn>, activeIdx);
+      rerenderWithActive(rerender, m, activeIdx);
+
+      const dotAfter = getDots()[activeIdx];
+      expect(dotAfter.getAttribute("aria-selected")).toBe("true");
+      expect(dotAfter.getAttribute("tabindex")).toBe("0");
+
+      // Outros dots intocados
+      getDots().forEach((d, i) => {
+        if (i !== activeIdx) {
+          expect(d.getAttribute("aria-selected")).toBe("false");
+          expect(d.getAttribute("tabindex")).toBe("-1");
+        }
+      });
+      // Grupo paralelo (thumbs) sincronizado, sem oscilar
+      getThumbs().forEach((t, i) => {
+        expect(t.getAttribute("aria-selected")).toBe(i === activeIdx ? "true" : "false");
+        expect(t.getAttribute("tabindex")).toBe(i === activeIdx ? "0" : "-1");
+      });
+    }
+  );
+
+  // ── DOTS: Space no já ativo ─────────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "Space no dot[%i] JÁ ATIVO: foco permanece, sem mudar activeVariation",
+    (activeIdx) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: activeIdx });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[activeIdx] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: " ", code: "Space" });
+      fireEvent.click(dot);
+
+      expect(document.activeElement).toBe(dot);
+      expectIdempotentOnly(m.setActiveVariation as ReturnType<typeof vi.fn>, activeIdx);
+      rerenderWithActive(rerender, m, activeIdx);
+
+      expect(getDots()[activeIdx].getAttribute("aria-selected")).toBe("true");
+      expect(getDots()[activeIdx].getAttribute("tabindex")).toBe("0");
+    }
+  );
+
+  // ── THUMBS: Enter no já ativo ───────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "Enter no thumb[%i] JÁ ATIVO: foco permanece, sem mudar activeVariation",
+    (activeIdx) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: activeIdx });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[activeIdx] as HTMLButtonElement;
+      thumb.focus();
+      expect(document.activeElement).toBe(thumb);
+      expect(thumb.getAttribute("aria-selected")).toBe("true");
+      expect(thumb.getAttribute("tabindex")).toBe("0");
+
+      fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+      fireEvent.click(thumb);
+
+      expect(document.activeElement).toBe(thumb);
+      expectIdempotentOnly(m.setActiveVariation as ReturnType<typeof vi.fn>, activeIdx);
+      rerenderWithActive(rerender, m, activeIdx);
+
+      const thumbAfter = getThumbs()[activeIdx];
+      expect(thumbAfter.getAttribute("aria-selected")).toBe("true");
+      expect(thumbAfter.getAttribute("tabindex")).toBe("0");
+
+      getThumbs().forEach((t, i) => {
+        if (i !== activeIdx) {
+          expect(t.getAttribute("aria-selected")).toBe("false");
+          expect(t.getAttribute("tabindex")).toBe("-1");
+        }
+      });
+      getDots().forEach((d, i) => {
+        expect(d.getAttribute("aria-selected")).toBe(i === activeIdx ? "true" : "false");
+      });
+    }
+  );
+
+  // ── THUMBS: Space no já ativo ───────────────────────────────────────
+
+  it.each([0, 1, 2])(
+    "Space no thumb[%i] JÁ ATIVO: foco permanece, sem mudar activeVariation",
+    (activeIdx) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: activeIdx });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[activeIdx] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+
+      expect(document.activeElement).toBe(thumb);
+      expectIdempotentOnly(m.setActiveVariation as ReturnType<typeof vi.fn>, activeIdx);
+      rerenderWithActive(rerender, m, activeIdx);
+
+      expect(getThumbs()[activeIdx].getAttribute("aria-selected")).toBe("true");
+      expect(getThumbs()[activeIdx].getAttribute("tabindex")).toBe("0");
+    }
+  );
+
+  // ── Pressões repetidas no mesmo item ativo: continua estável ───────
+
+  it("5× Enter no dot ativo: foco preso, todas as chamadas idempotentes (mesmo índice)", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 2 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[2] as HTMLButtonElement;
+    dot.focus();
+
+    for (let n = 0; n < 5; n++) {
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+      expect(document.activeElement).toBe(dot);
+    }
+
+    expectIdempotentOnly(m.setActiveVariation as ReturnType<typeof vi.fn>, 2);
+    rerenderWithActive(rerender, m, 2);
+
+    expect(getDots()[2].getAttribute("aria-selected")).toBe("true");
+    expect(getDots()[2].getAttribute("tabindex")).toBe("0");
+  });
+
+  it("5× Space no thumb ativo: foco preso, todas as chamadas idempotentes (mesmo índice)", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb = getThumbs()[1] as HTMLButtonElement;
+    thumb.focus();
+
+    for (let n = 0; n < 5; n++) {
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+      expect(document.activeElement).toBe(thumb);
+    }
+
+    expectIdempotentOnly(m.setActiveVariation as ReturnType<typeof vi.fn>, 1);
+    rerenderWithActive(rerender, m, 1);
+
+    expect(getThumbs()[1].getAttribute("aria-selected")).toBe("true");
+    expect(getThumbs()[1].getAttribute("tabindex")).toBe("0");
+  });
+
+  // ── Side-effect cross-handler: handlers "terminais" NÃO disparam ───
+
+  it("Enter no dot ativo: handlers de geração/download/share/winner NÃO são acionados", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[1] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+    fireEvent.click(dot);
+
+    expect(m.handleGenerate).not.toHaveBeenCalled();
+    expect(m.handleDownload).not.toHaveBeenCalled();
+    expect(m.handleShare).not.toHaveBeenCalled();
+    expect(m.handleSelectWinningVariation).not.toHaveBeenCalled();
+    expect(m.handleToggleFavorite).not.toHaveBeenCalled();
+    expect(m.handleSelectHistory).not.toHaveBeenCalled();
+    expect(m.handleDeleteHistory).not.toHaveBeenCalled();
+  });
+
+  it("Space no thumb ativo: handlers de geração/download/share/winner NÃO são acionados", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumb = getThumbs()[0] as HTMLButtonElement;
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+    fireEvent.click(thumb);
+
+    expect(m.handleGenerate).not.toHaveBeenCalled();
+    expect(m.handleDownload).not.toHaveBeenCalled();
+    expect(m.handleShare).not.toHaveBeenCalled();
+    expect(m.handleSelectWinningVariation).not.toHaveBeenCalled();
+    expect(m.handleToggleFavorite).not.toHaveBeenCalled();
+    expect(m.handleSelectHistory).not.toHaveBeenCalled();
+    expect(m.handleDeleteHistory).not.toHaveBeenCalled();
+  });
+});
