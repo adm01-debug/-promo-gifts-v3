@@ -2872,5 +2872,67 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).not.toBeDisabled();
       expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).not.toBeDisabled();
     });
+
+    it("transição habilitado→loading preserva foco no elemento atual e suspende Enter/Space enquanto aria-busy=true", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const renderWith = (loadingIdx: number | null) => (
+        <div>
+          <button type="button" data-testid="external-sentinel">externo</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+            loadingWinnerIndex={loadingIdx}
+          />
+        </div>
+      );
+
+      // Estado inicial: nenhum loading — botão var-1 habilitado
+      const { rerender } = render(renderWith(null));
+      const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(winnerBtn1).not.toBeDisabled();
+      expect(winnerBtn1).not.toHaveAttribute("aria-busy");
+
+      // Usuário foca um elemento neutro externo (sem handler) — equivalente a "o foco atual não está no botão de loading"
+      const sentinel = screen.getByTestId("external-sentinel");
+      sentinel.focus();
+      expect(sentinel).toHaveFocus();
+
+      // Transição: ativa loading no botão "Marcar vencedora" da var-1
+      rerender(renderWith(0));
+
+      // 1) Foco PRESERVADO no sentinel externo (rerender não roubou foco)
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+
+      // 2) Botão "Marcar vencedora" da var-1 agora desabilitado e com aria-busy="true"
+      const winnerBtn1Loading = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(winnerBtn1Loading).toBeDisabled();
+      expect(winnerBtn1Loading).toHaveAttribute("aria-busy", "true");
+      expect(screen.getByText("Marcando vencedora…")).toBeInTheDocument();
+
+      // 3) Enter/Space disparados via fireEvent no botão em loading NÃO chamam onSelectWinner
+      // (HTMLButtonElement disabled bloqueia eventos de click derivados de teclado)
+      fireEvent.keyDown(winnerBtn1Loading, { key: "Enter", code: "Enter" });
+      fireEvent.keyUp(winnerBtn1Loading, { key: "Enter", code: "Enter" });
+      fireEvent.keyDown(winnerBtn1Loading, { key: " ", code: "Space" });
+      fireEvent.keyUp(winnerBtn1Loading, { key: " ", code: "Space" });
+      fireEvent.click(winnerBtn1Loading);
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 4) Mesmo via userEvent.keyboard com foco no sentinel externo, teclas não acionam o botão de loading
+      await user.keyboard("{Enter}");
+      await user.keyboard(" ");
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 5) Foco continua no sentinel externo (botão disabled não rouba foco)
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+
+      // Sanity: onSelect (cards) não foi disparado em nenhum momento
+      expect(onSelect).not.toHaveBeenCalled();
+    });
   });
 });
