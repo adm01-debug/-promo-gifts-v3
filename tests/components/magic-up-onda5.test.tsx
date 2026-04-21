@@ -397,7 +397,7 @@ describe("MagicUpVariationComparator snapshots", () => {
     expect(container.firstChild).toMatchSnapshot();
   });
 
-  it("snapshot — scores ausentes exibe placeholders e winner no índice 0", () => {
+  it("snapshot — scores ausentes exibe placeholders e nenhum vencedor (sem badge)", () => {
     const variations: VariationItem[] = [
       baseVariation({ id: "a", imageUrl: "https://example.com/a.png" }),
       baseVariation({ id: "b", imageUrl: "https://example.com/b.png" }),
