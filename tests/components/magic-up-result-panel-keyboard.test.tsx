@@ -2372,9 +2372,10 @@ describe("MagicUpResultPanel — Tab no fim do painel sai sem ciclar de volta ao
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     const { container } = renderWithSentinels(m);
 
-    const next = screen.getByRole("button", { name: /avançar/i });
-    next.focus();
-    pressTab(next, container);
+    // Último controle do painel = thumbnail ativo (vem após AdImageResult no DOM)
+    const activeThumb = getThumbs()[0] as HTMLButtonElement;
+    activeThumb.focus();
+    pressTab(activeThumb, container);
 
     const after = screen.getByTestId("after-panel");
     expect(document.activeElement).toBe(after);
