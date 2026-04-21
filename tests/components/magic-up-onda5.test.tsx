@@ -1856,6 +1856,52 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       expect(cards[0].contains(exactBadgeMatches[0])).toBe(true);
       expect(cards[0].contains(visibleBadgeText[0])).toBe(true);
+
+      // 8. Contrato literal de aria-labels — espec. executável dos 3 botões
+      //    Documenta o formato esperado lado a lado e trava regressões de formato
+      //    (vírgulas, espaçamento, ordem dos componentes).
+
+      // 8.1 Mapa do contrato esperado por card (índice → aria-label literal)
+      const expectedAriaLabels: Record<number, string> = {
+        0: `Selecionar variação 1, score ${scoreA}, melhor score`,
+        1: "Selecionar variação 2, score 50",
+        2: `Selecionar variação 3, score ${scoreC}`,
+      };
+
+      // 8.2 Validação literal por card — cada button deve ter EXATAMENTE o aria-label
+      //     definido no contrato, sem caracteres extras, sem espaços a mais.
+      cards.forEach((card, index) => {
+        const button = within(card).getByRole("button", { name: /^Selecionar variação/ });
+        const ariaLabel = button.getAttribute("aria-label");
+        expect(ariaLabel).toBe(expectedAriaLabels[index]);
+      });
+
+      // 8.3 Validação estrutural — vencedor tem 3 componentes (separados por ", "),
+      //     perdedores têm 2 componentes. Trava o formato do contrato.
+      const winnerLabel = within(cards[0])
+        .getByRole("button", { name: /^Selecionar variação/ })
+        .getAttribute("aria-label");
+      expect(winnerLabel?.split(", ")).toHaveLength(3);
+      expect(winnerLabel?.split(", ")[2]).toBe("melhor score");
+
+      [cards[1], cards[2]].forEach((card) => {
+        const label = within(card)
+          .getByRole("button", { name: /^Selecionar variação/ })
+          .getAttribute("aria-label");
+        expect(label?.split(", ")).toHaveLength(2);
+        expect(label).not.toMatch(/melhor score/);
+      });
+
+      // 8.4 Cross-check com a coleção completa — todos os 3 labels esperados
+      //     existem no DOM e nenhum label inesperado aparece.
+      const allButtonLabels = screen
+        .getAllByRole("button", { name: /^Selecionar variação/ })
+        .map((btn) => btn.getAttribute("aria-label"));
+      expect(allButtonLabels).toEqual([
+        expectedAriaLabels[0],
+        expectedAriaLabels[1],
+        expectedAriaLabels[2],
+      ]);
     }
   );
 });
