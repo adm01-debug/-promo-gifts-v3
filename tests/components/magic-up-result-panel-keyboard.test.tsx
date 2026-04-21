@@ -2950,3 +2950,301 @@ describe("MagicUpResultPanel — Onda 5: prev/next disabled styling consistente 
     expect(next.getAttribute("aria-label")).toBe("Avançar");
   });
 });
+
+// ───────── Próximo destino do Tab após trocar de variação ─────────
+// WAI-ARIA APG Tabs (roving tabindex): após trocar a variação ativa, somente
+// o NOVO dot/thumb correspondente fica com tabindex="0"; os demais voltam a
+// tabindex="-1". Logo, o próximo alvo do Tab a partir de qualquer ponto âncora
+// (prev / next / dot ativo / thumb ativo) DEVE refletir o novo índice ativo —
+// nunca pular para um dot/thumb antigo nem cair fora do painel quando o Tab
+// natural ainda tem candidatos válidos.
+//
+// Cobertura:
+//  • Após click em next/prev (que muda activeVariation), simulamos rerender
+//    com novo estado e validamos que getTabOrder() expõe APENAS o novo
+//    dot/thumb ativo, e que pressTab a partir do prev cai no novo dot ativo.
+//  • Após click em dot[i] não-ativo, o thumb correspondente (i) é o que
+//    aparece na sequência de Tab — nunca o thumb anterior.
+//  • Após click em thumb[i] não-ativo, o dot correspondente (i) é o que
+//    aparece — nunca o dot anterior.
+//  • Sequência completa: prev → dot ativo → next → thumb ativo → after-panel,
+//    aplicada ANTES e DEPOIS de uma troca, mantém invariantes.
+
+describe("MagicUpResultPanel — Onda 5: próximo Tab target após troca de variação", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function renderWithSentinels(m: StubState) {
+    return render(
+      <>
+        <button data-testid="before-panel">before</button>
+        <MagicUpResultPanel m={m} />
+        <button data-testid="after-panel">after</button>
+      </>
+    );
+  }
+
+  function getTabOrder(container: HTMLElement): HTMLElement[] {
+    const candidates = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    return candidates.filter((el) => {
+      if (el instanceof HTMLButtonElement && el.disabled) return false;
+      const ti = el.getAttribute("tabindex");
+      if (ti === "-1") return false;
+      return true;
+    });
+  }
+
+  function pressTab(current: HTMLElement, container: HTMLElement) {
+    const order = getTabOrder(container);
+    const idx = order.indexOf(current);
+    expect(idx, "elemento atual deve estar na Tab order").toBeGreaterThanOrEqual(0);
+    const next = order[idx + 1] ?? null;
+    fireEvent.keyDown(current, { key: "Tab", code: "Tab" });
+    if (next) next.focus();
+    return next;
+  }
+
+  /** Re-renderiza simulando o novo estado após uma mudança de activeVariation. */
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(
+      <>
+        <button data-testid="before-panel">before</button>
+        <MagicUpResultPanel m={updated} />
+        <button data-testid="after-panel">after</button>
+      </>
+    );
+  }
+
+  // ── Após Avançar: novo dot/thumb ativo é o próximo Tab target ──────
+
+  it("Avançar (idx 0 → 1): após troca, somente dot[1] e thumb[1] ficam na Tab order", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container, rerender } = renderWithSentinels(m);
+
+    const next = screen.getByRole("button", { name: "Avançar" });
+    fireEvent.click(next);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+
+    rerenderWithActive(rerender, m, 1);
+
+    const order = getTabOrder(container);
+    const dots = getDots();
+    const thumbs = getThumbs();
+
+    // O dot/thumb ativo agora é o índice 1
+    expect(order).toContain(dots[1]);
+    expect(order).toContain(thumbs[1]);
+    expect(order).not.toContain(dots[0]);
+    expect(order).not.toContain(thumbs[0]);
+    expect(order).not.toContain(dots[2]);
+    expect(order).not.toContain(thumbs[2]);
+
+    // Atributos refletem o novo ativo
+    expect(dots[1].getAttribute("tabindex")).toBe("0");
+    expect(thumbs[1].getAttribute("tabindex")).toBe("0");
+    expect(dots[0].getAttribute("tabindex")).toBe("-1");
+    expect(thumbs[0].getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("Avançar: a partir de 'Voltar' (re-habilitado), pressTab cai no NOVO dot ativo", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container, rerender } = renderWithSentinels(m);
+
+    fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+    rerenderWithActive(rerender, m, 1);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    expect(prev).not.toBeDisabled();
+    prev.focus();
+    const after = pressTab(prev, container);
+
+    // Próximo Tab target após prev é o NOVO dot ativo (índice 1)
+    expect(after).toBe(getDots()[1]);
+    expect(document.activeElement).toBe(getDots()[1]);
+  });
+
+  // ── Após Voltar: simétrico ─────────────────────────────────────────
+
+  it("Voltar (idx 2 → 1): após troca, dot[1]/thumb[1] são os únicos na Tab order", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    const { container, rerender } = renderWithSentinels(m);
+
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+    rerenderWithActive(rerender, m, 1);
+
+    const order = getTabOrder(container);
+    const dots = getDots();
+    const thumbs = getThumbs();
+
+    expect(order).toContain(dots[1]);
+    expect(order).toContain(thumbs[1]);
+    expect(order).not.toContain(dots[2]);
+    expect(order).not.toContain(thumbs[2]);
+  });
+
+  it("Voltar: a partir de 'Voltar' focado, pressTab vai para o NOVO dot ativo (não o antigo)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    const { container, rerender } = renderWithSentinels(m);
+
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    rerenderWithActive(rerender, m, 1);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    prev.focus();
+    const after = pressTab(prev, container);
+
+    expect(after).toBe(getDots()[1]);
+    expect(after).not.toBe(getDots()[2]);
+  });
+
+  // ── Após selecionar dot[i] não-ativo: thumb[i] entra na Tab order ──
+
+  it.each([1, 2])(
+    "click em dot[%i] (não-ativo): após troca, thumb[%i] é o único thumb na Tab order",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = renderWithSentinels(m);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      fireEvent.click(dot);
+      expect(m.setActiveVariation).toHaveBeenCalledWith(target);
+      rerenderWithActive(rerender, m, target);
+
+      const order = getTabOrder(container);
+      const thumbs = getThumbs();
+
+      expect(order).toContain(thumbs[target]);
+      thumbs.forEach((t, i) => {
+        if (i !== target) expect(order).not.toContain(t);
+      });
+
+      // Próximo Tab a partir do novo dot ativo deve cair em "Avançar" (se enabled)
+      // ou no novo thumb ativo. Verificamos o salto direto:
+      const newDot = getDots()[target];
+      newDot.focus();
+      const after = pressTab(newDot, container);
+      // Após o dot ativo, o próximo focável é "Avançar" (se enabled) ou o thumb ativo
+      const candidates = [
+        screen.queryByRole("button", { name: "Avançar" }),
+        thumbs[target],
+      ].filter(Boolean);
+      expect(candidates).toContain(after);
+    }
+  );
+
+  // ── Após selecionar thumb[i] não-ativo: dot[i] entra na Tab order ──
+
+  it.each([1, 2])(
+    "click em thumb[%i] (não-ativo): após troca, dot[%i] é o único dot na Tab order",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = renderWithSentinels(m);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      fireEvent.click(thumb);
+      expect(m.setActiveVariation).toHaveBeenCalledWith(target);
+      rerenderWithActive(rerender, m, target);
+
+      const order = getTabOrder(container);
+      const dots = getDots();
+
+      expect(order).toContain(dots[target]);
+      dots.forEach((d, i) => {
+        if (i !== target) expect(order).not.toContain(d);
+      });
+    }
+  );
+
+  // ── Sequência canônica preservada após troca ──────────────────────
+
+  it("sequência canônica (prev → dotAtivo → next → thumbAtivo → after) reflete o NOVO índice após Avançar", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    const { container, rerender } = renderWithSentinels(m);
+
+    fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+    rerenderWithActive(rerender, m, 1);
+
+    const before = screen.getByTestId("before-panel");
+    before.focus();
+
+    const stops: HTMLElement[] = [before];
+    let cur: HTMLElement | null = before;
+    for (let i = 0; i < 6 && cur; i++) {
+      const nx = pressTab(cur, container);
+      if (!nx) break;
+      stops.push(nx);
+      cur = nx;
+      if (nx.dataset.testid === "after-panel") break;
+    }
+
+    // Deve passar pelo NOVO dot ativo (índice 1), não pelo antigo (0)
+    expect(stops).toContain(getDots()[1]);
+    expect(stops).toContain(getThumbs()[1]);
+    expect(stops).not.toContain(getDots()[0]);
+    expect(stops).not.toContain(getThumbs()[0]);
+
+    // Deve eventualmente sair pelo after-panel
+    expect(stops[stops.length - 1]).toBe(screen.getByTestId("after-panel"));
+  });
+
+  // ── Trocas múltiplas em sequência: Tab order acompanha a cada troca ─
+
+  it("trocas sucessivas (0 → 1 → 2): Tab order rastreia o índice atual a cada passo", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container, rerender } = renderWithSentinels(m);
+
+    // Estado inicial: dot[0] e thumb[0] na Tab order
+    let order = getTabOrder(container);
+    expect(order).toContain(getDots()[0]);
+    expect(order).toContain(getThumbs()[0]);
+
+    // Troca 0 → 1
+    fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+    rerenderWithActive(rerender, m, 1);
+    order = getTabOrder(container);
+    expect(order).toContain(getDots()[1]);
+    expect(order).toContain(getThumbs()[1]);
+    expect(order).not.toContain(getDots()[0]);
+
+    // Troca 1 → 2
+    fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+    rerenderWithActive(rerender, m, 2);
+    order = getTabOrder(container);
+    expect(order).toContain(getDots()[2]);
+    expect(order).toContain(getThumbs()[2]);
+    expect(order).not.toContain(getDots()[1]);
+    expect(order).not.toContain(getThumbs()[1]);
+  });
+
+  // ── Roving tabindex: nunca há mais de UM dot/thumb com tabindex=0 após troca ─
+
+  it.each([0, 1, 2, 3])(
+    "após troca para idx=%i: exatamente UM dot e UM thumb com tabindex=\"0\"",
+    (target) => {
+      const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+      const { rerender } = renderWithSentinels(m);
+      rerenderWithActive(rerender, m, target);
+
+      const dotsZero = getDots().filter((d) => d.getAttribute("tabindex") === "0");
+      const thumbsZero = getThumbs().filter((t) => t.getAttribute("tabindex") === "0");
+
+      expect(dotsZero).toHaveLength(1);
+      expect(thumbsZero).toHaveLength(1);
+      expect(dotsZero[0]).toBe(getDots()[target]);
+      expect(thumbsZero[0]).toBe(getThumbs()[target]);
+    }
+  );
+});
