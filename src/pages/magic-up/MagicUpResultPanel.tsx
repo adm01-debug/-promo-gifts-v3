@@ -50,7 +50,12 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
             <ChevronLeft className="h-4 w-4" />
           </Button>
           <TooltipProvider delayDuration={300}>
-            <div className="flex gap-1.5" role="tablist" aria-label="Variações geradas">
+            <div
+              className="flex gap-3 items-center justify-center flex-wrap"
+              role="tablist"
+              aria-label="Variações geradas"
+              data-testid="magic-up-dots-container"
+            >
               {m.variations.map((_, i) => (
                 <Tooltip key={i}>
                   <TooltipTrigger asChild>
@@ -65,7 +70,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
                       role="tab"
                       aria-selected={i === m.activeVariation}
                       tabIndex={i === m.activeVariation ? 0 : -1}
-                      className="group relative inline-flex items-center justify-center w-11 h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                      className="group relative inline-flex items-center justify-center w-11 h-11 min-w-11 min-h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                     >
                       <span
                         aria-hidden="true"
