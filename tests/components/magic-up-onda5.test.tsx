@@ -131,9 +131,27 @@ const labelPatterns = {
   anyWinner: /^Marcar variação \d+ como vencedora$/,
   cardN: (n: number) => new RegExp(`^Selecionar variação ${n}(,|$)`),
   cardNWithBest: (n: number) => new RegExp(`^Selecionar variação ${n}.*melhor score`, "i"),
+  /** Padrões tolerantes a alterações futuras de pontuação/sufixos no aria-label. */
+  cardNFuzzy: (n: number) => new RegExp(`Selecionar.*varia[cç][aã]o\\s*${n}\\b`, "i"),
+  winnerNFuzzy: (n: number) => new RegExp(`Marcar.*varia[cç][aã]o\\s*${n}\\b.*vencedor`, "i"),
 };
 
-/** Seletores ARIA estáveis para elementos do comparador */
+/** TestIds estáveis expostos pelo componente (resilientes a mudanças de copy/ARIA). */
+const testIds = {
+  comparator: "magic-up-variation-comparator",
+  list: "variation-list",
+  card: (n: number) => `variation-card-${n}`,
+  item: (n: number) => `variation-item-${n}`,
+  winnerButton: (n: number) => `variation-winner-button-${n}`,
+};
+
+/**
+ * Seletores estáveis para elementos do comparador.
+ * Estratégia: helpers `*ByTid` preferem `data-testid` (independem de strings ARIA);
+ * helpers legacy permanecem para asserts dedicados a acessibilidade. Mudanças em
+ * aria-label só quebram os testes que validam acessibilidade — os demais testes
+ * usam testid e continuam estáveis.
+ */
 const select = {
   card: (n: number) => screen.getByRole("button", { name: labelPatterns.cardN(n) }),
   cardExact: (name: string) => screen.getByRole("button", { name }),
@@ -146,6 +164,27 @@ const select = {
   /** Query (não throw) para asserções de ausência de "melhor score" em um card. */
   queryCardWithBest: (n: number) =>
     screen.queryByRole("button", { name: labelPatterns.cardNWithBest(n) }),
+
+  // ───── Variantes resilientes baseadas em data-testid ─────
+  /** Card N via testid. Não depende de aria-label/score/winner suffix. */
+  cardByTid: (n: number) => screen.getByTestId(testIds.card(n)) as HTMLButtonElement,
+  queryCardByTid: (n: number) => screen.queryByTestId(testIds.card(n)) as HTMLButtonElement | null,
+  /** Botão "marcar vencedora" N via testid. */
+  marcarByTid: (n: number) => screen.getByTestId(testIds.winnerButton(n)) as HTMLButtonElement,
+  queryMarcarByTid: (n: number) =>
+    screen.queryByTestId(testIds.winnerButton(n)) as HTMLButtonElement | null,
+  /** Lista (role + testid). */
+  listByTid: () => screen.getByTestId(testIds.list),
+  /** Todos os cards via padrão de testid (resiliente a mudanças no aria-label). */
+  allCardsByTid: () => screen.getAllByTestId(/^variation-card-\d+$/) as HTMLButtonElement[],
+  allMarcarByTid: () =>
+    screen.getAllByTestId(/^variation-winner-button-\d+$/) as HTMLButtonElement[],
+
+  // ───── Asserts de estado via data-attributes (sem acoplar a aria-pressed) ─────
+  /** Indica se o card N está marcado como ativo via `data-active="true"`. */
+  isCardActiveByTid: (n: number) => select.cardByTid(n).getAttribute("data-active") === "true",
+  /** Indica se o card N está marcado como vencedor via `data-winner="true"`. */
+  isCardWinnerByTid: (n: number) => select.cardByTid(n).getAttribute("data-winner") === "true",
 };
 
 // ───────── Asserts de alto nível para aria-labels ─────────
@@ -589,6 +628,70 @@ describe("Magic Up Onda 5 components", () => {
       await user.tab();
       const focused = expectActiveElementFocusVisible("base");
       expect(focused.getAttribute("aria-label")).toMatch(labelPatterns.anyCard);
+    });
+  });
+
+  // ───────── Smoke tests dos seletores resilientes (testid + regex fuzzy) ─────────
+  describe("seletores resilientes (data-testid + regex fuzzy)", () => {
+    it("expõe testIds previsíveis para comparator, list, cards e botões 'Marcar vencedora'", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(screen.getByTestId(testIds.comparator)).toBeInTheDocument();
+      expect(select.listByTid()).toBeInTheDocument();
+      [1, 2, 3].forEach((n) => {
+        expect(select.cardByTid(n)).toBeInTheDocument();
+        expect(select.marcarByTid(n)).toBeInTheDocument();
+      });
+    });
+
+    it("select.cardByTid e select.marcarByTid retornam os MESMOS nós que os helpers ARIA", () => {
+      renderComparator({ variations: buildVariations() });
+      [1, 2, 3].forEach((n) => {
+        expect(select.cardByTid(n)).toBe(select.card(n));
+        expect(select.marcarByTid(n)).toBe(select.marcar(n));
+      });
+    });
+
+    it("allCardsByTid e allMarcarByTid retornam contagem coerente com os helpers ARIA", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(select.allCardsByTid()).toHaveLength(select.allCards().length);
+      expect(select.allMarcarByTid()).toHaveLength(select.allMarcar().length);
+    });
+
+    it("data-active e data-winner refletem activeIndex/winnerIndex sem depender de aria-pressed", () => {
+      const variations = buildVariations([
+        { qualityScore: 90, isWinner: true },
+        { qualityScore: 70 },
+        { qualityScore: 50 },
+      ]);
+      renderComparator({ variations, activeIndex: 1 });
+
+      // active state
+      expect(select.isCardActiveByTid(1)).toBe(false);
+      expect(select.isCardActiveByTid(2)).toBe(true);
+      expect(select.isCardActiveByTid(3)).toBe(false);
+      // winner state (deriva de isWinner do item, não de winnerIndex prop)
+      expect(select.isCardWinnerByTid(1)).toBe(true);
+      expect(select.isCardWinnerByTid(2)).toBe(false);
+      expect(select.isCardWinnerByTid(3)).toBe(false);
+    });
+
+    it("labelPatterns.cardNFuzzy / winnerNFuzzy casam aria-labels mesmo com variações de pontuação", () => {
+      // Asserts puramente sobre regex — não dependem de render.
+      expect("Selecionar variação 2, score 80").toMatch(labelPatterns.cardNFuzzy(2));
+      expect("Selecionar variacao 2 score 80").toMatch(labelPatterns.cardNFuzzy(2));
+      expect("Selecionar Variação 2").toMatch(labelPatterns.cardNFuzzy(2));
+      expect("Marcar variação 3 como vencedora").toMatch(labelPatterns.winnerNFuzzy(3));
+      expect("marcar a variacao 3 como vencedor").toMatch(labelPatterns.winnerNFuzzy(3));
+
+      // Negativos: número diferente não deve casar
+      expect("Selecionar variação 22").not.toMatch(labelPatterns.cardNFuzzy(2));
+      expect("Marcar variação 33 como vencedora").not.toMatch(labelPatterns.winnerNFuzzy(3));
+    });
+
+    it("queryCardByTid / queryMarcarByTid retornam null sem lançar quando o índice não existe", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(select.queryCardByTid(99)).toBeNull();
+      expect(select.queryMarcarByTid(99)).toBeNull();
     });
   });
 });

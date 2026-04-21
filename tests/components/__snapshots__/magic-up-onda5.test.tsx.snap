@@ -4,6 +4,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
 <section
   aria-label="Comparador de variações"
   class="rounded-lg border bg-card p-3"
+  data-testid="magic-up-variation-comparator"
 >
   <div
     class="mb-2 flex items-center justify-between gap-2"
@@ -23,10 +24,13 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
   </div>
   <div
     class="grid grid-cols-2 gap-2 sm:grid-cols-3"
+    data-testid="variation-list"
     role="list"
   >
     <div
       class="overflow-hidden rounded-lg border border-primary ring-2 ring-primary/20"
+      data-testid="variation-item-1"
+      data-variation-index="0"
       role="listitem"
     >
       <button
@@ -35,6 +39,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
         aria-label="Selecionar variação 1, score 70"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="true"
+        data-testid="variation-card-1"
+        data-variation-index="0"
+        data-winner="false"
         type="button"
       >
         <div
@@ -74,6 +82,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
         <button
           aria-label="Marcar variação 1 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-1"
+          data-variation-index="0"
         >
           Marcar vencedora
         </button>
@@ -81,6 +91,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-2"
+      data-variation-index="1"
       role="listitem"
     >
       <button
@@ -88,6 +100,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
         aria-label="Selecionar variação 2, score 90, melhor score"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-2"
+        data-variation-index="1"
+        data-winner="true"
         type="button"
       >
         <div
@@ -133,6 +149,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
         <button
           aria-label="Marcar variação 2 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-2"
+          data-variation-index="1"
         >
           Marcar vencedora
         </button>
@@ -140,6 +158,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-3"
+      data-variation-index="2"
       role="listitem"
     >
       <button
@@ -147,6 +167,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
         aria-label="Selecionar variação 3, score 90"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-3"
+        data-variation-index="2"
+        data-winner="false"
         type="button"
       >
         <div
@@ -186,6 +210,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
         <button
           aria-label="Marcar variação 3 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-3"
+          data-variation-index="2"
         >
           Marcar vencedora
         </button>
@@ -199,6 +225,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
 <section
   aria-label="Comparador de variações"
   class="rounded-lg border bg-card p-3"
+  data-testid="magic-up-variation-comparator"
 >
   <div
     class="mb-2 flex items-center justify-between gap-2"
@@ -218,10 +245,13 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
   </div>
   <div
     class="grid grid-cols-2 gap-2 sm:grid-cols-3"
+    data-testid="variation-list"
     role="list"
   >
     <div
       class="overflow-hidden rounded-lg border border-primary ring-2 ring-primary/20"
+      data-testid="variation-item-1"
+      data-variation-index="0"
       role="listitem"
     >
       <button
@@ -230,6 +260,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
         aria-label="Selecionar variação 1, score 70"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="true"
+        data-testid="variation-card-1"
+        data-variation-index="0"
+        data-winner="false"
         type="button"
       >
         <div
@@ -269,6 +303,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
         <button
           aria-label="Marcar variação 1 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-1"
+          data-variation-index="0"
         >
           Marcar vencedora
         </button>
@@ -276,6 +312,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-2"
+      data-variation-index="1"
       role="listitem"
     >
       <button
@@ -283,6 +321,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
         aria-label="Selecionar variação 2, score 85"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-2"
+        data-variation-index="1"
+        data-winner="false"
         type="button"
       >
         <div
@@ -322,6 +364,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
         <button
           aria-label="Marcar variação 2 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-2"
+          data-variation-index="1"
         >
           Marcar vencedora
         </button>
@@ -329,6 +373,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-3"
+      data-variation-index="2"
       role="listitem"
     >
       <button
@@ -336,6 +382,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
         aria-label="Selecionar variação 3, score 92, melhor score"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-3"
+        data-variation-index="2"
+        data-winner="true"
         type="button"
       >
         <div
@@ -381,6 +431,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
         <button
           aria-label="Marcar variação 3 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-3"
+          data-variation-index="2"
         >
           Marcar vencedora
         </button>
@@ -394,6 +446,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
 <section
   aria-label="Comparador de variações"
   class="rounded-lg border bg-card p-3"
+  data-testid="magic-up-variation-comparator"
 >
   <div
     class="mb-2 flex items-center justify-between gap-2"
@@ -413,10 +466,13 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
   </div>
   <div
     class="grid grid-cols-2 gap-2 sm:grid-cols-3"
+    data-testid="variation-list"
     role="list"
   >
     <div
       class="overflow-hidden rounded-lg border border-primary ring-2 ring-primary/20"
+      data-testid="variation-item-1"
+      data-variation-index="0"
       role="listitem"
     >
       <button
@@ -425,6 +481,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
         aria-label="Selecionar variação 1"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="true"
+        data-testid="variation-card-1"
+        data-variation-index="0"
+        data-winner="false"
         type="button"
       >
         <div
@@ -464,6 +524,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
         <button
           aria-label="Marcar variação 1 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-1"
+          data-variation-index="0"
         >
           Marcar vencedora
         </button>
@@ -471,6 +533,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-2"
+      data-variation-index="1"
       role="listitem"
     >
       <button
@@ -478,6 +542,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
         aria-label="Selecionar variação 2"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-2"
+        data-variation-index="1"
+        data-winner="false"
         type="button"
       >
         <div
@@ -517,6 +585,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
         <button
           aria-label="Marcar variação 2 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-2"
+          data-variation-index="1"
         >
           Marcar vencedora
         </button>
@@ -524,6 +594,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-3"
+      data-variation-index="2"
       role="listitem"
     >
       <button
@@ -531,6 +603,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
         aria-label="Selecionar variação 3"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-3"
+        data-variation-index="2"
+        data-winner="false"
         type="button"
       >
         <div
@@ -570,6 +646,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
         <button
           aria-label="Marcar variação 3 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-3"
+          data-variation-index="2"
         >
           Marcar vencedora
         </button>
@@ -583,6 +661,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
 <section
   aria-label="Comparador de variações"
   class="rounded-lg border bg-card p-3"
+  data-testid="magic-up-variation-comparator"
 >
   <div
     class="mb-2 flex items-center justify-between gap-2"
@@ -602,10 +681,13 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
   </div>
   <div
     class="grid grid-cols-2 gap-2 sm:grid-cols-3"
+    data-testid="variation-list"
     role="list"
   >
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-1"
+      data-variation-index="0"
       role="listitem"
     >
       <button
@@ -613,6 +695,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
         aria-label="Selecionar variação 1, score 70"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-1"
+        data-variation-index="0"
+        data-winner="false"
         type="button"
       >
         <div
@@ -652,6 +738,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
         <button
           aria-label="Marcar variação 1 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-1"
+          data-variation-index="0"
         >
           Marcar vencedora
         </button>
@@ -659,6 +747,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
     </div>
     <div
       class="overflow-hidden rounded-lg border border-primary ring-2 ring-primary/20"
+      data-testid="variation-item-2"
+      data-variation-index="1"
       role="listitem"
     >
       <button
@@ -667,6 +757,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
         aria-label="Selecionar variação 2, score 85"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="true"
+        data-testid="variation-card-2"
+        data-variation-index="1"
+        data-winner="false"
         type="button"
       >
         <div
@@ -706,6 +800,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
         <button
           aria-label="Marcar variação 2 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-2"
+          data-variation-index="1"
         >
           Marcar vencedora
         </button>
@@ -713,6 +809,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
     </div>
     <div
       class="overflow-hidden rounded-lg border border-border hover:border-primary/40"
+      data-testid="variation-item-3"
+      data-variation-index="2"
       role="listitem"
     >
       <button
@@ -720,6 +818,10 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
         aria-label="Selecionar variação 3, score 92, melhor score"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        data-active="false"
+        data-testid="variation-card-3"
+        data-variation-index="2"
+        data-winner="true"
         type="button"
       >
         <div
@@ -765,6 +867,8 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
         <button
           aria-label="Marcar variação 3 como vencedora"
           class="inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium ring-offset-background transition-all duration-200 focus-visible:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 touch-manipulation active:scale-[0.98] hover:bg-accent hover:text-accent-foreground rounded-md px-3 min-h-[36px] h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+          data-testid="variation-winner-button-3"
+          data-variation-index="2"
         >
           Marcar vencedora
         </button>

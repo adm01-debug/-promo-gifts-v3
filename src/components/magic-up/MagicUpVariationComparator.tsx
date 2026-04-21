@@ -57,12 +57,12 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
   };
 
   return (
-    <section className="rounded-lg border bg-card p-3" aria-label="Comparador de variações">
+    <section data-testid="magic-up-variation-comparator" className="rounded-lg border bg-card p-3" aria-label="Comparador de variações">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">Comparar variações</p>
         <Badge variant="secondary" aria-label={`Melhor score entre variações: ${bestScore !== null ? bestScore : "indisponível"}`}>Melhor score: {bestScore !== null ? bestScore : "—"}</Badge>
       </div>
-      <div role="list" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
+      <div role="list" data-testid="variation-list" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {variations.map((variation, index) => {
           const score = scores[index];
           const isWinner = index === winnerIndex;
@@ -70,12 +70,18 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
           return (
             <div
               role="listitem"
+              data-testid={`variation-item-${index + 1}`}
+              data-variation-index={index}
               key={`${variation.id || variation.imageUrl}-${index}`}
               className={cn("overflow-hidden rounded-lg border", isActive ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40")}
             >
               <button
                 ref={(el) => { cardRefs.current[index] = el; }}
                 type="button"
+                data-testid={`variation-card-${index + 1}`}
+                data-variation-index={index}
+                data-active={isActive ? "true" : "false"}
+                data-winner={isWinner ? "true" : "false"}
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
                 aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
@@ -102,6 +108,8 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                     <Button
                       size="sm"
                       variant="ghost"
+                      data-testid={`variation-winner-button-${index + 1}`}
+                      data-variation-index={index}
                       className="h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
                       aria-label={`Marcar variação ${index + 1} como vencedora`}
                       aria-busy={isLoadingThis || undefined}
