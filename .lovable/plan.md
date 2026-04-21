@@ -1,49 +1,55 @@
 
 
-# Plano — Testes de navegação por teclado no MagicUpVariationComparator
+# Plano — Testes de classes de foco visível nos componentes Onda 5
 
-Adiciono testes verificando que Tab atinge os elementos interativos na ordem correta e que Enter/Space ativam os handlers, sem alterar produção.
+Adiciono testes que validam, via inspeção de `className`, que cada botão interativo dos componentes da Onda 5 expõe `focus-visible:ring-*` e `focus-visible:ring-offset-*`, garantindo anel de foco perceptível para usuários de teclado.
 
 ## Arquivo único alterado
 
-`tests/components/magic-up-onda5.test.tsx` — novo bloco `describe("MagicUpVariationComparator keyboard navigation")` com 4 testes.
+`tests/components/magic-up-onda5.test.tsx` — novo bloco `describe("MagicUpVariationComparator focus-visible classes")` com 3 testes.
 
 ## Casos cobertos
 
-1. **Tab navega entre cards e botões na ordem do DOM**
-   - 3 variações → ordem esperada: card1 → "Marcar vencedora"1 → card2 → "Marcar vencedora"2 → card3 → "Marcar vencedora"3
-   - Usa `userEvent.tab()` em loop e verifica `document.activeElement` a cada passo
+1. **Botão "Marcar vencedora" expõe ring + ring-offset no foco**
+   - Renderiza com 3 variações
+   - Para cada botão "Marcar variação N como vencedora":
+     - `className` contém `focus-visible:ring-2`
+     - `className` contém `focus-visible:ring-ring`
+     - `className` contém `focus-visible:ring-offset-2`
+     - `className` contém `focus-visible:ring-offset-background`
 
-2. **Enter no card de variação chama `onSelect` com índice correto**
-   - Foca o card índice 1 via `.focus()`
-   - `userEvent.keyboard("{Enter}")`
-   - Assert: `onSelect` chamado com `1`, `onSelectWinner` não chamado
+2. **Card de variação não fica invisível ao foco**
+   - Para cada `<button>` "Selecionar variação N":
+     - `className` contém `focus-visible:outline-none` (remove default)
+     - `className` contém `focus-visible:ring-2` E `focus-visible:ring-ring` (substitui com anel visível)
+   - Garante que `outline-none` nunca aparece sozinho sem `ring-*` compensatório
 
-3. **Space no card de variação chama `onSelect`**
-   - Mesmo cenário, `userEvent.keyboard(" ")`
-   - Assert: `onSelect` chamado com índice correto (botões nativos respondem a Space)
+3. **Estado disabled mantém contraste legível**
+   - Renderiza variações
+   - Para botão "Marcar vencedora": `className` contém `disabled:bg-muted`, `disabled:text-muted-foreground`, `disabled:opacity-100`
+   - Trava regressão para `opacity-50` padrão do shadcn (que reduz contraste abaixo do mínimo WCAG)
 
-4. **Enter no botão "Marcar vencedora" chama `onSelectWinner` sem disparar `onSelect`**
-   - Foca o botão "Marcar vencedora" do índice 2
-   - `userEvent.keyboard("{Enter}")`
-   - Assert: `onSelectWinner` chamado com `2`, `onSelect` NÃO chamado (evento isolado, sem bubbling cruzado)
+## Helpers reutilizados
+
+- `baseVariation()` já criado nos snapshot tests
+- `screen.getAllByRole("button", { name: /Marcar variação/ })` e `/Selecionar variação/`
 
 ## Estratégia
 
-- Usa `@testing-library/user-event` (`userEvent.setup()`) — já disponível no projeto
-- Sem `fireEvent` direto — `userEvent` simula sequência completa (keydown + keypress + keyup)
-- Sem timers, sem async além do `await user.tab()` / `await user.keyboard()`
-- Reutiliza helper `baseVariation()` criado nos snapshot tests
+- Inspeção direta de `element.className` via `toContain()` — sem depender de `getComputedStyle` (jsdom não aplica Tailwind)
+- Sem `fireEvent.focus()` — testamos a presença das classes, que é o contrato; o navegador aplica o estilo quando `:focus-visible` ativa
+- Documenta no nome de cada `it()` o requisito WCAG protegido (visível ao teclado, contraste mínimo)
 
 ## Restrições
 
-- Sem alterar `MagicUpVariationComparator.tsx`
-- Sem novos mocks além de `vi.fn()` para os handlers
-- Sem dependência de browser
+- Sem alterar `MagicUpVariationComparator.tsx` nem outros componentes de produção
+- Sem novos mocks, sem dependência de browser, sem novos imports
+- Reutiliza imports e helpers já existentes no arquivo de teste
 
 ## Entregável
 
-- 4 novos testes verdes
-- Total do arquivo: 17 → 21 testes
-- Cobertura: tab order + Enter + Space + isolamento de eventos entre card e botão interno
+- 3 novos testes verdes
+- Total do arquivo: 21 → 24 testes
+- Cobertura explícita: ring visível em todos os interativos + disabled legível
+- Qualquer remoção futura de `focus-visible:ring-*` ou troca para `disabled:opacity-50` quebra o teste
 
