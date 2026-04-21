@@ -50,20 +50,28 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.getByText("Revise este ponto antes de enviar ao cliente.")).toBeInTheDocument();
   });
 
-  it("permite alterar todos os status de curadoria e respeita disabled", () => {
+  it("permite alterar todos os status de curadoria com aria-checked e respeita disabled", () => {
     const onChange = vi.fn();
     const { rerender } = render(<MagicUpCurationStatus value="draft" onChange={onChange} />);
-    ["Rascunho", "Boa", "Favorita", "Aprovada internamente", "Enviada ao cliente", "Aprovada pelo cliente", "Rejeitada", "Precisa ajuste"].forEach((label) => {
-      expect(screen.getByRole("button", { name: label })).toBeInTheDocument();
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Boa" }));
+    const boa = screen.getByRole("radio", { name: "Definir curadoria como Boa" });
+    expect(boa).toHaveAttribute("aria-checked", "false");
+    expect(screen.getByRole("radio", { name: "Definir curadoria como Rascunho" })).toHaveAttribute("aria-checked", "true");
+    fireEvent.click(boa);
     expect(onChange).toHaveBeenCalledWith("good");
 
     rerender(<MagicUpCurationStatus value="good" disabled onChange={onChange} />);
-    expect(screen.getByRole("button", { name: "Boa" })).toBeDisabled();
+    expect(screen.getByRole("radio", { name: "Definir curadoria como Boa" })).toBeDisabled();
   });
 
-  it("compara variações, destaca melhor score e não propaga clique ao marcar vencedora", () => {
+  it("checklist usa role list e expõe scores com aria-label", () => {
+    render(<MagicUpQualityChecklist diagnosis={diagnosis(64, "heuristic")} />);
+    expect(screen.getByRole("list")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem").length).toBe(4);
+    expect(screen.getByLabelText("Score 94 de 100")).toBeInTheDocument();
+    expect(screen.getByLabelText("Score 58 de 100")).toBeInTheDocument();
+  });
+
+  it("compara variações com aria-pressed e botão vencedora único por variação", () => {
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     const variations: VariationItem[] = [
@@ -74,11 +82,12 @@ describe("Magic Up Onda 5 components", () => {
     render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />);
 
     expect(screen.getByLabelText("Comparador de variações")).toBeInTheDocument();
-    expect(screen.getByText("Melhor score: 92")).toBeInTheDocument();
-    expect(screen.getAllByText("Melhor score").length).toBeGreaterThan(0);
-    fireEvent.click(screen.getByRole("button", { name: "Selecionar variação 2" }));
+    const firstBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    expect(firstBtn).toHaveAttribute("aria-pressed", "true");
+    expect(firstBtn).toHaveAttribute("aria-current", "true");
+    fireEvent.click(screen.getByRole("button", { name: /Selecionar variação 2/ }));
     expect(onSelect).toHaveBeenCalledWith(1);
-    fireEvent.click(screen.getAllByRole("button", { name: "Marcar vencedora" })[1]);
+    fireEvent.click(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" }));
     expect(onSelectWinner).toHaveBeenCalledWith(1);
   });
 
