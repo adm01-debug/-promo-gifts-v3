@@ -1438,6 +1438,96 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("aria-label omite 'score' quando qualityScore/qualityDiagnosis.total ausentes; consistência winner/não-winner preservada", async () => {
+      const onSelectWinner = vi.fn();
+
+      // Fixture: 4 variações cobrindo matriz {score: ausente | 0 | 85} × {winner: false | true}
+      const matrixVariations = [
+        // 0: sem score, não-winner
+        { ...navVariations[0], qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false },
+        // 1: sem score, winner
+        { ...navVariations[0], id: "var-no-score-winner", qualityScore: undefined, qualityDiagnosis: undefined, isWinner: true },
+        // 2: com score 0 (caso-limite — zero é válido), não-winner
+        { ...navVariations[0], id: "var-score-zero", qualityScore: 0, qualityDiagnosis: undefined, isWinner: false },
+        // 3: com score 85, não-winner
+        { ...navVariations[0], id: "var-score-85", qualityScore: 85, qualityDiagnosis: undefined, isWinner: false },
+      ];
+
+      render(
+        <MagicUpVariationComparator
+          variations={matrixVariations}
+          activeIndex={0}
+          onSelect={() => {}}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      const card4 = screen.getByRole("button", { name: /^Selecionar variação 4/ });
+
+      const label1 = card1.getAttribute("aria-label") ?? "";
+      const label2 = card2.getAttribute("aria-label") ?? "";
+      const label3 = card3.getAttribute("aria-label") ?? "";
+      const label4 = card4.getAttribute("aria-label") ?? "";
+
+      // ── 1) Sem score: NÃO contém ", score" nem "score 0" nem "score undefined" ──
+      expect(label1).not.toMatch(/,\s*score\s/i);
+      expect(label1).not.toMatch(/score\s+0\b/i);
+      expect(label1).not.toMatch(/score\s+undefined/i);
+      expect(label1).not.toMatch(/score\s+null/i);
+      expect(label1).not.toMatch(/score\s+NaN/i);
+
+      expect(label2).not.toMatch(/,\s*score\s/i);
+      expect(label2).not.toMatch(/score\s+0\b/i);
+      expect(label2).not.toMatch(/score\s+undefined/i);
+
+      // ── 2) Score 0 É anunciado (zero é dado válido, não ausência) ──
+      expect(label3).toMatch(/score\s+0\b/i);
+
+      // ── 3) Score 85 é anunciado normalmente ──
+      expect(label4).toMatch(/score\s+85\b/i);
+
+      // ── 4) Winner sem score MANTÉM sufixo "melhor score" ──
+      expect(label2).toMatch(/melhor score/i);
+      expect(label1).not.toMatch(/melhor score/i);
+      expect(label3).not.toMatch(/melhor score/i);
+      expect(label4).not.toMatch(/melhor score/i);
+
+      // ── 5) Consistência estrutural: prefixo idêntico ──
+      expect(label1).toMatch(/^Selecionar variação 1/);
+      expect(label2).toMatch(/^Selecionar variação 2/);
+      expect(label3).toMatch(/^Selecionar variação 3/);
+      expect(label4).toMatch(/^Selecionar variação 4/);
+
+      // ── 6) Winner sem score = prefixo + ", melhor score" ──
+      expect(label2).toBe("Selecionar variação 2, melhor score");
+
+      // ── 7) Não-winner sem score = APENAS prefixo ──
+      expect(label1).toBe("Selecionar variação 1");
+
+      // ── 8) Não-winner com score 0 = prefixo + ", score 0" ──
+      expect(label3).toBe("Selecionar variação 3, score 0");
+
+      // ── 9) Não-winner com score 85 = prefixo + ", score 85" ──
+      expect(label4).toBe("Selecionar variação 4, score 85");
+
+      // ── 10) Sem espaços duplos, vírgulas órfãs ou sufixos vazios ──
+      [label1, label2, label3, label4].forEach((label) => {
+        expect(label).not.toMatch(/\s{2,}/);
+        expect(label).not.toMatch(/,\s*,/);
+        expect(label).not.toMatch(/,\s*$/);
+        expect(label.trim()).toBe(label);
+      });
+
+      // ── 11) Sem "score —" no rótulo (placeholder visual não vaza para a11y) ──
+      expect(label1).not.toMatch(/score\s+—/);
+      expect(label2).not.toMatch(/score\s+—/);
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
 
