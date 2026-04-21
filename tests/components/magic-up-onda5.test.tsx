@@ -57,14 +57,84 @@ function renderComparator(props: {
   return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
 }
 
+// ───────── Builders centralizados de aria-label ─────────
+// Fonte única de verdade: qualquer mudança no formato do aria-label do componente
+// é refletida aqui e propaga para todos os asserts do arquivo.
+
+/** Monta o aria-label exato de um card de variação. */
+function variationCardLabel(n: number, opts: { score?: number; best?: boolean } = {}): string {
+  const parts = [`Selecionar variação ${n}`];
+  if (opts.score !== undefined) parts.push(`score ${opts.score}`);
+  if (opts.best) parts.push("melhor score");
+  return parts.join(", ");
+}
+
+/** Monta o aria-label exato do botão "marcar como vencedora". */
+function winnerButtonLabel(n: number): string {
+  return `Marcar variação ${n} como vencedora`;
+}
+
+/** Regex reutilizáveis (sem string literal duplicada) para name matchers. */
+const labelPatterns = {
+  anyCard: /^Selecionar variação \d+/,
+  anyWinner: /^Marcar variação \d+ como vencedora$/,
+  cardN: (n: number) => new RegExp(`^Selecionar variação ${n}(,|$)`),
+  cardNWithBest: (n: number) => new RegExp(`^Selecionar variação ${n}.*melhor score`, "i"),
+};
+
 /** Seletores ARIA estáveis para elementos do comparador */
 const select = {
-  card: (n: number) => screen.getByRole("button", { name: new RegExp(`^Selecionar variação ${n}(,|$)`) }),
+  card: (n: number) => screen.getByRole("button", { name: labelPatterns.cardN(n) }),
   cardExact: (name: string) => screen.getByRole("button", { name }),
-  marcar: (n: number) => screen.getByRole("button", { name: `Marcar variação ${n} como vencedora` }),
-  allCards: () => screen.getAllByRole("button", { name: /^Selecionar variação \d+/ }),
-  allMarcar: () => screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ }),
+  /** Atalho tipado: `select.cardByScore(2, 80)` ou `select.cardByScore(1, 90, { best: true })`. */
+  cardByScore: (n: number, score: number, opts: { best?: boolean } = {}) =>
+    screen.getByRole("button", { name: variationCardLabel(n, { score, best: opts.best }) }),
+  marcar: (n: number) => screen.getByRole("button", { name: winnerButtonLabel(n) }),
+  allCards: () => screen.getAllByRole("button", { name: labelPatterns.anyCard }),
+  allMarcar: () => screen.getAllByRole("button", { name: labelPatterns.anyWinner }),
+  /** Query (não throw) para asserções de ausência de "melhor score" em um card. */
+  queryCardWithBest: (n: number) =>
+    screen.queryByRole("button", { name: labelPatterns.cardNWithBest(n) }),
 };
+
+// ───────── Asserts de alto nível para aria-labels ─────────
+
+/** Garante que o card N existe com o score informado e (não) é o "melhor score". */
+function expectVariationCard(n: number, score: number, opts: { best?: boolean } = {}): HTMLElement {
+  const card = select.cardByScore(n, score, { best: opts.best });
+  expect(card).toBeInTheDocument();
+  if (opts.best) {
+    expect(select.queryCardWithBest(n)).toBe(card);
+  } else {
+    expect(select.queryCardWithBest(n)).not.toBe(card);
+  }
+  return card;
+}
+
+/** Garante que o card N NÃO carrega o sufixo "melhor score". */
+function expectNotBestScore(n: number): void {
+  expect(select.queryCardWithBest(n)).not.toBeInTheDocument();
+}
+
+/** Garante que apenas UM card carrega "melhor score" (invariante de exclusividade). */
+function expectExactlyOneBestScore(): HTMLElement {
+  const best = select
+    .allCards()
+    .filter((c) => /melhor score/.test(c.getAttribute("aria-label") ?? ""));
+  expect(best).toHaveLength(1);
+  return best[0];
+}
+
+/** Garante que o botão "Marcar variação N como vencedora" existe e está habilitado/desabilitado. */
+function expectWinnerButton(n: number, opts: { disabled?: boolean } = {}): HTMLElement {
+  const btn = select.marcar(n);
+  expect(btn).toBeInTheDocument();
+  if (opts.disabled !== undefined) {
+    if (opts.disabled) expect(btn).toBeDisabled();
+    else expect(btn).toBeEnabled();
+  }
+  return btn;
+}
 
 describe("Magic Up Onda 5 components", () => {
   it("renderiza Magic Score excelente, origem IA e formato", () => {
@@ -353,6 +423,83 @@ describe("Magic Up Onda 5 components", () => {
     expect(select.cardExact("Selecionar variação 1, score 80, melhor score")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })).not.toBeInTheDocument();
     expect(select.cardExact("Selecionar variação 2, score 80")).toHaveAttribute("aria-pressed", "true");
+  });
+
+  // ───────── Smoke tests dos helpers de aria-label ─────────
+  describe("helpers de aria-label (builders + asserts compartilhados)", () => {
+    it("variationCardLabel monta string exata com e sem score/best", () => {
+      expect(variationCardLabel(1)).toBe("Selecionar variação 1");
+      expect(variationCardLabel(2, { score: 80 })).toBe("Selecionar variação 2, score 80");
+      expect(variationCardLabel(3, { score: 90, best: true })).toBe(
+        "Selecionar variação 3, score 90, melhor score"
+      );
+      expect(variationCardLabel(4, { best: true })).toBe(
+        "Selecionar variação 4, melhor score"
+      );
+    });
+
+    it("winnerButtonLabel monta string exata", () => {
+      expect(winnerButtonLabel(1)).toBe("Marcar variação 1 como vencedora");
+      expect(winnerButtonLabel(7)).toBe("Marcar variação 7 como vencedora");
+    });
+
+    it("expectVariationCard + expectNotBestScore + expectExactlyOneBestScore validam estado real", () => {
+      const variations = buildVariations([
+        { qualityScore: 90 },
+        { qualityScore: 70 },
+        { qualityScore: 50 },
+      ]);
+      renderComparator({ variations });
+
+      expectVariationCard(1, 90, { best: true });
+      expectVariationCard(2, 70);
+      expectVariationCard(3, 50);
+      expectNotBestScore(2);
+      expectNotBestScore(3);
+
+      const bestCard = expectExactlyOneBestScore();
+      expect(bestCard.getAttribute("aria-label")).toBe(
+        variationCardLabel(1, { score: 90, best: true })
+      );
+    });
+
+    it("expectWinnerButton localiza botão para cada variação (com e sem isWinner)", () => {
+      const variations = buildVariations([
+        { qualityScore: 90 },
+        { qualityScore: 70, isWinner: true },
+        { qualityScore: 50 },
+      ]);
+      renderComparator({ variations });
+
+      // Em todas as variações, o botão "Marcar vencedora" existe e seu aria-label
+      // bate exatamente com o produzido por winnerButtonLabel(n).
+      [1, 2, 3].forEach((n) => {
+        const btn = expectWinnerButton(n);
+        expect(btn.getAttribute("aria-label")).toBe(winnerButtonLabel(n));
+      });
+    });
+
+    it("labelPatterns.anyCard / anyWinner casam com todos os botões esperados", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(select.allCards()).toHaveLength(3);
+      expect(select.allMarcar()).toHaveLength(3);
+      select.allCards().forEach((c) => {
+        expect(c.getAttribute("aria-label")).toMatch(labelPatterns.anyCard);
+      });
+      select.allMarcar().forEach((b) => {
+        expect(b.getAttribute("aria-label")).toMatch(labelPatterns.anyWinner);
+      });
+    });
+
+    it("select.cardByScore é equivalente a select.cardExact com label montado", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(select.cardByScore(1, 90, { best: true })).toBe(
+        select.cardExact(variationCardLabel(1, { score: 90, best: true }))
+      );
+      expect(select.cardByScore(2, 70)).toBe(
+        select.cardExact(variationCardLabel(2, { score: 70 }))
+      );
+    });
   });
 });
 
