@@ -1904,4 +1904,89 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       ]);
     }
   );
+
+  it("badge 'Melhor score' permanece no winnerIndex mesmo quando outro card é selecionado (activeIndex controlado)", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+
+    const variations: VariationItem[] = [
+      { id: "var-A", imageUrl: "https://example.com/a.png", qualityScore: 60 },
+      { id: "var-B", imageUrl: "https://example.com/b.png", qualityScore: 90 },
+      { id: "var-C", imageUrl: "https://example.com/c.png", qualityScore: 40 },
+    ];
+    const winnerIndex = 1;
+
+    const renderWithActive = (activeIndex: number) => (
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={activeIndex}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const { rerender } = render(renderWithActive(0));
+
+    const assertWinnerInvariant = (currentActive: number) => {
+      const cards = screen.getAllByRole("listitem");
+
+      // 1. Badge sempre no winnerIndex
+      expect(within(cards[winnerIndex]).getByLabelText("Melhor score")).toBeInTheDocument();
+      expect(within(cards[winnerIndex]).getByText("Melhor score")).toBeInTheDocument();
+
+      // 2. Cardinalidade global
+      expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
+      expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
+
+      // 3. Outros cards sem badge
+      [0, 1, 2].filter((i) => i !== winnerIndex).forEach((i) => {
+        expect(within(cards[i]).queryByLabelText("Melhor score")).toBeNull();
+      });
+
+      // 4. aria-pressed/aria-current refletem activeIndex
+      cards.forEach((card, i) => {
+        const button = within(card).getByRole("button", { name: /^Selecionar variação/ });
+        const isActive = i === currentActive;
+        expect(button).toHaveAttribute("aria-pressed", String(isActive));
+        if (isActive) {
+          expect(button).toHaveAttribute("aria-current", "true");
+        } else {
+          expect(button).not.toHaveAttribute("aria-current");
+        }
+      });
+
+      // 5. Aria-label do winner mantém sufixo
+      const winnerButton = within(cards[winnerIndex]).getByRole("button", {
+        name: /^Selecionar variação 2/,
+      });
+      expect(winnerButton.getAttribute("aria-label")).toBe(
+        "Selecionar variação 2, score 90, melhor score"
+      );
+    };
+
+    assertWinnerInvariant(0);
+
+    const cardsInitial = screen.getAllByRole("listitem");
+    await user.click(within(cardsInitial[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(1);
+    rerender(renderWithActive(1));
+    assertWinnerInvariant(1);
+
+    const cardsAfter1 = screen.getAllByRole("listitem");
+    await user.click(within(cardsAfter1[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+    rerender(renderWithActive(2));
+    assertWinnerInvariant(2);
+
+    const cardsAfter2 = screen.getAllByRole("listitem");
+    await user.click(within(cardsAfter2[0]).getByRole("button", { name: /^Selecionar variação 1/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(0);
+    rerender(renderWithActive(0));
+    assertWinnerInvariant(0);
+
+    expect(onSelect).toHaveBeenCalledTimes(3);
+    expect(onSelect.mock.calls.map((c) => c[0])).toEqual([1, 2, 0]);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+  });
 });
