@@ -1770,4 +1770,48 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
     expect(screen.getByLabelText(/Melhor score entre variações: 95/)).toBeInTheDocument();
   });
+
+  it.each([
+    { label: "menor índice tem menor score", scoreA: 10, scoreC: 99 },
+    { label: "menor índice tem maior score", scoreA: 99, scoreC: 10 },
+    { label: "ambos têm o mesmo score", scoreA: 50, scoreC: 50 },
+  ])(
+    "múltiplos isWinner: true — vencedor é sempre o de menor índice ($label)",
+    ({ scoreA, scoreC }) => {
+      const variations = [
+        buildVariation({ id: "var-A", qualityScore: scoreA, isWinner: true }, 0),
+        buildVariation({ id: "var-B", qualityScore: 50, isWinner: false }, 1),
+        buildVariation({ id: "var-C", qualityScore: scoreC, isWinner: true }, 2),
+      ];
+
+      expect(variations.filter((v) => v.isWinner === true)).toHaveLength(2);
+      expect(variations[0].isWinner).toBe(true);
+      expect(variations[2].isWinner).toBe(true);
+
+      renderTied(variations);
+
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+
+      const cards = screen.getAllByRole("listitem");
+      expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+      expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+      expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+      const winnerBtn = screen.getByRole("button", {
+        name: `Selecionar variação 1, score ${scoreA}, melhor score`,
+      });
+      expect(winnerBtn).toBeInTheDocument();
+
+      const varCBtn = screen.getByRole("button", {
+        name: `Selecionar variação 3, score ${scoreC}`,
+      });
+      expect(varCBtn).toBeInTheDocument();
+
+      const allSelectButtons = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+      const withSuffix = allSelectButtons.filter((btn) =>
+        (btn.getAttribute("aria-label") ?? "").includes("melhor score")
+      );
+      expect(withSuffix).toHaveLength(1);
+    }
+  );
 });
