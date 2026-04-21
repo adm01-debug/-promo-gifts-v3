@@ -35,6 +35,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
                 aria-current={i === m.activeVariation ? "true" : undefined}
                 role="tab"
                 aria-selected={i === m.activeVariation}
+                tabIndex={i === m.activeVariation ? 0 : -1}
                 className="group relative inline-flex items-center justify-center w-11 h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               >
                 <span
