@@ -424,6 +424,80 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })).not.toBeInTheDocument();
     expect(select.cardExact("Selecionar variação 2, score 80")).toHaveAttribute("aria-pressed", "true");
   });
+
+  // ───────── Smoke tests dos helpers de aria-label ─────────
+  describe("helpers de aria-label (builders + asserts compartilhados)", () => {
+    it("variationCardLabel monta string exata com e sem score/best", () => {
+      expect(variationCardLabel(1)).toBe("Selecionar variação 1");
+      expect(variationCardLabel(2, { score: 80 })).toBe("Selecionar variação 2, score 80");
+      expect(variationCardLabel(3, { score: 90, best: true })).toBe(
+        "Selecionar variação 3, score 90, melhor score"
+      );
+      expect(variationCardLabel(4, { best: true })).toBe(
+        "Selecionar variação 4, melhor score"
+      );
+    });
+
+    it("winnerButtonLabel monta string exata", () => {
+      expect(winnerButtonLabel(1)).toBe("Marcar variação 1 como vencedora");
+      expect(winnerButtonLabel(7)).toBe("Marcar variação 7 como vencedora");
+    });
+
+    it("expectVariationCard + expectNotBestScore + expectExactlyOneBestScore validam estado real", () => {
+      const variations = buildVariations([
+        { qualityScore: 90 },
+        { qualityScore: 70 },
+        { qualityScore: 50 },
+      ]);
+      renderComparator({ variations });
+
+      expectVariationCard(1, 90, { best: true });
+      expectVariationCard(2, 70);
+      expectVariationCard(3, 50);
+      expectNotBestScore(2);
+      expectNotBestScore(3);
+
+      const bestCard = expectExactlyOneBestScore();
+      expect(bestCard.getAttribute("aria-label")).toBe(
+        variationCardLabel(1, { score: 90, best: true })
+      );
+    });
+
+    it("expectWinnerButton localiza botão e valida estado enabled/disabled", () => {
+      const variations = buildVariations([
+        { qualityScore: 90 },
+        { qualityScore: 70, isWinner: true },
+        { qualityScore: 50 },
+      ]);
+      renderComparator({ variations });
+
+      expectWinnerButton(1, { disabled: false });
+      expectWinnerButton(2, { disabled: true });
+      expectWinnerButton(3, { disabled: false });
+    });
+
+    it("labelPatterns.anyCard / anyWinner casam com todos os botões esperados", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(select.allCards()).toHaveLength(3);
+      expect(select.allMarcar()).toHaveLength(3);
+      select.allCards().forEach((c) => {
+        expect(c.getAttribute("aria-label")).toMatch(labelPatterns.anyCard);
+      });
+      select.allMarcar().forEach((b) => {
+        expect(b.getAttribute("aria-label")).toMatch(labelPatterns.anyWinner);
+      });
+    });
+
+    it("select.cardByScore é equivalente a select.cardExact com label montado", () => {
+      renderComparator({ variations: buildVariations() });
+      expect(select.cardByScore(1, 90, { best: true })).toBe(
+        select.cardExact(variationCardLabel(1, { score: 90, best: true }))
+      );
+      expect(select.cardByScore(2, 70)).toBe(
+        select.cardExact(variationCardLabel(2, { score: 70 }))
+      );
+    });
+  });
 });
 
 describe("MagicUpVariationComparator snapshots", () => {
