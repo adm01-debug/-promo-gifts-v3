@@ -337,6 +337,50 @@ describe("Magic Up Onda 5 components", () => {
       screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })
     ).not.toBeInTheDocument();
   });
+
+  it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", () => {
+    const onSelect = vi.fn();
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 80 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 80 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 80 },
+    ];
+    const { rerender } = render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={vi.fn()}
+      />
+    );
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
+    ).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
+    expect(onSelect).toHaveBeenCalledWith(1);
+
+    rerender(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={1}
+        onSelect={onSelect}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 2, score 80" })
+    ).toHaveAttribute("aria-pressed", "true");
+  });
 });
 
 describe("MagicUpVariationComparator snapshots", () => {
