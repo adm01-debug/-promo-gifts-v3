@@ -133,7 +133,7 @@ const labelPatterns = {
   cardNWithBest: (n: number) => new RegExp(`^Selecionar variação ${n}.*melhor score`, "i"),
   /** Padrões tolerantes a alterações futuras de pontuação/sufixos no aria-label. */
   cardNFuzzy: (n: number) => new RegExp(`Selecionar.*varia[cç][aã]o\\s*${n}\\b`, "i"),
-  winnerNFuzzy: (n: number) => new RegExp(`Marcar.*varia[cç][aã]o\\s*${n}.*vencedor`, "i"),
+  winnerNFuzzy: (n: number) => new RegExp(`Marcar.*varia[cç][aã]o\\s*${n}\\b.*vencedor`, "i"),
 };
 
 /** TestIds estáveis expostos pelo componente (resilientes a mudanças de copy/ARIA). */
