@@ -1,15 +1,18 @@
 /**
- * MagicUpResultPanel — testes de navegação por teclado (WCAG 2.1.1 Keyboard).
+ * MagicUpResultPanel — testes de navegação por teclado (WCAG 2.1.1 Keyboard)
+ * + WAI-ARIA APG Tabs Pattern (roving tabindex, aria-selected sincronizado).
  *
  * Cobre prev/next, dots de paginação e thumbnails:
  * - Tab order segue ordem do DOM
  * - Enter/Space ativam handlers em <button> nativos
+ * - Apenas a tab ativa é alcançável via Tab (roving tabindex)
+ * - aria-selected sincronizado entre dots e thumbnails
  *
  * Estratégia: stub de subcomponentes pesados (AdImageResult, MagicUpVariationComparator)
  * para isolar o foco apenas nos controles de variação do painel.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, fireEvent, screen } from "@testing-library/react";
+import { render, fireEvent, screen, within } from "@testing-library/react";
 import { MagicUpResultPanel } from "@/pages/magic-up/MagicUpResultPanel";
 
 vi.mock("@/components/magic-up/AdImageResult", () => ({
@@ -62,6 +65,20 @@ function buildStubState({
   } as unknown as StubState;
 }
 
+// ─────── Helpers para escopo isolado dos dois tablists ───────
+function getDotsTablist() {
+  return screen.getByRole("tablist", { name: "Variações geradas" });
+}
+function getThumbsTablist() {
+  return screen.getByRole("tablist", { name: "Miniaturas das variações" });
+}
+function getDots() {
+  return within(getDotsTablist()).getAllByRole("tab");
+}
+function getThumbs() {
+  return within(getThumbsTablist()).getAllByRole("tab");
+}
+
 describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -73,7 +90,7 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
 
     const prev = screen.getByRole("button", { name: "Voltar" });
     const next = screen.getByRole("button", { name: "Avançar" });
-    const dots = screen.getAllByRole("tab");
+    const dots = getDots();
 
     prev.focus();
     expect(document.activeElement).toBe(prev);
@@ -90,7 +107,6 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
     next.focus();
     expect(document.activeElement).toBe(next);
 
-    // Confirma ordem do DOM (tabIndex implícito): prev vem antes de dots, dots antes de next
     const all = [prev, ...dots, next];
     for (let i = 0; i < all.length - 1; i++) {
       const pos = all[i].compareDocumentPosition(all[i + 1]);
@@ -102,11 +118,10 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
 
-    const dot3 = screen.getByRole("tab", { name: "Selecionar variação 3" });
+    const dot3 = within(getDotsTablist()).getByRole("tab", { name: "Selecionar variação 3" });
     dot3.focus();
     expect(document.activeElement).toBe(dot3);
 
-    // Em <button> nativo, Enter dispara click sintético; emulamos via fireEvent.click após focus
     fireEvent.keyDown(dot3, { key: "Enter", code: "Enter" });
     fireEvent.click(dot3);
 
@@ -117,7 +132,7 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
 
-    const dot2 = screen.getByRole("tab", { name: "Selecionar variação 2" });
+    const dot2 = within(getDotsTablist()).getByRole("tab", { name: "Selecionar variação 2" });
     dot2.focus();
 
     fireEvent.keyDown(dot2, { key: " ", code: "Space" });
@@ -154,19 +169,13 @@ describe("MagicUpResultPanel — navegação por teclado (WCAG 2.1.1)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
 
-    const thumbs = [
-      screen.getByRole("button", { name: "Abrir miniatura da variação 1" }),
-      screen.getByRole("button", { name: "Abrir miniatura da variação 2" }),
-      screen.getByRole("button", { name: "Abrir miniatura da variação 3" }),
-    ];
+    const thumbs = getThumbs();
 
-    // Ordem do DOM: thumb1 → thumb2 → thumb3
     for (let i = 0; i < thumbs.length - 1; i++) {
       const pos = thumbs[i].compareDocumentPosition(thumbs[i + 1]);
       expect(pos & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     }
 
-    // Ativa thumbnail 3 via teclado
     thumbs[2].focus();
     expect(document.activeElement).toBe(thumbs[2]);
     fireEvent.keyDown(thumbs[2], { key: "Enter", code: "Enter" });
@@ -185,7 +194,7 @@ describe("MagicUpResultPanel — hit area dos dots (WCAG 2.5.5)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
 
-    const dots = screen.getAllByRole("tab");
+    const dots = getDots();
     fireEvent.click(dots[2]);
 
     expect(m.setActiveVariation).toHaveBeenCalledWith(2);
@@ -195,7 +204,7 @@ describe("MagicUpResultPanel — hit area dos dots (WCAG 2.5.5)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
 
-    const dots = screen.getAllByRole("tab");
+    const dots = getDots();
     const innerSpan = dots[1].querySelector("span[aria-hidden='true']");
     expect(innerSpan).not.toBeNull();
 
@@ -208,10 +217,175 @@ describe("MagicUpResultPanel — hit area dos dots (WCAG 2.5.5)", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
 
-    const dots = screen.getAllByRole("tab");
+    const dots = getDots();
     dots.forEach((dot) => {
       expect(dot.className).toMatch(/\bw-11\b/);
       expect(dot.className).toMatch(/\bh-11\b/);
+    });
+  });
+});
+
+// ───────── WAI-ARIA APG Tabs Pattern: Roving Tabindex + aria-selected ─────────
+
+describe("MagicUpResultPanel — Dots: roving tabindex + aria-selected (APG Tabs)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("tablist 'Variações geradas' tem role=tablist, aria-label e N tabs com role=tab", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const tablist = getDotsTablist();
+    expect(tablist).toHaveAttribute("aria-label", "Variações geradas");
+    const tabs = within(tablist).getAllByRole("tab");
+    expect(tabs).toHaveLength(3);
+  });
+
+  it("apenas o dot do activeVariation tem tabindex=0; demais tabindex=-1 (roving)", () => {
+    for (const active of [0, 1, 2]) {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      const { unmount } = render(<MagicUpResultPanel m={m} />);
+      const dots = getDots();
+      dots.forEach((dot, i) => {
+        expect(dot).toHaveAttribute("tabindex", i === active ? "0" : "-1");
+      });
+      unmount();
+    }
+  });
+
+  it("aria-selected=true e aria-current=true apenas no dot ativo", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots[0]).toHaveAttribute("aria-selected", "false");
+    expect(dots[0]).not.toHaveAttribute("aria-current");
+    expect(dots[1]).toHaveAttribute("aria-selected", "true");
+    expect(dots[1]).toHaveAttribute("aria-current", "true");
+    expect(dots[2]).toHaveAttribute("aria-selected", "false");
+    expect(dots[2]).not.toHaveAttribute("aria-current");
+  });
+
+  it("clicar em dot inativo dispara setActiveVariation com índice correto", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    fireEvent.click(dots[2]);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+  });
+});
+
+describe("MagicUpResultPanel — Thumbnails: APG Tabs equivalente aos dots", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("wrapper das thumbnails é role=tablist com aria-label='Miniaturas das variações'", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const tablist = getThumbsTablist();
+    expect(tablist).toHaveAttribute("aria-label", "Miniaturas das variações");
+    const tabs = within(tablist).getAllByRole("tab");
+    expect(tabs).toHaveLength(3);
+  });
+
+  it("cada thumbnail tem role=tab, aria-selected sincronizado e tabindex roving", () => {
+    for (const active of [0, 1, 2]) {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      const { unmount } = render(<MagicUpResultPanel m={m} />);
+      const thumbs = getThumbs();
+      thumbs.forEach((thumb, i) => {
+        expect(thumb).toHaveAttribute("role", "tab");
+        expect(thumb).toHaveAttribute("aria-selected", i === active ? "true" : "false");
+        expect(thumb).toHaveAttribute("tabindex", i === active ? "0" : "-1");
+      });
+      unmount();
+    }
+  });
+
+  it("clicar/Enter em thumbnail inativa dispara setActiveVariation correto", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumbs = getThumbs();
+    thumbs[2].focus();
+    fireEvent.keyDown(thumbs[2], { key: "Enter", code: "Enter" });
+    fireEvent.click(thumbs[2]);
+
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+  });
+});
+
+describe("MagicUpResultPanel — Prev/Next: disabled states + focus ring (WCAG 1.4.3, 2.4.7)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("no primeiro índice: 'Voltar' disabled com classes token-on-token; 'Avançar' enabled e funcional", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    expect(prev).toBeDisabled();
+    expect(prev.className).toContain("disabled:bg-muted");
+    expect(prev.className).toContain("disabled:text-muted-foreground");
+    expect(prev.className).toContain("disabled:opacity-100");
+
+    expect(next).not.toBeDisabled();
+    fireEvent.click(next);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+  });
+
+  it("no último índice: 'Avançar' disabled; 'Voltar' enabled dispara setActiveVariation(prev)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    expect(next).toBeDisabled();
+    expect(next.className).toContain("disabled:bg-muted");
+    expect(next.className).toContain("disabled:text-muted-foreground");
+    expect(next.className).toContain("disabled:opacity-100");
+
+    expect(prev).not.toBeDisabled();
+    fireEvent.click(prev);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+  });
+
+  it("prev/next expõem aria-label e classes focus-visible (WCAG 2.4.7)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    [prev, next].forEach((btn) => {
+      expect(btn).toHaveAttribute("aria-label");
+      expect(btn.className).toContain("focus-visible:ring-2");
+      expect(btn.className).toContain("focus-visible:ring-ring");
+      expect(btn.className).toContain("focus-visible:ring-offset-2");
+      expect(btn.className).toContain("focus-visible:ring-offset-background");
+    });
+  });
+});
+
+describe("MagicUpResultPanel — Sincronização cross-grupo entre dots e thumbnails", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("activeVariation propaga aria-selected/tabindex consistentes nos dois tablists", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    const thumbs = getThumbs();
+
+    [0, 1, 2].forEach((i) => {
+      const expectedSelected = i === 1 ? "true" : "false";
+      const expectedTabindex = i === 1 ? "0" : "-1";
+      expect(dots[i]).toHaveAttribute("aria-selected", expectedSelected);
+      expect(thumbs[i]).toHaveAttribute("aria-selected", expectedSelected);
+      expect(dots[i]).toHaveAttribute("tabindex", expectedTabindex);
+      expect(thumbs[i]).toHaveAttribute("tabindex", expectedTabindex);
     });
   });
 });
