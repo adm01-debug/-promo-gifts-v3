@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen, within } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MagicUpQualityScore } from "@/components/magic-up/MagicUpQualityScore";
 import { MagicUpQualityChecklist } from "@/components/magic-up/MagicUpQualityChecklist";
@@ -1176,6 +1176,143 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       expect(card0).toHaveFocus();
       await user.keyboard("{Enter}");
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("Tab percorre os 3 cards e botões 'Marcar vencedora' em ordem DOM, Shift+Tab faz o reverso", async () => {
+      const user = userEvent.setup();
+      const onSelectWinner = vi.fn();
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        return (
+          <>
+            <button data-testid="before-sentinel">antes</button>
+            <MagicUpVariationComparator
+              variations={navVariations}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              onSelectWinner={onSelectWinner}
+            />
+            <button data-testid="after-sentinel">depois</button>
+          </>
+        );
+      }
+
+      render(<ControlledWrapper />);
+
+      const beforeSentinel = screen.getByTestId("before-sentinel");
+      const afterSentinel = screen.getByTestId("after-sentinel");
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      const winner1 = screen.getByRole("button", { name: /Marcar variação 1 como vencedora/ });
+      const winner2 = screen.getByRole("button", { name: /Marcar variação 2 como vencedora/ });
+      const winner3 = screen.getByRole("button", { name: /Marcar variação 3 como vencedora/ });
+
+      // ── Tab: ordem direta ──
+      beforeSentinel.focus();
+      expect(beforeSentinel).toHaveFocus();
+
+      const expectedForwardSequence = [card1, winner1, card2, winner2, card3, winner3, afterSentinel];
+      for (const expected of expectedForwardSequence) {
+        await user.tab();
+        expect(expected).toHaveFocus();
+      }
+
+      // ── Shift+Tab: ordem reversa ──
+      const expectedReverseSequence = [winner3, card3, winner2, card2, winner1, card1, beforeSentinel];
+      for (const expected of expectedReverseSequence) {
+        await user.tab({ shift: true });
+        expect(expected).toHaveFocus();
+      }
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("Tab move foco sem alterar aria-pressed; mudança externa de activeIndex sincroniza ARIA em todos os cards", async () => {
+      const user = userEvent.setup();
+      const onSelectWinner = vi.fn();
+      let setActiveIndexExternal: ((i: number) => void) | null = null;
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        setActiveIndexExternal = setActiveIndex;
+        return (
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={onSelectWinner}
+          />
+        );
+      }
+
+      render(<ControlledWrapper />);
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+      // Estado inicial
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(card1).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+      expect(card3).not.toHaveAttribute("aria-current");
+
+      // Tab até card2: foco muda, ARIA NÃO muda
+      card1.focus();
+      expect(card1).toHaveFocus();
+      await user.tab(); // → winner1
+      await user.tab(); // → card2
+      expect(card2).toHaveFocus();
+
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(card1).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+
+      // Tab até card3: ARIA continua imutável
+      await user.tab(); // → winner2
+      await user.tab(); // → card3
+      expect(card3).toHaveFocus();
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+
+      // Mudança externa de activeIndex → 2
+      await act(async () => {
+        setActiveIndexExternal!(2);
+      });
+
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+      expect(card1).not.toHaveAttribute("aria-current");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+      expect(card3).toHaveAttribute("aria-current", "true");
+
+      const pressedCount = [card1, card2, card3].filter(
+        (c) => c.getAttribute("aria-pressed") === "true"
+      ).length;
+      expect(pressedCount).toBe(1);
+
+      // Mudança externa para card2
+      await act(async () => {
+        setActiveIndexExternal!(1);
+      });
+
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-current", "true");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+      expect(card3).not.toHaveAttribute("aria-current");
+
+      // Foco preservado durante mudança externa
+      expect(card3).toHaveFocus();
+
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
   });
