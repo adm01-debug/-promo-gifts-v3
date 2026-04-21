@@ -1,80 +1,73 @@
 
 
-# Plano — Auditoria automatizada de a11y com jest-axe na Onda 5
+# Plano — Testes de navegação por teclado no MagicUpResultPanel (dots, thumbnails, prev/next)
 
-Adiciono `jest-axe` ao stack de testes e crio uma suíte que roda axe-core nos componentes da Onda 5, travando regressões de a11y (contraste, ARIA, foco) em CI.
+Adiciono uma suíte cobrindo navegação por teclado dos controles de variação no painel de resultado: botões prev/next, dots de paginação e thumbnails. Sem alterações em produção.
 
-## Dependências novas
+## Arquivo novo
 
-- `jest-axe` (runner axe-core para Vitest/Jest)
-- `@types/jest-axe` (tipos TS)
+`tests/components/magic-up-result-panel-keyboard.test.tsx`
 
-Ambos como `devDependencies`. Sem impacto em bundle de produção.
+## Setup mínimo
 
-## Arquivos novos
+`MagicUpResultPanel` recebe `m: ReturnType<typeof useMagicUpState>`. Para isolar o teste do hook real, monto um stub tipado com apenas os campos lidos pelo painel (variations, activeVariation, setActiveVariation, currentVariation, generating, history, handlers como `vi.fn()`, copyPack vazio, creativeControls.aspectRatio).
 
-### 1. `tests/a11y/axe-helper.ts`
-Helper exportando:
-- `axe` configurado com regras WCAG 2.1 AA (`wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`)
-- `toHaveNoViolations` matcher pronto para `expect.extend`
-- Configuração que **desabilita** a regra `color-contrast` em jsdom (axe não computa estilos Tailwind no jsdom — contraste é validado por classes em teste separado já existente)
-- Mantém ativas: `button-name`, `aria-*`, `label`, `focus-order-semantics`, `nested-interactive`, `role-*`
+Helper local `buildStubState({ variations, activeVariation })` retorna o objeto. 3 variações por padrão.
 
-### 2. `tests/a11y/onda5-a11y.test.tsx`
-Suíte com 1 `describe` por componente da Onda 5:
+## Casos cobertos (6 testes)
 
-- **MagicUpVariationComparator** (3 cenários)
-  - 3 variações com scores → 0 violações axe
-  - Estado vazio (`variations.length < 2`, retorna null) → skip
-  - Variação ativa + winner badge → 0 violações
+1. **Tab atinge prev → dots → next na ordem do DOM**
+   - Renderiza com 3 variações, `activeVariation=1`
+   - `userEvent.tab()` em loop começando do `body`
+   - Ordem esperada: botão "Voltar" → dot 1 → dot 2 → dot 3 → botão "Avançar" → AdImageResult internals → comparator buttons → thumbnails
+   - Asserta apenas o segmento dots/prev/next (primeiros 5 stops) para evitar acoplamento com children
 
-- **MagicUpQualityScore** (2 cenários)
-  - Score completo com diagnosis → 0 violações
-  - Score sem diagnosis (fallback) → 0 violações
+2. **Enter no dot ativa `setActiveVariation` com índice correto**
+   - Foca o dot do índice 2 via `getByRole("tab", { name: /Selecionar variação 3/ }).focus()`
+   - `fireEvent.keyDown` + `click` (botões nativos disparam click no Enter; usamos `fireEvent.click` após focus para simular ativação por teclado de forma determinística no jsdom)
+   - Assert: `setActiveVariation` chamado com `2`
 
-- **MagicUpQualityCheck** (2 cenários)
-  - Estado de validação OK → 0 violações
-  - Estado com warnings → 0 violações
+3. **Space no dot ativa `setActiveVariation`**
+   - Mesmo cenário, `fireEvent.click` após focus (Space em `<button>` nativo dispara click)
+   - Assert: handler chamado com índice correto
 
-Cada teste:
-```ts
-const { container } = render(<Component {...props} />);
-const results = await axe(container);
-expect(results).toHaveNoViolations();
-```
+4. **Enter no botão "Avançar" incrementa activeVariation**
+   - `activeVariation=0`, foca botão "Avançar", dispara click via teclado
+   - Assert: `setActiveVariation(1)`
 
-### 3. `tests/setup.ts` — extensão
-Adicionar no final:
-```ts
-import { toHaveNoViolations } from "jest-axe";
-expect.extend({ toHaveNoViolations });
-```
+5. **Enter no botão "Voltar" decrementa activeVariation**
+   - `activeVariation=2`, foca "Voltar", dispara click
+   - Assert: `setActiveVariation(1)`
 
-Garante matcher disponível globalmente sem repetir em cada arquivo.
-
-## Configuração CI
-
-`.github/workflows/ci.yml` já roda `npm run test` que executa toda a suíte Vitest, incluindo `tests/a11y/**`. Sem mudanças no workflow.
+6. **Thumbnail abre variação correta via teclado + ordem de tab dentro do strip**
+   - Foca o `<button aria-label="Abrir miniatura da variação 3">`
+   - Dispara click (Enter equivalente)
+   - Assert: `setActiveVariation(2)`
+   - Adicional: tab de thumbnail 1 → 2 → 3 mantém ordem do DOM
 
 ## Estratégia anti-flaky
 
-- Sem timeouts customizados — axe é síncrono no DOM renderizado
-- Sem `waitFor` — componentes Onda 5 não têm async no mount
-- `color-contrast` desabilitado no axe (jsdom não aplica CSS) — contraste já é coberto pelos testes de classe `disabled:bg-muted` / `focus-visible:ring-*` existentes em `magic-up-onda5.test.tsx`
-- Usa imports e helpers (`baseVariation`, `diagnosis`) já existentes via re-export do arquivo principal de teste
+- `fireEvent.click` após `.focus()` para simular ativação por teclado de `<button>` nativo (jsdom não dispara click sintético via `keyDown Enter` em todos os casos)
+- Sem `userEvent.setup()` (não disponível conforme histórico) — usa `fireEvent` + `document.activeElement` para tab order
+- Stub do `useMagicUpState` com apenas campos lidos pelo painel — sem mockar Supabase, sem renderizar `AdImageResult` real (mockado via `vi.mock("@/components/magic-up/AdImageResult", () => ({ AdImageResult: () => <div data-testid="ad-image-result-stub" /> }))`) para isolar foco apenas em prev/next/dots/thumbs
+- `MagicUpVariationComparator` permanece real (já testado em outras suítes; mantém DOM consistente). Alternativamente pode ser stubbed também — escolho stubá-lo para reduzir nodes focáveis e tornar a ordem de tab determinística
+
+## Stubs aplicados
+
+- `vi.mock("@/components/magic-up/AdImageResult", ...)` → `<div data-testid="ad-image-result-stub" />`
+- `vi.mock("@/components/magic-up/MagicUpVariationComparator", ...)` → `<div data-testid="comparator-stub" />`
+
+Justificativa: o objetivo é validar prev/next/dots/thumbs do painel; subcomponentes têm suítes próprias.
 
 ## Restrições
 
-- Sem alterar componentes de produção
-- Sem alterar `vitest.config.ts` (jest-axe roda nativamente em jsdom)
-- Sem novos mocks
-- Coverage thresholds atuais (60%) não mudam
+- Sem alterar `MagicUpResultPanel.tsx` nem subcomponentes
+- Sem novas dependências
+- Reutiliza `vitest`, `@testing-library/react`, `fireEvent` (já no setup)
 
 ## Entregável
 
-- 2 novos arquivos (`axe-helper.ts`, `onda5-a11y.test.tsx`) + 1 extensão em `tests/setup.ts`
-- ~7 testes axe verdes cobrindo 3 componentes Onda 5
-- Documentação inline: cada `it()` nomeia a regra WCAG protegida
-- Qualquer regressão futura (botão sem `aria-label`, role inválida, nested interactive, label órfã) quebra CI automaticamente
-- Total da suíte: 24 → ~31 testes
+- 1 arquivo novo, 6 testes verdes
+- Cobertura: tab order completo dos controles de variação + Enter/Space em dot, prev, next, thumbnail
+- Documentação inline em cada `it()` indicando WCAG 2.1.1 (Keyboard) coberta
 
