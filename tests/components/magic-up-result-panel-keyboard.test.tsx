@@ -3485,3 +3485,253 @@ describe("MagicUpResultPanel — Onda 5: foco preservado após re-render por tro
     expect(document.activeElement).toBe(getDots()[1]);
   });
 });
+
+// ───────── Roving tabindex EXCLUSIVO após troca de variação ─────────
+// WAI-ARIA APG Tabs (roving tabindex) — invariante mais forte:
+// após QUALQUER troca de `activeVariation`, em ambos os tablists (dots e
+// thumbs) deve haver EXATAMENTE UM elemento com tabindex="0" (o NOVO ativo)
+// e TODOS os demais com tabindex="-1". Sem duplicatas, sem ausências, sem
+// valores inválidos (ex.: "1", "2", null, vazio).
+//
+// Esta suíte trava regressões onde:
+//  • um tablist esqueceria de "rebaixar" o dot/thumb anterior
+//  • dois elementos coexistiriam com tabindex="0" (quebra Tab order)
+//  • o novo ativo permaneceria com tabindex="-1" (foco perdido no Tab)
+//  • valores não-canônicos vazariam (ex.: "0 " com whitespace, undefined)
+
+describe("MagicUpResultPanel — Onda 5: roving tabindex exclusivo após troca", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function rerenderActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  /**
+   * Asserta o invariante completo de roving tabindex em um tablist:
+   *  • o índice ativo tem tabindex="0"
+   *  • todos os demais têm tabindex="-1"
+   *  • nenhum valor estranho ("1", null, vazio, undefined)
+   *  • exatamente UM elemento com tabindex="0" (count exato)
+   */
+  function assertRovingTabindex(
+    elements: HTMLElement[],
+    activeIdx: number,
+    label: string
+  ) {
+    const tabindexes = elements.map((el, i) => ({
+      i,
+      ti: el.getAttribute("tabindex"),
+    }));
+
+    // Exatamente um com "0"
+    const zeros = tabindexes.filter((x) => x.ti === "0");
+    expect(zeros, `${label}: exatamente 1 elemento com tabindex="0"`).toHaveLength(1);
+    expect(zeros[0].i, `${label}: tabindex="0" no índice ativo (${activeIdx})`).toBe(activeIdx);
+
+    // Todos os demais com "-1"
+    tabindexes.forEach(({ i, ti }) => {
+      if (i === activeIdx) {
+        expect(ti, `${label}[${i}]: ativo deve ter tabindex="0"`).toBe("0");
+      } else {
+        expect(ti, `${label}[${i}]: inativo deve ter tabindex="-1"`).toBe("-1");
+      }
+    });
+
+    // Sem valores não-canônicos
+    tabindexes.forEach(({ i, ti }) => {
+      expect(ti, `${label}[${i}]: tabindex deve ser exatamente "0" ou "-1"`).toMatch(
+        /^(0|-1)$/
+      );
+    });
+  }
+
+  // ── Estado inicial: invariante já vale antes de qualquer troca ────
+
+  it.each([0, 1, 2, 3])(
+    "estado inicial com ativo=%i: invariante de roving tabindex vale em ambos tablists",
+    (active) => {
+      const m = buildStubState({ variationsCount: 4, activeVariation: active });
+      render(<MagicUpResultPanel m={m} />);
+
+      assertRovingTabindex(getDots(), active, "dots");
+      assertRovingTabindex(getThumbs(), active, "thumbs");
+    }
+  );
+
+  // ── Após click em dot[i]: invariante migra para o novo índice ─────
+
+  it.each([1, 2, 3])(
+    "click em dot[%i] (de 0 → %i): invariante exclusivo no NOVO índice em dots E thumbs",
+    (target) => {
+      const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      assertRovingTabindex(getDots(), target, "dots@click");
+      assertRovingTabindex(getThumbs(), target, "thumbs@click");
+    }
+  );
+
+  // ── Após Enter em thumb[i]: idem ──────────────────────────────────
+
+  it.each([1, 2, 3])(
+    "Enter em thumb[%i]: invariante exclusivo no NOVO índice em ambos tablists",
+    (target) => {
+      const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      assertRovingTabindex(getDots(), target, "dots@enter-thumb");
+      assertRovingTabindex(getThumbs(), target, "thumbs@enter-thumb");
+    }
+  );
+
+  // ── Após Space em dot[i]: idem ────────────────────────────────────
+
+  it.each([1, 2, 3])(
+    "Space em dot[%i]: invariante exclusivo no NOVO índice em ambos tablists",
+    (target) => {
+      const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: " ", code: "Space" });
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      assertRovingTabindex(getDots(), target, "dots@space-dot");
+      assertRovingTabindex(getThumbs(), target, "thumbs@space-dot");
+    }
+  );
+
+  // ── Após prev/next: invariante acompanha o vizinho ────────────────
+
+  it("Avançar (0 → 1): invariante migra de 0 → 1 em ambos tablists, índice 0 vira -1", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Avançar" }));
+    rerenderActive(rerender, m, 1);
+
+    assertRovingTabindex(getDots(), 1, "dots@next");
+    assertRovingTabindex(getThumbs(), 1, "thumbs@next");
+
+    // Verificação explícita do "rebaixamento" do índice anterior
+    expect(getDots()[0].getAttribute("tabindex")).toBe("-1");
+    expect(getThumbs()[0].getAttribute("tabindex")).toBe("-1");
+  });
+
+  it("Voltar (2 → 1): invariante migra de 2 → 1 em ambos tablists, índice 2 vira -1", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Voltar" }));
+    rerenderActive(rerender, m, 1);
+
+    assertRovingTabindex(getDots(), 1, "dots@prev");
+    assertRovingTabindex(getThumbs(), 1, "thumbs@prev");
+
+    expect(getDots()[2].getAttribute("tabindex")).toBe("-1");
+    expect(getThumbs()[2].getAttribute("tabindex")).toBe("-1");
+  });
+
+  // ── Trocas em sequência: nunca há "fantasma" com tabindex="0" ─────
+
+  it("trocas sucessivas (0 → 3 → 1 → 2): invariante de roving exclusivo vale a cada passo", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const sequence = [3, 1, 2];
+    for (const target of sequence) {
+      const dot = getDots()[target] as HTMLButtonElement;
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      assertRovingTabindex(getDots(), target, `dots@step→${target}`);
+      assertRovingTabindex(getThumbs(), target, `thumbs@step→${target}`);
+    }
+  });
+
+  // ── Re-render idempotente (mesmo índice) preserva invariante ──────
+
+  it.each([0, 1, 2])(
+    "re-render idempotente em ativo=%i: invariante NÃO se quebra (sem dupla 0)",
+    (active) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      // Re-render com mesmo índice (simula click no já ativo)
+      rerenderActive(rerender, m, active);
+
+      assertRovingTabindex(getDots(), active, "dots@idempotent");
+      assertRovingTabindex(getThumbs(), active, "thumbs@idempotent");
+    }
+  );
+
+  // ── Sincronia cruzada: dots e thumbs SEMPRE compartilham o mesmo índice "0" ─
+
+  it.each([0, 1, 2, 3])(
+    "após troca para %i: o índice com tabindex=\"0\" é IDÊNTICO entre dots e thumbs",
+    (target) => {
+      const m = buildStubState({ variationsCount: 4, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+      rerenderActive(rerender, m, target);
+
+      const dots = getDots();
+      const thumbs = getThumbs();
+      const dotZeroIdx = dots.findIndex((d) => d.getAttribute("tabindex") === "0");
+      const thumbZeroIdx = thumbs.findIndex((t) => t.getAttribute("tabindex") === "0");
+
+      expect(dotZeroIdx).toBe(target);
+      expect(thumbZeroIdx).toBe(target);
+      expect(dotZeroIdx, "dots e thumbs devem expor o MESMO índice ativo").toBe(thumbZeroIdx);
+    }
+  );
+
+  // ── Listas de tamanhos variados: invariante escala ────────────────
+
+  it.each([2, 3, 5, 8])(
+    "lista N=%i, troca para meio: exatamente 1 dot + 1 thumb com tabindex=\"0\", N-1 com -1",
+    (count) => {
+      const m = buildStubState({ variationsCount: count, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+      const target = Math.floor(count / 2);
+      rerenderActive(rerender, m, target);
+
+      const dots = getDots();
+      const thumbs = getThumbs();
+
+      const dotZeros = dots.filter((d) => d.getAttribute("tabindex") === "0");
+      const dotMinus = dots.filter((d) => d.getAttribute("tabindex") === "-1");
+      const thumbZeros = thumbs.filter((t) => t.getAttribute("tabindex") === "0");
+      const thumbMinus = thumbs.filter((t) => t.getAttribute("tabindex") === "-1");
+
+      expect(dotZeros).toHaveLength(1);
+      expect(dotMinus).toHaveLength(count - 1);
+      expect(thumbZeros).toHaveLength(1);
+      expect(thumbMinus).toHaveLength(count - 1);
+
+      // Soma fechada: todos os dots/thumbs estão classificados
+      expect(dotZeros.length + dotMinus.length).toBe(count);
+      expect(thumbZeros.length + thumbMinus.length).toBe(count);
+    }
+  );
+});
