@@ -2678,5 +2678,41 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       ]));
       expect(screen.getByLabelText("Melhor score entre variações: indisponível")).toBeInTheDocument();
     });
+
+    it("Tab a partir de elemento externo move foco para o primeiro botão 'Selecionar variação 1' na ordem DOM correta", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <>
+          <button type="button" data-testid="external-anchor">Âncora externa</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+          />
+        </>
+      );
+
+      const anchor = screen.getByTestId("external-anchor");
+      anchor.focus();
+      expect(anchor).toHaveFocus();
+
+      await user.tab();
+      const firstSelectBtn = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(firstSelectBtn).toHaveFocus();
+
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).not.toHaveFocus();
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).not.toHaveFocus();
+      expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).not.toHaveFocus();
+
+      await user.tab();
+      expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
