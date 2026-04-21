@@ -1837,6 +1837,25 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(winnerButtons[0].getAttribute("aria-label")).toBe(
         `Selecionar variação 1, score ${scoreA}, melhor score`
       );
+
+      // 7. Auditoria global de cardinalidade — protege contra duplicações em
+      //    qualquer parte do DOM acessível (header, listitems, tooltips, sr-only).
+      const exactBadgeMatches = screen.getAllByLabelText("Melhor score", { exact: true });
+      expect(exactBadgeMatches).toHaveLength(1);
+
+      const headerMatches = screen.getAllByLabelText(/^Melhor score entre variações:/);
+      expect(headerMatches).toHaveLength(1);
+
+      const visibleBadgeText = screen.getAllByText("Melhor score", { exact: true });
+      expect(visibleBadgeText).toHaveLength(1);
+
+      const allElementsWithSuffix = Array.from(
+        document.querySelectorAll("[aria-label]")
+      ).filter((el) => (el.getAttribute("aria-label") ?? "").endsWith(", melhor score"));
+      expect(allElementsWithSuffix).toHaveLength(1);
+
+      expect(cards[0].contains(exactBadgeMatches[0])).toBe(true);
+      expect(cards[0].contains(visibleBadgeText[0])).toBe(true);
     }
   );
 });
