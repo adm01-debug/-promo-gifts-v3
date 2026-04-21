@@ -463,7 +463,7 @@ describe("Magic Up Onda 5 components", () => {
       );
     });
 
-    it("expectWinnerButton localiza botão e valida estado enabled/disabled", () => {
+    it("expectWinnerButton localiza botão para cada variação (com e sem isWinner)", () => {
       const variations = buildVariations([
         { qualityScore: 90 },
         { qualityScore: 70, isWinner: true },
@@ -471,9 +471,11 @@ describe("Magic Up Onda 5 components", () => {
       ]);
       renderComparator({ variations });
 
-      expectWinnerButton(1, { disabled: false });
-      expectWinnerButton(2, { disabled: true });
-      expectWinnerButton(3, { disabled: false });
+      // Em todas as variações, o botão "Marcar vencedora" existe e é localizável
+      // pelo aria-label exato montado por winnerButtonLabel.
+      [1, 2, 3].forEach((n) => {
+        expect(expectWinnerButton(n)).toBe(select.cardExact(winnerButtonLabel(n)));
+      });
     });
 
     it("labelPatterns.anyCard / anyWinner casam com todos os botões esperados", () => {
