@@ -1309,4 +1309,78 @@ describe("MagicUpVariationComparator focus-visible classes", () => {
       expect(btn.className).toContain("disabled:opacity-100");
     }
   });
+
+  it("Tab atravessa cards e botões 'Marcar vencedora' alternadamente; cada parada tem classes focus-visible:ring-2 (WCAG 2.4.7)", async () => {
+    const user = userEvent.setup();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const expectedOrder: Array<{ name: RegExp | string }> = [
+      { name: /^Selecionar variação 1/ },
+      { name: "Marcar variação 1 como vencedora" },
+      { name: /^Selecionar variação 2/ },
+      { name: "Marcar variação 2 como vencedora" },
+      { name: /^Selecionar variação 3/ },
+      { name: "Marcar variação 3 como vencedora" },
+    ];
+
+    for (const matcher of expectedOrder) {
+      await user.tab();
+      const focused = screen.getByRole("button", matcher);
+      expect(focused).toHaveFocus();
+      expect(focused.className).toContain("focus-visible:ring-2");
+      expect(focused.className).toContain("focus-visible:ring-ring");
+    }
+  });
+
+  it("Cards de seleção aplicam focus-visible:outline-none e são alcançáveis por Tab (sem outline duplicado sobre o ring)", async () => {
+    const user = userEvent.setup();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const cards = screen.getAllByRole("button", { name: /^Selecionar variação \d+/ });
+    for (const card of cards) {
+      expect(card.className).toContain("focus-visible:outline-none");
+    }
+
+    await user.tab();
+    expect(cards[0]).toHaveFocus();
+    expect(cards[0].className).toContain("focus-visible:ring-2");
+  });
+
+  it("Botões 'Marcar vencedora' aplicam ring-2 + ring-offset-2 + ring-offset-background e são alcançados na 2ª parada do Tab (WCAG 1.4.11)", async () => {
+    const user = userEvent.setup();
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const marcarBtns = screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ });
+    for (const btn of marcarBtns) {
+      expect(btn.className).toContain("focus-visible:ring-2");
+      expect(btn.className).toContain("focus-visible:ring-ring");
+      expect(btn.className).toContain("focus-visible:ring-offset-2");
+      expect(btn.className).toContain("focus-visible:ring-offset-background");
+    }
+
+    await user.tab(); // card1
+    await user.tab(); // marcar1
+    expect(marcarBtns[0]).toHaveFocus();
+  });
 });
