@@ -1,124 +1,109 @@
 
 
-# Plano — Testes de foco visível (focus ring) via Tab no MagicUpVariationComparator
+# Plano — Refatorar `magic-up-onda5.test.tsx` extraindo helpers de render, fixtures e seletores
 
-Adiciono 3 testes ao `describe("MagicUpVariationComparator focus-visible classes")` em `tests/components/magic-up-onda5.test.tsx` validando que as classes `focus-visible:*` (foco visível WCAG 2.4.7) estão presentes e ativadas durante navegação real por Tab nos cards de seleção e nos botões "Marcar vencedora".
+Reduzir duplicação massiva no arquivo de testes (1385 linhas) extraindo 4 helpers reutilizáveis no topo do arquivo, sem alterar nenhuma asserção, descrição ou comportamento dos 49 testes.
 
 ## Justificativa
 
-Cobertura atual valida estaticamente as classes Tailwind, mas não valida que:
-- O **foco efetivo** chega aos elementos via Tab na ordem natural (cards → marcar vencedora intercalados)
-- O atributo `data-focus-visible` (ou pseudo-classe `:focus-visible` via JSDOM) é ativado por **teclado**, não por mouse — distinção crítica de WCAG 2.4.7
-- Os elementos focados expõem `outline` removido + `ring` aplicado conforme classes `focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring`
+Auditoria do arquivo revela duplicação em 4 padrões:
+1. **`MagicUpVariationComparator variations={…} activeIndex={…} onSelect={…} onSelectWinner={…}`** repetido ~50× — sempre com `vi.fn()` em pelo menos 2 das 4 props
+2. **Arrays inline `const variations: VariationItem[] = [...]`** com 3 variações triviais (id v1/v2/v3, scores variados) repetidos ~13× (apenas 1 helper `buildVariations` existe, isolado em 1 describe)
+3. **`userEvent.setup()`** chamado em ~30 testes
+4. **`screen.getByRole("button", { name: /Selecionar variação N/ })`** e `screen.getByRole("button", { name: "Marcar variação N como vencedora" })` repetidos ~80× — strings/regex copiadas literalmente
+
+Manter cada teste autocontido prejudica leitura e faz refactors do componente (ex: mudar o formato do `aria-label`) cascatearem em ~80 ocorrências.
 
 ## Arquivo alterado
 
-`tests/components/magic-up-onda5.test.tsx` — 3 testes novos no `describe("MagicUpVariationComparator focus-visible classes")` (já existente).
+`tests/components/magic-up-onda5.test.tsx` apenas — sem mudar componentes, snapshots, nem outros testes.
 
-## Testes a adicionar
-
-### Teste 1 — Tab atravessa cards e botões "Marcar" na ordem do DOM, foco visível em cada parada
-
-Valida que pressionando Tab repetidamente partindo do `body`, o foco percorre: card1 → marcar1 → card2 → marcar2 → card3 → marcar3, e que cada elemento focado tem as classes `focus-visible:ring-2` + `focus-visible:ring-ring` no `className`.
+## Helpers a adicionar (no topo, após imports e antes do primeiro `describe`)
 
 ```ts
-it("Tab atravessa cards e botões 'Marcar vencedora' alternadamente; cada parada tem classes focus-visible:ring-2", async () => {
-  const user = userEvent.setup();
-  const variations: VariationItem[] = [
+// ───────── Helpers de teste ─────────
+
+/** Fixture padrão: 3 variações com scores [90, 70, 50] — cobre maioria dos testes de comparator/keyboard/focus */
+function buildVariations(overrides: Partial<VariationItem>[] = []): VariationItem[] {
+  const base: VariationItem[] = [
     { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
     { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
     { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
   ];
-  render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+  return base.map((v, i) => ({ ...v, ...(overrides[i] ?? {}) }));
+}
 
-  const expectedOrder = [
-    { name: /Selecionar variação 1/ },
-    { name: "Marcar variação 1 como vencedora" },
-    { name: /Selecionar variação 2/ },
-    { name: "Marcar variação 2 como vencedora" },
-    { name: /Selecionar variação 3/ },
-    { name: "Marcar variação 3 como vencedora" },
-  ];
+/** Render do comparador com defaults vi.fn() para handlers; retorna spies + utilitários */
+function renderComparator(props: {
+  variations?: VariationItem[];
+  activeIndex?: number;
+  onSelect?: (i: number) => void;
+  onSelectWinner?: (i: number) => void;
+} = {}) {
+  const onSelect = props.onSelect ?? vi.fn();
+  const onSelectWinner = props.onSelectWinner ?? vi.fn();
+  const utils = render(
+    <MagicUpVariationComparator
+      variations={props.variations ?? buildVariations()}
+      activeIndex={props.activeIndex ?? 0}
+      onSelect={onSelect}
+      onSelectWinner={onSelectWinner}
+    />
+  );
+  return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
+}
 
-  for (const matcher of expectedOrder) {
-    await user.tab();
-    const focused = screen.getByRole("button", matcher);
-    expect(focused).toHaveFocus();
-    expect(focused.className).toContain("focus-visible:ring-2");
-    expect(focused.className).toContain("focus-visible:ring-ring");
-  }
-});
+/** Seletores ARIA estáveis para elementos do comparador */
+const select = {
+  card: (n: number) => screen.getByRole("button", { name: new RegExp(`^Selecionar variação ${n}(,|$)`) }),
+  cardExact: (name: string) => screen.getByRole("button", { name }),
+  marcar: (n: number) => screen.getByRole("button", { name: `Marcar variação ${n} como vencedora` }),
+  allCards: () => screen.getAllByRole("button", { name: /^Selecionar variação \d+/ }),
+  allMarcar: () => screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ }),
+};
 ```
 
-### Teste 2 — Cards de seleção têm `focus-visible:outline-none` (sem outline default sobreposto ao ring)
+## Refactors aplicados aos testes existentes
 
-Valida que cada card de seleção tem `focus-visible:outline-none` para evitar duplicação visual com o ring; complemento do contrato de foco visível.
+Para cada teste do comparator (≈40 dos 49):
 
-```ts
-it("cards de seleção aplicam focus-visible:outline-none para evitar outline duplicado sobre o ring", async () => {
-  const user = userEvent.setup();
-  const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-  ];
-  render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+- **Substituir** array inline `[{ id: "1"…}, …]` por `buildVariations()` quando o teste só precisa do default; usar `buildVariations([{}, { qualityScore: 92 }, …])` para sobrescrever campos específicos; manter array literal apenas onde a estrutura é genuinamente diferente (ex: empate triplo, scores ausentes, isWinner explícito — ~8 testes)
+- **Substituir** chamada `render(<MagicUpVariationComparator … vi.fn() … />)` por `const { onSelect, onSelectWinner, user } = renderComparator({ … })`
+- **Substituir** `screen.getByRole("button", { name: /Selecionar variação 2/ })` por `select.card(2)` quando match parcial; manter `select.cardExact("Selecionar variação 2, score 80, melhor score")` para asserts de formato exato
+- **Substituir** `screen.getByRole("button", { name: "Marcar variação 3 como vencedora" })` por `select.marcar(3)`
+- **Substituir** loop manual de coleta por `select.allCards()` / `select.allMarcar()`
 
-  const cards = screen.getAllByRole("button", { name: /Selecionar variação \d+/ });
-  for (const card of cards) {
-    expect(card.className).toContain("focus-visible:outline-none");
-  }
+### O que NÃO mudar
 
-  // Foco real via Tab confirma que o card é focável e mantém as classes
-  await user.tab();
-  expect(cards[0]).toHaveFocus();
-});
-```
-
-### Teste 3 — Botões "Marcar vencedora" têm `focus-visible:ring-2` + `ring-offset` para contraste sobre o card
-
-Valida o conjunto completo de classes de foco do botão de ação: `ring-2`, `ring-ring`, `ring-offset-2`, `ring-offset-background` — necessário porque o botão fica dentro de um card colorido e precisa offset para contraste WCAG 1.4.11.
-
-```ts
-it("botões 'Marcar vencedora' aplicam focus-visible:ring-2 + ring-offset-2 + ring-offset-background para contraste sobre o card", async () => {
-  const user = userEvent.setup();
-  const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
-  ];
-  render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
-
-  const marcarBtns = screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ });
-  for (const btn of marcarBtns) {
-    expect(btn.className).toContain("focus-visible:ring-2");
-    expect(btn.className).toContain("focus-visible:ring-ring");
-    expect(btn.className).toContain("focus-visible:ring-offset-2");
-    expect(btn.className).toContain("focus-visible:ring-offset-background");
-  }
-
-  // Tab até o primeiro botão "Marcar" (passa por card1 primeiro)
-  await user.tab(); // card1
-  await user.tab(); // marcar1
-  expect(marcarBtns[0]).toHaveFocus();
-});
-```
+- Strings de descrição dos testes (`it("...")`) — preservadas integralmente
+- Asserts (`expect(...).toBeInTheDocument()`, `toHaveAttribute`, etc.) — preservados
+- Snapshots existentes (`MagicUpVariationComparator snapshots` describe) — testes lá usam variações com IDs/imagens específicas para snapshot determinístico; manter inline para não alterar snapshot files
+- Testes que assertam aria-labels exatos com formato dinâmico (matriz com/sem score, com/sem winner) — manter `cardExact` para travar formato
+- Testes dos outros componentes (`MagicUpQualityScore`, `MagicUpQualityChecklist`, `MagicUpCurationStatus`) — sem refactor; helpers são específicos do comparator
+- `buildVariations` local existente em `MagicUpVariationComparator keyboard navigation` (linha 447) — remover e usar o global
 
 ## Estratégia
 
-- **Loop sobre `expectedOrder` com `user.tab()`** valida ordem real do DOM sem hardcodar índices
-- **`focused.className.toContain(...)`** trava presença das classes Tailwind no elemento focado (JSDOM não computa `:focus-visible` real, mas a presença das classes garante que o browser aplicará o estilo)
-- **`expect(focused).toHaveFocus()`** confirma que o elemento é alcançável por Tab (não está com `tabindex="-1"` ou `disabled`)
-- **Asserts separados para cards vs botões "Marcar"** isolam contratos diferentes: cards usam `outline-none + ring-2`, botões usam `ring-2 + ring-offset` (dois padrões visuais distintos)
+- **Helpers adicionados no topo** ficam acessíveis a todos os 4 describes
+- **`renderComparator` retorna spies já criados** (`onSelect`, `onSelectWinner`) — permite assert direto sem precisar declarar `const onSelect = vi.fn()` antes
+- **`select` como namespace de seletores** — colisão de nome com `screen` evitada; nome curto facilita leitura
+- **Match por regex `^Selecionar variação N(,|$)`** em `select.card(n)` evita match parcial ambíguo (ex: `select.card(1)` não matcha "Selecionar variação 10")
+- **`buildVariations` aceita overrides parciais por índice** — flexível para isWinner, qualityDiagnosis, qualityScore variados sem repetir id/imageUrl/isFavorite
 
 ## Restrições
 
-- Sem alterar `MagicUpVariationComparator.tsx` (classes já existem)
-- Sem novos mocks ou imports
-- 3 testes novos (46 → 49 testes)
+- Sem alterar `MagicUpVariationComparator.tsx`
+- Sem alterar snapshots (`__snapshots__/magic-up-onda5.test.tsx.snap`)
+- Sem alterar nenhuma asserção, descrição de `it()` ou contagem de testes
+- Total continua: 49 testes
+- Diff esperado: -250 a -350 linhas no arquivo (1385 → ~1050)
 
 ## Entregável
 
-- 3 testes novos em `tests/components/magic-up-onda5.test.tsx`
-- Trava contrato WCAG 2.4.7 (Focus Visible): toda parada de Tab no comparador tem classes de foco visível corretas
-- Trava contrato WCAG 1.4.11 (Non-text Contrast): botões "Marcar vencedora" preservam `ring-offset` para contraste sobre o card
-- Trava ordem natural de tabulação: cards e botões "Marcar" alternados, sem trap nem skip
+- 1 arquivo refatorado: `tests/components/magic-up-onda5.test.tsx`
+- 3 helpers no topo: `buildVariations`, `renderComparator`, `select`
+- Boilerplate de render reduzido em ~50 ocorrências
+- Arrays de fixture reduzidos em ~13 ocorrências (mantidos onde divergem do default)
+- Seletores ARIA padronizados em ~80 ocorrências
+- Suite continua passando 49/49 sem mudança em snapshots
 
