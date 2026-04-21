@@ -1008,6 +1008,114 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(document.querySelector("[role='dialog']")).toBeNull();
     expect(document.querySelector("[data-radix-portal]")).toBeNull();
   });
+
+  it("ARIA do cartão ativo: aria-pressed='true' + aria-current='true' apenas no activeIndex; demais sem aria-current", () => {
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+
+    for (const activeIdx of [0, 1, 2]) {
+      const { unmount } = render(
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={activeIdx}
+          onSelect={vi.fn()}
+          onSelectWinner={vi.fn()}
+        />
+      );
+
+      const cards = [
+        screen.getByRole("button", { name: /Selecionar variação 1/ }),
+        screen.getByRole("button", { name: /Selecionar variação 2/ }),
+        screen.getByRole("button", { name: /Selecionar variação 3/ }),
+      ];
+
+      cards.forEach((card, i) => {
+        if (i === activeIdx) {
+          expect(card).toHaveAttribute("aria-pressed", "true");
+          expect(card).toHaveAttribute("aria-current", "true");
+        } else {
+          expect(card).toHaveAttribute("aria-pressed", "false");
+          // Inativos NÃO devem ter aria-current (nem "false") — APG: undefined removes
+          expect(card).not.toHaveAttribute("aria-current");
+        }
+      });
+
+      unmount();
+    }
+  });
+
+  it("aria-label do botão 'Selecionar' compõe corretamente: índice + score (opcional) + 'melhor score' (opcional)", () => {
+    const variations: VariationItem[] = [
+      // 1: com score, é winner explícito → "Selecionar variação 1, score 95, melhor score"
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 95, isWinner: true },
+      // 2: com score, não é winner → "Selecionar variação 2, score 70"
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      // 3: sem score → "Selecionar variação 3"
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false },
+    ];
+
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 1, score 95, melhor score" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 2, score 70" })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 3" })
+    ).toBeInTheDocument();
+
+    expect(screen.queryByRole("button", { name: "Selecionar variação 2, melhor score" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Selecionar variação 3, score 0" })).not.toBeInTheDocument();
+  });
+
+  it("aria-label dos botões 'Marcar vencedora' é único por índice; botões de ação não têm aria-pressed/aria-current", () => {
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90, isWinner: true },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const marcar1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+    const marcar2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+    const marcar3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+
+    expect(marcar1).toBeInTheDocument();
+    expect(marcar2).toBeInTheDocument();
+    expect(marcar3).toBeInTheDocument();
+    expect(marcar1).not.toBe(marcar2);
+    expect(marcar2).not.toBe(marcar3);
+
+    for (const btn of [marcar1, marcar2, marcar3]) {
+      expect(btn).not.toHaveAttribute("aria-pressed");
+      expect(btn).not.toHaveAttribute("aria-current");
+    }
+
+    expect(marcar1).toBeEnabled();
+
+    const allMarcar = screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ });
+    expect(allMarcar).toHaveLength(3);
+  });
 });
 
 describe("MagicUpVariationComparator focus-visible classes", () => {
