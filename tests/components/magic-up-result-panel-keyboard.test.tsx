@@ -1540,6 +1540,18 @@ describe("MagicUpResultPanel — foco e roving após click em dot/thumbnail inat
       expect(el.tabIndex).toBe(i === activeIndex ? 0 : -1);
       expect(el.getAttribute("aria-selected")).toBe(i === activeIndex ? "true" : "false");
     });
+    expectSingleTabStop(elements, activeIndex);
+  }
+
+  /**
+   * Garante que apenas UM elemento da coleção tem tabindex=0
+   * (contrato APG: roving tabindex == single tab stop por tablist).
+   */
+  function expectSingleTabStop(elements: HTMLElement[], expectedIndex: number) {
+    const zeros = elements
+      .map((el, i) => (el.tabIndex === 0 ? i : -1))
+      .filter((i) => i !== -1);
+    expect(zeros).toEqual([expectedIndex]);
   }
 
   function clickInactiveAndSyncState(
