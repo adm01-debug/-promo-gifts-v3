@@ -2540,34 +2540,33 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
         return wrapper as HTMLElement;
       };
 
-      expect(getWrapper(1).className).toContain("border-primary");
+      // border-primary "exato" (sem /xx) — exclui border-primary/40 dos cards inativos
+      const hasActiveBorder = (el: HTMLElement) => /(?:^|\s)border-primary(?:\s|$)/.test(el.className);
+
+      expect(hasActiveBorder(getWrapper(1))).toBe(true);
       expect(getWrapper(1).className).toContain("ring-2");
       expect(getWrapper(1).className).toContain("ring-primary/20");
-      expect(getWrapper(2).className).not.toContain("border-primary");
+      expect(hasActiveBorder(getWrapper(2))).toBe(false);
       expect(getWrapper(2).className).toContain("border-border");
-      expect(getWrapper(3).className).not.toContain("border-primary");
+      expect(hasActiveBorder(getWrapper(3))).toBe(false);
       expect(getWrapper(3).className).toContain("border-border");
 
       const allWrappers = [getWrapper(1), getWrapper(2), getWrapper(3)];
-      expect(
-        allWrappers.filter(
-          (w) => w.className.includes("border-primary") && !w.className.includes("border-primary/40")
-        )
-      ).toHaveLength(1);
+      expect(allWrappers.filter(hasActiveBorder)).toHaveLength(1);
 
       rerender(renderWith(2));
-      expect(getWrapper(1).className).not.toContain("border-primary");
+      expect(hasActiveBorder(getWrapper(1))).toBe(false);
       expect(getWrapper(1).className).toContain("border-border");
-      expect(getWrapper(2).className).not.toContain("border-primary");
-      expect(getWrapper(3).className).toContain("border-primary");
+      expect(hasActiveBorder(getWrapper(2))).toBe(false);
+      expect(hasActiveBorder(getWrapper(3))).toBe(true);
       expect(getWrapper(3).className).toContain("ring-2");
       expect(getWrapper(3).className).toContain("ring-primary/20");
 
       rerender(renderWith(1));
-      expect(getWrapper(1).className).not.toContain("border-primary");
-      expect(getWrapper(2).className).toContain("border-primary");
+      expect(hasActiveBorder(getWrapper(1))).toBe(false);
+      expect(hasActiveBorder(getWrapper(2))).toBe(true);
       expect(getWrapper(2).className).toContain("ring-2");
-      expect(getWrapper(3).className).not.toContain("border-primary");
+      expect(hasActiveBorder(getWrapper(3))).toBe(false);
 
       const wrappersAfter = [getWrapper(1), getWrapper(2), getWrapper(3)];
       expect(wrappersAfter.filter((w) => w.className.includes("ring-2"))).toHaveLength(1);
