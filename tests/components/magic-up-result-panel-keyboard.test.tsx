@@ -3790,3 +3790,222 @@ describe("MagicUpResultPanel — Onda 5: foco NUNCA salta para headings/regions 
     });
   });
 });
+
+// ───────── Roving tabindex EXCLUSIVO após navegação por SETAS ─────────
+// APG Tabs (single tab stop): após qualquer ArrowLeft/Right/Up/Down/Home/End,
+// EXATAMENTE 1 dot e 1 thumb devem ter tabindex="0" (o novo ativo). Todos
+// os demais devem migrar para tabindex="-1". Esta suíte trava regressões
+// onde o tabindex antigo permaneceria em "0" ou o novo não se atualizaria.
+describe("MagicUpResultPanel — Onda 5: roving tabindex EXCLUSIVO após navegação por setas", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function rerenderActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  function assertExclusiveZero(elements: HTMLElement[], expectedZeroIdx: number, label: string) {
+    const zeros = elements.filter((el) => el.getAttribute("tabindex") === "0");
+    const minus = elements.filter((el) => el.getAttribute("tabindex") === "-1");
+    expect(zeros.length, `${label}: deve haver EXATAMENTE 1 tabindex=0`).toBe(1);
+    expect(elements[expectedZeroIdx].getAttribute("tabindex"), `${label}: índice ${expectedZeroIdx} deve ter tabindex=0`).toBe("0");
+    expect(minus.length, `${label}: demais devem ter tabindex=-1`).toBe(elements.length - 1);
+    elements.forEach((el, i) => {
+      const v = el.getAttribute("tabindex");
+      expect(v, `${label}[${i}]: tabindex deve ser "0" ou "-1"`).toMatch(/^(0|-1)$/);
+    });
+  }
+
+  it("ArrowRight em dot[0] (active=0) → após re-render, somente dot[1] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot0 = getDots()[0] as HTMLButtonElement;
+    dot0.focus();
+    fireEvent.keyDown(dot0, { key: "ArrowRight" });
+    rerenderActive(rerender, m, 1);
+
+    assertExclusiveZero(getDots(), 1, "dots após ArrowRight");
+    assertExclusiveZero(getThumbs(), 1, "thumbs após ArrowRight (sincronizado)");
+  });
+
+  it("ArrowRight em dot[1] (active=1) → após re-render, somente dot[2] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot1 = getDots()[1] as HTMLButtonElement;
+    dot1.focus();
+    fireEvent.keyDown(dot1, { key: "ArrowRight" });
+    rerenderActive(rerender, m, 2);
+
+    assertExclusiveZero(getDots(), 2, "dots após ArrowRight");
+    assertExclusiveZero(getThumbs(), 2, "thumbs após ArrowRight");
+  });
+
+  it("ArrowLeft em dot[2] (active=2) → após re-render, somente dot[1] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot2 = getDots()[2] as HTMLButtonElement;
+    dot2.focus();
+    fireEvent.keyDown(dot2, { key: "ArrowLeft" });
+    rerenderActive(rerender, m, 1);
+
+    assertExclusiveZero(getDots(), 1, "dots após ArrowLeft");
+    assertExclusiveZero(getThumbs(), 1, "thumbs após ArrowLeft");
+  });
+
+  it("ArrowDown em dot[1] → após re-render, somente dot[2] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot1 = getDots()[1] as HTMLButtonElement;
+    dot1.focus();
+    fireEvent.keyDown(dot1, { key: "ArrowDown" });
+    rerenderActive(rerender, m, 2);
+
+    assertExclusiveZero(getDots(), 2, "dots após ArrowDown");
+  });
+
+  it("ArrowUp em dot[1] → após re-render, somente dot[0] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot1 = getDots()[1] as HTMLButtonElement;
+    dot1.focus();
+    fireEvent.keyDown(dot1, { key: "ArrowUp" });
+    rerenderActive(rerender, m, 0);
+
+    assertExclusiveZero(getDots(), 0, "dots após ArrowUp");
+  });
+
+  it("End em dot[0] → após re-render, somente dot[last] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 5, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot0 = getDots()[0] as HTMLButtonElement;
+    dot0.focus();
+    fireEvent.keyDown(dot0, { key: "End" });
+    rerenderActive(rerender, m, 4);
+
+    assertExclusiveZero(getDots(), 4, "dots após End");
+    assertExclusiveZero(getThumbs(), 4, "thumbs após End");
+  });
+
+  it("Home em dot[last] → após re-render, somente dot[0] tem tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 5, activeVariation: 4 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dotLast = getDots()[4] as HTMLButtonElement;
+    dotLast.focus();
+    fireEvent.keyDown(dotLast, { key: "Home" });
+    rerenderActive(rerender, m, 0);
+
+    assertExclusiveZero(getDots(), 0, "dots após Home");
+    assertExclusiveZero(getThumbs(), 0, "thumbs após Home");
+  });
+
+  // Não-wrap nos extremos: tabindex INALTERADO (sem re-render pois sem state change)
+  it("ArrowRight em dot[last] (não-wrap): tabindex permanece exclusivo no last", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dotLast = getDots()[2] as HTMLButtonElement;
+    dotLast.focus();
+    fireEvent.keyDown(dotLast, { key: "ArrowRight" });
+
+    assertExclusiveZero(getDots(), 2, "dots após ArrowRight no extremo (não-wrap)");
+    assertExclusiveZero(getThumbs(), 2, "thumbs após ArrowRight no extremo (não-wrap)");
+  });
+
+  it("ArrowLeft em dot[0] (não-wrap): tabindex permanece exclusivo no 0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dot0 = getDots()[0] as HTMLButtonElement;
+    dot0.focus();
+    fireEvent.keyDown(dot0, { key: "ArrowLeft" });
+
+    assertExclusiveZero(getDots(), 0, "dots após ArrowLeft no extremo (não-wrap)");
+    assertExclusiveZero(getThumbs(), 0, "thumbs após ArrowLeft no extremo (não-wrap)");
+  });
+
+  it("ArrowRight em thumb[0] → após re-render, thumb[1] e dot[1] têm tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb0 = getThumbs()[0] as HTMLButtonElement;
+    thumb0.focus();
+    fireEvent.keyDown(thumb0, { key: "ArrowRight" });
+    rerenderActive(rerender, m, 1);
+
+    assertExclusiveZero(getThumbs(), 1, "thumbs após ArrowRight em thumb");
+    assertExclusiveZero(getDots(), 1, "dots espelham thumb");
+  });
+
+  it("ArrowLeft em thumb[2] → após re-render, thumb[1] e dot[1] têm tabindex=0", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb2 = getThumbs()[2] as HTMLButtonElement;
+    thumb2.focus();
+    fireEvent.keyDown(thumb2, { key: "ArrowLeft" });
+    rerenderActive(rerender, m, 1);
+
+    assertExclusiveZero(getThumbs(), 1, "thumbs após ArrowLeft em thumb");
+    assertExclusiveZero(getDots(), 1, "dots espelham thumb");
+  });
+
+  it("sequência ArrowRight × 2 → ArrowLeft → Home: tabindex sempre exclusivo no índice correto", () => {
+    const m = buildStubState({ variationsCount: 5, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const sequence: { key: string; expectedNew: number }[] = [
+      { key: "ArrowRight", expectedNew: 1 },
+      { key: "ArrowRight", expectedNew: 2 },
+      { key: "ArrowLeft", expectedNew: 1 },
+      { key: "Home", expectedNew: 0 },
+    ];
+
+    sequence.forEach(({ key, expectedNew }, step) => {
+      const currentDots = getDots();
+      const currentActive = currentDots.findIndex((d) => d.getAttribute("tabindex") === "0");
+      currentDots[currentActive].focus();
+      fireEvent.keyDown(currentDots[currentActive], { key });
+      rerenderActive(rerender, m, expectedNew);
+
+      assertExclusiveZero(getDots(), expectedNew, `step ${step + 1} (${key})`);
+      assertExclusiveZero(getThumbs(), expectedNew, `step ${step + 1} thumbs (${key})`);
+    });
+  });
+
+  it.each([
+    { from: 0, key: "ArrowRight", to: 1 },
+    { from: 1, key: "ArrowRight", to: 2 },
+    { from: 2, key: "ArrowRight", to: 3 },
+    { from: 3, key: "ArrowRight", to: 4 },
+    { from: 4, key: "ArrowLeft", to: 3 },
+    { from: 3, key: "ArrowLeft", to: 2 },
+    { from: 2, key: "ArrowLeft", to: 1 },
+    { from: 1, key: "ArrowLeft", to: 0 },
+  ])("N=5: $key em dot[$from] → tabindex=0 exclusivo migra para dot[$to]", ({ from, key, to }) => {
+    const m = buildStubState({ variationsCount: 5, activeVariation: from });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[from] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key });
+    rerenderActive(rerender, m, to);
+
+    assertExclusiveZero(getDots(), to, `N=5 dots ${key}`);
+    assertExclusiveZero(getThumbs(), to, `N=5 thumbs ${key}`);
+  });
+});
