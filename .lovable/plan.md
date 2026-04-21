@@ -1,92 +1,101 @@
 
 
-# Plano — Testes de retenção de foco no dot clicado (sem saltar para outro elemento)
+# Plano — Testes de atualização de atributos ARIA dinâmicos nos dots ao trocar variação ativa
 
-Adiciono nova sub-suíte ao `tests/components/magic-up-result-panel-keyboard.test.tsx` validando especificamente que **clicar** num dot de variação mantém o foco no próprio dot clicado, sem saltar para outros elementos (outros dots, thumbs, prev/next, ou perder foco para `<body>`).
+Adiciono nova sub-suíte ao `tests/components/magic-up-result-panel-keyboard.test.tsx` validando que `aria-selected`, `aria-current` e `tabIndex` dos dots refletem corretamente a variação ativa após re-render — garantindo que screen readers anunciem o novo dot ativo e que o roving tabindex acompanhe.
 
 ## Justificativa
 
-Sub-suítes anteriores cobrem retenção de foco após **ativação por teclado** (Enter/Space/setas) e re-render via `rerenderWithActive`. Falta um conjunto focado especificamente no caso **mouse click** num dot, confirmando que:
+Sub-suítes anteriores cobrem retorno de foco e roving tabindex pós-ativação, mas não validam explicitamente que **cada atributo ARIA dinâmico transita corretamente**:
 
-- O click não desloca foco para outro dot (ex: dot[ativo anterior])
-- O click não desloca foco para thumb correspondente
-- O click não desloca foco para prev/next
-- O foco não vai para `document.body` (foco perdido)
-- Comportamento consistente em todas as posições (primeiro, meio, último)
+- `aria-selected="true"` migra do dot anterior para o novo ativo (e os outros voltam para `"false"`)
+- `aria-current` (se presente) reflete o índice ativo
+- `tabIndex` permanece sincronizado (`0` no ativo, `-1` nos demais)
+- Mesmo contrato vale para thumbnails
+- Transição correta em **múltiplas mudanças sequenciais** (0→2→1→0), não só primeira ativação
 
-Esses contratos previnem regressões onde alguém adicionaria `useEffect` que move foco para o painel principal, ou mudaria a estrutura DOM de forma que o React perderia a referência do botão clicado.
+Esses contratos garantem WCAG 4.1.2 (Name/Role/Value) — screen readers dependem desses atributos para anunciar "selecionado" / "atual" corretamente.
 
 ## Arquivo alterado
 
 `tests/components/magic-up-result-panel-keyboard.test.tsx` apenas — sem alterar componentes nem outros testes.
 
-## Sub-suíte nova: `MagicUpResultPanel — retenção de foco em click no dot`
+## Sub-suíte nova: `MagicUpResultPanel — atributos ARIA dinâmicos refletem variação ativa`
 
 ### Helper local
 
 ```ts
-function clickAndCheckFocus(el: HTMLButtonElement) {
-  el.focus();
-  expect(document.activeElement).toBe(el); // baseline pré-click
-  fireEvent.click(el);
-  return document.activeElement;
+function expectAriaSelectedState(elements: HTMLElement[], activeIndex: number) {
+  elements.forEach((el, i) => {
+    const expected = i === activeIndex ? "true" : "false";
+    expect(el.getAttribute("aria-selected")).toBe(expected);
+  });
+}
+
+function expectTabIndexState(elements: HTMLElement[], activeIndex: number) {
+  elements.forEach((el, i) => {
+    expect(el.tabIndex).toBe(i === activeIndex ? 0 : -1);
+  });
 }
 ```
 
-### Testes a adicionar (~6 testes)
+### Testes a adicionar (~7 testes)
 
-**Teste 1 — Click em dot[0] mantém foco em dot[0]**
-- Renderiza `activeVariation=1`, 3 variações
-- `clickAndCheckFocus(dots[0])` → `document.activeElement === dots[0]`
-- Confirma `setActiveVariation(0)` foi chamado (efeito esperado do click)
+**Teste 1 — `aria-selected` inicial reflete `activeVariation=0`**
+- Renderiza com `activeVariation=0`, 3 variações
+- `expectAriaSelectedState(getDots(), 0)`
 
-**Teste 2 — Click em dot[meio] mantém foco em dot[meio]**
-- Renderiza `activeVariation=0`, 3 variações
-- `clickAndCheckFocus(dots[1])` → foco permanece em dots[1]
+**Teste 2 — `aria-selected` migra após re-render com novo active**
+- Renderiza `activeVariation=0`, `rerenderWithActive(rerender, m, 2)`
+- `expectAriaSelectedState(getDots(), 2)` — dot[0] e dot[1] viram `"false"`, dot[2] vira `"true"`
 
-**Teste 3 — Click em dot[last] mantém foco em dot[last]**
-- Renderiza `activeVariation=0`, 3 variações
-- `clickAndCheckFocus(dots[2])` → foco permanece em dots[2]
+**Teste 3 — `aria-selected` em thumbnails segue mesmo contrato**
+- Renderiza `activeVariation=1`, valida initial; re-render para 0
+- `expectAriaSelectedState(getThumbs(), 0)`
 
-**Teste 4 — Click em dot NÃO move foco para o thumbnail correspondente**
-- Renderiza `activeVariation=0`
-- Click em dot[2]
-- `expect(document.activeElement).not.toBe(getThumbs()[2])`
-- `expect(document.activeElement).toBe(getDots()[2])`
-
-**Teste 5 — Click em dot NÃO move foco para prev/next**
+**Teste 4 — `tabIndex` sincronizado com `aria-selected` em dots**
 - Renderiza `activeVariation=1`
-- Click em dot[2]
-- `expect(document.activeElement).not.toBe(screen.getByLabelText("Voltar"))`
-- `expect(document.activeElement).not.toBe(screen.getByLabelText("Avançar"))`
-- `expect(document.activeElement).toBe(getDots()[2])`
+- `expectTabIndexState(getDots(), 1)` + `expectAriaSelectedState(getDots(), 1)`
+- Re-render para 2 → ambos atributos transitam juntos
 
-**Teste 6 — Click em dot NÃO perde foco para document.body**
-- Renderiza `activeVariation=0`, 3 variações
-- Click em cada dot sequencialmente (`[0, 1, 2]`)
-- Após cada click: `expect(document.activeElement).not.toBe(document.body)`
-- E: `expect(document.activeElement).toBe(getDots()[i])`
+**Teste 5 — `aria-current` (se presente) reflete o ativo**
+- Renderiza `activeVariation=2`
+- Verifica que apenas dot[2] tem `aria-current="true"` ou `"page"` (depende da implementação) — usa `el.hasAttribute("aria-current")` + valor
+- Se atributo não estiver presente em nenhum dot, marca teste como `it.skip` com comentário (não é obrigatório por APG; `aria-selected` cobre o caso)
+
+**Teste 6 — Múltiplas trocas sequenciais (0 → 2 → 1 → 0) atualizam ARIA corretamente**
+- Renderiza `activeVariation=0`, valida
+- `rerenderWithActive(rerender, m, 2)` → valida
+- `rerenderWithActive(rerender, m, 1)` → valida
+- `rerenderWithActive(rerender, m, 0)` → valida estado final igual ao inicial
+- Confirma que nenhum dot fica com `aria-selected="true"` "fantasma" de estado anterior
+
+**Teste 7 — Após mudança via setas (`fireEvent.keyDown` ArrowRight) + re-render, ARIA reflete novo ativo**
+- Renderiza `activeVariation=0`
+- `fireEvent.keyDown(getDots()[0], { key: "ArrowRight" })` → confirma `setActiveVariation(1)` chamado
+- `rerenderWithActive(rerender, m, 1)`
+- `expectAriaSelectedState(getDots(), 1)` + `expectTabIndexState(getDots(), 1)`
 
 ## Estratégia técnica
 
-- **`fireEvent.click`** é síncrono e não dispara re-render real (mock `setActiveVariation` é `vi.fn()`); validamos retenção de foco no DOM imediato após click — exatamente o comportamento que precisamos travar (React não desfoca o elemento clicado durante `onClick`)
-- **`el.focus()` antes de `fireEvent.click`**: padroniza estado inicial — em browsers reais, click em `<button>` foca o elemento; replicamos isso explicitamente
-- **`document.activeElement` pós-click**: trava o invariante "foco permanece no botão clicado"
-- **Sem `rerender`**: este caso testa apenas o comportamento síncrono do click — re-render pós-state-change já é coberto pela sub-suíte "retorno de foco após troca de variação ativa"
-- **Reusa** `buildStubState`, `getDots`, `getThumbs` existentes; adiciona apenas helper local `clickAndCheckFocus`
+- **Reusa `rerenderWithActive`** já existente da sub-suíte de retorno de foco
+- **Helpers `expectAriaSelectedState` / `expectTabIndexState`** reduzem boilerplate em 7 testes
+- **Teste 5 (aria-current)**: verifica primeiro se o componente usa esse atributo; se não, documenta com `it.skip` para não falhar (atributo opcional por APG quando `aria-selected` está presente em `role="tab"`)
+- **Sem novo mock**: reusa `buildStubState`, `getDots`, `getThumbs` existentes
+- **Re-busca pós-rerender**: `getDots()` re-busca elementos para garantir que assertions usam o DOM atual
 
 ## Restrições
 
 - Sem alterar `MagicUpResultPanel.tsx` (comportamento já correto)
 - Sem alterar `useMagicUpState`, snapshots, outros testes ou helpers existentes
-- Mantém os 58 testes existentes intactos
-- Cobertura WCAG: 2.4.3 (Focus Order), 2.4.7 (Focus Visible), 3.2.1 (On Focus — sem mudança inesperada de contexto)
+- Mantém os 64 testes existentes intactos
+- Cobertura WCAG: 4.1.2 (Name/Role/Value), 1.3.1 (Info/Relationships)
 
 ## Entregável
 
-- Nova sub-suíte com ~6 testes em `tests/components/magic-up-result-panel-keyboard.test.tsx`
-- 1 helper local (`clickAndCheckFocus`) reutilizável
-- Trava contrato: click em dot mantém foco no próprio dot (não salta para thumb, prev/next ou body)
-- Trava contrato: comportamento idêntico em todas as posições (primeiro, meio, último)
-- Cobertura final: 58 → 64 testes no arquivo
+- Nova sub-suíte com ~7 testes em `tests/components/magic-up-result-panel-keyboard.test.tsx`
+- 2 helpers locais (`expectAriaSelectedState`, `expectTabIndexState`) reutilizáveis
+- Trava contrato: `aria-selected`/`tabIndex` dos dots e thumbnails refletem variação ativa em qualquer transição
+- Trava contrato: nenhum atributo ARIA "fantasma" persiste após múltiplas trocas sequenciais
+- Cobertura final: 64 → 71 testes no arquivo
 
