@@ -1,25 +1,27 @@
 
 
-# Plano — Teste: estabilidade do `winnerIndex` em empate sob permutação
+# Plano — Teste: aria-labels completos validam atribuição exclusiva da badge "Melhor score"
 
-Adiciono teste validando que `findIndex` mantém o contrato "primeiro índice do array vence em empate" mesmo quando a ordem das variações é permutada — o vencedor sempre é o **primeiro do array atual**, não da ordem semântica anterior.
+Adiciono teste que valida o `aria-label` **completo e literal** dos botões de cada variação em um cenário com vencedor claro, garantindo que apenas o card vencedor recebe o sufixo `, melhor score` — nenhum outro card recebe a marcação indevidamente.
 
 ## Justificativa
 
-A lógica atual em `MagicUpVariationComparator.tsx`:
+A lógica de `aria-label` em `MagicUpVariationComparator.tsx`:
 
 ```ts
-const winnerIndex = explicitWinnerIndex >= 0
-  ? explicitWinnerIndex
-  : (bestScore !== null ? scores.findIndex((s) => s === bestScore) : -1);
+aria-label={`Selecionar variação ${index + 1}${score !== null ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
 ```
 
-`findIndex` percorre o array na ordem fornecida e retorna o **primeiro** match. Em empate de score, isso significa:
-- Array `[A=80, B=80, C=80]` → vencedor = A (índice 0)
-- Array permutado `[B=80, A=80, C=80]` → vencedor = B (índice 0)
-- Array permutado `[C=80, B=80, A=80]` → vencedor = C (índice 0)
+Testes existentes validam:
+- Presença da badge visual `<Badge aria-label="Melhor score">` por card
+- Aria-label do botão vencedor isoladamente
 
-O contrato é: **a ordem do array recebido em `props.variations` define quem vence em empate** — sempre o índice 0 dentre os empatados no maior score.
+**Gap:** nenhum teste valida o `aria-label` **literal e completo** de **todas** as variações simultaneamente, garantindo via string-match exato que:
+1. O vencedor tem o sufixo `, melhor score` no final
+2. **Cada não-vencedor** tem aria-label que termina **exatamente** após `, score N` (sem qualquer menção a "melhor score")
+3. Os scores numéricos no aria-label refletem o `qualityScore` real de cada variação
+
+Isso protege contra regressões sutis como: vazamento do sufixo para múltiplos cards, ordem incorreta de concatenação, ou aplicação do sufixo via lógica errada (`bestScore === score` em vez de `index === winnerIndex`).
 
 ## Alteração
 
@@ -28,75 +30,48 @@ O contrato é: **a ordem do array recebido em `props.variations` define quem ven
 Adicionar 1 teste ao final da sub-suíte de empate:
 
 ```ts
-it("estabilidade sob permutação: empate triplo (80) — vencedor é sempre o índice 0 do array, independente de qual variação ocupe essa posição", () => {
-  const variantA = { id: "var-A", qualityScore: 80 };
-  const variantB = { id: "var-B", qualityScore: 80 };
-  const variantC = { id: "var-C", qualityScore: 80 };
+it("aria-labels completos: cenário com vencedor claro — apenas o card vencedor recebe sufixo ', melhor score'; demais terminam exatamente em ', score N'", () => {
+  const variations = [
+    buildVariation({ id: "var-A", qualityScore: 60 }, 0),
+    buildVariation({ id: "var-B", qualityScore: 95 }, 1), // vencedor
+    buildVariation({ id: "var-C", qualityScore: 78 }, 2),
+  ];
+  renderTied(variations);
 
-  // Permutação 1: [A, B, C] → vencedor = A (índice 0)
-  const { unmount: unmount1 } = renderTied([
-    buildVariation(variantA, 0),
-    buildVariation(variantB, 1),
-    buildVariation(variantC, 2),
-  ]);
-  let badges = screen.getAllByLabelText("Melhor score");
-  expect(badges).toHaveLength(1);
-  let cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
-  unmount1();
+  const btn1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+  const btn2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+  const btn3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
 
-  // Permutação 2: [B, A, C] → vencedor = B (índice 0)
-  const { unmount: unmount2 } = renderTied([
-    buildVariation(variantB, 0),
-    buildVariation(variantA, 1),
-    buildVariation(variantC, 2),
-  ]);
-  badges = screen.getAllByLabelText("Melhor score");
-  expect(badges).toHaveLength(1);
-  cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
-  unmount2();
+  // Match literal completo (string igual, sem regex)
+  expect(btn1.getAttribute("aria-label")).toBe("Selecionar variação 1, score 60");
+  expect(btn2.getAttribute("aria-label")).toBe("Selecionar variação 2, score 95, melhor score");
+  expect(btn3.getAttribute("aria-label")).toBe("Selecionar variação 3, score 78");
 
-  // Permutação 3: [C, B, A] → vencedor = C (índice 0)
-  renderTied([
-    buildVariation(variantC, 0),
-    buildVariation(variantB, 1),
-    buildVariation(variantA, 2),
-  ]);
-  badges = screen.getAllByLabelText("Melhor score");
-  expect(badges).toHaveLength(1);
-  cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+  // Validação cruzada: apenas 1 ocorrência de ", melhor score" em todo o DOM de aria-labels
+  const allButtons = [btn1, btn2, btn3];
+  const labelsWithWinner = allButtons.filter((b) =>
+    (b.getAttribute("aria-label") ?? "").includes(", melhor score")
+  );
+  expect(labelsWithWinner).toHaveLength(1);
+  expect(labelsWithWinner[0]).toBe(btn2);
+
+  // Validação defensiva: não-vencedores não terminam com sufixo de winner
+  expect(btn1.getAttribute("aria-label")).not.toMatch(/, melhor score$/);
+  expect(btn3.getAttribute("aria-label")).not.toMatch(/, melhor score$/);
 });
 ```
-
-**Verificação prévia:** se `renderTied` não retorna `unmount`, ajustar para usar `cleanup()` do `@testing-library/react` entre permutações, ou separar em 3 `it()` independentes (Vitest já isola DOM por teste). Caso `renderTied` retorne o objeto `RenderResult` completo, `unmount` está disponível nativamente.
-
-**Plano B (se `renderTied` ofuscar `unmount`):** dividir em 3 testes consecutivos:
-```ts
-it("permutação [A,B,C]: vencedor = A no índice 0", () => { /* ... */ });
-it("permutação [B,A,C]: vencedor = B no índice 0", () => { /* ... */ });
-it("permutação [C,B,A]: vencedor = C no índice 0", () => { /* ... */ });
-```
-
-Cobertura: 65 → 66 testes (1 teste com 3 permutações) ou 65 → 68 (3 testes separados).
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx` — comportamento atual já é o contrato correto
-- Reusa helpers `buildVariation`, `renderTied`, `within` já importados
+- Reusa helpers `buildVariation`, `renderTied`, `screen` já importados
 - Sem novos imports
-- Validação adicional: `id` distinto por variação garante que o teste rastreia a identidade real, não apenas a posição
+- Match literal de string (`.toBe(...)`) detecta regressões sutis que regex permissivo deixaria passar
 
 ## Entregável
 
-- 1 novo teste (ou 3, conforme assinatura de `renderTied`) validando estabilidade do `winnerIndex` sob permutação
-- Trava contrato: empate em score → vencedor é sempre `array[0]` dentre os empatados, **determinístico pela ordem de entrada**
-- Cobertura WCAG 4.1.2 (Name/Role/Value) preservada: badge sempre no índice 0 com `aria-label="Melhor score"`
+- 1 novo teste validando aria-label literal de 3 variações com vencedor único (índice 1)
+- 3 assertivas literais (`.toBe`) + 1 validação cruzada de cardinalidade + 2 defensivas de sufixo
+- Cobertura: 66 → 67 testes
+- Trava contrato a11y (WCAG 4.1.2 Name/Role/Value): sufixo `, melhor score` só aparece no card vencedor — nunca vaza para outros
 
