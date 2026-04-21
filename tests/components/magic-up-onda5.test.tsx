@@ -2934,5 +2934,109 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       // Sanity: onSelect (cards) não foi disparado em nenhum momento
       expect(onSelect).not.toHaveBeenCalled();
     });
+
+    it("combinações com modificador (Ctrl/Cmd/Shift/Alt + Enter) não disparam onSelectWinner em botão 'Marcar vencedora' desabilitado", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <div>
+          <button type="button" data-testid="external-sentinel">externo</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+            loadingWinnerIndex={0}
+          />
+        </div>
+      );
+
+      const winnerBtn = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(winnerBtn).toBeDisabled();
+      expect(winnerBtn).toHaveAttribute("aria-busy", "true");
+
+      screen.getByTestId("external-sentinel").focus();
+
+      // 1) fireEvent direto no botão em loading com modificadores — nada deve vazar via onClick sintético
+      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", ctrlKey: true });
+      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", ctrlKey: true });
+      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", metaKey: true });
+      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", metaKey: true });
+      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", shiftKey: true });
+      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", shiftKey: true });
+      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", altKey: true });
+      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", altKey: true });
+      fireEvent.click(winnerBtn);
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 2) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
+      await user.keyboard("{Control>}{Enter}{/Control}");
+      await user.keyboard("{Meta>}{Enter}{/Meta}");
+      await user.keyboard("{Shift>}{Enter}{/Shift}");
+      await user.keyboard("{Alt>}{Enter}{/Alt}");
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 3) Foco continua no sentinel — botão disabled não capturou foco
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("Space com auto-repeat e múltiplas pressões sequenciais não disparam onSelectWinner em botão 'Marcar vencedora' desabilitado", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <div>
+          <button type="button" data-testid="external-sentinel">externo</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+            loadingWinnerIndex={1}
+          />
+        </div>
+      );
+
+      const winnerBtn = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      expect(winnerBtn).toBeDisabled();
+      expect(winnerBtn).toHaveAttribute("aria-busy", "true");
+
+      screen.getByTestId("external-sentinel").focus();
+
+      // 1) Auto-repeat de Space: 10 keyDowns com repeat:true seguidos de keyUp único
+      for (let i = 0; i < 10; i++) {
+        fireEvent.keyDown(winnerBtn, { key: " ", code: "Space", repeat: i > 0 });
+      }
+      fireEvent.keyUp(winnerBtn, { key: " ", code: "Space" });
+      fireEvent.click(winnerBtn);
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 2) 5 pressões Space sequenciais via userEvent (foco no sentinel)
+      for (let i = 0; i < 5; i++) {
+        await user.keyboard(" ");
+      }
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 3) Combinação Space + modificadores
+      fireEvent.keyDown(winnerBtn, { key: " ", code: "Space", ctrlKey: true });
+      fireEvent.keyUp(winnerBtn, { key: " ", code: "Space", ctrlKey: true });
+      await user.keyboard("{Control>} {/Control}");
+      await user.keyboard("{Meta>} {/Meta}");
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      // 4) Sanity reverso: botão habilitado vizinho (var-1) responde normalmente a Space
+      const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(winnerBtn1).not.toBeDisabled();
+      winnerBtn1.focus();
+      await user.keyboard(" ");
+      expect(onSelectWinner).toHaveBeenCalledTimes(1);
+      expect(onSelectWinner).toHaveBeenCalledWith(0);
+
+      expect(onSelect).not.toHaveBeenCalled();
+    });
   });
 });
