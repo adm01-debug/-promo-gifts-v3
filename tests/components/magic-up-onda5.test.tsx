@@ -301,6 +301,42 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.getByRole("button", { name: "Selecionar variação 1, melhor score" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Selecionar variação 2" })).toBeInTheDocument();
   });
+
+  it("dois isWinner: true simultâneos: badge vai para o primeiro índice marcado, ignorando o segundo", () => {
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 60, isWinner: true },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50, isWinner: true },
+    ];
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+    // Apenas 1 badge mesmo com 2 isWinner: true
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    // Variação 1 (índice 0, primeiro isWinner) recebe sufixo
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 1, score 60, melhor score" })
+    ).toBeInTheDocument();
+    // Variação 2 (score 70, sem isWinner) não recebe badge — score mais alto é ignorado
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 2, score 70" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
+    ).not.toBeInTheDocument();
+    // Variação 3 (segundo isWinner) NÃO recebe badge — findIndex já parou no índice 0
+    expect(
+      screen.getByRole("button", { name: "Selecionar variação 3, score 50" })
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })
+    ).not.toBeInTheDocument();
+  });
 });
 
 describe("MagicUpVariationComparator snapshots", () => {
