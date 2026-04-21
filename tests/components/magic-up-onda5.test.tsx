@@ -95,4 +95,71 @@ describe("Magic Up Onda 5 components", () => {
     const { container } = render(<MagicUpVariationComparator variations={[]} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
     expect(container).toBeEmptyDOMElement();
   });
+
+  it("lida com todas as variações sem score exibindo placeholder e mantendo winner no índice 0", () => {
+    const variations: VariationItem[] = [
+      { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false },
+      { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false },
+      { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false },
+    ];
+    render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    expect(screen.getByLabelText("Melhor score entre variações: indisponível")).toBeInTheDocument();
+    expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3);
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(screen.getByRole("button", { name: "Selecionar variação 1, melhor score" })).toBeInTheDocument();
+  });
+
+  it("identifica vencedor único quando há scores parciais sem confundir 0 com ausente", () => {
+    const variations: VariationItem[] = [
+      { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false },
+      { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 80 },
+      { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false },
+    ];
+    render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    expect(screen.getByLabelText("Melhor score entre variações: 80")).toBeInTheDocument();
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(screen.getByRole("button", { name: "Selecionar variação 2, score 80, melhor score" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Score 80 de 100")).toBeInTheDocument();
+  });
+
+  it("renderiza lista longa com 8 variações expondo 1 vencedor e botões únicos", () => {
+    const scores = [55, 62, 70, 78, 81, 88, 92, 74];
+    const variations: VariationItem[] = scores.map((score, index) => ({
+      id: `v${index}`,
+      imageUrl: `https://example.com/${index}.png`,
+      isFavorite: false,
+      qualityScore: score,
+    }));
+    render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    expect(screen.getAllByRole("listitem").length).toBe(8);
+    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+    expect(screen.getByLabelText("Melhor score entre variações: 92")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Selecionar variação 7, score 92, melhor score" })).toBeInTheDocument();
+    for (let i = 1; i <= 8; i++) {
+      expect(screen.getByRole("button", { name: `Marcar variação ${i} como vencedora` })).toBeInTheDocument();
+    }
+  });
+
+  it("mantém aria-pressed alinhado com activeIndex e isola clique de marcar vencedora", () => {
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+    const variations: VariationItem[] = [
+      { id: "1", imageUrl: "https://example.com/1.png", isFavorite: false, qualityScore: 60 },
+      { id: "2", imageUrl: "https://example.com/2.png", isFavorite: false, qualityScore: 70, isWinner: true },
+      { id: "3", imageUrl: "https://example.com/3.png", isFavorite: false, qualityScore: 65 },
+    ];
+    render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />);
+
+    const winnerCard = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    expect(winnerCard).toHaveAttribute("aria-pressed", "false");
+    expect(screen.getByRole("button", { name: /Selecionar variação 1/ })).toHaveAttribute("aria-pressed", "true");
+
+    fireEvent.click(winnerCard);
+    expect(onSelect).toHaveBeenCalledWith(1);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+
+    fireEvent.click(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" }));
+    expect(onSelectWinner).toHaveBeenCalledWith(2);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+  });
 });
