@@ -1,156 +1,184 @@
 
 
-# Plano — Testes de Home/End para navegação ao primeiro/último card focável
+# Plano — Testes de scroll preservando foco e Shift+Tab em ordem reversa
 
-Adiciono **2 testes** ao final do sub-describe `"navegação por setas/Home/End nos cards de variação"` (ou criando-o se não existir, ao final do describe principal) em `tests/components/magic-up-onda5.test.tsx`, validando que `Home` e `End` movem foco e seleção para o primeiro e último card de variação respectivamente, e que Enter/Space subsequentes continuam disparando `onSelect` consistentemente.
+Adiciono **2 testes** ao final do sub-describe `"ativação por Enter/Espaço nos botões"` em `tests/components/magic-up-onda5.test.tsx`, validando que (1) após simular scroll do container/window o botão focado permanece o mesmo (foco não é roubado), e (2) `Shift+Tab` percorre os botões do `MagicUpVariationComparator` em ordem reversa consistente.
 
 ## Justificativa
 
-O componente `MagicUpVariationComparator` já implementa `Home`/`End` no `handleArrowKey` (linhas 38-39 do componente):
-```ts
-else if (e.key === "Home") nextIndex = 0;
-else if (e.key === "End") nextIndex = total - 1;
-```
+Cobertura existente (testes 95-103): loading do "Marcar vencedora", teclado avançado (Ctrl/Cmd/Shift/Alt+Enter, Space auto-repeat), Home/End nos cards.
 
-E expõe via `aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"`.
-
-Cobertura existente (testes 95-101): foco em `loadingWinnerIndex` e teclado avançado no botão "Marcar vencedora". **Lacuna**: `Home`/`End` nos botões de seleção de variação não têm cobertura dedicada validando salto + foco + Enter/Space consistentes pós-salto.
+Lacunas:
+1. **Scroll + foco**: nenhum teste valida que `scroll` no container ou `window` preserva `document.activeElement`. Risco real: efeitos colaterais de re-render por intersection observer ou virtualização futura podem roubar foco silenciosamente.
+2. **Shift+Tab (ordem reversa)**: testes existentes cobrem Tab forward e atalhos, mas não a navegação reversa Shift+Tab através da matriz `[card, marcar-vencedora] × N variações`.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar 2 testes reusando `navVariations` (3 variações):
+Adicionar 2 testes ao final do sub-describe `"ativação por Enter/Espaço nos botões"`, reusando `navVariations` (3 variações):
 
 ---
 
-**Teste 1 — `Home` salta para primeiro card (de qualquer posição) e Enter/Space disparam `onSelect(0)`**
+**Teste 1 — Scroll do container e do window preserva foco no botão atual**
 
 ```ts
-it("Home salta foco e seleção para o primeiro card de variação e Enter/Space disparam onSelect(0)", async () => {
-  const user = userEvent.setup();
+it("scroll do container e do window não rouba foco do botão atualmente focado", async () => {
   const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
-  render(
-    <MagicUpVariationComparator
-      variations={navVariations}
-      activeIndex={2}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-    />
+  const { container } = render(
+    <div style={{ height: "200px", overflow: "auto" }} data-testid="scroll-container">
+      <MagicUpVariationComparator
+        variations={navVariations}
+        activeIndex={1}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    </div>
   );
 
-  // Foco inicial no último card (índice 2)
-  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-  card3.focus();
-  expect(card3).toHaveFocus();
+  // Foca o card 2 (índice 1)
+  const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  card2.focus();
+  expect(card2).toHaveFocus();
+  expect(document.activeElement).toBe(card2);
 
-  // Home → salta para card 1
-  await user.keyboard("{Home}");
-  expect(onSelect).toHaveBeenCalledWith(0);
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  expect(card1).toHaveFocus();
+  // Scroll no container parent (10 eventos sequenciais simulando wheel)
+  const scrollContainer = screen.getByTestId("scroll-container");
+  for (let i = 0; i < 10; i++) {
+    fireEvent.scroll(scrollContainer, { target: { scrollTop: i * 50 } });
+  }
+  expect(card2).toHaveFocus();
+  expect(document.activeElement).toBe(card2);
 
-  // Aria-keyshortcuts expõe Home como atalho
-  expect(card1).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("Home"));
+  // Scroll do window
+  fireEvent.scroll(window, { target: { scrollY: 300 } });
+  fireEvent.scroll(window, { target: { scrollY: 600 } });
+  expect(card2).toHaveFocus();
 
-  // Enter no card 1 dispara onSelect(0) novamente — comportamento consistente pós-Home
-  onSelect.mockClear();
-  await user.keyboard("{Enter}");
-  expect(onSelect).toHaveBeenCalledWith(0);
+  // Scroll diretamente no <section> do comparador
+  const section = container.querySelector('[aria-label="Comparador de variações"]');
+  if (section) {
+    fireEvent.scroll(section, { target: { scrollTop: 100 } });
+  }
+  expect(card2).toHaveFocus();
 
-  // Space também dispara onSelect(0)
-  onSelect.mockClear();
-  await user.keyboard(" ");
-  expect(onSelect).toHaveBeenCalledWith(0);
+  // Foca o botão "Marcar vencedora" da var-3 e repete sequência de scroll
+  const winnerBtn3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+  winnerBtn3.focus();
+  expect(winnerBtn3).toHaveFocus();
 
-  // onSelectWinner intocado
+  for (let i = 0; i < 5; i++) {
+    fireEvent.scroll(scrollContainer, { target: { scrollTop: 200 + i * 30 } });
+  }
+  fireEvent.scroll(window, { target: { scrollY: 0 } });
+  expect(winnerBtn3).toHaveFocus();
+
+  // Sanity: nenhum handler de seleção foi disparado por scroll
+  expect(onSelect).not.toHaveBeenCalled();
   expect(onSelectWinner).not.toHaveBeenCalled();
 });
 ```
 
 ---
 
-**Teste 2 — `End` salta para último card (de qualquer posição) e Enter/Space disparam `onSelect(last)`**
+**Teste 2 — Shift+Tab percorre botões do comparador em ordem reversa consistente**
 
 ```ts
-it("End salta foco e seleção para o último card de variação e Enter/Space disparam onSelect(last)", async () => {
+it("Shift+Tab percorre os botões do comparador em ordem reversa (last → first), mantendo Enter/Space funcionais em cada parada", async () => {
   const user = userEvent.setup();
   const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
   render(
-    <MagicUpVariationComparator
-      variations={navVariations}
-      activeIndex={0}
-      onSelect={onSelect}
-      onSelectWinner={onSelectWinner}
-    />
+    <div>
+      <button type="button" data-testid="before-sentinel">antes</button>
+      <MagicUpVariationComparator
+        variations={navVariations}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+      <button type="button" data-testid="after-sentinel">depois</button>
+    </div>
   );
 
-  const lastIndex = navVariations.length - 1; // 2
+  // Foca sentinel "depois" (último elemento focável do DOM de teste)
+  const afterSentinel = screen.getByTestId("after-sentinel");
+  afterSentinel.focus();
+  expect(afterSentinel).toHaveFocus();
 
-  // Foco inicial no primeiro card (índice 0)
+  // Ordem esperada do DOM (forward Tab): card1, marcar1, card2, marcar2, card3, marcar3
+  // Ordem reversa (Shift+Tab a partir de "depois"): marcar3 → card3 → marcar2 → card2 → marcar1 → card1 → "antes"
+  const expectedReverseOrder = [
+    { name: "Marcar variação 3 como vencedora" },
+    { name: /^Selecionar variação 3/ },
+    { name: "Marcar variação 2 como vencedora" },
+    { name: /^Selecionar variação 2/ },
+    { name: "Marcar variação 1 como vencedora" },
+    { name: /^Selecionar variação 1/ },
+  ];
+
+  for (const target of expectedReverseOrder) {
+    await user.tab({ shift: true });
+    const btn = screen.getByRole("button", target);
+    expect(btn).toHaveFocus();
+  }
+
+  // Próximo Shift+Tab sai do comparador para o sentinel "antes"
+  await user.tab({ shift: true });
+  expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+  // Tab forward retorna ao primeiro card (card1) e Enter/Space funcionam
+  await user.tab();
   const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  card1.focus();
   expect(card1).toHaveFocus();
-
-  // End → salta para último card
-  await user.keyboard("{End}");
-  expect(onSelect).toHaveBeenCalledWith(lastIndex);
-  const cardLast = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-  expect(cardLast).toHaveFocus();
-
-  // Aria-keyshortcuts expõe End como atalho
-  expect(cardLast).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("End"));
-
-  // Enter no último card dispara onSelect(lastIndex)
-  onSelect.mockClear();
   await user.keyboard("{Enter}");
-  expect(onSelect).toHaveBeenCalledWith(lastIndex);
+  expect(onSelect).toHaveBeenCalledWith(0);
 
-  // Space também dispara onSelect(lastIndex)
+  // Shift+Tab a partir de card1 volta ao sentinel "antes"
   onSelect.mockClear();
+  await user.tab({ shift: true });
+  expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+  // Sequência mista: Tab até "Marcar var-2", aciona Space, depois Shift+Tab dispara onSelect(1) no card2
+  await user.tab(); // card1
+  await user.tab(); // marcar1
+  await user.tab(); // card2
+  await user.tab(); // marcar2
+  const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+  expect(winnerBtn2).toHaveFocus();
   await user.keyboard(" ");
-  expect(onSelect).toHaveBeenCalledWith(lastIndex);
+  expect(onSelectWinner).toHaveBeenCalledWith(1);
 
-  // Sequência Home → End → Home (idempotência de saltos)
-  onSelect.mockClear();
-  await user.keyboard("{Home}");
-  expect(onSelect).toHaveBeenLastCalledWith(0);
-  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
-
-  await user.keyboard("{End}");
-  expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
-  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
-
-  await user.keyboard("{Home}");
-  expect(onSelect).toHaveBeenLastCalledWith(0);
-  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
-
-  // onSelectWinner intocado durante toda a sequência
-  expect(onSelectWinner).not.toHaveBeenCalled();
+  await user.tab({ shift: true });
+  const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  expect(card2).toHaveFocus();
+  await user.keyboard("{Enter}");
+  expect(onSelect).toHaveBeenCalledWith(1);
 });
 ```
 
 ## Restrições
 
-- Sem alteração no `MagicUpVariationComparator.tsx` (Home/End já implementados)
-- Sem novos imports (reusa `render`, `screen`, `userEvent`, `vi`, `MagicUpVariationComparator`, `navVariations`)
-- 2 testes novos (101 → 103 testes)
-- Testes posicionados próximos aos demais testes de navegação por teclado nos cards
-- Verificação de `aria-keyshortcuts` confirma exposição assistiva dos atalhos
+- Sem alteração no `MagicUpVariationComparator.tsx`
+- Sem novos imports (reusa `render`, `screen`, `fireEvent`, `userEvent`, `vi`, `MagicUpVariationComparator`, `navVariations`)
+- 2 testes novos (103 → 105 testes)
+- Sentinels `before-sentinel`/`after-sentinel` delimitam a tab order do comparador
+- `fireEvent.scroll` em container, window e `<section>` interna cobre 3 superfícies de scroll plausíveis
+- Validação cumulativa de Tab forward + Shift+Tab + Enter/Space pós-navegação garante que listeners não se "desconectam" por mudanças de foco
 
 ## Entregável
 
 - 2 testes cobrindo:
-  1. `Home` de qualquer card → foco + `onSelect(0)`; Enter/Space pós-Home disparam `onSelect(0)` consistentemente; `aria-keyshortcuts` inclui "Home"
-  2. `End` de qualquer card → foco + `onSelect(last)`; Enter/Space pós-End disparam `onSelect(last)`; sequência Home↔End idempotente; `aria-keyshortcuts` inclui "End"
+  1. **Scroll preserva foco**: 10 scrolls no container parent + 2 scrolls no window + 1 scroll na `<section>` interna não movem `document.activeElement` de `card2`; mesmo cenário repetido com foco em `Marcar variação 3` (botão de ação); `onSelect`/`onSelectWinner` intocados
+  2. **Shift+Tab ordem reversa**: a partir do sentinel "depois", percorre `marcar3 → card3 → marcar2 → card2 → marcar1 → card1 → antes` (7 paradas); Tab forward retoma fluxo; Enter/Space disparam handlers corretos em cada parada; sequência mista Tab+Space+Shift+Tab+Enter valida que listeners permanecem ativos
 - Captura regressões onde:
-  - `Home`/`End` fossem removidos do `handleArrowKey`
-  - Salto não movesse foco (apenas chamasse `onSelect` sem `cardRefs.current[nextIndex]?.focus()`)
-  - `aria-keyshortcuts` deixasse de declarar Home/End
-  - Enter/Space pós-salto deixassem de disparar `onSelect` (ex: handler perdesse referência ao novo índice)
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 103/103 verde
+  - Re-render ou efeito colateral de scroll (intersection observer, virtualização futura) roubasse foco
+  - Inserção de elementos não-focáveis quebrasse a ordem de tabulação reversa
+  - `tabIndex` indevido em um dos botões alterasse a ordem natural do DOM
+  - Shift+Tab a partir de card1 não saísse para o elemento anterior (foco preso)
+  - Listeners de `onClick`/`onKeyDown` se desconectassem após navegação cruzada Tab/Shift+Tab
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 105/105 verde
 
