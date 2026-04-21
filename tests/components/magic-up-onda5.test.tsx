@@ -240,6 +240,18 @@ describe("Magic Up Onda 5 components", () => {
     // Variações 2 e 3 NÃO têm sufixo "melhor score" no aria-label
     expect(screen.getByRole("button", { name: "Selecionar variação 2, score 80" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Selecionar variação 3, score 80" })).toBeInTheDocument();
+    // Badge isolada tem aria-label exato e texto visível sincronizado
+    const badge = screen.getByLabelText("Melhor score");
+    expect(badge).toHaveTextContent("Melhor score");
+    // Contagem global: 1 badge (aria-label "Melhor score") + 1 botão (sufixo "melhor score") = 2 nodes
+    expect(screen.getAllByLabelText(/melhor score/i)).toHaveLength(2);
+    // Ausência explícita do sufixo de winner nas variações 2 e 3
+    expect(
+      screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })
+    ).not.toBeInTheDocument();
   });
 
   it("empate triplo com isWinner explícito: ainda exibe exatamente 1 badge 'Melhor score'", () => {
