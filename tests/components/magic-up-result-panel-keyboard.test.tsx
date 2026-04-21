@@ -2280,21 +2280,24 @@ describe("MagicUpResultPanel — Tab no fim do painel sai sem ciclar de volta ao
     return next;
   }
 
-  // ── Cenário 1: Avançar habilitado é o ÚLTIMO controle do painel ─────
+  // ── Cenário 1: Tab a partir do ÚLTIMO controle do painel sai para 'after' ─────
+  // Pelo DOM do MagicUpResultPanel, o último <button> em ordem é o thumbnail ativo
+  // (renderizado após o AdImageResult). O thumbnail ativo é o único do grupo com
+  // tabindex=0 (roving), então é o real "fim" do painel no Tab order.
 
-  it("Tab a partir de Avançar (último controle, active=0) sai para o sentinela 'after'", () => {
+  it("Tab a partir do thumbnail ativo (último controle do painel, active=0) sai para 'after'", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     const { container } = renderWithSentinels(m);
 
-    const next = screen.getByRole("button", { name: /avançar/i });
-    expect(next).not.toBeDisabled();
+    const activeThumb = getThumbs()[0] as HTMLButtonElement;
+    expect(activeThumb.getAttribute("tabindex")).toBe("0");
 
-    next.focus();
-    expect(document.activeElement).toBe(next);
+    activeThumb.focus();
+    expect(document.activeElement).toBe(activeThumb);
 
-    const after = pressTab(next, container);
+    const after = pressTab(activeThumb, container);
 
-    // Saiu para o sentinela externo — NÃO voltou para Voltar/dot/thumb interno
+    // Saiu para o sentinela externo — NÃO voltou para Voltar/dot/thumb inativo
     expect(after).toBe(screen.getByTestId("after-panel"));
     expect(document.activeElement).toBe(screen.getByTestId("after-panel"));
 
@@ -2304,6 +2307,9 @@ describe("MagicUpResultPanel — Tab no fim do painel sai sem ciclar de volta ao
     expect(document.activeElement).not.toBe(prev);
     getDots().forEach((d, i) => {
       if (i !== m.activeVariation) expect(document.activeElement).not.toBe(d);
+    });
+    getThumbs().forEach((t, i) => {
+      if (i !== m.activeVariation) expect(document.activeElement).not.toBe(t);
     });
   });
 
