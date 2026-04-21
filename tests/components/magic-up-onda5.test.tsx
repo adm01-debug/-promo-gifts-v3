@@ -763,6 +763,98 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(onSelectWinner).toHaveBeenCalledWith(0);
     expect(onSelectWinner).toHaveBeenCalledTimes(1);
   });
+
+  it("Shift+Tab navega em ordem reversa completa: marcar-3 → select-3 → marcar-2 → select-2 → marcar-1 → select-1", async () => {
+    const user = userEvent.setup();
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+    const marcar3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+    marcar3.focus();
+    expect(marcar3).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Selecionar variação 3, score 50" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Selecionar variação 2, score 70" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
+
+    await user.tab({ shift: true });
+    expect(screen.getByRole("button", { name: /Selecionar variação 1, score 90, melhor score/i })).toHaveFocus();
+
+    await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
+  });
+
+  it("Enter e Space ativam onSelect (cards) e onSelectWinner (marcar) consistentemente, inclusive após Shift+Tab", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+    ];
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const select1 = screen.getByRole("button", { name: /Selecionar variação 1, score 90/i });
+    const marcar1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+    const select2 = screen.getByRole("button", { name: "Selecionar variação 2, score 70" });
+    const marcar2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    expect(marcar2).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(onSelectWinner).toHaveBeenCalledWith(1);
+    expect(onSelectWinner).toHaveBeenCalledTimes(1);
+
+    await user.tab({ shift: true });
+    expect(select2).toHaveFocus();
+    await user.keyboard(" ");
+    expect(onSelect).toHaveBeenCalledWith(1);
+    expect(onSelect).toHaveBeenCalledTimes(1);
+
+    await user.tab({ shift: true });
+    expect(marcar1).toHaveFocus();
+    await user.keyboard(" ");
+    expect(onSelectWinner).toHaveBeenCalledWith(0);
+    expect(onSelectWinner).toHaveBeenCalledTimes(2);
+
+    await user.tab({ shift: true });
+    expect(select1).toHaveFocus();
+    await user.keyboard("{Enter}");
+    expect(onSelect).toHaveBeenCalledWith(0);
+    expect(onSelect).toHaveBeenCalledTimes(2);
+
+    expect(onSelect).toHaveBeenCalledTimes(2);
+    expect(onSelectWinner).toHaveBeenCalledTimes(2);
+  });
 });
 
 describe("MagicUpVariationComparator focus-visible classes", () => {
