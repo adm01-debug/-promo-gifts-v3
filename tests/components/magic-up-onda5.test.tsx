@@ -3383,5 +3383,154 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(onSelect).not.toHaveBeenCalled();
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("aria-pressed e aria-current refletem o estado correto após ativação por Enter/Space, mantendo exclusividade entre cards", async () => {
+      const user = userEvent.setup();
+      const onSelectWinner = vi.fn();
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        return (
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={onSelectWinner}
+          />
+        );
+      }
+
+      render(<ControlledWrapper />);
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+      // Estado inicial: card1 ativo
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(card1).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+      expect(card3).not.toHaveAttribute("aria-current");
+
+      // Foca card2 e ativa com Enter
+      card2.focus();
+      await user.keyboard("{Enter}");
+
+      await screen.findByRole("button", { name: /^Selecionar variação 2/ });
+
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+      expect(card1).not.toHaveAttribute("aria-current");
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-current", "true");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+      expect(card3).not.toHaveAttribute("aria-current");
+
+      // Foca card3 e ativa com Space
+      card3.focus();
+      await user.keyboard(" ");
+
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+      expect(card1).not.toHaveAttribute("aria-current");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+      expect(card3).toHaveAttribute("aria-current", "true");
+
+      // Volta para card1 com Home
+      await user.keyboard("{Home}");
+
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(card1).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+
+      const allCards = [card1, card2, card3];
+      const currentCount = allCards.filter((c) => c.getAttribute("aria-current") === "true").length;
+      expect(currentCount).toBe(1);
+
+      const pressedCount = allCards.filter((c) => c.getAttribute("aria-pressed") === "true").length;
+      expect(pressedCount).toBe(1);
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("aria-pressed e aria-current permanecem consistentes em sequência mista Tab→Enter→clique→Space, sem dessincronizar atributos", async () => {
+      const user = userEvent.setup();
+      const onSelectWinner = vi.fn();
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        return (
+          <div>
+            <button type="button" data-testid="before-sentinel">antes</button>
+            <MagicUpVariationComparator
+              variations={navVariations}
+              activeIndex={activeIndex}
+              onSelect={setActiveIndex}
+              onSelectWinner={onSelectWinner}
+            />
+          </div>
+        );
+      }
+
+      render(<ControlledWrapper />);
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+
+      // Etapa 1: Tab até card2 e Enter
+      screen.getByTestId("before-sentinel").focus();
+      await user.tab(); // card1
+      await user.tab(); // marcar1
+      await user.tab(); // card2
+      expect(card2).toHaveFocus();
+      await user.keyboard("{Enter}");
+
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-current", "true");
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+
+      // Etapa 2: Clique direto no card3
+      await user.click(card3);
+
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+      expect(card3).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+
+      // Etapa 3: Volta ao teclado
+      card3.focus();
+      await user.keyboard("{ArrowLeft}");
+      expect(card2).toHaveFocus();
+      await user.keyboard(" ");
+
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-current", "true");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+      expect(card3).not.toHaveAttribute("aria-current");
+
+      // Etapa 4: Clique em card1
+      await user.click(card1);
+
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(card1).toHaveAttribute("aria-current", "true");
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+      expect(card2).not.toHaveAttribute("aria-current");
+      expect(card3).toHaveAttribute("aria-pressed", "false");
+
+      // Etapa 5: Validação final de exclusividade
+      const allCards = [card1, card2, card3];
+      expect(allCards.filter((c) => c.getAttribute("aria-pressed") === "true")).toHaveLength(1);
+      expect(allCards.filter((c) => c.getAttribute("aria-current") === "true")).toHaveLength(1);
+      expect(allCards.filter((c) => c.getAttribute("aria-pressed") === "false")).toHaveLength(2);
+      expect(allCards.filter((c) => !c.hasAttribute("aria-current"))).toHaveLength(2);
+
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
