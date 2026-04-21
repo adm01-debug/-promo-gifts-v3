@@ -1498,4 +1498,54 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(btn1.getAttribute("aria-label")).not.toMatch(/, melhor score$/);
     expect(btn3.getAttribute("aria-label")).not.toMatch(/, melhor score$/);
   });
+
+  it("empate parcial (2 no topo + 1 abaixo): badge 'Melhor score' aparece apenas no primeiro empatado; variação com score menor nunca recebe badge", () => {
+    const variations = [
+      buildVariation({ id: "var-A", qualityScore: 90 }, 0),
+      buildVariation({ id: "var-B", qualityScore: 90 }, 1),
+      buildVariation({ id: "var-C", qualityScore: 70 }, 2),
+    ];
+    renderTied(variations);
+
+    const badges = screen.getAllByLabelText("Melhor score");
+    expect(badges).toHaveLength(1);
+
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const btn1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    const btn2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    const btn3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+    expect(btn1.getAttribute("aria-label")).toBe("Selecionar variação 1, score 90, melhor score");
+    expect(btn2.getAttribute("aria-label")).toBe("Selecionar variação 2, score 90");
+    expect(btn3.getAttribute("aria-label")).toBe("Selecionar variação 3, score 70");
+
+    expect(screen.getByLabelText(/Melhor score entre variações: 90/)).toBeInTheDocument();
+  });
+
+  it("empate parcial com permutação: ordem [C=70, A=90, B=90] → winner determinístico no índice 1 (primeiro empatado no maior score)", () => {
+    const variations = [
+      buildVariation({ id: "var-C", qualityScore: 70 }, 0),
+      buildVariation({ id: "var-A", qualityScore: 90 }, 1),
+      buildVariation({ id: "var-B", qualityScore: 90 }, 2),
+    ];
+    renderTied(variations);
+
+    const badges = screen.getAllByLabelText("Melhor score");
+    expect(badges).toHaveLength(1);
+
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const btn1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    const btn2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+    const btn3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+    expect(btn1.getAttribute("aria-label")).toBe("Selecionar variação 1, score 70");
+    expect(btn2.getAttribute("aria-label")).toBe("Selecionar variação 2, score 90, melhor score");
+    expect(btn3.getAttribute("aria-label")).toBe("Selecionar variação 3, score 90");
+  });
 });
