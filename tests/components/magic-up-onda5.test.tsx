@@ -57,14 +57,86 @@ function renderComparator(props: {
   return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
 }
 
+// ───────── Builders centralizados de aria-label ─────────
+// Fonte única de verdade: qualquer mudança no formato do aria-label do componente
+// é refletida aqui e propaga para todos os asserts do arquivo.
+
+/** Monta o aria-label exato de um card de variação. */
+function variationCardLabel(n: number, opts: { score?: number; best?: boolean } = {}): string {
+  const parts = [`Selecionar variação ${n}`];
+  if (opts.score !== undefined) parts.push(`score ${opts.score}`);
+  if (opts.best) parts.push("melhor score");
+  return parts.join(", ");
+}
+
+/** Monta o aria-label exato do botão "marcar como vencedora". */
+function winnerButtonLabel(n: number): string {
+  return `Marcar variação ${n} como vencedora`;
+}
+
+/** Regex reutilizáveis (sem string literal duplicada) para name matchers. */
+const labelPatterns = {
+  anyCard: /^Selecionar variação \d+/,
+  anyWinner: /^Marcar variação \d+ como vencedora$/,
+  cardN: (n: number) => new RegExp(`^Selecionar variação ${n}(,|$)`),
+  cardNWithBest: (n: number) => new RegExp(`^Selecionar variação ${n}.*melhor score`, "i"),
+};
+
 /** Seletores ARIA estáveis para elementos do comparador */
 const select = {
-  card: (n: number) => screen.getByRole("button", { name: new RegExp(`^Selecionar variação ${n}(,|$)`) }),
+  card: (n: number) => screen.getByRole("button", { name: labelPatterns.cardN(n) }),
   cardExact: (name: string) => screen.getByRole("button", { name }),
-  marcar: (n: number) => screen.getByRole("button", { name: `Marcar variação ${n} como vencedora` }),
-  allCards: () => screen.getAllByRole("button", { name: /^Selecionar variação \d+/ }),
-  allMarcar: () => screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ }),
+  /** Atalho tipado: `select.cardByScore(2, 80)` ou `select.cardByScore(1, 90, { best: true })`. */
+  cardByScore: (n: number, score: number, opts: { best?: boolean } = {}) =>
+    screen.getByRole("button", { name: variationCardLabel(n, { score, best: opts.best }) }),
+  marcar: (n: number) => screen.getByRole("button", { name: winnerButtonLabel(n) }),
+  allCards: () => screen.getAllByRole("button", { name: labelPatterns.anyCard }),
+  allMarcar: () => screen.getAllByRole("button", { name: labelPatterns.anyWinner }),
+  /** Query (não throw) para asserções de ausência de "melhor score" em um card. */
+  queryCardWithBest: (n: number) =>
+    screen.queryByRole("button", { name: labelPatterns.cardNWithBest(n) }),
 };
+
+// ───────── Asserts de alto nível para aria-labels ─────────
+
+/** Garante que o card N existe com o score informado e (não) é o "melhor score". */
+function expectVariationCard(n: number, score: number, opts: { best?: boolean } = {}): HTMLElement {
+  const card = select.cardByScore(n, score, { best: opts.best });
+  expect(card).toBeInTheDocument();
+  if (opts.best) {
+    expect(select.queryCardWithBest(n)).toBe(card);
+  } else {
+    expect(select.queryCardWithBest(n)).not.toBe(card);
+  }
+  return card;
+}
+
+/** Garante que o card N NÃO carrega o sufixo "melhor score". */
+function expectNotBestScore(n: number): void {
+  expect(select.queryCardWithBest(n)).not.toBeInTheDocument();
+}
+
+/** Garante que apenas UM card carrega "melhor score" (invariante de exclusividade). */
+function expectExactlyOneBestScore(): HTMLElement {
+  const best = select.allCards().filter((c) =>
+    labelPatterns.cardNWithBest(0).source // referência usada só para tipagem
+      ? /melhor score/.test(c.getAttribute("aria-label") ?? "")
+      : false
+  );
+  expect(best).toHaveLength(1);
+  return best[0];
+}
+
+/** Garante que o botão "Marcar variação N como vencedora" existe e está habilitado/desabilitado. */
+function expectWinnerButton(n: number, opts: { disabled?: boolean } = {}): HTMLElement {
+  const btn = select.marcar(n);
+  expect(btn).toBeInTheDocument();
+  if (opts.disabled !== undefined) {
+    if (opts.disabled) expect(btn).toBeDisabled();
+    else expect(btn).toBeEnabled();
+  }
+  return btn;
+}
 
 describe("Magic Up Onda 5 components", () => {
   it("renderiza Magic Score excelente, origem IA e formato", () => {
