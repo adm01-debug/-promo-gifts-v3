@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { AdImageResult } from "@/components/magic-up/AdImageResult";
 import { MagicUpVariationComparator } from "@/components/magic-up/MagicUpVariationComparator";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { useMagicUpState } from "@/hooks/useMagicUpState";
 
@@ -48,33 +49,42 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="flex gap-1.5" role="tablist" aria-label="Variações geradas">
-            {m.variations.map((_, i) => (
-              <button
-                key={i}
-                ref={(el) => { dotRefs.current[i] = el; }}
-                onClick={() => m.setActiveVariation(i)}
-                onKeyDown={(e) => handleArrowKey(e, i, dotRefs)}
-                aria-label={`Selecionar variação ${i + 1}`}
-                aria-current={i === m.activeVariation ? "true" : undefined}
-                aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
-                role="tab"
-                aria-selected={i === m.activeVariation}
-                tabIndex={i === m.activeVariation ? 0 : -1}
-                className="group relative inline-flex items-center justify-center w-11 h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-              >
-                <span
-                  aria-hidden="true"
-                  className={cn(
-                    "block h-2 rounded-full transition-all",
-                    i === m.activeVariation
-                      ? "bg-primary w-6"
-                      : "bg-muted-foreground/30 w-2 group-hover:bg-muted-foreground/50"
-                  )}
-                />
-              </button>
-            ))}
-          </div>
+          <TooltipProvider delayDuration={300}>
+            <div className="flex gap-1.5" role="tablist" aria-label="Variações geradas">
+              {m.variations.map((_, i) => (
+                <Tooltip key={i}>
+                  <TooltipTrigger asChild>
+                    <button
+                      ref={(el) => { dotRefs.current[i] = el; }}
+                      onClick={() => m.setActiveVariation(i)}
+                      onKeyDown={(e) => handleArrowKey(e, i, dotRefs)}
+                      aria-label={`Selecionar variação ${i + 1}`}
+                      aria-describedby={`magic-up-dot-tooltip-${i}`}
+                      aria-current={i === m.activeVariation ? "true" : undefined}
+                      aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
+                      role="tab"
+                      aria-selected={i === m.activeVariation}
+                      tabIndex={i === m.activeVariation ? 0 : -1}
+                      className="group relative inline-flex items-center justify-center w-11 h-11 -mx-[18px] -my-[18px] rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                    >
+                      <span
+                        aria-hidden="true"
+                        className={cn(
+                          "block h-2 rounded-full transition-all",
+                          i === m.activeVariation
+                            ? "bg-primary w-6"
+                            : "bg-muted-foreground/30 w-2 group-hover:bg-muted-foreground/50"
+                        )}
+                      />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent id={`magic-up-dot-tooltip-${i}`} side="top">
+                    Variação {i + 1}
+                  </TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </TooltipProvider>
           <Button
             variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             disabled={m.activeVariation === m.variations.length - 1}
