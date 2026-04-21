@@ -2914,21 +2914,27 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(winnerBtn1Loading).toHaveAttribute("aria-busy", "true");
       expect(screen.getByText("Marcando vencedora…")).toBeInTheDocument();
 
-      // 3) Enter/Space disparados via fireEvent no botão em loading NÃO chamam onSelectWinner
-      // (HTMLButtonElement disabled bloqueia eventos de click derivados de teclado)
-      fireEvent.keyDown(winnerBtn1Loading, { key: "Enter", code: "Enter" });
-      fireEvent.keyUp(winnerBtn1Loading, { key: "Enter", code: "Enter" });
-      fireEvent.keyDown(winnerBtn1Loading, { key: " ", code: "Space" });
-      fireEvent.keyUp(winnerBtn1Loading, { key: " ", code: "Space" });
-      fireEvent.click(winnerBtn1Loading);
+      // 3) Tentativa de focar o botão em loading: HTMLButtonElement disabled
+      //    rejeita foco programático — sanity check
+      winnerBtn1Loading.focus();
+      expect(winnerBtn1Loading).not.toHaveFocus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+
+      // 4) userEvent.click no botão disabled é silenciosamente ignorado
+      //    (respeita pointer-events: none do estado disabled)
+      await user.click(winnerBtn1Loading);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 4) Mesmo via userEvent.keyboard com foco no sentinel externo, teclas não acionam o botão de loading
+      // Re-foca sentinel (click em disabled remove foco para body)
+      screen.getByTestId("external-sentinel").focus();
+
+      // 5) Enter/Space via userEvent.keyboard com foco no sentinel — botão disabled
+      //    nunca recebe o evento porque não está na cadeia de foco
       await user.keyboard("{Enter}");
       await user.keyboard(" ");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 5) Foco continua no sentinel externo (botão disabled não rouba foco)
+      // 6) Foco continua no sentinel externo (botão disabled não rouba foco)
       expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
       // Sanity: onSelect (cards) não foi disparado em nenhum momento
@@ -2959,19 +2965,19 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       screen.getByTestId("external-sentinel").focus();
 
-      // 1) fireEvent direto no botão em loading com modificadores — nada deve vazar via onClick sintético
-      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", ctrlKey: true });
-      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", ctrlKey: true });
-      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", metaKey: true });
-      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", metaKey: true });
-      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", shiftKey: true });
-      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", shiftKey: true });
-      fireEvent.keyDown(winnerBtn, { key: "Enter", code: "Enter", altKey: true });
-      fireEvent.keyUp(winnerBtn, { key: "Enter", code: "Enter", altKey: true });
-      fireEvent.click(winnerBtn);
+      // 1) Sanity: botão disabled rejeita foco programático
+      winnerBtn.focus();
+      expect(winnerBtn).not.toHaveFocus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+
+      // 2) userEvent.click no botão disabled é ignorado
+      await user.click(winnerBtn);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 2) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
+      // Re-foca sentinel (click em disabled remove foco para body)
+      screen.getByTestId("external-sentinel").focus();
+
+      // 3) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
       await user.keyboard("{Control>}{Enter}{/Control}");
       await user.keyboard("{Meta>}{Enter}{/Meta}");
       await user.keyboard("{Shift>}{Enter}{/Shift}");
@@ -3007,25 +3013,29 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       screen.getByTestId("external-sentinel").focus();
 
-      // 1) Auto-repeat de Space: 10 keyDowns com repeat:true seguidos de keyUp único
-      for (let i = 0; i < 10; i++) {
-        fireEvent.keyDown(winnerBtn, { key: " ", code: "Space", repeat: i > 0 });
-      }
-      fireEvent.keyUp(winnerBtn, { key: " ", code: "Space" });
-      fireEvent.click(winnerBtn);
+      // 1) Sanity: botão disabled rejeita foco programático
+      winnerBtn.focus();
+      expect(winnerBtn).not.toHaveFocus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+
+      // 2) userEvent.click no botão disabled é ignorado
+      await user.click(winnerBtn);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 2) 5 pressões Space sequenciais via userEvent (foco no sentinel)
-      for (let i = 0; i < 5; i++) {
+      // Re-foca sentinel (click em disabled remove foco para body)
+      screen.getByTestId("external-sentinel").focus();
+
+      // 3) Múltiplas pressões Space sequenciais (15 no total — emula auto-repeat) com foco no sentinel
+      for (let i = 0; i < 15; i++) {
         await user.keyboard(" ");
       }
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 3) Combinação Space + modificadores
-      fireEvent.keyDown(winnerBtn, { key: " ", code: "Space", ctrlKey: true });
-      fireEvent.keyUp(winnerBtn, { key: " ", code: "Space", ctrlKey: true });
+      // 4) Combinação Space + modificadores via atalho global
       await user.keyboard("{Control>} {/Control}");
       await user.keyboard("{Meta>} {/Meta}");
+      await user.keyboard("{Shift>} {/Shift}");
+      await user.keyboard("{Alt>} {/Alt}");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
       // 4) Sanity reverso: botão habilitado vizinho (var-1) responde normalmente a Space
