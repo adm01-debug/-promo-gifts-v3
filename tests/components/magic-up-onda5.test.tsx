@@ -1633,4 +1633,33 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1, score 88, melhor score/ });
     expect(winnerBtn).toBeInTheDocument();
   });
+
+  it("empate triplo sem isWinner: renderiza exatamente 1 badge 'Melhor score' no primeiro índice", () => {
+    const variations = [
+      buildVariation({ id: "var-1", qualityScore: 75 }, 0),
+      buildVariation({ id: "var-2", qualityScore: 75 }, 1),
+      buildVariation({ id: "var-3", qualityScore: 75 }, 2),
+    ];
+
+    variations.forEach((v) => {
+      expect(v.isWinner).toBeFalsy();
+    });
+
+    renderTied(variations);
+
+    const badges = screen.getAllByLabelText("Melhor score");
+    expect(badges).toHaveLength(1);
+
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const winnerBtn = screen.getByRole("button", {
+      name: "Selecionar variação 1, score 75, melhor score",
+    });
+    expect(winnerBtn).toBeInTheDocument();
+
+    expect(screen.getByLabelText(/Melhor score entre variações: 75/)).toBeInTheDocument();
+  });
 });
