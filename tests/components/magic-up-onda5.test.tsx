@@ -2064,4 +2064,88 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(onSelect.mock.calls.map((c) => c[0])).toEqual([1, 2, 0]);
     expect(onSelectWinner).not.toHaveBeenCalled();
   });
+
+  it("badge 'Melhor score' não migra ao clicar em sequência em cards empatados não vencedores", async () => {
+    const user = userEvent.setup();
+    const onSelect = vi.fn();
+    const onSelectWinner = vi.fn();
+
+    // Setup: var-A é winner único (95); var-B e var-C empatadas em 70 (perdedoras)
+    const variations: VariationItem[] = [
+      { id: "var-A", imageUrl: "https://example.com/a.png", qualityScore: 95 },
+      { id: "var-B", imageUrl: "https://example.com/b.png", qualityScore: 70 },
+      { id: "var-C", imageUrl: "https://example.com/c.png", qualityScore: 70 },
+    ];
+    const winnerIndex = 0;
+
+    const renderWithActive = (activeIndex: number) => (
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={activeIndex}
+        onSelect={onSelect}
+        onSelectWinner={onSelectWinner}
+      />
+    );
+
+    const { rerender } = render(renderWithActive(0));
+
+    const assertBadgeFixedOnWinner = (currentActive: number) => {
+      const cards = screen.getAllByRole("listitem");
+
+      // 1. Cardinalidade global: exatamente 1 badge no DOM
+      expect(screen.getAllByLabelText("Melhor score", { exact: true })).toHaveLength(1);
+      expect(screen.getAllByText("Melhor score", { exact: true })).toHaveLength(1);
+
+      // 2. Badge presente em var-A (winner único)
+      expect(within(cards[winnerIndex]).getByLabelText("Melhor score")).toBeInTheDocument();
+
+      // 3. Badge AUSENTE nas duas empatadas
+      expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+      expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+      // 4. Aria-labels: empatadas sem sufixo; winner com sufixo
+      const aLabel = within(cards[0]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
+      const bLabel = within(cards[1]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
+      const cLabel = within(cards[2]).getByRole("button", { name: /^Selecionar variação/ }).getAttribute("aria-label");
+      expect(aLabel).toBe("Selecionar variação 1, score 95, melhor score");
+      expect(bLabel).toBe("Selecionar variação 2, score 70");
+      expect(cLabel).toBe("Selecionar variação 3, score 70");
+
+      // 5. aria-pressed reflete activeIndex; badge é independente
+      expect(within(cards[currentActive]).getByRole("button", { name: /^Selecionar variação/ }))
+        .toHaveAttribute("aria-pressed", "true");
+    };
+
+    // Estado inicial
+    assertBadgeFixedOnWinner(0);
+
+    // CLIQUE 1: var-B (empatada, perdedora)
+    await user.click(within(screen.getAllByRole("listitem")[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(1);
+    rerender(renderWithActive(1));
+    assertBadgeFixedOnWinner(1);
+
+    // CLIQUE 2: var-C (outra empatada)
+    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+    rerender(renderWithActive(2));
+    assertBadgeFixedOnWinner(2);
+
+    // CLIQUE 3: volta para var-B (toggle entre empatadas)
+    await user.click(within(screen.getAllByRole("listitem")[1]).getByRole("button", { name: /^Selecionar variação 2/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(1);
+    rerender(renderWithActive(1));
+    assertBadgeFixedOnWinner(1);
+
+    // CLIQUE 4: var-C novamente
+    await user.click(within(screen.getAllByRole("listitem")[2]).getByRole("button", { name: /^Selecionar variação 3/ }));
+    expect(onSelect).toHaveBeenLastCalledWith(2);
+    rerender(renderWithActive(2));
+    assertBadgeFixedOnWinner(2);
+
+    // Auditoria final
+    expect(onSelect).toHaveBeenCalledTimes(4);
+    expect(onSelect.mock.calls.map((c) => c[0])).toEqual([1, 2, 1, 2]);
+    expect(onSelectWinner).not.toHaveBeenCalled();
+  });
 });
