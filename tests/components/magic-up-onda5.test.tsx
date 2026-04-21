@@ -3096,10 +3096,12 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(card1).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("Home"));
 
       onSelect.mockClear();
+      expect(card1).toHaveFocus();
       await user.keyboard("{Enter}");
       expect(onSelect).toHaveBeenCalledWith(0);
 
       onSelect.mockClear();
+      expect(card1).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelect).toHaveBeenCalledWith(0);
 
@@ -3134,22 +3136,27 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(cardLast).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("End"));
 
       onSelect.mockClear();
+      expect(cardLast).toHaveFocus();
       await user.keyboard("{Enter}");
       expect(onSelect).toHaveBeenCalledWith(lastIndex);
 
       onSelect.mockClear();
+      expect(cardLast).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelect).toHaveBeenCalledWith(lastIndex);
 
       onSelect.mockClear();
+      expect(cardLast).toHaveFocus();
       await user.keyboard("{Home}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
       expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
 
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
       await user.keyboard("{End}");
       expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
       expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
 
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
       await user.keyboard("{Home}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
       expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
@@ -3447,6 +3454,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Foca card2 e ativa com Enter
       card2.focus();
+      expect(card2).toHaveFocus();
       await user.keyboard("{Enter}");
 
       await screen.findByRole("button", { name: /^Selecionar variação 2/ });
@@ -3460,6 +3468,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Foca card3 e ativa com Space
       card3.focus();
+      expect(card3).toHaveFocus();
       await user.keyboard(" ");
 
       expect(card1).toHaveAttribute("aria-pressed", "false");
@@ -3470,6 +3479,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(card3).toHaveAttribute("aria-current", "true");
 
       // Volta para card1 com Home
+      expect(card3).toHaveFocus();
       await user.keyboard("{Home}");
 
       expect(card1).toHaveAttribute("aria-pressed", "true");
@@ -3536,6 +3546,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Etapa 3: Volta ao teclado
       card3.focus();
+      expect(card3).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(card2).toHaveFocus();
       await user.keyboard(" ");
