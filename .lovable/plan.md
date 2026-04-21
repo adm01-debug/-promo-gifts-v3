@@ -1,69 +1,88 @@
 
 
-# Plano — Asserts adicionais de acessibilidade no teste de empate total
+# Plano — Teste de duas variações com `isWinner: true` simultâneo
 
-Reforço o teste existente "empate total: exibe exatamente 1 badge 'Melhor score' no primeiro índice (winner determinístico)" em `tests/components/magic-up-onda5.test.tsx` adicionando asserts explícitos de aria-labels por card e contagem global de ocorrências de "melhor score" — garantindo que nenhuma duplicação acessível escape em refatorações futuras.
+Adiciono 1 teste cobrindo cenário onde duas variações têm `isWinner: true` ao mesmo tempo, validando que apenas a primeira (menor índice) recebe a badge "Melhor score" — comportamento esperado dado o `findIndex` no componente.
 
 ## Justificativa
 
-O teste atual valida:
-- Contagem de badges com `getAllByLabelText("Melhor score").length === 1`
-- Presença do botão da Variação 1 com sufixo `, melhor score`
-- Presença dos botões 2 e 3 sem o sufixo
+A lógica em `MagicUpVariationComparator.tsx`:
+```ts
+const winnerIndex = variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore);
+```
 
-Mas não trava:
-1. **Contagem global da string "melhor score"** no DOM acessível (badge + aria-label do botão = 2 ocorrências esperadas, nem mais, nem menos)
-2. **Ausência explícita** do sufixo `melhor score` em variações 2 e 3 via query negativa (`queryByRole` + `not.toBeInTheDocument()`)
-3. **Match exato** do aria-label da badge isolada (não apenas que existe 1, mas que está corretamente rotulada)
+Cenário: scores diferentes (`[60, 70, 50]`) com `isWinner: true` nas variações 1 e 3 (índices 0 e 2). O `findIndex`:
+- Índice 0: `isWinner=true` → **match**, retorna 0
 
-Adicionar esses asserts protege contra regressões onde:
-- Alguém acidentalmente adiciona `aria-label="melhor score"` em outro lugar (ex: tooltip, sr-only)
-- A badge perde seu `aria-label` mas o botão continua com o sufixo (ou vice-versa)
-- A badge é renderizada em múltiplos cards via bug de ordenação
+Resultado: winnerIndex = 0 (primeira ocorrência de `isWinner: true`). A variação 2 (score 70, maior) NÃO ganha badge porque não tem `isWinner: true` e não é o primeiro match. A variação 3 (também `isWinner: true`) é ignorada.
+
+**Contrato travado:** quando há múltiplos `isWinner: true`, vence o primeiro índice. Score mais alto é irrelevante se não é o primeiro `isWinner` ou se outro índice anterior já satisfez o predicate.
+
+Protege contra refatorações como:
+- `filter(v => v.isWinner)` retornando múltiplos winners
+- Priorizar `isWinner` com maior score (`isWinner && score === bestScore`)
+- Validações que rejeitariam múltiplos `isWinner: true` como inválido
 
 ## Arquivo alterado
 
-`tests/components/magic-up-onda5.test.tsx` — estender o teste existente "empate total: exibe exatamente 1 badge 'Melhor score' no primeiro índice (winner determinístico)" com 4 asserts adicionais. Sem teste novo.
+`tests/components/magic-up-onda5.test.tsx` — adicionar 1 teste no `describe` do `MagicUpVariationComparator`, após os testes de empate existentes.
 
-## Asserts a adicionar
+## Caso coberto
 
 ```ts
-// 1. Badge isolada tem aria-label exato
-const badge = screen.getByLabelText("Melhor score");
-expect(badge).toHaveTextContent("Melhor score");
-
-// 2. Contagem global: total de elementos com "melhor score" no DOM acessível
-//    Esperado: 1 badge (aria-label) + 1 botão (aria-label sufixo) = 2 nodes
-const allMelhorScoreNodes = screen.getAllByLabelText(/melhor score/i);
-expect(allMelhorScoreNodes).toHaveLength(2);
-
-// 3. Variação 2: ausência explícita do sufixo de winner
-expect(
-  screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
-).not.toBeInTheDocument();
-
-// 4. Variação 3: ausência explícita do sufixo de winner
-expect(
-  screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })
-).not.toBeInTheDocument();
+it("dois isWinner: true simultâneos: badge vai para o primeiro índice marcado, ignorando o segundo", () => {
+  const variations: VariationItem[] = [
+    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 60, isWinner: true },
+    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50, isWinner: true },
+  ];
+  render(
+    <MagicUpVariationComparator
+      variations={variations}
+      activeIndex={0}
+      onSelect={vi.fn()}
+      onSelectWinner={vi.fn()}
+    />
+  );
+  // Apenas 1 badge mesmo com 2 isWinner: true
+  expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
+  // Variação 1 (índice 0, primeiro isWinner) recebe sufixo
+  expect(
+    screen.getByRole("button", { name: "Selecionar variação 1, score 60, melhor score" })
+  ).toBeInTheDocument();
+  // Variação 2 (score 70, sem isWinner) não recebe badge — score mais alto é ignorado
+  expect(
+    screen.getByRole("button", { name: "Selecionar variação 2, score 70" })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
+  ).not.toBeInTheDocument();
+  // Variação 3 (segundo isWinner) NÃO recebe badge — findIndex já parou no índice 0
+  expect(
+    screen.getByRole("button", { name: "Selecionar variação 3, score 50" })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: /Selecionar variação 3.*melhor score/i })
+  ).not.toBeInTheDocument();
+});
 ```
 
 ## Estratégia
 
-- Estende o teste de empate total existente (não cria novo) — mantém suíte em 27 testes
-- Usa `queryByRole` + `not.toBeInTheDocument()` para asserts negativos (padrão Testing Library)
-- Regex case-insensitive `/melhor score/i` para o count global captura ambos os contextos (badge `aria-label="Melhor score"` + botão `aria-label="...melhor score"`)
-- `toHaveTextContent` na badge confirma que o texto visível bate com o aria-label (sem dessincronização)
+- Reutiliza imports e padrão dos testes adjacentes
+- Scores intencionalmente diferentes (60/70/50) para isolar o efeito de `isWinner` (não confunde com tie-break por score)
+- Variação 2 com score MAIOR (70) sem `isWinner` confirma que `isWinner` tem precedência sobre score quando aparece antes no array
+- Asserts negativos com `queryByRole` + regex para variações 2 e 3 garantem ausência inequívoca da badge
 
 ## Restrições
 
 - Sem alterar `MagicUpVariationComparator.tsx`
-- Sem novos testes (só asserts adicionais no existente)
-- Sem novos mocks ou imports
+- Sem novos mocks ou dependências
+- 1 teste novo (27 → 28 testes)
 
 ## Entregável
 
-- Teste de empate total reforçado com 4 asserts adicionais
-- Cobertura completa: contagem absoluta de badges + contagem global de string acessível + ausência negativa explícita por card
-- Suíte continua com 27 testes, mas com bloqueio mais granular de regressões de a11y
+- 1 teste novo em `tests/components/magic-up-onda5.test.tsx`
+- Trava contrato: múltiplos `isWinner: true` → vence o primeiro índice, demais são ignorados, score mais alto sem `isWinner` é ignorado
+- Completa a matriz de tie-break: total, zero, parcial 2/3, triplo+isWinner, e agora múltiplos isWinner
 
