@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { Loader2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -9,9 +10,10 @@ interface MagicUpVariationComparatorProps {
   activeIndex: number;
   onSelect: (index: number) => void;
   onSelectWinner: (index: number) => void;
+  loadingWinnerIndex?: number | null;
 }
 
-export function MagicUpVariationComparator({ variations, activeIndex, onSelect, onSelectWinner }: MagicUpVariationComparatorProps) {
+export function MagicUpVariationComparator({ variations, activeIndex, onSelect, onSelectWinner, loadingWinnerIndex = null }: MagicUpVariationComparatorProps) {
   const cardRefs = useRef<(HTMLButtonElement | null)[]>([]);
 
   if (variations.length < 2) return null;
@@ -83,15 +85,30 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                 </div>
               </button>
               <div className="px-2 pb-2">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  className="h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
-                  aria-label={`Marcar variação ${index + 1} como vencedora`}
-                  onClick={() => onSelectWinner(index)}
-                >
-                  Marcar vencedora
-                </Button>
+                {(() => {
+                  const isLoadingThis = loadingWinnerIndex === index;
+                  return (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
+                      aria-label={`Marcar variação ${index + 1} como vencedora`}
+                      aria-busy={isLoadingThis || undefined}
+                      disabled={isLoadingThis}
+                      onClick={() => onSelectWinner(index)}
+                    >
+                      {isLoadingThis ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" />
+                          <span className="sr-only">Marcando vencedora…</span>
+                          Marcar vencedora
+                        </span>
+                      ) : (
+                        "Marcar vencedora"
+                      )}
+                    </Button>
+                  );
+                })()}
               </div>
             </div>
           );
