@@ -3022,6 +3022,9 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       await user.click(winnerBtn);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
+      // Re-foca sentinel (click em disabled remove foco para body)
+      screen.getByTestId("external-sentinel").focus();
+
       // 3) Múltiplas pressões Space sequenciais (15 no total — emula auto-repeat) com foco no sentinel
       for (let i = 0; i < 15; i++) {
         await user.keyboard(" ");
