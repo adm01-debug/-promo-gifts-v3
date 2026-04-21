@@ -839,6 +839,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     await user.tab();
     await user.tab();
     await user.tab();
+    expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).toHaveFocus();
     await user.keyboard("{Enter}");
 
     expect(screen.getAllByRole("button").length).toBe(initialButtons);
@@ -849,6 +850,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(Math.abs(afterEnterHTML - initialSectionHTML)).toBeLessThan(200);
 
     await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelectWinner).toHaveBeenCalledWith(1);
 
