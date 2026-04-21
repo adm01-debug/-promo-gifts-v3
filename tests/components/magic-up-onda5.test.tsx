@@ -118,11 +118,9 @@ function expectNotBestScore(n: number): void {
 
 /** Garante que apenas UM card carrega "melhor score" (invariante de exclusividade). */
 function expectExactlyOneBestScore(): HTMLElement {
-  const best = select.allCards().filter((c) =>
-    labelPatterns.cardNWithBest(0).source // referência usada só para tipagem
-      ? /melhor score/.test(c.getAttribute("aria-label") ?? "")
-      : false
-  );
+  const best = select
+    .allCards()
+    .filter((c) => /melhor score/.test(c.getAttribute("aria-label") ?? ""));
   expect(best).toHaveLength(1);
   return best[0];
 }
