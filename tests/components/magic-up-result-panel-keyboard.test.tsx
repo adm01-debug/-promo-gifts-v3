@@ -925,24 +925,24 @@ describe("MagicUpResultPanel — navegação por setas nos dots e thumbnails", (
     expect(document.activeElement).toBe(getDots()[0]);
   });
 
-  it("ArrowRight em dot[last] faz wrap para dot[0] (ciclo APG)", () => {
+  it("ArrowRight em dot[last] NÃO faz wrap (não-wrap APG): foco e estado intactos", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 2 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     dots[2].focus();
     fireEvent.keyDown(dots[2], { key: "ArrowRight" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
-    expect(document.activeElement).toBe(getDots()[0]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[2]);
   });
 
-  it("ArrowLeft em dot[0] faz wrap para dot[last] (ciclo APG)", () => {
+  it("ArrowLeft em dot[0] NÃO faz wrap (não-wrap APG): foco e estado intactos", () => {
     const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     dots[0].focus();
     fireEvent.keyDown(dots[0], { key: "ArrowLeft" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
-    expect(document.activeElement).toBe(getDots()[2]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[0]);
   });
 
   it("Home em dot[2] move foco para dot[0]", () => {
