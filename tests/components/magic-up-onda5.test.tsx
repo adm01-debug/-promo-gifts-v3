@@ -1582,4 +1582,55 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     const badges = screen.getAllByLabelText("Melhor score");
     expect(badges).toHaveLength(1);
   });
+
+  it("determinismo por ordem em empate: mesmos ids+scores em ordens diferentes → winner segue o array, sem depender de isWinner", () => {
+    const baseVariations = [
+      buildVariation({ id: "var-X", qualityScore: 88 }, 0),
+      buildVariation({ id: "var-Y", qualityScore: 88 }, 1),
+      buildVariation({ id: "var-Z", qualityScore: 88 }, 2),
+    ];
+    baseVariations.forEach((v) => {
+      expect(v.isWinner).toBeFalsy();
+    });
+
+    const { unmount: unmount1 } = renderTied(baseVariations);
+    const badges1 = screen.getAllByLabelText("Melhor score");
+    expect(badges1).toHaveLength(1);
+    const cards1 = screen.getAllByRole("listitem");
+    expect(within(cards1[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards1[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards1[2]).queryByLabelText("Melhor score")).toBeNull();
+    unmount1();
+
+    const reordered = [
+      buildVariation({ id: "var-Z", qualityScore: 88 }, 0),
+      buildVariation({ id: "var-X", qualityScore: 88 }, 1),
+      buildVariation({ id: "var-Y", qualityScore: 88 }, 2),
+    ];
+    reordered.forEach((v) => {
+      expect(v.isWinner).toBeFalsy();
+    });
+    const { unmount: unmount2 } = renderTied(reordered);
+    const badges2 = screen.getAllByLabelText("Melhor score");
+    expect(badges2).toHaveLength(1);
+    const cards2 = screen.getAllByRole("listitem");
+    expect(within(cards2[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards2[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards2[2]).queryByLabelText("Melhor score")).toBeNull();
+    unmount2();
+
+    const reordered2 = [
+      buildVariation({ id: "var-Y", qualityScore: 88 }, 0),
+      buildVariation({ id: "var-Z", qualityScore: 88 }, 1),
+      buildVariation({ id: "var-X", qualityScore: 88 }, 2),
+    ];
+    renderTied(reordered2);
+    const cards3 = screen.getAllByRole("listitem");
+    expect(within(cards3[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards3[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards3[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1, score 88, melhor score/ });
+    expect(winnerBtn).toBeInTheDocument();
+  });
 });
