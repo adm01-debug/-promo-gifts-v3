@@ -1,103 +1,169 @@
 
 
-# Plano — Teste de clique em card empatado não-vencedor não move a badge
+# Plano — Testes de foco inicial e navegação por teclado (Tab/Shift+Tab)
 
-Adiciono 1 teste validando que, em cenário de empate, clicar em um card que tem o mesmo score do vencedor mas NÃO é o `winnerIndex` (não é o primeiro índice empatado) **não move a badge "Melhor score"**. O `onSelect` é chamado, mas o `winnerIndex` é puramente derivado de `variations` + `scores`, não do `activeIndex` — portanto a badge permanece no índice 0.
+Adiciono 2 testes ao `describe` do `MagicUpVariationComparator` em `tests/components/magic-up-onda5.test.tsx` validando: (1) ordem de foco natural via Tab/Shift+Tab pelos botões de seleção e botões "Marcar vencedora"; (2) que o card ativo (`activeIndex`) recebe os atributos visuais e ARIA corretos (`aria-pressed="true"`, `aria-current="true"`) independentemente do elemento focado pelo teclado.
 
 ## Justificativa
 
-A lógica em `MagicUpVariationComparator.tsx`:
-```ts
-const winnerIndex = variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore);
-```
+O componente `MagicUpVariationComparator` renderiza, para cada variação, **dois botões focáveis**:
+1. Botão principal "Selecionar variação N" (com `aria-pressed` e `aria-current`)
+2. Botão "Marcar vencedora" (logo abaixo)
 
-`winnerIndex` é independente de `activeIndex`. Clicar em um card chama `onSelect(index)` mas:
-- Não muta `variations`
-- Não recalcula `winnerIndex` baseado em seleção
-- A badge permanece ancorada ao primeiro empatado
-
-**Contrato travado:** seleção (UI state) é ortogonal a winner (data state). Clicar no card 2 (empatado, não-vencedor) chama `onSelect(1)` mas a badge continua no card 1.
-
-Protege contra refatorações como:
-- Mover badge para o card ativo
-- Fazer `winnerIndex = activeIndex` quando há empate
-- Adicionar lógica de "winner = último clicado entre empatados"
+Sem testes que travam:
+- A ordem natural de Tab pode quebrar se alguém adicionar `tabIndex={-1}` ou reorganizar a estrutura DOM
+- O destaque visual do card ativo (`border-primary ring-2 ring-primary/20`) e ARIA (`aria-pressed="true"`, `aria-current="true"`) podem se dessincronizar de `activeIndex` em refatorações
+- A independência entre **foco do teclado** e **estado ativo** (foco não muda ativo, só `onSelect` muda) pode ser quebrada por handlers indevidos
 
 ## Arquivo alterado
 
-`tests/components/magic-up-onda5.test.tsx` — adicionar 1 teste no `describe` do `MagicUpVariationComparator`, após os testes de empate/isWinner existentes.
+`tests/components/magic-up-onda5.test.tsx` — adicionar 2 testes no `describe("MagicUpVariationComparator")`, após o teste de clique em empatado já existente.
 
-## Caso coberto
+## Testes a adicionar
+
+### Teste 1 — Ordem de foco natural via Tab/Shift+Tab
 
 ```ts
-it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", () => {
-  const onSelect = vi.fn();
+it("Tab/Shift+Tab navega na ordem DOM: select-1 → marcar-1 → select-2 → marcar-2 → select-3 → marcar-3", async () => {
+  const user = userEvent.setup();
   const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 80 },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 80 },
-    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 80 },
+    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+  ];
+  render(
+    <MagicUpVariationComparator
+      variations={variations}
+      activeIndex={0}
+      onSelect={vi.fn()}
+      onSelectWinner={vi.fn()}
+    />
+  );
+
+  // Inicial: nenhum elemento do componente tem foco (body)
+  expect(document.body).toHaveFocus();
+
+  // Tab 1 → primeiro botão focável (select variação 1)
+  await user.tab();
+  expect(screen.getByRole("button", { name: /Selecionar variação 1, score 90, melhor score/i })).toHaveFocus();
+
+  // Tab 2 → marcar vencedora 1
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Marcar variação 1 como vencedora" })).toHaveFocus();
+
+  // Tab 3 → select variação 2
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Selecionar variação 2, score 70" })).toHaveFocus();
+
+  // Tab 4 → marcar vencedora 2
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
+
+  // Tab 5 → select variação 3
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Selecionar variação 3, score 50" })).toHaveFocus();
+
+  // Tab 6 → marcar vencedora 3
+  await user.tab();
+  expect(screen.getByRole("button", { name: "Marcar variação 3 como vencedora" })).toHaveFocus();
+
+  // Shift+Tab volta para select 3
+  await user.tab({ shift: true });
+  expect(screen.getByRole("button", { name: "Selecionar variação 3, score 50" })).toHaveFocus();
+
+  // Shift+Tab volta para marcar 2
+  await user.tab({ shift: true });
+  expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
+});
+```
+
+### Teste 2 — Card ativo destacado corretamente após mudança de `activeIndex` (independente do foco)
+
+```ts
+it("card ativo reflete activeIndex via aria-pressed/aria-current/border-primary, independente do foco do teclado", async () => {
+  const user = userEvent.setup();
+  const variations: VariationItem[] = [
+    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
   ];
   const { rerender } = render(
     <MagicUpVariationComparator
       variations={variations}
       activeIndex={0}
-      onSelect={onSelect}
+      onSelect={vi.fn()}
       onSelectWinner={vi.fn()}
     />
   );
-  // Estado inicial: badge no card 1 (índice 0, primeiro empatado)
-  expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-  expect(
-    screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
-  ).toBeInTheDocument();
 
-  // Clica no card 2 (empatado, mas não é winner)
-  fireEvent.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
-  expect(onSelect).toHaveBeenCalledWith(1);
+  // activeIndex=0: card 1 é o ativo
+  const card1Btn = screen.getByRole("button", { name: /Selecionar variação 1, score 90, melhor score/i });
+  const card2Btn = screen.getByRole("button", { name: "Selecionar variação 2, score 70" });
+  const card3Btn = screen.getByRole("button", { name: "Selecionar variação 3, score 50" });
 
-  // Simula update do parent: activeIndex agora é 1
+  expect(card1Btn).toHaveAttribute("aria-pressed", "true");
+  expect(card1Btn).toHaveAttribute("aria-current", "true");
+  expect(card2Btn).toHaveAttribute("aria-pressed", "false");
+  expect(card2Btn).not.toHaveAttribute("aria-current");
+  expect(card3Btn).toHaveAttribute("aria-pressed", "false");
+  expect(card3Btn).not.toHaveAttribute("aria-current");
+
+  // Wrapper do card 1 (parent direto do botão) tem classe border-primary
+  expect(card1Btn.parentElement).toHaveClass("border-primary");
+  expect(card2Btn.parentElement).not.toHaveClass("border-primary");
+
+  // Foca no card 3 via Tab — foco não muda ativo
+  card3Btn.focus();
+  expect(card3Btn).toHaveFocus();
+  // Card 1 continua sendo o ativo (aria-pressed=true), card 3 ainda é aria-pressed=false
+  expect(card1Btn).toHaveAttribute("aria-pressed", "true");
+  expect(card3Btn).toHaveAttribute("aria-pressed", "false");
+  expect(card3Btn.parentElement).not.toHaveClass("border-primary");
+
+  // Parent muda activeIndex para 2 → card 3 vira o ativo, card 1 perde
   rerender(
     <MagicUpVariationComparator
       variations={variations}
-      activeIndex={1}
-      onSelect={onSelect}
+      activeIndex={2}
+      onSelect={vi.fn()}
       onSelectWinner={vi.fn()}
     />
   );
 
-  // Badge AINDA está no card 1 — winnerIndex independe de activeIndex
-  expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-  expect(
-    screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
-  ).toBeInTheDocument();
-  // Card 2 (agora ativo) continua sem o sufixo de winner
-  expect(
-    screen.queryByRole("button", { name: /Selecionar variação 2.*melhor score/i })
-  ).not.toBeInTheDocument();
-  // aria-pressed do card 2 deve refletir seleção (sanity check da seleção real)
-  expect(
-    screen.getByRole("button", { name: "Selecionar variação 2, score 80" })
-  ).toHaveAttribute("aria-pressed", "true");
+  expect(card1Btn).toHaveAttribute("aria-pressed", "false");
+  expect(card1Btn).not.toHaveAttribute("aria-current");
+  expect(card3Btn).toHaveAttribute("aria-pressed", "true");
+  expect(card3Btn).toHaveAttribute("aria-current", "true");
+  expect(card3Btn.parentElement).toHaveClass("border-primary");
+  expect(card1Btn.parentElement).not.toHaveClass("border-primary");
 });
 ```
 
 ## Estratégia
 
-- Usa `rerender` da Testing Library para simular o ciclo controlled-component (parent atualiza `activeIndex` após `onSelect`)
-- Verifica `onSelect` foi chamado com índice correto (contrato de callback intacto)
-- Asserts pré e pós-clique confirmam invariância da badge
-- `aria-pressed="true"` no card 2 pós-rerender confirma que a seleção realmente mudou (descarta hipótese de "rerender não funcionou")
-- Reutiliza `fireEvent` (já importado nos testes adjacentes da suíte)
+- **`userEvent.setup()`** para Tab/Shift+Tab realista (preferível sobre `fireEvent.keyDown` em testes de tab order)
+- **Ordem DOM esperada** vem direto da estrutura do componente: para cada variação, primeiro o `<button>` principal de seleção, depois o `<button>` "Marcar vencedora" — Tab segue ordem natural pois nenhum tem `tabIndex` customizado
+- **Sanity check** com `document.body.toHaveFocus()` antes do primeiro Tab garante estado limpo
+- **Destaque visual:** `card1Btn.parentElement` é o `<div>` wrapper que recebe `border-primary ring-2 ring-primary/20` quando ativo — assert na classe trava o destaque CSS
+- **Independência foco/ativo:** `card3Btn.focus()` programático prova que apenas `activeIndex` (controlado pelo parent via `onSelect`) muda os ARIA, não o foco do teclado
+
+## Imports necessários
+
+`userEvent` provavelmente já está importado em outros testes do arquivo. Se não estiver, adicionar:
+```ts
+import userEvent from "@testing-library/user-event";
+```
 
 ## Restrições
 
 - Sem alterar `MagicUpVariationComparator.tsx`
-- Sem novos mocks ou imports além de `fireEvent` (já presente)
-- 1 teste novo (28 → 29 testes)
+- Sem novos mocks
+- 2 testes novos (29 → 31 testes)
 
 ## Entregável
 
-- 1 teste novo em `tests/components/magic-up-onda5.test.tsx`
-- Trava contrato: `winnerIndex` é função pura de `variations`, ortogonal a `activeIndex`
-- Cobertura UX: clicar em empatado não "rouba" o status de winner
+- 2 testes novos em `tests/components/magic-up-onda5.test.tsx`
+- Trava contrato de a11y de teclado: ordem natural DOM, sem `tabIndex` quebrado, sem trap
+- Trava contrato visual/ARIA: card ativo = `activeIndex`, ortogonal a foco do teclado
+- Cobertura WCAG 2.1.1 (Keyboard) e 2.4.3 (Focus Order) com asserts determinísticos
 
