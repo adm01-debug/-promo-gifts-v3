@@ -382,3 +382,65 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(onSelect).not.toHaveBeenCalled();
   });
 });
+
+describe("MagicUpVariationComparator focus-visible classes", () => {
+  const buildVariations = (): VariationItem[] => [
+    { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 70 },
+    { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 85 },
+    { id: "c", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 92 },
+  ];
+
+  it("Botão 'Marcar vencedora' expõe ring + ring-offset no foco (WCAG 2.4.7)", () => {
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+    const buttons = screen.getAllByRole("button", { name: /Marcar variação \d+ como vencedora/ });
+    expect(buttons).toHaveLength(3);
+    for (const btn of buttons) {
+      expect(btn.className).toContain("focus-visible:ring-2");
+      expect(btn.className).toContain("focus-visible:ring-ring");
+      expect(btn.className).toContain("focus-visible:ring-offset-2");
+      expect(btn.className).toContain("focus-visible:ring-offset-background");
+    }
+  });
+
+  it("Card de variação não fica invisível ao foco — outline-none compensado por ring (WCAG 2.4.7)", () => {
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+    const cards = screen.getAllByRole("button", { name: /Selecionar variação \d+/ });
+    expect(cards).toHaveLength(3);
+    for (const card of cards) {
+      expect(card.className).toContain("focus-visible:outline-none");
+      expect(card.className).toContain("focus-visible:ring-2");
+      expect(card.className).toContain("focus-visible:ring-ring");
+    }
+  });
+
+  it("Estado disabled do botão 'Marcar vencedora' mantém contraste legível (WCAG 1.4.3)", () => {
+    render(
+      <MagicUpVariationComparator
+        variations={buildVariations()}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+    const buttons = screen.getAllByRole("button", { name: /Marcar variação \d+ como vencedora/ });
+    for (const btn of buttons) {
+      expect(btn.className).toContain("disabled:bg-muted");
+      expect(btn.className).toContain("disabled:text-muted-foreground");
+      expect(btn.className).toContain("disabled:opacity-100");
+    }
+  });
+});
