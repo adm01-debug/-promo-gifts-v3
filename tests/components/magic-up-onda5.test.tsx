@@ -162,4 +162,26 @@ describe("Magic Up Onda 5 components", () => {
     expect(onSelectWinner).toHaveBeenCalledWith(2);
     expect(onSelect).toHaveBeenCalledTimes(1);
   });
+
+  it("aplica focus-visible:ring e contraste de disabled nos botões críticos da Onda 5", () => {
+    const variations: VariationItem[] = [
+      { id: "1", imageUrl: "https://example.com/1.png", isFavorite: false, qualityScore: 70 },
+      { id: "2", imageUrl: "https://example.com/2.png", isFavorite: false, qualityScore: 80 },
+    ];
+    const { unmount } = render(<MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />);
+    const winnerBtn = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+    const cls = winnerBtn.getAttribute("class") || "";
+    expect(cls).toContain("focus-visible:ring");
+    expect(cls).toContain("disabled:bg-muted");
+    expect(cls).toContain("disabled:text-muted-foreground");
+    unmount();
+
+    render(<MagicUpCurationStatus value="draft" disabled onChange={vi.fn()} />);
+    const radio = screen.getByRole("radio", { name: "Definir curadoria como Boa" });
+    const radioCls = radio.getAttribute("class") || "";
+    expect(radioCls).toContain("focus-visible:ring");
+    expect(radioCls).toContain("disabled:bg-muted");
+    expect(radioCls).toContain("disabled:text-muted-foreground");
+    expect(radio).toBeDisabled();
+  });
 });

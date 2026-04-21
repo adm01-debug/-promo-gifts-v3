@@ -56,7 +56,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                 <Button
                   size="sm"
                   variant="ghost"
-                  className="h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring"
+                  className="h-6 w-full text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100"
                   aria-label={`Marcar variação ${index + 1} como vencedora`}
                   onClick={() => onSelectWinner(index)}
                 >

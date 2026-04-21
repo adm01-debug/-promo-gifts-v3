@@ -20,7 +20,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
       {m.variations.length > 1 && (
         <div className="flex items-center justify-between">
           <Button
-            variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8"
+            variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             disabled={m.activeVariation === 0}
             onClick={() => m.setActiveVariation(m.activeVariation - 1)}
           >
@@ -36,14 +36,14 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
                 role="tab"
                 aria-selected={i === m.activeVariation}
                 className={cn(
-                  "w-2 h-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "relative w-2 h-2 rounded-full transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background before:absolute before:-inset-2 before:content-['']",
                   i === m.activeVariation ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
                 )}
               />
             ))}
           </div>
           <Button
-            variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8"
+            variant="outline" size="icon" aria-label="Avançar" className="h-8 w-8 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             disabled={m.activeVariation === m.variations.length - 1}
             onClick={() => m.setActiveVariation(m.activeVariation + 1)}
           >
@@ -90,7 +90,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
               onClick={() => m.setActiveVariation(i)}
               aria-label={`Abrir miniatura da variação ${i + 1}`}
               className={cn(
-                "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all",
+                "w-16 h-16 rounded-lg overflow-hidden border-2 shrink-0 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
                 i === m.activeVariation
                   ? "border-primary ring-2 ring-primary/20"
                   : "border-border hover:border-primary/40"
