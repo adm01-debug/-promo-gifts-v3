@@ -47,7 +47,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
     <section className="rounded-lg border bg-card p-3" aria-label="Comparador de variações">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">Comparar variações</p>
-        <Badge variant="secondary" aria-label={`Melhor score entre variações: ${bestScore || "indisponível"}`}>Melhor score: {bestScore || "—"}</Badge>
+        <Badge variant="secondary" aria-label={`Melhor score entre variações: ${bestScore !== null ? bestScore : "indisponível"}`}>Melhor score: {bestScore !== null ? bestScore : "—"}</Badge>
       </div>
       <div role="list" className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {variations.map((variation, index) => {
