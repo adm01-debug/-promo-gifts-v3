@@ -3525,3 +3525,268 @@ describe("MagicUpResultPanel — Onda 5: foco NUNCA migra entre dot ↔ thumb", 
     expect(dotsTablist.contains(document.activeElement as Node)).toBe(false);
   });
 });
+
+// ───────── Foco NUNCA salta para headings/regions/UI vizinha ─────────
+// Quando activeVariation muda via dot ou thumbnail, o foco deve permanecer
+// EXATAMENTE no controle acionado. Esta suíte trava regressões onde:
+//  • um `useEffect` com `headingRef.current?.focus()` sequestraria o foco
+//  • `aria-live="polite"` mal configurado moveria o foco para o anúncio
+//  • re-render do <h2>/<h3>/<section> "roubaria" o foco via autoFocus
+//  • elementos com tabIndex={-1} ganhariam foco programático indevido
+
+describe("MagicUpResultPanel — Onda 5: foco NUNCA salta para headings/regions vizinhas", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function rerenderActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  // Lista exaustiva de seletores de elementos "perigosos" — qualquer um
+  // ganhar foco após troca de variação é regressão.
+  function getNonControlFocusables(container: HTMLElement): HTMLElement[] {
+    const selectors = [
+      "h1", "h2", "h3", "h4", "h5", "h6",
+      "[role='heading']",
+      "[role='region']",
+      "[role='status']",
+      "[role='alert']",
+      "[role='log']",
+      "[aria-live]",
+      "section",
+      "article",
+      "header",
+      "footer",
+      "main",
+      "aside",
+      "nav",
+      "[role='navigation']",
+      "[role='complementary']",
+      "[role='contentinfo']",
+      "[role='banner']",
+      "[role='main']",
+    ];
+    return Array.from(container.querySelectorAll<HTMLElement>(selectors.join(",")));
+  }
+
+  // ── Click em dot: foco não pula para nenhum heading/region ─────────
+
+  it.each([0, 1, 2])(
+    "click em dot[%i]: foco NÃO está em nenhum heading, region, status, alert ou landmark",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      const dangerZones = getNonControlFocusables(container);
+      dangerZones.forEach((el) => {
+        expect(
+          document.activeElement,
+          `foco vazou para <${el.tagName.toLowerCase()}${el.getAttribute("role") ? ` role="${el.getAttribute("role")}"` : ""}>`
+        ).not.toBe(el);
+      });
+      // E confirma que ESTÁ no dot acionado
+      expect(document.activeElement).toBe(getDots()[target]);
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Enter em dot[%i]: foco NÃO está em heading/region/landmark",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getDots()[target]);
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Space em dot[%i]: foco NÃO está em heading/region/landmark",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: " ", code: "Space" });
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getDots()[target]);
+    }
+  );
+
+  // ── Mesmas garantias acionando via thumbnail ──────────────────────
+
+  it.each([0, 1, 2])(
+    "click em thumb[%i]: foco NÃO está em heading/region/landmark",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getThumbs()[target]);
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Enter em thumb[%i]: foco NÃO está em heading/region/landmark",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getThumbs()[target]);
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Space em thumb[%i]: foco NÃO está em heading/region/landmark",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getThumbs()[target]);
+    }
+  );
+
+  // ── Asserções estruturais reforçadas ──────────────────────────────
+
+  it("após troca via dot: activeElement é <button> com role='tab' (jamais heading/section/region)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[2] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.click(dot);
+    rerenderActive(rerender, m, 2);
+
+    const active = document.activeElement as HTMLElement;
+    expect(active.tagName).toBe("BUTTON");
+    expect(active.getAttribute("role")).toBe("tab");
+    // Nunca um heading
+    expect(active.tagName).not.toMatch(/^H[1-6]$/);
+    // Nunca um landmark
+    expect(["SECTION", "ARTICLE", "HEADER", "FOOTER", "MAIN", "ASIDE", "NAV"]).not.toContain(active.tagName);
+  });
+
+  it("após troca via thumb: activeElement é <button> com role='tab' (jamais heading/section/region)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb = getThumbs()[1] as HTMLButtonElement;
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+    fireEvent.click(thumb);
+    rerenderActive(rerender, m, 1);
+
+    const active = document.activeElement as HTMLElement;
+    expect(active.tagName).toBe("BUTTON");
+    expect(active.getAttribute("role")).toBe("tab");
+    expect(active.tagName).not.toMatch(/^H[1-6]$/);
+    expect(["SECTION", "ARTICLE", "HEADER", "FOOTER", "MAIN", "ASIDE", "NAV"]).not.toContain(active.tagName);
+  });
+
+  // ── Trocas múltiplas: foco nunca "escorrega" para vizinhança ──────
+
+  it("3 trocas consecutivas via dots: foco NUNCA passou por heading/region em nenhuma iteração", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+    [1, 2, 0].forEach((target) => {
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getDots()[target]);
+    });
+  });
+
+  it("3 trocas consecutivas via thumbs: foco NUNCA passou por heading/region em nenhuma iteração", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+    [2, 0, 1].forEach((target) => {
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      getNonControlFocusables(container).forEach((el) => {
+        expect(document.activeElement).not.toBe(el);
+      });
+      expect(document.activeElement).toBe(getThumbs()[target]);
+    });
+  });
+
+  // ── aria-live regions existem mas NUNCA recebem foco ──────────────
+
+  it("regiões aria-live (se existirem) NUNCA recebem foco após troca via dot", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container, rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[1] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.click(dot);
+    rerenderActive(rerender, m, 1);
+
+    const liveRegions = container.querySelectorAll<HTMLElement>("[aria-live], [role='status'], [role='alert'], [role='log']");
+    liveRegions.forEach((region) => {
+      expect(document.activeElement).not.toBe(region);
+      expect(region.contains(document.activeElement as Node) && document.activeElement !== getDots()[1]).toBe(false);
+    });
+  });
+});
