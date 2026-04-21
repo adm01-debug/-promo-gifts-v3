@@ -1234,8 +1234,10 @@ describe("MagicUpResultPanel — tooltip acessível nos dots (WCAG 1.4.13, 4.1.2
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
 
-    fireEvent.pointerEnter(dots[1]);
+    fireEvent.pointerMove(dots[1], { pointerType: "mouse" });
+    fireEvent.pointerEnter(dots[1], { pointerType: "mouse" });
     fireEvent.mouseEnter(dots[1]);
+    fireEvent.mouseMove(dots[1]);
 
     const tooltip = await screen.findByRole("tooltip", {}, { timeout: 1500 });
     expect(tooltip).toHaveTextContent("Variação 2");
