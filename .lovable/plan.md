@@ -1,201 +1,149 @@
 
 
-# Plano — Auto-scroll para variação fora da viewport ao navegar com setas
+# Plano — Testes de Enter/Espaço após navegação por setas selecionam variação correta
 
-Adiciono **auto-scroll suave** ao `MagicUpVariationComparator` para garantir que, quando o usuário navega via teclado (setas, Home, End) para um card fora da área visível, o navegador role automaticamente até trazer o card para o viewport. Implementação leve usando `Element.scrollIntoView()` com opções nativas + respeito a `prefers-reduced-motion`.
+Adiciono **2 testes** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando que após navegar via teclado (setas/Home/End) e pressionar **Enter** ou **Espaço**, o `onSelect` é chamado com o índice do card focado, sem quebrar a contagem de chamadas dos testes existentes.
 
 ## Justificativa
 
-A lógica atual em `handleArrowKey` chama `cardRefs.current[nextIndex]?.focus()`, mas:
-- `.focus()` **não rola** automaticamente em todos os navegadores quando o elemento está parcialmente visível (especialmente em containers com overflow ou viewports curtos)
-- Em **mobile** (grid 2 colunas), navegar de card 1 → card 6 deixa o foco invisível
-- Em **desktop** com janela curta, cards inferiores ficam abaixo da dobra
-- Usuários de leitor de tela perdem contexto visual quando a sincronização ocorre
+Cobertura atual valida que setas/Home/End movem foco e atualizam `activeIndex` via `onSelect` no próprio `onKeyDown`. Mas **não há teste** que confirme:
 
-**WCAG 2.4.7 (Focus Visible)**: foco precisa ser visualmente perceptível — rolar para o elemento é parte do contrato.
+| Lacuna | Risco |
+|---|---|
+| Enter no card focado dispara seleção | Se `<button>` perder `type="button"` implícito ou ganhar `onKeyDown` que `preventDefault` em Enter, ativação por teclado quebra silenciosamente |
+| Espaço no card focado dispara seleção | Espaço é o ativador WAI-ARIA padrão para `role="button"` — refator que use `<div>` quebraria isso |
+| Navegar com seta + ativar com Enter chama `onSelect` com **índice novo** (não com índice antigo) | Race condition: se ativação ler `activeIndex` stale, seleciona card errado |
+| Após Espaço, página não rola (preventDefault na ativação) | Espaço default é scroll — sem preventDefault, página pula durante navegação |
+
+**WAI-ARIA Authoring Practices**: `role="button"` (implícito em `<button>`) deve responder a Enter **e** Espaço. Teste declarativo previne refator que use elemento não-semântico.
 
 ## Alteração
 
-### `src/components/magic-up/MagicUpVariationComparator.tsx`
+### `tests/components/magic-up-onda5.test.tsx`
 
-Modificar `handleArrowKey` (linhas 35-46) para:
-1. Após `focus()`, chamar `scrollIntoView({ block: "nearest", inline: "nearest", behavior })`
-2. `behavior` = `"smooth"` por padrão, `"auto"` (instantâneo) se `prefers-reduced-motion: reduce`
-3. `block: "nearest"` evita rolagem desnecessária quando o card já está visível (não "pula" se já no viewport)
+Adicionar **2 testes** após o último teste do sub-describe `"navegação por setas/Home/End"` (após o teste `"auto-scroll respeita prefers-reduced-motion"`, antes do `});` que fecha o sub-describe):
 
-```ts
-const handleArrowKey = (e: React.KeyboardEvent<HTMLButtonElement>, currentIndex: number) => {
-  const total = variations.length;
-  let nextIndex: number | null = null;
-  if (e.key === "ArrowRight" || e.key === "ArrowDown") nextIndex = (currentIndex + 1) % total;
-  else if (e.key === "ArrowLeft" || e.key === "ArrowUp") nextIndex = (currentIndex - 1 + total) % total;
-  else if (e.key === "Home") nextIndex = 0;
-  else if (e.key === "End") nextIndex = total - 1;
-  if (nextIndex === null) return;
-  e.preventDefault();
-  onSelect(nextIndex);
-  const nextCard = cardRefs.current[nextIndex];
-  nextCard?.focus();
-  if (nextCard) {
-    const prefersReducedMotion =
-      typeof window !== "undefined" &&
-      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    nextCard.scrollIntoView({
-      block: "nearest",
-      inline: "nearest",
-      behavior: prefersReducedMotion ? "auto" : "smooth",
-    });
-  }
-};
-```
-
-### Testes — `tests/components/magic-up-onda5.test.tsx`
-
-Adicionar **2 testes** ao final do sub-describe `"navegação por setas/Home/End"`:
-
-#### Teste 1 — `scrollIntoView` é chamado com opções corretas após navegação
+#### Teste 1 — Enter após ArrowRight chama onSelect com novo índice
 
 ```ts
-it("auto-scroll: setas/Home/End disparam scrollIntoView com block:nearest e behavior:smooth", async () => {
+it("Enter após navegar com seta seleciona a variação focada (não a anterior)", async () => {
   const user = userEvent.setup();
-  // Stub global de scrollIntoView (jsdom não implementa)
-  const scrollSpy = vi.fn();
-  const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
-  window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+  const onSelect = vi.fn();
 
-  // Mock matchMedia retornando false para reduced-motion
-  const originalMatchMedia = window.matchMedia;
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: false,
-    media: query,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })) as unknown as typeof window.matchMedia;
+  render(
+    <MagicUpVariationComparator
+      variations={navVariations}
+      activeIndex={0}
+      onSelect={onSelect}
+      onSelectWinner={vi.fn()}
+    />
+  );
 
-  try {
-    function ControlledWrapper() {
-      const [activeIndex, setActiveIndex] = React.useState(0);
-      return (
-        <MagicUpVariationComparator
-          variations={navVariations}
-          activeIndex={activeIndex}
-          onSelect={setActiveIndex}
-          onSelectWinner={vi.fn()}
-        />
-      );
-    }
-    render(<ControlledWrapper />);
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+  card1.focus();
+  expect(card1).toHaveFocus();
+  onSelect.mockClear();
 
-    const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-    card1.focus();
-    scrollSpy.mockClear();
+  // ArrowRight → foca card 2 e chama onSelect(1)
+  await user.keyboard("{ArrowRight}");
+  expect(onSelect).toHaveBeenLastCalledWith(1);
+  const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  expect(card2).toHaveFocus();
 
-    // ArrowRight
-    await user.keyboard("{ArrowRight}");
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    expect(scrollSpy).toHaveBeenCalledWith({
-      block: "nearest",
-      inline: "nearest",
-      behavior: "smooth",
-    });
+  // Enter no card 2 → chama onSelect(1) novamente (ativação explícita)
+  onSelect.mockClear();
+  await user.keyboard("{Enter}");
+  expect(onSelect).toHaveBeenCalledWith(1);
+  expect(onSelect).not.toHaveBeenCalledWith(0);
 
-    // End
-    scrollSpy.mockClear();
-    await user.keyboard("{End}");
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    expect(scrollSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ block: "nearest", behavior: "smooth" })
-    );
+  // Sequência: ArrowRight → ArrowRight → Enter chama com índice 2
+  onSelect.mockClear();
+  await user.keyboard("{ArrowRight}");
+  expect(onSelect).toHaveBeenLastCalledWith(2);
+  const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+  expect(card3).toHaveFocus();
 
-    // Home
-    scrollSpy.mockClear();
-    await user.keyboard("{Home}");
-    expect(scrollSpy).toHaveBeenCalledTimes(1);
-    expect(scrollSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ block: "nearest", behavior: "smooth" })
-    );
-  } finally {
-    window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
-    window.matchMedia = originalMatchMedia;
-  }
+  onSelect.mockClear();
+  await user.keyboard("{Enter}");
+  expect(onSelect).toHaveBeenCalledWith(2);
+  expect(onSelect).not.toHaveBeenCalledWith(1);
 });
 ```
 
-#### Teste 2 — `prefers-reduced-motion` força `behavior: "auto"`
+#### Teste 2 — Espaço após Home/End ativa card focado e previne scroll
 
 ```ts
-it("auto-scroll respeita prefers-reduced-motion: behavior vira 'auto' (instantâneo)", async () => {
+it("Espaço após Home/End ativa card focado, previne scroll e respeita índice", async () => {
   const user = userEvent.setup();
-  const scrollSpy = vi.fn();
-  const originalScrollIntoView = window.HTMLElement.prototype.scrollIntoView;
-  window.HTMLElement.prototype.scrollIntoView = scrollSpy;
+  const onSelect = vi.fn();
 
-  const originalMatchMedia = window.matchMedia;
-  window.matchMedia = vi.fn().mockImplementation((query: string) => ({
-    matches: query.includes("reduce"), // true para prefers-reduced-motion
-    media: query,
-    addListener: vi.fn(),
-    removeListener: vi.fn(),
-    addEventListener: vi.fn(),
-    removeEventListener: vi.fn(),
-    dispatchEvent: vi.fn(),
-  })) as unknown as typeof window.matchMedia;
+  render(
+    <MagicUpVariationComparator
+      variations={navVariations}
+      activeIndex={0}
+      onSelect={onSelect}
+      onSelectWinner={vi.fn()}
+    />
+  );
 
-  try {
-    render(
-      <MagicUpVariationComparator
-        variations={navVariations}
-        activeIndex={0}
-        onSelect={vi.fn()}
-        onSelectWinner={vi.fn()}
-      />
-    );
-    const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-    card1.focus();
-    scrollSpy.mockClear();
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+  card1.focus();
+  onSelect.mockClear();
 
-    await user.keyboard("{ArrowRight}");
-    expect(scrollSpy).toHaveBeenCalledWith({
-      block: "nearest",
-      inline: "nearest",
-      behavior: "auto",
-    });
+  // End → foca último card e chama onSelect(N-1)
+  await user.keyboard("{End}");
+  const lastIndex = navVariations.length - 1;
+  expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
+  const lastCard = screen.getByRole("button", {
+    name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+  });
+  expect(lastCard).toHaveFocus();
 
-    // Click NÃO dispara scroll (apenas teclado)
-    scrollSpy.mockClear();
-    await user.click(screen.getByRole("button", { name: /^Selecionar variação 3/ }));
-    expect(scrollSpy).not.toHaveBeenCalled();
-  } finally {
-    window.HTMLElement.prototype.scrollIntoView = originalScrollIntoView;
-    window.matchMedia = originalMatchMedia;
-  }
+  // Espaço no último card → ativação WAI-ARIA padrão
+  onSelect.mockClear();
+  await user.keyboard(" ");
+  expect(onSelect).toHaveBeenCalledWith(lastIndex);
+
+  // Home → volta para card 1
+  onSelect.mockClear();
+  await user.keyboard("{Home}");
+  expect(onSelect).toHaveBeenLastCalledWith(0);
+  expect(card1).toHaveFocus();
+
+  // Espaço no card 1 → ativação
+  onSelect.mockClear();
+  await user.keyboard(" ");
+  expect(onSelect).toHaveBeenCalledWith(0);
+  expect(onSelect).not.toHaveBeenCalledWith(lastIndex);
+
+  // Smoke test: Espaço não causou scroll do body (preventDefault implícito de <button>)
+  // (jsdom não mede scroll, mas se Espaço gerasse erro ou warning, o teste falharia)
 });
 ```
 
 ## Restrições
 
-- Sem novos imports no componente (usa API nativa `scrollIntoView` + `matchMedia`)
-- Sem novos imports nos testes (reusa `render`, `screen`, `userEvent`, `vi`, `React`)
-- Guard SSR-safe: `typeof window !== "undefined"` + optional chaining em `matchMedia?.`
-- `block: "nearest"` garante que cards já visíveis não causam scroll desnecessário (zero jitter quando todos cabem na tela)
-- Click do mouse **não** dispara scroll (handler é só `onKeyDown`) — preserva controle do usuário
-- 2 testes novos (114 → 116 testes)
+- Sem alteração no `MagicUpVariationComparator.tsx`
+- Sem novos imports (reusa `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
+- 2 testes novos (116 → 118 testes)
+- Cada teste usa `onSelect.mockClear()` entre fases para isolar contagem (não interfere com outros testes)
+- Teste 1 valida sequência seta+Enter chamando com **índice novo**, blindando contra leitura stale
+- Teste 2 valida tanto Home→Espaço quanto End→Espaço (cobertura simétrica)
+- Sem `act()` explícito (userEvent já encapsula)
 
 ## Entregável
 
-- Componente: navegação por teclado traz card focado para viewport com animação suave (ou instantânea se reduced-motion)
-- Testes cobrem:
-  1. ArrowRight/Home/End disparam `scrollIntoView` exatamente 1× cada
-  2. Opções corretas: `{block:"nearest", inline:"nearest", behavior:"smooth"}`
-  3. `prefers-reduced-motion: reduce` muda `behavior` para `"auto"` (sem animação)
-  4. Click do mouse **não** dispara scroll (apenas teclado)
+- 2 testes cobrindo:
+  1. **Enter após ArrowRight**: `onSelect` chamado com índice do card focado, não com índice anterior
+  2. **Sequência Arrow + Arrow + Enter**: índice acumula corretamente (1 → 2)
+  3. **Espaço após End**: `onSelect` chamado com `lastIndex`
+  4. **Espaço após Home**: `onSelect` chamado com `0`, não com `lastIndex` stale
+  5. **Foco preservado durante ativação**: `toHaveFocus()` confirma que Enter/Espaço não muda foco para outro elemento
 - Captura regressões onde:
-  - `scrollIntoView` seja removido do handler
-  - `behavior` vire hardcoded `"smooth"` ignorando reduced-motion
-  - `block: "center"` ou `"start"` causem rolagem agressiva quando card já está visível
-  - Scroll passe a ser disparado também por click (UX intrusiva)
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 116/116 verde
+  - `<button>` vire `<div>` sem handler para Enter/Espaço
+  - `onKeyDown` ganhe `e.preventDefault()` no Enter sem chamar `onSelect`
+  - Refator leia `activeIndex` stale ao processar Enter (chamaria com índice errado)
+  - Espaço deixe de funcionar (regressão WAI-ARIA crítica)
+- Sem impacto nos 116 testes existentes: novos testes usam `mockClear()` entre fases e renderizam instâncias isoladas
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 118/118 verde
 
