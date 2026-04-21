@@ -2226,3 +2226,204 @@ describe("MagicUpResultPanel — Enter/Space não wrap entre extremos (dot[last]
     });
   });
 });
+
+// ───────── Tab sai do painel sem ciclar de volta ao primeiro controle ─────────
+// WAI-ARIA APG Tabs: roving tabindex faz com que SOMENTE a tab ativa esteja
+// no Tab order. Após o último controle alcançável (Avançar quando habilitado,
+// caso contrário o thumbnail/dot ativo), Tab deve mover o foco para FORA do
+// painel — nunca voltar para o primeiro controle interno.
+//
+// Usamos um sentinela <button data-testid="after-panel"> renderizado APÓS o
+// painel para asserir o "saiu para o próximo elemento focável da página".
+
+describe("MagicUpResultPanel — Tab no fim do painel sai sem ciclar de volta ao primeiro", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function renderWithSentinels(m: StubState) {
+    return render(
+      <>
+        <button data-testid="before-panel">before</button>
+        <MagicUpResultPanel m={m} />
+        <button data-testid="after-panel">after</button>
+      </>
+    );
+  }
+
+  /**
+   * Coleta TODOS os elementos focáveis da árvore na ordem do DOM,
+   * respeitando tabindex (>= 0 entra; -1 fica fora) e disabled.
+   * Isto reproduz como o navegador resolve a sequência de Tab.
+   */
+  function getTabOrder(container: HTMLElement): HTMLElement[] {
+    const candidates = Array.from(
+      container.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])'
+      )
+    );
+    // Remove disabled buttons explicitamente (defensive, alguns querySelectors variam)
+    return candidates.filter((el) => {
+      if (el instanceof HTMLButtonElement && el.disabled) return false;
+      const ti = el.getAttribute("tabindex");
+      if (ti === "-1") return false;
+      return true;
+    });
+  }
+
+  /** Simula Tab: foca o próximo elemento da ordem atual de Tab. */
+  function pressTab(current: HTMLElement, container: HTMLElement) {
+    const order = getTabOrder(container);
+    const idx = order.indexOf(current);
+    expect(idx, "elemento atual deve estar na Tab order").toBeGreaterThanOrEqual(0);
+    const next = order[idx + 1] ?? null;
+    fireEvent.keyDown(current, { key: "Tab", code: "Tab" });
+    if (next) next.focus();
+    return next;
+  }
+
+  // ── Cenário 1: Tab a partir do ÚLTIMO controle do painel sai para 'after' ─────
+  // Pelo DOM do MagicUpResultPanel, o último <button> em ordem é o thumbnail ativo
+  // (renderizado após o AdImageResult). O thumbnail ativo é o único do grupo com
+  // tabindex=0 (roving), então é o real "fim" do painel no Tab order.
+
+  it("Tab a partir do thumbnail ativo (último controle do painel, active=0) sai para 'after'", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container } = renderWithSentinels(m);
+
+    const activeThumb = getThumbs()[0] as HTMLButtonElement;
+    expect(activeThumb.getAttribute("tabindex")).toBe("0");
+
+    activeThumb.focus();
+    expect(document.activeElement).toBe(activeThumb);
+
+    const after = pressTab(activeThumb, container);
+
+    // Saiu para o sentinela externo — NÃO voltou para Voltar/dot/thumb inativo
+    expect(after).toBe(screen.getByTestId("after-panel"));
+    expect(document.activeElement).toBe(screen.getByTestId("after-panel"));
+
+    // Confirma que NÃO ciclou para o primeiro controle (Voltar) nem para
+    // qualquer dot/thumb que NÃO seja o ativo
+    const prev = screen.getByRole("button", { name: /voltar/i });
+    expect(document.activeElement).not.toBe(prev);
+    getDots().forEach((d, i) => {
+      if (i !== m.activeVariation) expect(document.activeElement).not.toBe(d);
+    });
+    getThumbs().forEach((t, i) => {
+      if (i !== m.activeVariation) expect(document.activeElement).not.toBe(t);
+    });
+  });
+
+  // ── Cenário 2: Avançar desabilitado (active=last). Último alcançável =
+  // o thumbnail ativo (último <button> em Tab order do painel) ─────────
+
+  it("Tab a partir do thumbnail ativo (active=last; Avançar disabled) sai para 'after'", () => {
+    const total = 3;
+    const last = total - 1;
+    const m = buildStubState({ variationsCount: total, activeVariation: last });
+    const { container } = renderWithSentinels(m);
+
+    expect(screen.getByRole("button", { name: /avançar/i })).toBeDisabled();
+
+    const activeThumb = getThumbs()[last] as HTMLButtonElement;
+    expect(activeThumb.getAttribute("tabindex")).toBe("0");
+
+    activeThumb.focus();
+    expect(document.activeElement).toBe(activeThumb);
+
+    const after = pressTab(activeThumb, container);
+
+    expect(after).toBe(screen.getByTestId("after-panel"));
+    expect(document.activeElement).toBe(screen.getByTestId("after-panel"));
+
+    // Roving tabindex: nenhum thumbnail/dot inativo entrou na ordem de Tab
+    getThumbs().forEach((t, i) => {
+      if (i !== last) expect(document.activeElement).not.toBe(t);
+    });
+    getDots().forEach((d, i) => {
+      if (i !== last) expect(document.activeElement).not.toBe(d);
+    });
+  });
+
+  // ── Cenário 3: dot/thumb inativos NÃO aparecem em getTabOrder ───────
+
+  it("Tab order do painel inclui SOMENTE 1 dot e 1 thumb (os ativos) — confirma que Tab não cicla por inativos", () => {
+    const m = buildStubState({ variationsCount: 4, activeVariation: 2 });
+    const { container } = renderWithSentinels(m);
+
+    const order = getTabOrder(container);
+
+    const dots = getDots();
+    const thumbs = getThumbs();
+
+    const dotsInOrder = dots.filter((d) => order.includes(d));
+    const thumbsInOrder = thumbs.filter((t) => order.includes(t));
+
+    expect(dotsInOrder).toHaveLength(1);
+    expect(thumbsInOrder).toHaveLength(1);
+    expect(dotsInOrder[0]).toBe(dots[2]);
+    expect(thumbsInOrder[0]).toBe(thumbs[2]);
+  });
+
+  // ── Cenário 4: simular caminho completo Avançar → after, depois Tab
+  // novamente do 'after' NÃO retorna ao painel (é o navegador quem decide,
+  // mas garantimos que o painel não captura/redireciona) ─────────────
+
+  it("Após sair pelo 'after-panel', o foco continua fluindo para fora — painel não recaptura", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { container } = renderWithSentinels(m);
+
+    // Último controle do painel = thumbnail ativo (vem após AdImageResult no DOM)
+    const activeThumb = getThumbs()[0] as HTMLButtonElement;
+    activeThumb.focus();
+    pressTab(activeThumb, container);
+
+    const after = screen.getByTestId("after-panel");
+    expect(document.activeElement).toBe(after);
+
+    // Próxima Tab a partir do 'after' não tem para onde ir nesta árvore
+    const order = getTabOrder(container);
+    const idx = order.indexOf(after);
+    expect(order[idx + 1]).toBeUndefined();
+
+    // Foco permanece no 'after' — painel NÃO interceptou de volta para Voltar
+    fireEvent.keyDown(after, { key: "Tab", code: "Tab" });
+    expect(document.activeElement).toBe(after);
+    expect(document.activeElement).not.toBe(screen.getByRole("button", { name: /voltar/i }));
+  });
+
+  // ── Cenário 5: caminho COMPLETO partindo de 'before' atravessa painel
+  // exatamente uma vez e termina em 'after' ─────────────────────────
+
+  it("Caminho completo Tab: before → Voltar → dot ativo → thumb ativo → Avançar → after (sem revisitar)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    const { container } = renderWithSentinels(m);
+
+    const before = screen.getByTestId("before-panel");
+    const after = screen.getByTestId("after-panel");
+    const prev = screen.getByRole("button", { name: /voltar/i });
+    const next = screen.getByRole("button", { name: /avançar/i });
+    const activeDot = getDots()[1];
+    const activeThumb = getThumbs()[1];
+
+    const order = getTabOrder(container);
+
+    // Sequência esperada (na ordem do DOM do painel):
+    // before, prev, dot[1], next, thumb[1], after
+    // (next aparece antes de thumb[1] pois está no header; thumb[1] está abaixo do AdImageResult stub)
+    const expectedSubset = [before, prev, activeDot, next, activeThumb, after];
+    const observedIndices = expectedSubset.map((el) => order.indexOf(el));
+
+    // Todos presentes
+    observedIndices.forEach((idx, i) => {
+      expect(idx, `${expectedSubset[i].tagName}#${i} ausente da Tab order`).toBeGreaterThanOrEqual(0);
+    });
+
+    // Estritamente crescentes (nenhum revisitado / nenhum ciclo)
+    for (let i = 1; i < observedIndices.length; i++) {
+      expect(observedIndices[i]).toBeGreaterThan(observedIndices[i - 1]);
+    }
+
+    // E 'after' é o ÚLTIMO da lista filtrada (nada depois dele)
+    expect(order[order.length - 1]).toBe(after);
+  });
+});
