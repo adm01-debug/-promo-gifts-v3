@@ -3248,3 +3248,240 @@ describe("MagicUpResultPanel — Onda 5: próximo Tab target após troca de vari
     }
   );
 });
+
+// ───────── Foco preservado em dot/thumb após re-render por troca de activeVariation ─────────
+// WAI-ARIA APG Tabs: ao ativar uma tab via teclado/click, o foco DEVE permanecer
+// no controle que originou a ativação — mesmo após o componente re-renderizar
+// com o novo `activeVariation`. Caso contrário, o usuário "perde" o foco e
+// precisa recomeçar a navegação por teclado.
+//
+// Cobre: click, Enter e Space em dot e thumbnail (ativos e não-ativos),
+// validando `document.activeElement` ANTES e DEPOIS do re-render que reflete
+// o novo índice. O elemento referência precisa ser re-resolvido após o
+// re-render porque o React pode recriar o nó no DOM.
+
+describe("MagicUpResultPanel — Onda 5: foco preservado após re-render por troca", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function rerenderWithActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  // ── DOTS ───────────────────────────────────────────────────────────
+
+  it.each([1, 2])(
+    "click em dot[%i] não-ativo: foco permanece no dot após re-render",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.click(dot);
+      expect(document.activeElement).toBe(dot);
+
+      rerenderWithActive(rerender, m, target);
+
+      // Re-resolve o nó (React pode ter recriado), valida foco no MESMO índice
+      const dotAfter = getDots()[target];
+      expect(document.activeElement).toBe(dotAfter);
+      expect(dotAfter.getAttribute("tabindex")).toBe("0");
+      expect(dotAfter.getAttribute("aria-selected")).toBe("true");
+    }
+  );
+
+  it.each([1, 2])(
+    "Enter em dot[%i] não-ativo: foco permanece no dot após re-render",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+      expect(document.activeElement).toBe(dot);
+
+      rerenderWithActive(rerender, m, target);
+
+      const dotAfter = getDots()[target];
+      expect(document.activeElement).toBe(dotAfter);
+    }
+  );
+
+  it.each([1, 2])(
+    "Space em dot[%i] não-ativo: foco permanece no dot após re-render",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: " ", code: "Space" });
+      fireEvent.click(dot);
+      expect(document.activeElement).toBe(dot);
+
+      rerenderWithActive(rerender, m, target);
+
+      const dotAfter = getDots()[target];
+      expect(document.activeElement).toBe(dotAfter);
+    }
+  );
+
+  // Dot JÁ ATIVO: re-render idempotente, foco preservado
+  it.each([0, 1, 2])(
+    "click em dot[%i] JÁ ATIVO: foco permanece após re-render idempotente",
+    (active) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[active] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.click(dot);
+      expect(document.activeElement).toBe(dot);
+
+      rerenderWithActive(rerender, m, active);
+
+      expect(document.activeElement).toBe(getDots()[active]);
+    }
+  );
+
+  // ── THUMBNAILS ─────────────────────────────────────────────────────
+
+  it.each([1, 2])(
+    "click em thumb[%i] não-ativo: foco permanece no thumb após re-render",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.click(thumb);
+      expect(document.activeElement).toBe(thumb);
+
+      rerenderWithActive(rerender, m, target);
+
+      const thumbAfter = getThumbs()[target];
+      expect(document.activeElement).toBe(thumbAfter);
+      expect(thumbAfter.getAttribute("tabindex")).toBe("0");
+      expect(thumbAfter.getAttribute("aria-selected")).toBe("true");
+    }
+  );
+
+  it.each([1, 2])(
+    "Enter em thumb[%i] não-ativo: foco permanece no thumb após re-render",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+      fireEvent.click(thumb);
+      expect(document.activeElement).toBe(thumb);
+
+      rerenderWithActive(rerender, m, target);
+
+      expect(document.activeElement).toBe(getThumbs()[target]);
+    }
+  );
+
+  it.each([1, 2])(
+    "Space em thumb[%i] não-ativo: foco permanece no thumb após re-render",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+      expect(document.activeElement).toBe(thumb);
+
+      rerenderWithActive(rerender, m, target);
+
+      expect(document.activeElement).toBe(getThumbs()[target]);
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "click em thumb[%i] JÁ ATIVO: foco permanece após re-render idempotente",
+    (active) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: active });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[active] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.click(thumb);
+      expect(document.activeElement).toBe(thumb);
+
+      rerenderWithActive(rerender, m, active);
+
+      expect(document.activeElement).toBe(getThumbs()[active]);
+    }
+  );
+
+  // ── Foco NÃO migra para o controle paralelo (dot ↔ thumb) ──────────
+
+  it("Enter em dot[1]: foco fica no DOT, NÃO migra para o thumb correspondente", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[1] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+    fireEvent.click(dot);
+
+    rerenderWithActive(rerender, m, 1);
+
+    expect(document.activeElement).toBe(getDots()[1]);
+    expect(document.activeElement).not.toBe(getThumbs()[1]);
+  });
+
+  it("Space em thumb[2]: foco fica no THUMB, NÃO migra para o dot correspondente", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb = getThumbs()[2] as HTMLButtonElement;
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+    fireEvent.click(thumb);
+
+    rerenderWithActive(rerender, m, 2);
+
+    expect(document.activeElement).toBe(getThumbs()[2]);
+    expect(document.activeElement).not.toBe(getDots()[2]);
+  });
+
+  // ── Trocas múltiplas: foco acompanha a cada re-render ──────────────
+
+  it("trocas sucessivas via dots (0 → 2 → 1): foco acompanha o último dot acionado", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    // 0 → 2
+    let dot = getDots()[2] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+    fireEvent.click(dot);
+    rerenderWithActive(rerender, m, 2);
+    expect(document.activeElement).toBe(getDots()[2]);
+
+    // 2 → 1
+    dot = getDots()[1] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key: " ", code: "Space" });
+    fireEvent.click(dot);
+    rerenderWithActive(rerender, m, 1);
+    expect(document.activeElement).toBe(getDots()[1]);
+  });
+});
