@@ -2161,13 +2161,10 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       { id: "var-B", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 99, curationStatus: "draft", isWinner: false },
       { id: "var-C", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 70, curationStatus: "draft", isWinner: true },
     ];
-    const expectedWinnerIndex = 0;
-
     // aria-labels exatos esperados — fonte única de verdade do teste
     const ARIA_LABEL_VAR_A_WINNER = "Selecionar variação 1, score 70, melhor score";
     const ARIA_LABEL_VAR_B = "Selecionar variação 2, score 99";
     const ARIA_LABEL_VAR_C = "Selecionar variação 3, score 70";
-    void expectedWinnerIndex;
 
     const renderWithActive = (activeIndex: number) => (
       <MagicUpVariationComparator
