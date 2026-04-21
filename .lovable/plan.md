@@ -1,134 +1,115 @@
 
 
-# Plano — Testes de consistência de aria-pressed/aria-current durante navegação por setas
+# Plano — Testes de Shift+Tab navega ordem inversa entre cards e botões "Marcar vencedora" com focus-visible correto
 
-Adiciono **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando que a cada movimento de seta, **exatamente um** card mantém `aria-pressed="true"` (o ativo) e que `aria-current` (se presente em botões relacionados como "marcar vencedora") permanece consistente — sem múltiplos cards "pressed" simultâneos nem ARIA stale.
+Adiciono **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` em `tests/components/magic-up-onda5.test.tsx`, validando que **Shift+Tab** percorre os elementos focáveis (cards de seleção + botões "Marcar vencedora") na ordem inversa do DOM, e que cada parada exibe as classes `focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background` exigidas pelo guideline `docs/MAGIC_UP_ONDA5_A11Y.md`.
 
 ## Justificativa
 
-Testes existentes validam `aria-pressed` em saltos isolados (Home/End) e em sequências curtas (2 setas). Mas **não há teste contínuo** que afirme:
+Cobertura atual valida Tab forward (ordem natural) e classes focus-visible em cards isolados. Mas **não há teste** que afirme:
 
 | Lacuna | Risco |
 |---|---|
-| Após N navegações sequenciais (5+ setas), apenas 1 card tem `aria-pressed="true"` | Bug de "ARIA pressed acumula" passaria — múltiplos cards "pressed" confundem leitor de tela |
-| `aria-current` em botão "marcar vencedora" do card ativo reflete estado correto | Se botão de ação herdar ARIA do card pai erroneamente, dá conflito |
-| Wrap-around (último → primeiro via ArrowRight) limpa `aria-pressed` do último | Caso clássico de stale state em ciclo |
-| Contagem total de `aria-pressed="true"` em todo o DOM = 1 a cada step | Invariante de a11y trava regressão silenciosa |
-| Botão "Marcar vencedora" do card ativo não ganha `aria-pressed` indevidamente | Confusão semântica entre seleção visual e marcação de winner |
+| Shift+Tab a partir do último elemento focável volta na ordem inversa exata | Refator que mude `tabIndex` em qualquer card ou botão "vencedora" inverteria/quebraria a ordem silenciosamente |
+| Cada parada do Shift+Tab tem as 4 classes `focus-visible:*` obrigatórias | Remoção acidental de `focus-visible:ring-offset-background` em refator visual passaria sem detecção |
+| Ordem reversa intercala cards e botões "vencedora" coerentemente (não pula nenhum) | Se botão vencedora ganhar `tabIndex={-1}`, Shift+Tab pula card→card sem passar pela ação |
+| `focus-visible` não é confundido com `:focus` (mouse vs teclado) | Classes `focus:` sem `-visible` quebrariam contraste WCAG 2.4.7 |
 
-**WAI-ARIA 1.2 (Toggle Button pattern)**: `aria-pressed` é mutuamente exclusivo dentro de um grupo de seleção única. Teste de invariante trava o contrato.
+**WCAG 2.4.3 (Focus Order)** + **2.4.7 (Focus Visible)**: ordem reversa via Shift+Tab deve ser previsível e cada parada deve ter indicador visível. Teste declarativo trava ambos contratos juntos.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` (após o último teste de wrap-around N=2 que será adicionado, ou após o teste atual final), antes do `});` que fecha o sub-describe:
+Adicionar **1 teste** ao final do sub-describe `"navegação por setas/Home/End"` (após o teste `"aria-pressed permanece exclusivo..."`, antes do `});` que fecha o sub-describe):
 
 ```ts
-it("aria-pressed permanece exclusivo (1 ativo) em sequência de setas, Home, End e wrap-around", async () => {
+it("Shift+Tab navega na ordem inversa entre cards e botões 'Marcar vencedora' mantendo focus-visible", async () => {
   const user = userEvent.setup();
 
-  function ControlledWrapper() {
-    const [activeIndex, setActiveIndex] = React.useState(0);
-    return (
-      <MagicUpVariationComparator
-        variations={navVariations}
-        activeIndex={activeIndex}
-        onSelect={setActiveIndex}
-        onSelectWinner={vi.fn()}
-      />
-    );
-  }
+  render(
+    <MagicUpVariationComparator
+      variations={navVariations}
+      activeIndex={0}
+      onSelect={vi.fn()}
+      onSelectWinner={vi.fn()}
+    />
+  );
 
-  render(<ControlledWrapper />);
-  const total = navVariations.length;
+  const REQUIRED_FOCUS_CLASSES = [
+    "focus-visible:outline-none",
+    "focus-visible:ring-2",
+    "focus-visible:ring-ring",
+    "focus-visible:ring-offset-2",
+    "focus-visible:ring-offset-background",
+  ];
 
-  // Helper: conta cards com aria-pressed="true" e retorna o índice (1-based) do ativo
-  const getActiveCardIndex = (): number => {
-    const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
-    const activeCards = cards.filter((c) => c.getAttribute("aria-pressed") === "true");
-    expect(activeCards).toHaveLength(1); // INVARIANTE: exatamente 1 ativo
-    const match = activeCards[0].getAttribute("aria-label")?.match(/variação (\d+)/);
-    return Number(match?.[1] ?? 0);
-  };
-
-  // Estado inicial: card 1 ativo, foco nele
-  const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
-  card1.focus();
-  expect(getActiveCardIndex()).toBe(1);
-
-  // ── Sequência longa de ArrowRight cobrindo wrap-around completo ──
-  for (let step = 1; step <= total + 1; step++) {
-    await user.keyboard("{ArrowRight}");
-    const expectedActive = ((step) % total) + 1; // 1-based, com wrap
-    expect(getActiveCardIndex()).toBe(expectedActive);
-    // Confirma que o card ativo é o que tem foco
-    const activeByLabel = screen.getByRole("button", {
-      name: new RegExp(`^Selecionar variação ${expectedActive}`),
-    });
-    expect(activeByLabel).toHaveFocus();
-  }
-
-  // ── Sequência longa de ArrowLeft cobrindo wrap reverso ──
-  for (let step = 1; step <= total + 1; step++) {
-    await user.keyboard("{ArrowLeft}");
-    expect(getActiveCardIndex()).toBeGreaterThanOrEqual(1);
-    expect(getActiveCardIndex()).toBeLessThanOrEqual(total);
-  }
-
-  // ── Home → invariante mantida, ativo é card 1 ──
-  await user.keyboard("{Home}");
-  expect(getActiveCardIndex()).toBe(1);
-
-  // ── End → invariante mantida, ativo é último ──
-  await user.keyboard("{End}");
-  expect(getActiveCardIndex()).toBe(total);
-
-  // ── Verificação extra: nenhum botão "Marcar vencedora" tem aria-pressed indevido ──
-  const winnerButtons = screen.queryAllByRole("button", { name: /vencedora/i });
-  winnerButtons.forEach((btn) => {
-    // aria-pressed só deve existir nos cards de seleção, não nos botões de ação
-    const labelStartsWithSelecionar = btn.getAttribute("aria-label")?.startsWith("Selecionar");
-    if (!labelStartsWithSelecionar) {
-      expect(btn.hasAttribute("aria-pressed")).toBe(false);
-    }
+  // Coleta ordem natural do DOM (forward Tab order)
+  const allFocusables = [
+    ...screen.getAllByRole("button", { name: /^Selecionar variação/ }),
+    ...screen.getAllByRole("button", { name: /vencedora/i }),
+  ].sort((a, b) => {
+    const pos = a.compareDocumentPosition(b);
+    if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+    if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+    return 0;
   });
 
-  // ── Mistura final: ArrowRight + Home + End + ArrowLeft → invariante em cada step ──
-  const sequence = ["{ArrowRight}", "{Home}", "{End}", "{ArrowLeft}", "{ArrowLeft}", "{End}"];
-  for (const key of sequence) {
-    await user.keyboard(key);
-    getActiveCardIndex(); // helper já valida invariante (toHaveLength(1))
+  expect(allFocusables.length).toBeGreaterThanOrEqual(2);
+
+  // Foca o último elemento da ordem natural
+  const last = allFocusables[allFocusables.length - 1];
+  last.focus();
+  expect(last).toHaveFocus();
+
+  // Valida focus-visible no último
+  REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+    expect(last.className).toContain(cls);
+  });
+
+  // Shift+Tab percorre do penúltimo até o primeiro, validando ordem e classes
+  for (let i = allFocusables.length - 2; i >= 0; i--) {
+    await user.tab({ shift: true });
+    const expected = allFocusables[i];
+    expect(expected).toHaveFocus();
+
+    // Cada parada deve ter as 5 classes focus-visible obrigatórias
+    REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+      expect(expected.className).toContain(cls);
+    });
+
+    // Garante que NENHUMA classe `focus:` (sem -visible) está sozinha quebrando contraste
+    expect(expected.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
   }
+
+  // Sanity: Shift+Tab a partir do primeiro deveria sair do componente (não loop)
+  // Não validamos foco fora do componente, apenas que o primeiro elemento foi alcançado
+  expect(allFocusables[0]).toHaveFocus();
 });
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (reusa `React`, `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
-- 1 teste novo (atual contagem + 1)
-- Helper `getActiveCardIndex` faz dupla função: retorna índice ativo E valida invariante (`expect(...).toHaveLength(1)`) — qualquer step com 0 ou 2+ cards pressed falha imediatamente
-- Loop cobre wrap-around completo (`total + 1` iterações garantem pelo menos 1 wrap)
-- Verificação separada de botões "vencedora" garante que `aria-pressed` não vaze para botões de ação
-- Sequência mista no final exercita transições não-monotônicas (Home depois de End, etc.)
+- Sem novos imports (reusa `render`, `screen`, `userEvent`, `vi`, `navVariations`, `MagicUpVariationComparator`)
+- 1 teste novo (120 → 121 testes)
+- Helper `compareDocumentPosition` garante ordem real do DOM (não depende de `getAllByRole` retornar em ordem)
+- Loop de Shift+Tab cobre **todas** as paradas (cards + botões vencedora intercalados)
+- Asserção de classes em **cada parada** — não só na primeira/última
+- Negative lookbehind `(?<!focus-visible:)focus:ring-` garante que classes `focus:` puras não substituam `focus-visible:` (regressão silenciosa de WCAG 2.4.7)
 
 ## Entregável
 
 - 1 teste cobrindo:
-  1. **Invariante de exclusividade**: a cada movimento, exatamente 1 card com `aria-pressed="true"`
-  2. **Wrap-around ArrowRight**: `total + 1` setas para a direita validam ciclo completo
-  3. **Wrap-around ArrowLeft**: `total + 1` setas para a esquerda sem violar invariante
-  4. **Home/End preservam invariante** após sequências longas
-  5. **Foco sincronizado com `aria-pressed`**: card pressed = card focado
-  6. **Botões "vencedora" não vazam `aria-pressed`**: separação semântica preservada
-  7. **Sequência mista** (Right→Home→End→Left→Left→End) mantém invariante em cada step
+  1. **Ordem reversa Shift+Tab**: percorre todos os focáveis (cards + botões vencedora) do último ao primeiro respeitando ordem do DOM
+  2. **Classes focus-visible obrigatórias**: 5 classes (`outline-none`, `ring-2`, `ring-ring`, `ring-offset-2`, `ring-offset-background`) em cada parada
+  3. **Sem regressão para `focus:` puro**: regex bloqueia `focus:ring-*` sem prefixo `focus-visible:`
+  4. **Cobertura intercalada**: cards e botões "vencedora" no mesmo ciclo, garantindo que nenhum tipo é pulado
 - Captura regressões onde:
-  - `aria-pressed` antigo permaneça `"true"` após navegação (múltiplos pressed)
-  - Wrap-around deixe estado órfão no card de origem
-  - Refator faça `aria-pressed` do card ativo virar `aria-pressed={true}` (boolean) em vez de string
-  - Botão de ação interno ao card herde ou ganhe `aria-pressed` indevidamente
-  - `onSelect` deixe de ser chamado em algum movimento, congelando ARIA
-- Sem impacto nos testes existentes: novo teste é isolado em `ControlledWrapper` próprio
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar verde
+  - `tabIndex={-1}` em cards ou botões vencedora pule paradas no Shift+Tab
+  - Refator troque `focus-visible:ring-2` por `focus:ring-2` (quebra navegação por mouse com indicador residual)
+  - Remoção de `focus-visible:ring-offset-background` reduza contraste do anel
+  - Reordenação de DOM mude foco lógico sem refletir nos testes
+- Sem impacto nos 120 testes existentes: novo teste é isolado (instância própria, sem mocks compartilhados)
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 121/121 verde
 
