@@ -3242,5 +3242,146 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       await user.keyboard("{Enter}");
       expect(onSelect).toHaveBeenCalledWith(1);
     });
+
+    it("não cria keyboard trap: Tab no último botão sai para sentinel 'depois' e Shift+Tab no primeiro botão sai para sentinel 'antes' (WCAG 2.1.2)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <div>
+          <button type="button" data-testid="before-sentinel">antes</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+          />
+          <button type="button" data-testid="after-sentinel">depois</button>
+        </div>
+      );
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1.focus();
+      expect(card1).toHaveFocus();
+
+      await user.tab({ shift: true });
+      expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+      await user.tab({ shift: true });
+      expect(screen.getByTestId("before-sentinel")).not.toHaveFocus();
+      expect(card1).not.toHaveFocus();
+
+      const winnerBtn3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+      winnerBtn3.focus();
+      expect(winnerBtn3).toHaveFocus();
+
+      await user.tab();
+      expect(screen.getByTestId("after-sentinel")).toHaveFocus();
+
+      await user.tab();
+      expect(screen.getByTestId("after-sentinel")).not.toHaveFocus();
+      expect(winnerBtn3).not.toHaveFocus();
+
+      screen.getByTestId("before-sentinel").focus();
+      expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+      const expectedForwardOrder = [
+        { name: /^Selecionar variação 1/ },
+        { name: "Marcar variação 1 como vencedora" },
+        { name: /^Selecionar variação 2/ },
+        { name: "Marcar variação 2 como vencedora" },
+        { name: /^Selecionar variação 3/ },
+        { name: "Marcar variação 3 como vencedora" },
+      ];
+
+      for (const target of expectedForwardOrder) {
+        await user.tab();
+        expect(screen.getByRole("button", target)).toHaveFocus();
+      }
+
+      await user.tab();
+      expect(screen.getByTestId("after-sentinel")).toHaveFocus();
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("não cria keyboard trap mesmo com loadingWinnerIndex ativo: botão disabled é pulado e Tab/Shift+Tab saem do comparador (WCAG 2.1.2)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <div>
+          <button type="button" data-testid="before-sentinel">antes</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+            loadingWinnerIndex={1}
+          />
+          <button type="button" data-testid="after-sentinel">depois</button>
+        </div>
+      );
+
+      const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      expect(winnerBtn2).toBeDisabled();
+      expect(winnerBtn2).toHaveAttribute("aria-busy", "true");
+
+      screen.getByTestId("before-sentinel").focus();
+
+      const expectedForwardOrder = [
+        { name: /^Selecionar variação 1/ },
+        { name: "Marcar variação 1 como vencedora" },
+        { name: /^Selecionar variação 2/ },
+        { name: /^Selecionar variação 3/ },
+        { name: "Marcar variação 3 como vencedora" },
+      ];
+
+      for (const target of expectedForwardOrder) {
+        await user.tab();
+        const btn = screen.getByRole("button", target);
+        expect(btn).toHaveFocus();
+        expect(winnerBtn2).not.toHaveFocus();
+      }
+
+      await user.tab();
+      expect(screen.getByTestId("after-sentinel")).toHaveFocus();
+
+      const expectedReverseOrder = [
+        { name: "Marcar variação 3 como vencedora" },
+        { name: /^Selecionar variação 3/ },
+        { name: /^Selecionar variação 2/ },
+        { name: "Marcar variação 1 como vencedora" },
+        { name: /^Selecionar variação 1/ },
+      ];
+
+      for (const target of expectedReverseOrder) {
+        await user.tab({ shift: true });
+        const btn = screen.getByRole("button", target);
+        expect(btn).toHaveFocus();
+        expect(winnerBtn2).not.toHaveFocus();
+      }
+
+      await user.tab({ shift: true });
+      expect(screen.getByTestId("before-sentinel")).toHaveFocus();
+
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      card2.focus();
+      expect(card2).toHaveFocus();
+
+      await user.tab();
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
+      expect(winnerBtn2).not.toHaveFocus();
+
+      await user.tab({ shift: true });
+      expect(card2).toHaveFocus();
+      expect(winnerBtn2).not.toHaveFocus();
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
   });
 });
