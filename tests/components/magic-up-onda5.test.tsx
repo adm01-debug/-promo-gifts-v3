@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { MagicUpQualityScore } from "@/components/magic-up/MagicUpQualityScore";
 import { MagicUpQualityChecklist } from "@/components/magic-up/MagicUpQualityChecklist";
 import { MagicUpCurationStatus } from "@/components/magic-up/MagicUpCurationStatus";
