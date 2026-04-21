@@ -4530,5 +4530,96 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("foco permanece visível e consistente após clicar em card e em 'Marcar vencedora'", async () => {
+      const user = userEvent.setup();
+      const onSelectWinner = vi.fn();
+      const navVariations: VariationItem[] = [
+        { id: "fv-1", imageUrl: "https://example.com/fv1.png", qualityScore: 80 } as VariationItem,
+        { id: "fv-2", imageUrl: "https://example.com/fv2.png", qualityScore: 70 } as VariationItem,
+        { id: "fv-3", imageUrl: "https://example.com/fv3.png", qualityScore: 90 } as VariationItem,
+      ];
+
+      function ControlledWrapper() {
+        const [activeIndex, setActiveIndex] = React.useState(0);
+        return (
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={onSelectWinner}
+          />
+        );
+      }
+
+      render(<ControlledWrapper />);
+
+      const REQUIRED_FOCUS_CLASSES = [
+        "focus-visible:outline-none",
+        "focus-visible:ring-2",
+        "focus-visible:ring-ring",
+      ];
+
+      const expectFocusVisible = (el: HTMLElement) => {
+        REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+          expect(el.className).toContain(cls);
+        });
+        expect(el.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
+      };
+
+      // ── Cenário 1: clique em card 2 ──
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      await user.click(card2);
+      expect(card2).toHaveFocus();
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expectFocusVisible(card2);
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(card1).toHaveAttribute("aria-pressed", "false");
+
+      // ── Cenário 2: clique em card 3 ──
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      await user.click(card3);
+      expect(card3).toHaveFocus();
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+      expectFocusVisible(card3);
+      expect(card2).toHaveAttribute("aria-pressed", "false");
+
+      // ── Cenário 3: ativação via Enter ──
+      card1.focus();
+      await user.keyboard("{Enter}");
+      expect(card1).toHaveFocus();
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expectFocusVisible(card1);
+
+      // ── Cenário 4: ativação via Espaço ──
+      card2.focus();
+      await user.keyboard(" ");
+      expect(card2).toHaveFocus();
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expectFocusVisible(card2);
+
+      // ── Cenário 5: clique em "Marcar vencedora" ──
+      const winnerButtons = screen.getAllByRole("button", { name: /vencedora/i });
+      expect(winnerButtons.length).toBeGreaterThan(0);
+
+      const firstWinnerBtn = winnerButtons[0];
+      await user.click(firstWinnerBtn);
+
+      expect(onSelectWinner).toHaveBeenCalledTimes(1);
+
+      expect(document.activeElement).not.toBe(document.body);
+
+      const focusedAfterWinner = document.activeElement as HTMLElement;
+      expect(focusedAfterWinner).not.toBeNull();
+      expect(focusedAfterWinner.className).toContain("focus-visible:outline-none");
+      expect(focusedAfterWinner.className).toContain("focus-visible:ring-2");
+      expect(focusedAfterWinner.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
+
+      // ── Cenário 6: invariante aria-pressed ──
+      const cards = screen.getAllByRole("button", { name: /^Selecionar variação/ });
+      const pressedCards = cards.filter((c) => c.getAttribute("aria-pressed") === "true");
+      expect(pressedCards).toHaveLength(1);
+    });
   });
 });
