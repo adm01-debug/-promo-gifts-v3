@@ -363,7 +363,7 @@ describe("Magic Up Onda 5 components", () => {
       screen.getByRole("button", { name: "Selecionar variação 1, score 80, melhor score" })
     ).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
+    await user.click(screen.getByRole("button", { name: "Selecionar variação 2, score 80" }));
     expect(onSelect).toHaveBeenCalledWith(1);
 
     rerender(
