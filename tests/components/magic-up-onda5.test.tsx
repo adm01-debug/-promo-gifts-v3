@@ -2571,5 +2571,112 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       const wrappersAfter = [getWrapper(1), getWrapper(2), getWrapper(3)];
       expect(wrappersAfter.filter((w) => w.className.includes("ring-2"))).toHaveLength(1);
     });
+
+    it("aria-label do botão de seleção ganha/perde sufixo ', melhor score' conforme winnerIndex muda", () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      const renderWith = (variations: VariationItem[]) => (
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const { rerender } = render(renderWith(navVariations));
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ }).getAttribute("aria-label"))
+        .not.toContain("melhor score");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ }).getAttribute("aria-label"))
+        .not.toContain("melhor score");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ }).getAttribute("aria-label"))
+        .toContain(", melhor score");
+
+      rerender(renderWith([
+        { ...navVariations[0], isWinner: true },
+        navVariations[1],
+        navVariations[2],
+      ]));
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ }).getAttribute("aria-label"))
+        .toContain(", melhor score");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ }).getAttribute("aria-label"))
+        .not.toContain("melhor score");
+
+      rerender(renderWith(navVariations));
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ }).getAttribute("aria-label"))
+        .not.toContain("melhor score");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ }).getAttribute("aria-label"))
+        .toContain(", melhor score");
+    });
+
+    it("badge interna 'Melhor score' aparece exatamente uma vez no DOM e migra para o card winner correto", () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      const renderWith = (variations: VariationItem[]) => (
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const { rerender } = render(renderWith(navVariations));
+
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+      const winnerBadge1 = screen.getByLabelText("Melhor score");
+      const winnerBtn1 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      expect(winnerBtn1.contains(winnerBadge1)).toBe(true);
+
+      rerender(renderWith([
+        { ...navVariations[0], isWinner: true },
+        navVariations[1],
+        navVariations[2],
+      ]));
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+      const winnerBadge2 = screen.getByLabelText("Melhor score");
+      const winnerBtn2 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(winnerBtn2.contains(winnerBadge2)).toBe(true);
+
+      rerender(renderWith([
+        navVariations[0],
+        { ...navVariations[1], isWinner: true },
+        navVariations[2],
+      ]));
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+      const winnerBadge3 = screen.getByLabelText("Melhor score");
+      const winnerBtn3 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(winnerBtn3.contains(winnerBadge3)).toBe(true);
+    });
+
+    it("badge de header anuncia o maior score numérico via aria-label e atualiza após mudanças de variations", () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      const renderWith = (variations: VariationItem[]) => (
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const { rerender } = render(renderWith(navVariations));
+      expect(screen.getByLabelText("Melhor score entre variações: 90")).toBeInTheDocument();
+
+      rerender(renderWith([
+        { ...navVariations[0], qualityScore: 50 },
+        { ...navVariations[1], qualityScore: 60 },
+        { ...navVariations[2], qualityScore: 40 },
+      ]));
+      expect(screen.getByLabelText("Melhor score entre variações: 60")).toBeInTheDocument();
+      expect(screen.queryByLabelText("Melhor score entre variações: 90")).not.toBeInTheDocument();
+
+      rerender(renderWith([
+        { id: "var-1", imageUrl: "https://example.com/1.png" } as VariationItem,
+        { id: "var-2", imageUrl: "https://example.com/2.png" } as VariationItem,
+      ]));
+      expect(screen.getByLabelText("Melhor score entre variações: indisponível")).toBeInTheDocument();
+    });
   });
 });
