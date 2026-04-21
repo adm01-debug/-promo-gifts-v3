@@ -1,47 +1,45 @@
 
 
-# Plano — Teste de empate de scores no MagicUpVariationComparator
+# Plano — Snapshot tests do MagicUpVariationComparator
 
-Adiciono 1 caso novo cobrindo empate, sem alterar produção.
+Adiciono snapshots de DOM cobrindo os principais estados visuais do comparador, para travar regressões de layout, badges e classes.
 
 ## Arquivo único alterado
 
-`tests/components/magic-up-onda5.test.tsx` — 1 novo `it()` no bloco do comparador.
+`tests/components/magic-up-onda5.test.tsx` — novo bloco `describe("MagicUpVariationComparator snapshots")` ao final.
 
-## Comportamento auditado
+## Snapshots cobertos (4 cenários)
 
-A lógica atual em `MagicUpVariationComparator.tsx`:
-```ts
-const winnerIndex = variations.findIndex(
-  (variation, index) => variation.isWinner || scores[index] === bestScore
-);
-```
-Em empate (ex.: índices 1 e 2 com score 90), `findIndex` retorna o **primeiro índice** com `score === bestScore`, garantindo determinismo. Se algum item tiver `isWinner === true`, ele tem prioridade absoluta sobre o critério de score.
+1. **Estado base — 3 variações com scores distintos**
+   - Asserção: `expect(container.firstChild).toMatchSnapshot()`
+   - Trava: estrutura do header (badge "Melhor score: X"), grid `grid-cols-2 sm:grid-cols-3`, ordem dos cards, badge "Melhor score" no vencedor, botão "Marcar vencedora" em cada card.
 
-## Caso coberto
+2. **Variação ativa (activeIndex=1)**
+   - Trava: classes `border-primary ring-2 ring-primary/20` no card ativo, `aria-pressed="true"` e `aria-current="true"`.
 
-**Empate de scores (3 variações, scores [70, 90, 90])**
-Asserts:
-- Badge global "Melhor score: 90" exposta no header
-- Apenas **1** badge "Melhor score" renderizada (não duas)
-- A badge "Melhor score" pertence ao card de **índice 1** (primeiro empatado), não ao índice 2
-- aria-label do card índice 1 inclui "melhor score"
-- aria-label do card índice 2 NÃO inclui "melhor score" mesmo tendo score 90
-- Determinismo: re-render com as mesmas props mantém winner no índice 1
+3. **Empate de scores [70, 90, 90]**
+   - Trava: apenas 1 badge "Melhor score" (no índice 1, primeiro empatado), determinismo do `findIndex`, badge global "Melhor score: 90".
 
-**Bônus no mesmo `it()`** — empate com `isWinner` explícito:
-- Mesmas variações, mas índice 2 recebe `isWinner: true`
-- Asserts: agora a badge "Melhor score" pertence ao índice 2 (prioridade do flag), não ao 1
+4. **Scores ausentes (todos sem `qualityScore` nem `qualityDiagnosis`)**
+   - Trava: placeholders "—" no header e em cada card, badge "Melhor score" caindo no índice 0.
+
+## Estratégia anti-flaky
+
+- Usar `imageUrl` determinístico (`https://example.com/{a,b,c}.png`) — sem timestamps ou IDs gerados
+- Sem `Date.now()`, sem `Math.random()`, sem props derivadas de hooks externos
+- Snapshots inline via `toMatchInlineSnapshot()` para revisão visual no próprio arquivo de teste (mais fácil de auditar em PRs do que `.snap` separados)
+- Helper local `baseVariation(overrides)` para reduzir ruído nas props
 
 ## Restrições
 
-- Sem alterar `MagicUpVariationComparator.tsx` nem outros componentes
-- Reutiliza helper `diagnosis()` existente
+- Sem alterar `MagicUpVariationComparator.tsx` nem outros componentes de produção
 - Sem novos mocks, sem dependência de browser
+- Reutiliza imports já existentes no arquivo de teste
 
 ## Entregável
 
-- 1 novo teste verde (com 2 cenários internos: empate puro + empate com `isWinner`)
-- Total do arquivo: 12 → 13 testes
-- Confirmação de que `winnerIndex` é determinístico e respeita prioridade de `isWinner`
+- 4 novos snapshots verdes (inline)
+- Total do arquivo: 13 → 17 testes
+- Snapshots inline servem como documentação visual do contrato de UI do comparador
+- Qualquer mudança futura em estrutura/classes/badges falha o teste e exige atualização explícita via `vitest -u`
 
