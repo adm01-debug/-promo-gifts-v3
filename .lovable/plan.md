@@ -1,136 +1,106 @@
 
 
-# Plano — Teste: `isWinner=true` tem prioridade sobre score maior
+# Plano — Tratamento explícito de score 0 vs ausente no `MagicUpVariationComparator`
 
-Adiciono teste validando que quando uma variação tem `isWinner=true` mas score **menor** que outra, ela ainda recebe a badge "Melhor score" (prioridade do flag explícito sobre o cálculo automático).
+Substituo o uso de `||` (falsy JS) pela checagem explícita `?? `/`undefined`, separando semanticamente "score ausente" (sem dado) de "score zero" (avaliado como ruim). Hoje ambos colapsam em `0`, criando ambiguidade que já causou refactors sucessivos nos testes.
 
-## Justificativa
-
-A lógica atual em `MagicUpVariationComparator.tsx`:
+## Problema atual
 
 ```ts
-const winnerIndex = hasValidScores
-  ? variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore)
-  : -1;
-```
-
-O operador `||` no predicate dá **prioridade ao `isWinner`**: se uma variação no índice `i` tem `isWinner=true`, ela vence imediatamente — mesmo que outra variação tenha score maior. `findIndex` retorna o **primeiro** índice que satisfaz, então se `isWinner` está num índice anterior ao `bestScore`, ela vence; mas se `isWinner` está num índice posterior, depende da ordem.
-
-**Casos a travar:**
-1. `isWinner=true` em índice 0 com score 50, índice 1 com score 90 (sem isWinner) → vencedor = 0 (isWinner)
-2. `isWinner=true` em índice 2 com score 30, índices 0/1 com score 70/80 → vencedor = ? (`findIndex` itera 0→2, índice 1 satisfaz `scores[1]===bestScore=80` antes de chegar ao 2 com isWinner)
-
-**Comportamento real do caso 2:** `findIndex` encontra índice 1 primeiro (`scores[1] === 80 === bestScore`), retorna 1 — `isWinner=true` no índice 2 é **ignorado**. Isso é um bug sutil de prioridade.
-
-**Decisão:** o teste pedido pelo usuário ("isWinner segue a regra de prioridade") implica que `isWinner=true` deve **sempre** vencer, independente da posição. Isso requer reordenar a lógica:
-
-```ts
-const explicitWinner = variations.findIndex((v) => v.isWinner);
-const winnerIndex = hasValidScores
-  ? (explicitWinner >= 0 ? explicitWinner : variations.findIndex((_, i) => scores[i] === bestScore))
-  : explicitWinner; // -1 se nenhum, ou índice do isWinner mesmo sem scores
-```
-
-Edge case: se `isWinner=true` mas `bestScore=0` (sem scores válidos), o flag explícito ainda deve vencer — `isWinner` é decisão de UX/curadoria que sobrepõe ausência de score automático.
-
-## Alterações
-
-### 1. `src/components/magic-up/MagicUpVariationComparator.tsx`
-
-Substituir cálculo de `winnerIndex` para garantir prioridade absoluta de `isWinner`:
-
-```tsx
 const scores = variations.map((v) => v.qualityDiagnosis?.total || v.qualityScore || 0);
 const bestScore = Math.max(...scores);
 const hasValidScores = bestScore > 0;
+```
+
+Ambiguidades:
+1. `qualityDiagnosis.total === 0` cai no fallback `qualityScore` — ignora um diagnóstico legítimo de score zero
+2. `qualityScore === 0` colapsa para `0` indistinguível de `undefined`
+3. `bestScore > 0` exclui um cenário legítimo onde todas as variações foram avaliadas e receberam 0
+4. `aria-label` usa `score ?` (falsy) — esconde "score 0" mesmo quando é uma avaliação real
+
+## Nova lógica
+
+### `src/components/magic-up/MagicUpVariationComparator.tsx`
+
+```ts
+// Score numérico ou null (ausente). Nunca colapsa 0 em undefined.
+const resolveScore = (v: VariationItem): number | null => {
+  if (typeof v.qualityDiagnosis?.total === "number") return v.qualityDiagnosis.total;
+  if (typeof v.qualityScore === "number") return v.qualityScore;
+  return null;
+};
+
+const scores = variations.map(resolveScore);
+const numericScores = scores.filter((s): s is number => s !== null);
+const hasAnyScore = numericScores.length > 0;
+const bestScore = hasAnyScore ? Math.max(...numericScores) : null;
+
 const explicitWinnerIndex = variations.findIndex((v) => v.isWinner);
 const winnerIndex = explicitWinnerIndex >= 0
   ? explicitWinnerIndex
-  : (hasValidScores ? variations.findIndex((_, i) => scores[i] === bestScore) : -1);
+  : (bestScore !== null ? scores.findIndex((s) => s === bestScore) : -1);
 ```
 
-Renderização de badge permanece `{isWinner && ...}` (onde `isWinner = index === winnerIndex`).
+**Renderização:**
+- Header badge: `Melhor score: {bestScore ?? "—"}` (mostra `0` quando todos avaliados em zero, `—` quando ausentes)
+- Card score: `{scores[index] ?? "—"}` (idem por card)
+- Winner badge: `{isWinner && <Badge>...}` (sem mudança — `winnerIndex=-1` já garante)
+- `aria-label` do botão:
+  ```ts
+  const scoreLabel = scores[index] !== null ? `, score ${scores[index]}` : "";
+  const winnerLabel = isWinner ? ", melhor score" : "";
+  ```
+  Agora `score 0` aparece quando há avaliação real de zero (semântica correta para screen readers — é um dado, não ausência).
 
-**Comportamento resultante:**
-- `isWinner=true` em qualquer índice → vence (mesmo sem scores)
-- Sem `isWinner` + scores válidos → primeiro com bestScore vence
-- Sem `isWinner` + sem scores → nenhum vencedor
+**Comportamento resultante (matriz):**
 
-### 2. `tests/components/magic-up-onda5.test.tsx`
+| Cenário | bestScore | winnerIndex | Badge no card |
+|---|---|---|---|
+| Todos `null` (sem dados) | `null` | `-1` | nenhuma |
+| Todos `0` (avaliados ruins) | `0` | `0` (primeiro) | índice 0 |
+| `isWinner=true` em qualquer índice | — | índice do `isWinner` | índice marcado |
+| Empate em score real | maior | primeiro com maior | primeiro empatado |
+| Mix `null` + numéricos | maior numérico | primeiro com maior | primeiro com maior |
 
-Adicionar 3 testes no final da sub-suíte de empate:
+### `tests/components/magic-up-onda5.test.tsx`
 
-```ts
-it("isWinner=true em índice 0 com score menor (50) vence sobre índice 1 com score maior (90)", () => {
-  const variations = [
-    buildVariation({ qualityScore: 50, isWinner: true }, 0),
-    buildVariation({ qualityScore: 90 }, 1),
-    buildVariation({ qualityScore: 70 }, 2),
-  ];
-  renderTied(variations);
+Ajustes na sub-suíte de empate para refletir nova semântica:
 
-  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
-  const cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+1. **Manter** `isWinner` testes (3 casos) — passam sem alteração (lógica de prioridade preservada)
+2. **Manter** "todos undefined → nenhuma badge" — passa (continua `winnerIndex=-1`)
+3. **Atualizar** teste `aria-label score=0` — agora `qualityScore: 0` é tratado como avaliação real:
+   - Vencedor `qualityScore: 0` → aria-label **contém** `, score 0` E `, melhor score`
+   - Inverter assertion `not.toMatch(/score 0\b/)` para `toContain("score 0")`
+4. **Adicionar** novo teste: "todos `qualityScore: 0` (avaliados ruins) → badge aparece no índice 0":
+   - 3 variações com `qualityScore: 0` explícito
+   - `bestScore=0`, `winnerIndex=0`, 1 badge "Melhor score" no índice 0
+   - Header mostra `Melhor score: 0` (não `—`)
+5. **Adicionar** teste: "mix de `null` e numéricos → vencedor é o numérico maior":
+   - `[null, 60, null, 40]` → winnerIndex=1, badge no índice 1
+   - Cards 0 e 2 mostram score `—`, cards 1 e 3 mostram `60`/`40`
+6. **Adicionar** teste: "`qualityDiagnosis.total === 0` é respeitado (não cai em qualityScore=80)":
+   - Variação com `qualityDiagnosis.total: 0` E `qualityScore: 80` → resolveScore retorna `0` (diagnóstico tem prioridade absoluta)
+   - Outra variação com `qualityScore: 50` → vence (50 > 0)
 
-  // aria-label do vencedor confirma destaque mesmo com score 50
-  const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
-  expect(winnerBtn.getAttribute("aria-label")).toContain("melhor score");
-  expect(winnerBtn.getAttribute("aria-label")).toContain("score 50");
-});
+### Verificar testes pré-existentes que possam quebrar
 
-it("isWinner=true em índice 2 com score menor (30) vence sobre índices 0/1 com scores maiores (70/80)", () => {
-  const variations = [
-    buildVariation({ qualityScore: 70 }, 0),
-    buildVariation({ qualityScore: 80 }, 1),
-    buildVariation({ qualityScore: 30, isWinner: true }, 2),
-  ];
-  renderTied(variations);
-
-  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
-  const cards = screen.getAllByRole("listitem");
-  expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).not.toBeNull();
-});
-
-it("isWinner=true sem scores válidos: vence mesmo com bestScore=0", () => {
-  const variations = [
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: true }, 1),
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
-  ];
-  renderTied(variations);
-
-  // isWinner sobrepõe guard hasValidScores
-  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
-  const cards = screen.getAllByRole("listitem");
-  expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
-  expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
-  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
-
-  // Badge global do header ainda mostra "—" (não há bestScore numérico)
-  expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
-});
-```
-
-### 3. Verificar testes pré-existentes
-
-Pesquisar no arquivo qualquer fixture com `isWinner: true` combinado com score menor — se existirem, podem precisar de ajuste. O teste base com `qualityScore: 90, isWinner: true` (linha ~911) tem score maior, então é compatível com a nova lógica (vence por ambos os critérios). Sem ajustes esperados, mas validar via execução.
+Buscar fixtures com `qualityScore: 0` ou `qualityDiagnosis.total: 0` no arquivo de testes — ajustar assertions de score exibido que esperem `—` em casos onde agora aparecerá `0`.
 
 ## Restrições
 
-- Mudança comportamental no componente é **intencional** — corrige bug de prioridade do operador `||`
-- `isWinner=true` torna-se **flag absoluto de curadoria** (sobrepõe scores e ausência de scores)
-- Reusa helpers `buildVariation`, `renderTied`, `within` já importados
-- Sem novos imports
+- Mudança comportamental **intencional** — corrige ambiguidade falsy
+- `qualityDiagnosis.total` ganha prioridade absoluta (era ofuscado quando 0)
+- `aria-label` passa a incluir `score 0` quando há avaliação real (melhor a11y — anuncia o dado)
+- `isWinner` mantém prioridade absoluta (sem regressão)
+- Reusa helpers de teste existentes; sem novos imports
+- Tipo de retorno `null` (não `undefined`) — distinção explícita "ausente" vs "zero"
 
 ## Entregável
 
-- 1 modificação em `MagicUpVariationComparator.tsx` (cálculo de `winnerIndex` com prioridade explícita)
-- 3 novos testes cobrindo: `isWinner` em posição inicial com score menor, `isWinner` em posição final com score menor, `isWinner` sem scores válidos
-- Cobertura: 58 → 61 testes
-- Trava contrato: `isWinner=true` é prioridade absoluta sobre cálculo automático
+- 1 modificação em `MagicUpVariationComparator.tsx` (helper `resolveScore`, tipo `number | null`, renderização com `??`)
+- 3 novos testes (todos zero, mix null/numérico, diagnóstico zero sobrepõe qualityScore)
+- 1 teste invertido (aria-label score=0 agora **inclui** "score 0")
+- Possíveis ajustes em testes pré-existentes que assumiam comportamento falsy
+- Cobertura: 61 → 64 testes
+- Trava semântica: `null` = sem dado, `0` = avaliação real ruim
 
