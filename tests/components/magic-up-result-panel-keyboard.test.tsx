@@ -12,7 +12,7 @@
  * para isolar o foco apenas nos controles de variação do painel.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, fireEvent, screen, within } from "@testing-library/react";
+import { render, fireEvent, screen, within, createEvent } from "@testing-library/react";
 import { MagicUpResultPanel } from "@/pages/magic-up/MagicUpResultPanel";
 
 vi.mock("@/components/magic-up/AdImageResult", () => ({
