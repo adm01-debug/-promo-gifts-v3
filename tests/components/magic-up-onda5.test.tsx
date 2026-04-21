@@ -2346,4 +2346,133 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     expect(onSelect.mock.calls.map((c) => c[0])).toEqual([2, 2, 1, 2]);
     expect(onSelectWinner).not.toHaveBeenCalled();
   });
+
+  describe("ativação por Enter/Espaço nos botões", () => {
+    const navVariations: VariationItem[] = [
+      { id: "var-1", imageUrl: "https://example.com/1.png", qualityScore: 80 } as VariationItem,
+      { id: "var-2", imageUrl: "https://example.com/2.png", qualityScore: 70 } as VariationItem,
+      { id: "var-3", imageUrl: "https://example.com/3.png", qualityScore: 90 } as VariationItem,
+    ];
+
+    it("Enter no botão 'Selecionar variação N' chama onSelect(N-1) e aria-pressed/aria-current acompanham após rerender", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const renderWith = (activeIndex: number) => (
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={activeIndex}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+      const { rerender } = render(renderWith(0));
+
+      const selectBtn2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      selectBtn2.focus();
+      await user.keyboard("{Enter}");
+
+      expect(onSelect).toHaveBeenCalledTimes(1);
+      expect(onSelect).toHaveBeenLastCalledWith(1);
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      rerender(renderWith(1));
+      const selectBtn2After = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(selectBtn2After).toHaveAttribute("aria-pressed", "true");
+      expect(selectBtn2After).toHaveAttribute("aria-current", "true");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveAttribute("aria-pressed", "false");
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
+    });
+
+    it("Espaço no botão 'Selecionar variação N' chama onSelect(N-1) com mesmo comportamento de Enter", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+
+      const selectBtn3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      selectBtn3.focus();
+      await user.keyboard(" ");
+
+      expect(onSelect).toHaveBeenCalledTimes(1);
+      expect(onSelect).toHaveBeenLastCalledWith(2);
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("Enter e Espaço no botão 'Marcar vencedora' chamam onSelectWinner(index) e badge migra após rerender com isWinner", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const renderWith = (variations: VariationItem[]) => (
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+      const { rerender } = render(renderWith(navVariations));
+
+      // Sanity: badge inicial em var-3 (maior score 90)
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+      const initialWinnerCard = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      expect(initialWinnerCard.getAttribute("aria-label")).toContain(", melhor score");
+
+      // Enter em "Marcar variação 1 como vencedora"
+      const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      winnerBtn1.focus();
+      await user.keyboard("{Enter}");
+
+      expect(onSelectWinner).toHaveBeenCalledTimes(1);
+      expect(onSelectWinner).toHaveBeenLastCalledWith(0);
+      expect(onSelect).not.toHaveBeenCalled();
+
+      const updatedVariations: VariationItem[] = [
+        { ...navVariations[0], isWinner: true },
+        navVariations[1],
+        navVariations[2],
+      ];
+      rerender(renderWith(updatedVariations));
+
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ }).getAttribute("aria-label")).toContain(
+        ", melhor score"
+      );
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ }).getAttribute("aria-label")).not.toContain(
+        "melhor score"
+      );
+
+      // Espaço em "Marcar variação 2 como vencedora"
+      onSelectWinner.mockClear();
+      const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      winnerBtn2.focus();
+      await user.keyboard(" ");
+
+      expect(onSelectWinner).toHaveBeenCalledTimes(1);
+      expect(onSelectWinner).toHaveBeenLastCalledWith(1);
+      expect(onSelect).not.toHaveBeenCalled();
+
+      const updatedAgain: VariationItem[] = [
+        navVariations[0],
+        { ...navVariations[1], isWinner: true },
+        navVariations[2],
+      ];
+      rerender(renderWith(updatedAgain));
+
+      expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ }).getAttribute("aria-label")).toContain(
+        ", melhor score"
+      );
+    });
+  });
 });
