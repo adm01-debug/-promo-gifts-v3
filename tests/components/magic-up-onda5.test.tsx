@@ -1,6 +1,6 @@
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MagicUpQualityScore } from "@/components/magic-up/MagicUpQualityScore";
 import { MagicUpQualityChecklist } from "@/components/magic-up/MagicUpQualityChecklist";
@@ -1124,5 +1124,97 @@ describe("MagicUpVariationComparator focus-visible classes", () => {
     await user.tab(); // card1
     await user.tab(); // marcar1
     expect(marcarBtns[0]).toHaveFocus();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────
+// MagicUpVariationComparator — empate total de scores (determinismo)
+// Trava contrato: findIndex retorna primeiro empatado; apenas 1 badge "Melhor score"
+// ─────────────────────────────────────────────────────────────────────
+
+describe("MagicUpVariationComparator — empate total de scores (determinismo)", () => {
+  function buildVariation(overrides: Partial<VariationItem> = {}, idx = 0): VariationItem {
+    return {
+      id: `var-${idx}`,
+      imageUrl: `https://example.com/img-${idx}.png`,
+      isFavorite: false,
+      qualityScore: 75,
+      isWinner: false,
+      ...overrides,
+    };
+  }
+
+  const renderTied = (variations: VariationItem[]) =>
+    render(
+      <MagicUpVariationComparator
+        variations={variations}
+        activeIndex={0}
+        onSelect={vi.fn()}
+        onSelectWinner={vi.fn()}
+      />
+    );
+
+  it("empate total com qualityScore=75: renderiza exatamente 1 badge 'Melhor score' nos cards", () => {
+    const variations = [0, 1, 2].map((i) => buildVariation({ qualityScore: 75 }, i));
+    renderTied(variations);
+    // Filtra apenas as badges dos cards (exclui o badge do header "Melhor score: N")
+    const cardBadges = screen
+      .getAllByLabelText("Melhor score")
+      .filter((el) => el.tagName.toLowerCase() !== "div" || !el.textContent?.includes(":"));
+    // O badge no header tem aria-label diferente ("Melhor score entre variações: ...")
+    // então getAllByLabelText("Melhor score") só pega os badges dentro dos cards
+    expect(cardBadges).toHaveLength(1);
+  });
+
+  it("empate total: badge 'Melhor score' aparece apenas no card do índice 0", () => {
+    const variations = [0, 1, 2].map((i) => buildVariation({ qualityScore: 75 }, i));
+    renderTied(variations);
+    const cards = screen.getAllByRole("listitem");
+    expect(cards).toHaveLength(3);
+    const { within } = require("@testing-library/react");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+  });
+
+  it("empate total via qualityDiagnosis.total=90: badge fica no índice 0 (mesmo determinismo)", () => {
+    const variations = [0, 1, 2].map((i) =>
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: diagnosis(90) }, i)
+    );
+    renderTied(variations);
+    const cards = screen.getAllByRole("listitem");
+    const { within } = require("@testing-library/react");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+  });
+
+  it("caso degenerado (todos sem score): bestScore=0, badge ainda aparece no índice 0", () => {
+    const variations = [0, 1, 2].map((i) =>
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, i)
+    );
+    renderTied(variations);
+    const cards = screen.getAllByRole("listitem");
+    const { within } = require("@testing-library/react");
+    // Contrato atual: scores[index] === bestScore (0===0) → findIndex retorna 0
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+  });
+
+  it("empate parcial [60, 90, 90]: badge no primeiro com bestScore (índice 1), nunca no 2", () => {
+    const variations = [
+      buildVariation({ qualityScore: 60 }, 0),
+      buildVariation({ qualityScore: 90 }, 1),
+      buildVariation({ qualityScore: 90 }, 2),
+    ];
+    renderTied(variations);
+    const cards = screen.getAllByRole("listitem");
+    const { within } = require("@testing-library/react");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
   });
 });
