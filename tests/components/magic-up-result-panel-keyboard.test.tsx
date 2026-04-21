@@ -369,6 +369,121 @@ describe("MagicUpResultPanel — Prev/Next: disabled states + focus ring (WCAG 1
   });
 });
 
+// ───────── Focus-visible em Tab + persistência após Enter/Space (WCAG 2.4.7 + 2.4.3) ─────────
+
+const FOCUS_VISIBLE_CLASSES = [
+  "focus-visible:ring-2",
+  "focus-visible:ring-ring",
+  "focus-visible:ring-offset-2",
+  "focus-visible:ring-offset-background",
+];
+
+function expectFocusVisibleClasses(el: HTMLElement) {
+  for (const cls of FOCUS_VISIBLE_CLASSES) {
+    expect(el.className).toContain(cls);
+  }
+}
+
+function expectFocusVisibleOutlineNone(el: HTMLElement) {
+  expect(el.className).toContain("focus-visible:outline-none");
+}
+
+describe("MagicUpResultPanel — focus-visible em Tab + persistência após Enter/Space", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("prev/next recebem foco via Tab e carregam classes focus-visible + outline-none", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const prev = screen.getByRole("button", { name: "Voltar" });
+    const next = screen.getByRole("button", { name: "Avançar" });
+
+    prev.focus();
+    expect(prev).toHaveFocus();
+    expectFocusVisibleClasses(prev);
+    expectFocusVisibleOutlineNone(prev);
+
+    next.focus();
+    expect(next).toHaveFocus();
+    expectFocusVisibleClasses(next);
+    expectFocusVisibleOutlineNone(next);
+  });
+
+  it("cada dot do tablist carrega classes focus-visible canônicas + outline-none", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    expect(dots).toHaveLength(3);
+    dots.forEach((dot) => {
+      expectFocusVisibleClasses(dot);
+      expectFocusVisibleOutlineNone(dot);
+    });
+  });
+
+  it("cada thumbnail carrega classes focus-visible canônicas + outline-none", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumbs = getThumbs();
+    expect(thumbs).toHaveLength(3);
+    thumbs.forEach((thumb) => {
+      expectFocusVisibleClasses(thumb);
+      expectFocusVisibleOutlineNone(thumb);
+    });
+  });
+
+  it("após Enter no dot, foco permanece no dot ativado e classes focus-visible mantidas", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const dots = getDots();
+    const target = dots[2];
+    target.focus();
+    expect(target).toHaveFocus();
+
+    fireEvent.keyDown(target, { key: "Enter", code: "Enter" });
+    fireEvent.click(target);
+
+    expect(document.activeElement).toBe(target);
+    expectFocusVisibleClasses(target);
+    expectFocusVisibleOutlineNone(target);
+  });
+
+  it("após Space no botão Avançar, foco permanece no botão e classes focus-visible mantidas", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const next = screen.getByRole("button", { name: "Avançar" });
+    next.focus();
+    expect(next).toHaveFocus();
+
+    fireEvent.keyDown(next, { key: " ", code: "Space" });
+    fireEvent.click(next);
+
+    expect(document.activeElement).toBe(next);
+    expectFocusVisibleClasses(next);
+    expectFocusVisibleOutlineNone(next);
+  });
+
+  it("após Enter na thumbnail, foco permanece e classes focus-visible mantidas", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+
+    const thumbs = getThumbs();
+    const target = thumbs[2];
+    target.focus();
+    expect(target).toHaveFocus();
+
+    fireEvent.keyDown(target, { key: "Enter", code: "Enter" });
+    fireEvent.click(target);
+
+    expect(document.activeElement).toBe(target);
+    expectFocusVisibleClasses(target);
+    expectFocusVisibleOutlineNone(target);
+  });
+});
+
 describe("MagicUpResultPanel — Sincronização cross-grupo entre dots e thumbnails", () => {
   beforeEach(() => vi.clearAllMocks());
 
