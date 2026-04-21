@@ -57,6 +57,57 @@ function renderComparator(props: {
   return { ...utils, onSelect, onSelectWinner, user: userEvent.setup() };
 }
 
+// ───────── Helpers de focus-visible / focus ring (WCAG 2.4.7) ─────────
+
+/** Classes obrigatórias do bloco padrão de focus-visible (guideline `docs/MAGIC_UP_ONDA5_A11Y.md` §1). */
+const FOCUS_VISIBLE_BASE_CLASSES = [
+  "focus-visible:outline-none",
+  "focus-visible:ring-2",
+  "focus-visible:ring-ring",
+] as const;
+
+/** Bloco completo: base + offset (cards/dots/thumbnails sobre background). */
+const FOCUS_VISIBLE_FULL_CLASSES = [
+  ...FOCUS_VISIBLE_BASE_CLASSES,
+  "focus-visible:ring-offset-2",
+  "focus-visible:ring-offset-background",
+] as const;
+
+/** Regex que casa `focus:ring-*` SEM o prefixo `-visible:` — proibido pelo guideline. */
+const FORBIDDEN_FOCUS_RING_RE = /(?<!focus-visible:)focus:ring-/;
+
+/** Asserção fundamental: elemento aplica o bloco de focus-visible esperado. */
+function expectFocusVisible(el: HTMLElement, level: "base" | "full" = "base"): void {
+  const required = level === "full" ? FOCUS_VISIBLE_FULL_CLASSES : FOCUS_VISIBLE_BASE_CLASSES;
+  required.forEach((cls) => {
+    expect(el.className).toContain(cls);
+  });
+  expect(el.className).not.toMatch(FORBIDDEN_FOCUS_RING_RE);
+}
+
+/** Valida focus-visible em todos os cards de variação. */
+function expectAllCardsFocusVisible(level: "base" | "full" = "base"): void {
+  const cards = select.allCards();
+  expect(cards.length).toBeGreaterThan(0);
+  cards.forEach((c) => expectFocusVisible(c, level));
+}
+
+/** Valida focus-visible em todos os botões "Marcar vencedora". */
+function expectAllWinnerButtonsFocusVisible(level: "base" | "full" = "base"): void {
+  const btns = select.allMarcar();
+  expect(btns.length).toBeGreaterThan(0);
+  btns.forEach((b) => expectFocusVisible(b, level));
+}
+
+/** Valida que o elemento focado não é body e tem focus-visible. */
+function expectActiveElementFocusVisible(level: "base" | "full" = "base"): HTMLElement {
+  const active = document.activeElement as HTMLElement | null;
+  expect(active).not.toBeNull();
+  expect(active).not.toBe(document.body);
+  expectFocusVisible(active!, level);
+  return active!;
+}
+
 // ───────── Builders centralizados de aria-label ─────────
 // Fonte única de verdade: qualquer mudança no formato do aria-label do componente
 // é refletida aqui e propaga para todos os asserts do arquivo.
