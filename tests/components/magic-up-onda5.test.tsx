@@ -217,3 +217,58 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.getByRole("button", { name: "Selecionar variação 1, score 70, melhor score" })).toBeInTheDocument();
   });
 });
+
+describe("MagicUpVariationComparator snapshots", () => {
+  const baseVariation = (overrides: Partial<VariationItem> & { id: string; imageUrl: string }): VariationItem => ({
+    isFavorite: false,
+    ...overrides,
+  });
+
+  it("snapshot — estado base com 3 variações e scores distintos", () => {
+    const variations: VariationItem[] = [
+      baseVariation({ id: "a", imageUrl: "https://example.com/a.png", qualityScore: 70 }),
+      baseVariation({ id: "b", imageUrl: "https://example.com/b.png", qualityScore: 85 }),
+      baseVariation({ id: "c", imageUrl: "https://example.com/c.png", qualityScore: 92 }),
+    ];
+    const { container } = render(
+      <MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />
+    );
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it("snapshot — variação ativa em activeIndex=1", () => {
+    const variations: VariationItem[] = [
+      baseVariation({ id: "a", imageUrl: "https://example.com/a.png", qualityScore: 70 }),
+      baseVariation({ id: "b", imageUrl: "https://example.com/b.png", qualityScore: 85 }),
+      baseVariation({ id: "c", imageUrl: "https://example.com/c.png", qualityScore: 92 }),
+    ];
+    const { container } = render(
+      <MagicUpVariationComparator variations={variations} activeIndex={1} onSelect={vi.fn()} onSelectWinner={vi.fn()} />
+    );
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it("snapshot — empate de scores [70, 90, 90] mantém badge única no índice 1", () => {
+    const variations: VariationItem[] = [
+      baseVariation({ id: "a", imageUrl: "https://example.com/a.png", qualityScore: 70 }),
+      baseVariation({ id: "b", imageUrl: "https://example.com/b.png", qualityScore: 90 }),
+      baseVariation({ id: "c", imageUrl: "https://example.com/c.png", qualityScore: 90 }),
+    ];
+    const { container } = render(
+      <MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />
+    );
+    expect(container.firstChild).toMatchSnapshot();
+  });
+
+  it("snapshot — scores ausentes exibe placeholders e winner no índice 0", () => {
+    const variations: VariationItem[] = [
+      baseVariation({ id: "a", imageUrl: "https://example.com/a.png" }),
+      baseVariation({ id: "b", imageUrl: "https://example.com/b.png" }),
+      baseVariation({ id: "c", imageUrl: "https://example.com/c.png" }),
+    ];
+    const { container } = render(
+      <MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={vi.fn()} onSelectWinner={vi.fn()} />
+    );
+    expect(container.firstChild).toMatchSnapshot();
+  });
+});
