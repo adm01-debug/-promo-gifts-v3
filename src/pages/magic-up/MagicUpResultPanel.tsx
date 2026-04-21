@@ -20,7 +20,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
       {m.variations.length > 1 && (
         <div className="flex items-center justify-between">
           <Button
-            variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8"
+            variant="outline" size="icon" aria-label="Voltar" className="h-8 w-8 disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             disabled={m.activeVariation === 0}
             onClick={() => m.setActiveVariation(m.activeVariation - 1)}
           >
