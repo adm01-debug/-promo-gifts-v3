@@ -2925,6 +2925,9 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       await user.click(winnerBtn1Loading);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
+      // Re-foca sentinel (click em disabled remove foco para body)
+      screen.getByTestId("external-sentinel").focus();
+
       // 5) Enter/Space via userEvent.keyboard com foco no sentinel — botão disabled
       //    nunca recebe o evento porque não está na cadeia de foco
       await user.keyboard("{Enter}");
