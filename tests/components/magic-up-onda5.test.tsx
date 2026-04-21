@@ -137,7 +137,7 @@ describe("Magic Up Onda 5 components", () => {
     expect(container).toBeEmptyDOMElement();
   });
 
-  it("lida com todas as variações sem score exibindo placeholder e mantendo winner no índice 0", () => {
+  it("lida com todas as variações sem score exibindo placeholder e SEM badge de vencedor", () => {
     const variations: VariationItem[] = [
       { id: "a", imageUrl: "https://example.com/a.png", isFavorite: false },
       { id: "b", imageUrl: "https://example.com/b.png", isFavorite: false },
@@ -146,8 +146,9 @@ describe("Magic Up Onda 5 components", () => {
     renderComparator({ variations });
     expect(screen.getByLabelText("Melhor score entre variações: indisponível")).toBeInTheDocument();
     expect(screen.getAllByText("—").length).toBeGreaterThanOrEqual(3);
-    expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-    expect(select.cardExact("Selecionar variação 1, melhor score")).toBeInTheDocument();
+    // Sem score válido → nenhuma badge "Melhor score" e nenhum aria-label de vencedor
+    expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
+    expect(screen.queryByRole("button", { name: /melhor score/i })).not.toBeInTheDocument();
   });
 
   it("identifica vencedor único quando há scores parciais sem confundir 0 com ausente", () => {
