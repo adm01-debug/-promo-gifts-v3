@@ -1,106 +1,81 @@
 
 
-# Plano — Tratamento explícito de score 0 vs ausente no `MagicUpVariationComparator`
+# Plano — Teste defensivo: ausência de `bestScore` → nenhuma badge "Melhor score"
 
-Substituo o uso de `||` (falsy JS) pela checagem explícita `?? `/`undefined`, separando semanticamente "score ausente" (sem dado) de "score zero" (avaliado como ruim). Hoje ambos colapsam em `0`, criando ambiguidade que já causou refactors sucessivos nos testes.
+Adiciono teste validando o invariante defensivo do `MagicUpVariationComparator`: quando `bestScore === null` (todas variações sem score numérico) **e** nenhuma variação tem `isWinner=true`, nenhuma badge "Melhor score" é renderizada em nenhum card.
 
-## Problema atual
+## Justificativa
 
-```ts
-const scores = variations.map((v) => v.qualityDiagnosis?.total || v.qualityScore || 0);
-const bestScore = Math.max(...scores);
-const hasValidScores = bestScore > 0;
-```
-
-Ambiguidades:
-1. `qualityDiagnosis.total === 0` cai no fallback `qualityScore` — ignora um diagnóstico legítimo de score zero
-2. `qualityScore === 0` colapsa para `0` indistinguível de `undefined`
-3. `bestScore > 0` exclui um cenário legítimo onde todas as variações foram avaliadas e receberam 0
-4. `aria-label` usa `score ?` (falsy) — esconde "score 0" mesmo quando é uma avaliação real
-
-## Nova lógica
-
-### `src/components/magic-up/MagicUpVariationComparator.tsx`
+A lógica atual em `MagicUpVariationComparator.tsx`:
 
 ```ts
-// Score numérico ou null (ausente). Nunca colapsa 0 em undefined.
-const resolveScore = (v: VariationItem): number | null => {
-  if (typeof v.qualityDiagnosis?.total === "number") return v.qualityDiagnosis.total;
-  if (typeof v.qualityScore === "number") return v.qualityScore;
-  return null;
-};
-
-const scores = variations.map(resolveScore);
-const numericScores = scores.filter((s): s is number => s !== null);
-const hasAnyScore = numericScores.length > 0;
-const bestScore = hasAnyScore ? Math.max(...numericScores) : null;
-
-const explicitWinnerIndex = variations.findIndex((v) => v.isWinner);
 const winnerIndex = explicitWinnerIndex >= 0
   ? explicitWinnerIndex
   : (bestScore !== null ? scores.findIndex((s) => s === bestScore) : -1);
 ```
 
-**Renderização:**
-- Header badge: `Melhor score: {bestScore ?? "—"}` (mostra `0` quando todos avaliados em zero, `—` quando ausentes)
-- Card score: `{scores[index] ?? "—"}` (idem por card)
-- Winner badge: `{isWinner && <Badge>...}` (sem mudança — `winnerIndex=-1` já garante)
-- `aria-label` do botão:
-  ```ts
-  const scoreLabel = scores[index] !== null ? `, score ${scores[index]}` : "";
-  const winnerLabel = isWinner ? ", melhor score" : "";
-  ```
-  Agora `score 0` aparece quando há avaliação real de zero (semântica correta para screen readers — é um dado, não ausência).
+Dois caminhos garantem `winnerIndex = -1`:
+1. **`bestScore === null`** (sem scores numéricos) E sem `isWinner` → `-1`
+2. **Caso "impossível"**: `bestScore` numérico mas nenhum `scores[i] === bestScore` — pelo `Math.max`, sempre existe pelo menos um match, então `findIndex` nunca retorna `-1`. Esse cenário é **logicamente inalcançável** dado o invariante de `Math.max`, mas vale travar como contrato defensivo.
 
-**Comportamento resultante (matriz):**
+**Cobertura atual:** já existem testes para "todos undefined → -1" e "todos null → nenhuma badge". O gap é validar a propriedade **defensiva** explicitamente: nenhuma badge nem mesmo no DOM (não só no índice 0), incluindo verificação de `aria-label` em todos os botões e ausência de menção a "melhor score" no header.
 
-| Cenário | bestScore | winnerIndex | Badge no card |
-|---|---|---|---|
-| Todos `null` (sem dados) | `null` | `-1` | nenhuma |
-| Todos `0` (avaliados ruins) | `0` | `0` (primeiro) | índice 0 |
-| `isWinner=true` em qualquer índice | — | índice do `isWinner` | índice marcado |
-| Empate em score real | maior | primeiro com maior | primeiro empatado |
-| Mix `null` + numéricos | maior numérico | primeiro com maior | primeiro com maior |
+## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Ajustes na sub-suíte de empate para refletir nova semântica:
+Adicionar 1 teste ao final da sub-suíte de empate:
 
-1. **Manter** `isWinner` testes (3 casos) — passam sem alteração (lógica de prioridade preservada)
-2. **Manter** "todos undefined → nenhuma badge" — passa (continua `winnerIndex=-1`)
-3. **Atualizar** teste `aria-label score=0` — agora `qualityScore: 0` é tratado como avaliação real:
-   - Vencedor `qualityScore: 0` → aria-label **contém** `, score 0` E `, melhor score`
-   - Inverter assertion `not.toMatch(/score 0\b/)` para `toContain("score 0")`
-4. **Adicionar** novo teste: "todos `qualityScore: 0` (avaliados ruins) → badge aparece no índice 0":
-   - 3 variações com `qualityScore: 0` explícito
-   - `bestScore=0`, `winnerIndex=0`, 1 badge "Melhor score" no índice 0
-   - Header mostra `Melhor score: 0` (não `—`)
-5. **Adicionar** teste: "mix de `null` e numéricos → vencedor é o numérico maior":
-   - `[null, 60, null, 40]` → winnerIndex=1, badge no índice 1
-   - Cards 0 e 2 mostram score `—`, cards 1 e 3 mostram `60`/`40`
-6. **Adicionar** teste: "`qualityDiagnosis.total === 0` é respeitado (não cai em qualityScore=80)":
-   - Variação com `qualityDiagnosis.total: 0` E `qualityScore: 80` → resolveScore retorna `0` (diagnóstico tem prioridade absoluta)
-   - Outra variação com `qualityScore: 50` → vence (50 > 0)
+```ts
+it("invariante defensivo: sem bestScore (todas null) e sem isWinner — nenhuma badge 'Melhor score' renderiza em nenhum card", () => {
+  const variations = [
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 0),
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 1),
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 2),
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: false }, 3),
+  ];
+  renderTied(variations);
 
-### Verificar testes pré-existentes que possam quebrar
+  // 1. Zero badges "Melhor score" no DOM inteiro
+  expect(screen.queryAllByLabelText("Melhor score")).toHaveLength(0);
 
-Buscar fixtures com `qualityScore: 0` ou `qualityDiagnosis.total: 0` no arquivo de testes — ajustar assertions de score exibido que esperem `—` em casos onde agora aparecerá `0`.
+  // 2. Cada card individualmente: nenhuma badge
+  const cards = screen.getAllByRole("listitem");
+  expect(cards).toHaveLength(4);
+  cards.forEach((card) => {
+    expect(within(card).queryByLabelText("Melhor score")).toBeNull();
+  });
+
+  // 3. Nenhum aria-label de botão menciona "melhor score" nem "score N"
+  for (let i = 1; i <= 4; i++) {
+    const btn = screen.getByRole("button", { name: new RegExp(`Selecionar variação ${i}`) });
+    const label = btn.getAttribute("aria-label") ?? "";
+    expect(label).not.toContain("melhor score");
+    expect(label).not.toMatch(/, score \d/);
+  }
+
+  // 4. Header global mostra "—" (placeholder) e aria-label "indisponível"
+  const headerBadge = screen.getByLabelText(/Melhor score entre variações/);
+  expect(headerBadge).toHaveTextContent("Melhor score: —");
+  expect(headerBadge.getAttribute("aria-label")).toContain("indisponível");
+
+  // 5. Cada card mostra "Score indisponível" no span de score
+  cards.forEach((card) => {
+    expect(within(card).getByLabelText("Score indisponível")).toBeInTheDocument();
+  });
+});
+```
 
 ## Restrições
 
-- Mudança comportamental **intencional** — corrige ambiguidade falsy
-- `qualityDiagnosis.total` ganha prioridade absoluta (era ofuscado quando 0)
-- `aria-label` passa a incluir `score 0` quando há avaliação real (melhor a11y — anuncia o dado)
-- `isWinner` mantém prioridade absoluta (sem regressão)
-- Reusa helpers de teste existentes; sem novos imports
-- Tipo de retorno `null` (não `undefined`) — distinção explícita "ausente" vs "zero"
+- Sem alteração no `MagicUpVariationComparator.tsx` — comportamento atual já é o contrato correto
+- Reusa helpers `buildVariation`, `renderTied`, `within` já importados
+- Sem novos imports
+- Caso "impossível" (`bestScore` numérico sem match) é inalcançável por invariante de `Math.max` — não testável sem mock
 
 ## Entregável
 
-- 1 modificação em `MagicUpVariationComparator.tsx` (helper `resolveScore`, tipo `number | null`, renderização com `??`)
-- 3 novos testes (todos zero, mix null/numérico, diagnóstico zero sobrepõe qualityScore)
-- 1 teste invertido (aria-label score=0 agora **inclui** "score 0")
-- Possíveis ajustes em testes pré-existentes que assumiam comportamento falsy
-- Cobertura: 61 → 64 testes
-- Trava semântica: `null` = sem dado, `0` = avaliação real ruim
+- 1 novo teste defensivo cobrindo 5 invariantes simultâneos: zero badges no DOM, zero badges por card, zero menções em aria-labels, header com "—" e "indisponível", spans de score com "Score indisponível"
+- Cobertura: 64 → 65 testes
+- Trava propriedade defensiva: ausência de `bestScore` nunca renderiza vencedor falso, em nenhum nível do DOM
 
