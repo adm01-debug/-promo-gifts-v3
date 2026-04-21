@@ -1,186 +1,167 @@
 
 
-# Plano — Testes de ativação por Enter/Espaço nos botões de seleção e "Marcar vencedora"
+# Plano — Teste de foco programático e destaque visual sincronizado com `activeIndex`
 
-Adiciono testes ao `tests/components/magic-up-onda5.test.tsx` que validam a ativação nativa via teclado (Enter/Espaço) dos dois botões interativos do `MagicUpVariationComparator`:
+Adiciono testes ao `tests/components/magic-up-onda5.test.tsx` que validam dois aspectos correlacionados da navegação por teclado no `MagicUpVariationComparator` ainda não cobertos explicitamente:
 
-1. **Botão "Selecionar variação N"** (`<button type="button">` com `onClick={() => onSelect(index)}`) — Enter/Espaço devem disparar `onSelect` com o índice correto e, após rerender, atualizar `aria-pressed`/`aria-current`.
-2. **Botão "Marcar variação N como vencedora"** (`<Button>` com `onClick={() => onSelectWinner(index)}`) — Enter/Espaço devem disparar `onSelectWinner` com o índice correto e, após rerender com `isWinner` atualizado, mover a badge "Melhor score" para o card correspondente.
+1. **Foco programático**: a linha `cardRefs.current[nextIndex]?.focus()` (linha 43 do componente) move o foco do DOM para o **novo** card ativo após cada seta — não permanece no card anterior.
+2. **Destaque visual sincronizado**: as classes Tailwind condicionais `border-primary ring-2 ring-primary/20` (wrapper, linha 67) acompanham `activeIndex` após rerender; demais cards usam `border-border hover:border-primary/40`.
 
 ## Justificativa
 
 Cobertura existente:
-- Cliques de mouse em ambos os botões (`onSelect`/`onSelectWinner`)
-- Setas (ArrowLeft/Right/Up/Down/Home/End) chamando `onSelect`
-- Teste anterior valida que `Enter` no botão de seleção **não** chama `onSelectWinner`
+- Setas chamam `onSelect` com índice correto (wrap-around, equivalência de eixos, Home/End)
+- ARIA (`aria-pressed`, `aria-current`) acompanha `activeIndex` após rerender
+- Cliques de mouse atualizam estado
 
-Lacuna: ativação **positiva** via teclado dos dois botões, com:
-- Confirmação de que `onSelect`/`onSelectWinner` recebem o índice exato
-- Confirmação de que badge "Melhor score" migra após `onSelectWinner` + rerender com novo `isWinner`
-- Equivalência funcional Enter ≡ Espaço (comportamento padrão de `<button>`)
-- Independência: ativar um botão não dispara o callback do outro
+Lacuna:
+- **Foco DOM** após `handleArrowKey`: nenhum teste verifica que `document.activeElement` muda para o botão do novo índice. Regressão silenciosa: se `cardRefs.current[nextIndex]?.focus()` for removido, navegação por teclado continua chamando `onSelect`, mas o usuário "perde" o foco visual e o próximo `ArrowRight` parte do índice errado.
+- **Classes de destaque**: nenhum teste valida que o wrapper do card ativo recebe `border-primary ring-2 ring-primary/20` e que apenas **um** card por vez carrega essas classes. Regressão: se a condição `isActive` for invertida ou removida do `cn()`, ARIA continua correto mas usuário não vê destaque.
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar **3 testes** no final do `describe` "setas atualizam activeIndex e ARIA acompanha após rerender" (mesmo bloco onde os testes de teclado vivem) ou em um sub-describe novo `"ativação por Enter/Espaço nos botões"`. Optarei por sub-describe novo para separar concerns.
+Adicionar **2 testes** ao final do sub-describe `"ativação por Enter/Espaço nos botões"` (último bloco do arquivo, antes do `})` de fechamento do describe pai do `MagicUpVariationComparator`).
 
-**Setup compartilhado (3 variações sem winner inicial):**
-```ts
-const navVariations: VariationItem[] = [
-  { id: "var-1", imageUrl: "https://example.com/1.png", qualityScore: 80 } as VariationItem,
-  { id: "var-2", imageUrl: "https://example.com/2.png", qualityScore: 70 } as VariationItem,
-  { id: "var-3", imageUrl: "https://example.com/3.png", qualityScore: 90 } as VariationItem,
-];
-```
+**Setup compartilhado (reusa `navVariations` já declarado no sub-describe):**
+- 3 variações `var-1`/`var-2`/`var-3` com scores 80/70/90
+- Helper `renderWith(activeIndex)` segue padrão dos testes anteriores
 
 ---
 
-**Teste 1 — Enter no botão de seleção dispara `onSelect` e ARIA acompanha**
+**Teste 1 — Foco DOM segue `activeIndex` após cada seta + rerender**
 
 ```ts
-it("Enter no botão 'Selecionar variação N' chama onSelect(N-1) e aria-pressed/aria-current acompanham após rerender", async () => {
+it("foco DOM move para o novo card ativo após ArrowRight/ArrowLeft e segue activeIndex após rerender", async () => {
   const user = userEvent.setup();
   const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
   const renderWith = (activeIndex: number) => (
-    <MagicUpVariationComparator variations={navVariations} activeIndex={activeIndex} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+    <MagicUpVariationComparator
+      variations={navVariations}
+      activeIndex={activeIndex}
+      onSelect={onSelect}
+      onSelectWinner={onSelectWinner}
+    />
   );
   const { rerender } = render(renderWith(0));
 
-  // Foco no botão "Selecionar variação 2" e Enter
-  const selectBtn2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
-  selectBtn2.focus();
-  await user.keyboard("{Enter}");
+  const card0 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+  card0.focus();
+  expect(card0).toHaveFocus();
 
-  expect(onSelect).toHaveBeenCalledTimes(1);
+  // ArrowRight: handleArrowKey chama focus() no card1 ANTES do rerender
+  await user.keyboard("{ArrowRight}");
   expect(onSelect).toHaveBeenLastCalledWith(1);
-  expect(onSelectWinner).not.toHaveBeenCalled();
+  const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  expect(card1).toHaveFocus();
+  expect(card0).not.toHaveFocus();
 
-  // Pai re-renderiza com novo activeIndex → ARIA acompanha
+  // Pai re-renderiza: foco PERMANECE em card1 (mesmo elemento, ref preservada)
   rerender(renderWith(1));
-  const selectBtn2After = screen.getByRole("button", { name: /^Selecionar variação 2/ });
-  expect(selectBtn2After).toHaveAttribute("aria-pressed", "true");
-  expect(selectBtn2After).toHaveAttribute("aria-current", "true");
-  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveAttribute("aria-pressed", "false");
-  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
-});
-```
+  const card1AfterRerender = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+  expect(card1AfterRerender).toHaveFocus();
 
----
+  // ArrowLeft → foco volta para card0
+  await user.keyboard("{ArrowLeft}");
+  expect(onSelect).toHaveBeenLastCalledWith(0);
+  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
 
-**Teste 2 — Espaço no botão de seleção é equivalente a Enter**
-
-```ts
-it("Espaço no botão 'Selecionar variação N' chama onSelect(N-1) com mesmo comportamento de Enter", async () => {
-  const user = userEvent.setup();
-  const onSelect = vi.fn();
-  const onSelectWinner = vi.fn();
-
-  render(
-    <MagicUpVariationComparator variations={navVariations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />
-  );
-
-  const selectBtn3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-  selectBtn3.focus();
-  await user.keyboard(" "); // Espaço
-
-  expect(onSelect).toHaveBeenCalledTimes(1);
+  // Home/End também movem foco
+  rerender(renderWith(0));
+  await user.keyboard("{End}");
   expect(onSelect).toHaveBeenLastCalledWith(2);
-  expect(onSelectWinner).not.toHaveBeenCalled();
+  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
+
+  rerender(renderWith(2));
+  await user.keyboard("{Home}");
+  expect(onSelect).toHaveBeenLastCalledWith(0);
+  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
 });
 ```
 
 ---
 
-**Teste 3 — Enter/Espaço no botão "Marcar vencedora" dispara `onSelectWinner` e badge migra após rerender**
+**Teste 2 — Destaque visual (`border-primary ring-2 ring-primary/20`) sincroniza com `activeIndex`**
 
 ```ts
-it("Enter e Espaço no botão 'Marcar vencedora' chamam onSelectWinner(index) e badge migra após rerender com isWinner", async () => {
-  const user = userEvent.setup();
+it("wrapper do card ativo recebe classes de destaque (border-primary ring-2) e apenas um card por vez", async () => {
   const onSelect = vi.fn();
   const onSelectWinner = vi.fn();
 
-  // Estado inicial: nenhum winner explícito → badge cai no maior score (var-3, idx 2)
-  const renderWith = (variations: VariationItem[]) => (
-    <MagicUpVariationComparator variations={variations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />
+  const renderWith = (activeIndex: number) => (
+    <MagicUpVariationComparator
+      variations={navVariations}
+      activeIndex={activeIndex}
+      onSelect={onSelect}
+      onSelectWinner={onSelectWinner}
+    />
   );
-  const { rerender } = render(renderWith(navVariations));
+  const { rerender } = render(renderWith(0));
 
-  // Sanity: badge inicial em var-3 (maior score 90)
-  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
-  const initialWinnerCard = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-  expect(initialWinnerCard.getAttribute("aria-label")).toContain(", melhor score");
+  // Helper: pega o wrapper (parentElement do <button>) de cada card
+  const getWrapper = (variationNum: number): HTMLElement => {
+    const btn = screen.getByRole("button", { name: new RegExp(`^Selecionar variação ${variationNum}`) });
+    const wrapper = btn.parentElement;
+    expect(wrapper).not.toBeNull();
+    return wrapper as HTMLElement;
+  };
 
-  // Enter no botão "Marcar variação 1 como vencedora"
-  const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
-  winnerBtn1.focus();
-  await user.keyboard("{Enter}");
+  // Estado inicial: activeIndex=0 → var-1 destacado, demais com border-border
+  expect(getWrapper(1).className).toContain("border-primary");
+  expect(getWrapper(1).className).toContain("ring-2");
+  expect(getWrapper(1).className).toContain("ring-primary/20");
+  expect(getWrapper(2).className).not.toContain("border-primary");
+  expect(getWrapper(2).className).toContain("border-border");
+  expect(getWrapper(3).className).not.toContain("border-primary");
+  expect(getWrapper(3).className).toContain("border-border");
 
-  expect(onSelectWinner).toHaveBeenCalledTimes(1);
-  expect(onSelectWinner).toHaveBeenLastCalledWith(0);
-  expect(onSelect).not.toHaveBeenCalled();
+  // Cardinalidade: apenas 1 wrapper com border-primary
+  const allWrappers = [getWrapper(1), getWrapper(2), getWrapper(3)];
+  expect(allWrappers.filter((w) => w.className.includes("border-primary") && !w.className.includes("border-primary/40"))).toHaveLength(1);
 
-  // Simula handler externo: marca var-1 como winner e rerender
-  const updatedVariations: VariationItem[] = [
-    { ...navVariations[0], isWinner: true },
-    navVariations[1],
-    navVariations[2],
-  ];
-  rerender(renderWith(updatedVariations));
+  // Rerender com activeIndex=2 → destaque migra para var-3
+  rerender(renderWith(2));
+  expect(getWrapper(1).className).not.toContain("border-primary");
+  expect(getWrapper(1).className).toContain("border-border");
+  expect(getWrapper(2).className).not.toContain("border-primary");
+  expect(getWrapper(3).className).toContain("border-primary");
+  expect(getWrapper(3).className).toContain("ring-2");
+  expect(getWrapper(3).className).toContain("ring-primary/20");
 
-  // Badge migrou para var-1 (única cardinalidade preservada)
-  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
-  expect(screen.getByRole("button", { name: /^Selecionar variação 1/ }).getAttribute("aria-label"))
-    .toContain(", melhor score");
-  expect(screen.getByRole("button", { name: /^Selecionar variação 3/ }).getAttribute("aria-label"))
-    .not.toContain("melhor score");
+  // Rerender com activeIndex=1 → destaque em var-2
+  rerender(renderWith(1));
+  expect(getWrapper(1).className).not.toContain("border-primary");
+  expect(getWrapper(2).className).toContain("border-primary");
+  expect(getWrapper(2).className).toContain("ring-2");
+  expect(getWrapper(3).className).not.toContain("border-primary");
 
-  // Agora testa Espaço no botão "Marcar variação 2 como vencedora"
-  onSelectWinner.mockClear();
-  const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
-  winnerBtn2.focus();
-  await user.keyboard(" ");
-
-  expect(onSelectWinner).toHaveBeenCalledTimes(1);
-  expect(onSelectWinner).toHaveBeenLastCalledWith(1);
-  expect(onSelect).not.toHaveBeenCalled();
-
-  // Rerender com var-2 como novo winner único
-  const updatedAgain: VariationItem[] = [
-    navVariations[0],
-    { ...navVariations[1], isWinner: true },
-    navVariations[2],
-  ];
-  rerender(renderWith(updatedAgain));
-
-  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
-  expect(screen.getByRole("button", { name: /^Selecionar variação 2/ }).getAttribute("aria-label"))
-    .toContain(", melhor score");
+  // Cardinalidade preservada após cada rerender
+  const wrappersAfter = [getWrapper(1), getWrapper(2), getWrapper(3)];
+  expect(wrappersAfter.filter((w) => w.className.includes("ring-2"))).toHaveLength(1);
 });
 ```
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (reusa `render`, `rerender`, `screen`, `userEvent`, `vi`, `VariationItem`)
-- 3 testes novos (85 → 88 testes)
-- Cada teste isolado (mocks recriados por teste; `mockClear` quando reaproveita dentro do mesmo `it`)
-- Queries por `aria-label` exato/regex seguem padrão estabelecido
+- Sem novos imports (reusa `render`, `rerender`, `screen`, `userEvent`, `vi`, `VariationItem`, `MagicUpVariationComparator`)
+- 2 testes novos (88 → 90 testes)
+- Reusa `navVariations` já declarado no sub-describe pai
+- Queries por aria-label regex/exato seguem padrão estabelecido
+- Filtro de cardinalidade exclui `border-primary/40` (classe de hover dos cards inativos) para não falsear contagem
 
 ## Entregável
 
-- 3 testes cobrindo:
-  1. **Enter** no botão de seleção → `onSelect(index)` + ARIA acompanha após rerender + `onSelectWinner` não disparado
-  2. **Espaço** no botão de seleção → equivalência funcional com Enter (mesmo callback, mesmo índice, isolamento de `onSelectWinner`)
-  3. **Enter e Espaço** no botão "Marcar vencedora" → `onSelectWinner(index)` + badge migra corretamente após rerender com `isWinner: true` + cardinalidade preservada (1) + `onSelect` não disparado
+- 2 testes cobrindo:
+  1. **Foco DOM**: `cardRefs.current[nextIndex]?.focus()` move foco para o novo card a cada seta (ArrowRight/Left/Home/End); foco persiste através de rerender do pai (ref preservada)
+  2. **Destaque visual**: wrapper do card ativo recebe `border-primary ring-2 ring-primary/20`; cards inativos recebem `border-border`; apenas 1 wrapper destacado por vez (cardinalidade); destaque migra corretamente após rerender
 - Captura regressões onde:
-  - `onClick` fosse trocado por `onMouseDown` (quebraria ativação por teclado)
-  - Botão de seleção e "Marcar vencedora" fossem fundidos acidentalmente
-  - `onSelectWinner` deixasse de receber o índice correto
-  - Badge não migrasse após mudança de `isWinner`
-  - Eventos de Enter/Espaço propagassem para o botão errado (cardinalidade > 1)
-- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 88/88 verde
+  - `cardRefs.current[nextIndex]?.focus()` fosse removido (foco fica preso no card anterior)
+  - `cardRefs` callback ref fosse alterado (refs ficariam null)
+  - Condição `isActive` no `cn()` fosse invertida ou removida (destaque sumiria ou apareceria em todos)
+  - Múltiplos cards recebessem `ring-2` simultaneamente
+- Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 90/90 verde
 
