@@ -1716,6 +1716,79 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       expect(onSelect).toHaveBeenCalledWith(0);
       expect(onSelect).not.toHaveBeenCalledWith(lastIndex);
     });
+
+    it("Home e End movem foco e atualizam activeIndex independentemente da posição inicial", async () => {
+      const user = userEvent.setup();
+
+      function ControlledWrapper({ initial }: { initial: number }) {
+        const [activeIndex, setActiveIndex] = React.useState(initial);
+        return (
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={activeIndex}
+            onSelect={setActiveIndex}
+            onSelectWinner={vi.fn()}
+          />
+        );
+      }
+
+      const total = navVariations.length;
+      const lastIndex = total - 1;
+      const middleIndex = Math.floor((total - 1) / 2);
+
+      // ── Cenário A: partindo do meio, End vai para último ──
+      const { unmount } = render(<ControlledWrapper initial={middleIndex} />);
+
+      const middleCard = screen.getByRole("button", {
+        name: new RegExp(`^Selecionar variação ${middleIndex + 1}`),
+      });
+      middleCard.focus();
+      expect(middleCard).toHaveFocus();
+      expect(middleCard).toHaveAttribute("aria-pressed", "true");
+
+      await user.keyboard("{End}");
+      const lastCard = screen.getByRole("button", {
+        name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+      });
+      expect(lastCard).toHaveFocus();
+      expect(lastCard).toHaveAttribute("aria-pressed", "true");
+      expect(
+        screen.getByRole("button", {
+          name: new RegExp(`^Selecionar variação ${middleIndex + 1}`),
+        })
+      ).toHaveAttribute("aria-pressed", "false");
+
+      // ── Home a partir do último vai direto para card 1 (não decrementa) ──
+      await user.keyboard("{Home}");
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(card1).toHaveFocus();
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+      expect(lastCard).toHaveAttribute("aria-pressed", "false");
+
+      unmount();
+
+      // ── Cenário B: partindo do último, Home vai para card 1 (sem passos intermediários) ──
+      render(<ControlledWrapper initial={lastIndex} />);
+      const lastCardB = screen.getByRole("button", {
+        name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+      });
+      lastCardB.focus();
+      expect(lastCardB).toHaveFocus();
+
+      await user.keyboard("{Home}");
+      const card1B = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      expect(card1B).toHaveFocus();
+      expect(card1B).toHaveAttribute("aria-pressed", "true");
+
+      // End a partir do card 1 → último
+      await user.keyboard("{End}");
+      const lastCardB2 = screen.getByRole("button", {
+        name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+      });
+      expect(lastCardB2).toHaveFocus();
+      expect(lastCardB2).toHaveAttribute("aria-pressed", "true");
+      expect(card1B).toHaveAttribute("aria-pressed", "false");
+    });
   });
 });
 
