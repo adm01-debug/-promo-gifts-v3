@@ -1856,6 +1856,61 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
         getActiveCardIndex();
       }
     });
+
+    it("Shift+Tab navega na ordem inversa entre cards e botões 'Marcar vencedora' mantendo focus-visible", async () => {
+      const user = userEvent.setup();
+
+      render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={vi.fn()}
+          onSelectWinner={vi.fn()}
+        />
+      );
+
+      const REQUIRED_FOCUS_CLASSES = [
+        "focus-visible:outline-none",
+        "focus-visible:ring-2",
+        "focus-visible:ring-ring",
+        "focus-visible:ring-offset-2",
+        "focus-visible:ring-offset-background",
+      ];
+
+      const allFocusables = [
+        ...screen.getAllByRole("button", { name: /^Selecionar variação/ }),
+        ...screen.getAllByRole("button", { name: /vencedora/i }),
+      ].sort((a, b) => {
+        const pos = a.compareDocumentPosition(b);
+        if (pos & Node.DOCUMENT_POSITION_FOLLOWING) return -1;
+        if (pos & Node.DOCUMENT_POSITION_PRECEDING) return 1;
+        return 0;
+      });
+
+      expect(allFocusables.length).toBeGreaterThanOrEqual(2);
+
+      const last = allFocusables[allFocusables.length - 1];
+      last.focus();
+      expect(last).toHaveFocus();
+
+      REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+        expect(last.className).toContain(cls);
+      });
+
+      for (let i = allFocusables.length - 2; i >= 0; i--) {
+        await user.tab({ shift: true });
+        const expected = allFocusables[i];
+        expect(expected).toHaveFocus();
+
+        REQUIRED_FOCUS_CLASSES.forEach((cls) => {
+          expect(expected.className).toContain(cls);
+        });
+
+        expect(expected.className).not.toMatch(/(?<!focus-visible:)focus:ring-/);
+      }
+
+      expect(allFocusables[0]).toHaveFocus();
+    });
   });
 });
 
