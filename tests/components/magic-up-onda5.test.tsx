@@ -487,6 +487,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const card3 = select.card(3);
     card3.focus();
+    expect(card3).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelect).toHaveBeenCalledTimes(2);
     expect(onSelect).toHaveBeenLastCalledWith(2);
@@ -672,6 +673,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     await user.keyboard("{Enter}");
     expect(onSelectWinner).not.toHaveBeenCalled();
 
+    expect(marcar2).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -680,6 +682,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     const marcar1 = select.marcar(1);
     marcar1.focus();
+    expect(marcar1).toHaveFocus();
     await user.keyboard("{Enter}");
     expect(onSelectWinner).toHaveBeenCalledWith(0);
     expect(onSelectWinner).toHaveBeenCalledTimes(1);
@@ -836,6 +839,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     await user.tab();
     await user.tab();
     await user.tab();
+    expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).toHaveFocus();
     await user.keyboard("{Enter}");
 
     expect(screen.getAllByRole("button").length).toBe(initialButtons);
@@ -846,6 +850,7 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     expect(Math.abs(afterEnterHTML - initialSectionHTML)).toBeLessThan(200);
 
     await user.tab();
+    expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
     await user.keyboard(" ");
     expect(onSelectWinner).toHaveBeenCalledWith(1);
 
@@ -993,18 +998,22 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       const card3 = select.card(3);
 
       card3.focus();
+      expect(card3).toHaveFocus();
       await user.keyboard("{ArrowRight}");
       expect(card1).toHaveFocus();
       expect(card1).toHaveAttribute("aria-pressed", "true");
 
+      expect(card1).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(card3).toHaveFocus();
       expect(card3).toHaveAttribute("aria-pressed", "true");
 
+      expect(card3).toHaveFocus();
       await user.keyboard("{Home}");
       expect(card1).toHaveFocus();
       expect(card1).toHaveAttribute("aria-pressed", "true");
 
+      expect(card1).toHaveFocus();
       await user.keyboard("{End}");
       expect(card3).toHaveFocus();
       expect(card3).toHaveAttribute("aria-pressed", "true");
@@ -1074,7 +1083,9 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
       expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveAttribute("aria-pressed", "false");
 
       rerender(renderWith(2));
-      screen.getByRole("button", { name: /^Selecionar variação 3/ }).focus();
+      const card3Sel = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      card3Sel.focus();
+      expect(card3Sel).toHaveFocus();
       await user.keyboard("{ArrowRight}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
     });
@@ -1087,12 +1098,16 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
         <MagicUpVariationComparator variations={navVariations} activeIndex={0} onSelect={onSelect} onSelectWinner={onSelectWinner} />
       );
 
-      screen.getByRole("button", { name: /^Selecionar variação 1/ }).focus();
+      const card1A = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1A.focus();
+      expect(card1A).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(onSelect).toHaveBeenLastCalledWith(2);
 
       onSelect.mockClear();
-      screen.getByRole("button", { name: /^Selecionar variação 3/ }).focus();
+      const card3B = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      card3B.focus();
+      expect(card3B).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(onSelect).toHaveBeenLastCalledWith(1);
     });
@@ -1107,12 +1122,14 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
       card1.focus();
+      expect(card1).toHaveFocus();
 
       await user.keyboard("{ArrowDown}");
       expect(onSelect).toHaveBeenLastCalledWith(2);
 
       onSelect.mockClear();
       card1.focus();
+      expect(card1).toHaveFocus();
       await user.keyboard("{ArrowUp}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
     });
@@ -1127,11 +1144,13 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       const card1 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
       card1.focus();
+      expect(card1).toHaveFocus();
       await user.keyboard("{Home}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
 
       onSelect.mockClear();
       card1.focus();
+      expect(card1).toHaveFocus();
       await user.keyboard("{End}");
       expect(onSelect).toHaveBeenLastCalledWith(2);
     });
@@ -1146,12 +1165,16 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
       const card0 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
       card0.focus();
+      expect(card0).toHaveFocus();
 
       await user.keyboard("a");
+      expect(card0).toHaveFocus();
       await user.keyboard("{Escape}");
+      expect(card0).toHaveFocus();
       await user.keyboard("{PageDown}");
       expect(onSelect).not.toHaveBeenCalled();
 
+      expect(card0).toHaveFocus();
       await user.keyboard("{Enter}");
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
@@ -2371,6 +2394,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       const selectBtn2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
       selectBtn2.focus();
+      expect(selectBtn2).toHaveFocus();
       await user.keyboard("{Enter}");
 
       expect(onSelect).toHaveBeenCalledTimes(1);
@@ -2401,6 +2425,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       const selectBtn3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
       selectBtn3.focus();
+      expect(selectBtn3).toHaveFocus();
       await user.keyboard(" ");
 
       expect(onSelect).toHaveBeenCalledTimes(1);
@@ -2431,6 +2456,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       // Enter em "Marcar variação 1 como vencedora"
       const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
       winnerBtn1.focus();
+      expect(winnerBtn1).toHaveFocus();
       await user.keyboard("{Enter}");
 
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
@@ -2456,6 +2482,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       onSelectWinner.mockClear();
       const winnerBtn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
       winnerBtn2.focus();
+      expect(winnerBtn2).toHaveFocus();
       await user.keyboard(" ");
 
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
@@ -2927,10 +2954,12 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Re-foca sentinel (click em disabled remove foco para body)
       screen.getByTestId("external-sentinel").focus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
       // 5) Enter/Space via userEvent.keyboard com foco no sentinel — botão disabled
       //    nunca recebe o evento porque não está na cadeia de foco
       await user.keyboard("{Enter}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -2976,11 +3005,15 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Re-foca sentinel (click em disabled remove foco para body)
       screen.getByTestId("external-sentinel").focus();
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
       // 3) userEvent.keyboard com sintaxe de modificadores — emula atalho global Ctrl+Enter / Cmd+Enter
       await user.keyboard("{Control>}{Enter}{/Control}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard("{Meta>}{Enter}{/Meta}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard("{Shift>}{Enter}{/Shift}");
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
       await user.keyboard("{Alt>}{Enter}{/Alt}");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -3023,18 +3056,25 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(onSelectWinner).not.toHaveBeenCalled();
 
       // Re-foca sentinel (click em disabled remove foco para body)
-      screen.getByTestId("external-sentinel").focus();
+      const sentinel = screen.getByTestId("external-sentinel");
+      sentinel.focus();
+      expect(sentinel).toHaveFocus();
 
       // 3) Múltiplas pressões Space sequenciais (15 no total — emula auto-repeat) com foco no sentinel
       for (let i = 0; i < 15; i++) {
         await user.keyboard(" ");
       }
+      expect(sentinel).toHaveFocus();
       expect(onSelectWinner).not.toHaveBeenCalled();
 
       // 4) Combinação Space + modificadores via atalho global
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Control>} {/Control}");
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Meta>} {/Meta}");
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Shift>} {/Shift}");
+      expect(sentinel).toHaveFocus();
       await user.keyboard("{Alt>} {/Alt}");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
@@ -3042,6 +3082,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
       expect(winnerBtn1).not.toBeDisabled();
       winnerBtn1.focus();
+      expect(winnerBtn1).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
       expect(onSelectWinner).toHaveBeenCalledWith(0);
@@ -3075,10 +3116,12 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(card1).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("Home"));
 
       onSelect.mockClear();
+      expect(card1).toHaveFocus();
       await user.keyboard("{Enter}");
       expect(onSelect).toHaveBeenCalledWith(0);
 
       onSelect.mockClear();
+      expect(card1).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelect).toHaveBeenCalledWith(0);
 
@@ -3113,22 +3156,27 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(cardLast).toHaveAttribute("aria-keyshortcuts", expect.stringContaining("End"));
 
       onSelect.mockClear();
+      expect(cardLast).toHaveFocus();
       await user.keyboard("{Enter}");
       expect(onSelect).toHaveBeenCalledWith(lastIndex);
 
       onSelect.mockClear();
+      expect(cardLast).toHaveFocus();
       await user.keyboard(" ");
       expect(onSelect).toHaveBeenCalledWith(lastIndex);
 
       onSelect.mockClear();
+      expect(cardLast).toHaveFocus();
       await user.keyboard("{Home}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
       expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
 
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
       await user.keyboard("{End}");
       expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
       expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
 
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
       await user.keyboard("{Home}");
       expect(onSelect).toHaveBeenLastCalledWith(0);
       expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
@@ -3426,6 +3474,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Foca card2 e ativa com Enter
       card2.focus();
+      expect(card2).toHaveFocus();
       await user.keyboard("{Enter}");
 
       await screen.findByRole("button", { name: /^Selecionar variação 2/ });
@@ -3439,6 +3488,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Foca card3 e ativa com Space
       card3.focus();
+      expect(card3).toHaveFocus();
       await user.keyboard(" ");
 
       expect(card1).toHaveAttribute("aria-pressed", "false");
@@ -3449,6 +3499,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(card3).toHaveAttribute("aria-current", "true");
 
       // Volta para card1 com Home
+      expect(card3).toHaveFocus();
       await user.keyboard("{Home}");
 
       expect(card1).toHaveAttribute("aria-pressed", "true");
@@ -3515,6 +3566,7 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
       // Etapa 3: Volta ao teclado
       card3.focus();
+      expect(card3).toHaveFocus();
       await user.keyboard("{ArrowLeft}");
       expect(card2).toHaveFocus();
       await user.keyboard(" ");
