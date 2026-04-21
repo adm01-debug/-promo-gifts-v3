@@ -36,7 +36,7 @@ export function MagicUpCurationStatus({ value, disabled, onChange }: MagicUpCura
               role="radio"
               aria-checked={active}
               aria-label={`Definir curadoria como ${status.label}`}
-              className={cn("h-7 shrink-0 px-2 text-[11px] focus-visible:ring-2 focus-visible:ring-ring", active && "shadow-sm")}
+              className={cn("h-7 shrink-0 px-2 text-[11px] focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:bg-muted disabled:text-muted-foreground disabled:opacity-100", active && "shadow-sm")}
               onClick={() => onChange(status.value)}
             >
               {status.label}
