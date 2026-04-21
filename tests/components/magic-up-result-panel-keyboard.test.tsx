@@ -3248,3 +3248,280 @@ describe("MagicUpResultPanel — Onda 5: próximo Tab target após troca de vari
     }
   );
 });
+
+// ───────── Foco NUNCA migra entre controles paralelos (dot ↔ thumb) ─────────
+// WAI-ARIA APG Tabs: dots e thumbs formam dois tablists PARALELOS sincronizados
+// por estado (`activeVariation`) — mas independentes em FOCO. Ativar um dot
+// jamais pode mover o foco para o thumb correspondente (e vice-versa), mesmo
+// que ambos compartilhem `aria-selected="true"` após o re-render.
+//
+// Esta suíte trava regressões onde:
+//  • um efeito (ex.: `useEffect(() => thumbRef.current?.focus())`) sequestraria
+//    o foco do dot para o thumb sincronizado
+//  • foco "saltaria" para o controle paralelo após re-render
+//  • foco se perderia para `<body>` quando o nó é recriado pelo React
+
+describe("MagicUpResultPanel — Onda 5: foco NUNCA migra entre dot ↔ thumb", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  function rerenderActive(
+    rerender: (ui: React.ReactElement) => void,
+    m: StubState,
+    newActive: number
+  ) {
+    const updated = {
+      ...m,
+      activeVariation: newActive,
+      currentVariation: m.variations[newActive],
+    } as StubState;
+    rerender(<MagicUpResultPanel m={updated} />);
+  }
+
+  // ── Click em dot[i]: foco fica no DOT, NÃO migra para thumb[i] ─────
+
+  it.each([0, 1, 2])(
+    "click em dot[%i]: após re-render, foco no DOT — nunca no thumb correspondente",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      const dotAfter = getDots()[target];
+      const thumbAfter = getThumbs()[target];
+      expect(document.activeElement).toBe(dotAfter);
+      expect(document.activeElement).not.toBe(thumbAfter);
+      // Nem migrou para QUALQUER thumb
+      getThumbs().forEach((t, i) => {
+        expect(document.activeElement, `não pode estar no thumb[${i}]`).not.toBe(t);
+      });
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Enter em dot[%i]: foco no DOT — nunca no thumb correspondente",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      expect(document.activeElement).toBe(getDots()[target]);
+      getThumbs().forEach((t, i) => {
+        expect(document.activeElement, `Enter no dot não pode focar thumb[${i}]`).not.toBe(t);
+      });
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Space em dot[%i]: foco no DOT — nunca no thumb correspondente",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const dot = getDots()[target] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.keyDown(dot, { key: " ", code: "Space" });
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, target);
+
+      expect(document.activeElement).toBe(getDots()[target]);
+      getThumbs().forEach((t, i) => {
+        expect(document.activeElement, `Space no dot não pode focar thumb[${i}]`).not.toBe(t);
+      });
+    }
+  );
+
+  // ── Click em thumb[i]: foco fica no THUMB, NÃO migra para dot[i] ───
+
+  it.each([0, 1, 2])(
+    "click em thumb[%i]: após re-render, foco no THUMB — nunca no dot correspondente",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      const thumbAfter = getThumbs()[target];
+      expect(document.activeElement).toBe(thumbAfter);
+      getDots().forEach((d, i) => {
+        expect(document.activeElement, `click no thumb não pode focar dot[${i}]`).not.toBe(d);
+      });
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Enter em thumb[%i]: foco no THUMB — nunca no dot correspondente",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      expect(document.activeElement).toBe(getThumbs()[target]);
+      getDots().forEach((d, i) => {
+        expect(document.activeElement, `Enter no thumb não pode focar dot[${i}]`).not.toBe(d);
+      });
+    }
+  );
+
+  it.each([0, 1, 2])(
+    "Space em thumb[%i]: foco no THUMB — nunca no dot correspondente",
+    (target) => {
+      const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+      const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+      const thumb = getThumbs()[target] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, target);
+
+      expect(document.activeElement).toBe(getThumbs()[target]);
+      getDots().forEach((d, i) => {
+        expect(document.activeElement, `Space no thumb não pode focar dot[${i}]`).not.toBe(d);
+      });
+    }
+  );
+
+  // ── Foco NÃO se perde para <body> após re-render ──────────────────
+
+  it("após click em dot[2]: document.activeElement nunca cai em <body> (foco preservado)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[2] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.click(dot);
+    rerenderActive(rerender, m, 2);
+
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement?.tagName).toBe("BUTTON");
+  });
+
+  it("após Enter em thumb[1]: document.activeElement nunca cai em <body>", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb = getThumbs()[1] as HTMLButtonElement;
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+    fireEvent.click(thumb);
+    rerenderActive(rerender, m, 1);
+
+    expect(document.activeElement).not.toBe(document.body);
+    expect(document.activeElement?.tagName).toBe("BUTTON");
+  });
+
+  // ── Trocas alternadas dot ↔ thumb: foco migra apenas conforme o controle acionado ─
+
+  it("alternar dot[1] → thumb[2] → dot[0]: foco acompanha SEMPRE o último controle acionado", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    // Passo 1: dot[1]
+    let dot = getDots()[1] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.click(dot);
+    rerenderActive(rerender, m, 1);
+    expect(document.activeElement).toBe(getDots()[1]);
+    expect(document.activeElement).not.toBe(getThumbs()[1]);
+
+    // Passo 2: thumb[2]
+    let thumb = getThumbs()[2] as HTMLButtonElement;
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: "Enter", code: "Enter" });
+    fireEvent.click(thumb);
+    rerenderActive(rerender, m, 2);
+    expect(document.activeElement).toBe(getThumbs()[2]);
+    expect(document.activeElement).not.toBe(getDots()[2]);
+
+    // Passo 3: dot[0]
+    dot = getDots()[0] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key: " ", code: "Space" });
+    fireEvent.click(dot);
+    rerenderActive(rerender, m, 0);
+    expect(document.activeElement).toBe(getDots()[0]);
+    expect(document.activeElement).not.toBe(getThumbs()[0]);
+  });
+
+  // ── Pressões repetidas no mesmo controle não "vazam" para o paralelo ─
+
+  it("3× click em dot[1] (mesmo dot): foco preso no dot, nunca no thumb[1]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    for (let n = 0; n < 3; n++) {
+      const dot = getDots()[1] as HTMLButtonElement;
+      dot.focus();
+      fireEvent.click(dot);
+      rerenderActive(rerender, m, 1);
+      expect(document.activeElement).toBe(getDots()[1]);
+      expect(document.activeElement).not.toBe(getThumbs()[1]);
+    }
+  });
+
+  it("3× Space em thumb[2] (mesmo thumb): foco preso no thumb, nunca no dot[2]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    for (let n = 0; n < 3; n++) {
+      const thumb = getThumbs()[2] as HTMLButtonElement;
+      thumb.focus();
+      fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+      fireEvent.click(thumb);
+      rerenderActive(rerender, m, 2);
+      expect(document.activeElement).toBe(getThumbs()[2]);
+      expect(document.activeElement).not.toBe(getDots()[2]);
+    }
+  });
+
+  // ── Asserção estrutural: o controle focado pertence ao tablist correto ─
+
+  it("foco em dot acionado: elemento ativo está dentro do tablist DOTS, não THUMBS", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const dot = getDots()[2] as HTMLButtonElement;
+    dot.focus();
+    fireEvent.keyDown(dot, { key: "Enter", code: "Enter" });
+    fireEvent.click(dot);
+    rerenderActive(rerender, m, 2);
+
+    const dotsTablist = getDotsTablist();
+    const thumbsTablist = getThumbsTablist();
+    expect(dotsTablist.contains(document.activeElement as Node)).toBe(true);
+    expect(thumbsTablist.contains(document.activeElement as Node)).toBe(false);
+  });
+
+  it("foco em thumb acionado: elemento ativo está dentro do tablist THUMBS, não DOTS", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    const { rerender } = render(<MagicUpResultPanel m={m} />);
+
+    const thumb = getThumbs()[1] as HTMLButtonElement;
+    thumb.focus();
+    fireEvent.keyDown(thumb, { key: " ", code: "Space" });
+    fireEvent.click(thumb);
+    rerenderActive(rerender, m, 1);
+
+    const dotsTablist = getDotsTablist();
+    const thumbsTablist = getThumbsTablist();
+    expect(thumbsTablist.contains(document.activeElement as Node)).toBe(true);
+    expect(dotsTablist.contains(document.activeElement as Node)).toBe(false);
+  });
+});
