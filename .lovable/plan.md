@@ -1,45 +1,49 @@
 
 
-# Plano — Snapshot tests do MagicUpVariationComparator
+# Plano — Testes de navegação por teclado no MagicUpVariationComparator
 
-Adiciono snapshots de DOM cobrindo os principais estados visuais do comparador, para travar regressões de layout, badges e classes.
+Adiciono testes verificando que Tab atinge os elementos interativos na ordem correta e que Enter/Space ativam os handlers, sem alterar produção.
 
 ## Arquivo único alterado
 
-`tests/components/magic-up-onda5.test.tsx` — novo bloco `describe("MagicUpVariationComparator snapshots")` ao final.
+`tests/components/magic-up-onda5.test.tsx` — novo bloco `describe("MagicUpVariationComparator keyboard navigation")` com 4 testes.
 
-## Snapshots cobertos (4 cenários)
+## Casos cobertos
 
-1. **Estado base — 3 variações com scores distintos**
-   - Asserção: `expect(container.firstChild).toMatchSnapshot()`
-   - Trava: estrutura do header (badge "Melhor score: X"), grid `grid-cols-2 sm:grid-cols-3`, ordem dos cards, badge "Melhor score" no vencedor, botão "Marcar vencedora" em cada card.
+1. **Tab navega entre cards e botões na ordem do DOM**
+   - 3 variações → ordem esperada: card1 → "Marcar vencedora"1 → card2 → "Marcar vencedora"2 → card3 → "Marcar vencedora"3
+   - Usa `userEvent.tab()` em loop e verifica `document.activeElement` a cada passo
 
-2. **Variação ativa (activeIndex=1)**
-   - Trava: classes `border-primary ring-2 ring-primary/20` no card ativo, `aria-pressed="true"` e `aria-current="true"`.
+2. **Enter no card de variação chama `onSelect` com índice correto**
+   - Foca o card índice 1 via `.focus()`
+   - `userEvent.keyboard("{Enter}")`
+   - Assert: `onSelect` chamado com `1`, `onSelectWinner` não chamado
 
-3. **Empate de scores [70, 90, 90]**
-   - Trava: apenas 1 badge "Melhor score" (no índice 1, primeiro empatado), determinismo do `findIndex`, badge global "Melhor score: 90".
+3. **Space no card de variação chama `onSelect`**
+   - Mesmo cenário, `userEvent.keyboard(" ")`
+   - Assert: `onSelect` chamado com índice correto (botões nativos respondem a Space)
 
-4. **Scores ausentes (todos sem `qualityScore` nem `qualityDiagnosis`)**
-   - Trava: placeholders "—" no header e em cada card, badge "Melhor score" caindo no índice 0.
+4. **Enter no botão "Marcar vencedora" chama `onSelectWinner` sem disparar `onSelect`**
+   - Foca o botão "Marcar vencedora" do índice 2
+   - `userEvent.keyboard("{Enter}")`
+   - Assert: `onSelectWinner` chamado com `2`, `onSelect` NÃO chamado (evento isolado, sem bubbling cruzado)
 
-## Estratégia anti-flaky
+## Estratégia
 
-- Usar `imageUrl` determinístico (`https://example.com/{a,b,c}.png`) — sem timestamps ou IDs gerados
-- Sem `Date.now()`, sem `Math.random()`, sem props derivadas de hooks externos
-- Snapshots inline via `toMatchInlineSnapshot()` para revisão visual no próprio arquivo de teste (mais fácil de auditar em PRs do que `.snap` separados)
-- Helper local `baseVariation(overrides)` para reduzir ruído nas props
+- Usa `@testing-library/user-event` (`userEvent.setup()`) — já disponível no projeto
+- Sem `fireEvent` direto — `userEvent` simula sequência completa (keydown + keypress + keyup)
+- Sem timers, sem async além do `await user.tab()` / `await user.keyboard()`
+- Reutiliza helper `baseVariation()` criado nos snapshot tests
 
 ## Restrições
 
-- Sem alterar `MagicUpVariationComparator.tsx` nem outros componentes de produção
-- Sem novos mocks, sem dependência de browser
-- Reutiliza imports já existentes no arquivo de teste
+- Sem alterar `MagicUpVariationComparator.tsx`
+- Sem novos mocks além de `vi.fn()` para os handlers
+- Sem dependência de browser
 
 ## Entregável
 
-- 4 novos snapshots verdes (inline)
-- Total do arquivo: 13 → 17 testes
-- Snapshots inline servem como documentação visual do contrato de UI do comparador
-- Qualquer mudança futura em estrutura/classes/badges falha o teste e exige atualização explícita via `vitest -u`
+- 4 novos testes verdes
+- Total do arquivo: 17 → 21 testes
+- Cobertura: tab order + Enter + Space + isolamento de eventos entre card e botão interno
 
