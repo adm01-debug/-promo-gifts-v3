@@ -1023,3 +1023,75 @@ describe("MagicUpResultPanel — navegação por setas nos dots e thumbnails", (
     });
   });
 });
+
+describe("MagicUpResultPanel — retenção de foco em click no dot", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  function clickAndCheckFocus(el: HTMLButtonElement) {
+    el.focus();
+    expect(document.activeElement).toBe(el);
+    fireEvent.click(el);
+    return document.activeElement;
+  }
+
+  it("Click em dot[0] mantém foco em dot[0] e chama setActiveVariation(0)", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    const after = clickAndCheckFocus(dots[0]);
+    expect(after).toBe(getDots()[0]);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
+  });
+
+  it("Click em dot[meio] mantém foco em dot[meio]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    const after = clickAndCheckFocus(dots[1]);
+    expect(after).toBe(getDots()[1]);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
+  });
+
+  it("Click em dot[last] mantém foco em dot[last]", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    const after = clickAndCheckFocus(dots[2]);
+    expect(after).toBe(getDots()[2]);
+    expect(m.setActiveVariation).toHaveBeenCalledWith(2);
+  });
+
+  it("Click em dot NÃO move foco para o thumbnail correspondente", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    clickAndCheckFocus(dots[2]);
+    expect(document.activeElement).not.toBe(getThumbs()[2]);
+    expect(document.activeElement).toBe(getDots()[2]);
+  });
+
+  it("Click em dot NÃO move foco para prev/next", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 1 });
+    render(<MagicUpResultPanel m={m} />);
+    const dots = getDots();
+    clickAndCheckFocus(dots[2]);
+    const prev = screen.getByLabelText("Voltar");
+    const next = screen.getByLabelText("Avançar");
+    expect(document.activeElement).not.toBe(prev);
+    expect(document.activeElement).not.toBe(next);
+    expect(document.activeElement).toBe(getDots()[2]);
+  });
+
+  it("Click em dot NÃO perde foco para document.body em todas as posições", () => {
+    const m = buildStubState({ variationsCount: 3, activeVariation: 0 });
+    render(<MagicUpResultPanel m={m} />);
+    [0, 1, 2].forEach((i) => {
+      const dot = getDots()[i];
+      clickAndCheckFocus(dot);
+      expect(document.activeElement).not.toBe(document.body);
+      expect(document.activeElement).toBe(getDots()[i]);
+    });
+  });
+});
