@@ -31,6 +31,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
     >
       <button
         aria-current="true"
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 1, score 70"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -83,6 +84,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 2, score 90, melhor score"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -141,6 +143,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — empate de scores [7
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 3, score 90"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -223,6 +226,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
     >
       <button
         aria-current="true"
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 1, score 70"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -275,6 +279,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 2, score 85"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -327,6 +332,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — estado base com 3 v
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 3, score 92, melhor score"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -415,6 +421,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
     >
       <button
         aria-current="true"
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 1, melhor score"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -473,6 +480,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 2"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -525,6 +533,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — scores ausentes exi
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 3"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -606,6 +615,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 1, score 70"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -659,6 +669,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
     >
       <button
         aria-current="true"
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 2, score 85"
         aria-pressed="true"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -711,6 +722,7 @@ exports[`MagicUpVariationComparator snapshots > snapshot — variação ativa em
       role="listitem"
     >
       <button
+        aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
         aria-label="Selecionar variação 3, score 92, melhor score"
         aria-pressed="false"
         class="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"

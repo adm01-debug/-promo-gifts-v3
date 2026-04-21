@@ -1116,6 +1116,137 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
     const allMarcar = screen.getAllByRole("button", { name: /^Marcar variação \d+ como vencedora$/ });
     expect(allMarcar).toHaveLength(3);
   });
+
+  describe("navegação por setas (APG composite widget)", () => {
+    const arrowVariations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+
+    function ArrowHarness({ initial = 0 }: { initial?: number }) {
+      const [active, setActive] = React.useState(initial);
+      return (
+        <MagicUpVariationComparator
+          variations={arrowVariations}
+          activeIndex={active}
+          onSelect={setActive}
+          onSelectWinner={vi.fn()}
+        />
+      );
+    }
+
+    it("ArrowRight e ArrowDown avançam activeIndex e movem foco para o próximo card", async () => {
+      const user = userEvent.setup();
+      render(<ArrowHarness initial={0} />);
+
+      const card1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+      card1.focus();
+      expect(card1).toHaveFocus();
+
+      await user.keyboard("{ArrowRight}");
+      const card2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+      expect(card2).toHaveFocus();
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+      expect(card2).toHaveAttribute("aria-current", "true");
+
+      await user.keyboard("{ArrowDown}");
+      const card3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+      expect(card3).toHaveFocus();
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("ArrowLeft e ArrowUp retrocedem activeIndex e movem foco para o card anterior", async () => {
+      const user = userEvent.setup();
+      render(<ArrowHarness initial={2} />);
+
+      const card3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+      card3.focus();
+      expect(card3).toHaveFocus();
+
+      await user.keyboard("{ArrowLeft}");
+      const card2 = screen.getByRole("button", { name: /Selecionar variação 2/ });
+      expect(card2).toHaveFocus();
+      expect(card2).toHaveAttribute("aria-pressed", "true");
+
+      await user.keyboard("{ArrowUp}");
+      const card1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+      expect(card1).toHaveFocus();
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("ArrowRight no último faz wrap para o primeiro; ArrowLeft no primeiro faz wrap para o último; Home/End funcionam", async () => {
+      const user = userEvent.setup();
+      render(<ArrowHarness initial={2} />);
+
+      const card1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+      const card3 = screen.getByRole("button", { name: /Selecionar variação 3/ });
+
+      card3.focus();
+      await user.keyboard("{ArrowRight}");
+      expect(card1).toHaveFocus();
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+
+      await user.keyboard("{ArrowLeft}");
+      expect(card3).toHaveFocus();
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+
+      await user.keyboard("{Home}");
+      expect(card1).toHaveFocus();
+      expect(card1).toHaveAttribute("aria-pressed", "true");
+
+      await user.keyboard("{End}");
+      expect(card3).toHaveFocus();
+      expect(card3).toHaveAttribute("aria-pressed", "true");
+    });
+
+    it("teclas não-seta não interceptam navegação: Tab segue ordem natural; letras não disparam onSelect", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      render(
+        <MagicUpVariationComparator
+          variations={arrowVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={vi.fn()}
+        />
+      );
+
+      const card1 = screen.getByRole("button", { name: /Selecionar variação 1/ });
+      card1.focus();
+      expect(card1).toHaveFocus();
+
+      await user.keyboard("a");
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(card1).toHaveFocus();
+
+      await user.keyboard("{Tab}");
+      const marcar1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(marcar1).toHaveFocus();
+      expect(onSelect).not.toHaveBeenCalled();
+    });
+
+    it("botão 'Selecionar' expõe aria-keyshortcuts com setas + Home/End", () => {
+      render(
+        <MagicUpVariationComparator
+          variations={arrowVariations}
+          activeIndex={0}
+          onSelect={vi.fn()}
+          onSelectWinner={vi.fn()}
+        />
+      );
+      const cards = screen.getAllByRole("button", { name: /Selecionar variação \d+/ });
+      for (const card of cards) {
+        const shortcuts = card.getAttribute("aria-keyshortcuts") || "";
+        expect(shortcuts).toContain("ArrowLeft");
+        expect(shortcuts).toContain("ArrowRight");
+        expect(shortcuts).toContain("ArrowUp");
+        expect(shortcuts).toContain("ArrowDown");
+        expect(shortcuts).toContain("Home");
+        expect(shortcuts).toContain("End");
+      }
+    });
+  });
 });
 
 describe("MagicUpVariationComparator focus-visible classes", () => {
