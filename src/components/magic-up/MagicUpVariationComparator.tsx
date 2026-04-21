@@ -66,7 +66,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                 aria-pressed={isActive}
                 aria-current={isActive ? "true" : undefined}
                 aria-keyshortcuts="ArrowLeft ArrowRight ArrowUp ArrowDown Home End"
-                aria-label={`Selecionar variação ${index + 1}${score ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
+                aria-label={`Selecionar variação ${index + 1}${score !== null ? `, score ${score}` : ""}${isWinner ? ", melhor score" : ""}`}
                 onClick={() => onSelect(index)}
                 onKeyDown={(e) => handleArrowKey(e, index)}
                 className="group block w-full text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
@@ -78,7 +78,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
                 <div className="space-y-1 p-2">
                   <div className="flex items-center justify-between gap-1">
                     <span className="text-xs font-medium">Variação {index + 1}</span>
-                    <span className="text-xs font-semibold text-primary" aria-label={score ? `Score ${score} de 100` : "Score indisponível"}>{score || "—"}</span>
+                    <span className="text-xs font-semibold text-primary" aria-label={score !== null ? `Score ${score} de 100` : "Score indisponível"}>{score !== null ? score : "—"}</span>
                   </div>
                 </div>
               </button>
