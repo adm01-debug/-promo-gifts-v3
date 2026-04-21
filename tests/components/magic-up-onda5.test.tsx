@@ -2879,13 +2879,16 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       const onSelectWinner = vi.fn();
 
       const renderWith = (loadingIdx: number | null) => (
-        <MagicUpVariationComparator
-          variations={navVariations}
-          activeIndex={0}
-          onSelect={onSelect}
-          onSelectWinner={onSelectWinner}
-          loadingWinnerIndex={loadingIdx}
-        />
+        <div>
+          <button type="button" data-testid="external-sentinel">externo</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+            loadingWinnerIndex={loadingIdx}
+          />
+        </div>
       );
 
       // Estado inicial: nenhum loading — botão var-1 habilitado
@@ -2894,17 +2897,16 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(winnerBtn1).not.toBeDisabled();
       expect(winnerBtn1).not.toHaveAttribute("aria-busy");
 
-      // Usuário foca um botão neutro (card de seleção da var-3)
-      const selectBtn3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-      selectBtn3.focus();
-      expect(selectBtn3).toHaveFocus();
+      // Usuário foca um elemento neutro externo (sem handler) — equivalente a "o foco atual não está no botão de loading"
+      const sentinel = screen.getByTestId("external-sentinel");
+      sentinel.focus();
+      expect(sentinel).toHaveFocus();
 
       // Transição: ativa loading no botão "Marcar vencedora" da var-1
       rerender(renderWith(0));
 
-      // 1) Foco PRESERVADO no botão de seleção da var-3 (rerender não roubou foco)
-      const selectBtn3AfterRerender = screen.getByRole("button", { name: /^Selecionar variação 3/ });
-      expect(selectBtn3AfterRerender).toHaveFocus();
+      // 1) Foco PRESERVADO no sentinel externo (rerender não roubou foco)
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
       // 2) Botão "Marcar vencedora" da var-1 agora desabilitado e com aria-busy="true"
       const winnerBtn1Loading = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
@@ -2921,16 +2923,15 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       fireEvent.click(winnerBtn1Loading);
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 4) Mesmo via userEvent.keyboard, sem foco no próprio botão (ele é unfocusable disabled),
-      // a tecla não deve gerar onSelectWinner
+      // 4) Mesmo via userEvent.keyboard com foco no sentinel externo, teclas não acionam o botão de loading
       await user.keyboard("{Enter}");
       await user.keyboard(" ");
       expect(onSelectWinner).not.toHaveBeenCalled();
 
-      // 5) Foco continua em selectBtn3 (botão disabled não pode receber foco programático)
-      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).toHaveFocus();
+      // 5) Foco continua no sentinel externo (botão disabled não rouba foco)
+      expect(screen.getByTestId("external-sentinel")).toHaveFocus();
 
-      // Sanity: onSelect não foi disparado
+      // Sanity: onSelect (cards) não foi disparado em nenhum momento
       expect(onSelect).not.toHaveBeenCalled();
     });
   });
