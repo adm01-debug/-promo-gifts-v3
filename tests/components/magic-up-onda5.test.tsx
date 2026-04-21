@@ -342,7 +342,8 @@ describe("Magic Up Onda 5 components", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", () => {
+  it("clicar em card empatado não-vencedor: chama onSelect mas não move a badge 'Melhor score'", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const variations: VariationItem[] = [
       { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 80 },
