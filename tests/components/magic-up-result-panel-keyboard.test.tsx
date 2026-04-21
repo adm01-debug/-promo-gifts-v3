@@ -1032,25 +1032,25 @@ describe("MagicUpResultPanel — setas APG (cobertura adicional de bordas e thum
 
   // ── Bordas N=2 (menor caso com wrap) e N=1 (no-op) ──
 
-  it("N=2: ArrowRight em dot[1] faz wrap para dot[0]", () => {
+  it("N=2: ArrowRight em dot[1] NÃO faz wrap (não-wrap APG)", () => {
     const m = buildStubState({ variationsCount: 2, activeVariation: 1 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     expect(dots).toHaveLength(2);
     dots[1].focus();
     fireEvent.keyDown(dots[1], { key: "ArrowRight" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(0);
-    expect(document.activeElement).toBe(getDots()[0]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[1]);
   });
 
-  it("N=2: ArrowLeft em dot[0] faz wrap para dot[1]", () => {
+  it("N=2: ArrowLeft em dot[0] NÃO faz wrap (não-wrap APG)", () => {
     const m = buildStubState({ variationsCount: 2, activeVariation: 0 });
     render(<MagicUpResultPanel m={m} />);
     const dots = getDots();
     dots[0].focus();
     fireEvent.keyDown(dots[0], { key: "ArrowLeft" });
-    expect(m.setActiveVariation).toHaveBeenCalledWith(1);
-    expect(document.activeElement).toBe(getDots()[1]);
+    expect(m.setActiveVariation).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(getDots()[0]);
   });
 
   it("N=1: dots/thumbs não são renderizados; setActiveVariation não é chamado", () => {
