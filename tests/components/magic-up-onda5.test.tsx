@@ -2714,5 +2714,90 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(onSelect).not.toHaveBeenCalled();
       expect(onSelectWinner).not.toHaveBeenCalled();
     });
+
+    it("Tab pula o botão 'Marcar vencedora' quando em loading (disabled remove do tab order)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      render(
+        <>
+          <button type="button" data-testid="external-anchor">Âncora externa</button>
+          <MagicUpVariationComparator
+            variations={navVariations}
+            activeIndex={0}
+            onSelect={onSelect}
+            onSelectWinner={onSelectWinner}
+            loadingWinnerIndex={0}
+          />
+        </>
+      );
+
+      const winnerBtn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(winnerBtn1).toBeDisabled();
+      expect(winnerBtn1).toHaveAttribute("aria-busy", "true");
+
+      screen.getByTestId("external-anchor").focus();
+
+      await user.tab();
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).toHaveFocus();
+
+      await user.tab();
+      expect(winnerBtn1).not.toHaveFocus();
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).toHaveFocus();
+
+      await user.tab();
+      expect(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" })).toHaveFocus();
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onSelectWinner).not.toHaveBeenCalled();
+    });
+
+    it("Enter e Space não disparam onSelectWinner quando o botão 'Marcar vencedora' está em loading", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const { rerender } = render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+          loadingWinnerIndex={1}
+        />
+      );
+
+      const loadingBtn = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      expect(loadingBtn).toBeDisabled();
+      expect(loadingBtn).toHaveAttribute("aria-busy", "true");
+
+      loadingBtn.focus();
+      expect(loadingBtn).not.toHaveFocus();
+
+      await user.keyboard("{Enter}");
+      await user.keyboard(" ");
+      expect(onSelectWinner).not.toHaveBeenCalled();
+
+      rerender(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+          loadingWinnerIndex={null}
+        />
+      );
+      const enabledBtn = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      expect(enabledBtn).not.toBeDisabled();
+      expect(enabledBtn).not.toHaveAttribute("aria-busy");
+      enabledBtn.focus();
+      expect(enabledBtn).toHaveFocus();
+      await user.keyboard("{Enter}");
+      expect(onSelectWinner).toHaveBeenCalledWith(1);
+
+      expect(onSelect).not.toHaveBeenCalled();
+      expect(onSelectWinner).toHaveBeenCalledTimes(1);
+    });
   });
 });
