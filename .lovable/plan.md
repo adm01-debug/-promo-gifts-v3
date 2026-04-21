@@ -1,33 +1,38 @@
 
 
-# Plano — Teste de empate em score 0 (não tratar 0 como ausente)
+# Plano — Teste de empate triplo com isWinner explícito
 
-Adiciono 1 teste validando que `qualityScore: 0` é um valor válido (não confundido com "score ausente") e que o tie-break determinístico continua funcionando: winner = primeiro índice, exatamente 1 badge "Melhor score".
+Adiciono 1 teste cobrindo cenário onde 3 variações empatam no melhor score, mas uma delas tem `isWinner: true` — validando que ainda assim apenas 1 badge "Melhor score" é renderizada (e que `findIndex` retorna o primeiro match, que continua sendo o índice 0 por causa do `||` curto-circuitando em `scores[i] === bestScore`).
 
 ## Justificativa
 
 A lógica em `MagicUpVariationComparator.tsx`:
 ```ts
-const scores = variations.map((v) => v.qualityDiagnosis?.total || v.qualityScore || 0);
-const bestScore = Math.max(...scores);
 const winnerIndex = variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore);
 ```
 
-Quando todos os scores são `0`, `bestScore = 0` e **todos** os índices satisfazem `scores[i] === bestScore`. O `findIndex` retorna 0 (primeiro). O teste trava esse contrato e protege contra mudanças tipo `if (!score) skip` ou `score > 0` que tratariam 0 como ausência.
+Cenário: scores `[85, 85, 85]`, com `isWinner: true` na variação 2 (índice 1). O `findIndex` itera do início:
+- Índice 0: `isWinner=false`, mas `scores[0] === 85 === bestScore` → **match**, retorna 0
 
-**Sutileza importante:** o aria-label do botão é construído com `${score ? \`, score ${score}\` : ""}` — então `score === 0` resulta em label SEM sufixo de score (porque `0` é falsy em JS). O teste deve refletir esse comportamento real, não o ideal.
+Portanto `winnerIndex === 0`, não 1. A badge aparece no índice 0, não na variação marcada explicitamente. **Esse é o comportamento atual** — o teste documenta e trava esse contrato.
+
+Protege contra refatorações que poderiam:
+- Priorizar `isWinner` antes do score (ex: `findIndex(v => v.isWinner) ?? findIndex(...)`)
+- Renderizar 2 badges (uma para `isWinner`, outra para `bestScore`)
+- Mudar a ordem do `||` no predicate
 
 ## Arquivo alterado
 
-`tests/components/magic-up-onda5.test.tsx` — adicionar 1 teste no `describe` do `MagicUpVariationComparator`, logo após o teste de empate total (score 80).
+`tests/components/magic-up-onda5.test.tsx` — adicionar 1 teste no `describe` do `MagicUpVariationComparator`, após os testes de empate já existentes.
 
 ## Caso coberto
 
 ```ts
-it("empate em score 0: trata 0 como valor válido e atribui 'Melhor score' ao primeiro índice", () => {
+it("empate triplo com isWinner explícito: ainda exibe exatamente 1 badge 'Melhor score'", () => {
   const variations: VariationItem[] = [
-    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 0 },
-    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 0 },
+    { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 85 },
+    { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 85, isWinner: true },
+    { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 85 },
   ];
   render(
     <MagicUpVariationComparator
@@ -37,16 +42,18 @@ it("empate em score 0: trata 0 como valor válido e atribui 'Melhor score' ao pr
       onSelectWinner={vi.fn()}
     />
   );
-  // bestScore = 0 é válido → exatamente 1 badge "Melhor score"
+  // Mesmo com isWinner explícito + 3 empatados, apenas 1 badge
   expect(screen.getAllByLabelText("Melhor score").length).toBe(1);
-  // Winner determinístico: índice 0 recebe o sufixo "melhor score" no aria-label
-  // (aria-label omite ", score N" quando score é 0/falsy — comportamento atual do componente)
+  // findIndex retorna o primeiro match (índice 0 satisfaz scores[0] === bestScore)
   expect(
-    screen.getByRole("button", { name: "Selecionar variação 1, melhor score" })
+    screen.getByRole("button", { name: "Selecionar variação 1, score 85, melhor score" })
   ).toBeInTheDocument();
-  // Variação 2 não recebe sufixo de winner
+  // Variação 2 (com isWinner: true) NÃO recebe badge — comportamento atual do findIndex
   expect(
-    screen.getByRole("button", { name: "Selecionar variação 2" })
+    screen.getByRole("button", { name: "Selecionar variação 2, score 85" })
+  ).toBeInTheDocument();
+  expect(
+    screen.getByRole("button", { name: "Selecionar variação 3, score 85" })
   ).toBeInTheDocument();
 });
 ```
@@ -54,8 +61,8 @@ it("empate em score 0: trata 0 como valor válido e atribui 'Melhor score' ao pr
 ## Estratégia
 
 - Reutiliza imports e padrão dos testes adjacentes
-- Confirma que `Math.max(0, 0) === 0` e que `findIndex` resolve no primeiro
-- Documenta inline (via teste) que score 0 é válido — qualquer refator que adicione `if (score > 0)` ou `score ?? null` quebra CI
+- Documenta inline o contrato real: predicate `v.isWinner || scores[i] === bestScore` faz `findIndex` retornar o primeiro índice que satisfaz **qualquer** das condições
+- Strings literais em `getByRole` para travar o `aria-label` exato
 
 ## Restrições
 
@@ -65,7 +72,7 @@ it("empate em score 0: trata 0 como valor válido e atribui 'Melhor score' ao pr
 
 ## Entregável
 
-- 1 teste novo em `tests/components/magic-up-onda5.test.tsx` (25 → 26 testes)
-- Trava contrato: `qualityScore: 0` é tratado como número válido, não como ausência
-- Empate em 0 → winner determinístico no índice 0, exatamente 1 badge
+- 1 teste novo em `tests/components/magic-up-onda5.test.tsx`
+- Trava contrato: empate triplo + isWinner → ainda 1 única badge, no primeiro índice empatado
+- Completa a suíte de tie-break (total, zero, parcial 2/3, triplo+isWinner)
 
