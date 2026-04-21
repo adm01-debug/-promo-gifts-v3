@@ -1,114 +1,136 @@
 
 
-# Plano — Teste: nenhum score → nenhuma badge "Melhor score" no DOM
+# Plano — Teste: `isWinner=true` tem prioridade sobre score maior
 
-Adiciono teste validando que quando **todas as variações não têm `qualityScore` nem `qualityDiagnosis`**, a UI **não exibe nenhuma badge "Melhor score"** nos cards e o badge global do header mostra "—" (placeholder de score indisponível).
+Adiciono teste validando que quando uma variação tem `isWinner=true` mas score **menor** que outra, ela ainda recebe a badge "Melhor score" (prioridade do flag explícito sobre o cálculo automático).
 
 ## Justificativa
 
 A lógica atual em `MagicUpVariationComparator.tsx`:
 
 ```ts
-const scores = variations.map((v) => v.qualityDiagnosis?.total || v.qualityScore || 0);
-const bestScore = Math.max(...scores);  // = 0 quando todos undefined
-const winnerIndex = variations.findIndex(
-  (v, i) => v.isWinner || scores[i] === bestScore
-);  // = 0 (índice 0 satisfaz 0===0)
+const winnerIndex = hasValidScores
+  ? variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore)
+  : -1;
 ```
 
-O teste anterior (caso degenerado) **trava o comportamento atual**: badge aparece no índice 0 mesmo sem score. Mas o **contrato semântico desejado** é diferente: se nenhuma variação tem score real, **não deveria haver vencedor** — exibir "Melhor score" sem dados é enganoso para o usuário.
+O operador `||` no predicate dá **prioridade ao `isWinner`**: se uma variação no índice `i` tem `isWinner=true`, ela vence imediatamente — mesmo que outra variação tenha score maior. `findIndex` retorna o **primeiro** índice que satisfaz, então se `isWinner` está num índice anterior ao `bestScore`, ela vence; mas se `isWinner` está num índice posterior, depende da ordem.
 
-**Gap:** o teste pedido pelo usuário expõe um possível bug de UX (badge falsa quando `bestScore=0`). Preciso decidir se:
-- **(A)** Ajusto o componente para ocultar badge quando `bestScore === 0` (mudança de comportamento)
-- **(B)** Adapto o teste para validar comportamento atual (badge no índice 0 mesmo sem score) — mas isso contradiz o pedido literal ("garantindo que 'Melhor score' não seja exibida")
+**Casos a travar:**
+1. `isWinner=true` em índice 0 com score 50, índice 1 com score 90 (sem isWinner) → vencedor = 0 (isWinner)
+2. `isWinner=true` em índice 2 com score 30, índices 0/1 com score 70/80 → vencedor = ? (`findIndex` itera 0→2, índice 1 satisfaz `scores[1]===bestScore=80` antes de chegar ao 2 com isWinner)
 
-O pedido é explícito: **"Melhor score" não deve ser exibida**. Isso requer **alterar o componente** para ocultar a badge quando `bestScore === 0`, e adicionar o teste que trava esse novo contrato.
+**Comportamento real do caso 2:** `findIndex` encontra índice 1 primeiro (`scores[1] === 80 === bestScore`), retorna 1 — `isWinner=true` no índice 2 é **ignorado**. Isso é um bug sutil de prioridade.
+
+**Decisão:** o teste pedido pelo usuário ("isWinner segue a regra de prioridade") implica que `isWinner=true` deve **sempre** vencer, independente da posição. Isso requer reordenar a lógica:
+
+```ts
+const explicitWinner = variations.findIndex((v) => v.isWinner);
+const winnerIndex = hasValidScores
+  ? (explicitWinner >= 0 ? explicitWinner : variations.findIndex((_, i) => scores[i] === bestScore))
+  : explicitWinner; // -1 se nenhum, ou índice do isWinner mesmo sem scores
+```
+
+Edge case: se `isWinner=true` mas `bestScore=0` (sem scores válidos), o flag explícito ainda deve vencer — `isWinner` é decisão de UX/curadoria que sobrepõe ausência de score automático.
 
 ## Alterações
 
 ### 1. `src/components/magic-up/MagicUpVariationComparator.tsx`
 
-Adicionar guard `bestScore > 0` ao cálculo de `winnerIndex` e à renderização da badge:
+Substituir cálculo de `winnerIndex` para garantir prioridade absoluta de `isWinner`:
 
 ```tsx
 const scores = variations.map((v) => v.qualityDiagnosis?.total || v.qualityScore || 0);
 const bestScore = Math.max(...scores);
 const hasValidScores = bestScore > 0;
-const winnerIndex = hasValidScores
-  ? variations.findIndex((v, i) => v.isWinner || scores[i] === bestScore)
-  : -1;  // -1 = nenhum vencedor
+const explicitWinnerIndex = variations.findIndex((v) => v.isWinner);
+const winnerIndex = explicitWinnerIndex >= 0
+  ? explicitWinnerIndex
+  : (hasValidScores ? variations.findIndex((_, i) => scores[i] === bestScore) : -1);
 ```
 
-E na renderização do badge dentro do card:
-```tsx
-{isWinner && hasValidScores && <Badge ...>Melhor score</Badge>}
-```
+Renderização de badge permanece `{isWinner && ...}` (onde `isWinner = index === winnerIndex`).
 
-(Como `winnerIndex = -1`, `isWinner = (index === -1)` é sempre `false`, então a guarda `hasValidScores` é redundante mas explícita — mantém para clareza.)
-
-O badge do header (`Melhor score: —`) já trata `bestScore || "—"` corretamente — sem mudança.
+**Comportamento resultante:**
+- `isWinner=true` em qualquer índice → vence (mesmo sem scores)
+- Sem `isWinner` + scores válidos → primeiro com bestScore vence
+- Sem `isWinner` + sem scores → nenhum vencedor
 
 ### 2. `tests/components/magic-up-onda5.test.tsx`
 
-Adicionar teste ao final da sub-suíte de empate:
+Adicionar 3 testes no final da sub-suíte de empate:
 
 ```ts
-it("nenhum score (todos undefined): badge 'Melhor score' não aparece em nenhum card e winnerIndex não é falso", () => {
+it("isWinner=true em índice 0 com score menor (50) vence sobre índice 1 com score maior (90)", () => {
+  const variations = [
+    buildVariation({ qualityScore: 50, isWinner: true }, 0),
+    buildVariation({ qualityScore: 90 }, 1),
+    buildVariation({ qualityScore: 70 }, 2),
+  ];
+  renderTied(variations);
+
+  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+  const cards = screen.getAllByRole("listitem");
+  expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+  // aria-label do vencedor confirma destaque mesmo com score 50
+  const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
+  expect(winnerBtn.getAttribute("aria-label")).toContain("melhor score");
+  expect(winnerBtn.getAttribute("aria-label")).toContain("score 50");
+});
+
+it("isWinner=true em índice 2 com score menor (30) vence sobre índices 0/1 com scores maiores (70/80)", () => {
+  const variations = [
+    buildVariation({ qualityScore: 70 }, 0),
+    buildVariation({ qualityScore: 80 }, 1),
+    buildVariation({ qualityScore: 30, isWinner: true }, 2),
+  ];
+  renderTied(variations);
+
+  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+  const cards = screen.getAllByRole("listitem");
+  expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[2]).queryByLabelText("Melhor score")).not.toBeNull();
+});
+
+it("isWinner=true sem scores válidos: vence mesmo com bestScore=0", () => {
   const variations = [
     buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
-    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 1),
+    buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: true }, 1),
     buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
   ];
   renderTied(variations);
 
-  // Nenhuma badge "Melhor score" nos cards (queryAllByLabelText retorna array vazio)
+  // isWinner sobrepõe guard hasValidScores
+  expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
   const cards = screen.getAllByRole("listitem");
-  expect(cards).toHaveLength(3);
-  cards.forEach((card) => {
-    expect(within(card).queryByLabelText("Melhor score")).toBeNull();
-  });
+  expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+  expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+  expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
 
-  // Nenhum aria-label de botão menciona "melhor score"
-  for (let i = 1; i <= 3; i++) {
-    const btn = screen.getByRole("button", { name: new RegExp(`Selecionar variação ${i}`) });
-    expect(btn.getAttribute("aria-label")).not.toContain("melhor score");
-    expect(btn.getAttribute("aria-label")).not.toMatch(/score \d/);
-  }
-
-  // Badge global do header mostra "—" (placeholder)
+  // Badge global do header ainda mostra "—" (não há bestScore numérico)
   expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
 });
 ```
 
-### 3. Ajustar teste existente que valida comportamento antigo
+### 3. Verificar testes pré-existentes
 
-O teste anterior `caso degenerado (todos sem score): bestScore=0, badge ainda aparece no índice 0` e o `it.each` que asserta `toHaveLength(1)` para score 0 **passariam a falhar** com a mudança no componente.
-
-**Ajustes necessários:**
-- Remover/atualizar o teste `caso degenerado ... badge ainda aparece no índice 0` → trocar asserções para `queryByLabelText("Melhor score")).toBeNull()` em todos os cards
-- Atualizar `it.each([2, 3, 5])` para que o caso `qualityScore: undefined` seja **separado** dos casos com score real — ou substituir o helper para usar `qualityScore: 75` em vez de `undefined`, mantendo o teste de empate válido em score real
-- Atualizar o teste de `aria-label score=0` (recém-adicionado) → vencedor não existe mais quando todos têm score 0, então o aria-label do índice 0 **não deve conter "melhor score"** (inverter asserção)
-
-**Plano de ajuste dos 2 testes pré-existentes:**
-
-| Teste atual | Novo comportamento |
-|---|---|
-| `caso degenerado: badge no índice 0` | Renomear: `caso degenerado: nenhuma badge em nenhum card` — asserções invertidas |
-| `it.each([2,3,5]) score=0: 1 badge no índice 0` | Trocar fixture para `qualityScore: 75` (mantém empate real) — testa apenas empate em score válido |
-| `aria-label score=0: vencedor com 'melhor score', sem 'score 0'` | Inverter: `aria-label score=0: nenhum botão recebe 'melhor score' nem 'score N'` |
+Pesquisar no arquivo qualquer fixture com `isWinner: true` combinado com score menor — se existirem, podem precisar de ajuste. O teste base com `qualityScore: 90, isWinner: true` (linha ~911) tem score maior, então é compatível com a nova lógica (vence por ambos os critérios). Sem ajustes esperados, mas validar via execução.
 
 ## Restrições
 
-- Mudança comportamental no componente é **intencional** — corrige UX enganosa de mostrar vencedor sem dados
-- Sem alterar testes fora da sub-suíte de empate
+- Mudança comportamental no componente é **intencional** — corrige bug de prioridade do operador `||`
+- `isWinner=true` torna-se **flag absoluto de curadoria** (sobrepõe scores e ausência de scores)
+- Reusa helpers `buildVariation`, `renderTied`, `within` já importados
 - Sem novos imports
-- Helper `buildVariation` já suporta `undefined` para ambos os campos
 
 ## Entregável
 
-- 1 modificação em `MagicUpVariationComparator.tsx` (guard `bestScore > 0`)
-- 1 novo teste validando contrato "sem score → sem badge"
-- 3 testes existentes ajustados para o novo contrato (2 substituídos por variantes de score real, 1 invertido)
-- Cobertura: 58 → 59 testes (1 novo + 3 ajustados)
-- Trava contrato UX: sem dados → sem vencedor falso
+- 1 modificação em `MagicUpVariationComparator.tsx` (cálculo de `winnerIndex` com prioridade explícita)
+- 3 novos testes cobrindo: `isWinner` em posição inicial com score menor, `isWinner` em posição final com score menor, `isWinner` sem scores válidos
+- Cobertura: 58 → 61 testes
+- Trava contrato: `isWinner=true` é prioridade absoluta sobre cálculo automático
 
