@@ -1,100 +1,110 @@
 
 
-# Plano — Testes de accessible names + aria-label/role para screen readers no `MagicUpResultPanel`
+# Plano — Testes de comportamento nas extremidades (boundaries) de teclado nos dots/thumbnails/prev-next do `MagicUpResultPanel`
 
-Adiciono nova sub-suíte ao `tests/components/magic-up-result-panel-keyboard.test.tsx` validando que prev/next, dots e thumbnails expõem **accessible names** e atributos ARIA corretos para anúncio por screen readers (NVDA/JAWS/VoiceOver), conforme WCAG 4.1.2 (Name, Role, Value) e 2.4.6 (Headings and Labels).
+Adiciono nova sub-suíte ao `tests/components/magic-up-result-panel-keyboard.test.tsx` validando o comportamento consistente nas extremidades (primeiro/último elemento) ao navegar via Tab/Enter/Space — confirmando que o componente **não faz wrap** (não cicla) e **para corretamente** nos limites, conforme APG Tabs Pattern (não-wrapping linear).
 
 ## Justificativa
 
-Sub-suítes anteriores travam roving tabindex, focus-visible e tab order, mas não validam explicitamente:
-- **Accessible name único e descritivo** em cada controle (prev/next/dots/thumbnails) — screen readers anunciam o accessible name + role; nomes vazios/duplicados/genéricos quebram a navegação por landmarks
-- **Role correto** em cada elemento: `tab` para dots/thumbnails (dentro de `tablist`), `button` para prev/next
-- **`aria-label` em ícones-only** (ChevronLeft/ChevronRight): sem texto visível, o `aria-label` é a única fonte do accessible name
-- **Tablists com `aria-label` distinto** ("Variações geradas" vs "Miniaturas das variações") — dois tablists no mesmo painel exigem rótulos diferentes para screen reader distinguir contextos
-- **Numeração 1-based** nos labels ("variação 1", não "variação 0") — conformidade com leitura humana
+Sub-suítes anteriores cobrem roving tabindex, focus-visible, accessible names e ativação por teclado, mas não validam explicitamente o **comportamento nas bordas**:
+
+- **Prev no primeiro dot**: deve estar `disabled` e `setActiveVariation` NÃO deve ser chamado ao clicar/Enter/Space
+- **Next no último dot**: mesmo contrato (disabled + no-op)
+- **Enter/Space em dot/thumb já ativo**: comportamento idempotente — chama `setActiveVariation(activeIndex)` sem efeito colateral, ou no-op silencioso (precisamos travar qual)
+- **Tab order não cicla**: após o último elemento focável (next), Tab sai do painel (não volta ao prev) — comportamento natural do browser que precisa ser confirmado
+- **Roving tabindex nas extremidades**: com `activeVariation=0`, dot[0] é o único com `tabindex=0`; com `activeVariation=last`, dot[last] é o único — sem "wrap" do roving para dot[1] quando estamos em dot[0]
+
+Esses contratos previnem regressões onde alguém adicionaria lógica de wrap (`onClick={() => setActive((i + 1) % total)}`) ou removeria o `disabled` dos prev/next nos extremos.
 
 ## Arquivo alterado
 
 `tests/components/magic-up-result-panel-keyboard.test.tsx` apenas — sem alterar componentes nem outros testes.
 
-## Sub-suíte nova: `MagicUpResultPanel — accessible names e atributos ARIA para screen readers`
+## Sub-suíte nova: `MagicUpResultPanel — comportamento de extremidades (no-wrap) em Tab/Enter/Space`
 
 ### Helpers locais (no topo do describe)
 
 ```ts
-function expectAccessibleName(el: HTMLElement, expected: string | RegExp) {
-  // Resolve accessible name via aria-label > aria-labelledby > textContent
-  const name = el.getAttribute("aria-label") ?? el.textContent?.trim() ?? "";
-  if (expected instanceof RegExp) {
-    expect(name).toMatch(expected);
-  } else {
-    expect(name).toBe(expected);
+function pressKey(el: HTMLElement, key: "Enter" | " ") {
+  fireEvent.keyDown(el, { key });
+  // Browsers disparam click sintético em Enter/Space em <button>; replicamos
+  if (!(el as HTMLButtonElement).disabled) {
+    fireEvent.click(el);
   }
-}
-
-function expectUniqueNames(elements: HTMLElement[]) {
-  const names = elements.map((el) => el.getAttribute("aria-label") ?? el.textContent?.trim() ?? "");
-  expect(new Set(names).size).toBe(names.length);
 }
 ```
 
-### Testes a adicionar (~7 testes)
+### Testes a adicionar (~8 testes)
 
-**Teste 1 — Prev e Next têm accessible names "Voltar" e "Avançar" via aria-label**
-- Renderiza com `activeVariation=1` (ambos enabled)
-- Valida `screen.getByRole("button", { name: "Voltar" })` e `{ name: "Avançar" }` resolvem
-- Confirma `aria-label` literal no DOM (ícones-only precisam de aria-label, não basta texto)
+**Teste 1 — Prev disabled no primeiro índice; clique não dispara setActiveVariation**
+- Renderiza `activeVariation=0`, 3 variações
+- `prev` está `disabled`
+- `fireEvent.click(prev)` → `setActiveVariation` NÃO foi chamado
+- `pressKey(prev, "Enter")` → mesmo
+- `pressKey(prev, " ")` → mesmo
 
-**Teste 2 — Dots têm accessible names únicos no formato "Selecionar variação N"**
-- Renderiza com 3 variações, `activeVariation=0`
-- Para cada dot[i]: `expectAccessibleName(dot, \`Selecionar variação ${i + 1}\`)` (1-based)
-- `expectUniqueNames(getDots())` — garante 3 nomes distintos
+**Teste 2 — Next disabled no último índice; clique não dispara setActiveVariation**
+- Renderiza `activeVariation=2`, 3 variações
+- `next` está `disabled`
+- Mesmas 3 asserções (click, Enter, Space) → `setActiveVariation` nunca chamado
 
-**Teste 3 — Thumbnails têm accessible names únicos no formato "Abrir miniatura da variação N"**
-- Mesma estrutura do teste 2 mas para thumbnails
-- Confirma label distinto de dots (evita screen reader anunciar "Selecionar variação 1" duas vezes)
+**Teste 3 — Prev funciona normalmente em índices intermediários**
+- Renderiza `activeVariation=1`
+- `prev` NÃO está disabled
+- `fireEvent.click(prev)` → `setActiveVariation` chamado com `0`
 
-**Teste 4 — Tablists têm aria-label distintos para diferenciar contexto**
-- `screen.getByRole("tablist", { name: "Variações geradas" })` resolve (dots)
-- `screen.getByRole("tablist", { name: "Miniaturas das variações" })` resolve (thumbnails)
-- Confirma que ambos coexistem com nomes diferentes no mesmo painel
+**Teste 4 — Next funciona normalmente em índices intermediários**
+- Renderiza `activeVariation=1`
+- `next` NÃO está disabled
+- `fireEvent.click(next)` → `setActiveVariation` chamado com `2`
 
-**Teste 5 — Roles corretos em cada controle**
-- prev/next: `role="button"` (implícito em `<button>`)
-- Cada dot: `role="tab"` explícito
-- Cada thumbnail: `role="tab"` explícito
-- Containers de dots e thumbnails: `role="tablist"`
+**Teste 5 — Roving tabindex no primeiro índice: apenas dot[0] e thumb[0] com tabindex=0**
+- Renderiza `activeVariation=0`, 3 variações
+- `dots[0].tabindex === "0"`, `dots[1].tabindex === "-1"`, `dots[2].tabindex === "-1"`
+- Mesma asserção para thumbs
+- Confirma que roving NÃO faz wrap (dot[2] não vira focável só porque é "anterior" ao 0)
 
-**Teste 6 — Dot ativo expõe aria-current="true" para screen reader anunciar "atual"**
-- Renderiza com `activeVariation=1`
-- `expect(dots[1]).toHaveAttribute("aria-current", "true")`
-- Demais dots: sem `aria-current` (ou ausente)
+**Teste 6 — Roving tabindex no último índice: apenas dot[last] e thumb[last] com tabindex=0**
+- Renderiza `activeVariation=2`, 3 variações
+- `dots[2].tabindex === "0"`, `dots[0].tabindex === "-1"`, `dots[1].tabindex === "-1"`
+- Mesma asserção para thumbs
 
-**Teste 7 — Prev/Next mantêm accessible name quando disabled**
-- `activeVariation=0`: prev disabled mas ainda resolve via `getByRole("button", { name: "Voltar" })` (screen reader anuncia "Voltar, indisponível")
-- `activeVariation=2`: next disabled idem para "Avançar"
+**Teste 7 — Enter/Space em dot já ativo é idempotente (chama com mesmo índice ou no-op)**
+- Renderiza `activeVariation=1`
+- Foca `dots[1]` e dispara `pressKey(dots[1], "Enter")`
+- `setActiveVariation` foi chamado com `1` (idempotente — handler não filtra; UI permanece estável porque React reconcilia mesmo state)
+- Mesmo para thumbs[1]
+- Foco permanece em `dots[1]` após ativação
+
+**Teste 8 — Tab a partir do último dot enabled (next) não retorna ao prev (sem wrap de Tab)**
+- Renderiza `activeVariation=1` (prev e next enabled, dot[1] tabindex=0)
+- Foca `next` via `next.focus()`
+- `await user.tab()` → foco sai para próximo elemento focável fora do trio prev/dots/next (ex: thumbnail ativa) ou sai do painel — confirma que `document.activeElement !== prev` (Tab não cicla de volta)
+- Trava: navegação linear, sem wrap forçado por trap de foco
 
 ## Estratégia técnica
 
-- **Asserts via `getByRole({ name })`**: Testing Library usa accessible name resolution igual ao screen reader — passa se o navegador realmente anunciaria aquele nome
-- **`expectAccessibleName` helper**: combina `aria-label` (prioridade) com `textContent` para casos sem aria-label; trava contrato canônico
-- **`expectUniqueNames`**: previne regressão onde dois dots/thumbnails ficam com mesmo label (UX quebrada para screen reader)
-- **Sem mock adicional**: reusa `buildStubState`, `getDots`, `getThumbs` existentes
-- **Numeração 1-based**: alinhada ao MagicUpResultPanel.tsx atual (`Selecionar variação ${i + 1}`)
+- **`fireEvent.click` em botão `disabled`**: React/JSDOM respeita `disabled` e NÃO dispara o handler `onClick` mesmo via fireEvent — perfeito para testar "no-op" nas extremidades sem mock especial
+- **`pressKey` helper**: encapsula o ciclo Enter/Space → click sintético, com guarda `!disabled` para refletir comportamento do browser
+- **`setActiveVariation` é `vi.fn()` em `buildStubState`** — basta `expect(m.setActiveVariation).not.toHaveBeenCalled()` para travar contrato de no-op
+- **Idempotência**: o componente atual chama `setActiveVariation(i)` independente de já estar ativo; o teste 7 trava esse contrato (não é bug — React reconcilia state igual sem re-render desnecessário, e mantém handler simples)
+- **Tab sem wrap**: `userEvent.tab()` avança 1 elemento focável; comparamos `document.activeElement` antes/depois para garantir que não retorna ao prev
 
 ## Restrições
 
-- Sem alterar `MagicUpResultPanel.tsx` (atributos já existem corretamente)
-- Sem alterar snapshots, outros testes ou componentes
-- Mantém os 26 testes existentes intactos
-- Cobertura WCAG: 4.1.2 (Name, Role, Value), 2.4.6 (Headings and Labels), 1.3.1 (Info and Relationships)
+- Sem alterar `MagicUpResultPanel.tsx` (comportamento de extremidades já correto via `disabled` nos prev/next)
+- Sem alterar snapshots, outros testes, componentes ou helpers existentes
+- Mantém os 33 testes existentes intactos
+- Reusa `buildStubState`, `getDots`, `getThumbs` já presentes no arquivo
+- Cobertura WCAG: 2.1.1 (Keyboard), 2.1.2 (No Keyboard Trap), 2.4.3 (Focus Order)
 
 ## Entregável
 
-- Nova sub-suíte com ~7 testes em `tests/components/magic-up-result-panel-keyboard.test.tsx`
-- 2 helpers locais (`expectAccessibleName`, `expectUniqueNames`) reutilizáveis
-- Trava contrato: prev/next/dots/thumbnails têm accessible names corretos e únicos
-- Trava contrato: dois tablists coexistem com labels distintos
-- Trava contrato: roles ARIA corretos em todos os controles de navegação
-- Cobertura final: 26 → 33 testes no arquivo
+- Nova sub-suíte com ~8 testes em `tests/components/magic-up-result-panel-keyboard.test.tsx`
+- 1 helper local (`pressKey`) reutilizável dentro da sub-suíte
+- Trava contrato: prev/next são no-op nas extremidades (disabled + handler nunca chamado)
+- Trava contrato: roving tabindex não faz wrap (dot[0] não torna dot[last] focável e vice-versa)
+- Trava contrato: Enter/Space em elemento já ativo é idempotente (chama com mesmo índice, foco permanece)
+- Trava contrato: Tab navega linearmente sem cycle/trap de foco
+- Cobertura final: 33 → 41 testes no arquivo
 
