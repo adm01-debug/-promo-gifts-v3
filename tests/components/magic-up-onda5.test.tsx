@@ -3112,6 +3112,11 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
 
   it("roving tabindex: apenas card ativo tem tabIndex=0; demais cards tabIndex=-1; ativo migra ao mudar activeIndex", async () => {
     const user = userEvent.setup();
+    const navVariations: VariationItem[] = [
+      { id: "rv-1", imageUrl: "https://example.com/rv1.png", qualityScore: 80 } as VariationItem,
+      { id: "rv-2", imageUrl: "https://example.com/rv2.png", qualityScore: 70 } as VariationItem,
+      { id: "rv-3", imageUrl: "https://example.com/rv3.png", qualityScore: 90 } as VariationItem,
+    ];
 
     function ControlledWrapper() {
       const [activeIndex, setActiveIndex] = React.useState(0);
