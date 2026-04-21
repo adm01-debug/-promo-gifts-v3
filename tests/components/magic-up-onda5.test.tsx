@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, expect, it, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -854,6 +855,122 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
 
     expect(onSelect).toHaveBeenCalledTimes(2);
     expect(onSelectWinner).toHaveBeenCalledTimes(2);
+  });
+
+  it("Enter/Space disparam re-render que atualiza border-primary + aria-pressed + aria-current no novo card ativo", async () => {
+    const user = userEvent.setup();
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+
+    function ControlledHarness() {
+      const [active, setActive] = React.useState(0);
+      return (
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={active}
+          onSelect={setActive}
+          onSelectWinner={vi.fn()}
+        />
+      );
+    }
+
+    render(<ControlledHarness />);
+
+    const select1 = screen.getByRole("button", { name: /Selecionar variação 1, score 90/i });
+    const select2 = screen.getByRole("button", { name: "Selecionar variação 2, score 70" });
+    const select3 = screen.getByRole("button", { name: "Selecionar variação 3, score 50" });
+
+    expect(select1).toHaveAttribute("aria-pressed", "true");
+    expect(select1).toHaveAttribute("aria-current", "true");
+    expect(select1.parentElement).toHaveClass("border-primary");
+    expect(select2.parentElement).not.toHaveClass("border-primary");
+
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    expect(select2).toHaveFocus();
+    await user.keyboard("{Enter}");
+
+    expect(select2).toHaveAttribute("aria-pressed", "true");
+    expect(select2).toHaveAttribute("aria-current", "true");
+    expect(select2.parentElement).toHaveClass("border-primary");
+    expect(select2.parentElement?.className).toMatch(/ring-2/);
+    expect(select1).toHaveAttribute("aria-pressed", "false");
+    expect(select1).not.toHaveAttribute("aria-current");
+    expect(select1.parentElement).not.toHaveClass("border-primary");
+
+    await user.tab();
+    await user.tab();
+    expect(select3).toHaveFocus();
+    await user.keyboard(" ");
+
+    expect(select3).toHaveAttribute("aria-pressed", "true");
+    expect(select3).toHaveAttribute("aria-current", "true");
+    expect(select3.parentElement).toHaveClass("border-primary");
+    expect(select2).toHaveAttribute("aria-pressed", "false");
+    expect(select2.parentElement).not.toHaveClass("border-primary");
+  });
+
+  it("Enter/Space não alteram quantidade de botões, listitems, imagens nem criam portais/tooltips", async () => {
+    const user = userEvent.setup();
+    const onSelectWinner = vi.fn();
+    const variations: VariationItem[] = [
+      { id: "v1", imageUrl: "https://example.com/a.png", isFavorite: false, qualityScore: 90 },
+      { id: "v2", imageUrl: "https://example.com/b.png", isFavorite: false, qualityScore: 70 },
+      { id: "v3", imageUrl: "https://example.com/c.png", isFavorite: false, qualityScore: 50 },
+    ];
+
+    function ControlledHarness() {
+      const [active, setActive] = React.useState(0);
+      return (
+        <MagicUpVariationComparator
+          variations={variations}
+          activeIndex={active}
+          onSelect={setActive}
+          onSelectWinner={onSelectWinner}
+        />
+      );
+    }
+
+    const { container } = render(<ControlledHarness />);
+
+    const initialButtons = screen.getAllByRole("button").length;
+    const initialListItems = screen.getAllByRole("listitem").length;
+    const initialImages = container.querySelectorAll("img").length;
+    const initialBodyChildren = document.body.children.length;
+    const initialSectionHTML = container.querySelector("section")?.outerHTML.length || 0;
+
+    expect(initialButtons).toBe(6);
+    expect(initialListItems).toBe(3);
+    expect(initialImages).toBe(3);
+
+    await user.tab();
+    await user.tab();
+    await user.tab();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getAllByRole("button").length).toBe(initialButtons);
+    expect(screen.getAllByRole("listitem").length).toBe(initialListItems);
+    expect(container.querySelectorAll("img").length).toBe(initialImages);
+    expect(document.body.children.length).toBe(initialBodyChildren);
+    const afterEnterHTML = container.querySelector("section")?.outerHTML.length || 0;
+    expect(Math.abs(afterEnterHTML - initialSectionHTML)).toBeLessThan(200);
+
+    await user.tab();
+    await user.keyboard(" ");
+    expect(onSelectWinner).toHaveBeenCalledWith(1);
+
+    expect(screen.getAllByRole("button").length).toBe(initialButtons);
+    expect(screen.getAllByRole("listitem").length).toBe(initialListItems);
+    expect(container.querySelectorAll("img").length).toBe(initialImages);
+    expect(document.body.children.length).toBe(initialBodyChildren);
+
+    expect(document.querySelector("[role='tooltip']")).toBeNull();
+    expect(document.querySelector("[role='dialog']")).toBeNull();
+    expect(document.querySelector("[data-radix-portal]")).toBeNull();
   });
 });
 
