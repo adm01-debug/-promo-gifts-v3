@@ -3668,7 +3668,7 @@ describe("MagicUpResultPanel — Onda 5: roving tabindex exclusivo após troca",
       assertRovingTabindex(getDots(), target, `dots@step→${target}`);
       assertRovingTabindex(getThumbs(), target, `thumbs@step→${target}`);
     }
-  );
+  });
 
   // ── Re-render idempotente (mesmo índice) preserva invariante ──────
 
