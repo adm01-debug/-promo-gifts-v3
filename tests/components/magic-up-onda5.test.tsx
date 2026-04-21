@@ -1265,4 +1265,55 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
     // Badge global do header mostra "—" (placeholder)
     expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
   });
+
+  it("isWinner=true em índice 0 com score menor (50) vence sobre índice 1 com score maior (90)", () => {
+    const variations = [
+      buildVariation({ qualityScore: 50, isWinner: true }, 0),
+      buildVariation({ qualityScore: 90 }, 1),
+      buildVariation({ qualityScore: 70 }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    const winnerBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
+    expect(winnerBtn.getAttribute("aria-label")).toContain("melhor score");
+    expect(winnerBtn.getAttribute("aria-label")).toContain("score 50");
+  });
+
+  it("isWinner=true em índice 2 com score menor (30) vence sobre índices 0/1 com scores maiores (70/80)", () => {
+    const variations = [
+      buildVariation({ qualityScore: 70 }, 0),
+      buildVariation({ qualityScore: 80 }, 1),
+      buildVariation({ qualityScore: 30, isWinner: true }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).not.toBeNull();
+  });
+
+  it("isWinner=true sem scores válidos: vence mesmo com bestScore=0", () => {
+    const variations = [
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 0),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined, isWinner: true }, 1),
+      buildVariation({ qualityScore: undefined, qualityDiagnosis: undefined }, 2),
+    ];
+    renderTied(variations);
+
+    expect(screen.getAllByLabelText("Melhor score")).toHaveLength(1);
+    const cards = screen.getAllByRole("listitem");
+    expect(within(cards[1]).queryByLabelText("Melhor score")).not.toBeNull();
+    expect(within(cards[0]).queryByLabelText("Melhor score")).toBeNull();
+    expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+
+    expect(screen.getByLabelText(/Melhor score entre variações/)).toHaveTextContent("Melhor score: —");
+  });
 });
