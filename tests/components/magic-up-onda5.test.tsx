@@ -2799,5 +2799,78 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(onSelect).not.toHaveBeenCalled();
       expect(onSelectWinner).toHaveBeenCalledTimes(1);
     });
+
+    it("botão 'Marcar vencedora' preserva aria-label e expõe aria-busy/disabled apenas durante loading", () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+      const renderWith = (loadingIdx: number | null) => (
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+          loadingWinnerIndex={loadingIdx}
+        />
+      );
+
+      const { rerender } = render(renderWith(null));
+      const btn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(btn1).toHaveAttribute("aria-label", "Marcar variação 1 como vencedora");
+      expect(btn1).not.toBeDisabled();
+      expect(btn1).not.toHaveAttribute("aria-busy");
+      expect(screen.queryByText("Marcando vencedora…")).not.toBeInTheDocument();
+
+      rerender(renderWith(0));
+      const btn1Loading = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(btn1Loading).toHaveAttribute("aria-label", "Marcar variação 1 como vencedora");
+      expect(btn1Loading).toBeDisabled();
+      expect(btn1Loading).toHaveAttribute("aria-busy", "true");
+      expect(screen.getByText("Marcando vencedora…")).toBeInTheDocument();
+
+      rerender(renderWith(null));
+      const btn1Restored = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      expect(btn1Restored).toHaveAttribute("aria-label", "Marcar variação 1 como vencedora");
+      expect(btn1Restored).not.toBeDisabled();
+      expect(btn1Restored).not.toHaveAttribute("aria-busy");
+      expect(screen.queryByText("Marcando vencedora…")).not.toBeInTheDocument();
+    });
+
+    it("loading em um botão não afeta acessibilidade dos demais botões 'Marcar vencedora' (cardinalidade isolada)", () => {
+      const onSelect = vi.fn();
+      const onSelectWinner = vi.fn();
+
+      const { container } = render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={onSelectWinner}
+          loadingWinnerIndex={1}
+        />
+      );
+
+      const btn2 = screen.getByRole("button", { name: "Marcar variação 2 como vencedora" });
+      expect(btn2).toBeDisabled();
+      expect(btn2).toHaveAttribute("aria-busy", "true");
+
+      const btn1 = screen.getByRole("button", { name: "Marcar variação 1 como vencedora" });
+      const btn3 = screen.getByRole("button", { name: "Marcar variação 3 como vencedora" });
+      expect(btn1).not.toBeDisabled();
+      expect(btn1).not.toHaveAttribute("aria-busy");
+      expect(btn3).not.toBeDisabled();
+      expect(btn3).not.toHaveAttribute("aria-busy");
+
+      const srOnlyMatches = screen.getAllByText("Marcando vencedora…");
+      expect(srOnlyMatches).toHaveLength(1);
+      expect(btn2.contains(srOnlyMatches[0])).toBe(true);
+
+      const spinners = container.querySelectorAll('svg[aria-hidden="true"].animate-spin');
+      expect(spinners).toHaveLength(1);
+      expect(btn2.contains(spinners[0])).toBe(true);
+
+      expect(screen.getByRole("button", { name: /^Selecionar variação 1/ })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /^Selecionar variação 2/ })).not.toBeDisabled();
+      expect(screen.getByRole("button", { name: /^Selecionar variação 3/ })).not.toBeDisabled();
+    });
   });
 });
