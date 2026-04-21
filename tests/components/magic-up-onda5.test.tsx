@@ -1636,6 +1636,86 @@ describe("MagicUpVariationComparator keyboard navigation", () => {
         window.matchMedia = originalMatchMedia;
       }
     });
+
+    it("Enter após navegar com seta seleciona a variação focada (não a anterior)", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+
+      render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={vi.fn()}
+        />
+      );
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1.focus();
+      expect(card1).toHaveFocus();
+      onSelect.mockClear();
+
+      await user.keyboard("{ArrowRight}");
+      expect(onSelect).toHaveBeenLastCalledWith(1);
+      const card2 = screen.getByRole("button", { name: /^Selecionar variação 2/ });
+      expect(card2).toHaveFocus();
+
+      onSelect.mockClear();
+      await user.keyboard("{Enter}");
+      expect(onSelect).toHaveBeenCalledWith(1);
+      expect(onSelect).not.toHaveBeenCalledWith(0);
+
+      onSelect.mockClear();
+      await user.keyboard("{ArrowRight}");
+      expect(onSelect).toHaveBeenLastCalledWith(2);
+      const card3 = screen.getByRole("button", { name: /^Selecionar variação 3/ });
+      expect(card3).toHaveFocus();
+
+      onSelect.mockClear();
+      await user.keyboard("{Enter}");
+      expect(onSelect).toHaveBeenCalledWith(2);
+      expect(onSelect).not.toHaveBeenCalledWith(1);
+    });
+
+    it("Espaço após Home/End ativa card focado, previne scroll e respeita índice", async () => {
+      const user = userEvent.setup();
+      const onSelect = vi.fn();
+
+      render(
+        <MagicUpVariationComparator
+          variations={navVariations}
+          activeIndex={0}
+          onSelect={onSelect}
+          onSelectWinner={vi.fn()}
+        />
+      );
+
+      const card1 = screen.getByRole("button", { name: /^Selecionar variação 1/ });
+      card1.focus();
+      onSelect.mockClear();
+
+      await user.keyboard("{End}");
+      const lastIndex = navVariations.length - 1;
+      expect(onSelect).toHaveBeenLastCalledWith(lastIndex);
+      const lastCard = screen.getByRole("button", {
+        name: new RegExp(`^Selecionar variação ${lastIndex + 1}`),
+      });
+      expect(lastCard).toHaveFocus();
+
+      onSelect.mockClear();
+      await user.keyboard(" ");
+      expect(onSelect).toHaveBeenCalledWith(lastIndex);
+
+      onSelect.mockClear();
+      await user.keyboard("{Home}");
+      expect(onSelect).toHaveBeenLastCalledWith(0);
+      expect(card1).toHaveFocus();
+
+      onSelect.mockClear();
+      await user.keyboard(" ");
+      expect(onSelect).toHaveBeenCalledWith(0);
+      expect(onSelect).not.toHaveBeenCalledWith(lastIndex);
+    });
   });
 });
 
