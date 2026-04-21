@@ -73,7 +73,8 @@ describe("Magic Up Onda 5 components", () => {
     expect(screen.getByLabelText("Score 58 de 100")).toBeInTheDocument();
   });
 
-  it("compara variações com aria-pressed e botão vencedora único por variação", () => {
+  it("compara variações com aria-pressed e botão vencedora único por variação", async () => {
+    const user = userEvent.setup();
     const onSelect = vi.fn();
     const onSelectWinner = vi.fn();
     const variations: VariationItem[] = [
@@ -87,9 +88,9 @@ describe("Magic Up Onda 5 components", () => {
     const firstBtn = screen.getByRole("button", { name: /Selecionar variação 1/ });
     expect(firstBtn).toHaveAttribute("aria-pressed", "true");
     expect(firstBtn).toHaveAttribute("aria-current", "true");
-    fireEvent.click(screen.getByRole("button", { name: /Selecionar variação 2/ }));
+    await user.click(screen.getByRole("button", { name: /Selecionar variação 2/ }));
     expect(onSelect).toHaveBeenCalledWith(1);
-    fireEvent.click(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" }));
+    await user.click(screen.getByRole("button", { name: "Marcar variação 2 como vencedora" }));
     expect(onSelectWinner).toHaveBeenCalledWith(1);
   });
 
