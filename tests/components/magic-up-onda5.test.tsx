@@ -1427,4 +1427,45 @@ describe("MagicUpVariationComparator — empate total de scores (determinismo)",
       expect(within(card).getByLabelText("Score indisponível")).toBeInTheDocument();
     });
   });
+
+  it("estabilidade sob permutação: empate triplo (80) — vencedor é sempre o índice 0 do array, independente de qual variação ocupe essa posição", () => {
+    const variantA: Partial<VariationItem> = { id: "var-A", qualityScore: 80 };
+    const variantB: Partial<VariationItem> = { id: "var-B", qualityScore: 80 };
+    const variantC: Partial<VariationItem> = { id: "var-C", qualityScore: 80 };
+
+    const assertWinnerAtIndexZero = () => {
+      const badges = screen.getAllByLabelText("Melhor score");
+      expect(badges).toHaveLength(1);
+      const cards = screen.getAllByRole("listitem");
+      expect(within(cards[0]).queryByLabelText("Melhor score")).not.toBeNull();
+      expect(within(cards[1]).queryByLabelText("Melhor score")).toBeNull();
+      expect(within(cards[2]).queryByLabelText("Melhor score")).toBeNull();
+    };
+
+    // Permutação 1: [A, B, C] → vencedor = A (índice 0)
+    const { unmount: unmount1 } = renderTied([
+      buildVariation(variantA, 0),
+      buildVariation(variantB, 1),
+      buildVariation(variantC, 2),
+    ]);
+    assertWinnerAtIndexZero();
+    unmount1();
+
+    // Permutação 2: [B, A, C] → vencedor = B (índice 0)
+    const { unmount: unmount2 } = renderTied([
+      buildVariation(variantB, 0),
+      buildVariation(variantA, 1),
+      buildVariation(variantC, 2),
+    ]);
+    assertWinnerAtIndexZero();
+    unmount2();
+
+    // Permutação 3: [C, B, A] → vencedor = C (índice 0)
+    renderTied([
+      buildVariation(variantC, 0),
+      buildVariation(variantB, 1),
+      buildVariation(variantA, 2),
+    ]);
+    assertWinnerAtIndexZero();
+  });
 });
