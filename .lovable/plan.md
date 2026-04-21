@@ -1,130 +1,137 @@
 
 
-# Plano — Refatorar testes de teclado do MagicUpVariationComparator para userEvent puro
+# Plano — Asserções explícitas `toHaveFocus` antes de cada `userEvent.keyboard`
 
-Remover **todos os usos de `fireEvent.keyDown`, `fireEvent.keyUp` e `fireEvent.click`** nos 3 testes do `MagicUpVariationComparator` (linhas 2917-2935, 2962-2972, 3010-3029) em `tests/components/magic-up-onda5.test.tsx`, substituindo por `userEvent.keyboard()` após `.focus()` e `userEvent.click()` (que respeita `disabled` nativamente).
+Adiciono `expect(<elemento>).toHaveFocus()` imediatamente antes de **toda** chamada `await user.keyboard(...)` nos testes do `MagicUpVariationComparator` em `tests/components/magic-up-onda5.test.tsx`, garantindo que cada ativação por teclado seja disparada no elemento pretendido.
 
 ## Justificativa
 
-Auditoria via `grep "fireEvent\.\(click\|keyDown\|keyUp\)"` retornou 11 ocorrências:
+Após as últimas refatorações, há ~25 chamadas `await user.keyboard(...)` no escopo do `MagicUpVariationComparator`. Padrões observados:
 
-| Linha | Uso | Escopo |
-|-------|-----|--------|
-| 102   | `fireEvent.click(boa)` | **Fora do escopo** — outro componente (curadoria) |
-| 2919-2923 | 4× keyDown/keyUp + 1 click em botão disabled | **Refatorar** |
-| 2963-2971 | 8× keyDown/keyUp com modificadores + 1 click | **Refatorar** |
-| 3012-3015 | 10× keyDown auto-repeat + 1 keyUp + 1 click | **Refatorar** |
-| 3025-3026 | 1× keyDown/keyUp Space+Ctrl | **Refatorar** |
+| Padrão atual | Risco |
+|---|---|
+| `el.focus(); await user.keyboard("{Enter}")` | Foco assumido — se `el` for `disabled` ou perder foco silenciosamente, a tecla vai para `document.body` e o teste passa por motivo errado |
+| `await user.tab(); await user.keyboard("{Enter}")` | Sem snapshot do que ganhou foco — Tab pular um elemento (ex: `tabindex={-1}` adicionado) inverte o cenário sem falhar |
+| `await user.keyboard("{Home}")` após navegação | Foco implícito do passo anterior — qualquer re-render que perca foco silenciosamente quebra a intenção |
 
-Total: **10 ocorrências** a remover (apenas no `MagicUpVariationComparator`).
-
-**Princípio**: `userEvent` simula sequências realistas de eventos do navegador (incluindo `pointerdown`/`pointerup`/`click` derivados); `fireEvent` dispara eventos sintéticos isolados que podem mascarar bugs reais. Botões `disabled` nativos têm comportamento próprio que `userEvent` respeita (`pointer-events: none`, foco bloqueado, click ignorado).
+**Princípio**: ativação por teclado depende inteiramente do elemento focado. Asserção explícita transforma "foco assumido" em "foco verificado", capturando regressões onde:
+- Re-render perde foco (anti-padrão React)
+- `tabIndex` indevido desvia a sequência Tab
+- Botão `disabled` rouba foco (browser quirk)
+- Helper/wrapper inserido depois quebra a cadeia de foco
 
 ## Alteração
 
 ### `tests/components/magic-up-onda5.test.tsx`
 
-#### Bloco 1 — linhas 2917-2935 (botão disabled bloqueia Enter/Space/click)
+**Regra única**: antes de cada `await user.keyboard("...")` no escopo do `MagicUpVariationComparator`, inserir `expect(<elementoEsperado>).toHaveFocus()` referenciando o elemento que **deve** receber a tecla.
 
-Substituir o trecho `fireEvent.keyDown/keyUp/click` por:
+#### Categorias de ajuste
 
+**A) Após `el.focus()` direto** (~12 ocorrências)
 ```ts
-// 3) Tentativa de focar o botão em loading: HTMLButtonElement disabled
-//    rejeita foco programático — sanity check
-winnerBtn1Loading.focus();
-expect(winnerBtn1Loading).not.toHaveFocus();
-expect(screen.getByTestId("external-sentinel")).toHaveFocus();
-
-// 4) userEvent.click no botão disabled é silenciosamente ignorado
-//    (respeita pointer-events: none do estado disabled)
-await user.click(winnerBtn1Loading);
-expect(onSelectWinner).not.toHaveBeenCalled();
-
-// 5) Enter/Space via userEvent.keyboard com foco no sentinel — botão disabled
-//    nunca recebe o evento porque não está na cadeia de foco
+// ANTES
+card2.focus();
 await user.keyboard("{Enter}");
-await user.keyboard(" ");
-expect(onSelectWinner).not.toHaveBeenCalled();
 
-// 6) Foco continua no sentinel externo (botão disabled não rouba foco)
-expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+// DEPOIS
+card2.focus();
+expect(card2).toHaveFocus();
+await user.keyboard("{Enter}");
 ```
 
-Remove o comentário "(HTMLButtonElement disabled bloqueia eventos de click derivados de teclado)" e os 5 `fireEvent.*` (linhas 2919-2923).
-
----
-
-#### Bloco 2 — linhas 2962-2972 (modificadores Ctrl/Cmd/Shift/Alt + Enter)
-
-Substituir o trecho `fireEvent.keyDown/keyUp/click` por:
-
+**B) Após `await user.tab()` / `user.tab({ shift: true })`** (~6 ocorrências)
 ```ts
-// 1) Sanity: botão disabled rejeita foco programático
-winnerBtn.focus();
-expect(winnerBtn).not.toHaveFocus();
-expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+// ANTES
+await user.tab(); // card2
+await user.keyboard("{Enter}");
 
-// 2) userEvent.click no botão disabled é ignorado
-await user.click(winnerBtn);
-expect(onSelectWinner).not.toHaveBeenCalled();
+// DEPOIS
+await user.tab();
+expect(card2).toHaveFocus();
+await user.keyboard("{Enter}");
 ```
 
-Os atalhos com modificadores via `user.keyboard("{Control>}{Enter}{/Control}")` etc. (linhas 2975-2978) já existem e permanecem — eles cobrem o cenário de "atalho global Ctrl+Enter" sem foco no botão. Remove os 9 `fireEvent.*` (linhas 2963-2971).
-
----
-
-#### Bloco 3 — linhas 3010-3029 (Space auto-repeat + modificadores)
-
-Substituir o trecho de auto-repeat por sequência `userEvent`:
-
+**C) Sequências de teclado encadeadas (Home/End/Arrow após Enter/Space)** (~5 ocorrências)
 ```ts
-// 1) Sanity: botão disabled rejeita foco programático
-winnerBtn.focus();
-expect(winnerBtn).not.toHaveFocus();
-expect(screen.getByTestId("external-sentinel")).toHaveFocus();
+// ANTES
+await user.keyboard("{Enter}"); // ativa card2
+await user.keyboard("{Home}");  // navega para card1
 
-// 2) userEvent.click no botão disabled é ignorado
-await user.click(winnerBtn);
-expect(onSelectWinner).not.toHaveBeenCalled();
+// DEPOIS — o foco permanece no card2 após Enter (handler não move foco), Home dispara handleArrowKey
+await user.keyboard("{Enter}");
+expect(card2).toHaveFocus();
+await user.keyboard("{Home}");
+```
 
-// 3) Múltiplas pressões Space sequenciais (15 no total — emula auto-repeat) com foco no sentinel
+**D) Loops de auto-repeat e atalhos globais com modificadores** (~3 ocorrências)
+```ts
+// ANTES
+screen.getByTestId("external-sentinel").focus();
 for (let i = 0; i < 15; i++) {
   await user.keyboard(" ");
 }
-expect(onSelectWinner).not.toHaveBeenCalled();
 
-// 4) Combinação Space + modificadores via atalho global
-await user.keyboard("{Control>} {/Control}");
-await user.keyboard("{Meta>} {/Meta}");
-await user.keyboard("{Shift>} {/Shift}");
-await user.keyboard("{Alt>} {/Alt}");
-expect(onSelectWinner).not.toHaveBeenCalled();
+// DEPOIS — sanity antes do loop (foco não muda dentro do loop pois sentinel é estável)
+const sentinel = screen.getByTestId("external-sentinel");
+sentinel.focus();
+expect(sentinel).toHaveFocus();
+for (let i = 0; i < 15; i++) {
+  await user.keyboard(" ");
+}
+expect(sentinel).toHaveFocus(); // confirma que nenhuma das 15 pressões roubou foco
 ```
 
-Remove o loop `fireEvent.keyDown` com `repeat:true` (linhas 3011-3013), o `fireEvent.keyUp` (3014), `fireEvent.click` (3015) e o par `fireEvent.keyDown/keyUp` com Ctrl (3025-3026). Consolida o "5 pressões via userEvent" original em "15 pressões" para preservar a cobertura de volume.
+Para atalhos globais (`user.keyboard("{Control>}{Enter}{/Control}")`), validar que o foco permanece no sentinel (não no botão disabled):
+```ts
+expect(sentinel).toHaveFocus();
+await user.keyboard("{Control>}{Enter}{/Control}");
+```
 
-A seção "Sanity reverso" (linhas 3031+, botão habilitado vizinho responde a Space via `winnerBtn1.focus()` + `user.keyboard(" ")`) já usa `userEvent` puro — permanece intacta.
+**E) Asserção pós-keyboard quando o foco deve mudar** (oportunidade complementar)
+
+Para `Arrow*`/`Home`/`End` (que movem foco via `cardRefs.current[nextIndex]?.focus()`), adicionar também asserção **depois** confirmando o destino:
+```ts
+expect(card2).toHaveFocus();
+await user.keyboard("{ArrowRight}");
+expect(card3).toHaveFocus(); // confirma que setas moveram para o próximo card
+```
+
+#### Escopo
+
+- **Aplicar em**: todos os 4 sub-describes do `MagicUpVariationComparator`:
+  - "navegação por setas/Home/End"
+  - "ativação por Enter/Espaço nos botões"
+  - "scroll preserva foco"
+  - "anti-keyboard-trap"
+  - "aria-pressed/aria-current"
+- **Não aplicar em**: testes fora do `MagicUpVariationComparator`
+- **Não duplicar**: chamadas que já têm `expect(el).toHaveFocus()` imediatamente antes (várias já têm — preservar)
+
+#### Estimativa
+
+- ~25 inserções de `expect(...).toHaveFocus()` antes de `user.keyboard`
+- ~8 inserções complementares **após** `user.keyboard` para Arrow/Home/End (validação de destino)
+- 0 remoções
+- 0 mudanças na lógica de teste — apenas asserções defensivas
 
 ## Restrições
 
 - Sem alteração no `MagicUpVariationComparator.tsx`
-- Sem novos imports (já há `userEvent`, `screen`, `expect`)
-- O import de `fireEvent` permanece pois é usado em outros componentes (linha 102 — curadoria)
-- Total: **10 chamadas `fireEvent.*` removidas** dentro do escopo do comparador
+- Sem novos imports (`expect` e `toHaveFocus` já em uso)
 - Contagem de testes inalterada (109 → 109)
-- Cobertura comportamental preservada: botão disabled bloqueia foco, click, Enter, Space, modificadores e auto-repeat
+- Cobertura comportamental: idêntica + camada extra de garantia de foco
+- Não introduzir helper neste plano (foco é apenas em asserções defensivas — a unificação via helper foi proposta antes e não aprovada)
 
 ## Entregável
 
-- 3 testes refatorados usando exclusivamente `userEvent.keyboard` (após `.focus()` no sentinel) e `userEvent.click` (que respeita `disabled` nativamente)
-- Cobertura mantida ou ampliada:
-  - **Bloco 1**: confirma que `disabled` rejeita foco programático + click + teclas Enter/Space
-  - **Bloco 2**: confirma que modificadores (Ctrl/Cmd/Shift/Alt + Enter) não vazam, agora 100% via userEvent
-  - **Bloco 3**: 15 pressões Space sequenciais (vs. 5 anteriores) + 4 combinações com modificadores
+- ~25 asserções `expect(<el>).toHaveFocus()` adicionadas antes de cada `user.keyboard(...)` no escopo do comparador
+- ~8 asserções complementares após teclas de navegação (`Arrow*`/`Home`/`End`) confirmando destino do foco
 - Captura regressões onde:
-  - Implementação custom permitisse foco programático em botão `disabled` (anti-padrão)
-  - Handler `onClick` ignorasse o estado `disabled` (necessitando guarda manual)
-  - `userEvent.click` em botão disabled vazasse para o handler (regressão de versão `@testing-library/user-event`)
-  - Auto-repeat de Space gerasse múltiplas chamadas via foco indevido
+  - Re-render assíncrono entre `.focus()` e `keyboard(...)` perdesse foco silenciosamente
+  - `Tab` pulasse elemento esperado por mudança de `tabIndex`
+  - Botão `disabled` roubasse foco do sentinel (browser quirk / regressão de versão)
+  - `Arrow*`/`Home`/`End` falhasse em mover foco programaticamente (handler `cardRefs.current[nextIndex]?.focus()` quebrado)
+  - Loop de auto-repeat trocasse foco em alguma iteração intermediária
 - Após implementação: rodar `npx vitest run tests/components/magic-up-onda5.test.tsx` e confirmar 109/109 verde
 
