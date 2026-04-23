@@ -230,6 +230,10 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const tested_at = new Date().toISOString();
   const message = result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`;
 
+  if (opts.skipPersistence) {
+    return { ...result, tested_at, connection_id };
+  }
+
   if (connection_id) {
     await service.from("external_connections").update({
       last_test_at: tested_at,
