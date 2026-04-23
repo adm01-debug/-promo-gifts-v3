@@ -183,7 +183,7 @@ export function useWorkspaceNotifications() {
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(() => {
-      fetchNotifications({ silent: true });
+      fetchNotifications({ silent: true, source: "polling" });
     }, 30_000);
     return () => clearInterval(interval);
   }, [user, fetchNotifications]);
@@ -192,7 +192,7 @@ export function useWorkspaceNotifications() {
   const prefetch = useCallback(async () => {
     if (!user) return;
     if (Date.now() - lastFetchAtRef.current < PREFETCH_MIN_INTERVAL_MS) return;
-    await fetchNotifications({ silent: true });
+    await fetchNotifications({ silent: true, source: "prefetch" });
   }, [user, fetchNotifications]);
 
   const markAsRead = useCallback(
