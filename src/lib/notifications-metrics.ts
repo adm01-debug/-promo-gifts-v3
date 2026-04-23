@@ -35,6 +35,28 @@ export interface BadgeRenderStat {
   at: number;
 }
 
+/**
+ * One end-to-end timing sample from the FIRST hover/focus event of a burst all
+ * the way to the moment the bell's `prefetch()` promise resolved (or the
+ * drawer-open path completed). Used to verify the debounce keeps end-to-end
+ * latency well within the 5s prefetch TTL window.
+ */
+export interface TriggerToFetchTiming {
+  /** Source of the FIRST event in the burst (hover/focus/drawer-open). */
+  source: TriggerSource;
+  /** ms from first event → debounce timer fired (queued the prefetch call). */
+  debounceMs: number;
+  /** ms from prefetch() invocation → promise resolved (network or TTL hit). */
+  fetchMs: number;
+  /** debounceMs + fetchMs. Should always be < TRIGGER_TO_FETCH_TTL_MS. */
+  totalMs: number;
+  /** Whether `totalMs < TRIGGER_TO_FETCH_TTL_MS` (5s TTL window). */
+  withinTtl: boolean;
+  /** How many trigger events were coalesced into this single prefetch. */
+  coalescedTriggers: number;
+  at: number;
+}
+
 /** Hit/miss counters for the <16ms badge-render budget. */
 export interface BadgeRenderBudget {
   hits: number;
