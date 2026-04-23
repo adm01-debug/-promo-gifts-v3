@@ -26,9 +26,9 @@ const ROWS = [
 ] as const;
 
 export function ComparisonMobileView({ products, formatCurrency, onRemove, onProductClick }: Props) {
-  const { items: scoreItems } = useComparisonScore(products);
+  const scoreItems = useComparisonScore(products);
   const winnerIdx = scoreItems.length > 0
-    ? scoreItems.reduce((best, cur, idx, arr) => cur.score > arr[best].score ? idx : best, 0)
+    ? scoreItems.reduce((best, cur, idx, arr) => cur.total > arr[best].total ? idx : best, 0)
     : -1;
 
   const renderCell = (rowKey: typeof ROWS[number]["key"], p: any, idx: number) => {
