@@ -14,6 +14,9 @@ import {
 } from "@/hooks/useSecretsManager";
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
+import { CredentialSourceBadge } from "./CredentialSourceBadge";
+import { useCredentialsSourceFilter } from "./CredentialsSourceFilterContext";
+import { ArrowDownToLine } from "lucide-react";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
 import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
@@ -276,11 +279,22 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
 
   const startEdit = (m: "set" | "rotate") => { setMode(m); setEditing(true); };
 
+  const { matchesFilter, filter } = useCredentialsSourceFilter();
+  const fadeOut = !matchesFilter(status);
+
   return (
-    <div className="space-y-1.5">
+    <div
+      className={cn(
+        "space-y-1.5 transition-opacity duration-200",
+        fadeOut && "opacity-40 pointer-events-none",
+      )}
+      aria-hidden={fadeOut || undefined}
+      data-source-filter={filter}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <Label className="text-sm font-medium">{label}</Label>
+          <CredentialSourceBadge status={status} />
           {status?.env_fallback_active && !editing && (
             <span
               className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning animate-in fade-in duration-300"
@@ -458,7 +472,25 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
                 <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
               </Button>
             )}
+            {status?.source === "env" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startEdit("set")}
+                disabled={!nameValidation.ok}
+                title="Migrar este valor da variável de ambiente para o banco. Você precisa colar o valor novamente — o frontend nunca lê plaintext de env por segurança."
+                className="border-warning/40 bg-warning/5 text-warning hover:bg-warning/10 hover:text-warning"
+              >
+                <ArrowDownToLine className="h-4 w-4 mr-1" /> Migrar para o banco
+              </Button>
+            )}
           </div>
+          {status?.source === "env" && !editing && (
+            <p className="text-[11px] text-warning/90 flex items-start gap-1">
+              <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+              Valor herdado de variável de ambiente. Cole novamente em "Migrar para o banco" para habilitar rotação e auditoria.
+            </p>
+          )}
           {status?.has_value && (
             <div
               className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs animate-in fade-in duration-200"

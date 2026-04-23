@@ -3,7 +3,7 @@
  * Card read-only no topo de /admin/conexoes com auto-refresh 60s.
  * Mostra saúde agregada de webhooks, conexões e MCP keys.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,11 +20,19 @@ import {
   ShieldCheck,
   Loader2,
   Bot,
+  Database,
+  Minus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import {
+  useCredentialsSourceFilter,
+  resolveSource,
+  type CredentialSource,
+} from "./CredentialsSourceFilterContext";
+import type { SecretStatus } from "@/hooks/useSecretsManager";
 
 interface HealthData {
   activeWebhooks: number;
@@ -178,8 +186,56 @@ function Metric({ icon: Icon, label, value, badge, tone = "default" }: MetricPro
   );
 }
 
-export function IntegrationsHealthCard() {
+function SourceCountChip({
+  icon: Icon,
+  tone,
+  count,
+  label,
+  onClick,
+  emphasize,
+}: {
+  icon: React.ElementType;
+  tone: "success" | "warning" | "muted";
+  count: number;
+  label: string;
+  onClick: () => void;
+  emphasize?: boolean;
+}) {
+  const cls = {
+    success: "border-success/30 bg-success/10 text-success hover:bg-success/15",
+    warning: "border-warning/40 bg-warning/10 text-warning hover:bg-warning/15",
+    muted: "border-border bg-muted text-muted-foreground hover:bg-muted/70",
+  }[tone];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors tabular-nums",
+        cls,
+        emphasize && "ring-1 ring-warning/40",
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      <span className="font-semibold">{count}</span> {label}
+    </button>
+  );
+}
+
+export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatus[] }) {
   const [auditing, setAuditing] = useState(false);
+  const { setFilter } = useCredentialsSourceFilter();
+  const sourceCounts = useMemo(() => {
+    let db = 0, env = 0, none = 0;
+    for (const s of secrets) {
+      const src = resolveSource(s);
+      if (src === "db") db++;
+      else if (src === "env") env++;
+      else none++;
+    }
+    return { db, env, none, total: secrets.length };
+  }, [secrets]);
+
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["integrations-health"],
     queryFn: fetchHealth,
@@ -322,6 +378,36 @@ export function IntegrationsHealthCard() {
               value={String(data.mcpKeysUsed24h)}
               tone={data.mcpKeysUsed24h > 0 ? "success" : "default"}
             />
+          </div>
+        )}
+        {sourceCounts.total > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] border-t border-border/40">
+            <span className="text-muted-foreground">Origem das credenciais:</span>
+            <SourceCountChip
+              icon={Database}
+              tone="success"
+              count={sourceCounts.db}
+              label="no banco"
+              onClick={() => setFilter("db")}
+            />
+            <SourceCountChip
+              icon={AlertTriangle}
+              tone="warning"
+              count={sourceCounts.env}
+              label={sourceCounts.env === 1 ? "ainda em ENV" : "ainda em ENV"}
+              onClick={() => setFilter("env")}
+              emphasize={sourceCounts.env > 0}
+            />
+            <SourceCountChip
+              icon={Minus}
+              tone="muted"
+              count={sourceCounts.none}
+              label={sourceCounts.none === 1 ? "vazia" : "vazias"}
+              onClick={() => setFilter("none")}
+            />
+            {sourceCounts.env > 0 && (
+              <span className="text-warning ml-1">↳ recomendado migrar para o banco</span>
+            )}
           </div>
         )}
         {data && (
