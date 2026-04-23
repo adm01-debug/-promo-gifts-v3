@@ -10,7 +10,7 @@ type: feature
 Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída + **Playground** / Entrada / Eventos recebidos / Entregas falhas).
 
 ## Tabelas (7)
-`external_connections`, `outbound_webhooks` (+ `consecutive_failures`, `auto_disabled_at`, `auto_disabled_reason`), `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`, `secret_rotation_log`, `connection_test_history` (retenção automática 200/conexão via trigger).
+`external_connections` (+ `auto_test_enabled` toggle por conexão), `outbound_webhooks` (+ `consecutive_failures`, `auto_disabled_at`, `auto_disabled_reason`), `webhook_deliveries`, `inbound_webhook_endpoints`, `inbound_webhook_events`, `mcp_api_keys`, `secret_rotation_log`, `connection_test_history` (retenção automática 200/conexão via trigger).
 
 ## Edge functions (6)
 `secrets-manager` · `connection-tester` (+ grava `connection_test_history`) · `webhook-dispatcher` (+ replay + circuit breaker + **`test_mode`**) · `webhook-inbound` · `mcp-server` · **`connections-health-check`** (cron `*/15 * * * *`, dedupe 4h via `workspace_notifications.metadata.incident_key`).
