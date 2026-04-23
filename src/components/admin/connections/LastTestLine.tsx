@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils";
 import type { ErrorKind } from "@/hooks/useConnectionTester";
 import { getErrorCopy } from "@/lib/connection-error-copy";
 import { inferErrorKind } from "@/lib/error-kind-inference";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export interface LastTestInfo {
   ok: boolean | null;
