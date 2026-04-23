@@ -1,63 +1,104 @@
 
 
-## Pré-carregamento de notificações + estado de loading inteligente
+# Make `/admin/conexoes` truly functional
 
-### Diagnóstico
+## Problem (what's fake today)
 
-`useWorkspaceNotifications` já busca na montagem do `Header` (sempre montado), mas há 3 problemas que causam atraso/flicker percebido ao abrir o drawer:
+Looking at the screenshot: cards show "Não configurado" with "Configurar" buttons that **open a field but don't actually save anything**. The current flow:
 
-1. **`setIsLoading(true)` em todo refetch** (linha 27) — cada poll de 30s ou refresh manual reativa o skeleton, mesmo com dados já em memória. Se o usuário abre o drawer durante um poll, vê skeleton em vez dos dados existentes.
-2. **Sem prefetch on hover/focus** — usuário só dispara nova busca ao abrir; se o último poll foi há 25s, dados podem estar levemente stale.
-3. **Sem cache compartilhado/persistente** — primeiro carregamento após login espera o roundtrip completo (200-800ms) antes de mostrar contador no badge.
+1. Admin types a value → `secrets-manager` edge function only writes an audit log entry and returns "use the Lovable Secrets panel manually".
+2. "Testar conexão" sends empty `{ url: "", key: "" }` so it always fails.
+3. Status badges, "Ver schema", "Histórico" links work, but the core CRUD loop is broken.
 
-### Mudanças (2 arquivos)
+Root cause: edge functions can't mutate platform env vars at runtime. We need a real persistence layer.
 
-#### 1. `src/hooks/useWorkspaceNotifications.tsx`
+## Solution: persist credentials in the database, fall back to env
 
-- **Distinguir initial load de refetch silencioso:** dois flags, `isLoading` (apenas primeira busca) e `isRefetching` (background). `setIsLoading(true)` só quando `notifications.length === 0`.
-- **Adicionar `prefetch()`** idempotente: dispara `fetchNotifications()` apenas se a última busca foi há mais de 5s (cache TTL curto via `lastFetchAtRef`). Não muda `isLoading`.
-- **Persistir snapshot em `sessionStorage`** sob chave `workspace_notifications_cache:<userId>` com TTL de 60s. No mount, hidratar o estado imediatamente (zero flash, contador aparece em < 16ms) e disparar refetch em background.
-- **Expor `prefetch` no retorno** do hook.
+Move from "secrets in `Deno.env`" to a **`integration_credentials` table** that is the source of truth. Env vars stay as a fallback for the few legacy values already provisioned. Every edge function that consumed `Deno.env.get("EXTERNAL_*")` etc. now reads via a single helper that checks the DB first.
 
-#### 2. `src/hooks/useNotifications.ts` (façade)
+### 1. New table `integration_credentials` (admin-only RLS)
 
-- Repassar `prefetch` no retorno.
-- Atualizar `UseNotificationsReturn` interface.
+```text
+id uuid pk
+secret_name text unique           -- e.g. EXTERNAL_PROMOBRIND_URL
+secret_value text not null        -- encrypted via pgsodium (or pgcrypto symmetric)
+masked_suffix text                -- last 4 chars for UI confirmation
+length int
+updated_by uuid → auth.users
+updated_at timestamptz
+notes text
+```
 
-#### 3. `src/components/notifications/NotificationDrawer.tsx`
+- RLS: only `admin` role can `select`/`insert`/`update`/`delete` (via `has_role()`).
+- Trigger fills `masked_suffix`/`length` from `secret_value` on insert/update so the UI never has to fetch the cleartext.
+- Encryption: use `pgsodium`'s transparent column encryption keyed by a secret managed in Vault. This way even a leaked dump doesn't expose credentials.
 
-- **Prefetch on hover/focus do bell:** adicionar `onMouseEnter` e `onFocus` no `<Button>` do trigger, chamando `prefetch()`. Latência percebida vai a ~zero porque a busca começa antes do clique.
-- **Prefetch on `onOpenChange(true)`** do `Sheet` como fallback (touch devices sem hover).
-- **Skeleton só na primeira carga:** trocar `isLoading` por `isLoading && notifications.length === 0` no render do skeleton (na prática já será o comportamento via flag corrigida no hook, mas defensivo).
+### 2. Rewrite `secrets-manager` edge function to actually persist
 
-### Validação
+- `action: "set"` → `upsert` into `integration_credentials` (admin-only, whitelist enforced). Returns `{ ok:true, stored:true, masked_suffix }`.
+- `action: "rotate"` → upsert + insert into existing `secret_rotation_log`.
+- `action: "list"` → `select secret_name, masked_suffix, length, updated_at` (no plaintext) merged with env-var presence so legacy secrets still appear configured.
+- `action: "delete"` → row delete + audit log entry.
+- Audit log entries already in place are kept.
 
-1. **Typecheck:** `npm run typecheck` — zero erros.
-2. **Testes existentes:** `npm run test -- --run tests/hooks/useWorkspaceNotifications.test.ts` — manter compatibilidade da API pública (`notifications`, `unreadCount`, `isLoading`, `markAsRead`, `markAllAsRead`, `clearAll`, `refresh`).
-3. **Smoke manual via session_replay:**
-   - Login fresh → badge aparece quase instantaneamente (hidratação do cache OU em < 1 frame após primeira fetch).
-   - Hover no bell → DevTools Network mostra request disparada antes do clique.
-   - Abrir drawer com cache quente → conteúdo aparece sem skeleton.
-   - Refetch automático (esperar 30s) não pisca skeleton.
-4. **Verificação de localStorage/sessionStorage:** chave `workspace_notifications_cache:<userId>` presente após primeira busca.
+### 3. New helper `_shared/credentials.ts` for runtime reads
 
-### Critério de aceite
+A single `getCredential(name, serviceClient)` used by `connection-tester`, `external-db-bridge`, `crm-db-bridge`, `bitrix-sync`, `webhook-dispatcher`, `mcp-server`:
 
-- Badge de contador visível em < 100ms após mount do Header em sessão recorrente (cache hit).
-- Skeleton só aparece na primeiríssima busca quando não há cache.
-- Hover/focus no bell dispara prefetch (visível em DevTools Network).
-- Polling de 30s não causa flicker visível no drawer aberto ou no badge.
-- Zero regressão na API pública do hook (`tests/hooks/useWorkspaceNotifications.test.ts` passa sem mudanças).
-- Nenhuma alteração visual perceptível além da redução de flicker.
+```text
+1. Try integration_credentials.select where secret_name = name (service role)
+2. Fallback to Deno.env.get(name)
+3. Cache in-memory per cold start (60s TTL) to avoid hot-path DB hits
+```
 
-### Fora de escopo
+This makes the database the canonical source while keeping zero-downtime migration for already-set env vars.
 
-- Migração para React Query (mudança maior, fora do escopo).
-- Realtime via Supabase channels (removido por segurança conforme memória do projeto).
-- Push notifications nativas (já cobertas por `usePushNotifications`).
-- Persistência cross-tab via `BroadcastChannel` (over-engineering para 50 itens).
+### 4. Make `connection-tester` use real entered values
 
-### Estimativa
+`SupabaseConnectionsTab.tsx`: the "Testar conexão" button currently sends empty strings. Change to send no `config` (let the function read from `integration_credentials` for that environment) and pass an `env_key: "promobrind" | "crm"` so the tester knows which `EXTERNAL_<KEY>_URL`/`SERVICE_ROLE_KEY` pair to load. Same fix for Bitrix/n8n tabs (they already mostly work because they send `connection_id`, but verify the flow end-to-end).
 
-~6-10 chamadas: 3 edições, 1 typecheck, 1 run de testes, 1-2 verificações via session_replay/DOM.
+### 5. UI polish on `SupabaseConnectionsTab`
+
+- Show the masked suffix + last-updated timestamp from the DB (already supported by `SecretField`; just feed it real data).
+- After save, optimistic refresh of the secret list.
+- "Testar conexão" disabled until URL + service key both have a value.
+- Add a per-card "Última verificação" line driven by `external_connections.last_test_at` so the user sees the test outcome persist.
+
+### 6. Migration & backfill
+
+- New migration creates `integration_credentials` with RLS, the trigger, and pgsodium key.
+- For each currently-set env var in the whitelist, insert a row at migration time using a `DO` block reading from `current_setting('app.bootstrap_*')` — but since we can't read `Deno.env` from SQL, we instead leave env-fallback in place and let the admin re-save through the UI to upgrade. This is safe and zero-downtime.
+
+### 7. Audit checklist updated
+
+`connections-hub-audit` adds `integration_credentials` to `REQUIRED_TABLES` so the score reflects the new infra.
+
+## What the user will see
+
+- Click "Configurar" → paste value → "Salvar" → toast "Credencial salva" → field immediately shows `••••XXXX (NN chars) ✓`.
+- Status badge flips to "Ativo" once URL + service key are both present.
+- "Testar conexão" pings the actual external Supabase, returns latency + status.
+- "Rotacionar" stores the new value and writes a row in `secret_rotation_log` (already wired, now backed by real persistence).
+- Health card metrics ("Conexões com falha", "Webhooks ativos") become meaningful because the underlying connection records get real ping results.
+
+## Files touched
+
+**Backend**
+- New SQL migration: `integration_credentials` table + RLS + trigger + pgsodium setup.
+- New `supabase/functions/_shared/credentials.ts` helper.
+- Rewrite `supabase/functions/secrets-manager/index.ts` (set/rotate/list/delete now persist).
+- Update `supabase/functions/connection-tester/index.ts` to load via helper + accept `env_key`.
+- Update `supabase/functions/connections-hub-audit/index.ts` to include the new table.
+- Patch `external-db-bridge`, `crm-db-bridge`, `bitrix-sync`, `webhook-dispatcher`, `mcp-server` to use `getCredential()` instead of raw `Deno.env.get()` for the whitelisted names.
+
+**Frontend**
+- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: pass `env_key` to tester, disable button until configured, show last-test info.
+- `src/hooks/useSecretsManager.ts`: surface `updated_at` in `SecretStatus`.
+- `src/components/admin/connections/SecretField.tsx`: show "atualizado há Xm" when present.
+
+## Out of scope (callouts)
+
+- Not adding a UI to manage the pgsodium master key — that stays in Vault.
+- Not removing legacy env-var fallback in this pass; we keep it for safety. A follow-up can drop it once all admins re-save through the UI.
+- No new tabs added; this is purely making the existing UI do what it claims.
 
