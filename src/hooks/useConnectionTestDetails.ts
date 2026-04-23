@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import type { ConnectionType, ErrorKind } from "./useConnectionTester";
+import { inferErrorKind } from "@/lib/error-kind-inference";
 
 export interface TestDetails {
   id: string;
@@ -60,7 +61,19 @@ export function useConnectionTestDetails({ open, type, envKey, connectionId, his
         },
       });
       if (invokeError) throw invokeError;
-      setDetails((data?.details ?? null) as TestDetails | null);
+      const raw = (data?.details ?? null) as TestDetails | null;
+      // Fallback: registros antigos podem ter `error.kind = null`. Inferimos o
+      // kind a partir do error_message + status_code para que o badge semântico
+      // apareça mesmo retroativamente.
+      if (raw && !raw.ok && raw.error && !raw.error.kind) {
+        raw.error.kind = inferErrorKind({
+          errorKind: raw.error.kind ?? null,
+          errorMessage: raw.error.message ?? null,
+          statusCode: raw.response?.status ?? null,
+          success: raw.ok,
+        });
+      }
+      setDetails(raw);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Erro");
       setDetails(null);
