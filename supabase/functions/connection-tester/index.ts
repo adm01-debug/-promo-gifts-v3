@@ -12,7 +12,7 @@ const corsHeaders = {
 };
 
 const BodySchema = z.object({
-  action: z.enum(["test", "last_test", "test_history"]).optional().default("test"),
+  action: z.enum(["test", "last_test", "test_history", "last_test_full"]).optional().default("test"),
   type: z.enum(["supabase", "bitrix24", "n8n", "mcp", "webhook_outbound"]),
   config: z.record(z.string()).optional(),
   connection_id: z.string().uuid().optional(),
@@ -20,6 +20,34 @@ const BodySchema = z.object({
   limit: z.number().int().min(1).max(50).optional(),
   timeout_ms: z.number().int().min(1000).max(30000).optional(),
 });
+
+/** Mascaramento server-side de URLs e cabeçalhos sensíveis. */
+function maskUrl(url: string | null | undefined): string | null {
+  if (!url) return null;
+  let out = url;
+  // Bitrix: /rest/<userId>/<token>/
+  out = out.replace(/(\/rest\/\d+\/)[A-Za-z0-9]+(\/)/g, "$1••••$2");
+  // ?auth=, ?apikey=, ?token=
+  out = out.replace(/([?&](?:auth|apikey|api_key|token|access_token|key)=)[^&#]+/gi, "$1••••");
+  return out;
+}
+
+function maskHeaders(headers: Record<string, string> | null | undefined): Record<string, string> | null {
+  if (!headers) return null;
+  const SENSITIVE = /^(authorization|apikey|api-key|x-api-key|x-n8n-api-key|cookie|set-cookie|x-auth-token)$/i;
+  const out: Record<string, string> = {};
+  for (const [k, v] of Object.entries(headers)) {
+    out[k] = SENSITIVE.test(k) ? "••••" : String(v);
+  }
+  return out;
+}
+
+function maskBody(body: string | null | undefined): string | null {
+  if (!body) return null;
+  let out = body;
+  out = out.replace(/("(?:authorization|apikey|api_key|token|access_token|password|secret)"\s*:\s*")[^"]+(")/gi, "$1••••$2");
+  return out;
+}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
