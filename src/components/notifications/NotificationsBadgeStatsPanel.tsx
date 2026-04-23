@@ -6,13 +6,40 @@
  * and refetches. Gated to DEV builds and admins to avoid leaking devtools to
  * end users.
  */
-import { useEffect, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { notificationsMetrics, type BadgeRenderStat } from "@/lib/notifications-metrics";
 import { cn } from "@/lib/utils";
+
+/** Sliding-window length for the sparkline (60 samples × 1s = 60s). */
+const SPARK_WINDOW_SECONDS = 60;
+
+/** One ratio sample for the sparkline. */
+interface RatioSample { t: number; ratio: number; triggers: number; fetches: number; }
+
+/**
+ * Build the SVG `points` string for a polyline that fits the samples in a
+ * `width × height` box. Returns an empty string if there's nothing to draw.
+ */
+function buildSparkPath(samples: RatioSample[], width: number, height: number): string {
+  if (samples.length === 0) return "";
+  const n = SPARK_WINDOW_SECONDS;
+  // X-axis: index 0 = oldest, index n-1 = newest. Right-align so newest sits
+  // at the right edge regardless of how many samples we have.
+  const stepX = width / (n - 1);
+  const startIdx = n - samples.length;
+  return samples
+    .map((s, i) => {
+      const x = (startIdx + i) * stepX;
+      // Ratio is bounded [0..∞) but practically [0..1+]. Clamp display to 1.
+      const y = height - Math.min(1, s.ratio) * height;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
 
 /**
  * Color the trigger/fetch ratio based on coalescing efficiency:
