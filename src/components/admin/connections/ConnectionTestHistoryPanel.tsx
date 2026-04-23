@@ -47,6 +47,72 @@ function formatAbsolute(iso: string): string {
 
 type StatusFilter = "all" | "ok" | "fail";
 
+/** Mini sparkline SVG (sem libs) das latências (oldest → newest, esquerda → direita). */
+function LatencySparkline({ items, width = 64, height = 18 }: { items: TestHistoryItem[]; width?: number; height?: number }) {
+  // Ordena cronologicamente asc (mais antigo à esquerda) e pega até 12 pontos
+  const sorted = [...items]
+    .filter((i) => i.latency_ms != null)
+    .sort((a, b) => new Date(a.tested_at).getTime() - new Date(b.tested_at).getTime())
+    .slice(-12);
+  if (sorted.length < 2) return null;
+
+  const values = sorted.map((i) => i.latency_ms as number);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = Math.max(1, max - min);
+  const stepX = width / (sorted.length - 1);
+  const pad = 2;
+  const innerH = height - pad * 2;
+
+  const points = sorted.map((it, idx) => {
+    const x = idx * stepX;
+    const y = pad + innerH - ((it.latency_ms as number) - min) / range * innerH;
+    return { x, y, ok: it.ok };
+  });
+  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(" ");
+  const last = points[points.length - 1];
+  const allOk = points.every((p) => p.ok);
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <svg
+          width={width}
+          height={height}
+          viewBox={`0 0 ${width} ${height}`}
+          className="shrink-0 overflow-visible"
+          aria-label={`Sparkline de latência: ${min}–${max}ms`}
+          role="img"
+        >
+          <path
+            d={path}
+            fill="none"
+            strokeWidth={1.25}
+            className={cn(
+              allOk ? "stroke-green-500/80 dark:stroke-green-400/80" : "stroke-destructive/80",
+            )}
+          />
+          {points.map((p, i) => (
+            <circle
+              key={i}
+              cx={p.x}
+              cy={p.y}
+              r={i === points.length - 1 ? 1.6 : 0.9}
+              className={cn(
+                p.ok ? "fill-green-600 dark:fill-green-400" : "fill-destructive",
+              )}
+            />
+          ))}
+          <circle cx={last.x} cy={last.y} r={2.4} className="fill-transparent stroke-foreground/40" strokeWidth={0.6} />
+        </svg>
+      </TooltipTrigger>
+      <TooltipContent side="top">
+        Latência (últimos {sorted.length}): min {min}ms · máx {max}ms
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 interface RowProps {
   item: TestHistoryItem;
   onClick: () => void;
