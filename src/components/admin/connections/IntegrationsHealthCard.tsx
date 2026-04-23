@@ -186,8 +186,20 @@ function Metric({ icon: Icon, label, value, badge, tone = "default" }: MetricPro
   );
 }
 
-export function IntegrationsHealthCard() {
+export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatus[] }) {
   const [auditing, setAuditing] = useState(false);
+  const { setFilter } = useCredentialsSourceFilter();
+  const sourceCounts = useMemo(() => {
+    let db = 0, env = 0, none = 0;
+    for (const s of secrets) {
+      const src = resolveSource(s);
+      if (src === "db") db++;
+      else if (src === "env") env++;
+      else none++;
+    }
+    return { db, env, none, total: secrets.length };
+  }, [secrets]);
+
   const { data, isLoading, isFetching, refetch } = useQuery({
     queryKey: ["integrations-health"],
     queryFn: fetchHealth,
