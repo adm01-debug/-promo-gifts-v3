@@ -350,6 +350,12 @@ export const notificationsMetrics = {
     if (state.triggerToFetch.length > TRIGGER_TO_FETCH_HISTORY) {
       state.triggerToFetch.length = TRIGGER_TO_FETCH_HISTORY;
     }
+    // Accumulate per-source coalescing aggregates. `coalescedTriggers` already
+    // includes the very first event of the burst, so it == total triggers
+    // absorbed by THIS one fetch (never < 1 for a real burst).
+    const bucket = state.coalescingByTrigger[sample.source];
+    bucket.triggers += Math.max(1, sample.coalescedTriggers);
+    bucket.fetches += 1;
     if (!withinTtl) {
       state.triggerToFetchTtlBreaches += 1;
       // Always warn on breach — even with debug OFF — since this signals
