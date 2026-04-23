@@ -781,6 +781,16 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         errorMessage={saveConfirmError}
         onConfirm={handleConfirmedSave}
       />
+
+      {detailsAvailable && lastError && (
+        <ErrorDetailsDialog
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          error={lastError}
+          details={testDetailsState.details}
+          loading={testDetailsState.loading}
+        />
+      )}
     </div>
   );
 }
