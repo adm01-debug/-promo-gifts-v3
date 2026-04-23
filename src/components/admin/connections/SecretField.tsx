@@ -176,6 +176,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     if (!result.ok || !result.secret) {
       const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
       const description = describeError(err, secretName);
+      setLastError(description);
       toast.error(`Falha ao salvar ${secretName}`, {
         id: toastId,
         description,
@@ -191,6 +192,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
       });
       return { ok: false as const, errorDescription: description, cancelled: false };
     }
+    setLastError(null);
 
     const { secret, was_update, previous_suffix } = result;
     const suffix = secret.masked_suffix ?? "????";
