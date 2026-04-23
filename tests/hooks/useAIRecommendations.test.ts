@@ -125,12 +125,16 @@ describe("useAIRecommendations", () => {
   });
 
   it("resets state and aborts correctly", async () => {
+    // Fake timers para pular backoffs do retry path em 500
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, text: () => Promise.resolve("err") });
 
     const { result } = renderHook(() => useAIRecommendations());
 
     await act(async () => {
-      await result.current.fetchRecommendations(mockClient, mockProducts);
+      const promise = result.current.fetchRecommendations(mockClient, mockProducts);
+      await vi.advanceTimersByTimeAsync(2_000);
+      await promise;
     });
 
     expect(result.current.error).not.toBeNull();
