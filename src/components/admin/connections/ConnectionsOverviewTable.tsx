@@ -40,6 +40,55 @@ const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   webhook_outbound: { label: "Webhook", Icon: Webhook },
 };
 
+interface BulkProgress {
+  total: number;
+  done: number;
+  ok: number;
+  fail: number;
+  startedAt: number;
+}
+
+function BulkTestProgressPanel({
+  progress,
+  elapsed,
+  cancelling,
+  onCancel,
+}: {
+  progress: BulkProgress;
+  elapsed: number;
+  cancelling: boolean;
+  onCancel: () => void;
+}) {
+  const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+  return (
+    <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2">
+      <div className="flex-1 space-y-1.5">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-between text-xs tabular-nums text-muted-foreground"
+        >
+          <span>
+            {cancelling ? "Cancelando..." : `Testando ${progress.done} de ${progress.total}`}
+            <span className="mx-2">·</span>
+            <span className="text-success">✓ {progress.ok}</span>
+            <span className="mx-1.5">·</span>
+            <span className="text-destructive">✗ {progress.fail}</span>
+            <span className="mx-2">·</span>
+            <span>⏱ {elapsed}s</span>
+          </span>
+          <span className="font-display text-[10px]">{pct}%</span>
+        </div>
+        <Progress value={pct} aria-label="Progresso dos testes em massa" className="h-1.5" />
+      </div>
+      <Button variant="outline" size="sm" onClick={onCancel} disabled={cancelling}>
+        <X className="h-3.5 w-3.5" />
+        Cancelar
+      </Button>
+    </div>
+  );
+}
+
 function formatRelative(iso: string | null): string {
   if (!iso) return "—";
   const ts = new Date(iso).getTime();
