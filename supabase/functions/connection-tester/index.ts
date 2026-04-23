@@ -319,6 +319,7 @@ Deno.serve(async (req) => {
         error: r.error,
         error_kind: r.error_kind,
         message: r.message,
+        timeout_ms: r.timeout_ms,
         tested_at: r.tested_at,
       },
     }), {
