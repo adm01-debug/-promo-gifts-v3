@@ -62,8 +62,12 @@ export function ConnectionsOverviewTable() {
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [bulkTesting, setBulkTesting] = useState(false);
   const [detailsRow, setDetailsRow] = useState<OverviewRow | null>(null);
+  const { map: failuresMap } = useConsecutiveFailures(rows, 30000);
 
-  const filtered = useMemo(() => applyFilters(rows, filters), [rows, filters]);
+  const filtered = useMemo(
+    () => applyFilters(rows, filters, failuresMap),
+    [rows, filters, failuresMap],
+  );
 
   async function runTest(row: OverviewRow) {
     setTestingKey(row.key);
@@ -134,6 +138,7 @@ export function ConnectionsOverviewTable() {
           setStatus={filterState.setStatus}
           setWindow={filterState.setWindow}
           removeType={filterState.removeType}
+          setOnlyConsecutiveFailures={filterState.setOnlyConsecutiveFailures}
           reset={filterState.reset}
           activeCount={activeCount}
           totalCount={rows.length}
