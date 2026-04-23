@@ -146,12 +146,22 @@ export const notificationsMetrics = {
   },
 
   recordBadgeRender(stat: Omit<BadgeRenderStat, "at">) {
-    const full: BadgeRenderStat = { ...stat, at: Date.now() };
+    const isHit = stat.elapsedMs < BADGE_RENDER_BUDGET_MS;
+    // Trust the running counter to be derived from the same threshold so the
+    // hit/miss totals stay consistent even if a caller passes a stale `hit`.
+    const normalized: Omit<BadgeRenderStat, "at"> = { ...stat, hit: isHit };
+    const full: BadgeRenderStat = { ...normalized, at: Date.now() };
     state.badgeRenders.unshift(full);
     if (state.badgeRenders.length > BADGE_RENDER_HISTORY) {
       state.badgeRenders.length = BADGE_RENDER_HISTORY;
     }
-    debugLog("badge-render", full as unknown as Record<string, unknown>);
+    const bucket = state.badgeBudget[stat.source];
+    if (isHit) bucket.hits += 1;
+    else bucket.misses += 1;
+    debugLog("badge-render", {
+      ...(full as unknown as Record<string, unknown>),
+      budgetMs: BADGE_RENDER_BUDGET_MS,
+    });
     badgeListeners.forEach((l) => {
       try { l(full); } catch { /* ignore */ }
     });
@@ -160,6 +170,22 @@ export const notificationsMetrics = {
   subscribeBadgeRender(listener: BadgeListener): () => void {
     badgeListeners.add(listener);
     return () => { badgeListeners.delete(listener); };
+  },
+
+  /**
+   * Emit a one-shot summary log of the current badge-render budget. Safe to
+   * call from React unmount cleanups — silently no-ops if debug is OFF or if
+   * no badge renders have been recorded yet.
+   */
+  logBadgeBudgetSummary(reason: string = "unmount") {
+    if (!isDebugEnabled()) return;
+    const budget = buildBudget();
+    if (budget.total === 0) return;
+    debugLog("badge-budget-summary", {
+      reason,
+      budgetMs: BADGE_RENDER_BUDGET_MS,
+      ...budget,
+    });
   },
 
   snapshot(): Snapshot {
@@ -172,6 +198,7 @@ export const notificationsMetrics = {
       since: state.since,
       badgeRenders: [...state.badgeRenders],
       lastBadgeRender: state.badgeRenders[0] ?? null,
+      badgeBudget: buildBudget(),
     };
   },
 
@@ -181,6 +208,10 @@ export const notificationsMetrics = {
     state.byTrigger = { hover: 0, focus: 0, "drawer-open": 0 };
     state.byFetch = { initial: 0, polling: 0, prefetch: 0, mutation: 0 };
     state.badgeRenders = [];
+    state.badgeBudget = {
+      cache: { hits: 0, misses: 0 },
+      network: { hits: 0, misses: 0 },
+    };
     state.since = Date.now();
   },
 };
