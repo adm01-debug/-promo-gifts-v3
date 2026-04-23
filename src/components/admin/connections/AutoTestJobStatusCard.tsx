@@ -173,7 +173,7 @@ export function AutoTestJobStatusCard() {
                   </div>
                   <div className="col-span-2 text-right">{r.total_tested}</div>
                   <div className="col-span-2 text-right">
-                    <span className="text-emerald-600 dark:text-emerald-400">{r.ok_count}</span>
+                    <span className="text-success">{r.ok_count}</span>
                     <span className="text-muted-foreground mx-1">/</span>
                     <span className={r.fail_count > 0 ? "text-destructive font-medium" : "text-muted-foreground"}>
                       {r.fail_count}
