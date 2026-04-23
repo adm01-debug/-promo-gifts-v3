@@ -92,6 +92,7 @@ export function Bitrix24Tab() {
           </Button>
           <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
           <RefreshFromDbButton onRefreshed={list} />
+          <RetestCooldownSelector className="ml-auto" />
         </div>
         <TestProgressIndicator
           phase={phase}
