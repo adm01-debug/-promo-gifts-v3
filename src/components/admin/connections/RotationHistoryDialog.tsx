@@ -113,8 +113,12 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-muted-foreground">
-                  <span>
-                    Por <span className="text-foreground font-medium">
+                  <span className="flex items-center gap-1.5">
+                    <User className="h-3 w-3" />
+                    Por <span
+                      className="text-foreground font-medium"
+                      title={last.rotated_by ?? undefined}
+                    >
                       {last.rotated_by_email ?? (last.rotated_by ? `${last.rotated_by.slice(0, 8)}…` : "—")}
                     </span>
                   </span>
