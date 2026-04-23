@@ -53,9 +53,9 @@ export function RotationHistoryRow({ secretName, refreshKey = 0 }: Props) {
           Última rotação <span className="font-medium text-foreground">{formatRelative(latest.rotated_at)}</span>
           {" • "}
           <span className="font-mono">
-            {latest.previous_suffix ? `••••${latest.previous_suffix}` : "(env)"}
+            {latest.previous_suffix ? formatMaskedSuffix(latest.previous_suffix) : "(env)"}
             {" → "}
-            ••••{latest.new_suffix ?? "????"}
+            {formatMaskedSuffix(latest.new_suffix)}
           </span>
           {" • "}
           por <span className="font-medium">{author}</span>
