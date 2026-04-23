@@ -11,11 +11,12 @@ const corsHeaders = {
 };
 
 const BodySchema = z.object({
-  action: z.enum(["test", "last_test"]).optional().default("test"),
+  action: z.enum(["test", "last_test", "test_history"]).optional().default("test"),
   type: z.enum(["supabase", "bitrix24", "n8n", "mcp", "webhook_outbound"]),
   config: z.record(z.string()).optional(),
   connection_id: z.string().uuid().optional(),
   env_key: z.enum(["promobrind", "crm"]).optional(),
+  limit: z.number().int().min(1).max(50).optional(),
 });
 
 async function pingSupabase(url: string, key: string) {
