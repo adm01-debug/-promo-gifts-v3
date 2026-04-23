@@ -12,7 +12,10 @@ const corsHeaders = {
 
 const BATCH_SIZE = 5;
 const PER_TEST_TIMEOUT_MS = 8000;
-const RETRY_DELAY_MS = 800;
+// Backoff schedule between attempts. Length defines max attempts (3 = 1 try + 2 retries).
+// Index N is the delay BEFORE attempt N+1 (so RETRY_BACKOFF_MS[0] is wait before retry #1).
+const RETRY_BACKOFF_MS = [500, 1500, 3000] as const;
+const MAX_ATTEMPTS = RETRY_BACKOFF_MS.length;
 
 interface ActiveConnection {
   id: string;
@@ -48,21 +51,19 @@ async function processBatch(
         timeoutMs: PER_TEST_TIMEOUT_MS,
       };
 
-      // Probe (no persistence) so we can retry once on transient failures
-      // without writing two rows to the history.
-      const probe = await runConnectionTest({ ...baseArgs, attempts: 1, skipPersistence: true });
-
-      let attempts = 1;
-      let final = probe;
-      if (!probe.ok && isTransientFailure(probe)) {
-        // Small backoff before the single retry.
-        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
-        attempts = 2;
-        final = await runConnectionTest({ ...baseArgs, attempts: 2 });
-      } else {
-        // Persist the probe result as-is (1 attempt).
-        final = await runConnectionTest({ ...baseArgs, attempts: 1 });
+      // Probe up to MAX_ATTEMPTS times. Each attempt skips persistence so we
+      // don't write intermediate "failed" rows in connection_test_history;
+      // only the final outcome is persisted with the correct attempts count.
+      let attempt = 1;
+      let probe = await runConnectionTest({ ...baseArgs, attempts: 1, skipPersistence: true });
+      while (!probe.ok && isTransientFailure(probe) && attempt < MAX_ATTEMPTS) {
+        await new Promise((r) => setTimeout(r, RETRY_BACKOFF_MS[attempt - 1] ?? 1000));
+        attempt += 1;
+        probe = await runConnectionTest({ ...baseArgs, attempts: attempt, skipPersistence: true });
       }
+
+      // Persist the final outcome (one row, with the real attempts count).
+      const final = await runConnectionTest({ ...baseArgs, attempts: attempt });
 
       console.log(JSON.stringify({
         evt: "auto-test",
@@ -72,12 +73,12 @@ async function processBatch(
         status: final.status,
         latency_ms: final.latency_ms,
         wall_ms: Date.now() - t0,
-        attempts,
-        retried: attempts > 1,
+        attempts: attempt,
+        retried: attempt > 1,
         error: final.error,
         error_kind: final.error_kind,
       }));
-      return { id: conn.id, ok: final.ok, latency_ms: final.latency_ms ?? null, attempts };
+      return { id: conn.id, ok: final.ok, latency_ms: final.latency_ms ?? null, attempts: attempt };
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro";
       console.error(JSON.stringify({ evt: "auto-test-error", id: conn.id, type: conn.type, error: msg }));
