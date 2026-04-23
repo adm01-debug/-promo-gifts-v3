@@ -1,101 +1,154 @@
 
 
-# Botão "Testar novamente" com debounce no card
+# Drawer de detalhes do erro ao clicar em "Falhou"
 
 ## Diagnóstico
 
-Hoje em cada aba (`Bitrix24Tab`, `N8nTab`, `SupabaseConnectionsTab`, `McpTab`):
-- Existe o botão **"Testar conexão"** (`onTest`) que chama `test()` do `useConnectionTester`, atualiza `last` e bumpa `historyKey` para forçar refresh do painel inline.
-- A linha "Última verificação" (`<LastTestLine info={last} />`) já reflete o resultado imediatamente após o teste — sem reload.
-- **O que falta**: um botão dedicado de **"Testar novamente"** ao lado do `LastTestLine`, com:
-  - Debounce de 3s (evita spam acidental de cliques)
-  - Spinner inline próprio (sem reusar o botão grande do card)
-  - Atualização otimista da própria linha (já funciona via `setLast`)
-  - Cooldown visual com countdown ("Aguarde 3s…") durante o debounce
+Hoje em `LastTestLine.tsx`, quando um teste falha, a linha mostra:
+```
+✗ Falhou há 3min — Connection timeout
+```
+O texto é truncado (`truncate`) e não há forma de ver o erro completo, código HTTP, stack ou contexto da conexão. O admin precisa abrir o `ConnectionTimelineDrawer` (botão separado no card) e procurar manualmente.
+
+A `LastTestInfo` já carrega `ok`, `tested_at`, `latency_ms`, `message`, `status` — temos quase tudo. Falta só uma forma de exibir esses dados em destaque + buscar o registro completo de `connection_test_history` para mostrar `response_body`/`stack` quando disponível.
 
 ## Solução
 
-### 1. Novo componente `RetestButton`
+### 1. Tornar a linha "Falhou" clicável
 
-`src/components/admin/connections/RetestButton.tsx` (~60 linhas):
+Em `LastTestLine.tsx`, quando `info.ok === false`, envolver o conteúdo num `<button>` semântico (mantendo a aparência atual + cursor pointer + hover sutil + foco visível). Adicionar prop `onClick?: () => void` opcional. Quando ausente ou `info.ok !== false`, renderiza como `<p>` (comportamento atual).
 
-Botão `ghost` `size="sm"` com ícone `RefreshCw` que:
-- Recebe props: `onRetest: () => Promise<void>`, `disabled?: boolean`, `cooldownMs?: number` (default 3000)
-- Estado interno: `isRunning` (durante o await) e `cooldownUntil` (timestamp)
-- Durante `isRunning`: ícone gira (`animate-spin`), label "Testando…", desabilitado
-- Durante cooldown: ícone estático, label "Aguarde Ns" com contagem regressiva por `setInterval`, desabilitado
-- Idle: ícone estático, label "Testar novamente", clicável
+Affordance visual:
+- Sublinhado pontilhado discreto sob o texto de erro
+- Hover: `bg-destructive/5` no container
+- Tooltip: "Clique para ver detalhes do erro"
+
+### 2. Novo componente `ConnectionErrorDetailsDialog`
+
+`src/components/admin/connections/ConnectionErrorDetailsDialog.tsx` (~150 linhas):
+
+Dialog (não Drawer — é conteúdo focado de leitura, não navegação) com:
+
+- **Header**: ícone `XCircle` vermelho + "Detalhes da falha" + badge com tipo da conexão (ex: `Bitrix24`, `n8n`, `Supabase Promobrind`)
+- **Resumo (grid 2 colunas)**:
+  - Quando: `tested_at` formatado (relativo + absoluto no tooltip)
+  - Latência: `latency_ms` ou "—" se timeout
+  - HTTP Status: badge colorido (`destructive` para 4xx/5xx, `outline` para network errors)
+  - Tipo: badge com nome amigável do tipo
+- **Mensagem**: bloco em destaque com `info.message` em fonte mono, `whitespace-pre-wrap`, scrollável até 200px
+- **Detalhes técnicos** (collapsible, fechado por default): se houver `response_body` ou `stack` no registro completo de `connection_test_history`, mostrar em `<pre>` com syntax básica (texto cinza claro), limite 400px scroll
+- **Sugestões contextuais** (footer): regras simples baseadas no erro:
+  - HTTP 401/403 → "Verifique se as credenciais estão corretas e não expiraram"
+  - HTTP 404 → "Verifique se a URL base está correta"
+  - HTTP 5xx → "Serviço externo retornou erro — tente novamente em alguns minutos"
+  - "ETIMEDOUT"/"ECONNREFUSED" → "O serviço pode estar offline ou bloqueando o IP"
+  - JWT inválido → "Token JWT malformado — re-salve o secret"
+  - default → nenhuma sugestão (sem placeholder vazio)
+- **Footer actions**:
+  - "Copiar detalhes" → copia JSON estruturado para clipboard (toast de confirmação)
+  - "Ver histórico completo" → fecha o dialog + abre o `ConnectionTimelineDrawer` da aba (via callback)
+  - "Fechar"
+
+### 3. Hook leve para buscar o registro completo
+
+A `LastTestInfo` no card só tem campos resumidos. O registro completo está em `connection_test_history` (com `response_body`, `stack`, `request_url`). 
+
+Novo hook `useLastTestDetail(connectionType: string)`:
+- Lazy: só dispara o fetch quando `enabled = true` (dialog aberto)
+- Busca `connection_test_history` ordenado por `created_at DESC LIMIT 1` filtrado por `type = connectionType` e `success = false`
+- Retorna `{ data, loading, error }`
+- Cache em memória de 30s para evitar refetch ao reabrir o dialog rapidamente
+
+Alternativa simples se já existe método similar em `useConnectionTester` ou `useConnectionTestHistory`: reusar adicionando `fetchLastFailureDetail(type)` em vez de criar hook novo. Vou checar e usar o que já existe — provavelmente `fetchLastTest` no `useConnectionTester` pode ser estendido ou já retorna campos extras.
+
+### 4. Integração nas 4 abas
+
+Em cada `*Tab.tsx` (`Bitrix24Tab`, `N8nTab`, `SupabaseConnectionsTab`, `McpTab`):
 
 ```tsx
-<Button variant="ghost" size="sm" disabled={isRunning || inCooldown || disabled}
-  onClick={handleClick}>
-  <RefreshCw className={cn("h-3.5 w-3.5", isRunning && "animate-spin")} />
-  {isRunning ? "Testando…" : inCooldown ? `Aguarde ${secondsLeft}s` : "Testar novamente"}
-</Button>
+const [errorDialogOpen, setErrorDialogOpen] = useState(false);
+
+<LastTestLine
+  info={last}
+  onClick={last?.ok === false ? () => setErrorDialogOpen(true) : undefined}
+  action={<RetestButton ... />}
+/>
+
+<ConnectionErrorDetailsDialog
+  open={errorDialogOpen}
+  onOpenChange={setErrorDialogOpen}
+  connectionType="bitrix24"
+  connectionLabel="Bitrix24"
+  summary={last}
+  onOpenTimeline={() => { setErrorDialogOpen(false); /* trigger drawer */ }}
+/>
 ```
 
-### 2. Integração ao lado de `LastTestLine`
+Para `SupabaseConnectionsTab` (que tem 1 linha por env: promobrind, crm) — uma instância de dialog por env, com `connectionType={env.id}`.
 
-Modificar `LastTestLine.tsx` (ou envolver na aba) para aceitar uma prop opcional `action?: ReactNode` que renderiza à direita do texto:
+### 5. Atalho de teclado
 
-```tsx
-<div className="flex items-center justify-between gap-2">
-  <div className="text-xs text-muted-foreground">Última verificação: {fmt(info)}</div>
-  {action}
-</div>
-```
+Quando o dialog estiver aberto:
+- `Esc`: fecha (Radix nativo)
+- `C`: copia detalhes
+- `H`: abre histórico completo
 
-Em cada aba, passar `<RetestButton onRetest={onTest} disabled={!credsLooksValid} />` como `action`.
+Registrados via `useEffect` com cleanup. Sem conflito com atalhos globais (dialog tem foco trap).
 
-### 3. Reuso do `onTest` existente
-
-Não duplicar lógica. O handler `onTest` de cada aba já:
-- Chama `test()` do hook
-- Atualiza `setLast({...})`
-- Bumpa `historyKey` para refresh do painel inline
-
-`RetestButton` apenas envolve esse handler com debounce + UI states. Nenhuma mudança em `useConnectionTester`.
-
-### 4. Aplicação nas 4 abas
-
-Adicionar `<RetestButton onRetest={onTest} disabled={!credsLooksValid} />` em:
-- `Bitrix24Tab.tsx`
-- `N8nTab.tsx`
-- `SupabaseConnectionsTab.tsx` (1 botão por env: promobrind, crm)
-- `McpTab.tsx`
-
-### 5. Comportamento
-
-- Click → `setIsRunning(true)` → `await onRetest()` → `setIsRunning(false)` → `setCooldownUntil(now + 3000)`
-- Durante cooldown, countdown atualizado a cada 250ms via `setInterval` (limpo no unmount)
-- Se `disabled={true}` (credenciais inválidas), botão fica disabled com tooltip "Configure credenciais válidas primeiro"
-- Toast de sucesso/erro continua vindo do `useConnectionTester` (sem duplicação)
-
-### 6. Estado visual
+### 6. Estados visuais
 
 ```text
-Última verificação: há 12s · 245ms · OK         [↻ Testar novamente]
-Última verificação: há 2s · 198ms · OK          [⟳ Testando…]      (disabled)
-Última verificação: há 5s · 245ms · OK          [↻ Aguarde 2s]     (disabled)
+Idle (sem clique):
+✗ Falhou há 3min — Connection timeout                  [↻ Testar novamente]
+  ‾‾‾‾‾‾ ‾‾‾ ‾‾‾‾‾ ‾‾‾‾‾‾‾ ‾‾‾‾‾‾‾‾‾‾  (sublinhado pontilhado discreto)
+
+Hover:
+✗ Falhou há 3min — Connection timeout                  [↻ Testar novamente]
+(fundo destructive/5, cursor pointer)
+
+Dialog aberto:
+┌─ ✗ Detalhes da falha    [Bitrix24]    × ┐
+│                                          │
+│ Quando      | há 3 min                   │
+│ Latência    | 8000ms (timeout)           │
+│ HTTP Status | — (network error)          │
+│ Tipo        | Bitrix24 Webhook           │
+│                                          │
+│ Mensagem:                                │
+│ ┌────────────────────────────────────┐   │
+│ │ Connection timeout after 8000ms    │   │
+│ │ at fetch (...)                     │   │
+│ └────────────────────────────────────┘   │
+│                                          │
+│ ▸ Detalhes técnicos                      │
+│                                          │
+│ 💡 O serviço pode estar offline ou       │
+│    bloqueando o IP da função.            │
+│                                          │
+│ [Copiar] [Ver histórico] [Fechar]        │
+└──────────────────────────────────────────┘
 ```
 
 ## Arquivos tocados
 
 **Frontend (novos)**
-- `src/components/admin/connections/RetestButton.tsx` (~60 linhas): botão com debounce, spinner, countdown.
+- `src/components/admin/connections/ConnectionErrorDetailsDialog.tsx` (~150 linhas): dialog com resumo, mensagem, detalhes colapsáveis, sugestões e ações.
+- `src/hooks/useLastTestDetail.ts` (~50 linhas) — **só se** não conseguir reusar hook existente. Vou tentar estender `useConnectionTester` primeiro.
 
 **Frontend (editados)**
-- `src/components/admin/connections/LastTestLine.tsx`: adicionar prop opcional `action?: ReactNode` renderizada à direita.
-- `src/components/admin/connections/Bitrix24Tab.tsx`: passar `<RetestButton>` como `action` do `LastTestLine`.
+- `src/components/admin/connections/LastTestLine.tsx`: prop opcional `onClick` que torna a linha clicável quando há falha; mantém compatibilidade com uso atual.
+- `src/components/admin/connections/Bitrix24Tab.tsx`: estado `errorDialogOpen` + `<ConnectionErrorDetailsDialog>` + `onClick` no `LastTestLine`.
 - `src/components/admin/connections/N8nTab.tsx`: idem.
-- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: idem (1 por env).
+- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: idem (1 dialog por env).
 - `src/components/admin/connections/McpTab.tsx`: idem.
+
+**Backend**: nenhuma mudança. `connection_test_history` já tem os campos necessários.
 
 ## Fora de escopo
 
-- Não muda o botão grande "Testar conexão" original (continua existindo, com seu próprio fluxo).
-- Não muda `useConnectionTester` nem `connection-tester` (edge function).
-- Não persiste o cooldown entre reloads (in-memory; reload reseta).
-- Não adiciona debounce no botão original — só no novo `RetestButton` inline.
-- Não adiciona atalho de teclado (pode vir depois se solicitado).
+- Não muda o `ConnectionTimelineDrawer` existente (continua acessível pelo botão atual).
+- Não adiciona retry automático a partir do dialog (já tem `RetestButton` na linha).
+- Não adiciona deep-link (`?error=open`) — dialog é efêmero.
+- Não adiciona AI-powered diagnosis das falhas — sugestões são regras estáticas.
+- Não adiciona export do erro como issue/ticket.
 
