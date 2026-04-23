@@ -51,21 +51,19 @@ async function processBatch(
         timeoutMs: PER_TEST_TIMEOUT_MS,
       };
 
-      // Probe (no persistence) so we can retry once on transient failures
-      // without writing two rows to the history.
-      const probe = await runConnectionTest({ ...baseArgs, attempts: 1, skipPersistence: true });
-
-      let attempts = 1;
-      let final = probe;
-      if (!probe.ok && isTransientFailure(probe)) {
-        // Small backoff before the single retry.
-        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
-        attempts = 2;
-        final = await runConnectionTest({ ...baseArgs, attempts: 2 });
-      } else {
-        // Persist the probe result as-is (1 attempt).
-        final = await runConnectionTest({ ...baseArgs, attempts: 1 });
+      // Probe up to MAX_ATTEMPTS times. Each attempt skips persistence so we
+      // don't write intermediate "failed" rows in connection_test_history;
+      // only the final outcome is persisted with the correct attempts count.
+      let attempt = 1;
+      let probe = await runConnectionTest({ ...baseArgs, attempts: 1, skipPersistence: true });
+      while (!probe.ok && isTransientFailure(probe) && attempt < MAX_ATTEMPTS) {
+        await new Promise((r) => setTimeout(r, RETRY_BACKOFF_MS[attempt - 1] ?? 1000));
+        attempt += 1;
+        probe = await runConnectionTest({ ...baseArgs, attempts: attempt, skipPersistence: true });
       }
+
+      // Persist the final outcome (one row, with the real attempts count).
+      const final = await runConnectionTest({ ...baseArgs, attempts: attempt });
 
       console.log(JSON.stringify({
         evt: "auto-test",
