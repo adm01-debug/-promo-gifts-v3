@@ -29,6 +29,15 @@ interface Technique {
   maxHeight?: number | null;
   areaName?: string | null;
   locationName?: string | null;
+  // Atributos novos (vindos de TechniqueWithLimits)
+  maxColors?: number | null;
+  chargesPerColor?: boolean;
+  usesDimension?: boolean;
+  isCurved?: boolean;
+  setupCost?: number | null;
+  variationLabel?: string | null;
+  groupCode?: string | null;
+  shape?: string | null;
 }
 
 export interface MockupClient {

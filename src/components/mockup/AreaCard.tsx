@@ -68,9 +68,23 @@ export function AreaCard({
       {/* Area name */}
       <div className="flex-1 min-w-0">
         {isReadOnly ? (
-          <span className={cn("text-sm block truncate", isActive && "font-medium")}>
-            {area.name}
-          </span>
+          <>
+            <span className={cn("text-sm block truncate", isActive && "font-medium")}>
+              {area.name}
+            </span>
+            {(area.maxWidthCm || area.maxHeightCm || area.techniquesAvailable) && (
+              <span className="text-[10px] text-muted-foreground block truncate">
+                {area.maxWidthCm && area.maxHeightCm && (
+                  <>{area.maxWidthCm}×{area.maxHeightCm}cm</>
+                )}
+                {area.techniquesAvailable ? (
+                  <> · {area.techniquesAvailable} {area.techniquesAvailable === 1 ? 'técnica' : 'técnicas'}</>
+                ) : null}
+                {area.maxColors ? <> · até {area.maxColors} cor{area.maxColors > 1 ? 'es' : ''}</> : null}
+                {area.isCurved ? <> · curvo</> : null}
+              </span>
+            )}
+          </>
         ) : (
           <Input
             value={area.name}
