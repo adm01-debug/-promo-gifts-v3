@@ -64,7 +64,7 @@ function enterEditMode() {
 }
 
 function getInput(): HTMLInputElement {
-  return screen.getByPlaceholderText(/Cole o valor de/i) as HTMLInputElement;
+  return screen.getByPlaceholderText(/Cole o valor de|Novo valor para/i) as HTMLInputElement;
 }
 
 function getSaveButton(): HTMLButtonElement {
