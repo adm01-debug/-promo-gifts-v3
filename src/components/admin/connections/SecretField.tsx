@@ -90,6 +90,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [saveConfirmError, setSaveConfirmError] = useState<string | null>(null);
   // Cancellation for in-flight retries (declared early for the same reason)
   const abortRef = useRef<AbortController | null>(null);
 
@@ -159,6 +160,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       setRotateConfirmOpen(false);
       setRotateConfirmError(null);
       setSaveConfirmOpen(false);
+      setSaveConfirmError(null);
       // flash is suffix-bound to the previous secret — drop it
       setFlash(null);
       prevScopeKeyRef.current = scopeKey;
@@ -351,15 +353,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       setRotateConfirmOpen(true);
       return;
     }
+    setSaveConfirmError(null);
     setSaveConfirmOpen(true);
   };
 
   const handleConfirmedSave = async () => {
     if (!canSave) return;
     setSaving(true);
+    setSaveConfirmError(null);
     const res = await performSave("set", value);
     setSaving(false);
-    if (res.ok) setSaveConfirmOpen(false);
+    if (res.ok) {
+      setSaveConfirmOpen(false);
+    } else if (!res.cancelled) {
+      setSaveConfirmError(res.errorDescription);
+    }
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
@@ -689,7 +697,9 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       <SaveSecretConfirmDialog
         open={saveConfirmOpen}
         onOpenChange={(open) => {
-          if (!saving) setSaveConfirmOpen(open);
+          if (saving) return;
+          setSaveConfirmOpen(open);
+          if (!open) setSaveConfirmError(null);
         }}
         secretName={secretName}
         isUpdate={!!status?.has_value}
@@ -698,6 +708,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         newSuffix={value.slice(-4)}
         newLength={value.length}
         loading={saving}
+        errorMessage={saveConfirmError}
         onConfirm={handleConfirmedSave}
       />
     </div>
