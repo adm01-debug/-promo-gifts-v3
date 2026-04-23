@@ -359,6 +359,16 @@ export function ConnectionsOverviewTable() {
                   <TableHead className="w-[150px]">Última verificação</TableHead>
                   <TableHead className="w-[110px]">Falhas seguidas</TableHead>
                   <TableHead className="w-[90px]">Latência</TableHead>
+                  <TableHead className="w-[110px]">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline decoration-dotted underline-offset-2">Auto-teste</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-[240px]">Quando ligado, o cron testa essa conexão automaticamente a cada 30min.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                   <TableHead>Mensagem</TableHead>
                   <TableHead className="w-[140px] text-right">Ações</TableHead>
                 </TableRow>
