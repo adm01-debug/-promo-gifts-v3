@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSecretsManager, type RotationHistoryEntry } from "@/hooks/useSecretsManager";
-import { History, RefreshCw, Save, ArrowRight, Clock } from "lucide-react";
+import { History, RefreshCw, Save, ArrowRight, Clock, User } from "lucide-react";
 
 interface Props {
   secretName: string;
