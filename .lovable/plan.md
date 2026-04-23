@@ -1,50 +1,78 @@
 
 
-## Corrigir crash do `ComparisonDuelView` (`Cannot read properties of undefined (reading 'length')`)
+# Validação imediata + normalização ao colar no `SecretField`
 
-### Causa raiz
+## Objetivo
 
-Em `src/components/compare/ComparisonDuelView.tsx:34` o hook é consumido como objeto:
+Quando o admin **cola** um valor (Ctrl+V) num `SecretField`, aplicar imediatamente:
+1. **Normalização silenciosa** (corrigir erros comuns de copy/paste).
+2. **Validação imediata** com feedback visual (ok/erro/hint).
 
-```ts
-const { items: scoreItems } = useComparisonScore(products);
-```
+Hoje a validação só acontece em `onChange`/`onBlur` e nada é normalizado — o usuário cola `https://abc.supabase.co/` (com `/`) ou `eyJ...\n` (com newline) e só descobre o erro ao tentar salvar.
 
-Mas `useComparisonScore` retorna **um array `ProductScore[]` diretamente** (não um objeto `{ items }`). Resultado: `scoreItems === undefined`, e o `useMemo` seguinte explode em `scoreItems.length`.
+## Mudanças
 
-A página `/comparar` quebra inteira sempre que há 2 produtos selecionados e o modo duelo está ativo.
+### 1. Novo módulo `secretNormalizers.ts` (irmão de `secretValidators.ts`)
 
-### Correção
+Função pura `normalizeSecret(name, raw): { value, changes[] }` por credencial:
 
-**Arquivo: `src/components/compare/ComparisonDuelView.tsx`**
+| Secret | Normalizações aplicadas |
+|---|---|
+| `EXTERNAL_PROMOBRIND_URL`, `EXTERNAL_CRM_URL` | trim, remove aspas envolventes, lower-case do host, remove `/` final, remove qualquer path/query/fragment |
+| `EXTERNAL_*_ANON_KEY`, `EXTERNAL_*_SERVICE_ROLE_KEY` | trim, remove `Bearer ` prefix, remove todo whitespace interno (newlines de copy/paste de UI) |
+| `BITRIX24_WEBHOOK_URL` | trim, remove aspas, garante `/` final, remove query/fragment |
+| `BITRIX24_DOMAIN` | trim, remove `https://`/`http://`, remove `/` final, lower-case |
+| `BITRIX24_USER_ID` | trim, mantém apenas dígitos |
+| `BITRIX24_TOKEN` | trim, remove whitespace |
+| `N8N_BASE_URL` | trim, remove aspas, remove `/` final, remove path |
+| `N8N_API_KEY` | trim, remove `Bearer ` prefix, remove whitespace |
+| `MCP_SERVER_URL`, `MCP_SHARED_SECRET` | trim, remove aspas |
+| Outbound/Inbound `*_HMAC_*`/`*_SECRET_*` | trim, remove whitespace |
+| Default (qualquer outro) | trim |
 
-Trocar a linha 34 de:
-```ts
-const { items: scoreItems } = useComparisonScore(products);
-```
-para:
-```ts
-const scoreItems = useComparisonScore(products);
-```
+Cada normalização adiciona um string descritivo ao array `changes` (ex.: `"barra final removida"`, `"prefixo Bearer removido"`, `"quebras de linha removidas"`) — usado pra mostrar feedback discreto pro usuário.
 
-Nenhuma outra parte do componente precisa mudar — o `useMemo` abaixo já usa `scoreItems.length`, `scoreItems.reduce(...)` e `arr[best].score`. Confirmar que o campo correto no `ProductScore` é `total` (não `score`) e ajustar o reduce:
+### 2. `SecretField.tsx` — handler de paste + validação imediata
 
-```ts
-const winnerIdx = useMemo(() => {
-  if (scoreItems.length === 0) return -1;
-  return scoreItems.reduce((best, cur, idx, arr) => cur.total > arr[best].total ? idx : best, 0);
-}, [scoreItems]);
-```
+- Adicionar `onPaste={handlePaste}` no `<Input type="password">` do modo set/rotate:
+  - `e.preventDefault()`
+  - Pegar `e.clipboardData.getData("text")`
+  - Rodar `normalizeSecret(name, raw)`
+  - `setValue(normalized)`
+  - Se `changes.length > 0`, mostrar **toast info** discreto: `"Valor normalizado: barra final removida, espaços removidos"` (uma única toast, ID estável `paste-norm-${name}` pra evitar duplicar)
+  - Disparar a validação imediatamente (já roda via `useEffect` em `value`, mas garantir que não há debounce).
 
-(O hook expõe `total: number`, não `score`.)
+- Mudar a validação visual atual (que hoje só aparece após digitar) pra rodar em **todo `setValue`** — incluindo paste — e mostrar:
+  - Borda `border-destructive` no `<Input>` quando `validation.ok === false && value.length > 0`
+  - Borda `border-success` (token existente) quando `validation.ok === true`
+  - Mensagem `validation.message` em vermelho **abaixo** do input (já existe parcialmente — garantir que aparece imediatamente no paste, não só no blur).
 
-### Por que aconteceu
+### 3. Mesma normalização no `onChange` manual (digitação)
 
-Provavelmente refator antigo do hook mudou a assinatura de `{ items, ... }` para `ProductScore[]` puro e este consumidor ficou para trás — não há outro lugar no projeto fazendo essa desestruturação errada (busca confirmou).
+Também rodar `normalizeSecret` no `onChange`, mas **só aplicar normalizações idempotentes não-destrutivas** durante digitação (trim de pontas só no blur). Evita o usuário não conseguir digitar um espaço temporário no meio. → Implementação: criar `normalizeSecretLight(name, raw)` que pula normalizações que cortam conteúdo (ex.: trim só no início, mas não no fim enquanto digitando).
 
-### Arquivos modificados
+Ou mais simples e seguro: **só normalizar no paste e no blur**, manter `onChange` cru. Vou adotar essa versão (menos surpresa pro usuário).
 
-- `src/components/compare/ComparisonDuelView.tsx` — 2 linhas (destrutura + campo `total`).
+### 4. Indicador visual de "normalizado"
 
-Sem alteração de hook, schema, RLS, edge function ou testes.
+Quando o último `setValue` veio de paste e gerou `changes`, mostrar pequeno badge `✓ Valor ajustado` ao lado do input por 4s (depois fade). Estado local `lastNormalization: string[] | null` + `setTimeout` pra limpar.
+
+## Fora de escopo
+
+- Não tocar nos validators existentes (`secretValidators.ts`) — a normalização roda **antes** da validação, então o validator continua sendo a fonte de verdade do "ok/erro".
+- Não normalizar o valor já salvo no banco (não temos plaintext no frontend de qualquer forma).
+- Não fazer auto-fix de erros que mudam o significado (ex.: NÃO trocar `http://` por `https://` em URLs Supabase — pode mascarar bug real do user).
+- Não adicionar normalização no backend (`secrets-manager` edge function) nesta onda — o backend já valida formato e a normalização é UX-only. Pode vir em onda futura.
+
+## Arquivos afetados
+
+- **Novo:** `src/components/admin/connections/secretNormalizers.ts` (~120 linhas)
+- **Editado:** `src/components/admin/connections/SecretField.tsx` — adicionar `onPaste`, validação imediata em todo setValue, badge de "normalizado", borda colorida no input
+
+## Critério de aceite
+
+- Colar `https://abc.supabase.co/  ` em `EXTERNAL_PROMOBRIND_URL` → vira `https://abc.supabase.co`, mostra `✓ Valor ajustado` + toast `"Valor normalizado: espaços removidos, barra final removida"`, validação fica verde.
+- Colar `Bearer eyJhbGc...\n` em `N8N_API_KEY` → vira `eyJhbGc...`, badge aparece, validação verde.
+- Colar `abc123` (curto demais) em `N8N_API_KEY` → input fica com `border-destructive` e mensagem `"API Key deve ter ≥20 chars e nenhum espaço."` aparece imediatamente, sem precisar tirar o foco.
+- Digitar manualmente continua funcionando como hoje (sem normalização disruptiva).
 
