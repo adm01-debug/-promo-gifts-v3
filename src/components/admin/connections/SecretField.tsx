@@ -90,6 +90,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  const [saveConfirmError, setSaveConfirmError] = useState<string | null>(null);
   // Cancellation for in-flight retries (declared early for the same reason)
   const abortRef = useRef<AbortController | null>(null);
 
