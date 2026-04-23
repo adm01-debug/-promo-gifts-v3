@@ -6,10 +6,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 // só no comportamento de UI/validação do SecretField.
 const setSecretMock = vi.fn();
 const rotateSecretMock = vi.fn();
+const getRotationHistoryMock = vi.fn().mockResolvedValue([]);
 vi.mock("@/hooks/useSecretsManager", () => ({
   useSecretsManager: () => ({
     setSecret: setSecretMock,
     rotateSecret: rotateSecretMock,
+    getRotationHistory: getRotationHistoryMock,
   }),
 }));
 
