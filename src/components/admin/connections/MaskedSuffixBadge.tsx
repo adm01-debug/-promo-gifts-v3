@@ -8,6 +8,12 @@ interface Props {
   suffix: string | null | undefined;
   /** Nome do secret — usado para personalizar a mensagem de orientação. */
   secretName?: string;
+  /**
+   * Comprimento total da credencial (quando conhecido). Usado como fallback
+   * para gerar um sufixo derivado (`L=NN`) quando `suffix` está ausente,
+   * preservando o layout sem expor dados.
+   */
+  length?: number | null;
   /** Quando true, mostra o badge mesmo no estado válido (default: false). */
   showWhenValid?: boolean;
   /** Mostra o sufixo formatado ao lado do ícone (default: true). */
@@ -19,23 +25,29 @@ interface Props {
  * Renderiza o sufixo mascarado com um indicador visual de saúde:
  * - válido (4+ chars): nenhum aviso (a menos que showWhenValid)
  * - curto (<4 chars): chip âmbar com tooltip explicativo
- * - ausente: chip destrutivo com tooltip orientando re-salvar
+ * - ausente: chip destrutivo com tooltip + sufixo derivado (`L=NN`)
  *
  * Sempre acessível: o tooltip vira `aria-description` para leitores de tela.
+ * Layout estável: sempre renderiza 8 chars (`••••XXXX`) no slot do sufixo,
+ * mesmo no fallback.
  */
 export function MaskedSuffixBadge({
   suffix,
   secretName,
+  length,
   showWhenValid = false,
   showSuffix = true,
   className,
 }: Props) {
   const diagnosis = diagnoseMaskedSuffix(suffix, { secretName });
-  const display = formatMaskedSuffix(suffix);
+  // Sempre usa o resolvedor com fallback derivado — garante layout estável
+  // mesmo quando o sufixo cru é nulo/curto.
+  const display = formatDisplaySuffix(suffix, { length });
+  const isFallback = diagnosis.status !== "valid" && (suffix ?? "").trim().length === 0;
 
   if (diagnosis.status === "valid" && !showWhenValid) {
     return showSuffix ? (
-      <span className={cn("font-mono text-xs text-muted-foreground", className)} aria-label={diagnosis.message}>
+      <span className={cn("font-mono text-xs text-muted-foreground tabular-nums", className)} aria-label={diagnosis.message}>
         {display}
       </span>
     ) : null;
