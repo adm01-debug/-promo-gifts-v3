@@ -363,24 +363,11 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             </Button>
           </div>
           {lastError && !saving && (
-            <div
-              className="flex items-start justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs animate-in fade-in duration-200"
-              role="alert"
-            >
-              <div className="flex items-start gap-1.5 text-destructive min-w-0">
-                <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span className="break-words">{lastError}</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2 shrink-0"
-                onClick={handleSave}
-                disabled={!canSave}
-              >
-                <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
-              </Button>
-            </div>
+            <SecretErrorAlert
+              error={lastError}
+              onRetry={handleSave}
+              retryDisabled={!canSave}
+            />
           )}
           {value.length > 0 && !validation.ok && validation.message && (
             <p className="text-xs text-destructive flex items-center gap-1">
