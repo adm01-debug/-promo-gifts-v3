@@ -1,90 +1,86 @@
 
 
-## Timeout configurável por tipo de conexão no backend do tester
+## Persistir `error_kind` no histórico de testes de conexão
 
 ### Objetivo
-Hoje o `connection-tester` usa um timeout fixo (~10s) para todas as conexões. Tipos diferentes têm latências diferentes (ex.: webhooks externos podem ser lentos, MCP local é instantâneo). Vamos:
-1. Definir timeouts padrão **por tipo** no edge function.
-2. Permitir override via `body.timeout_ms` (com clamp seguro).
-3. Quando ocorrer `AbortError`, devolver `error_kind: "timeout"` com o **timeout efetivo aplicado** dentro da resposta para a UI exibir.
+Hoje a tabela `connection_test_history` tem a coluna `error_kind` (text nullable) já no schema, mas precisamos garantir que:
+1. O backend **sempre grava** `error_kind` quando há falha (atualmente nem todos os caminhos preenchem).
+2. O frontend **lê e exibe** o badge semântico no histórico, com **fallback inteligente** para registros antigos sem `error_kind` (deriva via heurística do `error_message`/`status_code`).
 
 ### Onde está hoje
-- Edge: `supabase/functions/connection-tester/index.ts` (entrypoint)
-- Lógica compartilhada: `supabase/functions/_shared/connection-test-runner.ts` (recebe `timeoutMs`)
-- Cron usa `PER_TEST_TIMEOUT_MS = 8000` em `connections-auto-test/index.ts`
-- Hook UI: `src/hooks/useConnectionTester.ts` envia `body: { action, type, config, connection_id, env_key }` (sem timeout)
-- Tipo `TestResult` em `useConnectionTester.ts` não tem `timeout_ms`
+
+- Schema: `connection_test_history.error_kind text` já existe (visto no types.ts).
+- Backend escrita: `connection-tester/index.ts` insere `error_kind: result.error_kind ?? null` ✅. `connections-auto-test/index.ts` precisa verificar se grava.
+- Frontend leitura: `useConnectionTestDetails.ts` busca `connection_test_history` e mapeia para `error.kind`. Provável que para registros antigos venha `null`.
+- Componente: `ConnectionTestDetailsDialog.tsx` já tem badge colorido por `kind` via `getKindBadgeClass`.
+- Histórico de execuções (drawer/lista): provável `ConnectionTestHistorySheet.tsx` ou similar — verificar se exibe kind.
 
 ### O que será criado
 
-**`supabase/functions/_shared/connection-timeouts.ts`** (novo, ~25 linhas)
-SSOT compartilhado entre `connection-tester` e `connections-auto-test`:
-
+**`src/lib/error-kind-inference.ts`** (novo, ~40 linhas)
+Heurística pura para inferir `error_kind` a partir de `error_message` + `status_code`, usado como fallback no frontend para registros antigos:
 ```ts
-export const DEFAULT_TIMEOUTS_MS: Record<ConnectionType, number> = {
-  supabase: 6000,          // PostgREST local, deve ser rápido
-  bitrix24: 12000,         // CRM externo, pode ter lag
-  n8n: 10000,              // automação, médio
-  mcp: 8000,               // chamada interna
-  webhook_outbound: 15000, // webhooks externos arbitrários
-};
-export const MIN_TIMEOUT_MS = 1000;
-export const MAX_TIMEOUT_MS = 30000;
-export function resolveTimeout(type: ConnectionType, override?: number | null): number {
-  const base = DEFAULT_TIMEOUTS_MS[type] ?? 10000;
-  if (override == null) return base;
-  return Math.max(MIN_TIMEOUT_MS, Math.min(MAX_TIMEOUT_MS, override));
+export type ErrorKind = "timeout" | "network" | "dns" | "auth" | "http" | "config" | "unknown";
+
+export function inferErrorKind(opts: {
+  errorKind?: string | null;
+  errorMessage?: string | null;
+  statusCode?: number | null;
+  success?: boolean | null;
+}): ErrorKind | null {
+  if (opts.success) return null;
+  if (opts.errorKind) return opts.errorKind as ErrorKind;
+  
+  const msg = (opts.errorMessage ?? "").toLowerCase();
+  if (/timeout|timed?\s?out|abort/.test(msg)) return "timeout";
+  if (/dns|enotfound|getaddrinfo/.test(msg)) return "dns";
+  if (/network|fetch failed|econnrefused|econnreset/.test(msg)) return "network";
+  if (opts.statusCode === 401 || opts.statusCode === 403 || /unauthor|forbidden|invalid.*(token|key|secret)/.test(msg)) return "auth";
+  if (opts.statusCode && opts.statusCode >= 400) return "http";
+  if (/config|missing.*(url|secret|key)/.test(msg)) return "config";
+  return "unknown";
 }
 ```
 
 ### O que será alterado
 
-**`supabase/functions/connection-tester/index.ts`**
-- Importa `resolveTimeout` + `DEFAULT_TIMEOUTS_MS`.
-- Adiciona `timeout_ms?: number` ao Zod schema de `action: "test"` com `.int().min(1000).max(30000).optional()`.
-- Calcula `effectiveTimeout = resolveTimeout(type, body.timeout_ms)` e passa para `runConnectionTest({ timeoutMs: effectiveTimeout })`.
-- No retorno (sucesso ou falha), inclui `timeout_ms: effectiveTimeout` no objeto `result`.
-
-**`supabase/functions/_shared/connection-test-runner.ts`**
-- Em cada caso (`supabase`, `bitrix24`, `n8n`, `mcp`, `webhook_outbound`), o `AbortController` já existe. Quando o catch detecta `err.name === "AbortError"`, hoje devolve `{ ok:false, error_kind:"timeout", error: "timeout" }`. Vamos enriquecer:
-  - `error: \`timeout após ${timeoutMs}ms\``
-  - `timeout_ms: timeoutMs` no objeto retornado
-- Adicionar `timeout_ms?: number` ao tipo `TestRunResult` (ou equivalente).
+**Backend**
 
 **`supabase/functions/connections-auto-test/index.ts`**
-- Substitui `PER_TEST_TIMEOUT_MS = 8000` por `resolveTimeout(conn.type as ConnectionType)` por conexão.
-- Continua passando `timeoutMs` para o runner.
+- Verificar se o INSERT em `connection_test_history` inclui `error_kind: testResult.error_kind ?? null`. Se não, adicionar.
 
-**`src/hooks/useConnectionTester.ts`**
-- Adiciona `timeout_ms?: number` à interface `TestResult` e propaga no `normalized`.
-- Na descrição do toast de timeout, se `result.timeout_ms` existir, anexa `(${ms}ms)` à hint.
+**`supabase/functions/connection-tester/index.ts`**
+- Já grava ✅. Confirmar via leitura — sem mudança esperada.
 
-**`src/lib/connection-error-copy.ts`**
-- Para `kind: "timeout"`, aceita opcionalmente o `timeout_ms` via novo argumento opcional na função (ou via `fallbackMessage`) e renderiza: `"O endpoint não respondeu em N ms. Verifique se o serviço está ativo."`. Mantém retro-compat (sem `timeout_ms` usa o texto atual).
+**Frontend**
 
-**`src/components/admin/connections/ConnectionTestDetailsDialog.tsx`** + **`LastTestLine.tsx`**
-- Quando `error_kind === "timeout"` e `timeout_ms` presente, exibe badge extra `timeout: 12000ms` ao lado dos badges `kind` / `HTTP`.
+**`src/hooks/useConnectionTestDetails.ts`**
+- Importa `inferErrorKind`.
+- No mapeamento da última falha (`details.error.kind`), aplicar fallback: `kind: inferErrorKind({ errorKind: row.error_kind, errorMessage: row.error_message, statusCode: row.status_code, success: row.success })`.
+
+**`src/components/admin/connections/ConnectionTestHistorySheet.tsx`** (se existir; senão, no componente que lista o histórico)
+- Para cada linha de falha, exibir o badge semântico (mesmo `getKindBadgeClass` + `getKindLabel` já criados), aplicando `inferErrorKind` para registros antigos.
+- Se o componente não existir como nome esperado, vou localizar via search no diretório `src/components/admin/connections/`.
+
+**`src/components/admin/connections/LastTestLine.tsx`**
+- Já recebe `error_kind` via props. Aplicar `inferErrorKind` se `error_kind` for null mas `success === false`, para mostrar badge correto.
 
 ### Detalhes técnicos
-- **Sem migração de DB**: a coluna `connection_test_history` não precisa armazenar o timeout (já temos `latency_ms`); o valor é apenas informativo na resposta + UI. Se quiser persistir depois, é adendo trivial.
-- **Backwards compat**: requests sem `timeout_ms` continuam funcionando (usa default por tipo). Resposta sem `timeout_ms` (versões antigas) continua válida no UI (campo opcional).
-- **Validação**: clamp em `[1000, 30000]ms` evita abuso (timeout de 5min trava worker).
-- **Cron**: passa a respeitar timeouts realistas por tipo, evitando matar webhooks lentos prematuramente.
-- **Logs**: o objeto JSON estruturado de `auto-test` ganha `timeout_ms` para auditoria.
 
-### Resultado visual (timeout no UI)
+- **Sem migração de DB**: a coluna já existe.
+- **Backwards compat**: registros antigos com `error_kind = null` recebem inferência heurística no client. Novos registros têm `error_kind` real do backend.
+- **SSOT da heurística**: `inferErrorKind` no client. Não duplicar no edge (lá usamos detecção direta com `err.name`/HTTP status no momento do erro, mais preciso).
+- **Risk**: heurística por regex em `error_message` é melhor-esforço; se vier mensagem em outro idioma do servidor remoto, pode cair em `unknown` — aceitável.
 
-Antes:
+### Resultado visual
+
+Antes (registro antigo no histórico):
 ```
-✗ Tempo esgotado · há 1min
-O endpoint não respondeu em tempo. Verifique se o serviço está ativo.
-HTTP - · timeout
+✗ HTTP 504 — Gateway Timeout (sem badge)
 ```
 
 Depois:
 ```
-✗ Tempo esgotado · há 1min
-O endpoint não respondeu em 12000ms. Verifique se o serviço está ativo.
-[kind: timeout] [timeout: 12000ms]
+✗ HTTP 504 — Gateway Timeout  [Timeout]  [HTTP 504]
 ```
 
