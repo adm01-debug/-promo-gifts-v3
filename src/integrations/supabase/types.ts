@@ -601,38 +601,68 @@ export type Database = {
         Row: {
           connection_id: string
           created_at: string
+          dns_ms: number | null
+          download_ms: number | null
           error_kind: string | null
           error_message: string | null
           id: string
           latency_ms: number | null
+          request_method: string | null
+          request_url: string | null
+          response_body: string | null
+          response_headers: Json | null
           status_code: number | null
           success: boolean
+          tcp_ms: number | null
           tested_at: string
+          tls_ms: number | null
           triggered_by: string
+          triggered_by_user_id: string | null
+          ttfb_ms: number | null
         }
         Insert: {
           connection_id: string
           created_at?: string
+          dns_ms?: number | null
+          download_ms?: number | null
           error_kind?: string | null
           error_message?: string | null
           id?: string
           latency_ms?: number | null
+          request_method?: string | null
+          request_url?: string | null
+          response_body?: string | null
+          response_headers?: Json | null
           status_code?: number | null
           success?: boolean
+          tcp_ms?: number | null
           tested_at?: string
+          tls_ms?: number | null
           triggered_by?: string
+          triggered_by_user_id?: string | null
+          ttfb_ms?: number | null
         }
         Update: {
           connection_id?: string
           created_at?: string
+          dns_ms?: number | null
+          download_ms?: number | null
           error_kind?: string | null
           error_message?: string | null
           id?: string
           latency_ms?: number | null
+          request_method?: string | null
+          request_url?: string | null
+          response_body?: string | null
+          response_headers?: Json | null
           status_code?: number | null
           success?: boolean
+          tcp_ms?: number | null
           tested_at?: string
+          tls_ms?: number | null
           triggered_by?: string
+          triggered_by_user_id?: string | null
+          ttfb_ms?: number | null
         }
         Relationships: [
           {
