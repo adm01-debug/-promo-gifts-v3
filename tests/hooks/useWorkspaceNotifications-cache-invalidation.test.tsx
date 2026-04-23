@@ -216,6 +216,8 @@ describe("useWorkspaceNotifications — cache TTL is honored, then invalidated b
       JSON.stringify({ cachedAt: Date.now(), notifications: SEED })
     );
 
+    // Reset the queue so we control exactly two calls: mount fetch + silent re-fetch.
+    limitMock.mockReset();
     // Capture the cache state at the exact moment the silent re-fetch runs.
     // Because the hook does: removeItem(CACHE_KEY) -> await fetch -> writeCache,
     // sessionStorage MUST be empty at the start of the .limit() call.
