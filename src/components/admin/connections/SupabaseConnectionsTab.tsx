@@ -134,12 +134,15 @@ export function SupabaseConnectionsTab() {
                   <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} />
                   <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list}
                     helperText="Nunca exposto ao frontend. Usado apenas em edge functions admin." />
+                  <ConnectionPreflightAlert issues={preflightIssues} />
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Button
                       size="sm"
                       variant="outline"
                       disabled={isTesting || !canTest}
-                      title={!credsConfigured ? "Configure URL e Service Role Key primeiro"
+                      title={preflightIssues.length > 0
+                        ? `Corrija ${preflightIssues.length === 1 ? "o campo" : "os campos"} acima antes de testar`
+                        : !credsConfigured ? "Configure URL e Service Role Key primeiro"
                         : !credsLooksValid ? "Credenciais com formato suspeito (comprimento curto) — re-salve antes de testar"
                         : "Testar conexão real"}
                       onClick={() => handleTest(env.envKey!, env.key)}
