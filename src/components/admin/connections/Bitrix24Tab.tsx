@@ -91,8 +91,11 @@ export function Bitrix24Tab() {
           action={
             <RetestButton
               onRetest={onTest}
-              disabled={!credsLooksValid}
-              disabledReason={!credsOk ? "Configure o Webhook URL primeiro" : "Webhook com formato suspeito — re-salve antes de testar"}
+              disabled={!canTest}
+              disabledReason={preflightIssues.length > 0
+                ? "Corrija os campos sinalizados acima antes de testar"
+                : !credsOk ? "Configure o Webhook URL primeiro"
+                : "Webhook com formato suspeito — re-salve antes de testar"}
             />
           }
         />
