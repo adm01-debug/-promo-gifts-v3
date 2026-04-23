@@ -117,35 +117,22 @@ export function ConnectionsOverviewTable() {
             disabled={bulkTesting || filtered.length === 0}
           >
             {bulkTesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
-            Testar {filter === "all" ? "todas" : "filtradas"}
+            Testar {activeCount > 0 ? "filtradas" : "todas"}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-1.5">
-          {([
-            ["all", "Todas"],
-            ["active", "Ativas"],
-            ["error", "Com erro"],
-            ["never", "Nunca verificadas"],
-          ] as [Filter, string][]).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
-                filter === key
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-muted",
-              )}
-            >
-              {label}
-              <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
-                {counts[key]}
-              </Badge>
-            </button>
-          ))}
-        </div>
+        <ConnectionsOverviewFilters
+          filters={filters}
+          toggleType={filterState.toggleType}
+          setStatus={filterState.setStatus}
+          setWindow={filterState.setWindow}
+          removeType={filterState.removeType}
+          reset={filterState.reset}
+          activeCount={activeCount}
+          totalCount={rows.length}
+          filteredCount={filtered.length}
+        />
 
         {loading ? (
           <div className="space-y-2">
@@ -157,14 +144,15 @@ export function ConnectionsOverviewTable() {
           <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-10 text-center">
             <Clock className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              {filter === "error"
-                ? "Nenhuma conexão com erro 🎉"
-                : filter === "never"
-                  ? "Todas as conexões já foram testadas"
-                  : filter === "active"
-                    ? "Nenhuma conexão ativa ainda"
-                    : "Nenhuma conexão cadastrada"}
+              {activeCount > 0
+                ? "Nenhuma conexão corresponde aos filtros"
+                : "Nenhuma conexão cadastrada"}
             </p>
+            {activeCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={reset} className="h-8 text-xs">
+                Limpar filtros
+              </Button>
+            )}
           </div>
         ) : (
           <TooltipProvider delayDuration={200}>
