@@ -7,8 +7,9 @@ import {
   AlertDialogFooter,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, KeyRound, Loader2, ArrowRight } from "lucide-react";
+import { ShieldCheck, KeyRound, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { SecretMaskedDiff } from "./SecretMaskedDiff";
 
 interface Props {
   open: boolean;
@@ -78,41 +79,23 @@ export function SaveSecretConfirmDialog({
           </div>
         </AlertDialogHeader>
 
-        {/* Diff preview (only when updating) */}
-        {isUpdate && (
-          <div className="my-2 rounded-lg border border-border bg-muted/50 p-4">
-            <div className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
-              <span className="text-muted-foreground">Valor atual:</span>
-              <span className="font-mono">
-                ••••{currentSuffix ?? "????"}
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({currentLength ?? 0} chars)
-                </span>
-              </span>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-              <span className="font-mono">
-                ••••{newSuffix || "????"}
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({newLength} chars)
-                </span>
-              </span>
-            </div>
-          </div>
-        )}
-
-        {/* New-value preview (when configuring for the first time) */}
-        {!isUpdate && (
-          <div className="my-2 rounded-lg border border-border bg-muted/50 p-4">
-            <div className="flex items-center gap-3 text-sm">
-              <span className="text-muted-foreground">Novo valor:</span>
-              <span className="font-mono">
-                ••••{newSuffix || "????"}
-                <span className="ml-2 text-xs text-muted-foreground">
-                  ({newLength} chars)
-                </span>
-              </span>
-            </div>
-          </div>
+        {isUpdate ? (
+          <SecretMaskedDiff
+            currentSuffix={currentSuffix}
+            currentLength={currentLength}
+            newSuffix={newSuffix}
+            newLength={newLength}
+            className="my-2"
+          />
+        ) : (
+          <SecretMaskedDiff
+            currentSuffix={null}
+            currentLength={null}
+            newSuffix={newSuffix}
+            newLength={newLength}
+            newOnly
+            className="my-2"
+          />
         )}
 
         {/* Impact */}

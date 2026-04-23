@@ -10,8 +10,9 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { AlertTriangle, Loader2, ArrowRight } from "lucide-react";
+import { AlertTriangle, Loader2 } from "lucide-react";
 import { motion } from "framer-motion";
+import { SecretMaskedDiff } from "./SecretMaskedDiff";
 
 interface Props {
   open: boolean;
@@ -78,25 +79,13 @@ export function RotateSecretConfirmDialog({
           </div>
         </AlertDialogHeader>
 
-        {/* Valor atual → Novo valor */}
-        <div className="my-2 rounded-lg border border-border bg-muted/50 p-4">
-          <div className="grid grid-cols-[auto_1fr_auto_1fr] items-center gap-x-3 gap-y-2 text-sm">
-            <span className="text-muted-foreground">Valor atual:</span>
-            <span className="font-mono">
-              ••••{currentSuffix ?? "????"}
-              <span className="ml-2 text-xs text-muted-foreground">
-                ({currentLength ?? 0} chars)
-              </span>
-            </span>
-            <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            <span className="font-mono">
-              ••••{newSuffix || "????"}
-              <span className="ml-2 text-xs text-muted-foreground">
-                ({newLength} chars)
-              </span>
-            </span>
-          </div>
-        </div>
+        <SecretMaskedDiff
+          currentSuffix={currentSuffix}
+          currentLength={currentLength}
+          newSuffix={newSuffix}
+          newLength={newLength}
+          className="my-2"
+        />
 
         {/* Impacto */}
         <div className="rounded-lg border border-border bg-muted/30 p-4">
