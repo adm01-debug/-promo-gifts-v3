@@ -76,7 +76,7 @@ export function LastTestLine({
     : null;
   const errorCopy = !info.ok ? getErrorCopy(resolvedKind, info.status, info.message, info.timeout_ms) : null;
   const technicalDetail = !info.ok
-    ? [httpInfo, info.error_kind === "timeout" && info.timeout_ms ? `timeout ${info.timeout_ms}ms` : null, info.message?.trim()].filter(Boolean).join(" · ")
+    ? [httpInfo, resolvedKind === "timeout" && info.timeout_ms ? `timeout ${info.timeout_ms}ms` : null, info.message?.trim()].filter(Boolean).join(" · ")
     : "";
   // Header line: status + when. Always single line, never truncates the timestamp.
   const headerText = (
