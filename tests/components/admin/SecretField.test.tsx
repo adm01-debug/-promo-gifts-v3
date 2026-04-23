@@ -165,3 +165,113 @@ describe("SecretField — bloqueio de salvamento com sufixo curto", () => {
     expect(getSaveButton()).toBeDisabled();
   });
 });
+
+describe("SecretField — handler de salvar nunca chama API com sufixo <4 chars", () => {
+  beforeEach(() => {
+    setSecretMock.mockReset();
+    rotateSecretMock.mockReset();
+    sessionStorage.clear();
+  });
+
+  it.each([1, 2, 3])(
+    "com %i char(s) e múltiplos cliques no Salvar, NENHUMA chamada à API ocorre",
+    (n) => {
+      renderField();
+      enterEditMode();
+      fireEvent.change(getInput(), { target: { value: "x".repeat(n) } });
+
+      const btn = getSaveButton();
+      // Stress: 5 cliques consecutivos não devem disparar nada.
+      for (let i = 0; i < 5; i++) fireEvent.click(btn);
+
+      expect(setSecretMock).toHaveBeenCalledTimes(0);
+      expect(rotateSecretMock).toHaveBeenCalledTimes(0);
+      // E o estado de "Salvando…" não aparece (botão preserva label "Salvar").
+      expect(screen.queryByRole("button", { name: /Salvando…/i })).not.toBeInTheDocument();
+      expect(getSaveButton()).toHaveTextContent(/Salvar/);
+    },
+  );
+
+  it("o atributo title do botão expõe a razão do bloqueio quando o valor é curto", () => {
+    renderField();
+    enterEditMode();
+    fireEvent.change(getInput(), { target: { value: "ab" } });
+
+    const btn = getSaveButton();
+    // saveDisabledReason exibido via title vem do validador específico
+    // (DEFAULT_RULE: "deve ter no mínimo 4 caracteres").
+    expect(btn.getAttribute("title")).toMatch(/4 caracteres/i);
+  });
+
+  it("modo rotate: status com has_value → botão Rotacionar abre input, e Salvar com 3 chars NÃO chama rotateSecret", () => {
+    renderField({
+      status: {
+        has_value: true,
+        length: 32,
+        masked_suffix: "abcd",
+        source: "db",
+        env_fallback_active: false,
+        updated_at: new Date().toISOString(),
+        updated_by_email: null,
+      } as any,
+    });
+
+    // Entra em modo rotate via botão "Rotacionar".
+    fireEvent.click(screen.getByRole("button", { name: /^Rotacionar$/i }));
+    fireEvent.change(getInput(), { target: { value: "abc" } });
+
+    // Banner crítico aparece também no modo rotate.
+    expect(screen.getByRole("alert")).toHaveTextContent(/Sufixo inválido/);
+
+    // Botão de submit no modo rotate vira "Rotacionar" — disabled e
+    // sem chamar a API mesmo após clique.
+    const submitBtn = screen.getByRole("button", { name: /^Rotacionar$|^Rotacionando…$/i });
+    expect(submitBtn).toBeDisabled();
+    fireEvent.click(submitBtn);
+
+    expect(rotateSecretMock).toHaveBeenCalledTimes(0);
+    expect(setSecretMock).toHaveBeenCalledTimes(0);
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("transição curto → válido → curto: API só seria chamada na janela válida (validamos que não é chamada nas curtas)", () => {
+    renderField();
+    enterEditMode();
+    const input = getInput();
+
+    // 1) Curto: clicar não chama nada.
+    fireEvent.change(input, { target: { value: "ab" } });
+    fireEvent.click(getSaveButton());
+    expect(setSecretMock).not.toHaveBeenCalled();
+
+    // 2) Atinge 4 chars: botão habilita (apenas verificamos que não dispara
+    //    sozinho — só com clique, e clique abre modal, não chama API direto).
+    fireEvent.change(input, { target: { value: "abcd" } });
+    expect(getSaveButton()).not.toBeDisabled();
+    expect(setSecretMock).not.toHaveBeenCalled();
+
+    // 3) Volta para curto: botão desabilita novamente, banner reaparece.
+    fireEvent.change(input, { target: { value: "ab" } });
+    expect(getSaveButton()).toBeDisabled();
+    expect(screen.getByRole("alert")).toHaveTextContent(/Sufixo inválido/);
+    fireEvent.click(getSaveButton());
+
+    // Total final: zero chamadas à API em todo o fluxo (a única janela
+    // "válida" exigiria abrir modal + confirmar, o que o teste não faz).
+    expect(setSecretMock).toHaveBeenCalledTimes(0);
+    expect(rotateSecretMock).toHaveBeenCalledTimes(0);
+  });
+
+  it("mensagem do banner identifica EXATAMENTE o caractere faltante (mensagem específica do fluxo)", () => {
+    renderField();
+    enterEditMode();
+    fireEvent.change(getInput(), { target: { value: "x" } });
+
+    const alert = screen.getByRole("alert");
+    // Mensagem específica: contagem real + meta + razão (layout ••••XXXX) + ação.
+    expect(alert).toHaveTextContent(/O valor tem apenas 1 caractere\b/);
+    expect(alert).toHaveTextContent(/precisa de pelo menos 4 caracteres/);
+    expect(alert).toHaveTextContent(/identificar a credencial sem expor o segredo/);
+    expect(alert).toHaveTextContent(/Salvamento bloqueado/);
+  });
+});
