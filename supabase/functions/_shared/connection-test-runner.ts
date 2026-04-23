@@ -6,6 +6,14 @@ import { getCredential } from "./credentials.ts";
 
 export type ConnectionType = "supabase" | "bitrix24" | "n8n" | "mcp" | "webhook_outbound";
 export type TriggeredBy = "manual" | "cron" | "webhook";
+export type ErrorKind =
+  | "timeout"
+  | "network"
+  | "dns"
+  | "http"
+  | "auth"
+  | "config"
+  | "unknown";
 
 export interface RunOptions {
   type: ConnectionType;
@@ -16,7 +24,7 @@ export interface RunOptions {
   /** Only required when env_key is provided without a connection_id (auto-upsert). */
   created_by?: string;
   service: SupabaseClient;
-  /** Per-test timeout in ms. Default 8000. */
+  /** Per-test timeout in ms. Default: per-type table; falls back to 8000. */
   timeoutMs?: number;
 }
 
@@ -25,15 +33,64 @@ export interface RunResult {
   status?: number;
   latency_ms?: number;
   error?: string;
+  error_kind?: ErrorKind;
   message?: string;
   tested_at: string;
   connection_id?: string;
 }
 
+/** Per-type sane defaults. Override via opts.timeoutMs. */
+const DEFAULT_TIMEOUTS_MS: Record<ConnectionType, number> = {
+  supabase: 5000,
+  bitrix24: 10000,
+  n8n: 6000,
+  mcp: 3000,
+  webhook_outbound: 8000,
+};
+
 function withTimeout(ms: number): { signal: AbortSignal; cancel: () => void } {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
   return { signal: ctrl.signal, cancel: () => clearTimeout(t) };
+}
+
+/**
+ * Classify a thrown error or non-OK HTTP response into a structured ErrorKind
+ * + a human-readable PT-BR message.
+ */
+function classifyError(
+  err: unknown,
+  status: number | undefined,
+  timeoutMs: number,
+): { kind: ErrorKind; message: string } {
+  if (err instanceof Error && err.name === "AbortError") {
+    return { kind: "timeout", message: `Tempo esgotado após ${Math.round(timeoutMs / 1000)}s — o serviço não respondeu` };
+  }
+  const raw = err instanceof Error ? err.message : (err != null ? String(err) : "");
+  const lower = raw.toLowerCase();
+
+  if (lower.includes("dns") || lower.includes("getaddrinfo") || lower.includes("enotfound")) {
+    return { kind: "dns", message: "DNS não resolvido — verifique a URL configurada" };
+  }
+  if (
+    lower.includes("econnrefused") ||
+    lower.includes("failed to fetch") ||
+    lower.includes("network") ||
+    lower.includes("connection reset") ||
+    lower.includes("socket")
+  ) {
+    return { kind: "network", message: "Falha de rede — serviço inalcançável (offline ou bloqueado)" };
+  }
+  if (status === 401 || status === 403) {
+    return { kind: "auth", message: `Credenciais rejeitadas (HTTP ${status})` };
+  }
+  if (status && status >= 400) {
+    return { kind: "http", message: `Serviço retornou HTTP ${status}` };
+  }
+  if (lower.includes("ausente") || lower.includes("missing") || lower.includes("not configured")) {
+    return { kind: "config", message: raw || "Configuração incompleta" };
+  }
+  return { kind: "unknown", message: raw || "Erro desconhecido" };
 }
 
 async function pingSupabase(url: string, key: string, timeoutMs: number) {
@@ -98,10 +155,17 @@ async function pingWebhook(url: string, timeoutMs: number) {
 export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const { type, config = {}, env_key, service, created_by } = opts;
   const triggered_by: TriggeredBy = opts.triggered_by ?? "manual";
-  const timeoutMs = opts.timeoutMs ?? 8000;
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUTS_MS[type] ?? 8000;
   let connection_id = opts.connection_id;
 
-  let result: { ok: boolean; status?: number; latency_ms?: number; error?: string; message?: string };
+  let result: {
+    ok: boolean;
+    status?: number;
+    latency_ms?: number;
+    error?: string;
+    error_kind?: ErrorKind;
+    message?: string;
+  };
   try {
     if (type === "supabase") {
       const prefix = env_key === "crm" ? "EXTERNAL_CRM" : "EXTERNAL_PROMOBRIND";
@@ -129,11 +193,21 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
         .is("revoked_at", null);
       result = { ok: true, status: 200, message: `${count ?? 0} chave(s) MCP ativa(s)` };
     } else {
-      result = { ok: false, error: "Tipo não suportado" };
+      result = { ok: false, error: "Tipo não suportado", error_kind: "unknown" };
+    }
+
+    // Promote non-OK HTTP responses to a categorized error message.
+    if (!result.ok && !result.error_kind) {
+      const synthetic = result.error
+        ? new Error(result.error)
+        : new Error(`HTTP ${result.status ?? "?"}`);
+      const classified = classifyError(synthetic, result.status, timeoutMs);
+      result.error_kind = classified.kind;
+      result.error = classified.message;
     }
   } catch (err) {
-    const isAbort = err instanceof Error && err.name === "AbortError";
-    result = { ok: false, error: isAbort ? `Timeout após ${timeoutMs}ms` : (err instanceof Error ? err.message : "Erro") };
+    const classified = classifyError(err, undefined, timeoutMs);
+    result = { ok: false, error: classified.message, error_kind: classified.kind };
   }
 
   const tested_at = new Date().toISOString();
@@ -155,6 +229,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
       latency_ms: result.latency_ms ?? null,
       status_code: result.status ?? null,
       error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
+      error_kind: result.ok ? null : (result.error_kind ?? null),
       triggered_by,
     }).then(() => undefined, (e) => console.error("history insert failed", e));
   } else if (env_key && type === "supabase" && created_by) {
@@ -178,6 +253,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
         latency_ms: result.latency_ms ?? null,
         status_code: result.status ?? null,
         error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
+        error_kind: result.ok ? null : (result.error_kind ?? null),
         triggered_by,
       }).then(() => undefined, (e) => console.error("history insert failed (env)", e));
     }

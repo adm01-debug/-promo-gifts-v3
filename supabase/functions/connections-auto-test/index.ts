@@ -55,6 +55,7 @@ async function processBatch(
         latency_ms: r.latency_ms,
         wall_ms: Date.now() - t0,
         error: r.error,
+        error_kind: r.error_kind,
       }));
       return { id: conn.id, ok: r.ok, latency_ms: r.latency_ms ?? null };
     } catch (err) {
