@@ -833,7 +833,9 @@ export type Database = {
           config: Json
           created_at: string
           created_by: string
+          env_key: string | null
           id: string
+          last_latency_ms: number | null
           last_test_at: string | null
           last_test_message: string | null
           last_test_ok: boolean | null
@@ -847,7 +849,9 @@ export type Database = {
           config?: Json
           created_at?: string
           created_by: string
+          env_key?: string | null
           id?: string
+          last_latency_ms?: number | null
           last_test_at?: string | null
           last_test_message?: string | null
           last_test_ok?: boolean | null
@@ -861,7 +865,9 @@ export type Database = {
           config?: Json
           created_at?: string
           created_by?: string
+          env_key?: string | null
           id?: string
+          last_latency_ms?: number | null
           last_test_at?: string | null
           last_test_message?: string | null
           last_test_ok?: boolean | null
