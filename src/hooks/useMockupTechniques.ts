@@ -13,6 +13,7 @@ import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { invokeExternalRpc } from "@/lib/external-rpc";
 import { invokeExternalDb } from "@/lib/external-db";
+import { adaptCustomizationOptions } from "@/lib/personalization/adapters";
 import { logger } from "@/lib/logger";
 
 interface Technique {
@@ -97,10 +98,15 @@ interface FaixaPreco {
 export function useProductCustomizationOptionsForMockup(productId: string | undefined) {
   return useQuery({
     queryKey: ['mockup-customization-options', productId],
-    queryFn: () => invokeExternalRpc<CustomizationResponse>(
-      'fn_get_product_customization_options',
-      { p_product_id: productId! }
-    ),
+    queryFn: async () => {
+      const raw = await invokeExternalRpc<Record<string, unknown>>(
+        'fn_get_product_customization_options',
+        { p_product_id: productId! }
+      );
+      // Passa pelo adapter para absorver futuras mudanças de schema (PT → EN).
+      const adapted = adaptCustomizationOptions(raw);
+      return adapted as unknown as CustomizationResponse | null;
+    },
     enabled: !!productId,
     staleTime: 5 * 60 * 1000,
   });
