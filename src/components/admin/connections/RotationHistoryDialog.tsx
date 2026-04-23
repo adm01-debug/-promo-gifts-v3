@@ -73,6 +73,11 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
           <DialogTitle className="flex items-center gap-2">
             <History className="h-5 w-5 text-primary" />
             Histórico da credencial
+            {!loading && entries.length > 0 && (
+              <Badge variant="outline" className="ml-1 font-mono text-[10px]">
+                {entries.length} {entries.length === 1 ? "registro" : "registros"}
+              </Badge>
+            )}
           </DialogTitle>
           <DialogDescription className="font-mono text-xs break-all">{secretName}</DialogDescription>
         </DialogHeader>
