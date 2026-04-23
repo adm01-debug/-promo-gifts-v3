@@ -12,11 +12,13 @@ import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 const ENVS = [
   {
     key: "local", name: "Lovable Cloud (Local)", readOnly: true,
+    envKey: null,
     urlSecret: null, anonSecret: null, serviceSecret: null,
     description: "Banco principal do sistema. Gerenciado automaticamente pelo Lovable.",
   },
   {
     key: "promobrind", name: "Catálogo Promobrind",
+    envKey: "promobrind" as const,
     urlSecret: "EXTERNAL_PROMOBRIND_URL",
     anonSecret: "EXTERNAL_PROMOBRIND_ANON_KEY",
     serviceSecret: "EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY",
@@ -24,6 +26,7 @@ const ENVS = [
   },
   {
     key: "crm", name: "CRM Promobrind",
+    envKey: "crm" as const,
     urlSecret: "EXTERNAL_CRM_URL",
     anonSecret: "EXTERNAL_CRM_ANON_KEY",
     serviceSecret: "EXTERNAL_CRM_SERVICE_ROLE_KEY",
@@ -48,6 +51,7 @@ export function SupabaseConnectionsTab() {
         const status = env.readOnly
           ? "active"
           : url?.has_value && svc?.has_value ? "active" : "unconfigured";
+        const canTest = !env.readOnly && !!url?.has_value && !!svc?.has_value;
         return (
           <Card key={env.key}>
             <CardHeader>
@@ -72,10 +76,14 @@ export function SupabaseConnectionsTab() {
                   <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list}
                     helperText="Nunca exposto ao frontend. Usado apenas em edge functions admin." />
                   <div className="flex flex-wrap gap-2 pt-2">
-                    <Button size="sm" variant="outline" disabled={isTesting} onClick={() => test("supabase", {
-                      url: url?.has_value ? "" : "", key: "",
-                    })}>
-                      Testar conexão
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={isTesting || !canTest}
+                      title={canTest ? "Testar conexão real" : "Configure URL e Service Role Key primeiro"}
+                      onClick={() => test("supabase", { env_key: env.envKey! })}
+                    >
+                      {isTesting ? "Testando…" : "Testar conexão"}
                     </Button>
                     <ConnectionTimelineDrawer type="supabase" label={env.name} triggerVariant="ghost" />
                     <Button size="sm" variant="ghost" asChild>

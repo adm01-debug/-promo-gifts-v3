@@ -1,8 +1,8 @@
 // Admin-only secrets manager for the Conexões hub.
-// IMPORTANT: never returns secret values to the client. Only returns
-// status (configured?) + a masked suffix for visual confirmation.
+// Persists values in `integration_credentials` and never returns plaintext to the client.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import { invalidateCredentialCache } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,27 +11,20 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// Whitelist of secret names that can be managed via this function.
-// Anything else is rejected to prevent abuse.
 const ALLOWED_SECRETS = new Set<string>([
-  // Supabase (external dbs)
   "EXTERNAL_PROMOBRIND_URL",
   "EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY",
   "EXTERNAL_PROMOBRIND_ANON_KEY",
   "EXTERNAL_CRM_URL",
   "EXTERNAL_CRM_SERVICE_ROLE_KEY",
   "EXTERNAL_CRM_ANON_KEY",
-  // Bitrix24
   "BITRIX24_WEBHOOK_URL",
   "BITRIX24_DOMAIN",
   "BITRIX24_USER_ID",
   "BITRIX24_TOKEN",
-  // n8n
   "N8N_BASE_URL",
   "N8N_API_KEY",
-  // MCP
   "MCP_SHARED_SECRET",
-  // Webhooks (per-id allowed via prefix below)
 ]);
 
 const ALLOWED_PREFIXES = [
@@ -63,17 +56,14 @@ function maskValue(v: string | undefined | null): {
 }
 
 Deno.serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
-  }
+  if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Token de autenticação ausente" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Token de autenticação ausente" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -85,17 +75,14 @@ Deno.serve(async (req) => {
     });
     const { data: userData, error: userErr } = await userClient.auth.getUser();
     if (userErr || !userData?.user) {
-      return new Response(
-        JSON.stringify({ error: "Token inválido" }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return new Response(JSON.stringify({ error: "Token inválido" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
     const service = createClient(supabaseUrl, serviceKey);
     const { data: roles } = await service
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userData.user.id);
+      .from("user_roles").select("role").eq("user_id", userData.user.id);
     const isAdmin = (roles ?? []).some((r: { role: string }) => r.role === "admin");
     if (!isAdmin) {
       return new Response(
@@ -113,6 +100,20 @@ Deno.serve(async (req) => {
     }
     const { action, names, name, value, notes } = parsed.data;
 
+    // Helper: load DB rows for a list of names
+    async function loadFromDb(targets: string[]) {
+      if (targets.length === 0) return new Map<string, { masked_suffix: string | null; length: number; updated_at: string }>();
+      const { data } = await service
+        .from("integration_credentials")
+        .select("secret_name, masked_suffix, length, updated_at")
+        .in("secret_name", targets);
+      const map = new Map<string, { masked_suffix: string | null; length: number; updated_at: string }>();
+      for (const row of (data ?? []) as Array<{ secret_name: string; masked_suffix: string | null; length: number; updated_at: string }>) {
+        map.set(row.secret_name, { masked_suffix: row.masked_suffix, length: row.length, updated_at: row.updated_at });
+      }
+      return map;
+    }
+
     if (action === "rotation_history") {
       const baseQ = service
         .from("secret_rotation_log")
@@ -123,105 +124,105 @@ Deno.serve(async (req) => {
         ? await baseQ.eq("secret_name", name)
         : await baseQ;
       if (histErr) throw histErr;
-      return new Response(
-        JSON.stringify({ ok: true, history: history ?? [] }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
-    }
-
-    if (action === "rotate") {
-      if (!name || !isAllowedSecretName(name)) {
-        return new Response(
-          JSON.stringify({ error: "Nome de secret não permitido" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      if (!value || value.length < 4) {
-        return new Response(
-          JSON.stringify({ error: "Valor inválido para rotação" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
-      }
-      const previous = maskValue(Deno.env.get(name) ?? null);
-      const next = maskValue(value);
-      await service.from("secret_rotation_log").insert({
-        secret_name: name,
-        rotated_by: userData.user.id,
-        previous_suffix: previous.masked_suffix,
-        new_suffix: next.masked_suffix,
-        notes: notes ?? null,
+      return new Response(JSON.stringify({ ok: true, history: history ?? [] }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
-      await service.from("admin_audit_log").insert({
-        user_id: userData.user.id,
-        action: "secret_rotate_request",
-        resource_type: "secret",
-        resource_id: name,
-        details: { previous_suffix: previous.masked_suffix, new_suffix: next.masked_suffix },
-      });
-      return new Response(
-        JSON.stringify({
-          ok: true,
-          stored: false,
-          requires_platform_action: true,
-          previous_suffix: previous.masked_suffix,
-          new_suffix: next.masked_suffix,
-          message:
-            "Rotação registrada. Atualize o valor no painel de Secrets do Lovable para finalizar a propagação.",
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
     }
 
     if (action === "list" || action === "status") {
-      const requested = names && names.length > 0
-        ? names
-        : Array.from(ALLOWED_SECRETS);
-      const results = requested
-        .filter(isAllowedSecretName)
-        .map((n) => ({
+      const requested = names && names.length > 0 ? names : Array.from(ALLOWED_SECRETS);
+      const allowed = requested.filter(isAllowedSecretName);
+      const dbMap = await loadFromDb(allowed);
+      const results = allowed.map((n) => {
+        const dbRow = dbMap.get(n);
+        if (dbRow && dbRow.length > 0) {
+          return {
+            name: n,
+            has_value: true,
+            masked_suffix: dbRow.masked_suffix,
+            length: dbRow.length,
+            updated_at: dbRow.updated_at,
+            source: "db" as const,
+          };
+        }
+        const env = maskValue(Deno.env.get(n) ?? null);
+        return {
           name: n,
-          ...maskValue(Deno.env.get(n) ?? null),
-        }));
-      return new Response(
-        JSON.stringify({ ok: true, secrets: results }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+          has_value: env.has_value,
+          masked_suffix: env.masked_suffix,
+          length: env.length,
+          updated_at: null as string | null,
+          source: env.has_value ? ("env" as const) : ("none" as const),
+        };
+      });
+      return new Response(JSON.stringify({ ok: true, secrets: results }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
-    if (action === "set") {
+    if (action === "set" || action === "rotate") {
       if (!name || !isAllowedSecretName(name)) {
-        return new Response(
-          JSON.stringify({
-            error:
-              "Nome de secret não permitido. Use apenas nomes da whitelist do Conexões.",
-          }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "Nome de secret não permitido" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
       if (!value || value.length < 4) {
-        return new Response(
-          JSON.stringify({ error: "Valor inválido" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "Valor inválido (mínimo 4 caracteres)" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
-      // NOTE: Edge functions cannot persistently mutate Supabase secrets
-      // from runtime — that requires the platform API. We instead instruct
-      // the admin UI to use Lovable's add_secret flow. For the runtime view,
-      // we acknowledge the request and audit-log it.
+
+      // Capture previous suffix (DB > env) for rotation log
+      const prevMap = await loadFromDb([name]);
+      const prevDb = prevMap.get(name);
+      const previousSuffix = prevDb?.masked_suffix ?? maskValue(Deno.env.get(name) ?? null).masked_suffix;
+      const next = maskValue(value);
+
+      const { error: upsertErr } = await service
+        .from("integration_credentials")
+        .upsert(
+          {
+            secret_name: name,
+            secret_value: value,
+            updated_by: userData.user.id,
+            notes: notes ?? null,
+          },
+          { onConflict: "secret_name" },
+        );
+      if (upsertErr) throw upsertErr;
+
+      invalidateCredentialCache(name);
+
+      if (action === "rotate") {
+        await service.from("secret_rotation_log").insert({
+          secret_name: name,
+          rotated_by: userData.user.id,
+          previous_suffix: previousSuffix,
+          new_suffix: next.masked_suffix,
+          notes: notes ?? null,
+        });
+      }
+
       await service.from("admin_audit_log").insert({
         user_id: userData.user.id,
-        action: "secret_set_request",
+        action: action === "rotate" ? "secret_rotated" : "secret_set",
         resource_type: "secret",
         resource_id: name,
-        details: { length: value.length, masked: maskValue(value) },
+        details: { previous_suffix: previousSuffix, new_suffix: next.masked_suffix, length: value.length },
       });
+
       return new Response(
         JSON.stringify({
           ok: true,
-          stored: false,
-          requires_platform_action: true,
-          message:
-            "Secret recebido. Em projetos Lovable, use o botão 'Adicionar credencial' para persistir o valor de forma segura.",
+          stored: true,
+          requires_platform_action: false,
+          previous_suffix: previousSuffix,
+          new_suffix: next.masked_suffix,
+          masked_suffix: next.masked_suffix,
+          length: value.length,
+          message: action === "rotate"
+            ? "Credencial rotacionada e persistida com segurança."
+            : "Credencial salva e disponível para as integrações.",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
@@ -229,38 +230,39 @@ Deno.serve(async (req) => {
 
     if (action === "delete") {
       if (!name || !isAllowedSecretName(name)) {
-        return new Response(
-          JSON.stringify({ error: "Nome de secret não permitido" }),
-          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-        );
+        return new Response(JSON.stringify({ error: "Nome de secret não permitido" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
       }
+      const { error: delErr } = await service
+        .from("integration_credentials")
+        .delete()
+        .eq("secret_name", name);
+      if (delErr) throw delErr;
+
+      invalidateCredentialCache(name);
+
       await service.from("admin_audit_log").insert({
         user_id: userData.user.id,
-        action: "secret_delete_request",
+        action: "secret_deleted",
         resource_type: "secret",
         resource_id: name,
         details: {},
       });
+
       return new Response(
-        JSON.stringify({
-          ok: true,
-          stored: false,
-          requires_platform_action: true,
-          message: "Use o painel de Secrets do Lovable para remover o valor.",
-        }),
+        JSON.stringify({ ok: true, stored: true, message: "Credencial removida do banco." }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    return new Response(
-      JSON.stringify({ error: "Ação desconhecida" }),
-      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: "Ação desconhecida" }), {
+      status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return new Response(
-      JSON.stringify({ error: msg }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return new Response(JSON.stringify({ error: msg }), {
+      status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
   }
 });
