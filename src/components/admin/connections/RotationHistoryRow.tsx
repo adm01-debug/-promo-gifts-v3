@@ -3,6 +3,7 @@ import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSecretsManager, type RotationHistoryEntry } from "@/hooks/useSecretsManager";
 import { RotationHistoryDialog } from "./RotationHistoryDialog";
+import { formatMaskedSuffix } from "@/lib/masked-suffix";
 
 interface Props {
   secretName: string;
@@ -52,9 +53,9 @@ export function RotationHistoryRow({ secretName, refreshKey = 0 }: Props) {
           Última rotação <span className="font-medium text-foreground">{formatRelative(latest.rotated_at)}</span>
           {" • "}
           <span className="font-mono">
-            {latest.previous_suffix ? `••••${latest.previous_suffix}` : "(env)"}
+            {latest.previous_suffix ? formatMaskedSuffix(latest.previous_suffix) : "(env)"}
             {" → "}
-            ••••{latest.new_suffix ?? "????"}
+            {formatMaskedSuffix(latest.new_suffix)}
           </span>
           {" • "}
           por <span className="font-medium">{author}</span>

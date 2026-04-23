@@ -37,6 +37,7 @@ import {
   type RotationHistoryEntry,
 } from "@/hooks/useSecretsManager";
 import { ALLOWED_SECRET_NAMES } from "./secretWhitelist";
+import { formatMaskedSuffix, normalizeMaskedSuffix } from "@/lib/masked-suffix";
 
 type StepStatus = "idle" | "running" | "passed" | "failed" | "skipped";
 
@@ -154,12 +155,12 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         console.groupEnd();
         return;
       }
-      const suffixOk = rotateResult.masked_suffix === expectedSuffix;
+      const suffixOk = normalizeMaskedSuffix(rotateResult.masked_suffix) === expectedSuffix;
       const lengthOk = (rotateResult.length ?? 0) === newValue.length;
       if (!suffixOk || !lengthOk) {
         updateStep("rotate", {
           status: "failed",
-          detail: `Sufixo esperado ••••${expectedSuffix}, recebido ••••${rotateResult.masked_suffix ?? "????"}`,
+          detail: `Sufixo esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(rotateResult.masked_suffix)}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
@@ -167,7 +168,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
       } else {
         updateStep("rotate", {
           status: "passed",
-          detail: `previous=${rotateResult.previous_suffix ?? "(env)"} → new=${rotateResult.masked_suffix} • ${rotateResult.length} chars`,
+          detail: `previous=${rotateResult.previous_suffix ?? "(env)"} → new=${normalizeMaskedSuffix(rotateResult.masked_suffix)} • ${rotateResult.length} chars`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
@@ -200,7 +201,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
       if (!matching) {
         updateStep("history", {
           status: "failed",
-          detail: `Nenhum registro com sufixo ••••${expectedSuffix} encontrado (${entries.length} entradas vistas).`,
+          detail: `Nenhum registro com sufixo ${formatMaskedSuffix(expectedSuffix)} encontrado (${entries.length} entradas vistas).`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
@@ -241,10 +242,10 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         });
         // eslint-disable-next-line no-console
         console.error("[smoke-test] step 3 missing in list");
-      } else if (target.masked_suffix !== expectedSuffix) {
+      } else if (normalizeMaskedSuffix(target.masked_suffix) !== expectedSuffix) {
         updateStep("reload", {
           status: "failed",
-          detail: `Sufixo divergente após reload: esperado ••••${expectedSuffix}, recebido ••••${target.masked_suffix ?? "????"}`,
+          detail: `Sufixo divergente após reload: esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(target.masked_suffix)}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
@@ -253,7 +254,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         const sourceTag = target.source ? ` • source=${target.source}` : "";
         updateStep("reload", {
           status: "passed",
-          detail: `Persistido • ••••${target.masked_suffix} • ${target.length} chars${sourceTag}`,
+          detail: `Persistido • ${formatMaskedSuffix(target.masked_suffix)} • ${target.length} chars${sourceTag}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console

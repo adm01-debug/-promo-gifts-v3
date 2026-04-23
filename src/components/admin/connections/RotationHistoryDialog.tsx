@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSecretsManager, type RotationHistoryEntry } from "@/hooks/useSecretsManager";
 import { History, RefreshCw, Save, ArrowRight, Clock, User } from "lucide-react";
+import { formatMaskedSuffix } from "@/lib/masked-suffix";
 
 interface Props {
   secretName: string;
@@ -105,11 +106,11 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                 </div>
                 <div className="flex items-center gap-2 flex-wrap text-sm">
                   <span className="font-mono text-xs">
-                    {last.previous_suffix ? `••••${last.previous_suffix}` : <span className="text-muted-foreground">(env / vazio)</span>}
+                    {last.previous_suffix ? formatMaskedSuffix(last.previous_suffix) : <span className="text-muted-foreground">(env / vazio)</span>}
                   </span>
                   <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="font-mono text-xs font-semibold text-primary">
-                    {last.new_suffix ? `••••${last.new_suffix}` : "—"}
+                    {last.new_suffix ? formatMaskedSuffix(last.new_suffix) : "—"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-muted-foreground">
@@ -157,10 +158,10 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                         <ActionBadge type={(e.action_type ?? "rotate") as "set" | "rotate"} />
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {e.previous_suffix ? `••••${e.previous_suffix}` : <span className="text-muted-foreground">(env / vazio)</span>}
+                        {e.previous_suffix ? formatMaskedSuffix(e.previous_suffix) : <span className="text-muted-foreground">(env / vazio)</span>}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {e.new_suffix ? `••••${e.new_suffix}` : "—"}
+                        {e.new_suffix ? formatMaskedSuffix(e.new_suffix) : "—"}
                       </TableCell>
                       <TableCell className="text-xs">
                         {e.rotated_by_email ?? <span className="text-muted-foreground font-mono">{e.rotated_by?.slice(0, 8) ?? "—"}…</span>}

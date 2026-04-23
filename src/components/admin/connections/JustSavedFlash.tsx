@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatMaskedSuffix } from "@/lib/masked-suffix";
 
 interface Props {
   masked_suffix: string | null;
@@ -24,7 +25,7 @@ export function JustSavedFlash({ masked_suffix, length, action, was_update, dura
   if (!visible) return null;
 
   const verb = action === "rotate" ? "Rotacionado" : was_update ? "Atualizado" : "Salvo";
-  const suffixText = masked_suffix ? `••••${masked_suffix}` : "•••••";
+  const suffixText = formatMaskedSuffix(masked_suffix);
 
   return (
     <p

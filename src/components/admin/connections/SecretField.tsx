@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
 import { validateSecret, getMinLength, MIN_SUFFIX_LENGTH } from "./secretValidators";
+import { formatMaskedSuffix, normalizeMaskedSuffix } from "@/lib/masked-suffix";
 import { normalizeSecret } from "./secretNormalizers";
 import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
@@ -348,25 +349,25 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
     setLastError(null);
 
     const { secret, was_update, previous_suffix } = result;
-    const suffix = secret.masked_suffix ?? "????";
+    const suffix = normalizeMaskedSuffix(secret.masked_suffix);
     const length = secret.length ?? currentValue.length;
 
     if (currentMode === "rotate") {
       toast.success("Rotação concluída", {
         id: toastId,
-        description: `${secretName}: ••••${previous_suffix ?? "????"} → ••••${suffix} (${length} chars · registrado no log)`,
+        description: `${secretName}: ${formatMaskedSuffix(previous_suffix)} → ${formatMaskedSuffix(suffix)} (${length} chars · registrado no log)`,
         duration: 5000,
       });
     } else if (was_update) {
       toast.success("Credencial atualizada", {
         id: toastId,
-        description: `${secretName} agora termina em ••••${suffix} (${length} chars)`,
+        description: `${secretName} agora termina em ${formatMaskedSuffix(suffix)} (${length} chars)`,
         duration: 5000,
       });
     } else {
       toast.success("Credencial salva", {
         id: toastId,
-        description: `${secretName} agora termina em ••••${suffix} (${length} chars)`,
+        description: `${secretName} agora termina em ${formatMaskedSuffix(suffix)} (${length} chars)`,
         duration: 5000,
       });
     }
