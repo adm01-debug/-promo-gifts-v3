@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       }
       const [{ data: items }, { count }] = await Promise.all([
         service.from("connection_test_history")
-          .select("id, tested_at, success, latency_ms, status_code, error_message")
+          .select("id, tested_at, success, latency_ms, status_code, error_message, triggered_by")
           .in("connection_id", connIds)
           .order("tested_at", { ascending: false })
           .limit(max),
@@ -120,13 +120,14 @@ Deno.serve(async (req) => {
       ]);
       return new Response(JSON.stringify({
         ok: true,
-        items: (items ?? []).map((r: { id: string; tested_at: string; success: boolean; latency_ms: number | null; status_code: number | null; error_message: string | null }) => ({
+        items: (items ?? []).map((r: { id: string; tested_at: string; success: boolean; latency_ms: number | null; status_code: number | null; error_message: string | null; triggered_by: string | null }) => ({
           id: r.id,
           tested_at: r.tested_at,
           ok: r.success,
           latency_ms: r.latency_ms,
           status: r.status_code,
           message: r.error_message,
+          triggered_by: r.triggered_by ?? "manual",
         })),
         total: count ?? 0,
       }), {
