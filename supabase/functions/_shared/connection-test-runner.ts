@@ -64,6 +64,16 @@ const DEFAULT_TIMEOUTS_MS: Record<ConnectionType, number> = {
   webhook_outbound: 8000,
 };
 
+/** Stable display name when auto-registering a connection from the first test. */
+function defaultConnectionName(type: ConnectionType, env_key?: "promobrind" | "crm"): string {
+  if (type === "supabase") return env_key === "crm" ? "Catálogo CRM" : env_key === "promobrind" ? "Catálogo Promobrind" : "Supabase";
+  if (type === "bitrix24") return "Bitrix24";
+  if (type === "n8n") return "n8n";
+  if (type === "mcp") return "MCP Server";
+  if (type === "webhook_outbound") return "Webhook (saída)";
+  return type;
+}
+
 function withTimeout(ms: number): { signal: AbortSignal; cancel: () => void } {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), ms);
