@@ -12,6 +12,7 @@ import {
 } from "@/hooks/useSecretsManager";
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
+import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -80,14 +81,11 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
   const flashCounter = useRef(0);
 
-  const handleSave = async () => {
-    if (!value || value.length < 4 || saving) return;
-    const currentMode = mode;
-    const currentValue = value;
+  // Rotation confirm modal
+  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
+  const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
 
-    setSaving(true);
-
-    // Show "Salvando…" loading toast only after 800ms to avoid flicker on fast networks
+  const performSave = async (currentMode: "set" | "rotate", currentValue: string, notes?: string) => {
     const toastId = `secret-${secretName}-${Date.now()}`;
     const slowTimer = setTimeout(() => {
       toast.loading(
@@ -100,7 +98,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     try {
       result =
         currentMode === "rotate"
-          ? await rotateSecret(secretName, currentValue)
+          ? await rotateSecret(secretName, currentValue, notes)
           : await setSecret(secretName, currentValue);
     } catch (err) {
       result = {
@@ -109,13 +107,13 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
       };
     }
     clearTimeout(slowTimer);
-    setSaving(false);
 
     if (!result.ok || !result.secret) {
       const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
+      const description = describeError(err, secretName);
       toast.error(`Falha ao salvar ${secretName}`, {
         id: toastId,
-        description: describeError(err, secretName),
+        description,
         duration: 7000,
         action: {
           label: "Tentar novamente",
@@ -126,7 +124,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           },
         },
       });
-      return;
+      return { ok: false as const, errorDescription: description };
     }
 
     const { secret, was_update, previous_suffix } = result;
@@ -170,6 +168,35 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     setEditing(false);
     setMode("set");
     onSaved?.();
+    return { ok: true as const };
+  };
+
+  const handleSave = async () => {
+    if (!value || value.length < 4 || saving) return;
+
+    // Rotação passa pelo modal de confirmação
+    if (mode === "rotate") {
+      setRotateConfirmError(null);
+      setRotateConfirmOpen(true);
+      return;
+    }
+
+    setSaving(true);
+    await performSave("set", value);
+    setSaving(false);
+  };
+
+  const handleConfirmedRotate = async (notes?: string) => {
+    if (!value || value.length < 4) return;
+    setSaving(true);
+    setRotateConfirmError(null);
+    const res = await performSave("rotate", value, notes);
+    setSaving(false);
+    if (res.ok) {
+      setRotateConfirmOpen(false);
+    } else {
+      setRotateConfirmError(res.errorDescription);
+    }
   };
 
   const startEdit = (m: "set" | "rotate") => { setMode(m); setEditing(true); };
@@ -260,6 +287,24 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         <RotationHistoryRow secretName={secretName} refreshKey={rotationRefreshKey} />
       )}
       {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
+
+      <RotateSecretConfirmDialog
+        open={rotateConfirmOpen}
+        onOpenChange={(open) => {
+          if (!saving) {
+            setRotateConfirmOpen(open);
+            if (!open) setRotateConfirmError(null);
+          }
+        }}
+        secretName={secretName}
+        currentSuffix={status?.masked_suffix ?? null}
+        currentLength={status?.length ?? null}
+        newSuffix={value.slice(-4)}
+        newLength={value.length}
+        loading={saving}
+        errorMessage={rotateConfirmError}
+        onConfirm={handleConfirmedRotate}
+      />
     </div>
   );
 }
