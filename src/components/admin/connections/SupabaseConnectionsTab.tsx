@@ -97,6 +97,12 @@ export function SupabaseConnectionsTab() {
           ? hasSuspiciousLength(secrets, [env.urlSecret!, env.anonSecret!, env.serviceSecret!])
           : false;
         const credsLooksValid = credsConfigured && !suspicious;
+        const preflightIssues = !env.readOnly
+          ? getPreflightIssues(secrets, [
+              { name: env.urlSecret!, label: "URL do projeto" },
+              { name: env.serviceSecret!, label: "Service Role Key" },
+            ])
+          : [];
         const status: "active" | "error" | "unconfigured" = env.readOnly
           ? "active"
           : !credsConfigured
@@ -104,7 +110,7 @@ export function SupabaseConnectionsTab() {
             : last?.ok === false
               ? "error"
               : "active";
-        const canTest = !env.readOnly && credsLooksValid;
+        const canTest = !env.readOnly && credsLooksValid && preflightIssues.length === 0;
         return (
           <Card key={env.key}>
             <CardHeader>
