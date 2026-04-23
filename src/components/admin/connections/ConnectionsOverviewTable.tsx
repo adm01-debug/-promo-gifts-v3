@@ -450,6 +450,27 @@ export function ConnectionsOverviewTable() {
                       <TableCell>
                         <LatencyBadge ms={row.last_latency_ms} />
                       </TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center">
+                              <Switch
+                                checked={row.auto_test_enabled}
+                                onCheckedChange={(v) => toggleAutoTest(row, v)}
+                                disabled={!row.id}
+                                aria-label={`Auto-teste ${row.auto_test_enabled ? "ligado" : "desligado"} para ${row.name}`}
+                              />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p className="text-xs max-w-[240px]">
+                              {row.auto_test_enabled
+                                ? "Cron testa essa conexão a cada 30min. Clique para desligar."
+                                : "Cron está ignorando essa conexão. Clique para reativar."}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TableCell>
                       <TableCell className="max-w-[260px]">
                         {message ? (
                           <Tooltip>
