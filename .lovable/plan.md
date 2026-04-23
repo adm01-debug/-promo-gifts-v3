@@ -1,118 +1,104 @@
 
 
-# Loading state + toast detalhado no salvar de credenciais
+# Consertar "Rotacionar": surface de "Última rotação" + verificação do fluxo
 
-## O que muda
+## Diagnóstico
 
-Hoje o `SecretField` chama `setSecret`/`rotateSecret` e mostra apenas um toast genérico ("Credencial registrada"). Não há:
-- Spinner visível durante o salvar (só desabilita o botão)
-- Confirmação do sufixo mascarado salvo (`••••AB12`)
-- Mensagem de erro contextualizada (whitelist, RLS, rede)
-- Indicação de "novo valor" vs "atualização" vs "rotação"
+**O backend já funciona** (verificado em `secrets-manager/index.ts`):
+- `action: "rotate"` faz `upsert` em `integration_credentials` (grava nova credencial)
+- Insere linha em `secret_rotation_log` com `previous_suffix`/`new_suffix`/`rotated_by`/`rotated_at`
+- Resposta inclui `previous_suffix`, `new_suffix`, `length` e `secret` re-lido do banco
+- Cache invalidado via `invalidateCredentialCache(name)`
+- `useSecretsManager` expõe `getRotationHistory(name?)` mas **nunca é chamado pela UI**
+
+**O que está quebrado é a percepção do usuário**: depois de clicar "Rotacionar", o toast aparece e some, mas o card não mostra "Última rotação há Xm" persistente. O badge superior do `SecretField` mostra `atualizado há Xm` (vem de `updated_at` do `integration_credentials`), mas **não distingue rotação de update normal**, e não mostra de qual sufixo veio.
 
 ## Solução
 
-### 1. `useSecretsManager` retorna payload normalizado
+### 1. Novo componente `RotationHistoryRow` (compartilhado)
 
-Hoje `setSecret`/`rotateSecret` disparam o toast internamente e retornam `data` cru. Mudar para:
-- **Não disparar toast dentro do hook** — só retornar `{ ok, masked_suffix, length, action, error }`.
-- O componente decide qual toast mostrar (com o sufixo real vindo do backend).
+Pequeno componente inline que renderiza, abaixo do badge do `SecretField` (quando existe rotação registrada):
 
-Isso evita toast duplicado e dá controle ao `SecretField`.
-
-### 2. `SecretField` — estado de loading visível + toast rico
-
-- **Botão "Salvar"** ganha:
-  - `<Loader2 className="animate-spin" />` no lugar do ícone `Save` enquanto `saving === true`
-  - Texto muda para "Salvando…" / "Rotacionando…"
-  - Input fica `disabled` durante o salvar (evita edição parcial)
-- **Após o `await`**:
-  - **Sucesso**: `toast.success(...)` com:
-    - Título: `"Credencial salva"` ou `"Credencial atualizada"` ou `"Rotação concluída"` (decidido pelo `was_update` que o backend já sinaliza)
-    - Description: `"${secretName} agora termina em ••••${masked_suffix} (${length} chars)"`
-    - Duração 5s para o usuário ler o sufixo
-  - **Erro**: `toast.error(...)` com:
-    - Título: `"Falha ao salvar ${secretName}"`
-    - Description normalizada por código HTTP/mensagem:
-      - 403 / "not allowed" → "Apenas administradores podem alterar esta credencial."
-      - 400 / "whitelist" → "Este nome de credencial não está na lista permitida."
-      - 400 / "value too short" → "O valor precisa ter pelo menos 4 caracteres."
-      - default → mensagem original do backend
-    - Action button "Tentar novamente" que reabre o campo com o valor digitado
-- **Inline feedback transitório no card** (~2s após salvar):
-  - Linha verde abaixo do input: `✓ Salvo • ••••${masked_suffix} • atualizado agora`
-  - Anima `fade-in` e some sozinha (não substitui o badge persistente que já existe)
-
-### 3. Backend — `secrets-manager` retorna metadados do upsert
-
-O `set`/`rotate` já fazem upsert e o trigger calcula `masked_suffix`/`length`. Garantir que a resposta inclua:
-```json
-{
-  "ok": true,
-  "stored": true,
-  "was_update": true|false,
-  "secret": { "name", "masked_suffix", "length", "updated_at", "source": "db" }
-}
+```text
+🔄 Última rotação há 3d • ••••AB12 → ••••YZ89 • por admin@promogifts.com.br
+[Ver histórico completo]
 ```
-Hoje a função retorna `message` genérico. Adicionar o objeto `secret` lendo de volta a linha após o upsert (mesma transação) para garantir que o sufixo exibido vem do banco, não da string que o frontend mandou.
 
-Para `rotate`, incluir também `previous_suffix` no retorno para o toast poder mostrar `"de ••••XXXX para ••••YYYY"`.
+- Recebe `{ secretName }` e busca via `getRotationHistory(secretName)` no mount + a cada refresh externo (prop `refreshKey`).
+- Mostra apenas a entrada mais recente; botão "Ver histórico completo" abre um `Dialog` com a lista das últimas 100 rotações (data, sufixo de→para, autor, notas).
+- Se não houver rotação registrada → não renderiza nada (não polui o card).
 
-### 4. Tratamento de erro padronizado
+### 2. `SecretField` integra a linha + dispara refresh após rotacionar
 
-Backend retorna `{ ok: false, error: { code, message } }` em vez de só `error`. Códigos:
-- `forbidden` (403) — sem permissão
-- `not_whitelisted` (400) — nome fora da lista
-- `invalid_value` (400) — valor curto/vazio
-- `db_error` (500) — falha no upsert
-- `unexpected` (500) — fallback
+- Após `rotateSecret()` retornar `ok`, incrementar um `rotationRefreshKey` local que faz o `RotationHistoryRow` recarregar imediatamente.
+- A linha aparece com `animate-in fade-in` para o usuário ver "ah, foi registrado".
+- Mantém o `JustSavedFlash` atual (verde, some em 2s) — são complementares: o flash confirma "salvou agora", a `RotationHistoryRow` é o registro persistente.
 
-O `useSecretsManager` repassa esse objeto; `SecretField` mapeia para mensagens em PT-BR.
+### 3. Dialog "Histórico de rotações" reutilizável
 
-### 5. Toast de "Configurando…" para operações > 800ms
+`RotationHistoryDialog` exibe tabela com colunas:
 
-Se o `await` demorar mais de 800ms, mostra `toast.loading("Salvando ${secretName}…")` que é substituído por `toast.success/error` com o mesmo `id`. Evita flicker em rede rápida e dá feedback em rede lenta.
+| Quando | De | Para | Autor | Notas |
+|---|---|---|---|---|
+| há 3d (24/03 14:32) | ••••AB12 | ••••YZ89 | admin@... | "Rotação trimestral" |
+
+- Resolve `rotated_by` (uuid) → email do `auth.users` via uma query auxiliar nova no `secrets-manager`: `action: "rotation_history"` já retorna o uuid; adicionamos um join leve no edge para devolver `rotated_by_email` também (faz o lookup com service role).
+- Skeleton loading enquanto busca; estado vazio amigável "Nenhuma rotação registrada para este secret ainda".
+
+### 4. Backend — enriquecer `rotation_history` com email do autor
+
+No `secrets-manager`, dentro de `action: "rotation_history"`:
+- Após buscar `secret_rotation_log`, coletar `rotated_by` distintos
+- Chamar `service.auth.admin.listUsers()` filtrado pelos uuids (ou `service.from("profiles").select("id,email")` se tabela existir) e devolver `rotated_by_email` em cada item.
+- Mantém retrocompatibilidade: campo extra opcional, não quebra consumidores.
+
+### 5. Verificação de smoke test (sem código de teste novo)
+
+Após implementar, validar manualmente clicando "Rotacionar" em `EXTERNAL_PROMOBRIND_URL`:
+1. Toast "Rotação concluída" com `••••XXXX → ••••YYYY` ✓ (já funciona)
+2. Linha verde `JustSavedFlash` por 2s ✓ (já funciona)
+3. **NOVO**: Linha `🔄 Última rotação há instantes • ••••XXXX → ••••YYYY` aparece persistente
+4. Recarrega página → linha continua (vem do banco)
+5. Clica "Ver histórico completo" → dialog mostra a entrada com timestamp e autor
 
 ## O que o usuário verá
 
-1. Cola valor no campo `EXTERNAL_PROMOBRIND_URL` → clica **Salvar**.
-2. Botão vira `[⟳ Salvando…]` (input desabilitado).
-3. Em ~300ms: toast verde sticky por 5s:
-   ```text
-   ✓ Credencial salva
-   EXTERNAL_PROMOBRIND_URL agora termina em ••••.co (52 chars)
-   ```
-4. Linha verde fade-in abaixo do input: `✓ Salvo • ••••.co • atualizado agora` (some em 2s).
-5. Badge superior atualiza para `✓ ••••.co (52 chars) · atualizado agora`.
-6. Em caso de erro 403:
-   ```text
-   ✗ Falha ao salvar EXTERNAL_PROMOBRIND_URL
-   Apenas administradores podem alterar esta credencial.
-   [Tentar novamente]
-   ```
-7. Em rotação:
-   ```text
-   ✓ Rotação concluída
-   EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY: ••••AB12 → ••••YZ89 (registrado no log)
-   ```
+Após rotacionar `EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY`:
+
+```text
+Service Role Key                     ✓ ••••YZ89 (203 chars) · atualizado agora
+[•••••••••••••••••]   [Atualizar]  [Rotacionar]
+✓ Rotacionado • ••••YZ89 • 203 chars • atualizado agora      ← flash 2s
+🔄 Última rotação há instantes • ••••AB12 → ••••YZ89 • por você   ← persistente
+                                                       [Ver histórico]
+```
+
+Clicando "Ver histórico":
+
+```text
+┌─ Histórico de rotações: EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY ─┐
+│ Quando         De        Para       Autor              Notas │
+│ há instantes   ••••AB12  ••••YZ89   admin@promo.com.br  —    │
+│ há 12d         ••••XX99  ••••AB12   admin@promo.com.br  —    │
+│ há 47d         (env)     ••••XX99   admin@promo.com.br  —    │
+└──────────────────────────────────────────────────────────────┘
+```
 
 ## Arquivos tocados
 
 **Backend**
-- `supabase/functions/secrets-manager/index.ts`: enriquecer resposta de `set`/`rotate` com `{ secret: {...}, was_update, previous_suffix }`; padronizar erros como `{ ok:false, error:{code,message} }`.
+- `supabase/functions/secrets-manager/index.ts`: enriquecer `rotation_history` com `rotated_by_email` (lookup via `auth.admin.listUsers` ou tabela `profiles`).
 
 **Frontend**
-- `src/hooks/useSecretsManager.ts`: remover toasts internos; retornar payload normalizado `{ ok, secret, was_update, previous_suffix, error }`.
-- `src/components/admin/connections/SecretField.tsx`:
-  - Spinner `Loader2` no botão, input `disabled` durante save
-  - `toast.loading` → `toast.success`/`toast.error` com `id` para troca atômica
-  - Mapeamento de códigos de erro → PT-BR
-  - Linha inline `JustSavedFlash` (auto-some em 2s) com sufixo real do backend
-- `src/components/admin/connections/JustSavedFlash.tsx` (novo, ~30 linhas): pequeno componente animado que recebe `{ masked_suffix, length, action }` e some sozinho.
+- `src/components/admin/connections/RotationHistoryRow.tsx` (novo, ~60 linhas): linha inline com a última rotação, fetch on-mount + via `refreshKey`.
+- `src/components/admin/connections/RotationHistoryDialog.tsx` (novo, ~80 linhas): dialog com tabela das últimas 100 rotações.
+- `src/components/admin/connections/SecretField.tsx`: incluir `<RotationHistoryRow secretName={secretName} refreshKey={rotationRefreshKey} />`; bumpar `rotationRefreshKey` após rotação bem-sucedida.
+- `src/hooks/useSecretsManager.ts`: tipar `rotated_by_email?: string | null` no retorno de `getRotationHistory`.
 
 ## Fora de escopo
 
-- Não muda o badge persistente já existente (continua igual)
-- Não muda o fluxo de "Configurar"/"Atualizar"/"Rotacionar" (só o feedback)
-- Não adiciona retry automático em erro de rede (a action "Tentar novamente" do toast é manual)
+- Não muda o backend de upsert/log (já está correto)
+- Não adiciona política de "rotacionar a cada 90d" automática (já existe alerta via `IntegrationsHealthCard`; só estamos expondo o registro)
+- Não adiciona export do histórico (CSV/JSON) — pode vir em uma onda futura
+- Não muda o flash verde nem o toast (continuam iguais)
 
