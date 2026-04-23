@@ -217,6 +217,76 @@ export function NotificationsBadgeStatsPanel() {
     };
   }, [samples, streakStartIdx, suspiciousStreakSeconds]);
 
+  /**
+   * Trend over the suspicious window: linear-regression slope on the per-second
+   * ratios. Buckets:
+   *   - `rising`   : slope >= +0.01 / sec → ratio still climbing
+   *   - `falling`  : slope <= -0.01 / sec → ratio cooling off
+   *   - `flat`     : everything in between (steady-state leak)
+   * Falls back to "flat" when there are fewer than 3 samples in the streak
+   * (slope is meaningless on a 2-point line and noisy on 1).
+   *
+   * The recommendation uses a simple heuristic anchored to the current
+   * production defaults (debounce 200ms, TTL 5000ms):
+   *   - rising  → debounce 200→400ms (absorb growing micro-bursts first)
+   *   - flat    → TTL 5s→10s (raise gate before debounce, fewer false misses)
+   *   - falling → hold values, observe (self-recovering)
+   */
+  const streakTrend = useMemo<{
+    direction: "rising" | "flat" | "falling";
+    slopePerSec: number;
+    suggestion: { primary: string; rationale: string } | null;
+  }>(() => {
+    if (streakStartIdx < 0) {
+      return { direction: "flat", slopePerSec: 0, suggestion: null };
+    }
+    const window = samples.slice(streakStartIdx);
+    if (window.length < 3) {
+      return {
+        direction: "flat",
+        slopePerSec: 0,
+        suggestion: {
+          primary: "Hold current values; need ≥3s of data to recommend.",
+          rationale: "Streak too short to fit a trend line.",
+        },
+      };
+    }
+    // Linear regression: y = ratio, x = seconds offset from window start.
+    const n = window.length;
+    const xs = window.map((_, i) => i);
+    const ys = window.map((s) => s.ratio);
+    const meanX = xs.reduce((a, b) => a + b, 0) / n;
+    const meanY = ys.reduce((a, b) => a + b, 0) / n;
+    let num = 0;
+    let den = 0;
+    for (let i = 0; i < n; i++) {
+      num += (xs[i] - meanX) * (ys[i] - meanY);
+      den += (xs[i] - meanX) ** 2;
+    }
+    const slopePerSec = den === 0 ? 0 : num / den;
+    const direction: "rising" | "flat" | "falling" =
+      slopePerSec >= 0.01 ? "rising" : slopePerSec <= -0.01 ? "falling" : "flat";
+
+    let suggestion: { primary: string; rationale: string };
+    if (direction === "rising") {
+      suggestion = {
+        primary: "Try debounce 200ms → 400ms",
+        rationale: "Ratio still climbing — widen the trailing-edge window first to absorb growing micro-bursts before touching the TTL gate.",
+      };
+    } else if (direction === "flat") {
+      suggestion = {
+        primary: "Try TTL 5s → 10s (keep debounce 200ms)",
+        rationale: "Ratio plateaued at a high level — debounce is firing per burst; raise the prefetch TTL gate so back-to-back bursts coalesce.",
+      };
+    } else {
+      suggestion = {
+        primary: "Hold values — ratio is self-recovering",
+        rationale: "Trend is falling. Wait one more streak cycle before tuning to avoid over-correcting.",
+      };
+    }
+    return { direction, slopePerSec, suggestion };
+  }, [samples, streakStartIdx]);
+
   if (!visible) return null;
 
   const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow, coalescingByTrigger } = snapshot;
@@ -326,6 +396,41 @@ export function NotificationsBadgeStatsPanel() {
                     <div className="pt-1 border-t border-border/40 text-warning">
                       ⚠ Debounce + 5s TTL not absorbing triggers. Inspect prefetch call sites.
                     </div>
+                    {/* Inline recommendation — driven by the regression slope
+                        across the current streak window. */}
+                    {streakTrend.suggestion && (
+                      <div className="pt-1 border-t border-border/40">
+                        <div className="text-foreground inline-flex items-center gap-1">
+                          <span className="font-semibold">💡 Suggestion</span>
+                          <span
+                            className={cn(
+                              "px-1 rounded text-[9px] font-semibold uppercase tracking-wide",
+                              streakTrend.direction === "rising"
+                                ? "bg-warning/15 text-warning"
+                                : streakTrend.direction === "falling"
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-muted text-muted-foreground"
+                            )}
+                            title={`Linear-regression slope: ${streakTrend.slopePerSec.toFixed(3)} ratio/s`}
+                          >
+                            {streakTrend.direction}
+                            {streakTrend.slopePerSec !== 0 && (
+                              <>
+                                {" "}
+                                {streakTrend.slopePerSec > 0 ? "+" : ""}
+                                {streakTrend.slopePerSec.toFixed(2)}/s
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-foreground mt-0.5">
+                          → {streakTrend.suggestion.primary}
+                        </div>
+                        <div className="text-muted-foreground text-[9px] mt-0.5">
+                          {streakTrend.suggestion.rationale}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TooltipContent>
               </Tooltip>
