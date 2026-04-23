@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
 import { validateSecret, getMinLength, MIN_SUFFIX_LENGTH } from "./secretValidators";
-import { formatMaskedSuffix, normalizeMaskedSuffix } from "@/lib/masked-suffix";
+import { formatMaskedSuffix, normalizeMaskedSuffix, diagnoseMaskedSuffix } from "@/lib/masked-suffix";
+import { MaskedSuffixBadge } from "./MaskedSuffixBadge";
 import { normalizeSecret } from "./secretNormalizers";
 import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
@@ -478,9 +479,10 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
           )}
         </div>
         {status?.has_value && !editing && (
-          <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+          <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
             <Check className="h-3 w-3 text-success" />
-            ••••{status.masked_suffix} ({status.length} chars)
+            <MaskedSuffixBadge suffix={status.masked_suffix} secretName={secretName} />
+            <span>({status.length} chars)</span>
             {status.updated_at && (
               <span
                 className="opacity-70"
@@ -702,9 +704,9 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs animate-in fade-in duration-200"
               aria-live="polite"
             >
-              <div className="flex items-center gap-2 min-w-0">
+              <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                <span className="font-mono font-medium">••••{status.masked_suffix ?? "????"}</span>
+                <MaskedSuffixBadge suffix={status.masked_suffix} secretName={secretName} showWhenValid />
                 <span className="text-muted-foreground">
                   ({status.length ?? 0} {status.length === 1 ? "char" : "chars"})
                 </span>
