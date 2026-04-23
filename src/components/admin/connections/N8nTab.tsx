@@ -45,7 +45,7 @@ export function N8nTab() {
 
   return (
     <div className="space-y-4">
-      <Card>
+      <Card data-retest-scope tabIndex={0} className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
         <CardHeader>
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
