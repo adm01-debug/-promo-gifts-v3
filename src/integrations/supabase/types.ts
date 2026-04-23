@@ -866,6 +866,7 @@ export type Database = {
       }
       external_connections: {
         Row: {
+          auto_test_enabled: boolean
           config: Json
           created_at: string
           created_by: string
@@ -882,6 +883,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          auto_test_enabled?: boolean
           config?: Json
           created_at?: string
           created_by: string
@@ -898,6 +900,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          auto_test_enabled?: boolean
           config?: Json
           created_at?: string
           created_by?: string
