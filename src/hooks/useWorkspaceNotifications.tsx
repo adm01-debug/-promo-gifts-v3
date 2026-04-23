@@ -70,6 +70,9 @@ export function useWorkspaceNotifications() {
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
+  // True only while a markAllAsRead/clearAll mutation + its silent re-hydration are in flight.
+  // Distinct from isRefetching, which also turns true for polling and prefetch.
+  const [isMutationRehydrating, setIsMutationRehydrating] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const lastFetchAtRef = useRef<number>(0);
   const hydratedRef = useRef<string | null>(null);
@@ -213,6 +216,7 @@ export function useWorkspaceNotifications() {
     if (!user) return;
     if (markAllInFlightRef.current) return; // dedupe rapid double-clicks
     markAllInFlightRef.current = true;
+    setIsMutationRehydrating(true);
     try {
       const { error } = await supabase
         .from("workspace_notifications")
@@ -228,7 +232,6 @@ export function useWorkspaceNotifications() {
         return next;
       });
       setUnreadCount(0);
-      // Invalidate cache + re-hydrate from server to prevent drift
       try {
         sessionStorage.removeItem(CACHE_PREFIX + user.id);
       } catch {
@@ -238,6 +241,7 @@ export function useWorkspaceNotifications() {
       await fetchNotifications({ silent: true });
     } finally {
       markAllInFlightRef.current = false;
+      setIsMutationRehydrating(false);
     }
   }, [user, fetchNotifications]);
 
@@ -245,6 +249,7 @@ export function useWorkspaceNotifications() {
     if (!user) return;
     if (clearAllInFlightRef.current) return; // dedupe rapid double-clicks
     clearAllInFlightRef.current = true;
+    setIsMutationRehydrating(true);
     try {
       const { error } = await supabase
         .from("workspace_notifications")
@@ -252,11 +257,9 @@ export function useWorkspaceNotifications() {
         .eq("user_id", user.id);
 
       if (error) return;
-      // Optimistic local update
       setNotifications([]);
       setUnreadCount(0);
       writeCache(user.id, []);
-      // Invalidate cache + re-hydrate from server to prevent drift
       try {
         sessionStorage.removeItem(CACHE_PREFIX + user.id);
       } catch {
@@ -266,6 +269,7 @@ export function useWorkspaceNotifications() {
       await fetchNotifications({ silent: true });
     } finally {
       clearAllInFlightRef.current = false;
+      setIsMutationRehydrating(false);
     }
   }, [user, fetchNotifications]);
 
@@ -274,6 +278,7 @@ export function useWorkspaceNotifications() {
     unreadCount,
     isLoading,
     isRefetching,
+    isMutationRehydrating,
     markAsRead,
     markAllAsRead,
     clearAll,

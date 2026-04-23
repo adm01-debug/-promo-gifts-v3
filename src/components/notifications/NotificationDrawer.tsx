@@ -28,15 +28,18 @@ const typeConfig = {
 
 /**
  * BellBadge — apenas o ícone + contador de não lidas.
- * Memoizado por `unreadCount` e `shouldShake` para não re-renderizar quando
- * `isRefetching` (background fetch) alternar.
+ * Memoizado por `unreadCount`, `shouldShake` e `isMutationRehydrating`.
+ * Durante a re-hidratação pós-mutação, esconde o número e exibe um spinner
+ * sutil sobre o bell para sinalizar "valor sendo confirmado pelo servidor".
  */
 const BellBadge = React.memo(function BellBadge({
   unreadCount,
   shouldShake,
+  isMutationRehydrating,
 }: {
   unreadCount: number;
   shouldShake: boolean;
+  isMutationRehydrating: boolean;
 }) {
   return (
     <>
@@ -48,9 +51,25 @@ const BellBadge = React.memo(function BellBadge({
       >
         <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
       </motion.div>
-      <AnimatePresence>
-        {unreadCount > 0 && (
+      <AnimatePresence mode="wait">
+        {isMutationRehydrating ? (
           <motion.div
+            key="rehydrating"
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ duration: 0.15 }}
+            className="absolute -top-0.5 -right-0.5"
+            aria-label="Sincronizando notificações"
+            role="status"
+          >
+            <span className="flex h-4 w-4 items-center justify-center rounded-full bg-muted text-muted-foreground">
+              <Loader2 className="h-2.5 w-2.5 animate-spin" aria-hidden="true" />
+            </span>
+          </motion.div>
+        ) : unreadCount > 0 ? (
+          <motion.div
+            key="badge"
             initial={{ scale: 0, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0, opacity: 0 }}
@@ -64,7 +83,7 @@ const BellBadge = React.memo(function BellBadge({
               </Badge>
             </span>
           </motion.div>
-        )}
+        ) : null}
       </AnimatePresence>
     </>
   );
@@ -173,7 +192,7 @@ function NotificationItem({
 }
 
 export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
-  const { notifications, unreadCount, isLoading, isRefetching, markAsRead, markAllAsRead, clearAll, prefetch } =
+  const { notifications, unreadCount, isLoading, isRefetching, isMutationRehydrating, markAsRead, markAllAsRead, clearAll, prefetch } =
     useNotifications();
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
@@ -251,7 +270,12 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 onMouseEnter={debouncedPrefetch}
                 onFocus={debouncedPrefetch}
               >
-                <BellBadge unreadCount={unreadCount} shouldShake={shouldShake} />
+                <BellBadge
+                  unreadCount={unreadCount}
+                  shouldShake={shouldShake}
+                  isMutationRehydrating={isMutationRehydrating}
+                />
+
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-card border-border text-xs">
