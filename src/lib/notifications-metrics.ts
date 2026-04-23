@@ -390,6 +390,16 @@ export const notificationsMetrics = {
       triggerToFetch: [...state.triggerToFetch],
       lastTriggerToFetch: state.triggerToFetch[0] ?? null,
       triggerToFetchTtlBreaches: state.triggerToFetchTtlBreaches,
+      coalescingByTrigger: (Object.keys(state.coalescingByTrigger) as TriggerSource[]).reduce(
+        (acc, src) => {
+          const { triggers, fetches } = state.coalescingByTrigger[src];
+          const saved = Math.max(0, triggers - fetches);
+          const efficiency = triggers === 0 ? 0 : Number((saved / triggers).toFixed(3));
+          acc[src] = { triggers, fetches, saved, efficiency };
+          return acc;
+        },
+        {} as Snapshot["coalescingByTrigger"]
+      ),
     };
   },
 
