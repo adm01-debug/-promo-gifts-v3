@@ -254,19 +254,35 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
       triggered_by,
       attempts,
     }).then(() => undefined, (e) => console.error("history insert failed", e));
-  } else if (env_key && type === "supabase" && created_by) {
-    const { data: upserted } = await service.from("external_connections").upsert({
-      env_key,
+  } else if (created_by) {
+    // Auto-register the connection on the first test (success OR fail).
+    // Covers all types — not just supabase/env_key — so bitrix24, n8n, mcp and
+    // webhook_outbound also get a row + active status after the first
+    // "Testar conexão" instead of staying invisible to cron / health-check.
+    const upsertPayload: Record<string, unknown> = {
       type,
-      name: env_key === "crm" ? "Catálogo CRM" : "Catálogo Promobrind",
+      name: defaultConnectionName(type, env_key),
       status: result.ok ? "active" : "error",
       last_test_at: tested_at,
       last_test_ok: result.ok,
       last_test_message: message,
       last_latency_ms: result.latency_ms ?? null,
       created_by,
-    }, { onConflict: "env_key,type" }).select("id").maybeSingle();
-    if (upserted?.id) {
+    };
+    let conflictKey: "env_key,type" | "type,name" = "type,name";
+    if (env_key && type === "supabase") {
+      upsertPayload.env_key = env_key;
+      conflictKey = "env_key,type";
+    }
+
+    const { data: upserted, error: upErr } = await service
+      .from("external_connections")
+      .upsert(upsertPayload, { onConflict: conflictKey })
+      .select("id")
+      .maybeSingle();
+    if (upErr) {
+      console.error("auto-upsert failed", upErr.message);
+    } else if (upserted?.id) {
       connection_id = upserted.id;
       await service.from("connection_test_history").insert({
         connection_id: upserted.id,
@@ -278,7 +294,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
         error_kind: result.ok ? null : (result.error_kind ?? null),
         triggered_by,
         attempts,
-      }).then(() => undefined, (e) => console.error("history insert failed (env)", e));
+      }).then(() => undefined, (e) => console.error("history insert failed (auto)", e));
     }
   }
 
