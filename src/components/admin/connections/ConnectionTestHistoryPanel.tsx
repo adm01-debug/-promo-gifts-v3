@@ -321,6 +321,7 @@ export function ConnectionTestHistoryPanel({
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [source, setSource] = useState<SourceFilter>("all");
   const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const [previewSize, setPreviewSize] = useState<PreviewSize>(() => loadPreviewSize());
 
   const updatePreviewSize = (n: PreviewSize) => {
@@ -656,7 +657,7 @@ export function ConnectionTestHistoryPanel({
                   <> · Latência média: <span className="font-medium tabular-nums text-foreground">{stats.avg}ms</span></>
                 )}
               </span>
-              <ConnectionTimelineDrawer type={type} label={label} triggerVariant="ghost" />
+              <ConnectionTimelineDrawer type={type} label={label} triggerVariant="ghost" open={timelineOpen} onOpenChange={setTimelineOpen} />
             </div>
           )}
         </div>
@@ -670,6 +671,7 @@ export function ConnectionTestHistoryPanel({
         envKey={envKey}
         connectionId={connectionId}
         historyId={detailsId ?? undefined}
+        onViewFullHistory={() => setTimelineOpen(true)}
       />
     </div>
   );
