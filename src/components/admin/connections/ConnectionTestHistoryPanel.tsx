@@ -40,23 +40,37 @@ function formatAbsolute(iso: string): string {
   }
 }
 
+type StatusFilter = "all" | "ok" | "fail";
+
 export function ConnectionTestHistoryPanel({
   type, envKey, connectionId, refreshKey, label, className,
 }: Props) {
   const [open, setOpen] = useState(false);
+  const [filter, setFilter] = useState<StatusFilter>("all");
   const { items, total, loading } = useConnectionTestHistory({
     type, envKey, connectionId, refreshKey, enabled: open, limit: 10,
   });
 
+  const counts = useMemo(() => ({
+    all: items.length,
+    ok: items.filter((i) => i.ok).length,
+    fail: items.filter((i) => !i.ok).length,
+  }), [items]);
+
+  const visibleItems = useMemo(() => {
+    if (filter === "ok") return items.filter((i) => i.ok);
+    if (filter === "fail") return items.filter((i) => !i.ok);
+    return items;
+  }, [items, filter]);
+
   const stats = useMemo(() => {
     if (items.length === 0) return null;
-    const ok = items.filter((i) => i.ok).length;
     const latencies = items.filter((i) => i.ok && i.latency_ms != null).map((i) => i.latency_ms!);
     const avg = latencies.length
       ? Math.round(latencies.reduce((s, n) => s + n, 0) / latencies.length)
       : null;
-    return { rate: Math.round((ok / items.length) * 100), avg, ok, total: items.length };
-  }, [items]);
+    return { rate: Math.round((counts.ok / items.length) * 100), avg, ok: counts.ok, total: items.length };
+  }, [items, counts.ok]);
 
   const empty = total === 0 && !loading;
 
