@@ -29,6 +29,15 @@ interface Technique {
   maxHeight?: number | null;
   areaName?: string | null;
   locationName?: string | null;
+  // Atributos novos (vindos de TechniqueWithLimits)
+  maxColors?: number | null;
+  chargesPerColor?: boolean;
+  usesDimension?: boolean;
+  isCurved?: boolean;
+  setupCost?: number | null;
+  variationLabel?: string | null;
+  groupCode?: string | null;
+  shape?: string | null;
 }
 
 export interface MockupClient {
@@ -176,14 +185,24 @@ export function MockupConfigPanel({
                       {filteredTechniques.map((technique) => (
                         <TechniqueTooltip key={technique.id} technique={technique}>
                           <SelectItem value={technique.id} className="cursor-pointer">
-                            <div className="flex items-center gap-2">
-                              <Paintbrush className="h-3.5 w-3.5 text-primary" />
-                              <span>{technique.name}</span>
-                              {technique.maxWidth && technique.maxHeight ? (
-                                <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
-                                  {technique.maxWidth}×{technique.maxHeight}cm
-                                </span>
-                              ) : null}
+                            <div className="flex flex-col gap-0.5 w-full">
+                              <div className="flex items-center gap-2">
+                                <Paintbrush className="h-3.5 w-3.5 text-primary" />
+                                <span>{technique.name}</span>
+                                {technique.maxWidth && technique.maxHeight ? (
+                                  <span className="text-[10px] text-muted-foreground ml-auto tabular-nums">
+                                    {technique.maxWidth}×{technique.maxHeight}cm
+                                  </span>
+                                ) : null}
+                              </div>
+                              {(technique.variationLabel || technique.maxColors || technique.isCurved || technique.usesDimension) && (
+                                <div className="flex items-center gap-1.5 ml-5 text-[10px] text-muted-foreground">
+                                  {technique.variationLabel && <span className="truncate max-w-[140px]">{technique.variationLabel}</span>}
+                                  {technique.maxColors ? <span>· {technique.maxColors} cor{technique.maxColors > 1 ? 'es' : ''}</span> : null}
+                                  {technique.isCurved ? <span>· curvo</span> : null}
+                                  {technique.usesDimension ? <span>· por área</span> : null}
+                                </div>
+                              )}
                             </div>
                           </SelectItem>
                         </TechniqueTooltip>
@@ -198,6 +217,14 @@ export function MockupConfigPanel({
                   )}
                 </SelectContent>
               </Select>
+              {selectedTechnique && (selectedTechnique.locationName || selectedTechnique.maxWidth || selectedTechnique.maxColors) && (
+                <p className="text-[11px] text-muted-foreground">
+                  {selectedTechnique.locationName ? <>Local: <strong className="text-foreground/80">{selectedTechnique.locationName}</strong></> : null}
+                  {selectedTechnique.maxWidth && selectedTechnique.maxHeight ? <> · Máx {selectedTechnique.maxWidth}×{selectedTechnique.maxHeight}cm</> : null}
+                  {selectedTechnique.maxColors ? <> · {selectedTechnique.maxColors} cor{selectedTechnique.maxColors > 1 ? 'es' : ''}{selectedTechnique.chargesPerColor ? ' (cobra por cor)' : ''}</> : null}
+                  {selectedTechnique.setupCost ? <> · Setup R$ {selectedTechnique.setupCost.toFixed(2)}</> : null}
+                </p>
+              )}
               {productSelection && filteredTechniques.length > 0 && filteredTechniques.length < techniques.length && (
                 <p className="text-[10px] text-muted-foreground">
                   {filteredTechniques.length} de {techniques.length} técnicas compatíveis

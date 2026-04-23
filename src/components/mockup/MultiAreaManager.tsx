@@ -22,6 +22,17 @@ export interface PersonalizationArea {
   logoRotation?: number;
   logoScale?: number;
   logoPreview: string | null;
+  // ─── Metadata vinda do RPC fn_get_product_customization_options ───
+  /** Largura máxima de gravação na área (cm) */
+  maxWidthCm?: number | null;
+  /** Altura máxima de gravação na área (cm) */
+  maxHeightCm?: number | null;
+  /** Máximo de cores suportadas na área */
+  maxColors?: number | null;
+  /** Se a área aceita gravação em superfície curva */
+  isCurved?: boolean;
+  /** Quantas técnicas estão disponíveis para esta área */
+  techniquesAvailable?: number;
 }
 
 interface MultiAreaManagerProps {
@@ -92,7 +103,9 @@ export function MultiAreaManager({
           <CardDescription className="text-xs">
             {isDraggingOver
               ? "🎯 Solte a imagem para aplicar como logo"
-              : `${areas.length} ${areas.length === 1 ? 'local configurado' : 'locais configurados'} para este produto`}
+              : areas.some(a => a.maxWidthCm != null || a.techniquesAvailable != null)
+                ? `${areas.length} ${areas.length === 1 ? 'área oficial do produto' : 'áreas oficiais do produto'}`
+                : `${areas.length} ${areas.length === 1 ? 'local configurado' : 'locais configurados'} para este produto`}
           </CardDescription>
         </CardHeader>
 

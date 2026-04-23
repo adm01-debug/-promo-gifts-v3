@@ -1,89 +1,83 @@
-
 ## Objetivo
 
-Atualizar os hooks do simulador legado para que o cálculo de preço use a **nova estrutura oficial** (RPC `fn_get_customization_price`, que já consome `tabela_preco_gravacao_oficial`, `tabela_preco_gravacao_oficial_faixa` e `print_area_techniques`), eliminando as fórmulas heurísticas hardcoded que hoje vivem em `simulationCalculator.ts`.
+Trazer o painel de configuração do mockup à paridade com a nova estrutura de gravação (mesma fonte usada pelo simulador novo): exibir corretamente **áreas reais do produto**, **técnicas filtradas com seus limites efetivos**, **variações/tamanhos** e os atributos novos (`max_cores`, `cobra_por_cor`, `usa_dimensao`, `is_curved`, `custo_setup`, `variacao_label`).
 
-Resultado esperado: o simulador antigo (`/personalization-simulator` e a tela `useSimulation`) passa a devolver o **mesmo número** que o wizard novo e que o ConfigurationPanel — uma única fonte de verdade para preço de gravação.
+A boa notícia: `useMockupTechniques` já consome o RPC oficial `fn_get_product_customization_options` e já recebe os campos novos. O gap é **na UI** — vários campos chegam do RPC e nunca são mostrados, e o `MultiAreaManager`/`AreaCard` não refletem os limites/atributos da área ativa.
 
-## Diagnóstico atual
+## O que muda
 
-| Caminho | Usa RPC oficial? | Status com nova estrutura |
-|---|---|---|
-| `useSimulatorWizard` + `useLivePricePreview` (wizard novo) | Sim (`fn_get_customization_price`) | OK |
-| `ConfigurationPanel` (página de produto) | Sim | OK |
-| `QuantityRangeComparison` | Sim | OK |
-| **`useSimulation` + `simulationCalculator`** (legado) | **Não** — fórmulas no front por `code.includes('SILK'\|'DTF'\|...)` | **Quebrado conceitualmente**: ignora faixas, setup por cor, mínimo de faturamento, manuseio etc. |
+### 1. `useMockupTechniques.ts` — propagar atributos novos
+- Estender `TechniqueWithLimits` com:
+  - `maxColors: number | null` (de `option.max_cores`)
+  - `chargesPerColor: boolean` (de `option.cobra_por_cor`)
+  - `usesDimension: boolean` (de `option.usa_dimensao`)
+  - `isCurved: boolean` (de `option.is_curved`)
+  - `setupCost: number | null` (de `option.custo_setup`)
+  - `variationLabel: string | null` (de `option.variacao_label`)
+  - `groupCode: string | null` (de `option.grupo_tecnica`)
+  - `shape: string | null` (de `option.shape`)
+- Quando deduplica técnica entre locations, manter os atributos da maior área (já é o que faz hoje, só estender o objeto).
+- Quando o produto não tem locations configuradas, manter os campos novos como `null` (degrade limpo).
 
-## Mudanças propostas
+### 2. `MockupConfigPanel.tsx` — enriquecer o select de técnica
+- Estender a interface local `Technique` com os campos novos (re-exportar de `useMockupTechniques`).
+- No `SelectItem` de cada técnica: adicionar uma segunda linha pequena com:
+  - `variationLabel` (ex.: "Fiber Laser | Plana") quando existir
+  - badges compactos: `{maxColors} cor(es)`, `Curvo` se `isCurved`, `Por área` se `usesDimension`
+- No item já selecionado, mostrar abaixo do select um `<p className="text-[11px] text-muted-foreground">` com: `Local: {locationName} · Máx {maxWidth}×{maxHeight}cm · {maxColors} cor(es){chargesPerColor ? ' (cobra por cor)' : ''}`.
+- Manter o `TechniqueTooltip` (passar os novos campos para ele exibir setup, grupo, etc.).
 
-### 1. Novo calculador async baseado em RPC
+### 3. `TechniqueTooltip.tsx` — exibir atributos novos
+- Adicionar linhas para: Grupo (`groupCode`), Variação (`variationLabel`), Máx cores, Setup (R$ se `setupCost`), Suporta curvo (`isCurved`).
 
-Criar `src/hooks/simulation/simulationPriceFetcher.ts`:
+### 4. `MultiAreaManager.tsx` + `AreaCard.tsx` — mostrar limites da área
+- Estender `PersonalizationArea` com campos opcionais de metadata da área (vindos do RPC):
+  - `maxWidthCm: number | null`
+  - `maxHeightCm: number | null`
+  - `maxColors: number | null`
+  - `isCurved: boolean`
+  - `techniquesAvailable: number` (quantas técnicas a área aceita)
+- Em `useMockupGenerator`, quando popular `personalizationAreas` a partir de `productLocations`, agregar esses metadados (max_width/height = max entre options da location; techniquesAvailable = `location.options.length`).
+- Em `AreaCard`, abaixo do nome da área (quando `isReadOnly`, que é o modo do mockup), mostrar uma linha sutil:  
+  `text-[10px] text-muted-foreground` com `{maxWidthCm}×{maxHeightCm}cm · {techniquesAvailable} técnicas` quando disponíveis.
+- Em `MultiAreaManager`, no header, quando todas as áreas vierem do produto, mudar a `CardDescription` de _"X locais configurados"_ para _"X áreas oficiais do produto"_ para deixar claro que vem do banco novo.
 
-- `fetchOptionForTechnique(technique, settings, quantity, productUnitPrice, idSuffix?)` → chama `fn_get_customization_price` com `p_area_id`, `p_quantidade`, `p_num_cores`, `p_largura_cm`, `p_altura_cm`.
-- Mapeia o retorno (via `mapPriceResponseToFlat` já existente em `useGravacaoPriceV2`) para a `SimulationOption` atual, preservando o shape do tipo de domínio.
-- `fetchAllOptions(...)` faz `Promise.allSettled` em paralelo e devolve apenas as bem-sucedidas, com `console.warn` para as que falharem.
-- Campos derivados continuam no front:
-  - `totalProductCost = productUnitPrice * quantity`
-  - `grandTotal = totalProductCost + total_price`
-  - `grandTotalPerUnit = grandTotal / quantity`
-  - `estimatedDays = production_days ?? technique.estimated_days`
-  - `setupCost = cost_setup` (vindo do RPC, não mais `technique.setup_cost * positions`)
+### 5. `useMockupGenerator.ts` — passar metadata para as áreas
+- No `useEffect` que constrói `newAreas` a partir de `productLocations`, computar para cada location:
+  - `maxWidthCm = Math.max(...options.map(o => o.efetiva_largura_max || o.max_width))`
+  - `maxHeightCm` análogo
+  - `maxColors = Math.max(...options.map(o => o.max_cores || 0)) || null`
+  - `isCurved = options.some(o => o.is_curved)`
+  - `techniquesAvailable = options.length`
+- Atualizar `productLocations` derivado para também expor esses campos (precisamos passá-los para o `MultiAreaManager`).
+- Expandir clamp em `useEffect` que limita `logoWidth/logoHeight` à técnica para também respeitar o limite da área ativa (usar o menor entre técnica e área).
 
-### 2. Pré-requisito: `area_id` por técnica no simulador legado
+### 6. Tipos
+- Atualizar `MockupDraftData.personalizationAreas` (em `useMockupDraft.ts`) para aceitar (mas não exigir) os novos campos opcionais — backward-compatible com drafts antigos.
 
-Hoje `useSimulation` carrega `personalization_techniques` (lista achatada de técnicas, sem area_id por produto). O RPC exige um `p_area_id` (ID da `print_area_techniques` específica do produto).
+## Não escopo (fora desta entrega)
 
-Solução: quando há `selectedProduct`, carregar áreas via `fetchProductPrintAreasV2(productId)` (já existe em `useGravacaoPriceV2`) e mapear `selectedTechniques` para os `area_id`s correspondentes pelo `tabela_preco_id` / nome da técnica. Adicionar este resolver em `simulationPriceFetcher.ts`.
+- Não vamos editar o RPC nem o `external-db-bridge` (já trazem os campos certos).
+- Não vamos mexer no editor de logo (`LogoPositionEditor`) — a única mudança é o clamp de tamanho citado acima.
+- Não vamos adicionar UI nova de "tamanho" como um seletor separado: as áreas oficiais já são o seletor de tamanho (cada area = um max_width×max_height). Se no futuro o backend expor _faixas dimensionais por técnica dentro da mesma área_ (`usa_dimensao=true`), aí sim adicionamos um `SizeSelector` novo. Hoje isso é um vazio nos dados e não há tabela de "tamanho de gravação" separada que a UI precise consumir.
 
-Quando o produto não tem print area cadastrada para uma técnica selecionada, devolver a opção marcada como `unavailable` (já existe no domínio do wizard) em vez de calcular com fórmula heurística.
+## Validação
 
-### 3. Refatorar `useSimulation`
+- `npx tsc --noEmit` (esperado: sem erros novos; pré-existentes do projeto continuam).
+- Smoke manual no preview (`/mockup`):
+  - Selecionar produto que tem áreas oficiais → conferir nº de áreas, max W×H em cada card, contador de técnicas.
+  - Selecionar produto sem áreas → cair no fallback de "todas as técnicas com dims do tabela_preco_gravacao_oficial_faixa" (já existente).
+  - Trocar técnica → ver variação, grupo, max cores no tooltip e na linha abaixo do select.
+- Sem novos testes obrigatórios (fluxo é UI-only); manter os existentes em `useMockupGenerator.test.ts` verdes.
 
-- Trocar `calculateAllOptions` (síncrono, heurístico) por `fetchAllOptions` (async, RPC).
-- `calculateSimulation` vira `async` e usa `setIsCalculating(true/false)`.
-- O `useEffect` de auto-recálculo passa a debouncar 500ms (igual ao `useCustomizationPriceReactive`) e cancela in-flight via `AbortController`/flag de stale, espelhando `useLivePricePreview`.
-- Remover dependência de `useMultipleTechniquePricing` e dos helpers `needsColorInput`/`needsSizeInput` baseados em `code.includes(...)` — passar a usar `cobra_por_cor` / `cobra_por_area` retornados pelo RPC e/ou pela `PrintAreaV2`.
+## Arquivos tocados
 
-### 4. Manter compatibilidade com simulações salvas
-
-`SavedSimulation.simulation_data` já armazena `SimulationOption` com `unitCost`, `setupCost`, etc. Como o shape não muda, simulações antigas continuam abrindo. Adicionar campo opcional `priceSource: 'rpc' | 'legacy-heuristic'` em `SimulationOption` para auditar a origem.
-
-### 5. Deprecar `simulationCalculator.ts`
-
-- Marcar `calculateAllOptions` / `calculateOptionForTechnique` como `@deprecated` com aviso para usar `fetchAllOptions`.
-- Manter o arquivo para fallback offline (e para os testes existentes), mas não invocar mais a partir de `useSimulation`.
-
-### 6. `PersonalizationSimulator.tsx` (página standalone)
-
-A página `src/pages/PersonalizationSimulator.tsx` é uma calculadora puramente didática (`total = setupCost + unitCost * area * colors * quantity`), sem ligação com banco. **Não tocar nesta página** — ela é assumidamente uma estimativa rápida, não um cálculo oficial. Apenas adicionar uma nota no rodapé: "Estimativa didática — para preços oficiais use o Simulador (wizard)."
-
-### 7. Testes
-
-- Manter os testes atuais de `simulationCalculator` (cobertura do legado deprecated).
-- Adicionar smoke test para `simulationPriceFetcher` com `invokeExternalRpc` mockado retornando shape v5.9 nested + shape flat (ambos cobertos por `mapPriceResponseToFlat`).
-- Atualizar `tests/hooks/useSimulation.test.*` (se existir) para mockar o novo fetcher.
-
-## Arquivos afetados
-
-- **Novo**: `src/hooks/simulation/simulationPriceFetcher.ts`
-- **Editado**: `src/hooks/useSimulation.ts` (troca de calculador, debounce, async)
-- **Editado**: `src/types/domain/simulation.ts` (campo `priceSource?` opcional em `SimulationOption`)
-- **Editado**: `src/hooks/simulation/simulationCalculator.ts` (JSDoc `@deprecated`)
-- **Editado**: `src/pages/PersonalizationSimulator.tsx` (apenas nota no rodapé)
-- **Novo**: `tests/hooks/simulation/simulationPriceFetcher.test.ts` (smoke + funcional)
-
-## Fora do escopo (mas alinhado com plano anterior aprovado)
-
-- Tipos de `tabela_preco_gravacao_oficial` / `_faixa` / `print_area_techniques` em `src/types/gravacao-database.ts` **só serão atualizados depois que você rodar o "Comparar agora"** em `/admin/external-db` e colar o relatório. Esta tarefa **não** depende disso porque o RPC `fn_get_customization_price` é a abstração que isola o front das mudanças de coluna.
-
-## Verificação pós-implementação
-
-1. `npx tsc --noEmit` limpo.
-2. Smoke tests dos hooks afetados verdes.
-3. Comparar manualmente: para um produto com print area cadastrada, o `useSimulation` (tela velha) e o `useSimulatorWizard` (wizard) devem retornar **o mesmo `total_price`** para os mesmos parâmetros (qtd, cores, dimensões).
-4. Confirmar no console que técnicas sem print area aparecem como "indisponível" e não como "R$ 0,00".
-
-## Pergunta para você antes de eu codar
-
-Topa que técnicas selecionadas no simulador legado **sem print area cadastrada para o produto** apareçam como **indisponíveis** (em vez de calcular com a fórmula heurística antiga)? É a única diferença comportamental visível para o usuário final — todo o resto fica igual ou mais preciso.
+```text
+src/hooks/useMockupTechniques.ts          # estender TechniqueWithLimits
+src/hooks/useMockupGenerator.ts            # propagar metadata p/ áreas + clamp
+src/hooks/useMockupDraft.ts                # tipos opcionais p/ backward-compat
+src/components/mockup/MockupConfigPanel.tsx# select enriquecido + linha de detalhe
+src/components/mockup/TechniqueTooltip.tsx # exibir grupo/variação/setup/cores
+src/components/mockup/MultiAreaManager.tsx # propagar metadata, copy do header
+src/components/mockup/AreaCard.tsx         # linha de limites quando isReadOnly
+```
