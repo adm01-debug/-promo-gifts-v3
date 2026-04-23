@@ -164,7 +164,10 @@ export function SupabaseConnectionsTab() {
                       <RetestButton
                         onRetest={() => handleTest(env.envKey!, env.key)}
                         disabled={!canTest}
-                        disabledReason={!credsConfigured ? "Configure URL e Service Role Key primeiro" : "Credenciais com formato suspeito — re-salve antes de testar"}
+                        disabledReason={preflightIssues.length > 0
+                          ? "Corrija os campos sinalizados acima antes de testar"
+                          : !credsConfigured ? "Configure URL e Service Role Key primeiro"
+                          : "Credenciais com formato suspeito — re-salve antes de testar"}
                       />
                     }
                   />
