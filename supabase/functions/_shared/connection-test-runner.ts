@@ -3,8 +3,9 @@
 // `connections-auto-test` (cron, service-role).
 import type { SupabaseClient } from "npm:@supabase/supabase-js@2.49.4";
 import { getCredential } from "./credentials.ts";
+import { resolveTimeout, type ConnectionType } from "./connection-timeouts.ts";
 
-export type ConnectionType = "supabase" | "bitrix24" | "n8n" | "mcp" | "webhook_outbound";
+export type { ConnectionType };
 export type TriggeredBy = "manual" | "cron" | "webhook";
 export type ErrorKind =
   | "timeout"
@@ -51,18 +52,11 @@ export interface RunResult {
   error?: string;
   error_kind?: ErrorKind;
   message?: string;
+  /** Timeout efetivo (ms) aplicado neste teste. Útil em falhas por AbortError. */
+  timeout_ms?: number;
   tested_at: string;
   connection_id?: string;
 }
-
-/** Per-type sane defaults. Override via opts.timeoutMs. */
-const DEFAULT_TIMEOUTS_MS: Record<ConnectionType, number> = {
-  supabase: 5000,
-  bitrix24: 10000,
-  n8n: 6000,
-  mcp: 3000,
-  webhook_outbound: 8000,
-};
 
 /** Stable display name when auto-registering a connection from the first test. */
 function defaultConnectionName(type: ConnectionType, env_key?: "promobrind" | "crm"): string {
@@ -90,7 +84,7 @@ function classifyError(
   timeoutMs: number,
 ): { kind: ErrorKind; message: string } {
   if (err instanceof Error && err.name === "AbortError") {
-    return { kind: "timeout", message: `Tempo esgotado após ${Math.round(timeoutMs / 1000)}s — o serviço não respondeu` };
+    return { kind: "timeout", message: `timeout após ${timeoutMs}ms — o serviço não respondeu` };
   }
   const raw = err instanceof Error ? err.message : (err != null ? String(err) : "");
   const lower = raw.toLowerCase();
