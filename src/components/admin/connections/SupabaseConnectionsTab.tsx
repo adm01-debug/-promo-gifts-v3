@@ -16,6 +16,7 @@ import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
+import { RetestCooldownSelector } from "./RetestCooldownSelector";
 
 const ENVS = [
   {
@@ -163,6 +164,7 @@ export function SupabaseConnectionsTab() {
                         <ExternalLink className="h-4 w-4 mr-1" /> Ver schema
                       </Link>
                     </Button>
+                    <RetestCooldownSelector className="ml-auto" />
                   </div>
                   <TestProgressIndicator
                     phase={phaseByEnv[env.key] ?? "idle"}
