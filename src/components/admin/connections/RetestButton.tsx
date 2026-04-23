@@ -241,6 +241,8 @@ export function RetestButton({
       ? `Aguarde ${secondsLeft}s`
       : "Testar novamente";
 
+  const isDisabled = disabledKind !== null;
+
   const button = (
     <Button
       type="button"
