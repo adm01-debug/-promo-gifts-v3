@@ -79,7 +79,8 @@ Deno.serve(async (req) => {
     const { data: active, error } = await service
       .from("external_connections")
       .select("id, type, name, env_key, config, created_by")
-      .eq("status", "active");
+      .eq("status", "active")
+      .eq("auto_test_enabled", true);
     if (error) throw error;
 
     const conns = (active ?? []) as ActiveConnection[];

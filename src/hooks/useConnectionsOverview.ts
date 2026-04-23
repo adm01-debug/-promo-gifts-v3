@@ -12,6 +12,7 @@ export interface OverviewRow {
   last_test_ok: boolean | null;
   last_test_message: string | null;
   last_latency_ms: number | null;
+  auto_test_enabled: boolean;
 }
 
 export function useConnectionsOverview(pollMs = 30000) {
@@ -23,7 +24,7 @@ export function useConnectionsOverview(pollMs = 30000) {
     if (!silent) setRefreshing(true);
     const { data, error } = await supabase
       .from("external_connections")
-      .select("id, type, name, env_key, status, last_test_at, last_test_ok, last_test_message, last_latency_ms")
+      .select("id, type, name, env_key, status, last_test_at, last_test_ok, last_test_message, last_latency_ms, auto_test_enabled")
       .order("type", { ascending: true })
       .order("name", { ascending: true });
     if (!error && data) {
@@ -38,6 +39,7 @@ export function useConnectionsOverview(pollMs = 30000) {
         last_test_ok: r.last_test_ok,
         last_test_message: r.last_test_message,
         last_latency_ms: r.last_latency_ms,
+        auto_test_enabled: (r as { auto_test_enabled?: boolean }).auto_test_enabled ?? true,
       }));
       setRows(mapped);
     }
