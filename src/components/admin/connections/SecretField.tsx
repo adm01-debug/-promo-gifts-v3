@@ -73,6 +73,13 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const flashCounter = useRef(0);
   const [lastNormalization, setLastNormalization] = useState<string[] | null>(null);
   const normTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Confirmation modals (declared early so the secretName-swap effect below
+  // can close them when the prop changes mid-flow)
+  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
+  const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  // Cancellation for in-flight retries (declared early for the same reason)
+  const abortRef = useRef<AbortController | null>(null);
 
   const showNormalization = (changes: string[]) => {
     if (changes.length === 0) return;
