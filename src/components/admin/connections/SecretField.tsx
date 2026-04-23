@@ -675,7 +675,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               {status.updated_at && (
                 <span
                   className="text-muted-foreground inline-flex items-center gap-1 shrink-0"
-                  title={`Última atualização: ${new Date(status.updated_at).toLocaleString("pt-BR")}`}
+                  title={buildUpdatedTooltip(status.updated_at, status.updated_by_email)}
                 >
                   Atualizado {formatRelative(status.updated_at)}
                 </span>
