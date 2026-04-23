@@ -207,13 +207,20 @@ export function ConnectionTestHistoryPanel({
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [previewSize, setPreviewSize] = useState<PreviewSize>(() => loadPreviewSize());
 
-  // Always fetch when defaultPreview (preview needs data); otherwise only when expanded.
-  // Polling (60s) only when expanded — preview relies on initial fetch + refreshKey.
+  const updatePreviewSize = (n: PreviewSize) => {
+    setPreviewSize(n);
+    try { window.localStorage.setItem(PREVIEW_SIZE_STORAGE_KEY, String(n)); } catch { /* ignore */ }
+  };
+
+  // Limit fetched rows to cover the largest preview size + headroom for filtering
+  const fetchLimit = expanded ? Math.max(20, previewSize * 2) : Math.max(10, previewSize + 5);
+
   const { items, total, loading } = useConnectionTestHistory({
     type, envKey, connectionId, refreshKey,
     enabled: expanded,
-    limit: 10,
+    limit: fetchLimit,
   });
 
   const counts = useMemo(() => ({
@@ -228,7 +235,7 @@ export function ConnectionTestHistoryPanel({
     return items;
   }, [items, filter]);
 
-  const previewItems = useMemo(() => visibleItems.slice(0, PREVIEW_COUNT), [visibleItems]);
+  const previewItems = useMemo(() => visibleItems.slice(0, previewSize), [visibleItems, previewSize]);
 
   const stats = useMemo(() => {
     if (items.length === 0) return null;
