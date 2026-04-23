@@ -66,6 +66,12 @@ interface Props {
   triggerVariant?: "outline" | "ghost" | "secondary" | "default";
   /** Tamanho do botão */
   triggerSize?: "sm" | "default";
+  /** Controle externo opcional do estado aberto (ex.: abrir a partir do modal de detalhes). */
+  open?: boolean;
+  /** Callback quando o estado aberto muda (apenas em modo controlado). */
+  onOpenChange?: (open: boolean) => void;
+  /** Quando true, omite o botão trigger (drawer só abre via prop `open`). */
+  hideTrigger?: boolean;
 }
 
 export function ConnectionTimelineDrawer({
@@ -73,8 +79,17 @@ export function ConnectionTimelineDrawer({
   label,
   triggerVariant = "outline",
   triggerSize = "sm",
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [openInternal, setOpenInternal] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openInternal;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setOpenInternal(v);
+    onOpenChange?.(v);
+  };
   const [rows, setRows] = useState<TestRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
@@ -162,11 +177,13 @@ export function ConnectionTimelineDrawer({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant={triggerVariant} size={triggerSize}>
-          <History className="h-4 w-4 mr-1" /> Histórico
-        </Button>
-      </SheetTrigger>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <Button variant={triggerVariant} size={triggerSize}>
+            <History className="h-4 w-4 mr-1" /> Histórico
+          </Button>
+        </SheetTrigger>
+      )}
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">

@@ -25,6 +25,7 @@ export function Bitrix24Tab() {
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [phase, setPhase] = useState<TestProgressPhase>("idle");
   const [pendingStartedAt, setPendingStartedAt] = useState<string | null>(null);
+  const [timelineOpen, setTimelineOpen] = useState(false);
 
   useEffect(() => { list(); }, [list]);
 
@@ -90,7 +91,7 @@ export function Bitrix24Tab() {
             onClick={onTest}>
             {isTesting ? "Testando…" : "Testar conexão (crm.contact.fields)"}
           </Button>
-          <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
+          <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" open={timelineOpen} onOpenChange={setTimelineOpen} />
           <RefreshFromDbButton onRefreshed={list} />
           <RetestCooldownSelector className="ml-auto" />
         </div>
@@ -126,6 +127,7 @@ export function Bitrix24Tab() {
           onOpenChange={setDetailsDialogOpen}
           connectionType="bitrix24"
           connectionLabel="Bitrix24"
+          onViewFullHistory={() => setTimelineOpen(true)}
         />
       </CardContent>
     </Card>

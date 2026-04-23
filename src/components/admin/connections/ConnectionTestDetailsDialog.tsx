@@ -8,6 +8,7 @@ import {
   User,
   Bot,
   Webhook as WebhookIcon,
+  History,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -31,6 +32,8 @@ interface Props {
   connectionId?: string;
   /** Quando presente, abre os detalhes deste registro específico do histórico. */
   historyId?: string;
+  /** Callback opcional: quando provido, mostra o botão "Ver histórico completo" no header. */
+  onViewFullHistory?: () => void;
 }
 
 const TRIGGER_META: Record<TestDetails["triggered_by"], { label: string; Icon: typeof User }> = {
@@ -116,6 +119,7 @@ export function ConnectionTestDetailsDialog({
   envKey,
   connectionId,
   historyId,
+  onViewFullHistory,
 }: Props) {
   const { details, loading } = useConnectionTestDetails({
     open,
@@ -188,6 +192,22 @@ export function ConnectionTestDetailsDialog({
             )}
             Detalhes do último teste
             <Badge variant="outline" className="ml-2">{connectionLabel}</Badge>
+            {onViewFullHistory && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto h-7 px-2 text-xs gap-1.5 font-normal"
+                onClick={() => {
+                  onOpenChange(false);
+                  // Aguarda o fade-out do dialog antes de abrir o drawer (evita scroll-lock conflict)
+                  setTimeout(() => onViewFullHistory(), 180);
+                }}
+                title="Fechar este modal e abrir o histórico completo desta conexão"
+              >
+                <History className="h-3.5 w-3.5" />
+                Ver histórico completo
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
 
