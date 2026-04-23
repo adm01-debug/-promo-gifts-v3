@@ -122,7 +122,7 @@ export function AutoTestJobStatusCard() {
             <div className="rounded-md border bg-background/50 p-3">
               <div className="text-xs text-muted-foreground">Resultado</div>
               <div className="mt-1 flex items-center gap-2 text-sm font-semibold tabular-nums">
-                <span className="text-emerald-600 dark:text-emerald-400 inline-flex items-center gap-1">
+                <span className="text-success inline-flex items-center gap-1">
                   <CheckCircle2 className="h-3.5 w-3.5" />
                   {lastRun?.ok_count ?? 0}
                 </span>
