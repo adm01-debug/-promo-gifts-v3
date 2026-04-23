@@ -172,6 +172,26 @@ export function ConnectionsOverviewTable() {
     }
   }
 
+  async function toggleAutoTest(row: OverviewRow, next: boolean) {
+    if (!row.id) return;
+    // Optimistic update
+    patchRow(row.key, { auto_test_enabled: next });
+    const { error } = await supabase
+      .from("external_connections")
+      .update({ auto_test_enabled: next })
+      .eq("id", row.id);
+    if (error) {
+      patchRow(row.key, { auto_test_enabled: !next });
+      toast.error("Não foi possível atualizar o auto-teste", { description: error.message });
+      return;
+    }
+    toast.success(next ? "Auto-teste habilitado" : "Auto-teste desabilitado", {
+      description: next
+        ? `${row.name} voltará a ser testada pelo cron`
+        : `${row.name} será ignorada pelo cron de testes`,
+    });
+  }
+
   function changeConcurrency(v: string) {
     const n = Math.min(8, Math.max(1, parseInt(v, 10) || 3));
     setConcurrency(n);
