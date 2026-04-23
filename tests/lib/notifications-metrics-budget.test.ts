@@ -155,10 +155,15 @@ describe("notifications-metrics — badge budget hit/miss counters", () => {
 
 describe("notifications-metrics — logBadgeBudgetSummary()", () => {
   it("does NOT log when debug is OFF, even if renders exist", () => {
+    // The test env has import.meta.env.DEV === true, so debug auto-enables.
+    // Force it OFF by stubbing the flag for this case.
+    vi.stubEnv("DEV", "");
     expect(localStorage.getItem("debug:notifications")).toBeNull();
     recordRender("cache", 5);
+    const before = findSummaryLogs().length;
     notificationsMetrics.logBadgeBudgetSummary("test");
-    expect(findSummaryLogs()).toHaveLength(0);
+    expect(findSummaryLogs().length - before).toBe(0);
+    vi.unstubAllEnvs();
   });
 
   it("does NOT log when debug is ON but no renders were recorded", () => {
