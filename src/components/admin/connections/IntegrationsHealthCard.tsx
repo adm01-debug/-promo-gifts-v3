@@ -186,7 +186,42 @@ function Metric({ icon: Icon, label, value, badge, tone = "default" }: MetricPro
   );
 }
 
-export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatus[] }) {
+function SourceCountChip({
+  icon: Icon,
+  tone,
+  count,
+  label,
+  onClick,
+  emphasize,
+}: {
+  icon: React.ElementType;
+  tone: "success" | "warning" | "muted";
+  count: number;
+  label: string;
+  onClick: () => void;
+  emphasize?: boolean;
+}) {
+  const cls = {
+    success: "border-success/30 bg-success/10 text-success hover:bg-success/15",
+    warning: "border-warning/40 bg-warning/10 text-warning hover:bg-warning/15",
+    muted: "border-border bg-muted text-muted-foreground hover:bg-muted/70",
+  }[tone];
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cn(
+        "inline-flex items-center gap-1 rounded-full border px-2 py-0.5 text-[11px] font-medium transition-colors tabular-nums",
+        cls,
+        emphasize && "ring-1 ring-warning/40",
+      )}
+    >
+      <Icon className="h-3 w-3" />
+      <span className="font-semibold">{count}</span> {label}
+    </button>
+  );
+}
+
   const [auditing, setAuditing] = useState(false);
   const { setFilter } = useCredentialsSourceFilter();
   const sourceCounts = useMemo(() => {
