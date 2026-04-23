@@ -12,6 +12,10 @@ interface RetestButtonProps {
   /** Stable identifier (e.g. connection type/id) used to persist the cooldown
    *  across remounts in the same tab. Falls back to in-memory only when omitted. */
   cooldownKey?: string;
+  /** Keyboard key (lowercase) that fires the retest when an ancestor element
+   *  with [data-retest-scope] contains the focus. Default: "r". Pass null to
+   *  disable. Ignored when typing inside inputs/textareas/contenteditable. */
+  shortcutKey?: string | null;
 }
 
 type DisabledKind = "running" | "cooldown" | "credentials" | null;
@@ -55,12 +59,14 @@ export function RetestButton({
   cooldownMs = 3000,
   disabledReason,
   cooldownKey,
+  shortcutKey = "r",
 }: RetestButtonProps) {
   const [isRunning, setIsRunning] = useState(false);
   // Lazy init from sessionStorage so cooldown survives a remount.
   const [cooldownUntil, setCooldownUntil] = useState<number>(() => readPersistedCooldown(cooldownKey));
   const [now, setNow] = useState<number>(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wrapperRef = useRef<HTMLSpanElement | null>(null);
 
   const inCooldown = cooldownUntil > now;
   const secondsLeft = inCooldown ? Math.max(1, Math.ceil((cooldownUntil - now) / 1000)) : 0;
@@ -129,7 +135,35 @@ export function RetestButton({
     }
   }, [cooldownKey, cooldownUntil, now]);
 
-  const isDisabled = isRunning || inCooldown || disabled;
+  // Keyboard shortcut: fire onRetest when an ancestor [data-retest-scope]
+  // contains the current focus and the user presses `shortcutKey`.
+  // Respects the same debounce/disabled rules as the button click.
+  useEffect(() => {
+    if (!shortcutKey) return;
+    const target = shortcutKey.toLowerCase();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || e.repeat) return;
+      if (e.key.toLowerCase() !== target) return;
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      // Don't hijack typing inside form fields / contenteditable.
+      const active = document.activeElement as HTMLElement | null;
+      if (active) {
+        const tag = active.tagName;
+        if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
+        if (active.isContentEditable) return;
+      }
+      const wrapper = wrapperRef.current;
+      if (!wrapper) return;
+      const scope = wrapper.closest<HTMLElement>("[data-retest-scope]");
+      if (!scope) return;
+      // Only fire if focus is inside this scope (or scope itself is focused).
+      if (!scope.contains(active) && active !== scope) return;
+      e.preventDefault();
+      handleClick();
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [shortcutKey, handleClick]);
 
   const disabledKind: DisabledKind = isRunning
     ? "running"
@@ -189,10 +223,17 @@ export function RetestButton({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span className="inline-flex">{button}</span>
+          <span ref={wrapperRef} className="inline-flex">{button}</span>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs leading-snug">
-          <p className="font-medium">{tooltip.title}</p>
+          <div className="flex items-center justify-between gap-2">
+            <p className="font-medium">{tooltip.title}</p>
+            {shortcutKey && !isDisabled ? (
+              <kbd className="ml-2 inline-flex h-4 min-w-4 items-center justify-center rounded border bg-muted px-1 text-[10px] font-mono uppercase text-muted-foreground">
+                {shortcutKey}
+              </kbd>
+            ) : null}
+          </div>
           <p className="text-muted-foreground mt-0.5">{tooltip.body}</p>
         </TooltipContent>
       </Tooltip>
