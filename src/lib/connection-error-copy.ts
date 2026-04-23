@@ -32,12 +32,15 @@ export function getErrorCopy(
   kind?: ErrorKind | null,
   status?: number | null,
   fallbackMessage?: string | null,
+  timeoutMs?: number | null,
 ): ErrorCopy {
   switch (kind) {
     case "timeout":
       return {
         title: "Tempo esgotado",
-        hint: "O endpoint não respondeu em tempo. Verifique se o serviço está ativo e acessível.",
+        hint: timeoutMs && timeoutMs > 0
+          ? `O endpoint não respondeu em ${timeoutMs}ms. Verifique se o serviço está ativo e acessível.`
+          : "O endpoint não respondeu em tempo. Verifique se o serviço está ativo e acessível.",
         icon: Clock,
         tone: "timeout",
       };
