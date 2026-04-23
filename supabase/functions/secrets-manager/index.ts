@@ -86,7 +86,7 @@ Deno.serve(async (req) => {
     const isAdmin = (roles ?? []).some((r: { role: string }) => r.role === "admin");
     if (!isAdmin) {
       return new Response(
-        JSON.stringify({ error: "Apenas administradores podem gerenciar credenciais" }),
+        JSON.stringify({ ok: false, error: { code: "forbidden", message: "Apenas administradores podem gerenciar credenciais" } }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
