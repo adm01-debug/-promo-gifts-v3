@@ -174,6 +174,7 @@ export function ConnectionsOverviewTable() {
                   <TableHead>Nome</TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                   <TableHead className="w-[150px]">Última verificação</TableHead>
+                  <TableHead className="w-[110px]">Falhas seguidas</TableHead>
                   <TableHead className="w-[90px]">Latência</TableHead>
                   <TableHead>Mensagem</TableHead>
                   <TableHead className="w-[140px] text-right">Ações</TableHead>
@@ -185,8 +186,16 @@ export function ConnectionsOverviewTable() {
                   const Icon = meta.Icon;
                   const isTesting = testingKey === row.key;
                   const message = row.last_test_message;
+                  const failure = failuresMap.get(row.key);
+                  const failCount = failure?.count ?? 0;
+                  const overThreshold = failCount > CONSECUTIVE_FAILURE_THRESHOLD;
                   return (
-                    <TableRow key={row.key}>
+                    <TableRow
+                      key={row.key}
+                      className={cn(
+                        overThreshold && "bg-destructive/5 border-l-2 border-l-destructive",
+                      )}
+                    >
                       <TableCell>
                         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Icon className="h-3.5 w-3.5" />
