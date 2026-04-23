@@ -175,7 +175,7 @@ async function pingWebhook(url: string, timeoutMs: number) {
 export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const { type, config = {}, env_key, service, created_by } = opts;
   const triggered_by: TriggeredBy = opts.triggered_by ?? "manual";
-  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUTS_MS[type] ?? 8000;
+  const timeoutMs = resolveTimeout(type, opts.timeoutMs);
   const attempts = Math.max(1, Math.min(opts.attempts ?? 1, 9));
   let connection_id = opts.connection_id;
 
@@ -235,7 +235,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const message = result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`;
 
   if (opts.skipPersistence) {
-    return { ...result, tested_at, connection_id };
+    return { ...result, timeout_ms: timeoutMs, tested_at, connection_id };
   }
 
   if (connection_id) {
