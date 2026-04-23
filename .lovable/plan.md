@@ -1,104 +1,111 @@
 
 
-# Consertar "Rotacionar": surface de "Última rotação" + verificação do fluxo
+# Exibir última verificação persistida na listagem de conexões
 
 ## Diagnóstico
 
-**O backend já funciona** (verificado em `secrets-manager/index.ts`):
-- `action: "rotate"` faz `upsert` em `integration_credentials` (grava nova credencial)
-- Insere linha em `secret_rotation_log` com `previous_suffix`/`new_suffix`/`rotated_by`/`rotated_at`
-- Resposta inclui `previous_suffix`, `new_suffix`, `length` e `secret` re-lido do banco
-- Cache invalidado via `invalidateCredentialCache(name)`
-- `useSecretsManager` expõe `getRotationHistory(name?)` mas **nunca é chamado pela UI**
+A persistência já existe (Onda anterior):
+- `external_connections` tem `last_test_at`, `last_test_ok`, `last_test_message`, `last_latency_ms`
+- `connection-tester` faz upsert após cada teste (por `env_key` para bancos, por `connection_id` para Bitrix/n8n/MCP/webhooks)
+- Componente `LastTestLine` já existe e é usado dentro dos cards individuais
 
-**O que está quebrado é a percepção do usuário**: depois de clicar "Rotacionar", o toast aparece e some, mas o card não mostra "Última rotação há Xm" persistente. O badge superior do `SecretField` mostra `atualizado há Xm` (vem de `updated_at` do `integration_credentials`), mas **não distingue rotação de update normal**, e não mostra de qual sufixo veio.
+**O que falta**: nenhuma "listagem" consolidada mostra esses dados lado a lado. Hoje o usuário precisa abrir cada aba (Bancos, Bitrix24, n8n, MCP, Webhooks) para ver o status de cada conexão. O `IntegrationsHealthCard` mostra contagens agregadas mas não a linha por conexão com timestamp + latência.
 
 ## Solução
 
-### 1. Novo componente `RotationHistoryRow` (compartilhado)
+### 1. Nova tabela "Visão geral das conexões" no topo de `/admin/conexoes`
 
-Pequeno componente inline que renderiza, abaixo do badge do `SecretField` (quando existe rotação registrada):
+Componente `ConnectionsOverviewTable` colocado **acima das abas**, abaixo do `IntegrationsHealthCard`. Mostra todas as conexões cadastradas em uma tabela única:
 
-```text
-🔄 Última rotação há 3d • ••••AB12 → ••••YZ89 • por admin@promogifts.com.br
-[Ver histórico completo]
-```
+| Tipo | Nome | Status | Última verificação | Latência | Mensagem | Ação |
+|---|---|---|---|---|---|---|
+| 🗄️ Banco | Catálogo Promobrind | ✓ Ativo | há 3min | 142ms | HTTP 200 | [Testar] |
+| 🗄️ Banco | CRM | ✗ Erro | há 12min | — | DNS lookup failed | [Testar] |
+| 💼 Bitrix24 | Webhook principal | ✓ Ativo | há 1h | 387ms | crm.contact.fields ok | [Testar] |
+| ⚡ n8n | Webhook eventos | — Nunca verificado | — | — | — | [Testar] |
+| 🔌 MCP | Claude desktop | ✓ Ativo | há 2d | 89ms | tools/list ok | [Testar] |
 
-- Recebe `{ secretName }` e busca via `getRotationHistory(secretName)` no mount + a cada refresh externo (prop `refreshKey`).
-- Mostra apenas a entrada mais recente; botão "Ver histórico completo" abre um `Dialog` com a lista das últimas 100 rotações (data, sufixo de→para, autor, notas).
-- Se não houver rotação registrada → não renderiza nada (não polui o card).
+### 2. Fonte de dados
 
-### 2. `SecretField` integra a linha + dispara refresh após rotacionar
+Query única em `external_connections` ordenada por `type, name`. Inclui:
+- Conexões "virtuais" por `env_key` (Supabase Promobrind/CRM) — já são gravadas pelo tester com `env_key` preenchido
+- Conexões reais por `id` (Bitrix24, n8n, MCP, webhooks)
 
-- Após `rotateSecret()` retornar `ok`, incrementar um `rotationRefreshKey` local que faz o `RotationHistoryRow` recarregar imediatamente.
-- A linha aparece com `animate-in fade-in` para o usuário ver "ah, foi registrado".
-- Mantém o `JustSavedFlash` atual (verde, some em 2s) — são complementares: o flash confirma "salvou agora", a `RotationHistoryRow` é o registro persistente.
+A tabela já tem unique index em `(env_key, type)` — então cada banco aparece como uma linha consolidada.
 
-### 3. Dialog "Histórico de rotações" reutilizável
+### 3. Comportamento das colunas
 
-`RotationHistoryDialog` exibe tabela com colunas:
+- **Status**: reutiliza `ConnectionStatusBadge` (active/error/unconfigured/never_tested)
+- **Última verificação**: reutiliza formato relativo do `LastTestLine` (`há 3min`, `agora há pouco`)
+- **Latência**: badge colorido — verde <500ms, amarelo 500-2000ms, vermelho >2000ms
+- **Mensagem**: truncada com tooltip mostrando texto completo
+- **Ação "Testar"**: dispara `useConnectionTester.test()` com o `env_key` ou `connection_id` correto; spinner inline; atualiza a linha sem recarregar a tabela inteira
 
-| Quando | De | Para | Autor | Notas |
-|---|---|---|---|---|
-| há 3d (24/03 14:32) | ••••AB12 | ••••YZ89 | admin@... | "Rotação trimestral" |
+### 4. Refresh automático
 
-- Resolve `rotated_by` (uuid) → email do `auth.users` via uma query auxiliar nova no `secrets-manager`: `action: "rotation_history"` já retorna o uuid; adicionamos um join leve no edge para devolver `rotated_by_email` também (faz o lookup com service role).
-- Skeleton loading enquanto busca; estado vazio amigável "Nenhuma rotação registrada para este secret ainda".
+- Polling leve a cada 30s (`useEffect` + `setInterval`) para refletir testes disparados em outras abas/sessões
+- Botão "Atualizar" no header da tabela para força-refresh manual
+- Botão "Testar todas" que dispara em paralelo um teste por linha (Promise.all com limite 3 simultâneos) — útil para diagnóstico em massa
 
-### 4. Backend — enriquecer `rotation_history` com email do autor
+### 5. Filtros e estados vazios
 
-No `secrets-manager`, dentro de `action: "rotation_history"`:
-- Após buscar `secret_rotation_log`, coletar `rotated_by` distintos
-- Chamar `service.auth.admin.listUsers()` filtrado pelos uuids (ou `service.from("profiles").select("id,email")` se tabela existir) e devolver `rotated_by_email` em cada item.
-- Mantém retrocompatibilidade: campo extra opcional, não quebra consumidores.
+- Filtro inline: `[Todas] [Ativas] [Com erro] [Nunca verificadas]` (chips no header)
+- Estado vazio por filtro: "Nenhuma conexão com erro 🎉" / "Todas as conexões já foram testadas"
+- Skeleton de 5 linhas durante o load inicial
 
-### 5. Verificação de smoke test (sem código de teste novo)
+### 6. Linkagem com as abas
 
-Após implementar, validar manualmente clicando "Rotacionar" em `EXTERNAL_PROMOBRIND_URL`:
-1. Toast "Rotação concluída" com `••••XXXX → ••••YYYY` ✓ (já funciona)
-2. Linha verde `JustSavedFlash` por 2s ✓ (já funciona)
-3. **NOVO**: Linha `🔄 Última rotação há instantes • ••••XXXX → ••••YYYY` aparece persistente
-4. Recarrega página → linha continua (vem do banco)
-5. Clica "Ver histórico completo" → dialog mostra a entrada com timestamp e autor
+Cada linha tem um link discreto "Configurar →" que muda a aba ativa do `Tabs` e rola até o card correspondente (via `defaultValue` controlado e `scrollIntoView` em ref do card).
 
 ## O que o usuário verá
 
-Após rotacionar `EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY`:
+Ao abrir `/admin/conexoes`:
 
 ```text
-Service Role Key                     ✓ ••••YZ89 (203 chars) · atualizado agora
-[•••••••••••••••••]   [Atualizar]  [Rotacionar]
-✓ Rotacionado • ••••YZ89 • 203 chars • atualizado agora      ← flash 2s
-🔄 Última rotação há instantes • ••••AB12 → ••••YZ89 • por você   ← persistente
-                                                       [Ver histórico]
+┌─ Saúde das integrações ─────────────────────────────┐
+│ 5 ativas · 1 com erro · 2 nunca verificadas         │
+└─────────────────────────────────────────────────────┘
+
+┌─ Visão geral das conexões ──────────[Atualizar][Testar todas]─┐
+│ [Todas (8)] [Ativas (5)] [Erro (1)] [Nunca (2)]               │
+│                                                                │
+│ Tipo      Nome              Status    Última         Latência │
+│ ─────────────────────────────────────────────────────────────  │
+│ 🗄️ Banco  Promobrind        ✓ Ativo   há 3min        142ms    │
+│ 🗄️ Banco  CRM               ✗ Erro    há 12min       —        │
+│ 💼 Bitrix Webhook principal ✓ Ativo   há 1h          387ms    │
+│ ⚡ n8n    Eventos           — Nunca   —              —        │
+│ 🔌 MCP    Claude desktop    ✓ Ativo   há 2d          89ms     │
+└────────────────────────────────────────────────────────────────┘
+
+[Tabs: Bancos | Bitrix24 | n8n | MCP | Webhooks]
 ```
 
-Clicando "Ver histórico":
+Após clicar "Testar" em uma linha:
+- Linha entra em modo loading (spinner na coluna Status)
+- Após resposta: badge atualiza, "Última verificação" vira "agora há pouco", latência aparece
+- Toast verde/vermelho confirmando
 
-```text
-┌─ Histórico de rotações: EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY ─┐
-│ Quando         De        Para       Autor              Notas │
-│ há instantes   ••••AB12  ••••YZ89   admin@promo.com.br  —    │
-│ há 12d         ••••XX99  ••••AB12   admin@promo.com.br  —    │
-│ há 47d         (env)     ••••XX99   admin@promo.com.br  —    │
-└──────────────────────────────────────────────────────────────┘
-```
+Após reload da página: tudo persiste (vem de `external_connections.last_test_*`).
 
 ## Arquivos tocados
 
-**Backend**
-- `supabase/functions/secrets-manager/index.ts`: enriquecer `rotation_history` com `rotated_by_email` (lookup via `auth.admin.listUsers` ou tabela `profiles`).
+**Frontend (novos)**
+- `src/components/admin/connections/ConnectionsOverviewTable.tsx` (~180 linhas): tabela principal com filtros, polling, ações inline.
+- `src/components/admin/connections/LatencyBadge.tsx` (~25 linhas): badge colorido por threshold.
+- `src/hooks/useConnectionsOverview.ts` (~80 linhas): query única em `external_connections`, normalização de linhas (env_key vs id), refresh manual + polling 30s.
 
-**Frontend**
-- `src/components/admin/connections/RotationHistoryRow.tsx` (novo, ~60 linhas): linha inline com a última rotação, fetch on-mount + via `refreshKey`.
-- `src/components/admin/connections/RotationHistoryDialog.tsx` (novo, ~80 linhas): dialog com tabela das últimas 100 rotações.
-- `src/components/admin/connections/SecretField.tsx`: incluir `<RotationHistoryRow secretName={secretName} refreshKey={rotationRefreshKey} />`; bumpar `rotationRefreshKey` após rotação bem-sucedida.
-- `src/hooks/useSecretsManager.ts`: tipar `rotated_by_email?: string | null` no retorno de `getRotationHistory`.
+**Frontend (editados)**
+- `src/pages/admin/AdminConexoesPage.tsx`: incluir `<ConnectionsOverviewTable />` entre o `IntegrationsHealthCard` e as `Tabs`.
+- `src/components/admin/connections/ConnectionStatusBadge.tsx`: garantir suporte ao estado `never_tested` (se ainda não tiver).
+
+**Backend**
+- Nenhuma mudança. Todos os dados já são persistidos pelo `connection-tester` desde a Onda anterior. A query é direta na tabela via cliente (RLS já restringe a admins).
 
 ## Fora de escopo
 
-- Não muda o backend de upsert/log (já está correto)
-- Não adiciona política de "rotacionar a cada 90d" automática (já existe alerta via `IntegrationsHealthCard`; só estamos expondo o registro)
-- Não adiciona export do histórico (CSV/JSON) — pode vir em uma onda futura
-- Não muda o flash verde nem o toast (continuam iguais)
+- Não adiciona gráfico histórico de latência (já existe `connection_test_history` que pode alimentar isso depois)
+- Não adiciona alertas por e-mail (cron `connections-health-check` já cobre via `workspace_notifications`)
+- Não muda os cards individuais nas abas — são complementares à visão geral
+- Não adiciona edição inline (admin continua usando o card da aba para configurar credenciais)
 
