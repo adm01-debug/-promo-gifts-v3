@@ -15,6 +15,7 @@ import {
   PlayCircle,
   Clock,
   Info,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
@@ -24,6 +25,8 @@ import { useConnectionTester, type ConnectionType } from "@/hooks/useConnectionT
 import { ConnectionsOverviewFilters } from "./ConnectionsOverviewFilters";
 import { applyFilters, useConnectionsOverviewFilters } from "@/hooks/useConnectionsOverviewFilters";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
+import { useConsecutiveFailures } from "@/hooks/useConsecutiveFailures";
+import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
