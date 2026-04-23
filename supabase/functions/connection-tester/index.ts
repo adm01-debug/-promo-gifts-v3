@@ -263,6 +263,41 @@ Deno.serve(async (req) => {
       });
     }
 
+    // -- consecutive_failures_overview: count consecutive failures per connection --
+    if (action === "consecutive_failures_overview") {
+      const { data: conns } = await service.from("external_connections")
+        .select("id, type, env_key");
+      const list = (conns ?? []) as Array<{ id: string; type: string; env_key: string | null }>;
+      const items: Array<{ key: string; type: string; env_key: string | null; connection_id: string; consecutive_failures: number; since: string | null }> = [];
+      // Sequential to limit DB pressure; small N (<= dozens of connections).
+      for (const c of list) {
+        const { data: hist } = await service.from("connection_test_history")
+          .select("tested_at, success")
+          .eq("connection_id", c.id)
+          .order("tested_at", { ascending: false })
+          .limit(50);
+        const rows = (hist ?? []) as Array<{ tested_at: string; success: boolean }>;
+        let count = 0;
+        let since: string | null = null;
+        for (const h of rows) {
+          if (h.success) break;
+          count += 1;
+          since = h.tested_at; // last assigned = oldest in the streak
+        }
+        items.push({
+          key: c.id,
+          type: c.type,
+          env_key: c.env_key,
+          connection_id: c.id,
+          consecutive_failures: count,
+          since,
+        });
+      }
+      return new Response(JSON.stringify({ ok: true, items }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const r = await runConnectionTest({
       type,
       config,
