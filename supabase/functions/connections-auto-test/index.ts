@@ -110,7 +110,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const results: Array<{ id: string; ok: boolean; latency_ms: number | null; error?: string }> = [];
+    const results: Array<{ id: string; ok: boolean; latency_ms: number | null; attempts: number; error?: string }> = [];
     for (let i = 0; i < conns.length; i += BATCH_SIZE) {
       const batch = conns.slice(i, i + BATCH_SIZE);
       const r = await processBatch(service, batch);
@@ -119,11 +119,15 @@ Deno.serve(async (req) => {
 
     const ok_count = results.filter((r) => r.ok).length;
     const failed = results.length - ok_count;
+    const retried = results.filter((r) => r.attempts > 1).length;
+    const recovered = results.filter((r) => r.ok && r.attempts > 1).length;
     const summary = {
       ok: true,
       tested: results.length,
       ok_count,
       failed,
+      retried,
+      recovered,
       duration_ms: Date.now() - startedAt,
     };
     console.log(JSON.stringify({ evt: "auto-test-summary", ...summary }));
