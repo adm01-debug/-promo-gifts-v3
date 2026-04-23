@@ -1,43 +1,46 @@
 
 
-## Corrigir bug `Cannot read properties of undefined (reading 'length')` no comparador
+## Adicionar link "Ver detalhes" ao SecretErrorAlert
 
-### Causa raiz
-
-`src/components/compare/ComparisonMobileView.tsx` está usando a API errada do hook `useComparisonScore`:
-
-```ts
-// ❌ ERRADO (linha 29)
-const { items: scoreItems } = useComparisonScore(products);
-// useComparisonScore retorna ProductScore[] direto, não { items: [...] }
-// → scoreItems = undefined → scoreItems.length lança TypeError
-
-// ❌ ERRADO (linha 31)
-cur.score > arr[best].score
-// O tipo ProductScore tem `total`, não `score`
-```
-
-O componente é renderizado em todos os viewports (escondido via `md:hidden`), então o erro dispara também em desktop e quebra a página inteira via ErrorBoundary.
+### Objetivo
+Permitir que o admin abra um modal com o registro completo do erro (status HTTP, latência, headers, body, timing detalhado, stack) diretamente a partir da mensagem de falha exibida pelo `SecretErrorAlert`, sem precisar navegar até o histórico.
 
 ### O que será alterado
 
-**`src/components/compare/ComparisonMobileView.tsx`** (3 linhas):
+**1. `src/components/admin/connections/SecretErrorAlert.tsx`**
+- Adicionar duas props opcionais:
+  - `onViewDetails?: () => void` — handler que abre o modal
+  - `detailsLabel?: string` (default: `"Ver detalhes"`)
+- Renderizar um botão `link` (variant `link`, tamanho `sm`, ícone `Info`) ao lado direito do botão "Tentar novamente" quando `onViewDetails` estiver definido. Mantém alinhamento atual e responsividade (wrap no mobile).
 
-```ts
-// linha 29
-const scoreItems = useComparisonScore(products);
+**2. Novo componente `src/components/admin/connections/ErrorDetailsDialog.tsx`**
+- Dialog reutilizável que recebe:
+  - `open`, `onOpenChange`
+  - `error: NormalizedSecretError` (headline, hint, categoria)
+  - `details?: TestDetails | null` (do hook `useConnectionTestDetails`)
+  - `loading?: boolean`
+- Layout em 4 seções colapsáveis (usando `Collapsible` do shadcn):
+  1. **Resumo** — categoria, título, descrição, hint
+  2. **HTTP** — método, URL, status, latência total
+  3. **Timing detalhado** — DNS / TCP / TLS / TTFB / Download (ms) em grid
+  4. **Resposta crua** — headers (key/value table) + body (`<pre>` com `max-h-64 overflow-auto`)
+  5. **Erro técnico** — `error.kind`, `error.message`, `timeout_ms` quando aplicável
+- Botão "Copiar JSON" no header do dialog que serializa `details` + `error` via `navigator.clipboard.writeText` e dispara `toast.success`.
+- Estado de loading com `Skeleton`. Estado vazio ("Sem registro de teste disponível") quando `details === null` e não está carregando.
 
-// linha 30-32
-const winnerIdx = scoreItems.length > 0
-  ? scoreItems.reduce((best, cur, idx, arr) => cur.total > arr[best].total ? idx : best, 0)
-  : -1;
-```
+**3. Integração nos consumidores do `SecretErrorAlert`**
+- `SecretField.tsx`: quando `connectionId` estiver presente, instanciar `useConnectionTestDetails({ open: detailsOpen, type, connectionId })` e passar `onViewDetails={() => setDetailsOpen(true)}` para o `SecretErrorAlert`. Renderizar `<ErrorDetailsDialog />` no final do componente.
+- `LastTestLine.tsx`: já tem `onClick` próprio para abrir detalhes — sem mudança aqui (evita duplicação).
+- Demais usos do `SecretErrorAlert` (busca rápida confirma: `IntegrationsHealthCard`, `Bitrix24Tab`, `N8nTab`, etc.) recebem a prop opcional sem quebra — apenas os locais com contexto de teste passam `onViewDetails`.
 
-### Por que apareceu agora
+### Detalhes técnicos
 
-Provavelmente o hook `useComparisonScore` foi refatorado em algum momento para retornar `ProductScore[]` direto (em vez de `{ items, weights }`), mas o `ComparisonMobileView` não foi atualizado. O `ComparisonDuelView` já usa a API correta (`const scoreItems = useComparisonScore(products)` + `cur.total`), o que confirma o contrato atual.
+- **Sem fetch novo**: reutiliza `useConnectionTestDetails` existente, que já normaliza `TestDetails` e infere `error_kind` retroativamente.
+- **A11y**: botão "Ver detalhes" tem `aria-label` explícito; dialog usa `DialogTitle`/`DialogDescription` para leitores de tela; collapsibles têm `aria-expanded`.
+- **Performance**: hook só dispara quando o dialog abre (`open: detailsOpen`), evitando requisições desnecessárias.
+- **TS estrito**: tipos inline (`type` import), sem `any`, props opcionais bem definidas.
+- **Sem regressão visual**: o link aparece apenas quando handler é passado; alertas existentes sem contexto de teste continuam idênticos.
 
 ### Resultado
-
-Página `/comparar` volta a renderizar com 2+ produtos selecionados, sem ErrorBoundary. Modo Duelo, mobile carousel, score card — tudo funcional.
+Cada falha de credencial/conexão exibida no painel `/admin/conexoes` ganha um atalho "Ver detalhes" que abre um modal completo com toda a telemetria do último teste — status HTTP, breakdown de timing (DNS/TCP/TLS/TTFB), headers, body cru e mensagem de erro técnica — com botão de copiar JSON para suporte. Zero impacto em consumidores que não passam `onViewDetails`.
 
