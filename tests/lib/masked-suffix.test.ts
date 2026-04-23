@@ -71,7 +71,8 @@ describe("diagnoseMaskedSuffix — status + mensagem", () => {
     expect(d.status).toBe("short");
     expect(d.realLength).toBe(1);
     expect(d.label).toBe("Sufixo curto (1/4)");
-    expect(d.message).toContain("1 caractere(s)");
+    expect(d.message).toContain("1 caractere ");
+    expect(d.message).not.toContain("1 caracteres");
     expect(d.message).toContain("Re-salve");
   });
 
@@ -80,7 +81,7 @@ describe("diagnoseMaskedSuffix — status + mensagem", () => {
     expect(d.status).toBe("short");
     expect(d.realLength).toBe(2);
     expect(d.label).toBe("Sufixo curto (2/4)");
-    expect(d.message).toContain("2 caractere(s)");
+    expect(d.message).toContain("2 caracteres");
   });
 
   it("3 chars → status 'short' + label '(3/4)'", () => {
