@@ -138,13 +138,16 @@ export function LastTestLine({
       )}
     </span>
   ) : headerNode;
+  const ariaLive = info.ok === false ? "assertive" : "polite";
   if (isClickable) {
     return wrap(
       <button
+        ref={buttonRef}
         type="button"
         onClick={onClick}
-        aria-label="Ver detalhes do último teste"
+        aria-label={info.ok === false ? "Falha no último teste — ver detalhes" : "Ver detalhes do último teste"}
         title="Ver detalhes do último teste"
+        aria-live={ariaLive}
         className={cn(
           "text-xs inline-block w-full max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors cursor-pointer",
           info.ok
@@ -159,7 +162,17 @@ export function LastTestLine({
     );
   }
   return wrap(
-    <div className={cn("text-xs max-w-full", color, !action && className)}>
+    <div
+      ref={regionRef}
+      tabIndex={-1}
+      aria-live={ariaLive}
+      className={cn(
+        "text-xs max-w-full rounded px-1 -mx-1 focus-visible:outline-none focus-visible:ring-2",
+        info.ok === false ? "focus-visible:ring-destructive/40" : "focus-visible:ring-ring/40",
+        color,
+        !action && className,
+      )}
+    >
       {body}
     </div>,
   );
