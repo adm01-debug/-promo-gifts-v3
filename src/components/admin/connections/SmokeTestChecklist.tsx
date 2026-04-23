@@ -37,6 +37,7 @@ import {
   type RotationHistoryEntry,
 } from "@/hooks/useSecretsManager";
 import { ALLOWED_SECRET_NAMES } from "./secretWhitelist";
+import { formatMaskedSuffix, normalizeMaskedSuffix } from "@/lib/masked-suffix";
 
 type StepStatus = "idle" | "running" | "passed" | "failed" | "skipped";
 
