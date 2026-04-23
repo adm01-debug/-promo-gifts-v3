@@ -89,6 +89,8 @@ describe("processVoiceTranscript", () => {
   });
 
   it("throws timeout error on abort", async () => {
+    // Usa fake timers para não esperar os 15s reais do AbortController interno.
+    vi.useFakeTimers();
     global.fetch = vi.fn().mockImplementation((_url, opts) => {
       return new Promise((_resolve, reject) => {
         opts?.signal?.addEventListener("abort", () => {
@@ -98,10 +100,11 @@ describe("processVoiceTranscript", () => {
       });
     });
 
-    // Use a very short timeout by manipulating the controller
-    // The actual function uses 15s, but we can test the error path
-    await expect(
-      processVoiceTranscript("teste")
-    ).rejects.toThrow();
-  }, 20000);
+    const promise = processVoiceTranscript("teste");
+    // Captura imediatamente para evitar unhandled rejection
+    const assertion = expect(promise).rejects.toThrow();
+    await vi.advanceTimersByTimeAsync(15_000);
+    await assertion;
+    vi.useRealTimers();
+  });
 });

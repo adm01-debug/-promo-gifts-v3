@@ -19,12 +19,12 @@ import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 describe("useAIRecommendations", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    vi.useFakeTimers({ shouldAdvanceTime: true });
     vi.stubEnv("VITE_SUPABASE_URL", "https://test.supabase.co");
     vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "test-key");
   });
 
   afterEach(() => {
+    // Garante que qualquer teste que tenha ativado fake timers volta ao normal
     vi.useRealTimers();
   });
 
@@ -125,12 +125,16 @@ describe("useAIRecommendations", () => {
   });
 
   it("resets state and aborts correctly", async () => {
+    // Fake timers para pular backoffs do retry path em 500
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     global.fetch = vi.fn().mockResolvedValue({ ok: false, status: 500, text: () => Promise.resolve("err") });
 
     const { result } = renderHook(() => useAIRecommendations());
 
     await act(async () => {
-      await result.current.fetchRecommendations(mockClient, mockProducts);
+      const promise = result.current.fetchRecommendations(mockClient, mockProducts);
+      await vi.advanceTimersByTimeAsync(2_000);
+      await promise;
     });
 
     expect(result.current.error).not.toBeNull();
@@ -163,6 +167,8 @@ describe("useAIRecommendations", () => {
   });
 
   it("retries up to 3 times on 5xx errors", async () => {
+    // Fake timers SOMENTE neste teste para pular os backoffs exponenciais (500ms + 1000ms)
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 503,
@@ -172,7 +178,10 @@ describe("useAIRecommendations", () => {
     const { result } = renderHook(() => useAIRecommendations());
 
     await act(async () => {
-      await result.current.fetchRecommendations(mockClient, mockProducts);
+      const promise = result.current.fetchRecommendations(mockClient, mockProducts);
+      // Avança 2s para cobrir os dois backoffs sem esperar tempo real
+      await vi.advanceTimersByTimeAsync(2_000);
+      await promise;
     });
 
     // 1 initial + 2 retries = 3 total
@@ -198,12 +207,16 @@ describe("useAIRecommendations", () => {
   });
 
   it("handles network failure gracefully", async () => {
+    // Fake timers para pular os backoffs do retry path em TypeError
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     global.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
 
     const { result } = renderHook(() => useAIRecommendations());
 
     await act(async () => {
-      await result.current.fetchRecommendations(mockClient, mockProducts);
+      const promise = result.current.fetchRecommendations(mockClient, mockProducts);
+      await vi.advanceTimersByTimeAsync(2_000);
+      await promise;
     });
 
     expect(result.current.error).toBeTruthy();
