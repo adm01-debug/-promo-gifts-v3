@@ -29,6 +29,8 @@ interface Props {
   connectionLabel: string;
   envKey?: "promobrind" | "crm";
   connectionId?: string;
+  /** Quando presente, abre os detalhes deste registro específico do histórico. */
+  historyId?: string;
 }
 
 const TRIGGER_META: Record<TestDetails["triggered_by"], { label: string; Icon: typeof User }> = {
@@ -113,12 +115,14 @@ export function ConnectionTestDetailsDialog({
   connectionLabel,
   envKey,
   connectionId,
+  historyId,
 }: Props) {
   const { details, loading } = useConnectionTestDetails({
     open,
     type: connectionType,
     envKey,
     connectionId,
+    historyId,
   });
 
   const [tab, setTab] = useState<"resumo" | "http" | "timing" | "resposta">("resumo");
