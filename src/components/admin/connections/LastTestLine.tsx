@@ -60,7 +60,7 @@ export function LastTestLine({
   const tail = info.ok
     ? [latency, httpInfo].filter(Boolean).join(" · ")
     : info.message || "Falha";
-  const isClickable = !info.ok && !!onClick;
+  const isClickable = !!onClick;
   const content = (
     <span className="inline-flex items-center gap-1.5 max-w-full">
       <Icon className="h-3.5 w-3.5 shrink-0" />
@@ -75,10 +75,13 @@ export function LastTestLine({
       <button
         type="button"
         onClick={onClick}
-        title="Clique para ver detalhes do erro"
+        aria-label="Ver detalhes do último teste"
+        title="Ver detalhes do último teste"
         className={cn(
-          "text-xs inline-flex items-center max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors",
-          "hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40",
+          "text-xs inline-flex items-center max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors cursor-pointer",
+          info.ok
+            ? "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+            : "hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40",
           color,
           !action && className,
         )}
