@@ -326,7 +326,7 @@ export function NotificationsBadgeStatsPanel() {
               <span className="text-[10px]">saved %</span>
             </div>
             <TooltipProvider delayDuration={150}>
-              <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 gap-y-0.5">
+              <div className="space-y-0.5">
                 {coalescingRows.map(({ key, label }) => {
                   const c = coalescingByTrigger[key];
                   const pct = Math.round(c.efficiency * 100);
@@ -339,76 +339,18 @@ export function NotificationsBadgeStatsPanel() {
                           ? "text-foreground"
                           : "text-warning";
                   const ratioPerFetch = c.fetches === 0 ? 0 : c.triggers / c.fetches;
-                  // Detailed tooltip — explains the formula, shows the current
-                  // numerator/denominator, and gives a plain-language verdict.
-                  const tooltipContent = (
-                    <div className="font-mono text-[10px] leading-snug max-w-[260px] space-y-1">
-                      <div className="font-semibold text-foreground capitalize text-[11px] not-italic">
-                        {label}
-                      </div>
-                      {c.triggers === 0 ? (
-                        <div className="text-muted-foreground">
-                          No samples yet for this source.
-                        </div>
-                      ) : (
-                        <>
-                          <div className="grid grid-cols-2 gap-x-2 gap-y-0">
-                            <span className="text-muted-foreground">triggers</span>
-                            <span className="text-right tabular-nums">{c.triggers}</span>
-                            <span className="text-muted-foreground">fetches</span>
-                            <span className="text-right tabular-nums">{c.fetches}</span>
-                            <span className="text-muted-foreground">saved</span>
-                            <span className="text-right tabular-nums text-primary">
-                              {c.saved}
-                            </span>
-                            <span className="text-muted-foreground">triggers/fetch</span>
-                            <span className="text-right tabular-nums">
-                              {ratioPerFetch.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="pt-1 border-t border-border/40 text-muted-foreground">
-                            <span className="block">
-                              efficiency = saved / triggers
-                            </span>
-                            <span className="block">
-                              = {c.saved} / {c.triggers} ={" "}
-                              <span className={cn("font-semibold", tone)}>
-                                {c.efficiency.toFixed(3)} ({pct}%)
-                              </span>
-                            </span>
-                          </div>
-                          <div className="pt-1 border-t border-border/40">
-                            {c.efficiency >= 0.7 ? (
-                              <span className="text-primary">
-                                ✓ Excellent — debounce + 5s TTL absorbing most triggers.
-                              </span>
-                            ) : c.efficiency >= 0.3 ? (
-                              <span className="text-foreground">
-                                · Healthy — typical coalescing range.
-                              </span>
-                            ) : (
-                              <span className="text-warning">
-                                ⚠ Low — most triggers reach the network. Check debounce
-                                window or call sites.
-                              </span>
-                            )}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  );
                   return (
                     <Tooltip key={key}>
                       <TooltipTrigger asChild>
                         <div
-                          className="contents"
+                          className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 cursor-help rounded px-1 -mx-1 hover:bg-muted/40"
                           aria-label={`${label}: ${c.triggers} triggers, ${c.fetches} fetches, ${c.saved} saved (${pct}% efficiency)`}
                         >
-                          <span className="text-muted-foreground pl-3.5 cursor-help underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
+                          <span className="text-muted-foreground pl-2.5 underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
                             · {label}
                           </span>
                           <div
-                            className="h-1.5 self-center rounded bg-muted/60 overflow-hidden cursor-help"
+                            className="h-1.5 rounded bg-muted/60 overflow-hidden"
                             role="progressbar"
                             aria-valuemin={0}
                             aria-valuemax={100}
@@ -431,7 +373,7 @@ export function NotificationsBadgeStatsPanel() {
                           </div>
                           <span
                             className={cn(
-                              "tabular-nums text-right text-[10px] font-semibold cursor-help",
+                              "tabular-nums text-right text-[10px] font-semibold",
                               tone
                             )}
                           >
@@ -440,7 +382,58 @@ export function NotificationsBadgeStatsPanel() {
                         </div>
                       </TooltipTrigger>
                       <TooltipContent side="left" align="center" className="p-2">
-                        {tooltipContent}
+                        <div className="font-mono text-[10px] leading-snug max-w-[260px] space-y-1">
+                          <div className="font-semibold text-foreground capitalize text-[11px]">
+                            {label}
+                          </div>
+                          {c.triggers === 0 ? (
+                            <div className="text-muted-foreground">
+                              No samples yet for this source.
+                            </div>
+                          ) : (
+                            <>
+                              <div className="grid grid-cols-2 gap-x-2 gap-y-0">
+                                <span className="text-muted-foreground">triggers</span>
+                                <span className="text-right tabular-nums">{c.triggers}</span>
+                                <span className="text-muted-foreground">fetches</span>
+                                <span className="text-right tabular-nums">{c.fetches}</span>
+                                <span className="text-muted-foreground">saved</span>
+                                <span className="text-right tabular-nums text-primary">
+                                  {c.saved}
+                                </span>
+                                <span className="text-muted-foreground">triggers/fetch</span>
+                                <span className="text-right tabular-nums">
+                                  {ratioPerFetch.toFixed(2)}
+                                </span>
+                              </div>
+                              <div className="pt-1 border-t border-border/40 text-muted-foreground">
+                                <span className="block">efficiency = saved / triggers</span>
+                                <span className="block">
+                                  = {c.saved} / {c.triggers} ={" "}
+                                  <span className={cn("font-semibold", tone)}>
+                                    {c.efficiency.toFixed(3)} ({pct}%)
+                                  </span>
+                                </span>
+                              </div>
+                              <div className="pt-1 border-t border-border/40">
+                                {c.efficiency >= 0.7 ? (
+                                  <span className="text-primary">
+                                    ✓ Excellent — debounce + 5s TTL absorbing most triggers.
+                                  </span>
+                                ) : c.efficiency >= 0.3 ? (
+                                  <span className="text-foreground">
+                                    · Healthy — typical coalescing range.
+                                  </span>
+                                ) : (
+                                  <span className="text-warning">
+                                    ⚠ Low — most triggers reach the network. Check debounce
+                                    window or call sites.
+                                  </span>
+                                )}
+                              </div>
+                            </>
+                          )}
+                        </div>
                       </TooltipContent>
                     </Tooltip>
                   );
