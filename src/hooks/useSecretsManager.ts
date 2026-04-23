@@ -8,6 +8,10 @@ export interface SecretStatus {
   masked_suffix: string | null;
   length: number;
   updated_at?: string | null;
+  /** UUID do admin que fez o último set/rotate (null se veio só de ENV). */
+  updated_by?: string | null;
+  /** E-mail resolvido do `updated_by` (null se não foi possível resolver). */
+  updated_by_email?: string | null;
   source?: "db" | "env" | "none";
   env_fallback_active?: boolean;
 }

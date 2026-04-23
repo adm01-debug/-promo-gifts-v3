@@ -102,17 +102,35 @@ Deno.serve(async (req) => {
 
     // Helper: load DB rows for a list of names
     async function loadFromDb(targets: string[]) {
-      if (targets.length === 0) return new Map<string, { masked_suffix: string | null; length: number; updated_at: string }>();
+      type Row = { masked_suffix: string | null; length: number; updated_at: string; updated_by: string | null };
+      if (targets.length === 0) return new Map<string, Row>();
       const { data } = await service
         .from("integration_credentials")
-        .select("secret_name, masked_suffix, length, updated_at")
+        .select("secret_name, masked_suffix, length, updated_at, updated_by")
         .in("secret_name", targets);
-      const map = new Map<string, { masked_suffix: string | null; length: number; updated_at: string }>();
-      for (const row of (data ?? []) as Array<{ secret_name: string; masked_suffix: string | null; length: number; updated_at: string }>) {
-        map.set(row.secret_name, { masked_suffix: row.masked_suffix, length: row.length, updated_at: row.updated_at });
+      const map = new Map<string, Row>();
+      for (const row of (data ?? []) as Array<{ secret_name: string } & Row>) {
+        map.set(row.secret_name, {
+          masked_suffix: row.masked_suffix,
+          length: row.length,
+          updated_at: row.updated_at,
+          updated_by: row.updated_by,
+        });
       }
       return map;
     }
+
+    // Helper: resolve uuid → email via auth.admin (bounded single page; admin tool)
+    async function resolveEmails(ids: string[]): Promise<Map<string, string>> {
+      const map = new Map<string, string>();
+      if (ids.length === 0) return map;
+      const { data: usersPage } = await service.auth.admin.listUsers({ page: 1, perPage: 200 });
+      for (const u of usersPage?.users ?? []) {
+        if (ids.includes(u.id) && u.email) map.set(u.id, u.email);
+      }
+      return map;
+    }
+
 
     if (action === "rotation_history") {
       const baseQ = service
@@ -128,14 +146,11 @@ Deno.serve(async (req) => {
       // Enrich each entry with rotated_by_email via auth.admin lookup
       const rows = (history ?? []) as Array<{ rotated_by: string | null } & Record<string, unknown>>;
       const uniqueIds = Array.from(new Set(rows.map((r) => r.rotated_by).filter((v): v is string => !!v)));
-      const emailMap = new Map<string, string>();
-      if (uniqueIds.length > 0) {
-        // listUsers is paginated; for an admin tool with limited rotators this single page is sufficient
-        const { data: usersPage } = await service.auth.admin.listUsers({ page: 1, perPage: 200 });
-        for (const u of usersPage?.users ?? []) {
-          if (uniqueIds.includes(u.id) && u.email) emailMap.set(u.id, u.email);
-        }
-      }
+      const emailMap = await resolveEmails(uniqueIds);
+      const enriched = rows.map((r) => ({
+        ...r,
+        rotated_by_email: r.rotated_by ? emailMap.get(r.rotated_by) ?? null : null,
+      }));
       const enriched = rows.map((r) => ({
         ...r,
         rotated_by_email: r.rotated_by ? emailMap.get(r.rotated_by) ?? null : null,
@@ -150,6 +165,14 @@ Deno.serve(async (req) => {
       const requested = names && names.length > 0 ? names : Array.from(ALLOWED_SECRETS);
       const allowed = requested.filter(isAllowedSecretName);
       const dbMap = await loadFromDb(allowed);
+      const updaterIds = Array.from(
+        new Set(
+          Array.from(dbMap.values())
+            .map((r) => r.updated_by)
+            .filter((v): v is string => !!v),
+        ),
+      );
+      const emailMap = await resolveEmails(updaterIds);
       const results = allowed.map((n) => {
         const dbRow = dbMap.get(n);
         if (dbRow && dbRow.length > 0) {
@@ -159,6 +182,8 @@ Deno.serve(async (req) => {
             masked_suffix: dbRow.masked_suffix,
             length: dbRow.length,
             updated_at: dbRow.updated_at,
+            updated_by: dbRow.updated_by,
+            updated_by_email: dbRow.updated_by ? emailMap.get(dbRow.updated_by) ?? null : null,
             source: "db" as const,
             env_fallback_active: false,
           };
@@ -170,6 +195,8 @@ Deno.serve(async (req) => {
           masked_suffix: env.masked_suffix,
           length: env.length,
           updated_at: null as string | null,
+          updated_by: null as string | null,
+          updated_by_email: null as string | null,
           source: env.has_value ? ("env" as const) : ("none" as const),
           env_fallback_active: env.has_value,
         };
