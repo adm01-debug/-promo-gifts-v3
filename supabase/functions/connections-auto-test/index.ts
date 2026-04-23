@@ -2,7 +2,7 @@
 // connection in `external_connections` and updates last_test_* fields +
 // inserts a row in `connection_test_history` with triggered_by='cron'.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
-import { runConnectionTest, type ConnectionType } from "../_shared/connection-test-runner.ts";
+import { runConnectionTest, type ConnectionType, isTransientFailure } from "../_shared/connection-test-runner.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +12,7 @@ const corsHeaders = {
 
 const BATCH_SIZE = 5;
 const PER_TEST_TIMEOUT_MS = 8000;
+const RETRY_DELAY_MS = 800;
 
 interface ActiveConnection {
   id: string;
