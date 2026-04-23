@@ -4193,6 +4193,19 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      get_auto_test_job_status: {
+        Args: { _limit?: number }
+        Returns: {
+          avg_latency_ms: number
+          duration_ms: number
+          fail_count: number
+          ok_count: number
+          retried_count: number
+          run_ended_at: string
+          run_started_at: string
+          total_tested: number
+        }[]
+      }
       get_bundle_suggestions: {
         Args: { _product_id: string }
         Returns: {

@@ -11,6 +11,7 @@ import { ConnectionsOverviewTable } from "@/components/admin/connections/Connect
 import { SmokeTestChecklist } from "@/components/admin/connections/SmokeTestChecklist";
 import { AutoTestIntervalCard } from "@/components/admin/connections/AutoTestIntervalCard";
 import { FailureWindowCard } from "@/components/admin/connections/FailureWindowCard";
+import { AutoTestJobStatusCard } from "@/components/admin/connections/AutoTestJobStatusCard";
 import { CredentialsSourceFilterProvider } from "@/components/admin/connections/CredentialsSourceFilterContext";
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
 import { useEffect } from "react";
@@ -43,6 +44,8 @@ export default function AdminConexoesPage() {
           <AutoTestIntervalCard />
           <FailureWindowCard />
         </div>
+
+        <AutoTestJobStatusCard />
 
         {secrets.length > 0 && (
           <CredentialsSourceFilter secrets={secrets} className="rounded-lg border bg-card px-4 py-3" />
