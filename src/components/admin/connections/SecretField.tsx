@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
 import { validateSecret, getMinLength, MIN_SUFFIX_LENGTH } from "./secretValidators";
+import { formatMaskedSuffix, normalizeMaskedSuffix } from "@/lib/masked-suffix";
 import { normalizeSecret } from "./secretNormalizers";
 import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
