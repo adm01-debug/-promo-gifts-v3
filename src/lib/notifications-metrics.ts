@@ -149,14 +149,71 @@ function isDebugEnabled(): boolean {
   }
 }
 
-function debugLog(event: string, payload: Record<string, unknown>) {
-  if (!isDebugEnabled()) return;
+/**
+ * Throttle window for console output (ms). Counters update instantly; only the
+ * `console.log` side-effect is rate-limited. Within each window we emit at most
+ * one leading log per event type and then a single trailing log carrying the
+ * most recent payload + a `coalesced` count of suppressed entries.
+ */
+export const DEBUG_LOG_THROTTLE_MS = 1000;
+
+interface ThrottleEntry {
+  lastEmitAt: number;
+  trailingTimer: ReturnType<typeof setTimeout> | null;
+  pendingPayload: Record<string, unknown> | null;
+  suppressed: number;
+}
+const throttleByEvent = new Map<string, ThrottleEntry>();
+
+function emit(event: string, payload: Record<string, unknown>) {
   // eslint-disable-next-line no-console
   console.log(
     `%c[notifications-metrics:${event}]`,
     "color:#0891b2;font-weight:600",
     payload
   );
+}
+
+function debugLog(event: string, payload: Record<string, unknown>) {
+  if (!isDebugEnabled()) return;
+  const now = Date.now();
+  let entry = throttleByEvent.get(event);
+  if (!entry) {
+    entry = { lastEmitAt: 0, trailingTimer: null, pendingPayload: null, suppressed: 0 };
+    throttleByEvent.set(event, entry);
+  }
+  const elapsed = now - entry.lastEmitAt;
+  if (elapsed >= DEBUG_LOG_THROTTLE_MS) {
+    entry.lastEmitAt = now;
+    entry.pendingPayload = null;
+    entry.suppressed = 0;
+    emit(event, payload);
+    return;
+  }
+  // Within the throttle window: stash the latest payload and schedule a single
+  // trailing emission so the most recent counters still surface.
+  entry.pendingPayload = payload;
+  entry.suppressed += 1;
+  if (entry.trailingTimer) return;
+  const wait = Math.max(0, DEBUG_LOG_THROTTLE_MS - elapsed);
+  entry.trailingTimer = setTimeout(() => {
+    const e = throttleByEvent.get(event);
+    if (!e) return;
+    e.trailingTimer = null;
+    if (!e.pendingPayload) return;
+    e.lastEmitAt = Date.now();
+    emit(event, { ...e.pendingPayload, coalesced: e.suppressed });
+    e.pendingPayload = null;
+    e.suppressed = 0;
+  }, wait);
+}
+
+/** Test helper: clear pending throttle timers + windows. */
+function resetThrottle() {
+  throttleByEvent.forEach((e) => {
+    if (e.trailingTimer) clearTimeout(e.trailingTimer);
+  });
+  throttleByEvent.clear();
 }
 
 export const notificationsMetrics = {
@@ -292,6 +349,7 @@ export const notificationsMetrics = {
     state.triggerToFetch = [];
     state.triggerToFetchTtlBreaches = 0;
     state.since = Date.now();
+    resetThrottle();
   },
 };
 
