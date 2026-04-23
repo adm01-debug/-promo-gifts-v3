@@ -27,7 +27,7 @@ Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída + **Playground** 
 - `EventsMultiSelect` (catálogo SSOT em `webhook-events-catalog.ts`, 16 eventos)
 
 ## Onda 13 — classe enterprise (10/10 ⇒ 11/10)
-- **#7 Notificações proativas**: edge `connections-health-check` + cron 15min insere `workspace_notifications` (categoria `integrations`) para webhooks auto-desabilitados, secrets >90d e conexões caídas na última hora. Dedupe 4h por `incident_key`.
+- **#7 Notificações proativas**: edge `connections-health-check` + cron 15min insere `workspace_notifications` (categoria `integrations`) para webhooks auto-desabilitados, secrets >90d e conexões caídas. Dedupe 4h por `incident_key`. **Janela de falha contínua configurável** (RPC admin `set_connection_failure_window_minutes` — 0/15/30/60/120/240min, default 30min, persistido em `system_settings`): só notifica `connection_down` se nenhum teste sucesso ocorreu dentro da janela (suprime flaps). Card UI `FailureWindowCard` em `/admin/conexoes`.
 - **#8 Exportação**: componente `ExportButton` reusável (CSV + JSON, sem deps extras — usa `trends-export.ts`). Aplicado em Timeline, Inbound events e Failed deliveries.
 - **#9 Playground**: `WebhookPlaygroundPanel` na sub-aba "Saída" com seleção de webhook + evento do catálogo, payload de exemplo editável (`webhook-events-payload-samples.ts` com 16 amostras), disparo via `webhook-dispatcher` em `test_mode=true` (não conta `consecutive_failures`, não persiste em `webhook_deliveries`, não aciona breaker).
 
