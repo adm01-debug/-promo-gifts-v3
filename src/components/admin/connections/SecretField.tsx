@@ -9,7 +9,6 @@ import { Label } from "@/components/ui/label";
 import {
   useSecretsManager,
   type SecretStatus,
-  type SecretError,
   type SecretMutationResult,
 } from "@/hooks/useSecretsManager";
 import { JustSavedFlash } from "./JustSavedFlash";
