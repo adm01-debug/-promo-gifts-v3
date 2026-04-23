@@ -100,7 +100,7 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { action, type, config = {}, connection_id, env_key } = parsed.data;
+    const { action, type, config = {}, connection_id, env_key, limit } = parsed.data;
 
     // -- last_test: read persisted info, no ping --
     if (action === "last_test") {
@@ -128,6 +128,52 @@ Deno.serve(async (req) => {
         row = data ?? null;
       }
       return new Response(JSON.stringify({ ok: true, last: row }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    // -- test_history: list last N entries from connection_test_history --
+    if (action === "test_history") {
+      const max = limit ?? 10;
+      let connIds: string[] = [];
+      if (connection_id) {
+        connIds = [connection_id];
+      } else if (env_key) {
+        const { data } = await service.from("external_connections")
+          .select("id").eq("env_key", env_key).eq("type", type);
+        connIds = (data ?? []).map((r: { id: string }) => r.id);
+      } else {
+        const { data } = await service.from("external_connections")
+          .select("id").eq("type", type);
+        connIds = (data ?? []).map((r: { id: string }) => r.id);
+      }
+      if (connIds.length === 0) {
+        return new Response(JSON.stringify({ ok: true, items: [], total: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+      const [{ data: items }, { count }] = await Promise.all([
+        service.from("connection_test_history")
+          .select("id, tested_at, success, latency_ms, status_code, error_message")
+          .in("connection_id", connIds)
+          .order("tested_at", { ascending: false })
+          .limit(max),
+        service.from("connection_test_history")
+          .select("id", { count: "exact", head: true })
+          .in("connection_id", connIds),
+      ]);
+      return new Response(JSON.stringify({
+        ok: true,
+        items: (items ?? []).map((r: { id: string; tested_at: string; success: boolean; latency_ms: number | null; status_code: number | null; error_message: string | null }) => ({
+          id: r.id,
+          tested_at: r.tested_at,
+          ok: r.success,
+          latency_ms: r.latency_ms,
+          status: r.status_code,
+          message: r.error_message,
+        })),
+        total: count ?? 0,
+      }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
