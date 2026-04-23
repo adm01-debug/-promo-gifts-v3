@@ -1,154 +1,133 @@
 
 
-# Drawer de detalhes do erro ao clicar em "Falhou"
+# Indicador de "fallback de env" + botão "Atualizar do banco"
 
 ## Diagnóstico
 
-Hoje em `LastTestLine.tsx`, quando um teste falha, a linha mostra:
-```
-✗ Falhou há 3min — Connection timeout
-```
-O texto é truncado (`truncate`) e não há forma de ver o erro completo, código HTTP, stack ou contexto da conexão. O admin precisa abrir o `ConnectionTimelineDrawer` (botão separado no card) e procurar manualmente.
+Em `supabase/functions/_shared/credentials.ts`, o resolvedor de credenciais tem 2 origens:
+1. **DB** — `integration_credentials.secret_value` (preferencial, editável via `/admin/conexoes`)
+2. **ENV** — `Deno.env.get(name)` (fallback estático, configurado no deploy)
 
-A `LastTestInfo` já carrega `ok`, `tested_at`, `latency_ms`, `message`, `status` — temos quase tudo. Falta só uma forma de exibir esses dados em destaque + buscar o registro completo de `connection_test_history` para mostrar `response_body`/`stack` quando disponível.
+Hoje a UI não distingue entre os dois. Se o admin edita um secret em `/admin/conexoes` mas a edge ainda está servindo o valor antigo do `Deno.env` (ex: porque a row não existe no DB ou o cache de 60s ainda não expirou), não há sinal visual. O admin clica "Salvar", vê "Salvo ✓", e o sistema continua usando o valor antigo silenciosamente.
+
+Além disso, o cache em memória de 60s (`TTL_MS` em `credentials.ts`) significa que mesmo após salvar, a próxima invocação pode pegar o valor cached do env. Não há forma de invalidar de fora.
 
 ## Solução
 
-### 1. Tornar a linha "Falhou" clicável
+### 1. Backend: expor `source` ("db" | "env" | "missing") em `secrets-manager`
 
-Em `LastTestLine.tsx`, quando `info.ok === false`, envolver o conteúdo num `<button>` semântico (mantendo a aparência atual + cursor pointer + hover sutil + foco visível). Adicionar prop `onClick?: () => void` opcional. Quando ausente ou `info.ok !== false`, renderiza como `<p>` (comportamento atual).
-
-Affordance visual:
-- Sublinhado pontilhado discreto sob o texto de erro
-- Hover: `bg-destructive/5` no container
-- Tooltip: "Clique para ver detalhes do erro"
-
-### 2. Novo componente `ConnectionErrorDetailsDialog`
-
-`src/components/admin/connections/ConnectionErrorDetailsDialog.tsx` (~150 linhas):
-
-Dialog (não Drawer — é conteúdo focado de leitura, não navegação) com:
-
-- **Header**: ícone `XCircle` vermelho + "Detalhes da falha" + badge com tipo da conexão (ex: `Bitrix24`, `n8n`, `Supabase Promobrind`)
-- **Resumo (grid 2 colunas)**:
-  - Quando: `tested_at` formatado (relativo + absoluto no tooltip)
-  - Latência: `latency_ms` ou "—" se timeout
-  - HTTP Status: badge colorido (`destructive` para 4xx/5xx, `outline` para network errors)
-  - Tipo: badge com nome amigável do tipo
-- **Mensagem**: bloco em destaque com `info.message` em fonte mono, `whitespace-pre-wrap`, scrollável até 200px
-- **Detalhes técnicos** (collapsible, fechado por default): se houver `response_body` ou `stack` no registro completo de `connection_test_history`, mostrar em `<pre>` com syntax básica (texto cinza claro), limite 400px scroll
-- **Sugestões contextuais** (footer): regras simples baseadas no erro:
-  - HTTP 401/403 → "Verifique se as credenciais estão corretas e não expiraram"
-  - HTTP 404 → "Verifique se a URL base está correta"
-  - HTTP 5xx → "Serviço externo retornou erro — tente novamente em alguns minutos"
-  - "ETIMEDOUT"/"ECONNREFUSED" → "O serviço pode estar offline ou bloqueando o IP"
-  - JWT inválido → "Token JWT malformado — re-salve o secret"
-  - default → nenhuma sugestão (sem placeholder vazio)
-- **Footer actions**:
-  - "Copiar detalhes" → copia JSON estruturado para clipboard (toast de confirmação)
-  - "Ver histórico completo" → fecha o dialog + abre o `ConnectionTimelineDrawer` da aba (via callback)
-  - "Fechar"
-
-### 3. Hook leve para buscar o registro completo
-
-A `LastTestInfo` no card só tem campos resumidos. O registro completo está em `connection_test_history` (com `response_body`, `stack`, `request_url`). 
-
-Novo hook `useLastTestDetail(connectionType: string)`:
-- Lazy: só dispara o fetch quando `enabled = true` (dialog aberto)
-- Busca `connection_test_history` ordenado por `created_at DESC LIMIT 1` filtrado por `type = connectionType` e `success = false`
-- Retorna `{ data, loading, error }`
-- Cache em memória de 30s para evitar refetch ao reabrir o dialog rapidamente
-
-Alternativa simples se já existe método similar em `useConnectionTester` ou `useConnectionTestHistory`: reusar adicionando `fetchLastFailureDetail(type)` em vez de criar hook novo. Vou checar e usar o que já existe — provavelmente `fetchLastTest` no `useConnectionTester` pode ser estendido ou já retorna campos extras.
-
-### 4. Integração nas 4 abas
-
-Em cada `*Tab.tsx` (`Bitrix24Tab`, `N8nTab`, `SupabaseConnectionsTab`, `McpTab`):
-
-```tsx
-const [errorDialogOpen, setErrorDialogOpen] = useState(false);
-
-<LastTestLine
-  info={last}
-  onClick={last?.ok === false ? () => setErrorDialogOpen(true) : undefined}
-  action={<RetestButton ... />}
-/>
-
-<ConnectionErrorDetailsDialog
-  open={errorDialogOpen}
-  onOpenChange={setErrorDialogOpen}
-  connectionType="bitrix24"
-  connectionLabel="Bitrix24"
-  summary={last}
-  onOpenTimeline={() => { setErrorDialogOpen(false); /* trigger drawer */ }}
-/>
+Em `supabase/functions/secrets-manager/index.ts`, na action `list`, retornar para cada secret:
+```ts
+{
+  name,
+  has_value: boolean,
+  masked_suffix: string | null,
+  length: number,
+  source: "db" | "env" | "missing",  // NOVO
+  env_fallback_active: boolean,       // NOVO — true quando source === "env" mas o secret é configurável via DB
+}
 ```
 
-Para `SupabaseConnectionsTab` (que tem 1 linha por env: promobrind, crm) — uma instância de dialog por env, com `connectionType={env.id}`.
+Lógica: para cada secret name esperado (lista hardcoded já existe), checar se há row em `integration_credentials`. Se sim → `source: "db"`. Se não, mas `Deno.env.get(name)` → `source: "env"` + `env_fallback_active: true`. Se nenhum → `source: "missing"`.
 
-### 5. Atalho de teclado
+Tipo `env_fallback_active` é o sinal de "está funcionando, mas via fallback".
 
-Quando o dialog estiver aberto:
-- `Esc`: fecha (Radix nativo)
-- `C`: copia detalhes
-- `H`: abre histórico completo
+### 2. Backend: nova action `refresh_cache` em `secrets-manager`
 
-Registrados via `useEffect` com cleanup. Sem conflito com atalhos globais (dialog tem foco trap).
+Endpoint que invoca `invalidateCredentialCache()` (já existe em `_shared/credentials.ts`) para limpar o cache de 60s. Aceita `{ name?: string }` para invalidar 1 secret ou todos.
 
-### 6. Estados visuais
+Além disso, `secrets-manager` já chama `invalidateCredentialCache(name)` automaticamente após `set`/`rotate` — vou confirmar e, se não, adicionar (1 linha). Isso garante que **salvar = invalidar imediato**, sem depender do botão.
+
+O botão "Atualizar do banco" serve para o cenário onde o admin quer forçar refresh **sem editar** (ex: alterou o valor diretamente no DB via SQL, ou suspeita de cache stale).
+
+### 3. Frontend: badge "ENV fallback" no `SecretField`
+
+Em `src/components/admin/connections/SecretField.tsx`:
+- Quando `status.env_fallback_active === true`, exibir badge âmbar discreto ao lado do label:
+  ```
+  Webhook URL completa  [⚠ Usando ENV]
+  ```
+- Tooltip: "Este secret está vindo da variável de ambiente do deploy, não do banco. Salve um valor aqui para sobrescrever."
+- Cores: `bg-amber-500/10 text-amber-700 border-amber-500/30` (mesmo padrão do `ConnectionStatusBadge` "degradado")
+
+Quando `source === "db"`: nenhuma badge (estado normal).
+Quando `source === "missing"`: já existe o badge "Sem valor" do componente atual — mantém.
+
+### 4. Frontend: botão "Atualizar do banco" no card
+
+Novo componente `RefreshFromDbButton` em `src/components/admin/connections/RefreshFromDbButton.tsx` (~50 linhas):
+- Ícone `DatabaseZap` + label "Atualizar do banco"
+- `variant="ghost"` `size="sm"`
+- Onclick → invoca `secrets-manager` com `action: "refresh_cache"` → recarrega `list()` → toast "Cache invalidado · valores atualizados"
+- Cooldown de 5s (igual padrão do `RetestButton`)
+- Spinner durante operação
+
+Posicionado no rodapé de cada `*Tab` (Bitrix24, n8n, Supabase, MCP), ao lado do `ConnectionTimelineDrawer`:
+```
+[Testar conexão] [Timeline] [↻ Atualizar do banco]
+```
+
+### 5. Auto-flash após salvar
+
+Quando o usuário salva um secret que estava em `env_fallback_active: true`, o `SecretField` já dispara `onSaved` → `list()` → o badge "ENV fallback" desaparece automaticamente. Adicionar transição suave (`animate-out fade-out`) para feedback visual claro.
+
+Adicionalmente, quando `JustSavedFlash` é exibido após salvar e o secret estava em fallback de env, ampliar a mensagem:
+```
+✓ Salvo • ••••abc1 • 64 chars • agora vem do banco
+```
+(sufixo "agora vem do banco" só quando `was_env_fallback === true` no momento do save)
+
+### 6. Visual
 
 ```text
-Idle (sem clique):
-✗ Falhou há 3min — Connection timeout                  [↻ Testar novamente]
-  ‾‾‾‾‾‾ ‾‾‾ ‾‾‾‾‾ ‾‾‾‾‾‾‾ ‾‾‾‾‾‾‾‾‾‾  (sublinhado pontilhado discreto)
+┌─ Bitrix24 ──────────────────────────────────────┐
+│  Webhook URL completa  [⚠ Usando ENV]           │
+│  ┌──────────────────────────────────────┐ [Editar]
+│  │ ••••xyz9 · 87 chars                  │       │
+│  └──────────────────────────────────────┘       │
+│                                                  │
+│  Domínio Bitrix24                                │
+│  ┌──────────────────────────────────────┐ [Editar]
+│  │ ••••.br · 24 chars                   │       │
+│  └──────────────────────────────────────┘       │
+│                                                  │
+│  [Testar conexão] [Timeline] [↻ Atualizar do banco]
+│                                                  │
+│  ✓ Verificado há 2min · 245ms · OK              │
+└──────────────────────────────────────────────────┘
+```
 
-Hover:
-✗ Falhou há 3min — Connection timeout                  [↻ Testar novamente]
-(fundo destructive/5, cursor pointer)
-
-Dialog aberto:
-┌─ ✗ Detalhes da falha    [Bitrix24]    × ┐
-│                                          │
-│ Quando      | há 3 min                   │
-│ Latência    | 8000ms (timeout)           │
-│ HTTP Status | — (network error)          │
-│ Tipo        | Bitrix24 Webhook           │
-│                                          │
-│ Mensagem:                                │
-│ ┌────────────────────────────────────┐   │
-│ │ Connection timeout after 8000ms    │   │
-│ │ at fetch (...)                     │   │
-│ └────────────────────────────────────┘   │
-│                                          │
-│ ▸ Detalhes técnicos                      │
-│                                          │
-│ 💡 O serviço pode estar offline ou       │
-│    bloqueando o IP da função.            │
-│                                          │
-│ [Copiar] [Ver histórico] [Fechar]        │
-└──────────────────────────────────────────┘
+Após salvar a Webhook URL:
+```
+│  Webhook URL completa                            │  ← badge sumiu
+│  ✓ Salvo • ••••abc1 • 64 chars • agora vem do banco
 ```
 
 ## Arquivos tocados
 
+**Backend (editados)**
+- `supabase/functions/secrets-manager/index.ts` (~30 linhas adicionadas):
+  - Action `list` agora retorna `source` e `env_fallback_active` por secret.
+  - Nova action `refresh_cache` que chama `invalidateCredentialCache(name?)`.
+  - Confirmar/garantir invalidação automática após `set`/`rotate`.
+
 **Frontend (novos)**
-- `src/components/admin/connections/ConnectionErrorDetailsDialog.tsx` (~150 linhas): dialog com resumo, mensagem, detalhes colapsáveis, sugestões e ações.
-- `src/hooks/useLastTestDetail.ts` (~50 linhas) — **só se** não conseguir reusar hook existente. Vou tentar estender `useConnectionTester` primeiro.
+- `src/components/admin/connections/RefreshFromDbButton.tsx` (~50 linhas): botão com cooldown de 5s que invoca `refresh_cache` + recarrega lista.
 
 **Frontend (editados)**
-- `src/components/admin/connections/LastTestLine.tsx`: prop opcional `onClick` que torna a linha clicável quando há falha; mantém compatibilidade com uso atual.
-- `src/components/admin/connections/Bitrix24Tab.tsx`: estado `errorDialogOpen` + `<ConnectionErrorDetailsDialog>` + `onClick` no `LastTestLine`.
-- `src/components/admin/connections/N8nTab.tsx`: idem.
-- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: idem (1 dialog por env).
-- `src/components/admin/connections/McpTab.tsx`: idem.
+- `src/hooks/useSecretsManager.ts`: adicionar campos `source` e `env_fallback_active` no tipo `SecretStatus`; nova função `refreshCache(name?)` que invoca a action.
+- `src/components/admin/connections/SecretField.tsx`: badge "⚠ Usando ENV" quando `env_fallback_active`; passar `was_env_fallback` para `JustSavedFlash`.
+- `src/components/admin/connections/JustSavedFlash.tsx`: prop opcional `was_env_fallback` que adiciona "• agora vem do banco" ao texto.
+- `src/components/admin/connections/Bitrix24Tab.tsx`, `N8nTab.tsx`, `SupabaseConnectionsTab.tsx`, `McpTab.tsx`: adicionar `<RefreshFromDbButton />` na linha de ações.
 
-**Backend**: nenhuma mudança. `connection_test_history` já tem os campos necessários.
+**Tipos**
+- Atualizar tipo `SecretStatus` em `useSecretsManager.ts` com os 2 novos campos opcionais (backward-compatible).
 
 ## Fora de escopo
 
-- Não muda o `ConnectionTimelineDrawer` existente (continua acessível pelo botão atual).
-- Não adiciona retry automático a partir do dialog (já tem `RetestButton` na linha).
-- Não adiciona deep-link (`?error=open`) — dialog é efêmero.
-- Não adiciona AI-powered diagnosis das falhas — sugestões são regras estáticas.
-- Não adiciona export do erro como issue/ticket.
+- Não muda a TTL de 60s do cache (`TTL_MS` em `credentials.ts`) — botão de refresh manual cobre o caso de urgência.
+- Não adiciona indicador no `IntegrationsHealthCard` global — fallback é granular por secret, não por conexão.
+- Não adiciona alerta proativo (notificação) quando muitos secrets estão em fallback — apenas indicador visual passivo.
+- Não adiciona "migrar tudo do ENV para o DB" em batch — admin precisa salvar um por um (intencional, evita acidentes).
+- Não toca em `_shared/credentials.ts` além de já invocar `invalidateCredentialCache` (que já existe).
 
