@@ -1,116 +1,102 @@
 
 
-# Atualizar nomes e colunas no front (Técnicas / Áreas / Faixas) com base no schema real
+# Adaptar hooks e types ao novo schema de gravação
 
 ## Contexto
 
-A página `/admin/external-db` já compara o schema esperado pelo front (`engraving-schema-diff.ts`) com o schema real retornado pela edge function `external-db-inspect`. Este plano usa esse diff como **fonte da verdade** para alinhar os tipos TS, hooks e adapters do front com os nomes/colunas que de fato existem no banco hoje.
+A camada de adapters (`src/lib/personalization/adapters/`) já isola componentes de mudanças no payload. Falta agora alinhar os **leitores diretos** (hooks que fazem `select` cru) e os **types canônicos** (`gravacao-database.ts`, `gravacao-types.ts`) com a estrutura nova devolvida pelas edge functions / RPCs de preço (`fn_get_customization_price`, `fn_get_product_customization_options`, `external-db-bridge`).
 
-A camada de adapters criada no ciclo anterior (`src/lib/personalization/adapters/`) **isola** os componentes — então a maior parte da mudança fica concentrada em 3 lugares: tipos canônicos, schema esperado e os adapters/hooks de leitura direta.
+Como o snapshot do schema real ainda não foi colado, este ciclo trabalha com as renomeações **já mapeadas** nos adapters (PT antigo → canônico) e prepara a base para acomodar novas colunas sem reescrita.
 
-## Passos
+## O que será feito
 
-### 1. Capturar o snapshot real do banco
-
-Rodar o painel de diff em `/admin/external-db` e exportar o markdown para `docs/engraving-schema-snapshot-<data>.md`. Esse arquivo vira referência permanente do schema atual e entrada das próximas etapas. Também salvar a lista bruta de colunas reais por tabela em `src/lib/personalization/contracts/__fixtures__/` (JSON) para alimentar testes.
-
-### 2. Atualizar o **expected schema** do front
-
-Arquivo: `src/pages/admin/engraving-schema-diff.ts`
-
-- Para cada uma das 4 tabelas (`tabela_preco_gravacao_oficial`, `tabela_preco_gravacao_oficial_faixa`, `print_area_techniques`, `tecnica_gravacao`), substituir `expectedColumns` pela lista **real** retornada pela edge function.
-- Remover colunas que sumiram (entram em `missingInDb`).
-- Adicionar colunas novas que o front passa a consumir (sai de `newInDb` → `expectedColumns`).
-- Atualizar `consumers` se algum arquivo deixou de usar.
-
-### 3. Atualizar tipos canônicos do front
+### 1. Tornar os types canônicos "tolerantes"
 
 Arquivos:
-- `src/types/customization.ts`
-- `src/types/gravacao-database.ts` (interfaces `TabelaPrecoOficial`, `FaixaPrecoOficial`, `TecnicaGravacao`, `PrintAreaTechnique`)
-- `src/hooks/gravacao/gravacao-types.ts` (mesmas interfaces espelhadas)
-- `src/components/admin/products/sections/engraving/types.ts`
-
-Para cada coluna renomeada no banco:
-- Adicionar o **novo nome** como campo canônico.
-- Manter o **nome antigo** como `@deprecated` opcional por 1 ciclo (compatibilidade).
-- Para colunas removidas: marcar como `@deprecated`, remover apenas se nenhum consumidor usa.
-- Para colunas novas relevantes (ex.: novas flags de precificação, campos de validade): incluir no tipo.
-
-### 4. Estender os adapters para mapear aliases
-
-Arquivos:
-- `src/lib/personalization/adapters/customization-options.adapter.ts`
-- `src/lib/personalization/adapters/price-response.adapter.ts`
-- `src/lib/personalization/adapters/print-area.adapter.ts`
-
-- Ampliar a tabela de aliases (PT antigo → canônico novo) com as renomeações descobertas no diff.
-- Garantir que se o banco devolver o nome antigo OU o novo, a saída canônica seja idêntica.
-- Adicionar log único por sessão quando um campo legado for detectado (telemetria já existe via `window.__personalizationSchemaStats`).
-
-### 5. Atualizar leitores diretos (sem adapter)
-
-Arquivos que ainda fazem `select` cru e leem colunas:
-- `src/hooks/usePrintAreas.ts` (lê `print_area_techniques` e `tabela_preco_gravacao_oficial`)
-- `src/hooks/useMockupGenerator.ts`
-- `src/hooks/tecnicas/useTecnicasList.ts`
-- `src/lib/fetch-print-areas.ts`
-- `src/components/admin/techniques-manager/TechniqueTable.tsx`
-- `src/components/admin/techniques-manager/useTechniquesData.ts` (se existir o mapeamento `TecnicaRow`)
-- `src/components/products/customization/ConfigurationPanel.tsx`
-
-Para cada um:
-- Trocar leituras de colunas renomeadas pelo nome novo.
-- Quando viável, **rotear via adapter** em vez de ler colunas direto, eliminando dívida de manutenção.
-- Atualizar `select: '...'` (quando explícito) para listar as colunas novas.
-
-### 6. Sincronizar contratos Zod (preparação para o próximo ciclo)
-
-Arquivo: o ciclo anterior previa `src/lib/personalization/contracts/`. Caso já exista, ajustar os schemas com as novas colunas e gerar fixtures a partir do JSON salvo no passo 1, garantindo que `safeValidate` continue passando contra o payload real.
-
-### 7. Componentes admin de técnicas
-
-Arquivo: `src/components/admin/techniques-manager/TechniqueTable.tsx` e suas mutations.
-
-- Atualizar payloads de `onUpdate` para usar os nomes novos das colunas (`code`, `setup_price`, `handling_price`, etc., conforme o diff).
-- Conferir badges (`precoPorCor`, `precoPorArea`, `precoPorPontos`) se as flags base mudaram de nome.
-
-### 8. Testes
-
-- Atualizar fixtures em `tests/lib/personalization/adapters/*.test.ts` com payloads no schema **novo** (mantendo um teste com payload **antigo** para garantir backward compat).
-- Adicionar teste de regressão: rodar o diff `engraving-schema-diff.ts` contra o JSON salvo e exigir `missingInDb.length === 0`.
-
-### 9. Verificação final
-
-- `npx tsc --noEmit`
-- `npx vitest run tests/lib/personalization`
-- Smoke manual: `/admin/external-db` (sem campos vermelhos), simulador wizard, mockup config panel, admin techniques manager.
-
-## Arquivos tocados (estimativa)
-
-**Editados (~14)**:
-- `src/pages/admin/engraving-schema-diff.ts`
-- `src/types/customization.ts`
 - `src/types/gravacao-database.ts`
 - `src/hooks/gravacao/gravacao-types.ts`
 - `src/components/admin/products/sections/engraving/types.ts`
-- `src/lib/personalization/adapters/{customization-options,price-response,print-area}.adapter.ts`
+
+Ações por interface (`TabelaPrecoOficial`, `FaixaPrecoOficial`, `TecnicaGravacao`, `PrintAreaTechnique`, `TecnicaGravacaoVariante`):
+
+- Adicionar **aliases novos** como campos opcionais (ex.: `code?: string` ao lado de `codigo`, `setup_price?: number` ao lado de `custo_setup`, `handling_price?: number`, `max_colors?: number`, `charges_per_color?: boolean`, `price_by_area?: boolean`).
+- Marcar campos **legados** com `/** @deprecated use <novo> */` mas mantê-los opcionais.
+- Promover campos hoje obrigatórios que podem sumir para opcionais (`tipo_setup`, `quantidade_corte`, `validade_inicio/fim`).
+- Garantir que `Database` (em `gravacao-database.ts`) reflita os campos opcionais nos `Insert/Update`.
+
+### 2. Criar adapter de "row" para tabelas raw
+
+Arquivo novo: `src/lib/personalization/adapters/raw-row.adapter.ts`
+
+Funções:
+- `adaptTecnicaRow(row)` → preenche tanto `codigo` quanto `code`, `custo_setup` quanto `setup_price` (espelhando os dois lados durante o ciclo de transição).
+- `adaptTabelaPrecoRow(row)` → idem para `tabela_preco_gravacao_oficial`.
+- `adaptFaixaPrecoRow(row)` → idem para faixas (`quantidade_minima` ↔ `min_quantity`, `preco_unitario` ↔ `unit_price`).
+- `adaptPrintAreaTechniqueRow(row)` → consolida com o já existente `print-area.adapter.ts`.
+
+Cada função usa o helper de schema-detection já existente para incrementar `window.__personalizationSchemaStats` quando detecta nome legado, mantendo telemetria.
+
+Exportar tudo via `src/lib/personalization/adapters/index.ts`.
+
+### 3. Refatorar hooks de leitura direta
+
+Arquivos:
+- `src/hooks/tecnicas/useTecnicasList.ts` — passa cada row pelo `adaptTecnicaRow`; `select` continua `*` para suportar colunas novas.
+- `src/hooks/usePrintAreas.ts` — usa `adaptPrintAreaTechniqueRow` + `adaptTabelaPrecoRow` no join.
+- `src/hooks/useMockupGenerator.ts` — usa `adaptTecnicaRow` e `adaptPrintAreaTechniqueRow`.
+- `src/lib/fetch-print-areas.ts` — encaminha rows para `adaptPrintAreaRow` (já existe) e usa novo helper para tabelas/técnicas embutidas.
+- `src/components/admin/techniques-manager/TechniqueTable.tsx` (e `useTechniquesData.ts`, se houver) — leitura via `adaptTecnicaRow`; mutations passam a aceitar **ambos** os nomes (`codigo` E `code`) no payload de update enquanto o back não decide. Helper `buildTecnicaUpdatePayload(partial)` centraliza isso.
+- `src/components/products/customization/ConfigurationPanel.tsx` — onde lê linhas brutas, encaminhar via adapter (a maior parte já passa por `adaptCustomizationOptions`).
+
+### 4. Centralizar telemetria de campos legados
+
+Estender `src/lib/personalization/adapters/schema-detection.ts`:
+- Novo balde `legacyFieldsSeen: Record<string, number>` exposto em `window.__personalizationSchemaStats.legacyFieldsSeen`.
+- Helper `recordLegacyField(name)` chamado pelos novos `adaptXxxRow`.
+- Aviso único por sessão (via `warnUnknownSchemaOnce` reutilizado com nova chave).
+
+### 5. Tipo utilitário compartilhado
+
+Arquivo novo: `src/lib/personalization/adapters/raw-row.types.ts`
+- `TecnicaGravacaoCanonical`, `TabelaPrecoCanonical`, `FaixaPrecoCanonical`, `PrintAreaTechniqueCanonical` — versões "saída do adapter" com **ambos** os nomes preenchidos, evitando refator imediato dos consumidores.
+- Re-exportados pelo `index.ts` da pasta `adapters/`.
+
+### 6. Testes
+
+Arquivos novos em `tests/lib/personalization/adapters/`:
+- `raw-row.adapter.test.ts` — fixtures com payload **PT antigo**, **EN novo** e **híbrido**; verifica que `code === codigo`, `setup_price === custo_setup`, etc.
+- `tecnicas-list.adapter.test.ts` — garante que array de rows passa por `adaptTecnicaRow` sem perder campos.
+- Atualizar `price-response.adapter.test.ts` se algum campo cruzar com os novos aliases.
+
+### 7. Verificação
+
+- `npx tsc --noEmit` limpo (campos opcionais evitam quebra).
+- `npx vitest run tests/lib/personalization` passando.
+- Smoke manual: `/admin/tecnicas`, `/admin/produtos/:id` (aba Gravação), `/admin/external-db`, simulador wizard, mockup config.
+- Em dev: `window.__personalizationSchemaStats.legacyFieldsSeen` mostra contagem dos nomes legados detectados — base para o próximo ciclo decidir o que remover.
+
+## Arquivos tocados
+
+**Criados (3)**:
+- `src/lib/personalization/adapters/raw-row.adapter.ts`
+- `src/lib/personalization/adapters/raw-row.types.ts`
+- `tests/lib/personalization/adapters/raw-row.adapter.test.ts`
+
+**Editados (~10)**:
+- `src/lib/personalization/adapters/index.ts`
+- `src/lib/personalization/adapters/schema-detection.ts`
+- `src/types/gravacao-database.ts`
+- `src/hooks/gravacao/gravacao-types.ts`
+- `src/components/admin/products/sections/engraving/types.ts`
+- `src/hooks/tecnicas/useTecnicasList.ts`
 - `src/hooks/usePrintAreas.ts`
 - `src/hooks/useMockupGenerator.ts`
-- `src/hooks/tecnicas/useTecnicasList.ts`
 - `src/lib/fetch-print-areas.ts`
-- `src/components/admin/techniques-manager/TechniqueTable.tsx`
-- `src/components/products/customization/ConfigurationPanel.tsx`
-- `tests/lib/personalization/adapters/*.test.ts`
+- `src/components/admin/techniques-manager/TechniqueTable.tsx` (+ `useTechniquesData.ts` se existir)
 
-**Criados (~3)**:
-- `docs/engraving-schema-snapshot-<data>.md`
-- `src/lib/personalization/contracts/__fixtures__/{techniques,areas,tiers}.json`
-- (se necessário) novo teste `tests/lib/personalization/schema-sync.test.ts`
+## Compatibilidade
 
-## Riscos e mitigação
-
-- **Risco**: deprecar coluna antiga e quebrar consumidor esquecido. **Mitigação**: manter `@deprecated` opcional por 1 ciclo + grep por nome antigo antes do merge.
-- **Risco**: edge function `external-db-inspect` devolver colunas que o usuário ainda não quer expor no front. **Mitigação**: adicionar somente colunas que o front realmente precisa consumir; as demais ficam como "newInDb" no painel.
-- **Risco**: payload real diferir entre ambientes. **Mitigação**: snapshot é versionado em `docs/` por data, e fixtures de teste viram referência única.
+- **Zero breaking change**: campos legados continuam preenchidos pelos adapters, então consumidores não tocados seguem funcionando.
+- Componentes podem migrar gradualmente para os nomes canônicos novos.
+- Telemetria mostra quando o back parou de devolver os nomes antigos — gatilho para limpar deprecations no ciclo seguinte.
 
