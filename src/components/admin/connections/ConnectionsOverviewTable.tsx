@@ -1,9 +1,12 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Progress } from "@/components/ui/progress";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { toast } from "sonner";
 import {
   RefreshCw,
   Database,
@@ -16,6 +19,7 @@ import {
   Clock,
   Info,
   AlertTriangle,
+  X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
@@ -35,6 +39,55 @@ const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   mcp: { label: "MCP", Icon: Plug },
   webhook_outbound: { label: "Webhook", Icon: Webhook },
 };
+
+interface BulkProgress {
+  total: number;
+  done: number;
+  ok: number;
+  fail: number;
+  startedAt: number;
+}
+
+function BulkTestProgressPanel({
+  progress,
+  elapsed,
+  cancelling,
+  onCancel,
+}: {
+  progress: BulkProgress;
+  elapsed: number;
+  cancelling: boolean;
+  onCancel: () => void;
+}) {
+  const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
+  return (
+    <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2">
+      <div className="flex-1 space-y-1.5">
+        <div
+          role="status"
+          aria-live="polite"
+          className="flex items-center justify-between text-xs tabular-nums text-muted-foreground"
+        >
+          <span>
+            {cancelling ? "Cancelando..." : `Testando ${progress.done} de ${progress.total}`}
+            <span className="mx-2">·</span>
+            <span className="text-success">✓ {progress.ok}</span>
+            <span className="mx-1.5">·</span>
+            <span className="text-destructive">✗ {progress.fail}</span>
+            <span className="mx-2">·</span>
+            <span>⏱ {elapsed}s</span>
+          </span>
+          <span className="font-display text-[10px]">{pct}%</span>
+        </div>
+        <Progress value={pct} aria-label="Progresso dos testes em massa" className="h-1.5" />
+      </div>
+      <Button variant="outline" size="sm" onClick={onCancel} disabled={cancelling}>
+        <X className="h-3.5 w-3.5" />
+        Cancelar
+      </Button>
+    </div>
+  );
+}
 
 function formatRelative(iso: string | null): string {
   if (!iso) return "—";
@@ -59,18 +112,39 @@ export function ConnectionsOverviewTable() {
   const { test } = useConnectionTester();
   const filterState = useConnectionsOverviewFilters();
   const { filters, activeCount, reset } = filterState;
-  const [testingKey, setTestingKey] = useState<string | null>(null);
+  const [testingKeys, setTestingKeys] = useState<Set<string>>(new Set());
   const [bulkTesting, setBulkTesting] = useState(false);
   const [detailsRow, setDetailsRow] = useState<OverviewRow | null>(null);
   const { map: failuresMap } = useConsecutiveFailures(rows, 30000);
+  const [progress, setProgress] = useState<BulkProgress | null>(null);
+  const cancelRef = useRef(false);
+  const [concurrency, setConcurrency] = useState<number>(() => {
+    if (typeof window === "undefined") return 3;
+    const stored = window.localStorage.getItem("connections.bulk_test_concurrency");
+    return Math.min(8, Math.max(1, parseInt(stored ?? "3", 10) || 3));
+  });
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!progress) { setElapsed(0); return; }
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - progress.startedAt) / 1000)), 250);
+    return () => clearInterval(id);
+  }, [progress]);
 
   const filtered = useMemo(
     () => applyFilters(rows, filters, failuresMap),
     [rows, filters, failuresMap],
   );
 
+  function addTestingKey(k: string) {
+    setTestingKeys((prev) => { const n = new Set(prev); n.add(k); return n; });
+  }
+  function removeTestingKey(k: string) {
+    setTestingKeys((prev) => { const n = new Set(prev); n.delete(k); return n; });
+  }
+
   async function runTest(row: OverviewRow) {
-    setTestingKey(row.key);
+    addTestingKey(row.key);
     try {
       const res = await test(row.type as ConnectionType, {
         env_key: row.env_key ?? undefined,
@@ -83,27 +157,72 @@ export function ConnectionsOverviewTable() {
         last_latency_ms: res.latency_ms ?? null,
       });
     } finally {
-      setTestingKey(null);
+      removeTestingKey(row.key);
     }
   }
 
+  function changeConcurrency(v: string) {
+    const n = Math.min(8, Math.max(1, parseInt(v, 10) || 3));
+    setConcurrency(n);
+    try { window.localStorage.setItem("connections.bulk_test_concurrency", String(n)); } catch { /* noop */ }
+  }
+
   async function runAll() {
+    const queue = [...filtered];
+    const total = queue.length;
+    if (total === 0) return;
+    cancelRef.current = false;
     setBulkTesting(true);
+    setProgress({ total, done: 0, ok: 0, fail: 0, startedAt: Date.now() });
     try {
-      const queue = [...filtered];
-      const concurrency = 3;
-      const workers = Array.from({ length: concurrency }, async () => {
+      const c = Math.min(concurrency, total);
+      const workers = Array.from({ length: c }, async () => {
         while (queue.length) {
+          if (cancelRef.current) return;
           const next = queue.shift();
           if (!next) return;
-          await runTest(next);
+          addTestingKey(next.key);
+          try {
+            const res = await test(next.type as ConnectionType, {
+              env_key: next.env_key ?? undefined,
+              connectionId: next.id ?? undefined,
+              silent: true,
+            });
+            patchRow(next.key, {
+              last_test_at: res.tested_at ?? new Date().toISOString(),
+              last_test_ok: res.ok,
+              last_test_message: res.ok ? res.message ?? null : res.error ?? null,
+              last_latency_ms: res.latency_ms ?? null,
+            });
+            setProgress((p) => p ? { ...p, done: p.done + 1, ok: p.ok + (res.ok ? 1 : 0), fail: p.fail + (res.ok ? 0 : 1) } : p);
+          } catch {
+            setProgress((p) => p ? { ...p, done: p.done + 1, ok: p.ok, fail: p.fail + 1 } : p);
+          } finally {
+            removeTestingKey(next.key);
+          }
         }
       });
       await Promise.all(workers);
+      setProgress((p) => {
+        if (!p) return null;
+        const secs = Math.max(1, Math.round((Date.now() - p.startedAt) / 1000));
+        if (cancelRef.current) {
+          toast.error("Testes cancelados", { description: `${p.done} de ${p.total} executados em ${secs}s` });
+        } else {
+          toast.success("Testes em massa concluídos", { description: `${p.ok} OK · ${p.fail} falhas em ${secs}s` });
+        }
+        return p;
+      });
       await refresh();
     } finally {
       setBulkTesting(false);
+      setTimeout(() => setProgress(null), 800);
+      cancelRef.current = false;
     }
+  }
+
+  function cancelBulk() {
+    cancelRef.current = true;
   }
 
   return (
@@ -120,18 +239,51 @@ export function ConnectionsOverviewTable() {
             <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
             Atualizar
           </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={runAll}
-            disabled={bulkTesting || filtered.length === 0}
-          >
-            {bulkTesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
-            Testar {activeCount > 0 ? "filtradas" : "todas"}
-          </Button>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-display text-xs text-muted-foreground">Paralelos:</span>
+                  <Select value={String(concurrency)} onValueChange={changeConcurrency} disabled={bulkTesting}>
+                    <SelectTrigger className="h-8 w-[70px]" aria-label="Limite de testes paralelos">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 5, 8].map((n) => (
+                        <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs">Quantos testes rodam ao mesmo tempo</p></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={runAll}
+                  disabled={bulkTesting || filtered.length === 0}
+                >
+                  {bulkTesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
+                  Testar {activeCount > 0 ? "filtradas" : "todas"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs max-w-[220px]">Roda os testes em paralelo até o limite escolhido. Você pode cancelar a qualquer momento.</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
+        {progress && (
+          <BulkTestProgressPanel
+            progress={progress}
+            elapsed={elapsed}
+            cancelling={cancelRef.current && progress.done < progress.total}
+            onCancel={cancelBulk}
+          />
+        )}
         <ConnectionsOverviewFilters
           filters={filters}
           toggleType={filterState.toggleType}
@@ -184,7 +336,7 @@ export function ConnectionsOverviewTable() {
                 {filtered.map((row) => {
                   const meta = TYPE_META[row.type] ?? { label: row.type, Icon: Plug };
                   const Icon = meta.Icon;
-                  const isTesting = testingKey === row.key;
+                  const isTesting = testingKeys.has(row.key);
                   const message = row.last_test_message;
                   const failure = failuresMap.get(row.key);
                   const failCount = failure?.count ?? 0;
