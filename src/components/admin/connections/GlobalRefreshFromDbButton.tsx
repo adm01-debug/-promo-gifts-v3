@@ -1,0 +1,142 @@
+import { useCallback, useEffect, useRef, useState } from "react";
+import { DatabaseZap, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useSecretsManager } from "@/hooks/useSecretsManager";
+import { toast } from "sonner";
+
+interface GlobalRefreshFromDbButtonProps {
+  /** Callback executed in parallel with cache invalidation + secret list refresh. */
+  onRefreshed?: () => void | Promise<void>;
+  cooldownMs?: number;
+  /** Enable `R` keyboard shortcut (default: true). */
+  enableShortcut?: boolean;
+}
+
+export function GlobalRefreshFromDbButton({
+  onRefreshed,
+  cooldownMs = 5000,
+  enableShortcut = true,
+}: GlobalRefreshFromDbButtonProps) {
+  const { refreshCache, list } = useSecretsManager();
+  const [isRunning, setIsRunning] = useState(false);
+  const [cooldownUntil, setCooldownUntil] = useState(0);
+  const [now, setNow] = useState(() => Date.now());
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const inCooldown = cooldownUntil > now;
+  const secondsLeft = inCooldown ? Math.max(1, Math.ceil((cooldownUntil - now) / 1000)) : 0;
+
+  useEffect(() => {
+    if (!inCooldown) {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+      return;
+    }
+    if (intervalRef.current) return;
+    intervalRef.current = setInterval(() => setNow(Date.now()), 250);
+    return () => {
+      if (intervalRef.current) { clearInterval(intervalRef.current); intervalRef.current = null; }
+    };
+  }, [inCooldown]);
+
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+
+  const handleClick = useCallback(async () => {
+    if (isRunning || inCooldown) return;
+    setIsRunning(true);
+    const startedAt = Date.now();
+    try {
+      const [cacheRes, listRes, hookRes] = await Promise.allSettled([
+        refreshCache(),
+        list(),
+        Promise.resolve().then(() => onRefreshed?.()),
+      ]);
+      const elapsed = ((Date.now() - startedAt) / 1000).toFixed(1);
+
+      const cacheOk = cacheRes.status === "fulfilled" && cacheRes.value.ok;
+      const listOk = listRes.status === "fulfilled";
+      const hookOk = hookRes.status === "fulfilled";
+
+      const credCount = listOk && Array.isArray(listRes.value) ? listRes.value.length : 0;
+
+      const okCount = [cacheOk, listOk, hookOk].filter(Boolean).length;
+
+      if (okCount === 3) {
+        toast.success("Tudo atualizado do banco", {
+          description: `Cache invalidado · ${credCount} credenciais relidas · status das conexões recarregado (${elapsed}s)`,
+        });
+      } else if (okCount === 0) {
+        toast.error("Falha ao atualizar do banco", {
+          description: "Nenhuma das operações concluiu com sucesso.",
+        });
+      } else {
+        const failed: string[] = [];
+        if (!cacheOk) failed.push("cache");
+        if (!listOk) failed.push("credenciais");
+        if (!hookOk) failed.push("status");
+        toast.warning("Atualização parcial", {
+          description: `Falhou: ${failed.join(", ")} (${elapsed}s)`,
+        });
+      }
+    } finally {
+      setIsRunning(false);
+      setCooldownUntil(Date.now() + cooldownMs);
+      setNow(Date.now());
+    }
+  }, [isRunning, inCooldown, refreshCache, list, onRefreshed, cooldownMs]);
+
+  // Keyboard shortcut: R (no modifiers, not in input/textarea/contenteditable)
+  useEffect(() => {
+    if (!enableShortcut) return;
+    function onKey(e: KeyboardEvent) {
+      if (e.key !== "r" && e.key !== "R") return;
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      const t = e.target as HTMLElement | null;
+      if (!t) return;
+      const tag = t.tagName;
+      if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable) return;
+      e.preventDefault();
+      void handleClick();
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [enableShortcut, handleClick]);
+
+  const isDisabled = isRunning || inCooldown;
+  const ariaLabel = isRunning
+    ? "Atualizando…"
+    : inCooldown
+      ? `Aguarde ${secondsLeft}s antes de atualizar novamente`
+      : "Atualizar tudo do banco (atalho: R)";
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            type="button"
+            size="sm"
+            variant="outline"
+            onClick={handleClick}
+            disabled={isDisabled}
+            aria-label={ariaLabel}
+          >
+            {isRunning
+              ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              : <DatabaseZap className="h-4 w-4 mr-1" />}
+            {isRunning
+              ? "Atualizando…"
+              : inCooldown
+                ? `Aguarde ${secondsLeft}s`
+                : "Atualizar tudo do banco"}
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p className="text-xs max-w-[260px]">
+            Invalida o cache de 60s das credenciais, relê o banco e recarrega o status de todas as conexões. Atalho: <kbd className="rounded bg-muted px-1">R</kbd>
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
