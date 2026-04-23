@@ -14,6 +14,7 @@ import {
   Loader2,
   PlayCircle,
   Clock,
+  Info,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
@@ -22,6 +23,7 @@ import { useConnectionsOverview, type OverviewRow } from "@/hooks/useConnections
 import { useConnectionTester, type ConnectionType } from "@/hooks/useConnectionTester";
 import { ConnectionsOverviewFilters } from "./ConnectionsOverviewFilters";
 import { applyFilters, useConnectionsOverviewFilters } from "@/hooks/useConnectionsOverviewFilters";
+import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
@@ -56,6 +58,7 @@ export function ConnectionsOverviewTable() {
   const { filters, activeCount, reset } = filterState;
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [bulkTesting, setBulkTesting] = useState(false);
+  const [detailsRow, setDetailsRow] = useState<OverviewRow | null>(null);
 
   const filtered = useMemo(() => applyFilters(rows, filters), [rows, filters]);
 
@@ -165,7 +168,7 @@ export function ConnectionsOverviewTable() {
                   <TableHead className="w-[150px]">Última verificação</TableHead>
                   <TableHead className="w-[90px]">Latência</TableHead>
                   <TableHead>Mensagem</TableHead>
-                  <TableHead className="w-[100px] text-right">Ação</TableHead>
+                  <TableHead className="w-[140px] text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -212,14 +215,17 @@ export function ConnectionsOverviewTable() {
                         {message ? (
                           <Tooltip>
                             <TooltipTrigger asChild>
-                              <span
+                              <button
+                                type="button"
+                                onClick={() => row.last_test_at && setDetailsRow(row)}
                                 className={cn(
-                                  "block truncate text-xs",
+                                  "block truncate text-left text-xs underline decoration-dotted underline-offset-2 hover:opacity-80 transition-opacity max-w-full",
                                   row.last_test_ok ? "text-muted-foreground" : "text-destructive",
                                 )}
+                                aria-label="Ver detalhes do último teste"
                               >
                                 {message}
-                              </span>
+                              </button>
                             </TooltipTrigger>
                             <TooltipContent side="top" className="max-w-md">
                               <p className="text-xs whitespace-pre-wrap break-words">{message}</p>
@@ -230,19 +236,39 @@ export function ConnectionsOverviewTable() {
                         )}
                       </TableCell>
                       <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => runTest(row)}
-                          disabled={isTesting || bulkTesting}
-                        >
-                          {isTesting ? (
-                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                          ) : (
-                            <PlayCircle className="h-3.5 w-3.5" />
+                        <div className="inline-flex items-center gap-1">
+                          {row.last_test_at && (
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-7 w-7"
+                                  onClick={() => setDetailsRow(row)}
+                                  aria-label="Ver detalhes do último teste"
+                                >
+                                  <Info className="h-3.5 w-3.5" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent side="top">
+                                <p className="text-xs">Ver detalhes do último teste</p>
+                              </TooltipContent>
+                            </Tooltip>
                           )}
-                          Testar
-                        </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => runTest(row)}
+                            disabled={isTesting || bulkTesting}
+                          >
+                            {isTesting ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <PlayCircle className="h-3.5 w-3.5" />
+                            )}
+                            Testar
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   );
@@ -252,6 +278,16 @@ export function ConnectionsOverviewTable() {
           </TooltipProvider>
         )}
       </CardContent>
+      {detailsRow && (
+        <ConnectionTestDetailsDialog
+          open={!!detailsRow}
+          onOpenChange={(v) => { if (!v) setDetailsRow(null); }}
+          connectionType={detailsRow.type as ConnectionType}
+          connectionLabel={detailsRow.name}
+          envKey={detailsRow.env_key ?? undefined}
+          connectionId={detailsRow.id ?? undefined}
+        />
+      )}
     </Card>
   );
 }
