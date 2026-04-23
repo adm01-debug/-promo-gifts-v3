@@ -29,8 +29,9 @@ vi.mock("@/integrations/supabase/client", () => {
   };
 });
 
+const STABLE_USER = { id: "user-prefetch-1" };
 vi.mock("@/contexts/AuthContext", () => ({
-  useAuth: () => ({ user: { id: "user-prefetch-1" } }),
+  useAuth: () => ({ user: STABLE_USER }),
 }));
 
 const CACHE_KEY = "workspace_notifications_cache:user-prefetch-1";
