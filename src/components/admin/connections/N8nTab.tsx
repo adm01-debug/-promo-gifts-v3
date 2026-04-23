@@ -27,6 +27,8 @@ export function N8nTab() {
   const get = (n: string) => secrets.find((s) => s.name === n);
   const base = get("N8N_BASE_URL");
   const credsOk = !!base?.has_value;
+  const suspicious = hasSuspiciousLength(secrets, ["N8N_BASE_URL", "N8N_API_KEY"]);
+  const credsLooksValid = credsOk && !suspicious;
   const status: "active" | "error" | "unconfigured" = !credsOk
     ? "unconfigured"
     : last?.ok === false ? "error" : "active";
