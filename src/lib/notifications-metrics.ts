@@ -113,6 +113,8 @@ const state = {
     cache: { hits: 0, misses: 0 },
     network: { hits: 0, misses: 0 },
   },
+  triggerToFetch: [] as TriggerToFetchTiming[],
+  triggerToFetchTtlBreaches: 0,
 };
 
 type BadgeListener = (stat: BadgeRenderStat) => void;
