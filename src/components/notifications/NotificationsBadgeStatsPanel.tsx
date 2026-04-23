@@ -132,6 +132,21 @@ export function NotificationsBadgeStatsPanel() {
   const savedFetches = Math.max(0, triggers - fetches);
   const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
 
+  // Sparkline math — memoized so we don't rebuild the polyline on every render.
+  const SPARK_W = 160;
+  const SPARK_H = 24;
+  const sparkPoints = useMemo(() => buildSparkPath(samples, SPARK_W, SPARK_H), [samples]);
+  const sparkStats = useMemo(() => {
+    if (samples.length === 0) return { avg: 0, peak: 0, latest: 0 };
+    const ratios = samples.map((s) => s.ratio);
+    const sum = ratios.reduce((a, b) => a + b, 0);
+    return {
+      avg: sum / ratios.length,
+      peak: Math.max(...ratios),
+      latest: ratios[ratios.length - 1],
+    };
+  }, [samples]);
+
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
       <div className="flex items-center justify-between gap-2 mb-1.5">
