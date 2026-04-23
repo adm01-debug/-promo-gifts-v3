@@ -1,10 +1,11 @@
-import { Database, Briefcase, Workflow, Plug, Webhook, Filter as FilterIcon, X } from "lucide-react";
+import { Database, Briefcase, Workflow, Plug, Webhook, Filter as FilterIcon, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
 import type {
   OverviewFilters,
   OverviewStatusFilter,
@@ -40,6 +41,7 @@ interface Props {
   setStatus: (status: OverviewStatusFilter) => void;
   setWindow: (w: OverviewWindowFilter) => void;
   removeType: (type: string) => void;
+  setOnlyConsecutiveFailures: (value: boolean) => void;
   reset: () => void;
   activeCount: number;
   totalCount: number;
@@ -60,6 +62,7 @@ export function ConnectionsOverviewFilters({
   setStatus,
   setWindow,
   removeType,
+  setOnlyConsecutiveFailures,
   reset,
   activeCount,
   totalCount,
@@ -150,6 +153,23 @@ export function ConnectionsOverviewFilters({
           </SelectContent>
         </Select>
 
+        {/* Only consecutive failures toggle */}
+        <button
+          type="button"
+          onClick={() => setOnlyConsecutiveFailures(!filters.onlyConsecutiveFailures)}
+          aria-pressed={filters.onlyConsecutiveFailures}
+          className={cn(
+            "inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors",
+            filters.onlyConsecutiveFailures
+              ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
+              : "bg-background text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <AlertTriangle className="h-3.5 w-3.5" />
+          Apenas com falhas seguidas
+          <span className="text-[10px] opacity-70">≥{CONSECUTIVE_FAILURE_THRESHOLD}</span>
+        </button>
+
         <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
           <span className="tabular-nums">
             {filteredCount} de {totalCount} {totalCount === 1 ? "conexão" : "conexões"}
@@ -211,6 +231,22 @@ export function ConnectionsOverviewFilters({
               aria-label="Remover filtro de janela"
             >
               {windowLabel(filters.window)}
+              <X className="h-3 w-3" />
+            </button>
+          )}
+          {filters.onlyConsecutiveFailures && (
+            <button
+              onClick={() => setOnlyConsecutiveFailures(false)}
+              onKeyDown={(e) => {
+                if (e.key === "Backspace" || e.key === "Delete") {
+                  e.preventDefault();
+                  setOnlyConsecutiveFailures(false);
+                }
+              }}
+              className="inline-flex items-center gap-1 rounded-full border border-destructive/40 bg-destructive/10 px-2 py-0.5 text-xs text-destructive transition-colors hover:bg-destructive/20 focus:outline-none focus:ring-2 focus:ring-destructive/40"
+              aria-label="Remover filtro de falhas consecutivas"
+            >
+              ≥{CONSECUTIVE_FAILURE_THRESHOLD} falhas seguidas
               <X className="h-3 w-3" />
             </button>
           )}

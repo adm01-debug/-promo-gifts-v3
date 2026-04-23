@@ -15,6 +15,7 @@ import {
   PlayCircle,
   Clock,
   Info,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
@@ -24,6 +25,8 @@ import { useConnectionTester, type ConnectionType } from "@/hooks/useConnectionT
 import { ConnectionsOverviewFilters } from "./ConnectionsOverviewFilters";
 import { applyFilters, useConnectionsOverviewFilters } from "@/hooks/useConnectionsOverviewFilters";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
+import { useConsecutiveFailures } from "@/hooks/useConsecutiveFailures";
+import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
@@ -59,8 +62,12 @@ export function ConnectionsOverviewTable() {
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [bulkTesting, setBulkTesting] = useState(false);
   const [detailsRow, setDetailsRow] = useState<OverviewRow | null>(null);
+  const { map: failuresMap } = useConsecutiveFailures(rows, 30000);
 
-  const filtered = useMemo(() => applyFilters(rows, filters), [rows, filters]);
+  const filtered = useMemo(
+    () => applyFilters(rows, filters, failuresMap),
+    [rows, filters, failuresMap],
+  );
 
   async function runTest(row: OverviewRow) {
     setTestingKey(row.key);
@@ -131,6 +138,7 @@ export function ConnectionsOverviewTable() {
           setStatus={filterState.setStatus}
           setWindow={filterState.setWindow}
           removeType={filterState.removeType}
+          setOnlyConsecutiveFailures={filterState.setOnlyConsecutiveFailures}
           reset={filterState.reset}
           activeCount={activeCount}
           totalCount={rows.length}
@@ -166,6 +174,7 @@ export function ConnectionsOverviewTable() {
                   <TableHead>Nome</TableHead>
                   <TableHead className="w-[140px]">Status</TableHead>
                   <TableHead className="w-[150px]">Última verificação</TableHead>
+                  <TableHead className="w-[110px]">Falhas seguidas</TableHead>
                   <TableHead className="w-[90px]">Latência</TableHead>
                   <TableHead>Mensagem</TableHead>
                   <TableHead className="w-[140px] text-right">Ações</TableHead>
@@ -177,8 +186,16 @@ export function ConnectionsOverviewTable() {
                   const Icon = meta.Icon;
                   const isTesting = testingKey === row.key;
                   const message = row.last_test_message;
+                  const failure = failuresMap.get(row.key);
+                  const failCount = failure?.count ?? 0;
+                  const overThreshold = failCount > CONSECUTIVE_FAILURE_THRESHOLD;
                   return (
-                    <TableRow key={row.key}>
+                    <TableRow
+                      key={row.key}
+                      className={cn(
+                        overThreshold && "bg-destructive/5 border-l-2 border-l-destructive",
+                      )}
+                    >
                       <TableCell>
                         <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Icon className="h-3.5 w-3.5" />
@@ -207,6 +224,35 @@ export function ConnectionsOverviewTable() {
                       </TableCell>
                       <TableCell className="text-xs text-muted-foreground tabular-nums">
                         {formatRelative(row.last_test_at)}
+                      </TableCell>
+                      <TableCell>
+                        {failCount === 0 ? (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+                                  overThreshold
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-warning/10 text-warning",
+                                )}
+                                aria-label={`${failCount} falhas consecutivas`}
+                              >
+                                {overThreshold && <AlertTriangle className="h-3 w-3" />}
+                                {failCount}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p className="text-xs">
+                                {failure?.since
+                                  ? `${failCount} ${failCount === 1 ? "falha consecutiva" : "falhas consecutivas"} desde ${formatRelative(failure.since)}`
+                                  : `${failCount} ${failCount === 1 ? "falha consecutiva" : "falhas consecutivas"} — nunca houve sucesso registrado`}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
                       </TableCell>
                       <TableCell>
                         <LatencyBadge ms={row.last_latency_ms} />
