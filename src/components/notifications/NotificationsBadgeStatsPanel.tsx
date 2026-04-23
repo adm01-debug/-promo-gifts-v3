@@ -262,16 +262,64 @@ export function NotificationsBadgeStatsPanel() {
         </span>
         <div className="inline-flex items-center gap-2">
           {isSuspicious && (
-            <span
-              role="status"
-              aria-live="polite"
-              aria-label={`Suspicious trigger/fetch ratio held above ${SUSPICIOUS_RATIO_THRESHOLD} for ${suspiciousStreakSeconds} seconds`}
-              className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning animate-pulse"
-              title={`Trigger/fetch ratio ≥ ${SUSPICIOUS_RATIO_THRESHOLD} for the last ${suspiciousStreakSeconds}s — debounce + 5s TTL coalescing may be leaking. Investigate prefetch call sites.`}
-            >
-              <AlertTriangle className="h-2.5 w-2.5" aria-hidden="true" />
-              ratio ≥ {SUSPICIOUS_RATIO_THRESHOLD} for {suspiciousStreakSeconds}s
-            </span>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span
+                    role="status"
+                    aria-live="polite"
+                    aria-label={`Suspicious trigger/fetch ratio held above ${SUSPICIOUS_RATIO_THRESHOLD} for ${suspiciousStreakSeconds} seconds. Window: ${streakWindowStats.triggers} triggers, ${streakWindowStats.fetches} fetches, ratio ${streakWindowStats.ratio.toFixed(2)}`}
+                    className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning animate-pulse cursor-help"
+                  >
+                    <AlertTriangle className="h-2.5 w-2.5" aria-hidden="true" />
+                    ratio ≥ {SUSPICIOUS_RATIO_THRESHOLD} for {suspiciousStreakSeconds}s
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" align="end" className="p-2 max-w-[280px]">
+                  <div className="font-mono text-[10px] leading-snug space-y-1">
+                    <div className="font-semibold text-warning text-[11px] flex items-center gap-1">
+                      <AlertTriangle className="h-2.5 w-2.5" aria-hidden="true" />
+                      Suspicious window
+                    </div>
+                    <div className="text-muted-foreground">
+                      ratio ≥ {SUSPICIOUS_RATIO_THRESHOLD} for {suspiciousStreakSeconds}s
+                      {streakWindowStats.fromT > 0 && (
+                        <span className="block">
+                          {new Date(streakWindowStats.fromT).toLocaleTimeString()} →{" "}
+                          {new Date(streakWindowStats.toT).toLocaleTimeString()}
+                        </span>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-2 gap-y-0 pt-1 border-t border-border/40">
+                      <span className="text-muted-foreground">triggers (window)</span>
+                      <span className="text-right tabular-nums text-foreground">
+                        {streakWindowStats.triggers}
+                      </span>
+                      <span className="text-muted-foreground">fetches (window)</span>
+                      <span className="text-right tabular-nums text-foreground">
+                        {streakWindowStats.fetches}
+                      </span>
+                      <span className="text-muted-foreground">saved (window)</span>
+                      <span className="text-right tabular-nums text-primary">
+                        {Math.max(0, streakWindowStats.triggers - streakWindowStats.fetches)}
+                      </span>
+                    </div>
+                    <div className="pt-1 border-t border-border/40 text-muted-foreground">
+                      <span className="block">ratio = fetches / triggers</span>
+                      <span className="block">
+                        = {streakWindowStats.fetches} / {streakWindowStats.triggers} ={" "}
+                        <span className="font-semibold text-warning">
+                          {streakWindowStats.ratio.toFixed(3)}
+                        </span>
+                      </span>
+                    </div>
+                    <div className="pt-1 border-t border-border/40 text-warning">
+                      ⚠ Debounce + 5s TTL not absorbing triggers. Inspect prefetch call sites.
+                    </div>
+                  </div>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           )}
           <span className="text-muted-foreground tabular-nums">
             T{triggers} · F{fetches} · {ratio.toFixed(2)}
