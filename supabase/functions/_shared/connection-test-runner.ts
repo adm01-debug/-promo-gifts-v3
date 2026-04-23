@@ -302,5 +302,5 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
     }
   }
 
-  return { ...result, tested_at, connection_id };
+  return { ...result, timeout_ms: timeoutMs, tested_at, connection_id };
 }
