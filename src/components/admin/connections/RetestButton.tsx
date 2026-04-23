@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 interface RetestButtonProps {
@@ -9,6 +10,8 @@ interface RetestButtonProps {
   cooldownMs?: number;
   disabledReason?: string;
 }
+
+type DisabledKind = "running" | "cooldown" | "credentials" | null;
 
 export function RetestButton({
   onRetest,
@@ -61,15 +64,48 @@ export function RetestButton({
   }, [isRunning, inCooldown, disabled, onRetest, cooldownMs]);
 
   const isDisabled = isRunning || inCooldown || disabled;
-  const title = disabled
-    ? disabledReason ?? "Configure credenciais válidas primeiro"
-    : isRunning
-      ? "Testando…"
-      : inCooldown
-        ? `Aguarde ${secondsLeft}s antes de testar novamente`
-        : "Disparar novo teste";
 
-  return (
+  // Pinpoint *why* the button is disabled, in priority order.
+  const disabledKind: DisabledKind = isRunning
+    ? "running"
+    : disabled
+      ? "credentials"
+      : inCooldown
+        ? "cooldown"
+        : null;
+
+  const tooltip = (() => {
+    switch (disabledKind) {
+      case "running":
+        return {
+          title: "Teste em andamento",
+          body: "Aguarde a resposta do serviço antes de disparar novamente.",
+        };
+      case "credentials":
+        return {
+          title: "Credenciais inválidas ou ausentes",
+          body: disabledReason ?? "Preencha e salve as credenciais obrigatórias antes de testar.",
+        };
+      case "cooldown":
+        return {
+          title: `Aguarde ${secondsLeft}s (debounce)`,
+          body: "Pequena pausa entre testes para evitar disparos acidentais e respeitar limites do serviço externo.",
+        };
+      default:
+        return {
+          title: "Disparar novo teste",
+          body: "Executa imediatamente um teste manual e grava no histórico.",
+        };
+    }
+  })();
+
+  const label = isRunning
+    ? "Testando…"
+    : inCooldown
+      ? `Aguarde ${secondsLeft}s`
+      : "Testar novamente";
+
+  const button = (
     <Button
       type="button"
       variant="ghost"
@@ -77,11 +113,27 @@ export function RetestButton({
       className="h-7 px-2 text-xs gap-1.5"
       disabled={isDisabled}
       onClick={handleClick}
-      title={title}
-      aria-label={title}
+      aria-label={tooltip.title}
+      aria-describedby={isDisabled ? "retest-disabled-reason" : undefined}
     >
       <RefreshCw className={cn("h-3.5 w-3.5", isRunning && "animate-spin")} />
-      {isRunning ? "Testando…" : inCooldown ? `Aguarde ${secondsLeft}s` : "Testar novamente"}
+      {label}
     </Button>
+  );
+
+  return (
+    <TooltipProvider delayDuration={150}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          {/* Wrapper span enables tooltip even when the button is disabled
+              (pointer events are blocked on disabled <button>). */}
+          <span className="inline-flex">{button}</span>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-xs leading-snug">
+          <p className="font-medium">{tooltip.title}</p>
+          <p className="text-muted-foreground mt-0.5">{tooltip.body}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 }
