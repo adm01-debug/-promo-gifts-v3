@@ -12,7 +12,8 @@ import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
-import { hasSuspiciousLength } from "./secretValidators";
+import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
+import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
