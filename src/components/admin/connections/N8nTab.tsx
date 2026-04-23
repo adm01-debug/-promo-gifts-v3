@@ -14,6 +14,7 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
+import { RetestCooldownSelector } from "./RetestCooldownSelector";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();
@@ -79,6 +80,7 @@ export function N8nTab() {
             </Button>
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
             <RefreshFromDbButton onRefreshed={list} />
+            <RetestCooldownSelector className="ml-auto" />
           </div>
           <TestProgressIndicator
             phase={phase}

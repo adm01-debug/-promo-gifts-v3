@@ -15,6 +15,7 @@ import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
+import { RetestCooldownSelector } from "./RetestCooldownSelector";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
@@ -91,6 +92,7 @@ export function Bitrix24Tab() {
           </Button>
           <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
           <RefreshFromDbButton onRefreshed={list} />
+          <RetestCooldownSelector className="ml-auto" />
         </div>
         <TestProgressIndicator
           phase={phase}
