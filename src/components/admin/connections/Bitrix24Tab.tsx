@@ -103,6 +103,7 @@ export function Bitrix24Tab() {
         />
         <LastTestLine
           info={last}
+          autoFocusOnFailure
           onClick={last?.tested_at ? () => setDetailsDialogOpen(true) : undefined}
           action={
             <RetestButton
