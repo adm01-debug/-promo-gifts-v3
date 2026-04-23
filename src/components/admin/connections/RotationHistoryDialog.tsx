@@ -5,6 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSecretsManager, type RotationHistoryEntry } from "@/hooks/useSecretsManager";
 import { History, RefreshCw, Save, ArrowRight, Clock, User } from "lucide-react";
+import { formatMaskedSuffix } from "@/lib/masked-suffix";
 
 interface Props {
   secretName: string;
