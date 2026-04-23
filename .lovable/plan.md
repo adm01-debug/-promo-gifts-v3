@@ -1,143 +1,103 @@
 
 
-# Validação inline em `SecretField` + bloqueio de "Testar conexão"
+# Cron de teste automático de conexões ativas
 
 ## Diagnóstico
 
-Hoje em `SecretField.tsx`:
-- O único guard é `value.length < 4` para habilitar "Salvar"/"Rotacionar"
-- Não há validação de formato (URL malformada, service key sem prefixo `eyJ`, webhook sem `/rest/`, etc.)
-- O botão "Testar conexão" em cada aba (`Bitrix24Tab`, `N8nTab`, `SupabaseConnectionsTab`, `McpTab`) só checa `has_value`, então um valor inválido salvo via env permite testar e falhar com erro genérico de rede
-
-Resultado: admin cola um valor errado, salva, clica "Testar", recebe erro confuso sem saber se é o valor ou o serviço.
+Hoje em `/admin/conexoes`:
+- O cron `connections-health-check` (`*/15 * * * *`) **lê** `external_connections.last_test_ok` para detectar quedas, mas **não testa** as conexões — depende do admin clicar manualmente em "Testar conexão" em cada aba.
+- A edge function `connection-tester` já implementa toda a lógica de ping e persistência (atualiza `last_test_at`, `last_test_ok`, `last_test_message`, `last_latency_ms` em `external_connections` + grava em `connection_test_history`).
+- Resultado: `last_test_at` envelhece silenciosamente. O health-check pode marcar uma conexão como "verde" porque o último teste manual foi OK há 3 dias, mesmo que o serviço esteja fora há 6 horas.
 
 ## Solução
 
-### 1. Registry de validadores por nome de credencial
+Novo cron `connections-auto-test` que executa a cada 30 minutos, lê todas as conexões ativas em `external_connections` e dispara `connection-tester` para cada uma, atualizando os campos de status automaticamente.
 
-Novo arquivo `src/components/admin/connections/secretValidators.ts` com um mapa `SECRET_NAME → ValidatorRule`:
+### 1. Nova edge function `connections-auto-test`
 
-```ts
-type ValidatorRule = {
-  /** Regex ou função que retorna true se válido */
-  test: (v: string) => boolean;
-  /** Mensagem de erro exibida inline quando inválido */
-  message: string;
-  /** Hint exibido em cinza abaixo do input quando vazio/editando */
-  hint?: string;
-  /** Exemplo clicável que preenche o input com placeholder de demo */
-  example?: string;
-};
+`supabase/functions/connections-auto-test/index.ts`:
+
+- Cron-driven (sem JWT, `verify_jwt = false` no `config.toml`)
+- Lê `external_connections` onde `status = 'active'` (ignora `disabled`/`unconfigured`)
+- Para cada conexão, invoca internamente a mesma lógica do `connection-tester` (action `test`) reutilizando helpers — não vamos chamar a edge via HTTP para evitar overhead e problemas de auth.
+- **Refatoração mínima**: extrair o núcleo de teste de `connection-tester/index.ts` para `_shared/connection-test-runner.ts` (função `runConnectionTest(type, config, env_key, connection_id, serviceClient)`) que ambas as edges importam.
+- Concorrência: testa em paralelo em batches de 5 (`Promise.all` com chunking) para não saturar.
+- Timeout por conexão: 8s (mesmo do tester atual).
+- Retorna JSON resumido: `{ tested: N, ok: X, failed: Y, skipped: Z, durations_ms: {...} }`.
+- Loga estruturado por conexão: `[auto-test] {type} {name} → ok=true latency=234ms`.
+
+### 2. Refatoração de `connection-tester` (não-quebrante)
+
+Mover o switch `case "supabase"|"bitrix24"|"n8n"|"mcp"|"webhook_outbound"` que executa o ping HTTP para `_shared/connection-test-runner.ts`. A edge `connection-tester` continua expondo as actions `test` e `last_test` como hoje, apenas delegando o teste real ao helper compartilhado. Nenhuma mudança de contrato no frontend.
+
+### 3. Cron schedule
+
+Inserir via tool de SQL (não migração — contém URL específica do projeto, igual ao padrão dos crons existentes):
+
+```sql
+SELECT cron.schedule(
+  'connections-auto-test',
+  '*/30 * * * *',  -- a cada 30 minutos
+  $$
+  SELECT net.http_post(
+    url := 'https://nmojwpihnslkssljowjh.supabase.co/functions/v1/connections-auto-test',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer <SUPABASE_ANON_KEY>'
+    ),
+    body := '{}'::jsonb
+  );
+  $$
+);
 ```
 
-Regras (cobertura inicial — todos os secrets já listados nas abas):
+Frequência **30 minutos** (não 15) para ficar deslocado do `connections-health-check` — assim o health-check sempre vê dados frescos do auto-test imediatamente anterior, sem condição de corrida.
 
-| Secret name | Regra |
-|---|---|
-| `EXTERNAL_PROMOBRIND_URL`, `EXTERNAL_CRM_URL` | URL `https://` válida, sem barra final, host termina em `.supabase.co` |
-| `EXTERNAL_*_ANON_KEY`, `EXTERNAL_*_SERVICE_ROLE_KEY` | JWT: começa com `eyJ`, 3 segmentos separados por `.`, length ≥ 100 |
-| `BITRIX24_WEBHOOK_URL` | URL `https://` válida + contém `/rest/` + termina com `/` |
-| `BITRIX24_DOMAIN` | host válido (`*.bitrix24.*`), sem `https://` |
-| `BITRIX24_USER_ID` | inteiro positivo |
-| `BITRIX24_TOKEN` | alfanumérico, 10–60 chars |
-| `N8N_BASE_URL` | URL `https://` válida, sem caminho (só host), sem barra final |
-| `N8N_API_KEY` | string ≥ 20 chars, sem espaços |
-| `MCP_SERVER_URL` | URL `https://` ou `wss://` válida |
-| Default (sem regra) | `length ≥ 4` (comportamento atual) |
+### 4. Visibilidade na UI
 
-### 2. Validação inline no `SecretField`
-
-Ao digitar (`onChange`), avaliar o validator do `secretName`:
-
-- **Vazio**: nenhum erro, mostra `hint` em cinza abaixo do input (ex: _"Formato esperado: https://abc.supabase.co"_)
-- **Inválido**: borda vermelha + ícone `AlertCircle` + mensagem em `text-destructive` (ex: _"URL deve terminar em .supabase.co"_)
-- **Válido**: borda verde sutil + ícone `CheckCircle2` em verde-success
-- **Loading/saving**: estados de validação congelam até resposta
-
-Botão "Salvar"/"Rotacionar" desabilitado enquanto inválido (com tooltip explicativo: _"Corrija o formato antes de salvar"_).
-
-```ts
-const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
-const canSave = value.length > 0 && validation.ok && !saving;
-```
-
-### 3. Indicador de validade do valor já salvo
-
-Quando o campo **não está em edição** mas tem `status.has_value`, rodar a validação contra um proxy do valor salvo:
-- Não temos o valor real no frontend (segurança), mas temos `masked_suffix` + `length` + heurísticas (ex: JWT mínimo 100 chars; URL não dá para validar sem o valor)
-- Para JWTs: se `length < 100` exibir badge amarelo `⚠ Comprimento suspeito` ao lado do sufixo
-- Para URLs: sem warning (não dá para inferir do mascarado)
-- Esse warning é informativo, não bloqueia nada
-
-### 4. Bloqueio do botão "Testar conexão"
-
-Hoje em cada aba o `disabled` é `isTesting || !credsOk` onde `credsOk = !!secret?.has_value`. Mudar para também checar warnings de comprimento:
-
-```ts
-const credsLooksValid = credsOk && !hasSuspiciousLength(secrets, requiredNames);
-<Button disabled={isTesting || !credsLooksValid}
-  title={!credsOk ? "Configure as credenciais primeiro"
-    : !credsLooksValid ? "Credenciais com formato suspeito — re-salve antes de testar"
-    : "Testar conexão"}>
-```
-
-Helper `hasSuspiciousLength(secrets, ["EXTERNAL_CRM_SERVICE_ROLE_KEY"])` retorna true se algum secret na lista tem `length < threshold` definido no validator.
-
-Aplicar em:
-- `Bitrix24Tab` → checa `BITRIX24_WEBHOOK_URL` (length ≥ 60)
-- `N8nTab` → checa `N8N_BASE_URL` (length ≥ 15) e `N8N_API_KEY` se presente
-- `SupabaseConnectionsTab` → checa `EXTERNAL_*_URL` (length ≥ 25) e `*_SERVICE_ROLE_KEY` (length ≥ 100)
-- `McpTab` → checa `MCP_SERVER_URL` (length ≥ 15)
-
-### 5. Validação no modal de rotação
-
-`RotateSecretConfirmDialog` já recebe `newSuffix` e `newLength`. O bloqueio do "Salvar/Rotacionar" no `SecretField` já cobre isso (modal só abre se `canSave` for true), então nenhuma mudança no modal.
-
-### 6. Estados visuais
+No `IntegrationsHealthCard` adicionar uma linha discreta:
 
 ```text
-┌─ Service Role Key ───────────────────────────────────────┐
-│ [eyJhbGc..._invalido_]                  [✗] [Salvar]🚫   │
-│ ⚠ Service Role Key deve ter ≥100 chars (atual: 47)       │
-└──────────────────────────────────────────────────────────┘
-
-┌─ Service Role Key ───────────────────────────────────────┐
-│ [eyJhbGciOiJIUzI1NiIs...XYZ]            [✓] [Salvar]    │
-│ Formato JWT válido                                        │
-└──────────────────────────────────────────────────────────┘
-
-┌─ Service Role Key ───────────────────────────────────────┐
-│ [..............]                        [Salvar]🚫       │
-│ Formato esperado: token JWT (eyJ...) com ≥100 chars      │
-└──────────────────────────────────────────────────────────┘
+Última auto-verificação: há 12 min · 7 OK · 1 falha
+[ Ver últimos testes → ]
 ```
+
+Calculada client-side a partir do `MAX(last_test_at)` e contagens em `external_connections`. Sem endpoint novo — usa a query já existente de `useConnectionsOverview`.
+
+### 5. Proteção contra spam de notificações
+
+O `connections-health-check` já tem dedupe de 4h por `incident_key`. Quando o auto-test começar a popular `last_test_ok = false` automaticamente, o health-check vai notificar — mas o dedupe garante 1 alerta por conexão a cada 4h, não a cada 30min. Sem mudança necessária.
+
+### 6. Observabilidade
+
+- Logs estruturados em `connections-auto-test` com `console.log` JSON.
+- Linha extra em `connection_test_history` com coluna implícita `triggered_by = 'cron'` vs `'manual'`. Já existe a coluna? Vou verificar e, se não, adicionar via migração leve (`ALTER TABLE connection_test_history ADD COLUMN triggered_by text DEFAULT 'manual'`). O `connection-tester` passa `'manual'` (default), o auto-test passa `'cron'`.
 
 ## Arquivos tocados
 
-**Frontend (novos)**
-- `src/components/admin/connections/secretValidators.ts` (~120 linhas): registry de validadores + helpers `validateSecret(name, value)` e `hasSuspiciousLength(secrets, names)`.
+**Backend (novos)**
+- `supabase/functions/connections-auto-test/index.ts` (~120 linhas): orquestrador cron, leitura de `external_connections` ativos, batch de 5, agregação de resultado.
+- `supabase/functions/_shared/connection-test-runner.ts` (~250 linhas): núcleo de teste extraído de `connection-tester` — `runConnectionTest({ type, config, env_key, connection_id, triggered_by, serviceClient })` que retorna `{ ok, status, latency_ms, error, message }` e persiste em `external_connections` + `connection_test_history`.
+
+**Backend (editados)**
+- `supabase/functions/connection-tester/index.ts`: passa a importar e delegar para `runConnectionTest`. Mantém actions `test`/`last_test` e o contrato JSON existente.
+- `supabase/config.toml`: adicionar `[functions.connections-auto-test]` com `verify_jwt = false`.
+
+**Migration**
+- `ALTER TABLE public.connection_test_history ADD COLUMN IF NOT EXISTS triggered_by text NOT NULL DEFAULT 'manual'` + check constraint via trigger (`'manual' | 'cron' | 'webhook'`).
+
+**SQL (insert tool, não migration)**
+- `cron.schedule('connections-auto-test', '*/30 * * * *', ...)`.
 
 **Frontend (editados)**
-- `src/components/admin/connections/SecretField.tsx`:
-  - Importar `validateSecret`
-  - Adicionar `useMemo` de validação a partir de `value` e `secretName`
-  - Renderizar ícone `CheckCircle2`/`AlertCircle` à direita do input em modo edição
-  - Renderizar mensagem de erro / hint abaixo do input
-  - Mudar `disabled` do "Salvar"/"Rotacionar" para `!validation.ok || value.length === 0 || saving`
-  - Adicionar `title` no botão explicando o motivo do disabled
-  - No modo não-edição, mostrar badge `⚠ Comprimento suspeito` se `hasSuspiciousLength` retornar true para o secret atual
-- `src/components/admin/connections/Bitrix24Tab.tsx`: trocar `credsOk` por `credsLooksValid` e ajustar `title`/`disabled` do botão "Testar conexão"
-- `src/components/admin/connections/N8nTab.tsx`: idem
-- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: idem (por env)
-- `src/components/admin/connections/McpTab.tsx`: idem
-
-**Backend**: nenhuma mudança. `secrets-manager` continua aceitando qualquer valor ≥ 4 chars (validação é defense-in-depth no client; o admin pode forçar override removendo o validator se necessário, mas o caso de uso primário é evitar erros de digitação).
+- `src/components/admin/connections/IntegrationsHealthCard.tsx`: adicionar linha "Última auto-verificação: há X min · Y OK · Z falha" a partir dos dados de `useConnectionsOverview`.
+- `src/components/admin/connections/ConnectionTestHistoryPanel.tsx`: adicionar badge sutil `auto` (`Bot` icon de Lucide) ao lado do timestamp quando `triggered_by === 'cron'`, para distinguir testes automáticos dos manuais.
 
 ## Fora de escopo
 
-- Não adiciona validação no backend `secrets-manager` (mantém liberdade para casos especiais — frontend é defense-in-depth)
-- Não adiciona "auto-fix" (ex: remover barra final automaticamente) — só sinaliza
-- Não adiciona validação cruzada (ex: "URL e Service Key devem ser do mesmo projeto") — fora do escopo
-- Não muda os validadores em runtime via UI admin — registry é estático no código
-- Não adiciona validação para webhooks customizados na aba Webhooks (URLs livres por design)
+- Não muda a frequência do cron `connections-health-check` (continua `*/15`).
+- Não testa conexões `disabled` ou `unconfigured` (auto-test é só para `active`).
+- Não adiciona controle por-conexão de "auto-test ativo/desativado" — todas as ativas são testadas (pode virar feature flag depois).
+- Não muda o `webhook-dispatcher` nem o `mcp-server`.
+- Não adiciona retry com backoff dentro do auto-test (1 tentativa, falha vai para `connection_test_history` e o health-check decide se notifica).
 
