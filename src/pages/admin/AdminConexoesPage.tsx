@@ -39,7 +39,10 @@ export default function AdminConexoesPage() {
 
         <IntegrationsHealthCard secrets={secrets} />
 
-        <AutoTestIntervalCard />
+        <div className="grid gap-3 md:grid-cols-2">
+          <AutoTestIntervalCard />
+          <FailureWindowCard />
+        </div>
 
         {secrets.length > 0 && (
           <CredentialsSourceFilter secrets={secrets} className="rounded-lg border bg-card px-4 py-3" />
