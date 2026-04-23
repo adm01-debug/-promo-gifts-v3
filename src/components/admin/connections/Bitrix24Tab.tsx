@@ -35,6 +35,10 @@ export function Bitrix24Tab() {
   const credsOk = !!wh?.has_value;
   const suspicious = hasSuspiciousLength(secrets, ["BITRIX24_WEBHOOK_URL"]);
   const credsLooksValid = credsOk && !suspicious;
+  const preflightIssues = getPreflightIssues(secrets, [
+    { name: "BITRIX24_WEBHOOK_URL", label: "Webhook URL" },
+  ]);
+  const canTest = credsLooksValid && preflightIssues.length === 0;
   const status: "active" | "error" | "unconfigured" = !credsOk
     ? "unconfigured"
     : last?.ok === false ? "error" : "active";
