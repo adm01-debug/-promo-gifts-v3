@@ -2,7 +2,7 @@ import { type ExternalTechnique } from "@/types/external-db";
 // src/hooks/useSimulation.ts
 // Hook centralizado para lógica do simulador — refactored
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, useRef } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeExternalDb } from "@/lib/external-db";
@@ -12,7 +12,7 @@ import { logger } from "@/lib/logger";
 import { fetchPromobrindProducts, getProductPrice, getProductImageUrl } from "@/lib/external-db";
 import { useMultipleTechniquePricing } from "./useTechniquePricingOptions";
 import { useSimulatorPreferences } from "./useSimulatorPreferences";
-import { calculateAllOptions } from "./simulation/simulationCalculator";
+import { fetchAllOptions } from "./simulation/simulationPriceFetcher";
 import { copyOptionToClipboard, copyAllOptionsToClipboard, formatCurrency as fmtCurrency } from "./simulation/simulationClipboard";
 import type { 
   Product, Client, Technique, TechniqueSettings, SimulationOption, SavedSimulation, SimulatorStep 
@@ -166,23 +166,60 @@ export function useSimulation() {
     setTechniqueSettingsState(prev => { const u = { ...prev, [techniqueId]: { ...prev[techniqueId], [field]: value } }; setLastTechniqueSettings(u); return u; });
   }, [setLastTechniqueSettings]);
 
-  const calculateSimulation = useCallback(() => {
-    if (!selectedProduct || selectedTechniques.length === 0) { toast.error("Selecione um produto e pelo menos uma técnica"); return; }
-    const options = calculateAllOptions(selectedTechniques, techniques, techniqueSettings, quantity, effectiveProductPrice);
-    setSimulationOptions(options);
-    setCurrentStep('results');
-    toast.success(`Simulação calculada para ${options.length} técnica(s)`);
+  const calculateSimulation = useCallback(async () => {
+    if (!selectedProduct || selectedTechniques.length === 0) {
+      toast.error("Selecione um produto e pelo menos uma técnica");
+      return;
+    }
+    setIsCalculating(true);
+    try {
+      const options = await fetchAllOptions({
+        selectedTechniqueIds: selectedTechniques,
+        techniques,
+        techniqueSettings,
+        quantity,
+        productUnitPrice: effectiveProductPrice,
+        productId: selectedProduct.id,
+      });
+      setSimulationOptions(options);
+      setCurrentStep('results');
+      const available = options.filter(o => o.priceSource === 'rpc').length;
+      const unavailable = options.length - available;
+      if (unavailable > 0) {
+        toast.success(`Simulação calculada: ${available} ok, ${unavailable} indisponível(is)`);
+      } else {
+        toast.success(`Simulação calculada para ${options.length} técnica(s)`);
+      }
+    } catch (err) {
+      logger.warn('[useSimulation] calculateSimulation falhou', err);
+      toast.error('Erro ao calcular simulação');
+    } finally {
+      setIsCalculating(false);
+    }
   }, [selectedProduct, selectedTechniques, techniques, techniqueSettings, quantity, effectiveProductPrice]);
 
-  // Auto-calculate when settings change
+  // Auto-recalcular quando settings mudam (debounce + cancelamento de stale).
+  const autoCalcAbortRef = useRef(0);
   useEffect(() => {
-    if (selectedProduct && selectedTechniques.length > 0 && quantity > 0) {
-      const timer = setTimeout(() => {
-        const options = calculateAllOptions(selectedTechniques, techniques, techniqueSettings, quantity, effectiveProductPrice);
+    if (!selectedProduct || selectedTechniques.length === 0 || quantity <= 0) return;
+    const myToken = ++autoCalcAbortRef.current;
+    const timer = setTimeout(async () => {
+      try {
+        const options = await fetchAllOptions({
+          selectedTechniqueIds: selectedTechniques,
+          techniques,
+          techniqueSettings,
+          quantity,
+          productUnitPrice: effectiveProductPrice,
+          productId: selectedProduct.id,
+        });
+        if (myToken !== autoCalcAbortRef.current) return; // stale
         if (options.length > 0) setSimulationOptions(options);
-      }, 300);
-      return () => clearTimeout(timer);
-    }
+      } catch (err) {
+        logger.warn('[useSimulation] auto-recalc falhou', err);
+      }
+    }, 500);
+    return () => clearTimeout(timer);
   }, [selectedProduct, selectedTechniques, techniques, techniqueSettings, quantity, effectiveProductPrice]);
 
   const clearSimulation = useCallback(() => {
@@ -212,9 +249,17 @@ export function useSimulation() {
     toast.success("Simulação carregada!");
   }, [setLastProductId, setLastQuantity, setLastTechniques, setLastTechniqueSettings]);
 
-  const calculateForProduct = useCallback((product: Product): SimulationOption[] => {
+  const calculateForProduct = useCallback(async (product: Product): Promise<SimulationOption[]> => {
     if (!product || selectedTechniques.length === 0) return [];
-    return calculateAllOptions(selectedTechniques, techniques, techniqueSettings, quantity, product.price, product.id);
+    return fetchAllOptions({
+      selectedTechniqueIds: selectedTechniques,
+      techniques,
+      techniqueSettings,
+      quantity,
+      productUnitPrice: product.price,
+      productId: product.id,
+      idSuffix: product.id,
+    });
   }, [techniques, techniqueSettings, selectedTechniques, quantity]);
 
   const handleAddToQuote = useCallback((selectedOptions: SimulationOption[]) => {
