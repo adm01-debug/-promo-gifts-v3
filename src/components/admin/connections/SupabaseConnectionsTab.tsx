@@ -78,6 +78,7 @@ export function SupabaseConnectionsTab() {
         latency_ms: r.latency_ms,
         message: r.error ?? r.message,
         status: r.status,
+        error_kind: r.error_kind ?? null,
       },
     }));
     setHistoryKeyByEnv((cur) => ({ ...cur, [localKey]: (cur[localKey] ?? 0) + 1 }));
