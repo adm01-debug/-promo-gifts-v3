@@ -208,7 +208,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     setEditing(false);
     setMode("set");
     onSaved?.();
-    return { ok: true as const };
+    return { ok: true as const, cancelled: false };
   };
 
   const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
@@ -248,7 +248,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     setSaving(false);
     if (res.ok) {
       setRotateConfirmOpen(false);
-    } else {
+    } else if (!res.cancelled) {
       setRotateConfirmError(res.errorDescription);
     }
   };
