@@ -1,63 +1,37 @@
 
 
-## Modal de detalhes do último teste por conexão
+## Mini-histórico inline no card de cada conexão
 
-Adicionar um modal acessível pela linha de mensagem (`LastTestLine`) e pelas linhas da `ConnectionsOverviewTable`, exibindo a **resposta completa** do último teste — não só erros, mas também sucessos com payload, headers, DNS e timing detalhado.
+Hoje o `ConnectionTestHistoryPanel` já existe em Supabase / Bitrix24 / n8n / MCP, porém **colapsado por padrão** — o usuário precisa clicar para ver. O pedido é mostrar as **5 últimas verificações já visíveis no card**, com opção de expandir.
 
-### Comportamento
+### Mudanças
 
-- Hoje, `LastTestLine` só é clicável quando `ok === false` (abre `ConnectionErrorDetailsDialog`). Passa a ser clicável **sempre que houver `tested_at`**, abrindo um novo `ConnectionTestDetailsDialog` unificado.
-- Na `ConnectionsOverviewTable`, a célula de mensagem/última verificação ganha um botão "Ver detalhes" (ícone `Info`) que abre o mesmo modal.
-- O modal carrega o registro completo via edge function `connection-tester` (action: `last_test_full` — novo) ou reusa `test_history` com `limit: 1` se já trouxer payload bruto.
+1. **`ConnectionTestHistoryPanel.tsx` ganha modo "preview inline"**
+   - Nova prop `defaultPreview?: boolean` (default `true`).
+   - Quando `defaultPreview` e ainda não expandido: renderiza uma lista compacta com as **5 últimas verificações** (ícone ok/falha + relativo + latência), sem os filtros nem o footer de stats.
+   - Cabeçalho clicável muda de "Histórico de testes (N)" para "Últimas verificações" + botão `Expandir` (chevron) à direita.
+   - Ao expandir: comportamento atual (filtros all/ok/fail, até 10 itens, taxa de sucesso, link "Ver tudo →" para o `ConnectionTimelineDrawer`).
+   - Ao colapsar: volta ao preview com 5 itens (não some completamente).
+   - O hook `useConnectionTestHistory` passa a ser chamado com `enabled: true` sempre (preview precisa de dados); polling 60s permanece quando expandido para preservar custo.
 
-### Conteúdo do modal (4 seções)
+2. **Tooltip nas linhas do preview** mostra timestamp absoluto (`dd/MM/yyyy HH:mm:ss`) + origem (`manual` / `cron`), reaproveitando o padrão já existente.
 
-1. **Resumo** — status (OK/Falha), `tested_at` absoluto + relativo, `triggered_by` (manual/cron/webhook), autor (quando manual).
-2. **HTTP** — método, URL (mascarada para webhooks/Bitrix com tokens), status code + classe (2xx/4xx/5xx), `content-type`, tamanho da resposta.
-3. **Timing detalhado** — barra empilhada com: `dns_ms`, `tcp_ms`, `tls_ms`, `ttfb_ms`, `download_ms`, total = `latency_ms`. Quando o backend não fornecer breakdown, mostra apenas `latency_ms` total + nota "breakdown indisponível para este tipo de conexão".
-4. **Payload bruto** — `<pre>` com JSON da resposta (truncado em 8KB com botão "Expandir"), botão "Copiar resposta", botão "Copiar como cURL" (reconstrói a partir de método+URL+headers seguros).
+3. **Clique em qualquer linha do preview** abre o `ConnectionTestDetailsDialog` daquela verificação específica (passando o `id` do registro de histórico). Hoje o modal só carrega o "último teste" — adicionar prop opcional `historyId?: string` em `useConnectionTestDetails` que, quando presente, busca aquele registro específico via nova action `test_full_by_id` no edge `connection-tester` (ou reusa `last_test_full` recebendo `id`).
 
-### Acessibilidade & UX
+4. **Estado vazio** mantém o tratamento atual (botão desabilitado, mensagem "Histórico de testes (0)").
 
-- Trigger no `LastTestLine`: o `<button>` existente vira sempre clicável (com `aria-label="Ver detalhes do último teste"`); cursor `pointer` quando houver dados.
-- Modal usa `Dialog` (`max-w-2xl`), com `Tabs` interno: `Resumo` · `HTTP` · `Timing` · `Resposta`.
-- Atalho `Esc` fecha (nativo do Radix), `C` copia payload quando aba "Resposta" ativa.
-- Loading skeleton enquanto busca `last_test_full`.
-
-### Backend (edge function `connection-tester`)
-
-- Adicionar action `last_test_full` que retorna o registro completo da tabela de histórico (`connection_test_history` ou similar — confirmar nome no schema), incluindo colunas: `request_method`, `request_url`, `response_status`, `response_headers` (jsonb), `response_body` (text, truncado em 16KB no servidor), `dns_ms`, `tcp_ms`, `tls_ms`, `ttfb_ms`, `download_ms`, `triggered_by`, `triggered_by_user_id`.
-- Para conexões sem essas colunas hoje, o backend retorna `null` nos campos faltantes — frontend já lida com isso.
-- Se as colunas de timing breakdown ainda não existirem, criar migração adicionando-as (nullable) à tabela de histórico — populadas opcionalmente em testes futuros via `performance.now()` segmentado no `connection-tester`. **Não retroativo.**
-- Mascaramento server-side: tokens em `Authorization`, `?auth=`, e segmentos de path do Bitrix (`/rest/<id>/<token>/`) são substituídos por `••••` antes de retornar.
+5. **Adicionar o painel ao `WebhooksTab.tsx`** que ainda não tem mini-histórico, para paridade com as outras 4 abas.
 
 ### Arquivos
 
-- **Novo**: `src/components/admin/connections/ConnectionTestDetailsDialog.tsx` — modal com 4 abas, mascaramento client-side defensivo, copy-to-clipboard, cURL builder.
-- **Novo**: `src/hooks/useConnectionTestDetails.ts` — fetch via `connection-tester` action `last_test_full`, cache por chave `(type, env_key|connection_id)`, refetch on open.
-- **Modificado**: `src/components/admin/connections/LastTestLine.tsx` — `onClick` passa a ser oferecido sempre que houver `tested_at`; remove restrição de `!info.ok`.
-- **Modificado**: `src/components/admin/connections/Bitrix24Tab.tsx`, `N8nTab.tsx`, `McpTab.tsx`, `WebhooksTab.tsx`, `SupabaseConnectionsTab.tsx` — substituir `setErrorDialogOpen` por `setDetailsDialogOpen` que abre o novo modal unificado (mantém `ConnectionErrorDetailsDialog` apenas como fallback se `last.ok === false` e quisermos manter ações de troubleshooting; senão deprecia).
-- **Modificado**: `src/components/admin/connections/ConnectionsOverviewTable.tsx` — botão `Info` por linha que abre o modal com o `type` + `connection_id` da linha.
-- **Modificado**: `supabase/functions/connection-tester/index.ts` — adicionar handler `last_test_full` com mascaramento e truncamento.
-- **Migração** (condicional): `ALTER TABLE` de histórico para adicionar `dns_ms int`, `tcp_ms int`, `tls_ms int`, `ttfb_ms int`, `download_ms int`, `response_headers jsonb`, `response_body text` se ainda não existirem. Confirmar nome real da tabela antes de migrar.
+- **Modificado**: `src/components/admin/connections/ConnectionTestHistoryPanel.tsx` — modo preview com 5 itens visíveis, expand/collapse mantém preview, clique em linha abre modal de detalhes.
+- **Modificado**: `src/hooks/useConnectionTestDetails.ts` — aceitar `historyId` opcional; quando presente, requisita registro específico.
+- **Modificado**: `supabase/functions/connection-tester/index.ts` — `last_test_full` aceita `id` opcional e retorna aquele registro em vez do mais recente (mascaramento idêntico).
+- **Modificado**: `src/components/admin/connections/WebhooksTab.tsx` — adicionar `<ConnectionTestHistoryPanel type="webhook_outbound" connectionId={...} ... />` no card de cada webhook.
 
 ### Detalhes técnicos
 
-- Tipo de retorno:
-  ```ts
-  interface TestDetails {
-    id: string;
-    tested_at: string;
-    ok: boolean;
-    triggered_by: "manual" | "cron" | "webhook";
-    triggered_by_user_email?: string | null;
-    request: { method: string; url: string };
-    response: { status: number | null; headers: Record<string,string> | null; body: string | null; truncated: boolean };
-    timing: { latency_ms: number; dns_ms: number | null; tcp_ms: number | null; tls_ms: number | null; ttfb_ms: number | null; download_ms: number | null };
-    error?: { kind: ErrorKind | null; message: string | null };
-  }
-  ```
-- O modal mantém a key composta `${type}:${env_key ?? connection_id}` para evitar mostrar dados velhos ao alternar entre conexões.
-- Mascaramento adicional client-side é defensivo: o servidor já retorna mascarado, mas re-aplica regex sobre `body` exibido.
-- Sem alteração em RLS (acesso via edge function autenticada por JWT admin já existente).
+- O preview é um `<ul>` com 5 itens, mesma grid da lista expandida (`grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr]`), sem filtros e sem footer.
+- Não muda RLS, schema, nem o polling (60s só quando expandido; preview usa o fetch inicial + `refreshKey` como hoje).
+- `defaultPreview={false}` (opt-out) preserva o comportamento antigo caso algum consumidor queira o painel totalmente colapsado.
 
