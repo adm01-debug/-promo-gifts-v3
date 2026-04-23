@@ -80,6 +80,7 @@ export function N8nTab() {
               <RetestButton
                 onRetest={onTest}
                 disabled={!credsLooksValid}
+                cooldownKey="n8n"
                 disabledReason={!credsOk ? "Configure a Base URL primeiro" : "Credenciais com formato suspeito — re-salve antes de testar"}
               />
             }
