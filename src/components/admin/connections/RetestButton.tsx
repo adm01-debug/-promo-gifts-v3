@@ -59,12 +59,14 @@ export function RetestButton({
   cooldownMs = 3000,
   disabledReason,
   cooldownKey,
+  shortcutKey = "r",
 }: RetestButtonProps) {
   const [isRunning, setIsRunning] = useState(false);
   // Lazy init from sessionStorage so cooldown survives a remount.
   const [cooldownUntil, setCooldownUntil] = useState<number>(() => readPersistedCooldown(cooldownKey));
   const [now, setNow] = useState<number>(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const wrapperRef = useRef<HTMLSpanElement | null>(null);
 
   const inCooldown = cooldownUntil > now;
   const secondsLeft = inCooldown ? Math.max(1, Math.ceil((cooldownUntil - now) / 1000)) : 0;
