@@ -697,7 +697,9 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       <SaveSecretConfirmDialog
         open={saveConfirmOpen}
         onOpenChange={(open) => {
-          if (!saving) setSaveConfirmOpen(open);
+          if (saving) return;
+          setSaveConfirmOpen(open);
+          if (!open) setSaveConfirmError(null);
         }}
         secretName={secretName}
         isUpdate={!!status?.has_value}
@@ -706,6 +708,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         newSuffix={value.slice(-4)}
         newLength={value.length}
         loading={saving}
+        errorMessage={saveConfirmError}
         onConfirm={handleConfirmedSave}
       />
     </div>
