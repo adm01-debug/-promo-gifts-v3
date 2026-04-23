@@ -153,6 +153,23 @@ export function ConnectionsOverviewFilters({
           </SelectContent>
         </Select>
 
+        {/* Only consecutive failures toggle */}
+        <button
+          type="button"
+          onClick={() => setOnlyConsecutiveFailures(!filters.onlyConsecutiveFailures)}
+          aria-pressed={filters.onlyConsecutiveFailures}
+          className={cn(
+            "inline-flex h-9 items-center gap-1.5 rounded-md border px-3 text-xs font-medium transition-colors",
+            filters.onlyConsecutiveFailures
+              ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
+              : "bg-background text-muted-foreground hover:text-foreground",
+          )}
+        >
+          <AlertTriangle className="h-3.5 w-3.5" />
+          Apenas com falhas seguidas
+          <span className="text-[10px] opacity-70">≥{CONSECUTIVE_FAILURE_THRESHOLD}</span>
+        </button>
+
         <div className="ml-auto flex items-center gap-2 text-xs text-muted-foreground">
           <span className="tabular-nums">
             {filteredCount} de {totalCount} {totalCount === 1 ? "conexão" : "conexões"}
