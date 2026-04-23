@@ -29,7 +29,12 @@ const WINDOW_MS: Record<Exclude<OverviewWindowFilter, "any" | "never">, number> 
   "7d": 7 * 24 * 60 * 60_000,
 };
 
-export function applyFilters(rows: OverviewRow[], filters: OverviewFilters, now: number = Date.now()): OverviewRow[] {
+export function applyFilters(
+  rows: OverviewRow[],
+  filters: OverviewFilters,
+  consecutiveFailuresMap?: Map<string, ConsecutiveFailureInfo>,
+  now: number = Date.now(),
+): OverviewRow[] {
   return rows.filter((r) => {
     if (filters.types.length > 0 && !filters.types.includes(r.type)) return false;
 
@@ -43,6 +48,11 @@ export function applyFilters(rows: OverviewRow[], filters: OverviewFilters, now:
       const ts = new Date(r.last_test_at).getTime();
       if (Number.isNaN(ts)) return false;
       if (now - ts > WINDOW_MS[filters.window]) return false;
+    }
+
+    if (filters.onlyConsecutiveFailures) {
+      const info = consecutiveFailuresMap?.get(r.key);
+      if (!info || info.count < CONSECUTIVE_FAILURE_THRESHOLD) return false;
     }
 
     return true;
@@ -60,6 +70,7 @@ export function useConnectionsOverviewFilters() {
         types: Array.isArray(parsed.types) ? parsed.types : [],
         status: ["all", "ok", "fail"].includes(parsed.status) ? parsed.status : "all",
         window: ["any", "5m", "1h", "24h", "7d", "never"].includes(parsed.window) ? parsed.window : "any",
+        onlyConsecutiveFailures: typeof parsed.onlyConsecutiveFailures === "boolean" ? parsed.onlyConsecutiveFailures : false,
       };
     } catch {
       return DEFAULT_FILTERS;
@@ -93,14 +104,19 @@ export function useConnectionsOverviewFilters() {
     setFilters((f) => ({ ...f, types: f.types.filter((t) => t !== type) }));
   }, []);
 
+  const setOnlyConsecutiveFailures = useCallback((value: boolean) => {
+    setFilters((f) => ({ ...f, onlyConsecutiveFailures: value }));
+  }, []);
+
   const reset = useCallback(() => setFilters(DEFAULT_FILTERS), []);
 
   const activeCount = useMemo(() => {
     let n = filters.types.length;
     if (filters.status !== "all") n += 1;
     if (filters.window !== "any") n += 1;
+    if (filters.onlyConsecutiveFailures) n += 1;
     return n;
   }, [filters]);
 
-  return { filters, setFilters, toggleType, setStatus, setWindow, removeType, reset, activeCount };
+  return { filters, setFilters, toggleType, setStatus, setWindow, removeType, setOnlyConsecutiveFailures, reset, activeCount };
 }
