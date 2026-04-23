@@ -19,6 +19,10 @@ interface Props {
   className?: string;
   /** Show the 5 latest tests inline by default (default: true). */
   defaultPreview?: boolean;
+  /** When set, renders a non-clickable placeholder row at the top of the list
+   *  ("Teste em andamento…") so the user sees the test was queued before the
+   *  real history row arrives via refreshKey. Cleared by the parent on result. */
+  pendingTest?: { startedAt: string } | null;
 }
 
 const PREVIEW_SIZE_OPTIONS = [5, 10, 20] as const;
