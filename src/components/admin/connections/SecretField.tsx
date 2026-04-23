@@ -592,6 +592,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               onRetry={handleSave}
               retryDisabled={!canSave}
               onViewDetails={handleViewDetails}
+              httpStatus={testDetailsState.details?.response.status ?? null}
+              latencyMs={testDetailsState.details?.timing.latency_ms ?? null}
             />
           )}
           {value.length > 0 && value.length < MIN_SUFFIX_LENGTH && (
@@ -727,6 +729,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
                 setEditing(true);
               }}
               onViewDetails={handleViewDetails}
+              httpStatus={testDetailsState.details?.response.status ?? null}
+              latencyMs={testDetailsState.details?.timing.latency_ms ?? null}
             />
           )}
         </>

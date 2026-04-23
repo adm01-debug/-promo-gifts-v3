@@ -1,4 +1,4 @@
-import { AlertCircle, Info, RefreshCw } from "lucide-react";
+import { AlertCircle, Info, RefreshCw, Activity, Timer } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -15,6 +15,30 @@ interface Props {
   /** When provided, renders a "Ver detalhes" link that opens a details modal. */
   onViewDetails?: () => void;
   detailsLabel?: string;
+  /** HTTP status do último teste — exibido como chip destacado quando presente. */
+  httpStatus?: number | null;
+  /** Latência total em ms — exibida como chip destacado quando presente. */
+  latencyMs?: number | null;
+}
+
+/** Cor do chip de status conforme faixa HTTP. */
+function statusTone(status: number): string {
+  if (status >= 500) return "border-destructive/50 bg-destructive/10 text-destructive";
+  if (status >= 400) return "border-warning/50 bg-warning/10 text-warning";
+  if (status >= 300) return "border-muted-foreground/40 bg-muted text-foreground";
+  return "border-success/40 bg-success/10 text-success";
+}
+
+/** Cor do chip de latência: <500ms ok, <2s atenção, ≥2s lento. */
+function latencyTone(ms: number): string {
+  if (ms >= 2000) return "border-destructive/50 bg-destructive/10 text-destructive";
+  if (ms >= 500) return "border-warning/50 bg-warning/10 text-warning";
+  return "border-success/40 bg-success/10 text-success";
+}
+
+function formatLatency(ms: number): string {
+  if (ms < 1000) return `${ms} ms`;
+  return `${(ms / 1000).toFixed(ms < 10000 ? 2 : 1)} s`;
 }
 
 /**
@@ -30,9 +54,14 @@ export function SecretErrorAlert({
   variant = "compact",
   onViewDetails,
   detailsLabel = "Ver detalhes",
+  httpStatus,
+  latencyMs,
 }: Props) {
   const showRetry = !!onRetry && error.retryable;
   const showDetails = !!onViewDetails;
+  const hasStatus = typeof httpStatus === "number" && Number.isFinite(httpStatus);
+  const hasLatency = typeof latencyMs === "number" && Number.isFinite(latencyMs) && latencyMs >= 0;
+  const showMetaRow = hasStatus || hasLatency;
   return (
     <div
       role="alert"
@@ -54,7 +83,35 @@ export function SecretErrorAlert({
                 <span className="font-semibold text-foreground text-sm">{error.title}</span>
               )}
             </div>
-            <p className="text-destructive break-words leading-snug">
+            {showMetaRow && (
+              <div className="flex items-center gap-1.5 flex-wrap" aria-label="Métricas do último teste">
+                {hasStatus && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded border px-1.5 py-0 text-[10px] font-mono font-semibold",
+                      statusTone(httpStatus as number),
+                    )}
+                    title={`HTTP ${httpStatus}`}
+                  >
+                    <Activity className="h-3 w-3" />
+                    HTTP {httpStatus}
+                  </span>
+                )}
+                {hasLatency && (
+                  <span
+                    className={cn(
+                      "inline-flex items-center gap-1 rounded border px-1.5 py-0 text-[10px] font-mono font-semibold",
+                      latencyTone(latencyMs as number),
+                    )}
+                    title={`Latência total: ${latencyMs} ms`}
+                  >
+                    <Timer className="h-3 w-3" />
+                    {formatLatency(latencyMs as number)}
+                  </span>
+                )}
+              </div>
+            )}
+            <p className="text-destructive break-words leading-snug font-medium">
               {error.description}
             </p>
             {error.hint && (
