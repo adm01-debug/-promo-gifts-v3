@@ -9,6 +9,7 @@ export interface TestHistoryItem {
   latency_ms: number | null;
   status: number | null;
   message: string | null;
+  triggered_by?: "manual" | "cron" | "webhook";
 }
 
 interface Options {
