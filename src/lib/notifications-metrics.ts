@@ -114,6 +114,12 @@ const state = {
   fetches: 0,
   byTrigger: { hover: 0, focus: 0, "drawer-open": 0 } as Record<TriggerSource, number>,
   byFetch: { initial: 0, polling: 0, prefetch: 0, mutation: 0 } as Record<FetchSource, number>,
+  /** Wall-clock of the most recent recordFetch() call, used for TTL-window classification. */
+  lastFetchAt: 0,
+  /** Fetches that landed within the 5s prefetch TTL window of the previous fetch. */
+  fetchesWithinTtl: 0,
+  /** Fetches that landed after the 5s window expired (or were the very first fetch). */
+  fetchesAfterTtl: 0,
   since: Date.now(),
   badgeRenders: [] as BadgeRenderStat[],
   badgeBudget: {
