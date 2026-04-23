@@ -75,6 +75,10 @@ export function useWorkspaceNotifications() {
   const hydratedRef = useRef<string | null>(null);
   const mountAtRef = useRef<number>(typeof performance !== "undefined" ? performance.now() : Date.now());
   const badgeSourceRef = useRef<"pending" | "cache" | "network">("pending");
+  // In-flight guards: prevent duplicate fetchNotifications when the user
+  // double-clicks markAllAsRead/clearAll before the first call resolves.
+  const markAllInFlightRef = useRef(false);
+  const clearAllInFlightRef = useRef(false);
 
   // Hydrate from sessionStorage immediately on user change
   useEffect(() => {
