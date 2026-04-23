@@ -63,18 +63,39 @@ export function ConnectionsOverviewTable() {
   const { test } = useConnectionTester();
   const filterState = useConnectionsOverviewFilters();
   const { filters, activeCount, reset } = filterState;
-  const [testingKey, setTestingKey] = useState<string | null>(null);
+  const [testingKeys, setTestingKeys] = useState<Set<string>>(new Set());
   const [bulkTesting, setBulkTesting] = useState(false);
   const [detailsRow, setDetailsRow] = useState<OverviewRow | null>(null);
   const { map: failuresMap } = useConsecutiveFailures(rows, 30000);
+  const [progress, setProgress] = useState<BulkProgress | null>(null);
+  const cancelRef = useRef(false);
+  const [concurrency, setConcurrency] = useState<number>(() => {
+    if (typeof window === "undefined") return 3;
+    const stored = window.localStorage.getItem("connections.bulk_test_concurrency");
+    return Math.min(8, Math.max(1, parseInt(stored ?? "3", 10) || 3));
+  });
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    if (!progress) { setElapsed(0); return; }
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - progress.startedAt) / 1000)), 250);
+    return () => clearInterval(id);
+  }, [progress]);
 
   const filtered = useMemo(
     () => applyFilters(rows, filters, failuresMap),
     [rows, filters, failuresMap],
   );
 
+  function addTestingKey(k: string) {
+    setTestingKeys((prev) => { const n = new Set(prev); n.add(k); return n; });
+  }
+  function removeTestingKey(k: string) {
+    setTestingKeys((prev) => { const n = new Set(prev); n.delete(k); return n; });
+  }
+
   async function runTest(row: OverviewRow) {
-    setTestingKey(row.key);
+    addTestingKey(row.key);
     try {
       const res = await test(row.type as ConnectionType, {
         env_key: row.env_key ?? undefined,
@@ -87,27 +108,76 @@ export function ConnectionsOverviewTable() {
         last_latency_ms: res.latency_ms ?? null,
       });
     } finally {
-      setTestingKey(null);
+      removeTestingKey(row.key);
     }
   }
 
+  function changeConcurrency(v: string) {
+    const n = Math.min(8, Math.max(1, parseInt(v, 10) || 3));
+    setConcurrency(n);
+    try { window.localStorage.setItem("connections.bulk_test_concurrency", String(n)); } catch { /* noop */ }
+  }
+
   async function runAll() {
+    const queue = [...filtered];
+    const total = queue.length;
+    if (total === 0) return;
+    cancelRef.current = false;
     setBulkTesting(true);
+    setProgress({ total, done: 0, ok: 0, fail: 0, startedAt: Date.now() });
     try {
-      const queue = [...filtered];
-      const concurrency = 3;
-      const workers = Array.from({ length: concurrency }, async () => {
+      const c = Math.min(concurrency, total);
+      const workers = Array.from({ length: c }, async () => {
         while (queue.length) {
+          if (cancelRef.current) return;
           const next = queue.shift();
           if (!next) return;
-          await runTest(next);
+          addTestingKey(next.key);
+          try {
+            const res = await test(next.type as ConnectionType, {
+              env_key: next.env_key ?? undefined,
+              connectionId: next.id ?? undefined,
+              silent: true,
+            });
+            patchRow(next.key, {
+              last_test_at: res.tested_at ?? new Date().toISOString(),
+              last_test_ok: res.ok,
+              last_test_message: res.ok ? res.message ?? null : res.error ?? null,
+              last_latency_ms: res.latency_ms ?? null,
+            });
+            setProgress((p) => p ? { ...p, done: p.done + 1, ok: p.ok + (res.ok ? 1 : 0), fail: p.fail + (res.ok ? 0 : 1) } : p);
+          } catch {
+            setProgress((p) => p ? { ...p, done: p.done + 1, ok: p.ok, fail: p.fail + 1 } : p);
+          } finally {
+            removeTestingKey(next.key);
+          }
         }
       });
       await Promise.all(workers);
+      const finalProgress = progress;
+      const elapsedSec = Math.max(1, Math.round((Date.now() - (finalProgress?.startedAt ?? Date.now())) / 1000));
+      // Use functional read via closure: re-read from state via setter pattern
+      setProgress((p) => {
+        if (!p) return null;
+        const secs = Math.max(1, Math.round((Date.now() - p.startedAt) / 1000));
+        if (cancelRef.current) {
+          toast.error("Testes cancelados", { description: `${p.done} de ${p.total} executados em ${secs}s` });
+        } else {
+          toast.success("Testes em massa concluídos", { description: `${p.ok} OK · ${p.fail} falhas em ${secs}s` });
+        }
+        return p;
+      });
+      void elapsedSec;
       await refresh();
     } finally {
       setBulkTesting(false);
+      setTimeout(() => setProgress(null), 800);
+      cancelRef.current = false;
     }
+  }
+
+  function cancelBulk() {
+    cancelRef.current = true;
   }
 
   return (
