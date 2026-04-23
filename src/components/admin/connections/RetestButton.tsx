@@ -65,6 +65,7 @@ export function RetestButton({
   disabledReason,
   cooldownKey,
   shortcutKey = "r",
+  timeoutMs = 30_000,
 }: RetestButtonProps) {
   const [isRunning, setIsRunning] = useState(false);
   // Lazy init from sessionStorage so cooldown survives a remount.
@@ -72,6 +73,8 @@ export function RetestButton({
   const [now, setNow] = useState<number>(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const wrapperRef = useRef<HTMLSpanElement | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const timedOutRef = useRef(false);
 
   const inCooldown = cooldownUntil > now;
   const secondsLeft = inCooldown ? Math.max(1, Math.ceil((cooldownUntil - now) / 1000)) : 0;
