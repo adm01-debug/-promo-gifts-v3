@@ -7,7 +7,7 @@
  * end users.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download } from "lucide-react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,11 @@ import { cn } from "@/lib/utils";
 
 /** Sliding-window length for the sparkline (60 samples × 1s = 60s). */
 const SPARK_WINDOW_SECONDS = 60;
+
+/** Suspicious threshold: ratio at/above this is considered "leaky coalescing". */
+const SUSPICIOUS_RATIO_THRESHOLD = 0.7;
+/** How many consecutive seconds the ratio must stay ≥ threshold to fire the warning. */
+const SUSPICIOUS_STREAK_SECONDS = 10;
 
 /** One ratio sample for the sparkline. */
 interface RatioSample { t: number; ratio: number; triggers: number; fetches: number; }
