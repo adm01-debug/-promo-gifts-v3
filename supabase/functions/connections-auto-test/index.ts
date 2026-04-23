@@ -73,12 +73,12 @@ async function processBatch(
         status: final.status,
         latency_ms: final.latency_ms,
         wall_ms: Date.now() - t0,
-        attempts,
-        retried: attempts > 1,
+        attempts: attempt,
+        retried: attempt > 1,
         error: final.error,
         error_kind: final.error_kind,
       }));
-      return { id: conn.id, ok: final.ok, latency_ms: final.latency_ms ?? null, attempts };
+      return { id: conn.id, ok: final.ok, latency_ms: final.latency_ms ?? null, attempts: attempt };
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro";
       console.error(JSON.stringify({ evt: "auto-test-error", id: conn.id, type: conn.type, error: msg }));
