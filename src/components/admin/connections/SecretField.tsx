@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save } from "lucide-react";
 import { validateSecret, getMinLength } from "./secretValidators";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,7 @@ interface Props {
 
 export function SecretField({ label, secretName, status, helperText, onSaved }: Props) {
   const { setSecret, rotateSecret } = useSecretsManager();
+  const draftKey = `secret-draft:${secretName}`;
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState<"set" | "rotate">("set");
   const [value, setValue] = useState("");
@@ -83,7 +84,32 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<FlashState | null>(null);
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
+  const [lastError, setLastError] = useState<string | null>(null);
   const flashCounter = useRef(0);
+
+  // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(draftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as { value?: string; mode?: "set" | "rotate" };
+      if (draft.value && typeof draft.value === "string") {
+        setValue(draft.value);
+        setMode(draft.mode === "rotate" ? "rotate" : "set");
+        setEditing(true);
+      }
+    } catch { /* ignore parse errors */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist draft whenever editing with a non-empty value; clear on success/cancel
+  useEffect(() => {
+    if (editing && value.length > 0) {
+      try { sessionStorage.setItem(draftKey, JSON.stringify({ value, mode })); } catch { /* ignore quota */ }
+    } else {
+      try { sessionStorage.removeItem(draftKey); } catch { /* ignore */ }
+    }
+  }, [editing, value, mode, draftKey]);
 
   // Rotation confirm modal
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
