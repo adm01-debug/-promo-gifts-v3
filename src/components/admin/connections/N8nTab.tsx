@@ -23,6 +23,7 @@ export function N8nTab() {
   const [historyKey, setHistoryKey] = useState(0);
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [phase, setPhase] = useState<TestProgressPhase>("idle");
+  const [timelineOpen, setTimelineOpen] = useState(false);
   const [pendingStartedAt, setPendingStartedAt] = useState<string | null>(null);
 
   useEffect(() => { list(); }, [list]);
@@ -78,7 +79,7 @@ export function N8nTab() {
               onClick={onTest}>
               {isTesting ? "Testando…" : "Testar /healthz"}
             </Button>
-            <ConnectionTimelineDrawer type="n8n" label="n8n" />
+            <ConnectionTimelineDrawer type="n8n" label="n8n" open={timelineOpen} onOpenChange={setTimelineOpen} />
             <RefreshFromDbButton onRefreshed={list} />
             <RetestCooldownSelector className="ml-auto" />
           </div>
@@ -111,6 +112,7 @@ export function N8nTab() {
             onOpenChange={setDetailsDialogOpen}
             connectionType="n8n"
             connectionLabel="n8n"
+            onViewFullHistory={() => setTimelineOpen(true)}
           />
         </CardContent>
       </Card>
