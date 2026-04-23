@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot } from "lucide-react";
+import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LatencyBadge } from "./LatencyBadge";
@@ -125,11 +125,17 @@ function HistoryRow({ item: it, onClick }: RowProps) {
     : (it.message || "Falha");
   return (
     <li>
-      <button
-        type="button"
+      <div
+        role="button"
+        tabIndex={0}
         onClick={onClick}
-        className="w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr] items-center gap-2 text-xs px-1.5 py-1 rounded hover:bg-muted/60 transition-colors text-left"
-        aria-label="Ver detalhes deste teste"
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
+        className={cn(
+          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded transition-colors text-left cursor-pointer",
+          "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          !it.ok && "bg-destructive/[0.03] hover:bg-destructive/10",
+        )}
+        aria-label={it.ok ? "Ver detalhes deste teste" : "Ver detalhes do erro"}
       >
         <Icon className={cn(
           "h-3.5 w-3.5 shrink-0",
@@ -164,7 +170,20 @@ function HistoryRow({ item: it, onClick }: RowProps) {
             {tail}
           </TooltipContent>
         </Tooltip>
-      </button>
+        {!it.ok ? (
+          <span
+            className="inline-flex items-center gap-1 text-[10px] font-medium text-destructive hover:underline shrink-0 px-1.5 py-0.5 rounded bg-destructive/10 border border-destructive/30"
+            aria-hidden
+          >
+            <Info className="h-3 w-3" />
+            Ver detalhes do erro
+          </span>
+        ) : (
+          <span className="text-[10px] text-muted-foreground/60 shrink-0 px-1" aria-hidden>
+            Ver →
+          </span>
+        )}
+      </div>
     </li>
   );
 }
