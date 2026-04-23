@@ -201,7 +201,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
       if (!matching) {
         updateStep("history", {
           status: "failed",
-          detail: `Nenhum registro com sufixo ••••${expectedSuffix} encontrado (${entries.length} entradas vistas).`,
+          detail: `Nenhum registro com sufixo ${formatMaskedSuffix(expectedSuffix)} encontrado (${entries.length} entradas vistas).`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
