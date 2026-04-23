@@ -349,6 +349,7 @@ export const notificationsMetrics = {
     state.triggerToFetch = [];
     state.triggerToFetchTtlBreaches = 0;
     state.since = Date.now();
+    resetThrottle();
   },
 };
 
