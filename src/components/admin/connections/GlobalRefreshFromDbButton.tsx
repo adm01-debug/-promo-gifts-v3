@@ -130,11 +130,12 @@ export function GlobalRefreshFromDbButton({
       const tag = t.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT" || t.isContentEditable) return;
       e.preventDefault();
-      void handleClick();
+      requestConfirm();
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [enableShortcut, handleClick]);
+  }, [enableShortcut, requestConfirm]);
+
 
   const isDisabled = isRunning || inCooldown;
   const ariaLabel = isRunning
@@ -144,33 +145,74 @@ export function GlobalRefreshFromDbButton({
       : "Atualizar tudo do banco (atalho: R)";
 
   return (
-    <TooltipProvider delayDuration={200}>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            type="button"
-            size="sm"
-            variant="outline"
-            onClick={handleClick}
-            disabled={isDisabled}
-            aria-label={ariaLabel}
-          >
-            {isRunning
-              ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-              : <DatabaseZap className="h-4 w-4 mr-1" />}
-            {isRunning
-              ? "Atualizando…"
-              : inCooldown
-                ? `Aguarde ${secondsLeft}s`
-                : "Atualizar tudo do banco"}
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="bottom">
-          <p className="text-xs max-w-[260px]">
-            Invalida o cache de 60s das credenciais, relê o banco e recarrega o status de todas as conexões. Atalho: <kbd className="rounded bg-muted px-1">R</kbd>
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <>
+      <TooltipProvider delayDuration={200}>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={requestConfirm}
+              disabled={isDisabled}
+              aria-label={ariaLabel}
+            >
+              {isRunning
+                ? <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+                : <DatabaseZap className="h-4 w-4 mr-1" />}
+              {isRunning
+                ? "Atualizando…"
+                : inCooldown
+                  ? `Aguarde ${secondsLeft}s`
+                  : "Atualizar tudo do banco"}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="bottom">
+            <p className="text-xs max-w-[260px]">
+              Invalida o cache de 60s das credenciais, relê o banco e recarrega o status de todas as conexões. Atalho: <kbd className="rounded bg-muted px-1">R</kbd>
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Atualizar tudo do banco?</AlertDialogTitle>
+            <AlertDialogDescription asChild>
+              <div className="space-y-2 text-sm text-muted-foreground">
+                <p>Esta ação vai:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Invalidar o cache de 60s de <strong>todas</strong> as credenciais</li>
+                  <li>Reler o status de todas as credenciais do banco</li>
+                  <li>Recarregar o status persistido de todas as conexões</li>
+                </ul>
+                <p>
+                  Próximas chamadas a integrações vão pagar uma releitura do banco até o cache reaquecer. Use quando acabou de editar credenciais ou suspeita de valor desatualizado.
+                </p>
+              </div>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex items-center gap-2 pt-1">
+            <Checkbox
+              id="global-refresh-skip-confirm"
+              checked={dontAskAgain}
+              onCheckedChange={(v) => setDontAskAgain(v === true)}
+            />
+            <Label htmlFor="global-refresh-skip-confirm" className="text-xs font-normal cursor-pointer">
+              Não perguntar novamente neste navegador
+            </Label>
+          </div>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirm}>
+              <DatabaseZap className="h-4 w-4 mr-1" />
+              Atualizar agora
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
+
