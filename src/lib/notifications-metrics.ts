@@ -35,6 +35,19 @@ export interface BadgeRenderStat {
   at: number;
 }
 
+/** Hit/miss counters for the <16ms badge-render budget. */
+export interface BadgeRenderBudget {
+  hits: number;
+  misses: number;
+  total: number;
+  /** hits / total (0..1). */
+  hitRate: number;
+  /** Same breakdown but only counting cache renders (most relevant for the budget). */
+  byCache: { hits: number; misses: number; total: number; hitRate: number };
+  /** Same breakdown but only counting network renders. */
+  byNetwork: { hits: number; misses: number; total: number; hitRate: number };
+}
+
 interface Snapshot {
   triggers: number;
   fetches: number;
@@ -46,9 +59,13 @@ interface Snapshot {
   /** Last N badge render stats (most recent first). */
   badgeRenders: BadgeRenderStat[];
   lastBadgeRender: BadgeRenderStat | null;
+  /** Running hit/miss counters for the <16ms render budget. */
+  badgeBudget: BadgeRenderBudget;
 }
 
 const BADGE_RENDER_HISTORY = 20;
+/** Render budget threshold (ms). A render is a "hit" iff `elapsedMs < BUDGET_MS`. */
+export const BADGE_RENDER_BUDGET_MS = 16;
 
 const state = {
   triggers: 0,
@@ -57,10 +74,33 @@ const state = {
   byFetch: { initial: 0, polling: 0, prefetch: 0, mutation: 0 } as Record<FetchSource, number>,
   since: Date.now(),
   badgeRenders: [] as BadgeRenderStat[],
+  badgeBudget: {
+    cache: { hits: 0, misses: 0 },
+    network: { hits: 0, misses: 0 },
+  },
 };
 
 type BadgeListener = (stat: BadgeRenderStat) => void;
 const badgeListeners = new Set<BadgeListener>();
+
+function buildBudget(): BadgeRenderBudget {
+  const c = state.badgeBudget.cache;
+  const n = state.badgeBudget.network;
+  const cTotal = c.hits + c.misses;
+  const nTotal = n.hits + n.misses;
+  const total = cTotal + nTotal;
+  const hits = c.hits + n.hits;
+  const misses = c.misses + n.misses;
+  const rate = (h: number, t: number) => (t === 0 ? 0 : Number((h / t).toFixed(3)));
+  return {
+    hits,
+    misses,
+    total,
+    hitRate: rate(hits, total),
+    byCache: { hits: c.hits, misses: c.misses, total: cTotal, hitRate: rate(c.hits, cTotal) },
+    byNetwork: { hits: n.hits, misses: n.misses, total: nTotal, hitRate: rate(n.hits, nTotal) },
+  };
+}
 
 function isDebugEnabled(): boolean {
   try {
@@ -106,12 +146,22 @@ export const notificationsMetrics = {
   },
 
   recordBadgeRender(stat: Omit<BadgeRenderStat, "at">) {
-    const full: BadgeRenderStat = { ...stat, at: Date.now() };
+    const isHit = stat.elapsedMs < BADGE_RENDER_BUDGET_MS;
+    // Trust the running counter to be derived from the same threshold so the
+    // hit/miss totals stay consistent even if a caller passes a stale `hit`.
+    const normalized: Omit<BadgeRenderStat, "at"> = { ...stat, hit: isHit };
+    const full: BadgeRenderStat = { ...normalized, at: Date.now() };
     state.badgeRenders.unshift(full);
     if (state.badgeRenders.length > BADGE_RENDER_HISTORY) {
       state.badgeRenders.length = BADGE_RENDER_HISTORY;
     }
-    debugLog("badge-render", full as unknown as Record<string, unknown>);
+    const bucket = state.badgeBudget[stat.source];
+    if (isHit) bucket.hits += 1;
+    else bucket.misses += 1;
+    debugLog("badge-render", {
+      ...(full as unknown as Record<string, unknown>),
+      budgetMs: BADGE_RENDER_BUDGET_MS,
+    });
     badgeListeners.forEach((l) => {
       try { l(full); } catch { /* ignore */ }
     });
@@ -120,6 +170,22 @@ export const notificationsMetrics = {
   subscribeBadgeRender(listener: BadgeListener): () => void {
     badgeListeners.add(listener);
     return () => { badgeListeners.delete(listener); };
+  },
+
+  /**
+   * Emit a one-shot summary log of the current badge-render budget. Safe to
+   * call from React unmount cleanups — silently no-ops if debug is OFF or if
+   * no badge renders have been recorded yet.
+   */
+  logBadgeBudgetSummary(reason: string = "unmount") {
+    if (!isDebugEnabled()) return;
+    const budget = buildBudget();
+    if (budget.total === 0) return;
+    debugLog("badge-budget-summary", {
+      reason,
+      budgetMs: BADGE_RENDER_BUDGET_MS,
+      ...budget,
+    });
   },
 
   snapshot(): Snapshot {
@@ -132,6 +198,7 @@ export const notificationsMetrics = {
       since: state.since,
       badgeRenders: [...state.badgeRenders],
       lastBadgeRender: state.badgeRenders[0] ?? null,
+      badgeBudget: buildBudget(),
     };
   },
 
@@ -141,6 +208,10 @@ export const notificationsMetrics = {
     state.byTrigger = { hover: 0, focus: 0, "drawer-open": 0 };
     state.byFetch = { initial: 0, polling: 0, prefetch: 0, mutation: 0 };
     state.badgeRenders = [];
+    state.badgeBudget = {
+      cache: { hits: 0, misses: 0 },
+      network: { hits: 0, misses: 0 },
+    };
     state.since = Date.now();
   },
 };

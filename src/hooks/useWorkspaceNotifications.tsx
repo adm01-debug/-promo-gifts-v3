@@ -208,6 +208,15 @@ export function useWorkspaceNotifications() {
     return () => clearInterval(interval);
   }, [user, fetchNotifications]);
 
+  // Final summary on unmount: emits ONE consolidated `[notifications-metrics:badge-budget-summary]`
+  // line with hits/misses/hitRate so QA can eyeball the bell's <16ms budget without
+  // scrolling through every individual badge-render log. No-op if debug is OFF.
+  useEffect(() => {
+    return () => {
+      notificationsMetrics.logBadgeBudgetSummary("hook-unmount");
+    };
+  }, []);
+
   // Idempotent prefetch: only re-fetches if last fetch >5s ago
   const prefetch = useCallback(async () => {
     if (!user) return;
