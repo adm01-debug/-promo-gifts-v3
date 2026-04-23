@@ -203,12 +203,16 @@ describe("useAIRecommendations", () => {
   });
 
   it("handles network failure gracefully", async () => {
+    // Fake timers para pular os backoffs do retry path em TypeError
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     global.fetch = vi.fn().mockRejectedValue(new TypeError("Failed to fetch"));
 
     const { result } = renderHook(() => useAIRecommendations());
 
     await act(async () => {
-      await result.current.fetchRecommendations(mockClient, mockProducts);
+      const promise = result.current.fetchRecommendations(mockClient, mockProducts);
+      await vi.advanceTimersByTimeAsync(2_000);
+      await promise;
     });
 
     expect(result.current.error).toBeTruthy();
