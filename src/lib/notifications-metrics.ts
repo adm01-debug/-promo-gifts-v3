@@ -225,6 +225,43 @@ export const notificationsMetrics = {
     });
   },
 
+  /**
+   * Record one end-to-end trigger→prefetch round-trip. Should be called from
+   * the bell after the prefetch promise resolves, with the timestamp of the
+   * FIRST event in the burst (so debounceMs reflects the wait that actually
+   * coalesced events).
+   */
+  recordTriggerToFetch(sample: Omit<TriggerToFetchTiming, "totalMs" | "withinTtl" | "at">) {
+    const totalMs = Number((sample.debounceMs + sample.fetchMs).toFixed(2));
+    const withinTtl = totalMs < TRIGGER_TO_FETCH_TTL_MS;
+    const full: TriggerToFetchTiming = {
+      ...sample,
+      debounceMs: Number(sample.debounceMs.toFixed(2)),
+      fetchMs: Number(sample.fetchMs.toFixed(2)),
+      totalMs,
+      withinTtl,
+      at: Date.now(),
+    };
+    state.triggerToFetch.unshift(full);
+    if (state.triggerToFetch.length > TRIGGER_TO_FETCH_HISTORY) {
+      state.triggerToFetch.length = TRIGGER_TO_FETCH_HISTORY;
+    }
+    if (!withinTtl) {
+      state.triggerToFetchTtlBreaches += 1;
+      // Always warn on breach — even with debug OFF — since this signals
+      // a real regression of the prefetch debounce vs TTL contract.
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[notifications-metrics] trigger→fetch exceeded TTL window (${totalMs}ms >= ${TRIGGER_TO_FETCH_TTL_MS}ms)`,
+        full
+      );
+    }
+    debugLog("trigger-to-fetch", {
+      ...(full as unknown as Record<string, unknown>),
+      ttlMs: TRIGGER_TO_FETCH_TTL_MS,
+    });
+  },
+
   snapshot(): Snapshot {
     return {
       triggers: state.triggers,
@@ -236,6 +273,9 @@ export const notificationsMetrics = {
       badgeRenders: [...state.badgeRenders],
       lastBadgeRender: state.badgeRenders[0] ?? null,
       badgeBudget: buildBudget(),
+      triggerToFetch: [...state.triggerToFetch],
+      lastTriggerToFetch: state.triggerToFetch[0] ?? null,
+      triggerToFetchTtlBreaches: state.triggerToFetchTtlBreaches,
     };
   },
 
