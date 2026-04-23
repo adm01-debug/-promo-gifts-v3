@@ -6,13 +6,40 @@
  * and refetches. Gated to DEV builds and admins to avoid leaking devtools to
  * end users.
  */
-import { useEffect, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { notificationsMetrics, type BadgeRenderStat } from "@/lib/notifications-metrics";
 import { cn } from "@/lib/utils";
+
+/** Sliding-window length for the sparkline (60 samples × 1s = 60s). */
+const SPARK_WINDOW_SECONDS = 60;
+
+/** One ratio sample for the sparkline. */
+interface RatioSample { t: number; ratio: number; triggers: number; fetches: number; }
+
+/**
+ * Build the SVG `points` string for a polyline that fits the samples in a
+ * `width × height` box. Returns an empty string if there's nothing to draw.
+ */
+function buildSparkPath(samples: RatioSample[], width: number, height: number): string {
+  if (samples.length === 0) return "";
+  const n = SPARK_WINDOW_SECONDS;
+  // X-axis: index 0 = oldest, index n-1 = newest. Right-align so newest sits
+  // at the right edge regardless of how many samples we have.
+  const stepX = width / (n - 1);
+  const startIdx = n - samples.length;
+  return samples
+    .map((s, i) => {
+      const x = (startIdx + i) * stepX;
+      // Ratio is bounded [0..∞) but practically [0..1+]. Clamp display to 1.
+      const y = height - Math.min(1, s.ratio) * height;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .join(" ");
+}
 
 /**
  * Color the trigger/fetch ratio based on coalescing efficiency:
@@ -59,25 +86,62 @@ export function NotificationsBadgeStatsPanel() {
   const [debugOn, setDebugOn] = useState(() => isDebugMode());
 
   const [snapshot, setSnapshot] = useState(() => notificationsMetrics.snapshot());
+  /** Sliding-window samples (most recent at the END). */
+  const [samples, setSamples] = useState<RatioSample[]>([]);
+  const lastCountsRef = useRef<{ triggers: number; fetches: number }>({ triggers: 0, fetches: 0 });
 
   useEffect(() => {
     if (!visible) return;
-    setSnapshot(notificationsMetrics.snapshot());
+    const initial = notificationsMetrics.snapshot();
+    setSnapshot(initial);
+    lastCountsRef.current = { triggers: initial.triggers, fetches: initial.fetches };
+
     const unsub = notificationsMetrics.subscribeBadgeRender(() => {
       setSnapshot(notificationsMetrics.snapshot());
     });
-    // Triggers/fetches don't have a subscription channel — poll lightly so the
-    // ratio stays fresh while the drawer is open. 1s is plenty (the user is
-    // staring at a panel, not a chart).
     const id = window.setInterval(() => {
-      setSnapshot(notificationsMetrics.snapshot());
+      const snap = notificationsMetrics.snapshot();
+      setSnapshot(snap);
       setDebugOn(isDebugMode());
+      // Detect auto-reset (every 15 min) and clear samples so the sparkline
+      // doesn't draw a phantom drop to 0.
+      const prev = lastCountsRef.current;
+      if (snap.triggers < prev.triggers || snap.fetches < prev.fetches) {
+        setSamples([]);
+      }
+      lastCountsRef.current = { triggers: snap.triggers, fetches: snap.fetches };
+      setSamples((prevSamples) => {
+        const next = [
+          ...prevSamples,
+          { t: Date.now(), ratio: snap.ratio, triggers: snap.triggers, fetches: snap.fetches },
+        ];
+        return next.length > SPARK_WINDOW_SECONDS
+          ? next.slice(next.length - SPARK_WINDOW_SECONDS)
+          : next;
+      });
     }, 1000);
     return () => {
       unsub();
       window.clearInterval(id);
     };
   }, [visible]);
+
+  // Sparkline math — memoized so we don't rebuild the polyline on every render.
+  // MUST be declared BEFORE the `if (!visible)` early return to obey the Rules
+  // of Hooks (visible can change between renders if isAdmin loads async).
+  const SPARK_W = 160;
+  const SPARK_H = 24;
+  const sparkPoints = useMemo(() => buildSparkPath(samples, SPARK_W, SPARK_H), [samples]);
+  const sparkStats = useMemo(() => {
+    if (samples.length === 0) return { avg: 0, peak: 0, latest: 0 };
+    const ratios = samples.map((s) => s.ratio);
+    const sum = ratios.reduce((a, b) => a + b, 0);
+    return {
+      avg: sum / ratios.length,
+      peak: Math.max(...ratios),
+      latest: ratios[ratios.length - 1],
+    };
+  }, [samples]);
 
   if (!visible) return null;
 
@@ -138,6 +202,63 @@ export function NotificationsBadgeStatsPanel() {
             <span className="pl-3.5">· mutation</span>
             <span className="tabular-nums text-right">{byFetch.mutation}</span>
           </div>
+          {/* 60-second sparkline of the trigger/fetch ratio. */}
+          <div className="mt-1.5 pt-1.5 border-t border-border/30">
+            <div className="flex items-center justify-between gap-2 mb-0.5 text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <TrendingUp className="h-2.5 w-2.5" aria-hidden="true" />
+                Ratio (last 60s)
+              </span>
+              <span className="tabular-nums text-[10px]">
+                avg {sparkStats.avg.toFixed(2)} · peak {sparkStats.peak.toFixed(2)} · n={samples.length}
+              </span>
+            </div>
+            <svg
+              width={SPARK_W}
+              height={SPARK_H}
+              viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
+              className="w-full h-6 block"
+              role="img"
+              aria-label={`Ratio sparkline over the last ${samples.length} seconds, latest ${sparkStats.latest.toFixed(2)}`}
+            >
+              {/* Reference lines at 0.3 and 0.7 (the ratioTone thresholds). */}
+              <line
+                x1="0" x2={SPARK_W}
+                y1={SPARK_H - 0.3 * SPARK_H} y2={SPARK_H - 0.3 * SPARK_H}
+                className="stroke-primary/20" strokeDasharray="2 2" strokeWidth="0.5"
+              />
+              <line
+                x1="0" x2={SPARK_W}
+                y1={SPARK_H - 0.7 * SPARK_H} y2={SPARK_H - 0.7 * SPARK_H}
+                className="stroke-warning/30" strokeDasharray="2 2" strokeWidth="0.5"
+              />
+              {samples.length === 0 ? (
+                <text
+                  x={SPARK_W / 2} y={SPARK_H / 2 + 3}
+                  textAnchor="middle"
+                  className="fill-muted-foreground text-[8px]"
+                >
+                  collecting…
+                </text>
+              ) : (
+                <polyline
+                  points={sparkPoints}
+                  fill="none"
+                  className={cn(
+                    "stroke-2",
+                    sparkStats.latest < 0.3
+                      ? "stroke-primary"
+                      : sparkStats.latest < 0.7
+                        ? "stroke-foreground"
+                        : "stroke-warning"
+                  )}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              )}
+            </svg>
+          </div>
+
           <div className="mt-1 pt-1 border-t border-border/30 flex items-center justify-between text-muted-foreground">
             <span>Coalesced (saved fetches)</span>
             <span className="tabular-nums text-primary font-semibold">
