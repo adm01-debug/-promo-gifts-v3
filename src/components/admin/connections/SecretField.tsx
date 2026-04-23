@@ -173,8 +173,22 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     return { ok: true as const };
   };
 
+  const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
+  const canSave = !saving && value.length > 0 && validation.ok;
+  const saveDisabledReason = saving
+    ? null
+    : value.length === 0
+      ? "Cole um valor antes de salvar"
+      : !validation.ok
+        ? validation.message ?? "Corrija o formato antes de salvar"
+        : null;
+
+  const minLen = getMinLength(secretName);
+  const storedLooksSuspicious =
+    !editing && !!status?.has_value && !!minLen && (status.length ?? 0) < minLen;
+
   const handleSave = async () => {
-    if (!value || value.length < 4 || saving) return;
+    if (!canSave) return;
 
     // Rotação passa pelo modal de confirmação
     if (mode === "rotate") {
@@ -189,7 +203,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
-    if (!value || value.length < 4) return;
+    if (!value || !validation.ok) return;
     setSaving(true);
     setRotateConfirmError(null);
     const res = await performSave("rotate", value, notes);
