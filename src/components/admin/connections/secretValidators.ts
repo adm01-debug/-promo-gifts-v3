@@ -151,10 +151,27 @@ const DEFAULT_RULE: ValidatorRule = {
   message: "Valor deve ter pelo menos 4 caracteres.",
 };
 
+/**
+ * Comprimento mínimo absoluto para qualquer secret. O sufixo mascarado
+ * exibido na UI (••••XXXX) é sempre os últimos 4 caracteres do valor —
+ * permitir <4 chars quebraria a renderização e impediria a auditoria.
+ */
+export const MIN_SUFFIX_LENGTH = 4;
+
 export function validateSecret(name: string, value: string): ValidationResult {
   const rule = SECRET_VALIDATORS[name] ?? DEFAULT_RULE;
   if (value.length === 0) {
     return { ok: false, hint: rule.hint };
+  }
+  // Guarda inviolável: sufixo mascarado exige exatamente 4 caracteres.
+  // Aplicada antes do validador específico para garantir mensagem clara
+  // mesmo em secrets com regras customizadas (ex: BITRIX24_DOMAIN).
+  if (value.length < MIN_SUFFIX_LENGTH) {
+    return {
+      ok: false,
+      message: `Valor muito curto: ${value.length} ${value.length === 1 ? "caractere" : "caracteres"}. O sufixo mascarado (••••XXXX) exige pelo menos ${MIN_SUFFIX_LENGTH} caracteres para ser exibido com segurança.`,
+      hint: rule.hint,
+    };
   }
   if (rule.test(value)) {
     return { ok: true, hint: rule.hint };
