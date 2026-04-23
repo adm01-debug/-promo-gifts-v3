@@ -169,6 +169,62 @@ export function TechniqueTooltip({ technique, children, className }: TechniqueTo
             </div>
           </div>
 
+          {/* ─── Dados reais do produto/área (vindos do RPC) ─── */}
+          {(technique.locationName || technique.maxWidth || technique.maxColors != null || technique.setupCost != null || technique.groupCode || technique.variationLabel || technique.isCurved) && (
+            <div className="pt-2 border-t mt-2 space-y-1.5">
+              {technique.locationName && (
+                <div className="flex items-start gap-2 text-xs">
+                  <Layers className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Local:</span>
+                    <span className="ml-1 font-medium">{technique.locationName}</span>
+                  </div>
+                </div>
+              )}
+              {technique.variationLabel && (
+                <div className="flex items-start gap-2 text-xs">
+                  <Info className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Variação:</span>
+                    <span className="ml-1 font-medium">{technique.variationLabel}</span>
+                    {technique.groupCode && <span className="ml-1 text-muted-foreground">({technique.groupCode})</span>}
+                  </div>
+                </div>
+              )}
+              {technique.maxWidth && technique.maxHeight && (
+                <div className="flex items-start gap-2 text-xs">
+                  <Ruler className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Máx:</span>
+                    <span className="ml-1 font-medium tabular-nums">{technique.maxWidth}×{technique.maxHeight} cm</span>
+                  </div>
+                </div>
+              )}
+              {technique.maxColors != null && (
+                <div className="flex items-start gap-2 text-xs">
+                  <Palette className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Máx cores:</span>
+                    <span className="ml-1 font-medium">{technique.maxColors}</span>
+                    {technique.chargesPerColor && <span className="ml-1 text-[10px] text-muted-foreground">(cobra por cor)</span>}
+                  </div>
+                </div>
+              )}
+              {technique.setupCost != null && technique.setupCost > 0 && (
+                <div className="flex items-start gap-2 text-xs">
+                  <Wrench className="h-3.5 w-3.5 text-muted-foreground mt-0.5" />
+                  <div>
+                    <span className="text-muted-foreground">Setup:</span>
+                    <span className="ml-1 font-medium tabular-nums">R$ {technique.setupCost.toFixed(2)}</span>
+                  </div>
+                </div>
+              )}
+              {technique.isCurved && (
+                <Badge variant="outline" className="text-[10px]">Suporta curvo</Badge>
+              )}
+            </div>
+          )}
+
           {/* Visual Style Preview */}
           <div className="pt-2 border-t mt-2">
             <p className="text-xs text-muted-foreground">
