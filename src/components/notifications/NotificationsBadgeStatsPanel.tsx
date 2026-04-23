@@ -7,7 +7,7 @@
  * end users.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp } from "lucide-react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
