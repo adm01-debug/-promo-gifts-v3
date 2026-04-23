@@ -5,6 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { useSecretsManager, type SecretStatus } from "@/hooks/useSecretsManager";
 
+function formatRelative(iso: string): string {
+  const then = new Date(iso).getTime();
+  const diffMs = Date.now() - then;
+  if (Number.isNaN(then)) return "";
+  const sec = Math.floor(diffMs / 1000);
+  if (sec < 60) return "agora";
+  const min = Math.floor(sec / 60);
+  if (min < 60) return `há ${min}m`;
+  const hr = Math.floor(min / 60);
+  if (hr < 24) return `há ${hr}h`;
+  const d = Math.floor(hr / 24);
+  return `há ${d}d`;
+}
+
 interface Props {
   label: string;
   secretName: string;
