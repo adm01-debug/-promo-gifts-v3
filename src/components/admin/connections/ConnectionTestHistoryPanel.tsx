@@ -233,16 +233,23 @@ export function ConnectionTestHistoryPanel({
           )}
           {showPreview ? `Últimas verificações (${total})` : `Histórico de testes (${total})`}
         </span>
-        {stats && !expanded && (
-          <span className={cn(
-            "text-[11px] tabular-nums",
-            stats.rate === 100
-              ? "text-green-700 dark:text-green-400"
-              : stats.rate >= 80 ? "text-muted-foreground" : "text-destructive",
-          )}>
-            {stats.rate}% sucesso
-          </span>
-        )}
+        <span className="inline-flex items-center gap-2">
+          {!expanded && items.length >= 2 && (
+            <TooltipProvider delayDuration={150}>
+              <LatencySparkline items={items} />
+            </TooltipProvider>
+          )}
+          {stats && !expanded && (
+            <span className={cn(
+              "text-[11px] tabular-nums",
+              stats.rate === 100
+                ? "text-green-700 dark:text-green-400"
+                : stats.rate >= 80 ? "text-muted-foreground" : "text-destructive",
+            )}>
+              {stats.rate}% sucesso
+            </span>
+          )}
+        </span>
       </button>
 
       {/* Preview inline (5 itens, com filtros rápidos) */}
