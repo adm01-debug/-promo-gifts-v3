@@ -32,6 +32,8 @@ interface Props {
   connectionId?: string;
   /** Quando presente, abre os detalhes deste registro específico do histórico. */
   historyId?: string;
+  /** Callback opcional: quando provido, mostra o botão "Ver histórico completo" no header. */
+  onViewFullHistory?: () => void;
 }
 
 const TRIGGER_META: Record<TestDetails["triggered_by"], { label: string; Icon: typeof User }> = {
