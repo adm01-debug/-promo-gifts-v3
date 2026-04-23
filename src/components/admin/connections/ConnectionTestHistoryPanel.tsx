@@ -362,6 +362,15 @@ export function ConnectionTestHistoryPanel({
     return () => clearTimeout(t);
   }, [highlightId]);
 
+  // Auto-highlight the freshest item whenever refreshKey changes (i.e. a manual
+  // test just completed). Items are returned newest-first by the edge function.
+  const prevRefreshKeyRef = useRef(refreshKey);
+  useEffect(() => {
+    if (prevRefreshKeyRef.current === refreshKey) return;
+    prevRefreshKeyRef.current = refreshKey;
+    if (items.length > 0) setHighlightId(items[0].id);
+  }, [refreshKey, items]);
+
   const goToLatestFailure = (e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (!latestFailure) return;
