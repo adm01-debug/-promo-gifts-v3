@@ -31,6 +31,7 @@ import { useConnectionTester, type ConnectionType } from "@/hooks/useConnectionT
 import { ConnectionsOverviewFilters } from "./ConnectionsOverviewFilters";
 import { applyFilters, useConnectionsOverviewFilters } from "@/hooks/useConnectionsOverviewFilters";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
+import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { useConsecutiveFailures } from "@/hooks/useConsecutiveFailures";
 import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
 
