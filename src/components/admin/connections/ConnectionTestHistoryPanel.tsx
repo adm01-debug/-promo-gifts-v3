@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, CheckCircle2, XCircle, Loader2, History } from "lucide-react";
+import { ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LatencyBadge } from "./LatencyBadge";
@@ -168,11 +168,18 @@ export function ConnectionTestHistoryPanel({
                       )} />
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <span className="text-muted-foreground tabular-nums truncate cursor-default">
+                          <span className="text-muted-foreground tabular-nums truncate cursor-default inline-flex items-center gap-1">
                             {formatRelative(it.tested_at)}
+                            {it.triggered_by === "cron" && (
+                              <Bot className="h-3 w-3 text-muted-foreground/70" aria-label="Teste automático" />
+                            )}
                           </span>
                         </TooltipTrigger>
-                        <TooltipContent side="top">{formatAbsolute(it.tested_at)}</TooltipContent>
+                        <TooltipContent side="top">
+                          {formatAbsolute(it.tested_at)}
+                          {it.triggered_by === "cron" && " · automático (cron)"}
+                          {it.triggered_by === "manual" && " · manual"}
+                        </TooltipContent>
                       </Tooltip>
                       <LatencyBadge ms={it.latency_ms} />
                       <Tooltip>
