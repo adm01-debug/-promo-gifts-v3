@@ -30,6 +30,7 @@ Bancos · Bitrix24 · n8n · MCP · Webhooks (sub-abas: Saída + **Playground** 
 - **#7 Notificações proativas**: edge `connections-health-check` + cron 15min insere `workspace_notifications` (categoria `integrations`) para webhooks auto-desabilitados, secrets >90d e conexões caídas. Dedupe 4h por `incident_key`. **Janela de falha contínua configurável** (RPC admin `set_connection_failure_window_minutes` — 0/15/30/60/120/240min, default 30min, persistido em `system_settings`): só notifica `connection_down` se nenhum teste sucesso ocorreu dentro da janela (suprime flaps). Card UI `FailureWindowCard` em `/admin/conexoes`.
 - **#8 Exportação**: componente `ExportButton` reusável (CSV + JSON, sem deps extras — usa `trends-export.ts`). Aplicado em Timeline, Inbound events e Failed deliveries.
 - **#9 Playground**: `WebhookPlaygroundPanel` na sub-aba "Saída" com seleção de webhook + evento do catálogo, payload de exemplo editável (`webhook-events-payload-samples.ts` com 16 amostras), disparo via `webhook-dispatcher` em `test_mode=true` (não conta `consecutive_failures`, não persiste em `webhook_deliveries`, não aciona breaker).
+- **#10 Status do job auto-test**: `AutoTestJobStatusCard` em `/admin/conexoes` agrega `connection_test_history` (cron) por minuto via RPC admin `get_auto_test_job_status` (últimos 7d, 100 runs). Mostra: KPIs do último run (quando, duração, OK/falha), taxa de sucesso 24h e tabela com latência média + contagem de retries por execução. Polling 60s.
 
 ## Crons
 - `webhook-retry-failed` `*/10 * * * *`
