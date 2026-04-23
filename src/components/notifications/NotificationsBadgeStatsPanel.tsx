@@ -126,13 +126,9 @@ export function NotificationsBadgeStatsPanel() {
     };
   }, [visible]);
 
-  if (!visible) return null;
-
-  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch } = snapshot;
-  const savedFetches = Math.max(0, triggers - fetches);
-  const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
-
   // Sparkline math — memoized so we don't rebuild the polyline on every render.
+  // MUST be declared BEFORE the `if (!visible)` early return to obey the Rules
+  // of Hooks (visible can change between renders if isAdmin loads async).
   const SPARK_W = 160;
   const SPARK_H = 24;
   const sparkPoints = useMemo(() => buildSparkPath(samples, SPARK_W, SPARK_H), [samples]);
@@ -146,6 +142,12 @@ export function NotificationsBadgeStatsPanel() {
       latest: ratios[ratios.length - 1],
     };
   }, [samples]);
+
+  if (!visible) return null;
+
+  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch } = snapshot;
+  const savedFetches = Math.max(0, triggers - fetches);
+  const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
 
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
