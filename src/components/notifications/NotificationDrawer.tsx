@@ -26,6 +26,100 @@ const typeConfig = {
   error: { icon: XCircle, color: "text-destructive", bg: "bg-destructive/10" },
 };
 
+/**
+ * BellBadge — apenas o ícone + contador de não lidas.
+ * Memoizado por `unreadCount` e `shouldShake` para não re-renderizar quando
+ * `isRefetching` (background fetch) alternar.
+ */
+const BellBadge = React.memo(function BellBadge({
+  unreadCount,
+  shouldShake,
+}: {
+  unreadCount: number;
+  shouldShake: boolean;
+}) {
+  return (
+    <>
+      <motion.div
+        animate={shouldShake ? {
+          rotate: [0, -15, 15, -10, 10, -5, 5, 0],
+          transition: { duration: 0.6 }
+        } : {}}
+      >
+        <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
+      </motion.div>
+      <AnimatePresence>
+        {unreadCount > 0 && (
+          <motion.div
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            exit={{ scale: 0, opacity: 0 }}
+            transition={{ type: "spring", stiffness: 500, damping: 20 }}
+            className="absolute -top-0.5 -right-0.5"
+          >
+            <span className="relative flex h-4 min-w-4 items-center justify-center">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-40" />
+              <Badge className="relative h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground rounded-full">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </Badge>
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+});
+
+/**
+ * RefetchSpinner — isolado para que sua animação não invalide o BellBadge
+ * nem o título do drawer. Re-renderiza apenas quando `isRefetching` muda.
+ */
+const RefetchSpinner = React.memo(function RefetchSpinner({
+  isRefetching,
+}: {
+  isRefetching: boolean;
+}) {
+  return (
+    <AnimatePresence>
+      {isRefetching && (
+        <motion.span
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.15 }}
+          className="inline-flex items-center text-muted-foreground"
+          aria-label="Atualizando notificações"
+          role="status"
+        >
+          <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+        </motion.span>
+      )}
+    </AnimatePresence>
+  );
+});
+
+/**
+ * DrawerHeaderTitle — título + contador "X novas". Depende apenas de
+ * `unreadCount`; o spinner de refetch é renderizado como filho independente.
+ */
+const DrawerHeaderTitle = React.memo(function DrawerHeaderTitle({
+  unreadCount,
+}: {
+  unreadCount: number;
+}) {
+  return (
+    <>
+      <Bell className="h-5 w-5 text-primary" />
+      Notificações
+      {unreadCount > 0 && (
+        <Badge variant="secondary" className="text-xs">
+          {unreadCount} nova{unreadCount > 1 ? "s" : ""}
+        </Badge>
+      )}
+    </>
+  );
+});
+
 function NotificationItem({
   notification,
   onRead,
@@ -157,32 +251,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 onMouseEnter={debouncedPrefetch}
                 onFocus={debouncedPrefetch}
               >
-                <motion.div
-                  animate={shouldShake ? {
-                    rotate: [0, -15, 15, -10, 10, -5, 5, 0],
-                    transition: { duration: 0.6 }
-                  } : {}}
-                >
-                  <Bell className="h-[18px] w-[18px]" strokeWidth={1.75} />
-                </motion.div>
-                <AnimatePresence>
-                  {unreadCount > 0 && (
-                    <motion.div
-                      initial={{ scale: 0, opacity: 0 }}
-                      animate={{ scale: 1, opacity: 1 }}
-                      exit={{ scale: 0, opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 20 }}
-                      className="absolute -top-0.5 -right-0.5"
-                    >
-                      <span className="relative flex h-4 min-w-4 items-center justify-center">
-                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-destructive opacity-40" />
-                        <Badge className="relative h-4 min-w-4 px-1 flex items-center justify-center text-[9px] bg-destructive text-destructive-foreground rounded-full">
-                          {unreadCount > 9 ? "9+" : unreadCount}
-                        </Badge>
-                      </span>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                <BellBadge unreadCount={unreadCount} shouldShake={shouldShake} />
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-card border-border text-xs">
@@ -196,28 +265,8 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
         <SheetHeader className="px-4 pt-4 pb-3 border-b border-border">
           <div className="flex items-center justify-between">
             <SheetTitle className="flex items-center gap-2 text-lg">
-              <Bell className="h-5 w-5 text-primary" />
-              Notificações
-              {unreadCount > 0 && (
-                <Badge variant="secondary" className="text-xs">
-                  {unreadCount} nova{unreadCount > 1 ? "s" : ""}
-                </Badge>
-              )}
-              <AnimatePresence>
-                {isRefetching && (
-                  <motion.span
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.15 }}
-                    className="inline-flex items-center text-muted-foreground"
-                    aria-label="Atualizando notificações"
-                    role="status"
-                  >
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-                  </motion.span>
-                )}
-              </AnimatePresence>
+              <DrawerHeaderTitle unreadCount={unreadCount} />
+              <RefetchSpinner isRefetching={isRefetching} />
             </SheetTitle>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
