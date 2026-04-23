@@ -11,7 +11,7 @@ import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp } from "lu
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
-import { notificationsMetrics, type BadgeRenderStat } from "@/lib/notifications-metrics";
+import { notificationsMetrics, type BadgeRenderStat, type TriggerSource } from "@/lib/notifications-metrics";
 import { cn } from "@/lib/utils";
 
 /** Sliding-window length for the sparkline (60 samples × 1s = 60s). */
