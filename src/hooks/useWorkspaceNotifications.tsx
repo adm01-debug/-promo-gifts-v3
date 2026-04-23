@@ -103,13 +103,23 @@ export function useWorkspaceNotifications() {
         (typeof performance !== "undefined" ? performance.now() : Date.now()) -
         mountAtRef.current;
       badgeSourceRef.current = "cache";
+      const cacheAgeMs = Date.now() - cached.cachedAt;
+      const unread = cached.notifications.filter((n) => !n.is_read).length;
       debugLog("badge-render", {
         source: "cache",
         elapsedMs: Number(elapsedMs.toFixed(2)),
         target: "<16ms",
         hit: elapsedMs < 16,
-        unreadCount: cached.notifications.filter((n) => !n.is_read).length,
-        cacheAgeMs: Date.now() - cached.cachedAt,
+        unreadCount: unread,
+        cacheAgeMs,
+      });
+      notificationsMetrics.recordBadgeRender({
+        source: "cache",
+        elapsedMs: Number(elapsedMs.toFixed(2)),
+        cacheAgeMs,
+        networkMs: null,
+        unreadCount: unread,
+        hit: elapsedMs < 16,
       });
     }
   }, [user]);
