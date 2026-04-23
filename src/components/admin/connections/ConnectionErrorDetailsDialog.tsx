@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { XCircle, Copy, History as HistoryIcon, ChevronDown, Lightbulb } from "lucide-react";
+import { XCircle, Copy, History as HistoryIcon, ChevronDown, Lightbulb, Clock, WifiOff, Globe, KeyRound, ServerCrash, Settings2, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { LastTestInfo } from "./LastTestLine";
+import type { ErrorKind } from "@/hooks/useConnectionTester";
 
 interface Props {
   open: boolean;
@@ -26,6 +27,7 @@ interface DetailRow {
   latency_ms: number | null;
   status_code: number | null;
   error_message: string | null;
+  error_kind: ErrorKind | null;
 }
 
 function formatRelative(iso: string | null | undefined): string {
@@ -39,16 +41,36 @@ function formatRelative(iso: string | null | undefined): string {
   return `há ${Math.round(diff / 86_400_000)}d`;
 }
 
-function suggestionFor(message: string | null | undefined, status: number | null | undefined): string | null {
+const SUGGESTIONS: Record<ErrorKind, string> = {
+  timeout: "Aumente o timeout, verifique se o serviço está sobrecarregado ou se há latência de rede excessiva.",
+  network: "O serviço pode estar offline, fora do ar ou bloqueando o IP da função. Tente novamente em alguns minutos.",
+  dns: "DNS não resolvido — verifique se a URL está correta e o domínio existe.",
+  auth: "Verifique se as credenciais estão corretas, não expiraram e têm as permissões necessárias.",
+  http: "Serviço externo retornou erro — consulte os logs do destino para entender a causa.",
+  config: "Configure as credenciais necessárias antes de testar a conexão.",
+  unknown: "Erro não categorizado — consulte os detalhes técnicos abaixo.",
+};
+
+const KIND_META: Record<ErrorKind, { label: string; Icon: typeof Clock; className: string }> = {
+  timeout: { label: "Timeout", Icon: Clock, className: "border-warning/40 bg-warning/10 text-warning" },
+  network: { label: "Rede", Icon: WifiOff, className: "border-destructive/40 bg-destructive/10 text-destructive" },
+  dns: { label: "DNS", Icon: Globe, className: "border-destructive/40 bg-destructive/10 text-destructive" },
+  auth: { label: "Auth", Icon: KeyRound, className: "border-warning/40 bg-warning/10 text-warning" },
+  http: { label: "HTTP", Icon: ServerCrash, className: "border-destructive/40 bg-destructive/10 text-destructive" },
+  config: { label: "Config", Icon: Settings2, className: "border-muted-foreground/40 bg-muted text-muted-foreground" },
+  unknown: { label: "Desconhecido", Icon: AlertCircle, className: "border-muted-foreground/40 bg-muted text-muted-foreground" },
+};
+
+/** Legacy regex-based fallback for rows persisted before error_kind existed. */
+function suggestionFromMessage(message: string | null | undefined, status: number | null | undefined): string | null {
   const m = (message ?? "").toLowerCase();
-  if (status === 401 || status === 403) return "Verifique se as credenciais estão corretas e não expiraram.";
+  if (status === 401 || status === 403) return SUGGESTIONS.auth;
   if (status === 404) return "Verifique se a URL base está correta.";
-  if (status && status >= 500) return "Serviço externo retornou erro — tente novamente em alguns minutos.";
-  if (m.includes("etimedout") || m.includes("econnrefused") || m.includes("timeout")) {
-    return "O serviço pode estar offline ou bloqueando o IP da função.";
-  }
+  if (status && status >= 500) return SUGGESTIONS.http;
+  if (m.includes("etimedout") || m.includes("timeout") || m.includes("tempo esgotado")) return SUGGESTIONS.timeout;
+  if (m.includes("econnrefused") || m.includes("network") || m.includes("rede")) return SUGGESTIONS.network;
+  if (m.includes("dns") || m.includes("getaddrinfo")) return SUGGESTIONS.dns;
   if (m.includes("jwt") || m.includes("token")) return "Token JWT possivelmente malformado — re-salve o secret.";
-  if (m.includes("dns") || m.includes("getaddrinfo")) return "DNS não resolvido — verifique a URL.";
   return null;
 }
 
@@ -87,7 +109,7 @@ export function ConnectionErrorDetailsDialog({
         }
         const { data } = await supabase
           .from("connection_test_history")
-          .select("id,tested_at,success,latency_ms,status_code,error_message")
+          .select("id,tested_at,success,latency_ms,status_code,error_message,error_kind")
           .in("connection_id", ids)
           .eq("success", false)
           .order("tested_at", { ascending: false })
@@ -104,7 +126,12 @@ export function ConnectionErrorDetailsDialog({
   const message = detail?.error_message ?? summary?.message ?? null;
   const latency = detail?.latency_ms ?? summary?.latency_ms ?? null;
   const testedAt = detail?.tested_at ?? summary?.tested_at ?? null;
-  const suggestion = suggestionFor(message, status);
+  const errorKind: ErrorKind | null =
+    (detail?.error_kind as ErrorKind | null | undefined) ??
+    (summary?.error_kind as ErrorKind | null | undefined) ??
+    null;
+  const suggestion = errorKind ? SUGGESTIONS[errorKind] : suggestionFromMessage(message, status);
+  const kindMeta = errorKind ? KIND_META[errorKind] : null;
 
   const copyDetails = useCallback(() => {
     const payload = {
@@ -114,11 +141,12 @@ export function ConnectionErrorDetailsDialog({
       tested_at: testedAt,
       latency_ms: latency,
       status_code: status,
+      error_kind: errorKind,
       message,
     };
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
     toast.success("Detalhes copiados");
-  }, [connectionLabel, connectionType, envKey, testedAt, latency, status, message]);
+  }, [connectionLabel, connectionType, envKey, testedAt, latency, status, errorKind, message]);
 
   useEffect(() => {
     if (!open) return;
@@ -138,10 +166,22 @@ export function ConnectionErrorDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
             <XCircle className="h-5 w-5 text-destructive" />
             Detalhes da falha
             <Badge variant="outline" className="ml-2">{connectionLabel}</Badge>
+            {kindMeta && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium",
+                  kindMeta.className,
+                )}
+                title={`Categoria do erro: ${kindMeta.label}`}
+              >
+                <kindMeta.Icon className="h-3 w-3" />
+                {kindMeta.label}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -196,6 +236,7 @@ export function ConnectionErrorDetailsDialog({
   success: detail.success,
   latency_ms: detail.latency_ms,
   status_code: detail.status_code,
+  error_kind: detail.error_kind,
   error_message: detail.error_message,
 }, null, 2)}
                 </pre>

@@ -18,6 +18,7 @@ const BodySchema = z.object({
   connection_id: z.string().uuid().optional(),
   env_key: z.enum(["promobrind", "crm"]).optional(),
   limit: z.number().int().min(1).max(50).optional(),
+  timeout_ms: z.number().int().min(1000).max(30000).optional(),
 });
 
 Deno.serve(async (req) => {
@@ -56,7 +57,7 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { action, type, config = {}, connection_id, env_key, limit } = parsed.data;
+    const { action, type, config = {}, connection_id, env_key, limit, timeout_ms } = parsed.data;
 
     // -- last_test: read persisted info, no ping --
     if (action === "last_test") {
@@ -110,7 +111,7 @@ Deno.serve(async (req) => {
       }
       const [{ data: items }, { count }] = await Promise.all([
         service.from("connection_test_history")
-          .select("id, tested_at, success, latency_ms, status_code, error_message, triggered_by")
+          .select("id, tested_at, success, latency_ms, status_code, error_message, error_kind, triggered_by")
           .in("connection_id", connIds)
           .order("tested_at", { ascending: false })
           .limit(max),
@@ -120,13 +121,14 @@ Deno.serve(async (req) => {
       ]);
       return new Response(JSON.stringify({
         ok: true,
-        items: (items ?? []).map((r: { id: string; tested_at: string; success: boolean; latency_ms: number | null; status_code: number | null; error_message: string | null; triggered_by: string | null }) => ({
+        items: (items ?? []).map((r: { id: string; tested_at: string; success: boolean; latency_ms: number | null; status_code: number | null; error_message: string | null; error_kind: string | null; triggered_by: string | null }) => ({
           id: r.id,
           tested_at: r.tested_at,
           ok: r.success,
           latency_ms: r.latency_ms,
           status: r.status_code,
           message: r.error_message,
+          error_kind: r.error_kind,
           triggered_by: r.triggered_by ?? "manual",
         })),
         total: count ?? 0,
@@ -143,6 +145,7 @@ Deno.serve(async (req) => {
       created_by: u.user.id,
       triggered_by: "manual",
       service,
+      timeoutMs: timeout_ms,
     });
 
     return new Response(JSON.stringify({
@@ -152,6 +155,7 @@ Deno.serve(async (req) => {
         status: r.status,
         latency_ms: r.latency_ms,
         error: r.error,
+        error_kind: r.error_kind,
         message: r.message,
         tested_at: r.tested_at,
       },

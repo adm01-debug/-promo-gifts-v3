@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { ErrorKind } from "@/hooks/useConnectionTester";
 
 export interface LastTestInfo {
   ok: boolean | null;
@@ -8,6 +9,7 @@ export interface LastTestInfo {
   latency_ms?: number | null;
   message?: string | null;
   status?: number | null;
+  error_kind?: ErrorKind | null;
 }
 
 function formatRelative(iso: string | null | undefined): string {

@@ -39,7 +39,7 @@ export function N8nTab() {
 
   const onTest = async () => {
     const r = await test("n8n");
-    setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status });
+    setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status, error_kind: r.error_kind ?? null });
     setHistoryKey((k) => k + 1);
   };
 

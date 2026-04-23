@@ -601,6 +601,7 @@ export type Database = {
         Row: {
           connection_id: string
           created_at: string
+          error_kind: string | null
           error_message: string | null
           id: string
           latency_ms: number | null
@@ -612,6 +613,7 @@ export type Database = {
         Insert: {
           connection_id: string
           created_at?: string
+          error_kind?: string | null
           error_message?: string | null
           id?: string
           latency_ms?: number | null
@@ -623,6 +625,7 @@ export type Database = {
         Update: {
           connection_id?: string
           created_at?: string
+          error_kind?: string | null
           error_message?: string | null
           id?: string
           latency_ms?: number | null
