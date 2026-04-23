@@ -14,6 +14,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import { invokeExternalDb } from '@/lib/external-db';
+import { adaptPriceResponse } from '@/lib/personalization/adapters';
 
 // ============================================
 // TYPES - Nova resposta RPC v5.9
@@ -126,14 +127,9 @@ export interface CustomizationPriceFlat {
 
 /**
  * @deprecated Use `adaptPriceResponse` de `@/lib/personalization/adapters`.
- * Esta função é mantida como re-export por 1 ciclo para não quebrar imports
- * existentes. A lógica de adaptação foi extraída para a camada de adapters,
- * que suporta o formato hipotético v7 e telemetria de versões.
+ * Mantido como re-export por 1 ciclo para compatibilidade com imports legados.
  */
 export function mapPriceResponseToFlat(resp: Record<string, unknown>): CustomizationPriceFlat {
-  // Import dinâmico evita ciclo de módulos (adapters reusam o tipo daqui).
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { adaptPriceResponse } = require('@/lib/personalization/adapters') as typeof import('@/lib/personalization/adapters');
   return adaptPriceResponse(resp);
 }
 
