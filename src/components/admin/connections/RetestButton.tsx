@@ -12,6 +12,10 @@ interface RetestButtonProps {
   /** Stable identifier (e.g. connection type/id) used to persist the cooldown
    *  across remounts in the same tab. Falls back to in-memory only when omitted. */
   cooldownKey?: string;
+  /** Keyboard key (lowercase) that fires the retest when an ancestor element
+   *  with [data-retest-scope] contains the focus. Default: "r". Pass null to
+   *  disable. Ignored when typing inside inputs/textareas/contenteditable. */
+  shortcutKey?: string | null;
 }
 
 type DisabledKind = "running" | "cooldown" | "credentials" | null;
