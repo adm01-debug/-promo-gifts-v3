@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -21,6 +20,8 @@ import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { LatencyBadge } from "./LatencyBadge";
 import { useConnectionsOverview, type OverviewRow } from "@/hooks/useConnectionsOverview";
 import { useConnectionTester, type ConnectionType } from "@/hooks/useConnectionTester";
+import { ConnectionsOverviewFilters } from "./ConnectionsOverviewFilters";
+import { applyFilters, useConnectionsOverviewFilters } from "@/hooks/useConnectionsOverviewFilters";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
@@ -42,13 +43,6 @@ function formatRelative(iso: string | null): string {
   return `há ${Math.round(diff / 86_400_000)}d`;
 }
 
-type Filter = "all" | "active" | "error" | "never";
-
-function rowFilter(r: OverviewRow): Filter {
-  if (!r.last_test_at) return "never";
-  return r.last_test_ok ? "active" : "error";
-}
-
 function rowStatus(r: OverviewRow): "active" | "degraded" | "error" | "unconfigured" | "disabled" {
   if (r.status === "disabled") return "disabled";
   if (!r.last_test_at) return "unconfigured";
@@ -58,23 +52,12 @@ function rowStatus(r: OverviewRow): "active" | "degraded" | "error" | "unconfigu
 export function ConnectionsOverviewTable() {
   const { rows, loading, refreshing, refresh, patchRow } = useConnectionsOverview(30000);
   const { test } = useConnectionTester();
-  const [filter, setFilter] = useState<Filter>("all");
+  const filterState = useConnectionsOverviewFilters();
+  const { filters, activeCount, reset } = filterState;
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [bulkTesting, setBulkTesting] = useState(false);
 
-  const counts = useMemo(() => {
-    const c = { all: rows.length, active: 0, error: 0, never: 0 };
-    for (const r of rows) {
-      const k = rowFilter(r);
-      c[k] += 1;
-    }
-    return c;
-  }, [rows]);
-
-  const filtered = useMemo(() => {
-    if (filter === "all") return rows;
-    return rows.filter((r) => rowFilter(r) === filter);
-  }, [rows, filter]);
+  const filtered = useMemo(() => applyFilters(rows, filters), [rows, filters]);
 
   async function runTest(row: OverviewRow) {
     setTestingKey(row.key);
@@ -134,35 +117,22 @@ export function ConnectionsOverviewTable() {
             disabled={bulkTesting || filtered.length === 0}
           >
             {bulkTesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
-            Testar {filter === "all" ? "todas" : "filtradas"}
+            Testar {activeCount > 0 ? "filtradas" : "todas"}
           </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <div className="flex flex-wrap gap-1.5">
-          {([
-            ["all", "Todas"],
-            ["active", "Ativas"],
-            ["error", "Com erro"],
-            ["never", "Nunca verificadas"],
-          ] as [Filter, string][]).map(([key, label]) => (
-            <button
-              key={key}
-              onClick={() => setFilter(key)}
-              className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs transition-colors",
-                filter === key
-                  ? "border-primary bg-primary/10 text-primary"
-                  : "border-border text-muted-foreground hover:bg-muted",
-              )}
-            >
-              {label}
-              <Badge variant="secondary" className="h-4 px-1.5 text-[10px]">
-                {counts[key]}
-              </Badge>
-            </button>
-          ))}
-        </div>
+        <ConnectionsOverviewFilters
+          filters={filters}
+          toggleType={filterState.toggleType}
+          setStatus={filterState.setStatus}
+          setWindow={filterState.setWindow}
+          removeType={filterState.removeType}
+          reset={filterState.reset}
+          activeCount={activeCount}
+          totalCount={rows.length}
+          filteredCount={filtered.length}
+        />
 
         {loading ? (
           <div className="space-y-2">
@@ -174,14 +144,15 @@ export function ConnectionsOverviewTable() {
           <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-10 text-center">
             <Clock className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
-              {filter === "error"
-                ? "Nenhuma conexão com erro 🎉"
-                : filter === "never"
-                  ? "Todas as conexões já foram testadas"
-                  : filter === "active"
-                    ? "Nenhuma conexão ativa ainda"
-                    : "Nenhuma conexão cadastrada"}
+              {activeCount > 0
+                ? "Nenhuma conexão corresponde aos filtros"
+                : "Nenhuma conexão cadastrada"}
             </p>
+            {activeCount > 0 && (
+              <Button variant="ghost" size="sm" onClick={reset} className="h-8 text-xs">
+                Limpar filtros
+              </Button>
+            )}
           </div>
         ) : (
           <TooltipProvider delayDuration={200}>
