@@ -74,6 +74,7 @@ async function processBatch(
         ok: final.ok,
         status: final.status,
         latency_ms: final.latency_ms,
+        timeout_ms: perTypeTimeout,
         wall_ms: Date.now() - t0,
         attempts: attempt,
         retried: attempt > 1,
