@@ -245,6 +245,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
       error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
       error_kind: result.ok ? null : (result.error_kind ?? null),
       triggered_by,
+      attempts,
     }).then(() => undefined, (e) => console.error("history insert failed", e));
   } else if (env_key && type === "supabase" && created_by) {
     const { data: upserted } = await service.from("external_connections").upsert({
