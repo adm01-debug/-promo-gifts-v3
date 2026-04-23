@@ -13,6 +13,7 @@ import { RetestButton } from "./RetestButton";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
+import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();

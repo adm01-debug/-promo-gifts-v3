@@ -15,6 +15,7 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
+import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 
 const ENVS = [
   {

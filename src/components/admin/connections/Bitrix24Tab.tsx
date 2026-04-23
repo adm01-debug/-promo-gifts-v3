@@ -14,6 +14,7 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
 import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
+import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
