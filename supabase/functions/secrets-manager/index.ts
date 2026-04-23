@@ -246,15 +246,15 @@ Deno.serve(async (req) => {
       const finalLength = storedRow?.length ?? value.length;
       const finalUpdatedAt = storedRow?.updated_at ?? new Date().toISOString();
 
-      if (action === "rotate") {
-        await service.from("secret_rotation_log").insert({
-          secret_name: name,
-          rotated_by: userData.user.id,
-          previous_suffix: previousSuffix,
-          new_suffix: finalSuffix,
-          notes: notes ?? null,
-        });
-      }
+      // Log every save operation (set OR rotate) so the credential history shows the full timeline
+      await service.from("secret_rotation_log").insert({
+        secret_name: name,
+        rotated_by: userData.user.id,
+        previous_suffix: previousSuffix,
+        new_suffix: finalSuffix,
+        notes: notes ?? null,
+        action_type: action === "rotate" ? "rotate" : "set",
+      });
 
       await service.from("admin_audit_log").insert({
         user_id: userData.user.id,

@@ -3615,6 +3615,7 @@ export type Database = {
       }
       secret_rotation_log: {
         Row: {
+          action_type: string
           id: string
           new_suffix: string | null
           notes: string | null
@@ -3624,6 +3625,7 @@ export type Database = {
           secret_name: string
         }
         Insert: {
+          action_type?: string
           id?: string
           new_suffix?: string | null
           notes?: string | null
@@ -3633,6 +3635,7 @@ export type Database = {
           secret_name: string
         }
         Update: {
+          action_type?: string
           id?: string
           new_suffix?: string | null
           notes?: string | null
