@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -21,6 +20,8 @@ import { ConnectionStatusBadge } from "./ConnectionStatusBadge";
 import { LatencyBadge } from "./LatencyBadge";
 import { useConnectionsOverview, type OverviewRow } from "@/hooks/useConnectionsOverview";
 import { useConnectionTester, type ConnectionType } from "@/hooks/useConnectionTester";
+import { ConnectionsOverviewFilters } from "./ConnectionsOverviewFilters";
+import { applyFilters, useConnectionsOverviewFilters } from "@/hooks/useConnectionsOverviewFilters";
 
 const TYPE_META: Record<string, { label: string; Icon: typeof Database }> = {
   supabase: { label: "Banco", Icon: Database },
