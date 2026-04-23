@@ -35,6 +35,28 @@ export interface BadgeRenderStat {
   at: number;
 }
 
+/**
+ * One end-to-end timing sample from the FIRST hover/focus event of a burst all
+ * the way to the moment the bell's `prefetch()` promise resolved (or the
+ * drawer-open path completed). Used to verify the debounce keeps end-to-end
+ * latency well within the 5s prefetch TTL window.
+ */
+export interface TriggerToFetchTiming {
+  /** Source of the FIRST event in the burst (hover/focus/drawer-open). */
+  source: TriggerSource;
+  /** ms from first event → debounce timer fired (queued the prefetch call). */
+  debounceMs: number;
+  /** ms from prefetch() invocation → promise resolved (network or TTL hit). */
+  fetchMs: number;
+  /** debounceMs + fetchMs. Should always be < TRIGGER_TO_FETCH_TTL_MS. */
+  totalMs: number;
+  /** Whether `totalMs < TRIGGER_TO_FETCH_TTL_MS` (5s TTL window). */
+  withinTtl: boolean;
+  /** How many trigger events were coalesced into this single prefetch. */
+  coalescedTriggers: number;
+  at: number;
+}
+
 /** Hit/miss counters for the <16ms badge-render budget. */
 export interface BadgeRenderBudget {
   hits: number;
@@ -61,7 +83,20 @@ interface Snapshot {
   lastBadgeRender: BadgeRenderStat | null;
   /** Running hit/miss counters for the <16ms render budget. */
   badgeBudget: BadgeRenderBudget;
+  /** Last N trigger→fetch end-to-end timings (most recent first). */
+  triggerToFetch: TriggerToFetchTiming[];
+  lastTriggerToFetch: TriggerToFetchTiming | null;
+  /** Number of timings that exceeded TRIGGER_TO_FETCH_TTL_MS. */
+  triggerToFetchTtlBreaches: number;
 }
+
+const TRIGGER_TO_FETCH_HISTORY = 20;
+/**
+ * Hard ceiling for the trigger→prefetch round-trip. Matches the 5 s prefetch
+ * TTL inside `useWorkspaceNotifications.prefetch`. Any sample above this is
+ * counted as a "TTL breach" and warned to the console.
+ */
+export const TRIGGER_TO_FETCH_TTL_MS = 5000;
 
 const BADGE_RENDER_HISTORY = 20;
 /** Render budget threshold (ms). A render is a "hit" iff `elapsedMs < BUDGET_MS`. */
@@ -78,6 +113,8 @@ const state = {
     cache: { hits: 0, misses: 0 },
     network: { hits: 0, misses: 0 },
   },
+  triggerToFetch: [] as TriggerToFetchTiming[],
+  triggerToFetchTtlBreaches: 0,
 };
 
 type BadgeListener = (stat: BadgeRenderStat) => void;
@@ -188,6 +225,43 @@ export const notificationsMetrics = {
     });
   },
 
+  /**
+   * Record one end-to-end trigger→prefetch round-trip. Should be called from
+   * the bell after the prefetch promise resolves, with the timestamp of the
+   * FIRST event in the burst (so debounceMs reflects the wait that actually
+   * coalesced events).
+   */
+  recordTriggerToFetch(sample: Omit<TriggerToFetchTiming, "totalMs" | "withinTtl" | "at">) {
+    const totalMs = Number((sample.debounceMs + sample.fetchMs).toFixed(2));
+    const withinTtl = totalMs < TRIGGER_TO_FETCH_TTL_MS;
+    const full: TriggerToFetchTiming = {
+      ...sample,
+      debounceMs: Number(sample.debounceMs.toFixed(2)),
+      fetchMs: Number(sample.fetchMs.toFixed(2)),
+      totalMs,
+      withinTtl,
+      at: Date.now(),
+    };
+    state.triggerToFetch.unshift(full);
+    if (state.triggerToFetch.length > TRIGGER_TO_FETCH_HISTORY) {
+      state.triggerToFetch.length = TRIGGER_TO_FETCH_HISTORY;
+    }
+    if (!withinTtl) {
+      state.triggerToFetchTtlBreaches += 1;
+      // Always warn on breach — even with debug OFF — since this signals
+      // a real regression of the prefetch debounce vs TTL contract.
+      // eslint-disable-next-line no-console
+      console.warn(
+        `[notifications-metrics] trigger→fetch exceeded TTL window (${totalMs}ms >= ${TRIGGER_TO_FETCH_TTL_MS}ms)`,
+        full
+      );
+    }
+    debugLog("trigger-to-fetch", {
+      ...(full as unknown as Record<string, unknown>),
+      ttlMs: TRIGGER_TO_FETCH_TTL_MS,
+    });
+  },
+
   snapshot(): Snapshot {
     return {
       triggers: state.triggers,
@@ -199,6 +273,9 @@ export const notificationsMetrics = {
       badgeRenders: [...state.badgeRenders],
       lastBadgeRender: state.badgeRenders[0] ?? null,
       badgeBudget: buildBudget(),
+      triggerToFetch: [...state.triggerToFetch],
+      lastTriggerToFetch: state.triggerToFetch[0] ?? null,
+      triggerToFetchTtlBreaches: state.triggerToFetchTtlBreaches,
     };
   },
 
@@ -212,6 +289,8 @@ export const notificationsMetrics = {
       cache: { hits: 0, misses: 0 },
       network: { hits: 0, misses: 0 },
     };
+    state.triggerToFetch = [];
+    state.triggerToFetchTtlBreaches = 0;
     state.since = Date.now();
   },
 };
