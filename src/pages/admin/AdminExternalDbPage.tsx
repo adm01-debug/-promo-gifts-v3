@@ -103,6 +103,110 @@ export default function AdminExternalDbPage() {
         </Button>
       </div>
 
+      <Card className="border-primary/30">
+        <CardHeader className="flex flex-row items-center justify-between gap-2">
+          <div>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <FileSearch className="h-5 w-5" /> Diff de Gravação / Técnicas / Tamanhos
+            </CardTitle>
+            <p className="text-xs text-muted-foreground mt-1">
+              Compara os tipos do front com o schema atual das 4 tabelas críticas:
+              <code className="ml-1">tabela_preco_gravacao_oficial</code>,{" "}
+              <code>tabela_preco_gravacao_oficial_faixa</code>,{" "}
+              <code>print_area_techniques</code>, <code>tecnica_gravacao</code>.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            {diffs && (
+              <Button variant="outline" size="sm" onClick={copyReport}>
+                <Copy className="h-4 w-4 mr-2" /> Copiar relatório
+              </Button>
+            )}
+            <Button size="sm" onClick={runEngravingDiff} disabled={diffLoading}>
+              <FileSearch className="h-4 w-4 mr-2" />
+              {diffLoading ? "Inspecionando..." : "Comparar agora"}
+            </Button>
+          </div>
+        </CardHeader>
+        {diffs && (
+          <CardContent className="space-y-4">
+            {diffs.map((d) => (
+              <div key={d.table} className="border rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="flex items-center gap-2">
+                    {d.exists ? (
+                      d.missingInDb.length === 0 ? (
+                        <CheckCircle2 className="h-4 w-4 text-success" />
+                      ) : (
+                        <AlertTriangle className="h-4 w-4 text-destructive" />
+                      )
+                    ) : (
+                      <AlertTriangle className="h-4 w-4 text-destructive" />
+                    )}
+                    <code className="text-sm font-semibold">{d.table}</code>
+                  </div>
+                  {d.exists && (
+                    <div className="flex gap-1 text-xs">
+                      <Badge variant="outline">{d.actualColumns.length} colunas no banco</Badge>
+                      <Badge variant="outline">{d.expectedColumns.length} esperadas</Badge>
+                    </div>
+                  )}
+                </div>
+                {!d.exists && (
+                  <p className="text-xs text-destructive">⚠ {d.error}</p>
+                )}
+                {d.exists && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                    <div>
+                      <p className="font-semibold text-destructive mb-1">
+                        🔴 Faltando no banco ({d.missingInDb.length})
+                      </p>
+                      {d.missingInDb.length === 0 ? (
+                        <p className="text-muted-foreground italic">nenhuma — front OK</p>
+                      ) : (
+                        <ul className="space-y-0.5">
+                          {d.missingInDb.map((c) => (
+                            <li key={c}>
+                              <code className="bg-destructive/10 px-1 rounded">{c}</code>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-success mb-1">
+                        🟢 Novas no banco ({d.newInDb.length})
+                      </p>
+                      {d.newInDb.length === 0 ? (
+                        <p className="text-muted-foreground italic">nenhuma</p>
+                      ) : (
+                        <ul className="space-y-0.5">
+                          {d.newInDb.map((c) => (
+                            <li key={c}>
+                              <code className="bg-success/10 px-1 rounded">{c}</code>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>
+                  </div>
+                )}
+                <details className="text-xs">
+                  <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
+                    Consumidores no front ({d.consumers.length})
+                  </summary>
+                  <ul className="mt-1 space-y-0.5 pl-3">
+                    {d.consumers.map((c) => (
+                      <li key={c}><code>{c}</code></li>
+                    ))}
+                  </ul>
+                </details>
+              </div>
+            ))}
+          </CardContent>
+        )}
+      </Card>
+
       {selectedTable ? (
         <>
           <Button variant="ghost" onClick={handleBack}>
