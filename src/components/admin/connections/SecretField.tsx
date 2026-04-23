@@ -589,21 +589,14 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               Valor ajustado: {lastNormalization.join(", ")}
             </div>
           )}
-          {lastError && !saving && (
-            <SecretErrorAlert
-              error={lastError}
-              onRetry={handleSave}
-              retryDisabled={!canSave}
-              onViewDetails={handleViewDetails}
-              httpStatus={testDetailsState.details?.response.status ?? null}
-              latencyMs={testDetailsState.details?.timing.latency_ms ?? null}
-            />
-          )}
           {value.length > 0 && value.length < MIN_SUFFIX_LENGTH && (
             <div
               role="alert"
-              aria-live="polite"
-              className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs text-destructive"
+              aria-live="assertive"
+              aria-atomic="true"
+              data-testid="suffix-invalid-banner"
+              tabIndex={-1}
+              className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive focus-visible:ring-offset-2"
             >
               <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0" />
               <div className="min-w-0 space-y-0.5">
