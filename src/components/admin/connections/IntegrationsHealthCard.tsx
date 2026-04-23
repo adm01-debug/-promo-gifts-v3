@@ -222,6 +222,7 @@ function SourceCountChip({
   );
 }
 
+export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatus[] }) {
   const [auditing, setAuditing] = useState(false);
   const { setFilter } = useCredentialsSourceFilter();
   const sourceCounts = useMemo(() => {
