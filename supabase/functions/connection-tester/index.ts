@@ -1,8 +1,9 @@
 // connection-tester: pings external systems to verify connectivity. Admin-only.
 // Reads credentials from `integration_credentials` (DB-first) with env fallback.
+// Core ping/persistence logic lives in `_shared/connection-test-runner.ts`.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
-import { getCredential } from "../_shared/credentials.ts";
+import { runConnectionTest } from "../_shared/connection-test-runner.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -18,51 +19,6 @@ const BodySchema = z.object({
   env_key: z.enum(["promobrind", "crm"]).optional(),
   limit: z.number().int().min(1).max(50).optional(),
 });
-
-async function pingSupabase(url: string, key: string) {
-  const start = Date.now();
-  const res = await fetch(`${url}/rest/v1/?apikey=${key}`, {
-    headers: { apikey: key, Authorization: `Bearer ${key}` },
-  });
-  await res.text();
-  return { ok: res.ok, status: res.status, latency_ms: Date.now() - start };
-}
-
-async function pingBitrix(webhookUrl: string) {
-  const start = Date.now();
-  const url = webhookUrl.replace(/\/$/, "") + "/crm.contact.fields.json";
-  const res = await fetch(url);
-  const body = await res.text();
-  let parsed: unknown = null;
-  try { parsed = JSON.parse(body); } catch { /* ignore */ }
-  return {
-    ok: res.ok && !!parsed && !(parsed as Record<string, unknown>).error,
-    status: res.status,
-    latency_ms: Date.now() - start,
-    error: (parsed as { error?: string })?.error,
-  };
-}
-
-async function pingN8n(baseUrl: string, apiKey?: string) {
-  const start = Date.now();
-  const url = baseUrl.replace(/\/$/, "") + "/healthz";
-  const headers: Record<string, string> = {};
-  if (apiKey) headers["X-N8N-API-KEY"] = apiKey;
-  const res = await fetch(url, { headers });
-  await res.text();
-  return { ok: res.ok, status: res.status, latency_ms: Date.now() - start };
-}
-
-async function pingWebhook(url: string) {
-  const start = Date.now();
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "X-Connection-Test": "1" },
-    body: JSON.stringify({ event: "connection.test", timestamp: new Date().toISOString() }),
-  });
-  await res.text();
-  return { ok: res.ok, status: res.status, latency_ms: Date.now() - start };
-}
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
