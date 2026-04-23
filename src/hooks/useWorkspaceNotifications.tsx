@@ -155,13 +155,22 @@ export function useWorkspaceNotifications() {
       .eq("is_read", false);
 
     if (error) return;
+    // Optimistic local update
     setNotifications((prev) => {
       const next = prev.map((n) => ({ ...n, is_read: true }));
       writeCache(user.id, next);
       return next;
     });
     setUnreadCount(0);
-  }, [user]);
+    // Invalidate cache + re-hydrate from server to prevent drift
+    try {
+      sessionStorage.removeItem(CACHE_PREFIX + user.id);
+    } catch {
+      // ignore
+    }
+    lastFetchAtRef.current = 0;
+    await fetchNotifications({ silent: true });
+  }, [user, fetchNotifications]);
 
   const clearAll = useCallback(async () => {
     if (!user) return;
@@ -171,10 +180,19 @@ export function useWorkspaceNotifications() {
       .eq("user_id", user.id);
 
     if (error) return;
+    // Optimistic local update
     setNotifications([]);
     setUnreadCount(0);
     writeCache(user.id, []);
-  }, [user]);
+    // Invalidate cache + re-hydrate from server to prevent drift
+    try {
+      sessionStorage.removeItem(CACHE_PREFIX + user.id);
+    } catch {
+      // ignore
+    }
+    lastFetchAtRef.current = 0;
+    await fetchNotifications({ silent: true });
+  }, [user, fetchNotifications]);
 
   return {
     notifications,
