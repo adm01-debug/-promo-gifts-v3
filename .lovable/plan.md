@@ -1,78 +1,63 @@
 
 
-# Validação imediata + normalização ao colar no `SecretField`
+## Botão "Atualizar do banco" global em /admin/conexoes
 
-## Objetivo
+### Objetivo
+Adicionar um único botão no header da página de Conexões que, num clique:
+1. Invalida o cache de **todas** as credenciais (TTL 60s no edge `_shared/credentials.ts`)
+2. Recarrega a lista de secrets (status, suffix, source)
+3. Recarrega a tabela `external_connections` (status persistido)
+4. Mostra feedback unificado com cooldown de 5s
 
-Quando o admin **cola** um valor (Ctrl+V) num `SecretField`, aplicar imediatamente:
-1. **Normalização silenciosa** (corrigir erros comuns de copy/paste).
-2. **Validação imediata** com feedback visual (ok/erro/hint).
+### O que será criado
 
-Hoje a validação só acontece em `onChange`/`onBlur` e nada é normalizado — o usuário cola `https://abc.supabase.co/` (com `/`) ou `eyJ...\n` (com newline) e só descobre o erro ao tentar salvar.
+**`src/components/admin/connections/GlobalRefreshFromDbButton.tsx`** (novo)
+- Botão `variant="outline"` com ícone `DatabaseZap` + label "Atualizar tudo do banco"
+- Estado interno: `isRunning`, `cooldownUntil` (mesmo padrão do `RefreshFromDbButton`)
+- Ao clicar, executa em paralelo via `Promise.allSettled`:
+  - `refreshCache()` (sem nome → invalida tudo no edge `secrets-manager` action `refresh_cache`)
+  - `list()` do `useSecretsManager` (relê status do banco)
+  - Callback `onRefreshed` (para o page recarregar overview + outros hooks)
+- Toast único agregado:
+  - **Sucesso total**: "Tudo atualizado · cache + N credenciais + status das conexões"
+  - **Sucesso parcial**: "Atualização parcial" listando o que falhou
+  - **Falha total**: "Falha ao atualizar"
+- Cooldown de 5s com contagem regressiva visível ("Aguarde 4s")
+- Tooltip explicando: "Invalida o cache de 60s das credenciais, relê o banco e recarrega o status de todas as conexões"
+- Atalho de teclado opcional: `R` (sem modificadores quando não em input) — registrar via `useEffect` simples com guard para `event.target` não ser input/textarea
 
-## Mudanças
+### O que será alterado
 
-### 1. Novo módulo `secretNormalizers.ts` (irmão de `secretValidators.ts`)
+**`src/pages/admin/AdminConexoesPage.tsx`**
+- Importa `GlobalRefreshFromDbButton`
+- Coloca-o no header, à direita do `<SmokeTestChecklist>`, antes da listagem
+- Passa `onRefreshed` que dispara `list()` (já tem) + um novo trigger para `ConnectionsOverviewTable` recarregar
 
-Função pura `normalizeSecret(name, raw): { value, changes[] }` por credencial:
+**`src/components/admin/connections/ConnectionsOverviewTable.tsx`**
+- Já expõe `refresh` internamente. Para permitir recarga externa, expor via prop opcional `refreshSignal?: number`. Quando o número muda, dispara `load(false)`.
+- Alternativa mais simples: expor o componente com `forwardRef` e método `refresh()`. Vou usar `refreshSignal` (mais previsível, sem ref).
 
-| Secret | Normalizações aplicadas |
-|---|---|
-| `EXTERNAL_PROMOBRIND_URL`, `EXTERNAL_CRM_URL` | trim, remove aspas envolventes, lower-case do host, remove `/` final, remove qualquer path/query/fragment |
-| `EXTERNAL_*_ANON_KEY`, `EXTERNAL_*_SERVICE_ROLE_KEY` | trim, remove `Bearer ` prefix, remove todo whitespace interno (newlines de copy/paste de UI) |
-| `BITRIX24_WEBHOOK_URL` | trim, remove aspas, garante `/` final, remove query/fragment |
-| `BITRIX24_DOMAIN` | trim, remove `https://`/`http://`, remove `/` final, lower-case |
-| `BITRIX24_USER_ID` | trim, mantém apenas dígitos |
-| `BITRIX24_TOKEN` | trim, remove whitespace |
-| `N8N_BASE_URL` | trim, remove aspas, remove `/` final, remove path |
-| `N8N_API_KEY` | trim, remove `Bearer ` prefix, remove whitespace |
-| `MCP_SERVER_URL`, `MCP_SHARED_SECRET` | trim, remove aspas |
-| Outbound/Inbound `*_HMAC_*`/`*_SECRET_*` | trim, remove whitespace |
-| Default (qualquer outro) | trim |
+**`src/pages/admin/AdminConexoesPage.tsx`** (continuação)
+- Mantém um state `refreshTick` incrementado pelo callback do botão global
+- Passa `refreshSignal={refreshTick}` ao `<ConnectionsOverviewTable>`
 
-Cada normalização adiciona um string descritivo ao array `changes` (ex.: `"barra final removida"`, `"prefixo Bearer removido"`, `"quebras de linha removidas"`) — usado pra mostrar feedback discreto pro usuário.
+### Detalhes técnicos
 
-### 2. `SecretField.tsx` — handler de paste + validação imediata
+- **Sem nova migração**: tudo já existe no edge `secrets-manager` action `refresh_cache` (sem `name` invalida tudo).
+- **Sem novo endpoint**: a tabela `external_connections` é lida diretamente pelo hook `useConnectionsOverview` — basta reexecutar o `select`.
+- **Não duplica os botões por-aba**: os `RefreshFromDbButton` por aba (Bitrix24/n8n/Supabase) continuam, pois servem o caso de uso de invalidar 1 secret específico após edição. O global é o "big button" para o admin que acabou de editar várias credenciais.
+- **Acessibilidade**: `aria-label` dinâmico ("Atualizar tudo do banco" / "Aguarde Ns" / "Atualizando…"), `disabled` apropriado.
+- **Concorrência**: se já estiver rodando, segundo clique é ignorado (não enfileira).
 
-- Adicionar `onPaste={handlePaste}` no `<Input type="password">` do modo set/rotate:
-  - `e.preventDefault()`
-  - Pegar `e.clipboardData.getData("text")`
-  - Rodar `normalizeSecret(name, raw)`
-  - `setValue(normalized)`
-  - Se `changes.length > 0`, mostrar **toast info** discreto: `"Valor normalizado: barra final removida, espaços removidos"` (uma única toast, ID estável `paste-norm-${name}` pra evitar duplicar)
-  - Disparar a validação imediatamente (já roda via `useEffect` em `value`, mas garantir que não há debounce).
+### Resultado visual
 
-- Mudar a validação visual atual (que hoje só aparece após digitar) pra rodar em **todo `setValue`** — incluindo paste — e mostrar:
-  - Borda `border-destructive` no `<Input>` quando `validation.ok === false && value.length > 0`
-  - Borda `border-success` (token existente) quando `validation.ok === true`
-  - Mensagem `validation.message` em vermelho **abaixo** do input (já existe parcialmente — garantir que aparece imediatamente no paste, não só no blur).
+```text
+┌─ Conexões ───────────────────────── [Atualizar tudo do banco] [Smoke test] ─┐
+│  Hub central de integrações...                                              │
+├──────────────────────────────────────────────────────────────────────────────┤
+│  Saúde geral: 87% · 1 falha consecutiva                                     │
+└──────────────────────────────────────────────────────────────────────────────┘
+```
 
-### 3. Mesma normalização no `onChange` manual (digitação)
-
-Também rodar `normalizeSecret` no `onChange`, mas **só aplicar normalizações idempotentes não-destrutivas** durante digitação (trim de pontas só no blur). Evita o usuário não conseguir digitar um espaço temporário no meio. → Implementação: criar `normalizeSecretLight(name, raw)` que pula normalizações que cortam conteúdo (ex.: trim só no início, mas não no fim enquanto digitando).
-
-Ou mais simples e seguro: **só normalizar no paste e no blur**, manter `onChange` cru. Vou adotar essa versão (menos surpresa pro usuário).
-
-### 4. Indicador visual de "normalizado"
-
-Quando o último `setValue` veio de paste e gerou `changes`, mostrar pequeno badge `✓ Valor ajustado` ao lado do input por 4s (depois fade). Estado local `lastNormalization: string[] | null` + `setTimeout` pra limpar.
-
-## Fora de escopo
-
-- Não tocar nos validators existentes (`secretValidators.ts`) — a normalização roda **antes** da validação, então o validator continua sendo a fonte de verdade do "ok/erro".
-- Não normalizar o valor já salvo no banco (não temos plaintext no frontend de qualquer forma).
-- Não fazer auto-fix de erros que mudam o significado (ex.: NÃO trocar `http://` por `https://` em URLs Supabase — pode mascarar bug real do user).
-- Não adicionar normalização no backend (`secrets-manager` edge function) nesta onda — o backend já valida formato e a normalização é UX-only. Pode vir em onda futura.
-
-## Arquivos afetados
-
-- **Novo:** `src/components/admin/connections/secretNormalizers.ts` (~120 linhas)
-- **Editado:** `src/components/admin/connections/SecretField.tsx` — adicionar `onPaste`, validação imediata em todo setValue, badge de "normalizado", borda colorida no input
-
-## Critério de aceite
-
-- Colar `https://abc.supabase.co/  ` em `EXTERNAL_PROMOBRIND_URL` → vira `https://abc.supabase.co`, mostra `✓ Valor ajustado` + toast `"Valor normalizado: espaços removidos, barra final removida"`, validação fica verde.
-- Colar `Bearer eyJhbGc...\n` em `N8N_API_KEY` → vira `eyJhbGc...`, badge aparece, validação verde.
-- Colar `abc123` (curto demais) em `N8N_API_KEY` → input fica com `border-destructive` e mensagem `"API Key deve ter ≥20 chars e nenhum espaço."` aparece imediatamente, sem precisar tirar o foco.
-- Digitar manualmente continua funcionando como hoje (sem normalização disruptiva).
+Após clique → toast: "Tudo atualizado · cache invalidado · 12 credenciais relidas · 8 conexões atualizadas (1.2s)" → cooldown 5s.
 
