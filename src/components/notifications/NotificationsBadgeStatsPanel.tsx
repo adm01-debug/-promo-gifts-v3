@@ -95,6 +95,16 @@ export function NotificationsBadgeStatsPanel() {
   /** Sliding-window samples (most recent at the END). */
   const [samples, setSamples] = useState<RatioSample[]>([]);
   const lastCountsRef = useRef<{ triggers: number; fetches: number }>({ triggers: 0, fetches: 0 });
+  /** Anchor for the "Top contributors" jump target (warning badge → section). */
+  const topContributorsRef = useRef<HTMLDivElement | null>(null);
+  const handleJumpToContributors = () => {
+    topContributorsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Brief highlight via data attribute → CSS animation defined inline below.
+    const el = topContributorsRef.current;
+    if (!el) return;
+    el.setAttribute("data-jump-flash", "1");
+    window.setTimeout(() => el.removeAttribute("data-jump-flash"), 1500);
+  };
 
   useEffect(() => {
     if (!visible) return;
