@@ -1,111 +1,146 @@
 
 
-# Exibir última verificação persistida na listagem de conexões
+# Histórico de testes inline nos cards de `/admin/conexoes`
 
 ## Diagnóstico
 
-A persistência já existe (Onda anterior):
-- `external_connections` tem `last_test_at`, `last_test_ok`, `last_test_message`, `last_latency_ms`
-- `connection-tester` faz upsert após cada teste (por `env_key` para bancos, por `connection_id` para Bitrix/n8n/MCP/webhooks)
-- Componente `LastTestLine` já existe e é usado dentro dos cards individuais
+Já existe `ConnectionTimelineDrawer` (botão "Histórico" em cada card) que abre um drawer lateral com o histórico. O usuário agora quer um **painel inline expansível dentro do próprio card**, mostrando rapidamente os últimos testes sem precisar abrir um drawer.
 
-**O que falta**: nenhuma "listagem" consolidada mostra esses dados lado a lado. Hoje o usuário precisa abrir cada aba (Bancos, Bitrix24, n8n, MCP, Webhooks) para ver o status de cada conexão. O `IntegrationsHealthCard` mostra contagens agregadas mas não a linha por conexão com timestamp + latência.
+A persistência já existe:
+- Tabela `connection_test_history` (ou `connection_test_log`) recebe um insert a cada teste do `connection-tester`
+- Cada linha tem: `tested_at`, `ok`, `status`, `latency_ms`, `message`/`error`, `type`, `env_key`/`connection_id`
 
 ## Solução
 
-### 1. Nova tabela "Visão geral das conexões" no topo de `/admin/conexoes`
+### 1. Novo componente `ConnectionTestHistoryPanel`
 
-Componente `ConnectionsOverviewTable` colocado **acima das abas**, abaixo do `IntegrationsHealthCard`. Mostra todas as conexões cadastradas em uma tabela única:
+Painel colapsável que renderiza no rodapé de cada card de conexão (Bancos, Bitrix24, n8n, MCP, Webhooks). Estado padrão: **fechado** (mostra só o cabeçalho `▸ Histórico de testes (12)` com a contagem total).
 
-| Tipo | Nome | Status | Última verificação | Latência | Mensagem | Ação |
-|---|---|---|---|---|---|---|
-| 🗄️ Banco | Catálogo Promobrind | ✓ Ativo | há 3min | 142ms | HTTP 200 | [Testar] |
-| 🗄️ Banco | CRM | ✗ Erro | há 12min | — | DNS lookup failed | [Testar] |
-| 💼 Bitrix24 | Webhook principal | ✓ Ativo | há 1h | 387ms | crm.contact.fields ok | [Testar] |
-| ⚡ n8n | Webhook eventos | — Nunca verificado | — | — | — | [Testar] |
-| 🔌 MCP | Claude desktop | ✓ Ativo | há 2d | 89ms | tools/list ok | [Testar] |
+Quando aberto, exibe lista compacta dos **últimos 10 testes** ordenados por `tested_at desc`:
 
-### 2. Fonte de dados
+```text
+▾ Histórico de testes (12)                                  [Ver tudo →]
+─────────────────────────────────────────────────────────────────────
+✓ há 3min       142ms   HTTP 200 — REST ok
+✓ há 12min      138ms   HTTP 200 — REST ok
+✗ há 1h         —       DNS lookup failed: ENOTFOUND
+✓ há 3h         156ms   HTTP 200 — REST ok
+✓ há 6h         149ms   HTTP 200 — REST ok
+... (5 mais)
+─────────────────────────────────────────────────────────────────────
+Taxa de sucesso (últimas 10): 90% · Latência média: 146ms
+```
 
-Query única em `external_connections` ordenada por `type, name`. Inclui:
-- Conexões "virtuais" por `env_key` (Supabase Promobrind/CRM) — já são gravadas pelo tester com `env_key` preenchido
-- Conexões reais por `id` (Bitrix24, n8n, MCP, webhooks)
+### 2. Comportamento das linhas
 
-A tabela já tem unique index em `(env_key, type)` — então cada banco aparece como uma linha consolidada.
+- **Ícone**: ✓ verde (ok) ou ✗ vermelho (falha) — reutiliza estilo de `LastTestLine`
+- **Tempo relativo**: `há 3min`, `há 1h`, `há 2d` (mesmo helper já usado)
+- **Latência**: usa `LatencyBadge` (verde/amarelo/vermelho por threshold)
+- **Mensagem**: truncada com tooltip do texto completo (mesmo padrão do `ConnectionsOverviewTable`)
+- **Hover na linha**: destaque sutil + timestamp absoluto no tooltip (ex: `24/03/2026 14:32:18`)
 
-### 3. Comportamento das colunas
+### 3. Resumo no rodapé
 
-- **Status**: reutiliza `ConnectionStatusBadge` (active/error/unconfigured/never_tested)
-- **Última verificação**: reutiliza formato relativo do `LastTestLine` (`há 3min`, `agora há pouco`)
-- **Latência**: badge colorido — verde <500ms, amarelo 500-2000ms, vermelho >2000ms
-- **Mensagem**: truncada com tooltip mostrando texto completo
-- **Ação "Testar"**: dispara `useConnectionTester.test()` com o `env_key` ou `connection_id` correto; spinner inline; atualiza a linha sem recarregar a tabela inteira
+Calculado client-side a partir dos 10 itens carregados:
+- **Taxa de sucesso**: `% de ok / total`
+- **Latência média**: média dos `latency_ms` nas linhas com `ok = true`
+- **Última falha**: se houver, link "ver erro mais recente" rola até a primeira linha vermelha
 
-### 4. Refresh automático
+### 4. Integração com cards existentes
 
-- Polling leve a cada 30s (`useEffect` + `setInterval`) para refletir testes disparados em outras abas/sessões
-- Botão "Atualizar" no header da tabela para força-refresh manual
-- Botão "Testar todas" que dispara em paralelo um teste por linha (Promise.all com limite 3 simultâneos) — útil para diagnóstico em massa
+O painel é renderizado por:
+- `SupabaseConnectionsTab` (3 cards: Local, Promobrind, CRM — mas só Promobrind/CRM tem histórico real)
+- `Bitrix24Tab`, `N8nTab`, `McpTab` (1 card cada com histórico por `connection_id` ou `type`)
+- `WebhooksTab` (1 painel por webhook outbound cadastrado)
 
-### 5. Filtros e estados vazios
+Cada card recebe `<ConnectionTestHistoryPanel type="..." envKey="..." connectionId="..." refreshKey={...} />`.
 
-- Filtro inline: `[Todas] [Ativas] [Com erro] [Nunca verificadas]` (chips no header)
-- Estado vazio por filtro: "Nenhuma conexão com erro 🎉" / "Todas as conexões já foram testadas"
-- Skeleton de 5 linhas durante o load inicial
+### 5. Refresh sincronizado com "Testar"
 
-### 6. Linkagem com as abas
+Cada card já tem um `refreshKey` ou state `last` que muda quando o admin clica "Testar conexão". Vamos:
+- Bumpar um novo `historyRefreshKey` após cada teste bem-sucedido
+- O painel re-fetcha automaticamente (mostrando a nova linha no topo com fade-in)
+- Polling leve a cada 60s quando aberto (para refletir testes do cron `connections-health-check`)
 
-Cada linha tem um link discreto "Configurar →" que muda a aba ativa do `Tabs` e rola até o card correspondente (via `defaultValue` controlado e `scrollIntoView` em ref do card).
+### 6. Botão "Ver tudo →"
+
+Reaproveita o `ConnectionTimelineDrawer` existente — abre o drawer com paginação completa (últimos 100). Assim mantemos um lugar só para ver histórico longo, e o painel inline é um "preview rápido".
+
+### 7. Estado vazio
+
+Se nunca testou: mostra apenas o cabeçalho desabilitado `▸ Histórico de testes (0)` em cinza, sem botão de expandir.
+
+Se testou mas nenhuma falha nos últimos 10: badge sutil verde no cabeçalho `100% sucesso`.
+
+### 8. Backend — nova action `test_history` no `connection-tester`
+
+A função `connection-tester` já tem `last_test`. Adicionar:
+
+```ts
+action: "test_history"
+body: { type, env_key?, connection_id?, limit?: 10 }
+→ { items: [{ tested_at, ok, status, latency_ms, message, error }] }
+```
+
+Faz `SELECT ... FROM connection_test_history WHERE type=? AND (env_key=? OR connection_id=?) ORDER BY tested_at DESC LIMIT ?`. Acesso restrito a admins (mesma checagem de `last_test`).
 
 ## O que o usuário verá
 
-Ao abrir `/admin/conexoes`:
+Em cada card de conexão (ex: Catálogo Promobrind):
 
 ```text
-┌─ Saúde das integrações ─────────────────────────────┐
-│ 5 ativas · 1 com erro · 2 nunca verificadas         │
-└─────────────────────────────────────────────────────┘
-
-┌─ Visão geral das conexões ──────────[Atualizar][Testar todas]─┐
-│ [Todas (8)] [Ativas (5)] [Erro (1)] [Nunca (2)]               │
-│                                                                │
-│ Tipo      Nome              Status    Última         Latência │
-│ ─────────────────────────────────────────────────────────────  │
-│ 🗄️ Banco  Promobrind        ✓ Ativo   há 3min        142ms    │
-│ 🗄️ Banco  CRM               ✗ Erro    há 12min       —        │
-│ 💼 Bitrix Webhook principal ✓ Ativo   há 1h          387ms    │
-│ ⚡ n8n    Eventos           — Nunca   —              —        │
-│ 🔌 MCP    Claude desktop    ✓ Ativo   há 2d          89ms     │
-└────────────────────────────────────────────────────────────────┘
-
-[Tabs: Bancos | Bitrix24 | n8n | MCP | Webhooks]
+┌─ Catálogo Promobrind ─────────────────────── [✓ Ativo] ─┐
+│ URL: ••••.co (configurado há 2d)                       │
+│ Anon Key: ••••AB12 (configurado há 2d)                 │
+│ Service Role: ••••YZ89 (rotacionado há 3d)             │
+│                                                         │
+│ [Testar conexão] [Histórico ↗] [Ver schema ↗]          │
+│ ✓ Verificado há 3min — 142ms · HTTP 200                │
+│                                                         │
+│ ▸ Histórico de testes (12)              90% sucesso    │
+└─────────────────────────────────────────────────────────┘
 ```
 
-Após clicar "Testar" em uma linha:
-- Linha entra em modo loading (spinner na coluna Status)
-- Após resposta: badge atualiza, "Última verificação" vira "agora há pouco", latência aparece
-- Toast verde/vermelho confirmando
+Ao clicar para expandir:
 
-Após reload da página: tudo persiste (vem de `external_connections.last_test_*`).
+```text
+│ ▾ Histórico de testes (12)              [Ver tudo →]   │
+│ ✓ há 3min       142ms   HTTP 200                        │
+│ ✓ há 12min      138ms   HTTP 200                        │
+│ ✗ há 1h         —       DNS lookup failed (hover→full) │
+│ ✓ há 3h         156ms   HTTP 200                        │
+│ ✓ há 6h         149ms   HTTP 200                        │
+│ ✓ há 12h        144ms   HTTP 200                        │
+│ ✓ há 1d         151ms   HTTP 200                        │
+│ ✓ há 2d         147ms   HTTP 200                        │
+│ ✓ há 2d         140ms   HTTP 200                        │
+│ ✓ há 3d         145ms   HTTP 200                        │
+│ ─────────────────────────────────────────────────────  │
+│ Taxa de sucesso: 90% · Latência média: 146ms           │
+```
 
 ## Arquivos tocados
 
+**Backend**
+- `supabase/functions/connection-tester/index.ts`: adicionar `action: "test_history"` que retorna últimas N linhas de `connection_test_history` filtradas por `type + env_key|connection_id`.
+
 **Frontend (novos)**
-- `src/components/admin/connections/ConnectionsOverviewTable.tsx` (~180 linhas): tabela principal com filtros, polling, ações inline.
-- `src/components/admin/connections/LatencyBadge.tsx` (~25 linhas): badge colorido por threshold.
-- `src/hooks/useConnectionsOverview.ts` (~80 linhas): query única em `external_connections`, normalização de linhas (env_key vs id), refresh manual + polling 30s.
+- `src/components/admin/connections/ConnectionTestHistoryPanel.tsx` (~150 linhas): painel colapsável com lista, resumo e estado vazio.
+- `src/hooks/useConnectionTestHistory.ts` (~50 linhas): wrapper para `action: "test_history"`, recebe `{ type, envKey?, connectionId?, refreshKey, enabled }`, faz fetch + polling 60s quando aberto.
 
 **Frontend (editados)**
-- `src/pages/admin/AdminConexoesPage.tsx`: incluir `<ConnectionsOverviewTable />` entre o `IntegrationsHealthCard` e as `Tabs`.
-- `src/components/admin/connections/ConnectionStatusBadge.tsx`: garantir suporte ao estado `never_tested` (se ainda não tiver).
-
-**Backend**
-- Nenhuma mudança. Todos os dados já são persistidos pelo `connection-tester` desde a Onda anterior. A query é direta na tabela via cliente (RLS já restringe a admins).
+- `src/hooks/useConnectionTester.ts`: expor `fetchTestHistory(type, opts)` que chama a nova action.
+- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: incluir `<ConnectionTestHistoryPanel type="supabase" envKey={env.envKey} refreshKey={...} />` nos cards configuráveis (não no Local).
+- `src/components/admin/connections/Bitrix24Tab.tsx`: incluir painel com `type="bitrix24"`.
+- `src/components/admin/connections/N8nTab.tsx`: incluir painel com `type="n8n"`.
+- `src/components/admin/connections/McpTab.tsx`: incluir painel com `type="mcp"`.
+- `src/components/admin/connections/WebhooksTab.tsx`: incluir painel por webhook com `type="webhook_outbound"` e `connectionId={webhook.id}`.
 
 ## Fora de escopo
 
-- Não adiciona gráfico histórico de latência (já existe `connection_test_history` que pode alimentar isso depois)
-- Não adiciona alertas por e-mail (cron `connections-health-check` já cobre via `workspace_notifications`)
-- Não muda os cards individuais nas abas — são complementares à visão geral
-- Não adiciona edição inline (admin continua usando o card da aba para configurar credenciais)
+- Não substitui o `ConnectionTimelineDrawer` existente (continua acessível via "Ver tudo →")
+- Não adiciona gráfico de latência ao longo do tempo (sparkline pode vir em onda futura, dados já existem)
+- Não adiciona filtros dentro do painel (só ok/falha) — o drawer existente cobre isso
+- Não adiciona retry automático em falhas — usuário continua testando manualmente
+- Não muda a tabela `connection_test_history` nem o cron de health check
 
