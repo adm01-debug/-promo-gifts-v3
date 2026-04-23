@@ -281,9 +281,11 @@ export function ConnectionTestDetailsDialog({
                   (details.error?.kind ?? null) as ErrorKind | null,
                   details.response.status,
                   details.error?.message,
+                  details.error?.timeout_ms ?? null,
                 );
                 const ErrIcon = copy.icon;
                 const techMsg = details.error?.message?.trim();
+                const timeoutMs = details.error?.timeout_ms ?? null;
                 return (
                   <div
                     role="alert"
@@ -309,6 +311,11 @@ export function ConnectionTestDetailsDialog({
                       {details.response.status != null && (
                         <Badge variant="outline" className="text-[10px] font-mono h-5">
                           HTTP {details.response.status}
+                        </Badge>
+                      )}
+                      {details.error?.kind === "timeout" && timeoutMs != null && (
+                        <Badge variant="outline" className="text-[10px] font-mono h-5">
+                          timeout: {timeoutMs}ms
                         </Badge>
                       )}
                     </div>

@@ -23,7 +23,7 @@ export interface TestDetails {
     ttfb_ms: number | null;
     download_ms: number | null;
   };
-  error?: { kind: ErrorKind | null; message: string | null } | null;
+  error?: { kind: ErrorKind | null; message: string | null; timeout_ms?: number | null } | null;
 }
 
 interface Args {
