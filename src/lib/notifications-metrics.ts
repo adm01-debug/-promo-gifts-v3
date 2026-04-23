@@ -244,11 +244,22 @@ export const notificationsMetrics = {
   recordFetch(source: FetchSource) {
     state.fetches += 1;
     state.byFetch[source] += 1;
+    // Classify this fetch relative to the 5s prefetch TTL window since the
+    // previous fetch. The very first fetch (lastFetchAt === 0) is counted as
+    // afterTtl because there was nothing to coalesce against.
+    const now = Date.now();
+    const sincePrevious = state.lastFetchAt === 0 ? Infinity : now - state.lastFetchAt;
+    const withinTtl = sincePrevious < TRIGGER_TO_FETCH_TTL_MS;
+    if (withinTtl) state.fetchesWithinTtl += 1;
+    else state.fetchesAfterTtl += 1;
+    state.lastFetchAt = now;
     debugLog("fetch", {
       source,
       triggers: state.triggers,
       fetches: state.fetches,
       ratio: state.triggers === 0 ? 0 : Number((state.fetches / state.triggers).toFixed(3)),
+      withinTtl,
+      msSincePrevious: sincePrevious === Infinity ? null : sincePrevious,
     });
   },
 
