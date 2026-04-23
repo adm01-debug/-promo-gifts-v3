@@ -195,6 +195,37 @@ interface RowProps {
   rowRef?: (el: HTMLDivElement | null) => void;
 }
 
+/**
+ * Optimistic placeholder shown at the top of the list while a manual test is
+ * in flight, so users see immediately that their click was registered and a new
+ * row will be appended without a page reload.
+ */
+function PendingHistoryRow({ startedAt }: { startedAt: string }) {
+  const rel = formatRelative(startedAt);
+  return (
+    <li>
+      <div
+        className={cn(
+          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded",
+          "border border-dashed border-primary/40 bg-primary/5 text-primary animate-pulse",
+        )}
+        aria-live="polite"
+        aria-label="Teste em andamento"
+      >
+        <Loader2 className="h-3.5 w-3.5 shrink-0 animate-spin" />
+        <span className="text-muted-foreground tabular-nums truncate">
+          iniciado {rel || "agora"}
+        </span>
+        <span className="text-[10px] text-muted-foreground/70">…ms</span>
+        <span className="truncate text-primary/80">
+          Aguardando resposta do servidor…
+        </span>
+        <span className="text-[10px] text-primary/70 shrink-0 px-1">novo</span>
+      </div>
+    </li>
+  );
+}
+
 function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
   const Icon = it.ok ? CheckCircle2 : XCircle;
   const tail = it.ok
