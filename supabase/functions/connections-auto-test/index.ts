@@ -36,32 +36,51 @@ async function processBatch(
               .map(([k, v]) => [k, v as string]),
           )
         : {};
-      const r = await runConnectionTest({
+      const baseArgs = {
         type: conn.type as ConnectionType,
         config: cfg,
         env_key: (conn.env_key as "promobrind" | "crm" | null) ?? undefined,
         connection_id: conn.id,
         created_by: conn.created_by,
-        triggered_by: "cron",
+        triggered_by: "cron" as const,
         service,
         timeoutMs: PER_TEST_TIMEOUT_MS,
-      });
+      };
+
+      // Probe (no persistence) so we can retry once on transient failures
+      // without writing two rows to the history.
+      const probe = await runConnectionTest({ ...baseArgs, attempts: 1, skipPersistence: true });
+
+      let attempts = 1;
+      let final = probe;
+      if (!probe.ok && isTransientFailure(probe)) {
+        // Small backoff before the single retry.
+        await new Promise((r) => setTimeout(r, RETRY_DELAY_MS));
+        attempts = 2;
+        final = await runConnectionTest({ ...baseArgs, attempts: 2 });
+      } else {
+        // Persist the probe result as-is (1 attempt).
+        final = await runConnectionTest({ ...baseArgs, attempts: 1 });
+      }
+
       console.log(JSON.stringify({
         evt: "auto-test",
         type: conn.type,
         name: conn.name,
-        ok: r.ok,
-        status: r.status,
-        latency_ms: r.latency_ms,
+        ok: final.ok,
+        status: final.status,
+        latency_ms: final.latency_ms,
         wall_ms: Date.now() - t0,
-        error: r.error,
-        error_kind: r.error_kind,
+        attempts,
+        retried: attempts > 1,
+        error: final.error,
+        error_kind: final.error_kind,
       }));
-      return { id: conn.id, ok: r.ok, latency_ms: r.latency_ms ?? null };
+      return { id: conn.id, ok: final.ok, latency_ms: final.latency_ms ?? null, attempts };
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro";
       console.error(JSON.stringify({ evt: "auto-test-error", id: conn.id, type: conn.type, error: msg }));
-      return { id: conn.id, ok: false, latency_ms: null, error: msg };
+      return { id: conn.id, ok: false, latency_ms: null, attempts: 1, error: msg };
     }
   }));
 }
