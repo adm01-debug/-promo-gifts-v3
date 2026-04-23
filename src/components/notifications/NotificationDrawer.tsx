@@ -260,18 +260,49 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
   // The hook itself enforces a 5s TTL, but the trailing-edge debounce avoids even queuing
   // microtasks for repeated events within the window. Delay is configurable via
   // `prefetchDebounceMs` so consumers can tune it per surface (or set 0 for tests).
+  //
+  // We also instrument the FULL trigger→fetch latency: from the very FIRST hover/focus
+  // event of a burst to the moment `prefetch()` resolves. This sample is fed back into
+  // notificationsMetrics so QA can confirm the debounce keeps the round-trip well within
+  // the 5s prefetch TTL window (TRIGGER_TO_FETCH_TTL_MS).
   const prefetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const delayRef = useRef(prefetchDebounceMs);
+  const burstStartRef = useRef<number | null>(null);
+  const burstSourceRef = useRef<TriggerSource | null>(null);
+  const burstCountRef = useRef(0);
   useEffect(() => { delayRef.current = prefetchDebounceMs; }, [prefetchDebounceMs]);
   useEffect(() => () => {
     if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
   }, []);
   const debouncedPrefetch = useCallback((source: TriggerSource) => {
     notificationsMetrics.recordTrigger(source);
+    // First event of a burst seeds the timing window.
+    if (burstStartRef.current === null) {
+      burstStartRef.current = performance.now();
+      burstSourceRef.current = source;
+      burstCountRef.current = 0;
+    }
+    burstCountRef.current += 1;
     if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
     prefetchDebounceRef.current = setTimeout(() => {
       prefetchDebounceRef.current = null;
-      void prefetch();
+      const burstStart = burstStartRef.current ?? performance.now();
+      const burstSource = burstSourceRef.current ?? source;
+      const coalesced = burstCountRef.current;
+      // Reset BEFORE awaiting so a new burst arriving during the fetch starts a fresh window.
+      burstStartRef.current = null;
+      burstSourceRef.current = null;
+      burstCountRef.current = 0;
+      const debounceMs = performance.now() - burstStart;
+      const fetchStart = performance.now();
+      void prefetch().finally(() => {
+        notificationsMetrics.recordTriggerToFetch({
+          source: burstSource,
+          debounceMs,
+          fetchMs: performance.now() - fetchStart,
+          coalescedTriggers: coalesced,
+        });
+      });
     }, delayRef.current);
   }, [prefetch]);
 
