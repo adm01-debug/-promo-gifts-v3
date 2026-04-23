@@ -16,6 +16,17 @@ export interface SecretError {
   message: string;
 }
 
+export interface RotationHistoryEntry {
+  id: string;
+  secret_name: string;
+  rotated_by: string | null;
+  rotated_by_email?: string | null;
+  rotated_at: string;
+  previous_suffix: string | null;
+  new_suffix: string | null;
+  notes: string | null;
+}
+
 export interface SecretMutationResult {
   ok: boolean;
   was_update?: boolean;
@@ -115,7 +126,7 @@ export function useSecretsManager() {
     };
   }, []);
 
-  const getRotationHistory = useCallback(async (name?: string) => {
+  const getRotationHistory = useCallback(async (name?: string): Promise<RotationHistoryEntry[]> => {
     const { data, error } = await supabase.functions.invoke("secrets-manager", {
       body: { action: "rotation_history", name },
     });
@@ -123,15 +134,7 @@ export function useSecretsManager() {
       toast.error("Falha ao carregar histórico", { description: error.message });
       return [];
     }
-    return (data?.history ?? []) as Array<{
-      id: string;
-      secret_name: string;
-      rotated_by: string;
-      rotated_at: string;
-      previous_suffix: string | null;
-      new_suffix: string | null;
-      notes: string | null;
-    }>;
+    return (data?.history ?? []) as RotationHistoryEntry[];
   }, []);
 
   return { secrets, isLoading, list, setSecret, rotateSecret, getRotationHistory };
