@@ -106,11 +106,11 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                 </div>
                 <div className="flex items-center gap-2 flex-wrap text-sm">
                   <span className="font-mono text-xs">
-                    {last.previous_suffix ? `••••${last.previous_suffix}` : <span className="text-muted-foreground">(env / vazio)</span>}
+                    {last.previous_suffix ? formatMaskedSuffix(last.previous_suffix) : <span className="text-muted-foreground">(env / vazio)</span>}
                   </span>
                   <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                   <span className="font-mono text-xs font-semibold text-primary">
-                    {last.new_suffix ? `••••${last.new_suffix}` : "—"}
+                    {last.new_suffix ? formatMaskedSuffix(last.new_suffix) : "—"}
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-muted-foreground">
