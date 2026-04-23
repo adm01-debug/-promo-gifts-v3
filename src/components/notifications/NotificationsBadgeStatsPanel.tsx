@@ -202,6 +202,63 @@ export function NotificationsBadgeStatsPanel() {
             <span className="pl-3.5">· mutation</span>
             <span className="tabular-nums text-right">{byFetch.mutation}</span>
           </div>
+          {/* 60-second sparkline of the trigger/fetch ratio. */}
+          <div className="mt-1.5 pt-1.5 border-t border-border/30">
+            <div className="flex items-center justify-between gap-2 mb-0.5 text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <TrendingUp className="h-2.5 w-2.5" aria-hidden="true" />
+                Ratio (last 60s)
+              </span>
+              <span className="tabular-nums text-[10px]">
+                avg {sparkStats.avg.toFixed(2)} · peak {sparkStats.peak.toFixed(2)} · n={samples.length}
+              </span>
+            </div>
+            <svg
+              width={SPARK_W}
+              height={SPARK_H}
+              viewBox={`0 0 ${SPARK_W} ${SPARK_H}`}
+              className="w-full h-6 block"
+              role="img"
+              aria-label={`Ratio sparkline over the last ${samples.length} seconds, latest ${sparkStats.latest.toFixed(2)}`}
+            >
+              {/* Reference lines at 0.3 and 0.7 (the ratioTone thresholds). */}
+              <line
+                x1="0" x2={SPARK_W}
+                y1={SPARK_H - 0.3 * SPARK_H} y2={SPARK_H - 0.3 * SPARK_H}
+                className="stroke-primary/20" strokeDasharray="2 2" strokeWidth="0.5"
+              />
+              <line
+                x1="0" x2={SPARK_W}
+                y1={SPARK_H - 0.7 * SPARK_H} y2={SPARK_H - 0.7 * SPARK_H}
+                className="stroke-warning/30" strokeDasharray="2 2" strokeWidth="0.5"
+              />
+              {samples.length === 0 ? (
+                <text
+                  x={SPARK_W / 2} y={SPARK_H / 2 + 3}
+                  textAnchor="middle"
+                  className="fill-muted-foreground text-[8px]"
+                >
+                  collecting…
+                </text>
+              ) : (
+                <polyline
+                  points={sparkPoints}
+                  fill="none"
+                  className={cn(
+                    "stroke-2",
+                    sparkStats.latest < 0.3
+                      ? "stroke-primary"
+                      : sparkStats.latest < 0.7
+                        ? "stroke-foreground"
+                        : "stroke-warning"
+                  )}
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                />
+              )}
+            </svg>
+          </div>
+
           <div className="mt-1 pt-1 border-t border-border/30 flex items-center justify-between text-muted-foreground">
             <span>Coalesced (saved fetches)</span>
             <span className="tabular-nums text-primary font-semibold">
