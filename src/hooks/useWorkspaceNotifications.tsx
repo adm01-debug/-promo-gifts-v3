@@ -211,50 +211,62 @@ export function useWorkspaceNotifications() {
 
   const markAllAsRead = useCallback(async () => {
     if (!user) return;
-    const { error } = await supabase
-      .from("workspace_notifications")
-      .update({ is_read: true })
-      .eq("user_id", user.id)
-      .eq("is_read", false);
-
-    if (error) return;
-    // Optimistic local update
-    setNotifications((prev) => {
-      const next = prev.map((n) => ({ ...n, is_read: true }));
-      writeCache(user.id, next);
-      return next;
-    });
-    setUnreadCount(0);
-    // Invalidate cache + re-hydrate from server to prevent drift
+    if (markAllInFlightRef.current) return; // dedupe rapid double-clicks
+    markAllInFlightRef.current = true;
     try {
-      sessionStorage.removeItem(CACHE_PREFIX + user.id);
-    } catch {
-      // ignore
+      const { error } = await supabase
+        .from("workspace_notifications")
+        .update({ is_read: true })
+        .eq("user_id", user.id)
+        .eq("is_read", false);
+
+      if (error) return;
+      // Optimistic local update
+      setNotifications((prev) => {
+        const next = prev.map((n) => ({ ...n, is_read: true }));
+        writeCache(user.id, next);
+        return next;
+      });
+      setUnreadCount(0);
+      // Invalidate cache + re-hydrate from server to prevent drift
+      try {
+        sessionStorage.removeItem(CACHE_PREFIX + user.id);
+      } catch {
+        // ignore
+      }
+      lastFetchAtRef.current = 0;
+      await fetchNotifications({ silent: true });
+    } finally {
+      markAllInFlightRef.current = false;
     }
-    lastFetchAtRef.current = 0;
-    await fetchNotifications({ silent: true });
   }, [user, fetchNotifications]);
 
   const clearAll = useCallback(async () => {
     if (!user) return;
-    const { error } = await supabase
-      .from("workspace_notifications")
-      .delete()
-      .eq("user_id", user.id);
-
-    if (error) return;
-    // Optimistic local update
-    setNotifications([]);
-    setUnreadCount(0);
-    writeCache(user.id, []);
-    // Invalidate cache + re-hydrate from server to prevent drift
+    if (clearAllInFlightRef.current) return; // dedupe rapid double-clicks
+    clearAllInFlightRef.current = true;
     try {
-      sessionStorage.removeItem(CACHE_PREFIX + user.id);
-    } catch {
-      // ignore
+      const { error } = await supabase
+        .from("workspace_notifications")
+        .delete()
+        .eq("user_id", user.id);
+
+      if (error) return;
+      // Optimistic local update
+      setNotifications([]);
+      setUnreadCount(0);
+      writeCache(user.id, []);
+      // Invalidate cache + re-hydrate from server to prevent drift
+      try {
+        sessionStorage.removeItem(CACHE_PREFIX + user.id);
+      } catch {
+        // ignore
+      }
+      lastFetchAtRef.current = 0;
+      await fetchNotifications({ silent: true });
+    } finally {
+      clearAllInFlightRef.current = false;
     }
-    lastFetchAtRef.current = 0;
-    await fetchNotifications({ silent: true });
   }, [user, fetchNotifications]);
 
   return {
