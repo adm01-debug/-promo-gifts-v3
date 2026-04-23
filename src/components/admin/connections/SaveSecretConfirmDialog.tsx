@@ -46,6 +46,7 @@ export function SaveSecretConfirmDialog({
   newSuffix,
   newLength,
   loading,
+  errorMessage,
   onConfirm,
 }: Props) {
   const handleOpenChange = (next: boolean) => {
