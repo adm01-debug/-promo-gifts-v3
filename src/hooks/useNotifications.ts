@@ -19,10 +19,12 @@ export interface UseNotificationsReturn {
   notifications: WorkspaceNotification[];
   unreadCount: number;
   isLoading: boolean;
+  isRefetching: boolean;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   clearAll: () => Promise<void>;
   refresh: () => Promise<void>;
+  prefetch: () => Promise<void>;
 
   // Push (Web Push API)
   push: ReturnType<typeof usePushNotifications>;
@@ -36,10 +38,12 @@ export function useNotifications(): UseNotificationsReturn {
     notifications: workspace.notifications,
     unreadCount: workspace.unreadCount,
     isLoading: workspace.isLoading,
+    isRefetching: workspace.isRefetching,
     markAsRead: workspace.markAsRead,
     markAllAsRead: workspace.markAllAsRead,
     clearAll: workspace.clearAll,
     refresh: workspace.refresh,
+    prefetch: workspace.prefetch,
     push,
   };
 }

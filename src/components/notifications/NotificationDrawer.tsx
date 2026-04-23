@@ -78,7 +78,7 @@ function NotificationItem({
 }
 
 export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, clearAll } =
+  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, clearAll, prefetch } =
     useNotifications();
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
@@ -103,7 +103,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
   };
 
   return (
-    <Sheet>
+    <Sheet onOpenChange={(open) => { if (open) void prefetch(); }}>
       <SheetTrigger asChild>
         <div ref={ref}>
           <Tooltip>
@@ -113,6 +113,8 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                 aria-label="Notificações"
+                onMouseEnter={() => void prefetch()}
+                onFocus={() => void prefetch()}
               >
                 <motion.div
                   animate={shouldShake ? {
@@ -185,7 +187,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
         </SheetHeader>
 
         <ScrollArea className="flex-1">
-          {isLoading ? (
+          {isLoading && notifications.length === 0 ? (
             <div className="space-y-3 p-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex gap-3 animate-pulse">

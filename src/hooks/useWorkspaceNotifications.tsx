@@ -1,7 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { toast } from "sonner";
 
 export interface WorkspaceNotification {
   id: string;
@@ -16,43 +15,116 @@ export interface WorkspaceNotification {
   created_at: string;
 }
 
+const CACHE_PREFIX = "workspace_notifications_cache:";
+const CACHE_TTL_MS = 60_000; // 60s
+const PREFETCH_MIN_INTERVAL_MS = 5_000; // 5s
+
+interface CacheEntry {
+  cachedAt: number;
+  notifications: WorkspaceNotification[];
+}
+
+function readCache(userId: string): CacheEntry | null {
+  try {
+    const raw = sessionStorage.getItem(CACHE_PREFIX + userId);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CacheEntry;
+    if (Date.now() - parsed.cachedAt > CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(userId: string, notifications: WorkspaceNotification[]) {
+  try {
+    const entry: CacheEntry = { cachedAt: Date.now(), notifications };
+    sessionStorage.setItem(CACHE_PREFIX + userId, JSON.stringify(entry));
+  } catch {
+    // ignore quota / serialization issues
+  }
+}
+
 export function useWorkspaceNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isRefetching, setIsRefetching] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const lastFetchAtRef = useRef<number>(0);
+  const hydratedRef = useRef<string | null>(null);
 
-  const fetchNotifications = useCallback(async () => {
-    if (!user) return;
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("workspace_notifications")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(50);
-
-      if (error) throw error;
-      const items = (data || []) as WorkspaceNotification[];
-      setNotifications(items);
-      setUnreadCount(items.filter((n) => !n.is_read).length);
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-    } finally {
-      setIsLoading(false);
+  // Hydrate from sessionStorage immediately on user change
+  useEffect(() => {
+    if (!user) {
+      setNotifications([]);
+      setUnreadCount(0);
+      hydratedRef.current = null;
+      return;
+    }
+    if (hydratedRef.current === user.id) return;
+    hydratedRef.current = user.id;
+    const cached = readCache(user.id);
+    if (cached) {
+      setNotifications(cached.notifications);
+      setUnreadCount(cached.notifications.filter((n) => !n.is_read).length);
     }
   }, [user]);
 
-  useEffect(() => {
-    fetchNotifications();
-  }, [fetchNotifications]);
+  const fetchNotifications = useCallback(
+    async (opts: { silent?: boolean } = {}) => {
+      if (!user) return;
+      const hasData = notifications.length > 0;
+      const silent = opts.silent ?? hasData;
 
-  // Polling every 30s for new notifications (realtime removed for security)
+      if (silent) setIsRefetching(true);
+      else setIsLoading(true);
+
+      try {
+        const { data, error } = await supabase
+          .from("workspace_notifications")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("created_at", { ascending: false })
+          .limit(50);
+
+        if (error) throw error;
+        const items = (data || []) as WorkspaceNotification[];
+        setNotifications(items);
+        setUnreadCount(items.filter((n) => !n.is_read).length);
+        lastFetchAtRef.current = Date.now();
+        writeCache(user.id, items);
+      } catch (err) {
+        console.error("Error fetching notifications:", err);
+      } finally {
+        if (silent) setIsRefetching(false);
+        else setIsLoading(false);
+      }
+    },
+    [user, notifications.length]
+  );
+
+  // Initial fetch (always, but in background if cache hydrated)
   useEffect(() => {
     if (!user) return;
-    const interval = setInterval(fetchNotifications, 30_000);
+    fetchNotifications();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
+
+  // Polling every 30s (silent)
+  useEffect(() => {
+    if (!user) return;
+    const interval = setInterval(() => {
+      fetchNotifications({ silent: true });
+    }, 30_000);
     return () => clearInterval(interval);
+  }, [user, fetchNotifications]);
+
+  // Idempotent prefetch: only re-fetches if last fetch >5s ago
+  const prefetch = useCallback(async () => {
+    if (!user) return;
+    if (Date.now() - lastFetchAtRef.current < PREFETCH_MIN_INTERVAL_MS) return;
+    await fetchNotifications({ silent: true });
   }, [user, fetchNotifications]);
 
   const markAsRead = useCallback(
@@ -64,9 +136,11 @@ export function useWorkspaceNotifications() {
         .eq("id", id);
 
       if (error) return;
-      setNotifications((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, is_read: true } : n))
-      );
+      setNotifications((prev) => {
+        const next = prev.map((n) => (n.id === id ? { ...n, is_read: true } : n));
+        writeCache(user.id, next);
+        return next;
+      });
       setUnreadCount((prev) => Math.max(0, prev - 1));
     },
     [user]
@@ -81,7 +155,11 @@ export function useWorkspaceNotifications() {
       .eq("is_read", false);
 
     if (error) return;
-    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setNotifications((prev) => {
+      const next = prev.map((n) => ({ ...n, is_read: true }));
+      writeCache(user.id, next);
+      return next;
+    });
     setUnreadCount(0);
   }, [user]);
 
@@ -95,15 +173,18 @@ export function useWorkspaceNotifications() {
     if (error) return;
     setNotifications([]);
     setUnreadCount(0);
+    writeCache(user.id, []);
   }, [user]);
 
   return {
     notifications,
     unreadCount,
     isLoading,
+    isRefetching,
     markAsRead,
     markAllAsRead,
     clearAll,
     refresh: fetchNotifications,
+    prefetch,
   };
 }
