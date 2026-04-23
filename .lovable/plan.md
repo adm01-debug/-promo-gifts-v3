@@ -1,104 +1,94 @@
 
 
-# Make `/admin/conexoes` truly functional
+# Tornar "Testar conexão" 100% funcional com credenciais persistidas
 
-## Problem (what's fake today)
+## Diagnóstico
 
-Looking at the screenshot: cards show "Não configurado" with "Configurar" buttons that **open a field but don't actually save anything**. The current flow:
+A infraestrutura nova já está no lugar:
+- Tabela `integration_credentials` (admin-only RLS) existe
+- Helper `_shared/credentials.ts` lê DB → env → cache 60s
+- `secrets-manager` persiste de verdade
+- `connection-tester` aceita `env_key` e resolve credenciais via helper
+- `useConnectionTester` repassa `env_key`
 
-1. Admin types a value → `secrets-manager` edge function only writes an audit log entry and returns "use the Lovable Secrets panel manually".
-2. "Testar conexão" sends empty `{ url: "", key: "" }` so it always fails.
-3. Status badges, "Ver schema", "Histórico" links work, but the core CRUD loop is broken.
+Falta fechar o ciclo de UX no clique do botão **"Testar conexão"**:
 
-Root cause: edge functions can't mutate platform env vars at runtime. We need a real persistence layer.
+1. **Resultado some**: o toast aparece e desaparece. O card não mostra "Última verificação às 14:32 — 142ms" persistente.
+2. **`external_connections` não é atualizado**: o tester roda o ping mas não grava `last_test_at`/`last_status`/`last_latency_ms` para os bancos `promobrind`/`crm` (só grava quando há `connection_id` para Bitrix/n8n/MCP/webhook).
+3. **Bitrix/n8n/MCP**: o botão "Testar" chama `test("bitrix24")` sem `connection_id`, então o tester não sabe qual conexão pingar e responde erro genérico.
+4. **Sem feedback inline**: badge de status do card continua "Sem credenciais" por 1-2s mesmo após salvar (espera o `list()` voltar).
 
-## Solution: persist credentials in the database, fall back to env
+## Solução
 
-Move from "secrets in `Deno.env`" to a **`integration_credentials` table** that is the source of truth. Env vars stay as a fallback for the few legacy values already provisioned. Every edge function that consumed `Deno.env.get("EXTERNAL_*")` etc. now reads via a single helper that checks the DB first.
+### 1. Backend — `connection-tester` grava resultado dos bancos externos
 
-### 1. New table `integration_credentials` (admin-only RLS)
+Para `type: "supabase"` com `env_key`, após o ping fazer `upsert` em `external_connections` por `(env_key, type)` com:
+- `last_test_at = now()`
+- `last_status = 'ok' | 'error'`
+- `last_latency_ms`
+- `last_error` (quando falha)
 
-```text
-id uuid pk
-secret_name text unique           -- e.g. EXTERNAL_PROMOBRIND_URL
-secret_value text not null        -- encrypted via pgsodium (or pgcrypto symmetric)
-masked_suffix text                -- last 4 chars for UI confirmation
-length int
-updated_by uuid → auth.users
-updated_at timestamptz
-notes text
-```
+Assim o resultado fica persistido e qualquer card pode reler.
 
-- RLS: only `admin` role can `select`/`insert`/`update`/`delete` (via `has_role()`).
-- Trigger fills `masked_suffix`/`length` from `secret_value` on insert/update so the UI never has to fetch the cleartext.
-- Encryption: use `pgsodium`'s transparent column encryption keyed by a secret managed in Vault. This way even a leaked dump doesn't expose credentials.
+### 2. Backend — endpoint auxiliar `last_test`
 
-### 2. Rewrite `secrets-manager` edge function to actually persist
+Adicionar `action: "last_test"` no `connection-tester` (ou novo `connection-status`) que retorna a última verificação por `env_key`/`connection_id`. Usado pelos cards para hidratar "Última verificação há Xm — 142ms".
 
-- `action: "set"` → `upsert` into `integration_credentials` (admin-only, whitelist enforced). Returns `{ ok:true, stored:true, masked_suffix }`.
-- `action: "rotate"` → upsert + insert into existing `secret_rotation_log`.
-- `action: "list"` → `select secret_name, masked_suffix, length, updated_at` (no plaintext) merged with env-var presence so legacy secrets still appear configured.
-- `action: "delete"` → row delete + audit log entry.
-- Audit log entries already in place are kept.
+### 3. Frontend — `SupabaseConnectionsTab`
 
-### 3. New helper `_shared/credentials.ts` for runtime reads
+- Após `test()` retornar, atualizar estado local `lastTestByEnv[env_key] = { ok, latency_ms, ts }` e renderizar abaixo dos botões:
+  ```text
+  ✓ Última verificação há 3s — 142ms (HTTP 200)
+  ```
+  ou em vermelho:
+  ```text
+  ✗ Falhou há 3s — DNS lookup failed
+  ```
+- Ao montar, chamar o `last_test` para hidratar do banco (sobrevive ao reload).
+- Badge de status do card considera `last_status === 'ok'` como `active`, `error` como `error`.
 
-A single `getCredential(name, serviceClient)` used by `connection-tester`, `external-db-bridge`, `crm-db-bridge`, `bitrix-sync`, `webhook-dispatcher`, `mcp-server`:
+### 4. Frontend — Bitrix/n8n/McpTab
 
-```text
-1. Try integration_credentials.select where secret_name = name (service role)
-2. Fallback to Deno.env.get(name)
-3. Cache in-memory per cold start (60s TTL) to avoid hot-path DB hits
-```
+Esses tabs hoje fazem `test("bitrix24")` sem `connection_id`. Ajustar para:
+- Buscar a primeira `external_connections` linha de `type='bitrix24'` (ou `n8n`/`mcp`) ativa.
+- Se existir → passar `connectionId`; se não → toast "Cadastre a conexão primeiro" + desabilitar botão.
+- Mesma UI de "Última verificação" abaixo do botão.
 
-This makes the database the canonical source while keeping zero-downtime migration for already-set env vars.
+### 5. Frontend — `SecretField` invalida cache do helper
 
-### 4. Make `connection-tester` use real entered values
+Quando o admin salva uma credencial nova, o helper backend ainda tem 60s de cache. Adicionar `action: "invalidate_cache"` no `secrets-manager` que chama `invalidateCredentialCache(name)` (já exportado em `_shared/credentials.ts`). Disparado automaticamente após `set`/`rotate`.
 
-`SupabaseConnectionsTab.tsx`: the "Testar conexão" button currently sends empty strings. Change to send no `config` (let the function read from `integration_credentials` for that environment) and pass an `env_key: "promobrind" | "crm"` so the tester knows which `EXTERNAL_<KEY>_URL`/`SERVICE_ROLE_KEY` pair to load. Same fix for Bitrix/n8n tabs (they already mostly work because they send `connection_id`, but verify the flow end-to-end).
+### 6. Hook `useConnectionTester` — retornar resultado normalizado
 
-### 5. UI polish on `SupabaseConnectionsTab`
+Hoje retorna `r` cru. Padronizar para `{ ok, latency_ms, status, error, tested_at }` para o componente consumir sem unwrap manual.
 
-- Show the masked suffix + last-updated timestamp from the DB (already supported by `SecretField`; just feed it real data).
-- After save, optimistic refresh of the secret list.
-- "Testar conexão" disabled until URL + service key both have a value.
-- Add a per-card "Última verificação" line driven by `external_connections.last_test_at` so the user sees the test outcome persist.
+## O que o usuário verá
 
-### 6. Migration & backfill
+1. Configura URL + Service Key em **Catálogo Promobrind** → badge vira "Ativo".
+2. Clica **"Testar conexão"** → spinner 200ms → toast verde + linha persistente no card:
+   ```text
+   ✓ Verificado há instantes — 142ms (HTTP 200)
+   ```
+3. Recarrega a página → a linha continua lá (vem do `external_connections.last_test_at`).
+4. Se a credencial estiver errada → badge fica "Erro", linha vermelha mostra `DNS lookup failed` ou `401 Invalid API key`.
+5. Mesmo comportamento em **Bitrix24**, **n8n** e **MCP** (com guarda "cadastre a conexão primeiro" se não existe).
 
-- New migration creates `integration_credentials` with RLS, the trigger, and pgsodium key.
-- For each currently-set env var in the whitelist, insert a row at migration time using a `DO` block reading from `current_setting('app.bootstrap_*')` — but since we can't read `Deno.env` from SQL, we instead leave env-fallback in place and let the admin re-save through the UI to upgrade. This is safe and zero-downtime.
-
-### 7. Audit checklist updated
-
-`connections-hub-audit` adds `integration_credentials` to `REQUIRED_TABLES` so the score reflects the new infra.
-
-## What the user will see
-
-- Click "Configurar" → paste value → "Salvar" → toast "Credencial salva" → field immediately shows `••••XXXX (NN chars) ✓`.
-- Status badge flips to "Ativo" once URL + service key are both present.
-- "Testar conexão" pings the actual external Supabase, returns latency + status.
-- "Rotacionar" stores the new value and writes a row in `secret_rotation_log` (already wired, now backed by real persistence).
-- Health card metrics ("Conexões com falha", "Webhooks ativos") become meaningful because the underlying connection records get real ping results.
-
-## Files touched
+## Arquivos tocados
 
 **Backend**
-- New SQL migration: `integration_credentials` table + RLS + trigger + pgsodium setup.
-- New `supabase/functions/_shared/credentials.ts` helper.
-- Rewrite `supabase/functions/secrets-manager/index.ts` (set/rotate/list/delete now persist).
-- Update `supabase/functions/connection-tester/index.ts` to load via helper + accept `env_key`.
-- Update `supabase/functions/connections-hub-audit/index.ts` to include the new table.
-- Patch `external-db-bridge`, `crm-db-bridge`, `bitrix-sync`, `webhook-dispatcher`, `mcp-server` to use `getCredential()` instead of raw `Deno.env.get()` for the whitelisted names.
+- `supabase/functions/connection-tester/index.ts`: persistir resultado em `external_connections` para `env_key`; novo `action: "last_test"`.
+- `supabase/functions/secrets-manager/index.ts`: invalidar cache do helper após `set`/`rotate`/`delete`.
+- Migration: garantir colunas `last_test_at timestamptz`, `last_status text`, `last_latency_ms int`, `last_error text` em `external_connections` (adicionar se não existirem) + índice `(env_key)`.
 
 **Frontend**
-- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: pass `env_key` to tester, disable button until configured, show last-test info.
-- `src/hooks/useSecretsManager.ts`: surface `updated_at` in `SecretStatus`.
-- `src/components/admin/connections/SecretField.tsx`: show "atualizado há Xm" when present.
+- `src/hooks/useConnectionTester.ts`: padronizar retorno; expor `lastResult`.
+- `src/components/admin/connections/SupabaseConnectionsTab.tsx`: hidratar última verificação ao montar; renderizar linha persistente; badge usa `last_status`.
+- `src/components/admin/connections/Bitrix24Tab.tsx`, `N8nTab.tsx`, `McpTab.tsx`: buscar `connection_id` ativo; mostrar última verificação; desabilitar botão quando não há conexão cadastrada.
+- `src/components/admin/connections/LastTestLine.tsx` (novo): componente compartilhado `<LastTestLine status latency_ms tested_at error />` com formato relativo (`há 3s`).
 
-## Out of scope (callouts)
+## Fora de escopo
 
-- Not adding a UI to manage the pgsodium master key — that stays in Vault.
-- Not removing legacy env-var fallback in this pass; we keep it for safety. A follow-up can drop it once all admins re-save through the UI.
-- No new tabs added; this is purely making the existing UI do what it claims.
+- Não vamos enviar notificação por e-mail em falha (próxima onda).
+- Não vamos criar gráfico histórico de latência (já existe `connection_test_log` que pode alimentar isso depois).
+- Cache TTL continua 60s; quem precisar de leitura imediata usa `invalidate_cache`.
 
