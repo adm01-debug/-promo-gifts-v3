@@ -253,6 +253,37 @@ export function ConnectionTestHistoryPanel({
   const empty = total === 0 && !loading;
   const showPreview = defaultPreview && !empty && !expanded;
 
+  // Most-recent failure (items are returned newest-first)
+  const latestFailure = useMemo(() => items.find((i) => !i.ok) ?? null, [items]);
+
+  // Highlight + scroll-to logic for "Ver erro mais recente"
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!highlightId) return;
+    const t = setTimeout(() => setHighlightId(null), 2500);
+    return () => clearTimeout(t);
+  }, [highlightId]);
+
+  const goToLatestFailure = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!latestFailure) return;
+    if (!expanded && !showPreview) setExpanded(true);
+    if (filter === "ok") setFilter("all");
+    setHighlightId(latestFailure.id);
+    // wait for next paint so the row exists in DOM
+    requestAnimationFrame(() => {
+      const el = rowRefs.current.get(latestFailure.id);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus?.();
+    });
+  };
+
+  const setRowRef = (id: string) => (el: HTMLDivElement | null) => {
+    if (el) rowRefs.current.set(id, el);
+    else rowRefs.current.delete(id);
+  };
+
   return (
     <div className={cn("border-t pt-3 mt-3", className)}>
       <button
