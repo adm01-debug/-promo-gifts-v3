@@ -164,6 +164,7 @@ export function SupabaseConnectionsTab() {
                       <RetestButton
                         onRetest={() => handleTest(env.envKey!, env.key)}
                         disabled={!canTest}
+                        cooldownKey={`supabase:${env.envKey}`}
                         disabledReason={preflightIssues.length > 0
                           ? "Corrija os campos sinalizados acima antes de testar"
                           : !credsConfigured ? "Configure URL e Service Role Key primeiro"

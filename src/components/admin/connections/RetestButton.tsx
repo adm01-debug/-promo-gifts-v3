@@ -9,23 +9,70 @@ interface RetestButtonProps {
   disabled?: boolean;
   cooldownMs?: number;
   disabledReason?: string;
+  /** Stable identifier (e.g. connection type/id) used to persist the cooldown
+   *  across remounts in the same tab. Falls back to in-memory only when omitted. */
+  cooldownKey?: string;
 }
 
 type DisabledKind = "running" | "cooldown" | "credentials" | null;
+
+const STORAGE_PREFIX = "retest:cooldown:";
+
+function readPersistedCooldown(key: string | undefined): number {
+  if (!key || typeof window === "undefined") return 0;
+  try {
+    const raw = window.sessionStorage.getItem(STORAGE_PREFIX + key);
+    if (!raw) return 0;
+    const parsed = Number.parseInt(raw, 10);
+    if (!Number.isFinite(parsed)) return 0;
+    // Drop stale (already expired) entries.
+    if (parsed <= Date.now()) {
+      window.sessionStorage.removeItem(STORAGE_PREFIX + key);
+      return 0;
+    }
+    return parsed;
+  } catch {
+    return 0;
+  }
+}
+
+function writePersistedCooldown(key: string | undefined, until: number): void {
+  if (!key || typeof window === "undefined") return;
+  try {
+    if (until <= Date.now()) {
+      window.sessionStorage.removeItem(STORAGE_PREFIX + key);
+    } else {
+      window.sessionStorage.setItem(STORAGE_PREFIX + key, String(until));
+    }
+  } catch {
+    /* sessionStorage may be unavailable (private mode) — fall back to memory only. */
+  }
+}
 
 export function RetestButton({
   onRetest,
   disabled = false,
   cooldownMs = 3000,
   disabledReason,
+  cooldownKey,
 }: RetestButtonProps) {
   const [isRunning, setIsRunning] = useState(false);
-  const [cooldownUntil, setCooldownUntil] = useState<number>(0);
+  // Lazy init from sessionStorage so cooldown survives a remount.
+  const [cooldownUntil, setCooldownUntil] = useState<number>(() => readPersistedCooldown(cooldownKey));
   const [now, setNow] = useState<number>(() => Date.now());
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const inCooldown = cooldownUntil > now;
   const secondsLeft = inCooldown ? Math.max(1, Math.ceil((cooldownUntil - now) / 1000)) : 0;
+
+  // Re-sync from storage if key changes mid-life (rare, but safe).
+  useEffect(() => {
+    const persisted = readPersistedCooldown(cooldownKey);
+    if (persisted > 0) {
+      setCooldownUntil((prev) => (persisted > prev ? persisted : prev));
+      setNow(Date.now());
+    }
+  }, [cooldownKey]);
 
   useEffect(() => {
     if (!inCooldown) {
@@ -52,20 +99,38 @@ export function RetestButton({
   }, []);
 
   const handleClick = useCallback(async () => {
+    // Re-check persisted cooldown right before firing — guards against rapid
+    // double-clicks across remounts within the debounce window.
+    const persisted = readPersistedCooldown(cooldownKey);
+    if (persisted > Date.now()) {
+      setCooldownUntil(persisted);
+      setNow(Date.now());
+      return;
+    }
     if (isRunning || inCooldown || disabled) return;
+
     setIsRunning(true);
     try {
       await onRetest();
     } finally {
       setIsRunning(false);
-      setCooldownUntil(Date.now() + cooldownMs);
+      const until = Date.now() + cooldownMs;
+      setCooldownUntil(until);
       setNow(Date.now());
+      writePersistedCooldown(cooldownKey, until);
     }
-  }, [isRunning, inCooldown, disabled, onRetest, cooldownMs]);
+  }, [isRunning, inCooldown, disabled, onRetest, cooldownMs, cooldownKey]);
+
+  // Cleanup persisted entry once the cooldown naturally expires.
+  useEffect(() => {
+    if (!cooldownKey || cooldownUntil === 0) return;
+    if (cooldownUntil <= now) {
+      writePersistedCooldown(cooldownKey, 0);
+    }
+  }, [cooldownKey, cooldownUntil, now]);
 
   const isDisabled = isRunning || inCooldown || disabled;
 
-  // Pinpoint *why* the button is disabled, in priority order.
   const disabledKind: DisabledKind = isRunning
     ? "running"
     : disabled
@@ -114,7 +179,6 @@ export function RetestButton({
       disabled={isDisabled}
       onClick={handleClick}
       aria-label={tooltip.title}
-      aria-describedby={isDisabled ? "retest-disabled-reason" : undefined}
     >
       <RefreshCw className={cn("h-3.5 w-3.5", isRunning && "animate-spin")} />
       {label}
@@ -125,8 +189,6 @@ export function RetestButton({
     <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
-          {/* Wrapper span enables tooltip even when the button is disabled
-              (pointer events are blocked on disabled <button>). */}
           <span className="inline-flex">{button}</span>
         </TooltipTrigger>
         <TooltipContent side="top" className="max-w-xs text-xs leading-snug">

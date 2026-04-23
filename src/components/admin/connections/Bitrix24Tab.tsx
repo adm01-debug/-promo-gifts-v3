@@ -92,6 +92,7 @@ export function Bitrix24Tab() {
             <RetestButton
               onRetest={onTest}
               disabled={!canTest}
+              cooldownKey="bitrix24"
               disabledReason={preflightIssues.length > 0
                 ? "Corrija os campos sinalizados acima antes de testar"
                 : !credsOk ? "Configure o Webhook URL primeiro"
