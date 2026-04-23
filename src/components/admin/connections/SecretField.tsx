@@ -325,7 +325,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               <Input
                 type={show ? "text" : "password"}
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => { setValue(e.target.value); if (lastError) setLastError(null); }}
                 placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
                 autoFocus
                 disabled={saving}
@@ -373,12 +373,32 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => { setEditing(false); setValue(""); setMode("set"); }}
+              onClick={() => { setEditing(false); setValue(""); setMode("set"); setLastError(null); }}
               disabled={saving}
             >
               Cancelar
             </Button>
           </div>
+          {lastError && !saving && (
+            <div
+              className="flex items-start justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs animate-in fade-in duration-200"
+              role="alert"
+            >
+              <div className="flex items-start gap-1.5 text-destructive min-w-0">
+                <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <span className="break-words">{lastError}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 shrink-0"
+                onClick={handleSave}
+                disabled={!canSave}
+              >
+                <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
+              </Button>
+            </div>
+          )}
           {value.length > 0 && !validation.ok && validation.message && (
             <p className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" /> {validation.message}
