@@ -11,6 +11,7 @@ import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
+import { ConnectionErrorDetailsDialog } from "./ConnectionErrorDetailsDialog";
 import { hasSuspiciousLength } from "./secretValidators";
 
 const ENVS = [
@@ -43,6 +44,7 @@ export function SupabaseConnectionsTab() {
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [lastByEnv, setLastByEnv] = useState<Record<string, LastTestInfo | null>>({});
   const [historyKeyByEnv, setHistoryKeyByEnv] = useState<Record<string, number>>({});
+  const [errorDialogByEnv, setErrorDialogByEnv] = useState<Record<string, boolean>>({});
 
   useEffect(() => { list(); }, [list]);
 
@@ -144,6 +146,7 @@ export function SupabaseConnectionsTab() {
                   </div>
                   <LastTestLine
                     info={last}
+                    onClick={last?.ok === false ? () => setErrorDialogByEnv((cur) => ({ ...cur, [env.key]: true })) : undefined}
                     action={
                       <RetestButton
                         onRetest={() => handleTest(env.envKey!, env.key)}
@@ -157,6 +160,14 @@ export function SupabaseConnectionsTab() {
                     envKey={env.envKey!}
                     label={env.name}
                     refreshKey={historyKeyByEnv[env.key] ?? 0}
+                  />
+                  <ConnectionErrorDetailsDialog
+                    open={!!errorDialogByEnv[env.key]}
+                    onOpenChange={(v) => setErrorDialogByEnv((cur) => ({ ...cur, [env.key]: v }))}
+                    connectionType="supabase"
+                    connectionLabel={env.name}
+                    summary={last}
+                    envKey={env.envKey!}
                   />
                 </>
               )}

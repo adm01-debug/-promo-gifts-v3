@@ -26,10 +26,12 @@ export function LastTestLine({
   info,
   className,
   action,
+  onClick,
 }: {
   info: LastTestInfo | null;
   className?: string;
   action?: ReactNode;
+  onClick?: () => void;
 }) {
   const wrap = (content: ReactNode) =>
     action ? (
@@ -56,13 +58,36 @@ export function LastTestLine({
   const tail = info.ok
     ? [latency, httpInfo].filter(Boolean).join(" · ")
     : info.message || "Falha";
-  return wrap(
-    <p className={cn("text-xs inline-flex items-center gap-1.5 max-w-full", color, !action && className)}>
+  const isClickable = !info.ok && !!onClick;
+  const content = (
+    <span className="inline-flex items-center gap-1.5 max-w-full">
       <Icon className="h-3.5 w-3.5 shrink-0" />
-      <span className="truncate">
+      <span className={cn("truncate", isClickable && "underline decoration-dotted underline-offset-2")}>
         {info.ok ? "Verificado" : "Falhou"} {rel}
         {tail ? ` — ${tail}` : ""}
       </span>
+    </span>
+  );
+  if (isClickable) {
+    return wrap(
+      <button
+        type="button"
+        onClick={onClick}
+        title="Clique para ver detalhes do erro"
+        className={cn(
+          "text-xs inline-flex items-center max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors",
+          "hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40",
+          color,
+          !action && className,
+        )}
+      >
+        {content}
+      </button>,
+    );
+  }
+  return wrap(
+    <p className={cn("text-xs inline-flex items-center max-w-full", color, !action && className)}>
+      {content}
     </p>,
   );
 }
