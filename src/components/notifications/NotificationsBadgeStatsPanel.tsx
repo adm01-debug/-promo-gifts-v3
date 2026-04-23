@@ -396,6 +396,41 @@ export function NotificationsBadgeStatsPanel() {
                     <div className="pt-1 border-t border-border/40 text-warning">
                       ⚠ Debounce + 5s TTL not absorbing triggers. Inspect prefetch call sites.
                     </div>
+                    {/* Inline recommendation — driven by the regression slope
+                        across the current streak window. */}
+                    {streakTrend.suggestion && (
+                      <div className="pt-1 border-t border-border/40">
+                        <div className="text-foreground inline-flex items-center gap-1">
+                          <span className="font-semibold">💡 Suggestion</span>
+                          <span
+                            className={cn(
+                              "px-1 rounded text-[9px] font-semibold uppercase tracking-wide",
+                              streakTrend.direction === "rising"
+                                ? "bg-warning/15 text-warning"
+                                : streakTrend.direction === "falling"
+                                  ? "bg-primary/15 text-primary"
+                                  : "bg-muted text-muted-foreground"
+                            )}
+                            title={`Linear-regression slope: ${streakTrend.slopePerSec.toFixed(3)} ratio/s`}
+                          >
+                            {streakTrend.direction}
+                            {streakTrend.slopePerSec !== 0 && (
+                              <>
+                                {" "}
+                                {streakTrend.slopePerSec > 0 ? "+" : ""}
+                                {streakTrend.slopePerSec.toFixed(2)}/s
+                              </>
+                            )}
+                          </span>
+                        </div>
+                        <div className="text-foreground mt-0.5">
+                          → {streakTrend.suggestion.primary}
+                        </div>
+                        <div className="text-muted-foreground text-[9px] mt-0.5">
+                          {streakTrend.suggestion.rationale}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </TooltipContent>
               </Tooltip>
