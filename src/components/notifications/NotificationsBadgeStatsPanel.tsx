@@ -86,19 +86,39 @@ export function NotificationsBadgeStatsPanel() {
   const [debugOn, setDebugOn] = useState(() => isDebugMode());
 
   const [snapshot, setSnapshot] = useState(() => notificationsMetrics.snapshot());
+  /** Sliding-window samples (most recent at the END). */
+  const [samples, setSamples] = useState<RatioSample[]>([]);
+  const lastCountsRef = useRef<{ triggers: number; fetches: number }>({ triggers: 0, fetches: 0 });
 
   useEffect(() => {
     if (!visible) return;
-    setSnapshot(notificationsMetrics.snapshot());
+    const initial = notificationsMetrics.snapshot();
+    setSnapshot(initial);
+    lastCountsRef.current = { triggers: initial.triggers, fetches: initial.fetches };
+
     const unsub = notificationsMetrics.subscribeBadgeRender(() => {
       setSnapshot(notificationsMetrics.snapshot());
     });
-    // Triggers/fetches don't have a subscription channel — poll lightly so the
-    // ratio stays fresh while the drawer is open. 1s is plenty (the user is
-    // staring at a panel, not a chart).
     const id = window.setInterval(() => {
-      setSnapshot(notificationsMetrics.snapshot());
+      const snap = notificationsMetrics.snapshot();
+      setSnapshot(snap);
       setDebugOn(isDebugMode());
+      // Detect auto-reset (every 15 min) and clear samples so the sparkline
+      // doesn't draw a phantom drop to 0.
+      const prev = lastCountsRef.current;
+      if (snap.triggers < prev.triggers || snap.fetches < prev.fetches) {
+        setSamples([]);
+      }
+      lastCountsRef.current = { triggers: snap.triggers, fetches: snap.fetches };
+      setSamples((prevSamples) => {
+        const next = [
+          ...prevSamples,
+          { t: Date.now(), ratio: snap.ratio, triggers: snap.triggers, fetches: snap.fetches },
+        ];
+        return next.length > SPARK_WINDOW_SECONDS
+          ? next.slice(next.length - SPARK_WINDOW_SECONDS)
+          : next;
+      });
     }, 1000);
     return () => {
       unsub();
