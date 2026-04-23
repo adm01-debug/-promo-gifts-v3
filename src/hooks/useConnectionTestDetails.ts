@@ -31,17 +31,19 @@ interface Args {
   type: ConnectionType;
   envKey?: "promobrind" | "crm";
   connectionId?: string;
+  /** Quando presente, busca este registro específico em vez do mais recente. */
+  historyId?: string;
 }
 
 /**
- * Carrega o registro completo do último teste para uma conexão.
+ * Carrega o registro completo do último teste para uma conexão (ou de um teste específico via historyId).
  * Refaz a busca toda vez que `open` transita para true ou a chave composta muda.
  */
-export function useConnectionTestDetails({ open, type, envKey, connectionId }: Args) {
+export function useConnectionTestDetails({ open, type, envKey, connectionId, historyId }: Args) {
   const [details, setDetails] = useState<TestDetails | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const reqKey = `${type}:${envKey ?? connectionId ?? "*"}`;
+  const reqKey = `${type}:${historyId ?? envKey ?? connectionId ?? "*"}`;
   const lastKeyRef = useRef<string | null>(null);
 
   const fetchDetails = useCallback(async () => {
@@ -54,6 +56,7 @@ export function useConnectionTestDetails({ open, type, envKey, connectionId }: A
           type,
           env_key: envKey,
           connection_id: connectionId,
+          id: historyId,
         },
       });
       if (invokeError) throw invokeError;
@@ -64,7 +67,7 @@ export function useConnectionTestDetails({ open, type, envKey, connectionId }: A
     } finally {
       setLoading(false);
     }
-  }, [type, envKey, connectionId]);
+  }, [type, envKey, connectionId, historyId]);
 
   useEffect(() => {
     if (!open) return;

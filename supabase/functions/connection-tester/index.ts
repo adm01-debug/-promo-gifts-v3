@@ -19,6 +19,7 @@ const BodySchema = z.object({
   env_key: z.enum(["promobrind", "crm"]).optional(),
   limit: z.number().int().min(1).max(50).optional(),
   timeout_ms: z.number().int().min(1000).max(30000).optional(),
+  id: z.string().uuid().optional(),
 });
 
 /** Mascaramento server-side de URLs e cabeçalhos sensíveis. */
@@ -85,7 +86,7 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { action, type, config = {}, connection_id, env_key, limit, timeout_ms } = parsed.data;
+    const { action, type, config = {}, connection_id, env_key, limit, timeout_ms, id: historyId } = parsed.data;
 
     // -- last_test: read persisted info, no ping --
     if (action === "last_test") {
@@ -165,31 +166,41 @@ Deno.serve(async (req) => {
       });
     }
 
-    // -- last_test_full: full record of latest test --
+    // -- last_test_full: full record of latest test (or specific by id) --
     if (action === "last_test_full") {
-      let connIds: string[] = [];
-      if (connection_id) {
-        connIds = [connection_id];
-      } else if (env_key) {
-        const { data } = await service.from("external_connections")
-          .select("id").eq("env_key", env_key).eq("type", type);
-        connIds = (data ?? []).map((r: { id: string }) => r.id);
+      let rows: unknown[] | null = null;
+      if (historyId) {
+        const { data } = await service.from("connection_test_history")
+          .select("id, tested_at, success, latency_ms, status_code, error_message, error_kind, triggered_by, triggered_by_user_id, request_method, request_url, response_headers, response_body, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms")
+          .eq("id", historyId)
+          .limit(1);
+        rows = data ?? [];
       } else {
-        const { data } = await service.from("external_connections")
-          .select("id").eq("type", type)
-          .order("last_test_at", { ascending: false, nullsFirst: false }).limit(1);
-        connIds = (data ?? []).map((r: { id: string }) => r.id);
+        let connIds: string[] = [];
+        if (connection_id) {
+          connIds = [connection_id];
+        } else if (env_key) {
+          const { data } = await service.from("external_connections")
+            .select("id").eq("env_key", env_key).eq("type", type);
+          connIds = (data ?? []).map((r: { id: string }) => r.id);
+        } else {
+          const { data } = await service.from("external_connections")
+            .select("id").eq("type", type)
+            .order("last_test_at", { ascending: false, nullsFirst: false }).limit(1);
+          connIds = (data ?? []).map((r: { id: string }) => r.id);
+        }
+        if (connIds.length === 0) {
+          return new Response(JSON.stringify({ ok: true, details: null }), {
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          });
+        }
+        const { data } = await service.from("connection_test_history")
+          .select("id, tested_at, success, latency_ms, status_code, error_message, error_kind, triggered_by, triggered_by_user_id, request_method, request_url, response_headers, response_body, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms")
+          .in("connection_id", connIds)
+          .order("tested_at", { ascending: false })
+          .limit(1);
+        rows = data ?? [];
       }
-      if (connIds.length === 0) {
-        return new Response(JSON.stringify({ ok: true, details: null }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      const { data: rows } = await service.from("connection_test_history")
-        .select("id, tested_at, success, latency_ms, status_code, error_message, error_kind, triggered_by, triggered_by_user_id, request_method, request_url, response_headers, response_body, dns_ms, tcp_ms, tls_ms, ttfb_ms, download_ms")
-        .in("connection_id", connIds)
-        .order("tested_at", { ascending: false })
-        .limit(1);
       const row = (rows ?? [])[0] as {
         id: string; tested_at: string; success: boolean;
         latency_ms: number | null; status_code: number | null;
