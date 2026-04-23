@@ -7,12 +7,36 @@
  * end users.
  */
 import { useEffect, useState } from "react";
-import { Activity, Database, Wifi } from "lucide-react";
+import { Activity, Database, Wifi, MousePointerClick, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { notificationsMetrics, type BadgeRenderStat } from "@/lib/notifications-metrics";
 import { cn } from "@/lib/utils";
+
+/**
+ * Color the trigger/fetch ratio based on coalescing efficiency:
+ *   - <0.3 = excellent (most triggers absorbed by debounce + 5s TTL)
+ *   - 0.3..0.7 = healthy
+ *   - >0.7 = suspicious (debounce/TTL not coalescing — investigate)
+ */
+function ratioTone(ratio: number, triggers: number): string {
+  if (triggers === 0) return "text-muted-foreground";
+  if (ratio < 0.3) return "text-primary";
+  if (ratio < 0.7) return "text-foreground";
+  return "text-warning";
+}
+
+/** Read the runtime debug toggle (mirrors `isDebugEnabled` in notifications-metrics). */
+function isDebugMode(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    if (window.localStorage?.getItem("debug:notifications") === "1") return true;
+    return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
+  } catch {
+    return false;
+  }
+}
 
 function fmtMs(v: number | null | undefined): string {
   if (v === null || v === undefined) return "—";
