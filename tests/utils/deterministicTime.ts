@@ -1,17 +1,26 @@
 /**
  * deterministicTime — shared test helper for time-sensitive assertions.
  *
- * Mocks `Date.now()`, `performance.now()`, AND installs Vitest fake timers in
- * lockstep so every elapsed-ms / debounce assertion in the notifications
- * suite is reproducible to the millisecond.
+ * Mocks `Date.now()` and `performance.now()` so every elapsed-ms / cacheAge
+ * assertion in the notifications suite is reproducible to the millisecond.
  *
- * Usage:
- *   const clock = installDeterministicClock(0);
- *   beforeEach(() => clock.reset(0));
+ * IMPORTANT: This helper does NOT install Vitest fake timers, because doing so
+ * breaks `@testing-library/react`'s `waitFor` (which polls via setTimeout).
+ * If a test also needs fake timers (e.g. for debounced effects), call
+ * `vi.useFakeTimers({ now: clock.now() })` AFTER `installDeterministicClock()`
+ * and drive both surfaces in lockstep with `clock.tickAsync(ms)`.
+ *
+ * Usage (clock only, real timers — works with `waitFor`):
+ *   const clock = installDeterministicClock(EPOCH);
  *   afterEach(() => clock.uninstall());
+ *   clock.advance(25); // bumps Date.now() and performance.now() by 25ms
  *
- *   clock.advance(50);          // bump Date.now() AND performance.now() by 50ms
- *   await clock.tickAsync(200); // advance fake timers by 200ms + flush microtasks
+ * Usage (clock + fake timers, for debounce-driven tests):
+ *   const clock = installDeterministicClock(EPOCH);
+ *   vi.useFakeTimers({ now: clock.now(), shouldAdvanceTime: false });
+ *   await clock.tickAsync(200); // advances both clock + fake timers
+ *   vi.useRealTimers();
+ *   clock.uninstall();
  */
 import { vi } from "vitest";
 
@@ -20,60 +29,51 @@ export interface DeterministicClock {
   now(): number;
   /** Advance Date.now / performance.now WITHOUT firing timers. */
   advance(ms: number): void;
-  /** Advance fake timers (and Date / performance) and flush microtasks. */
+  /**
+   * Advance the clock AND fake timers (must have been installed by caller).
+   * Flushes microtasks afterwards. No-op against fake timers if real timers
+   * are active, but the clock will still move.
+   */
   tickAsync(ms: number): Promise<void>;
-  /** Reset the clock to a specific timestamp (ms since epoch). */
+  /** Reset the clock to a specific timestamp. */
   reset(at?: number): void;
-  /** Restore real timers + real Date.now / performance.now. */
+  /** Restore real Date.now / performance.now. */
   uninstall(): void;
 }
 
 export function installDeterministicClock(startAt: number = 0): DeterministicClock {
   let current = startAt;
 
-  // Use Vitest's built-in fake timers — they handle setTimeout/setInterval and
-  // also mock Date when `toFake` includes "Date". We override performance.now
-  // separately because Vitest doesn't mock it by default.
-  vi.useFakeTimers({ now: current, toFake: ["setTimeout", "setInterval", "clearTimeout", "clearInterval", "Date"] });
-
-  const realPerfNow = globalThis.performance?.now?.bind(globalThis.performance);
+  const dateSpy = vi.spyOn(Date, "now").mockImplementation(() => current);
   const perfSpy = vi.spyOn(globalThis.performance, "now").mockImplementation(() => current);
-
-  function syncDate() {
-    vi.setSystemTime(current);
-  }
 
   return {
     now: () => current,
 
     advance(ms: number) {
       current += ms;
-      syncDate();
     },
 
     async tickAsync(ms: number) {
       current += ms;
-      // setSystemTime first so any setTimeout callback that reads Date.now()
-      // sees the post-advance value.
-      syncDate();
-      await vi.advanceTimersByTimeAsync(ms);
-      // Flush any pending microtasks from resolved promises inside callbacks.
+      // If fake timers are installed, sync them and advance.
+      try {
+        vi.setSystemTime(current);
+        await vi.advanceTimersByTimeAsync(ms);
+      } catch {
+        // Real timers active — nothing more to do.
+      }
       await Promise.resolve();
       await Promise.resolve();
     },
 
     reset(at: number = startAt) {
       current = at;
-      syncDate();
     },
 
     uninstall() {
+      dateSpy.mockRestore();
       perfSpy.mockRestore();
-      // Best-effort restore in case spyOn lost the original.
-      if (realPerfNow && globalThis.performance) {
-        globalThis.performance.now = realPerfNow;
-      }
-      vi.useRealTimers();
     },
   };
 }
