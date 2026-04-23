@@ -1,10 +1,11 @@
-import { Database, Briefcase, Workflow, Plug, Webhook, Filter as FilterIcon, X } from "lucide-react";
+import { Database, Briefcase, Workflow, Plug, Webhook, Filter as FilterIcon, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
+import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
 import type {
   OverviewFilters,
   OverviewStatusFilter,
@@ -40,6 +41,7 @@ interface Props {
   setStatus: (status: OverviewStatusFilter) => void;
   setWindow: (w: OverviewWindowFilter) => void;
   removeType: (type: string) => void;
+  setOnlyConsecutiveFailures: (value: boolean) => void;
   reset: () => void;
   activeCount: number;
   totalCount: number;
@@ -60,6 +62,7 @@ export function ConnectionsOverviewFilters({
   setStatus,
   setWindow,
   removeType,
+  setOnlyConsecutiveFailures,
   reset,
   activeCount,
   totalCount,
