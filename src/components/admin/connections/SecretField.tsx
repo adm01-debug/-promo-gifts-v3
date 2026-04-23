@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label";
 import {
   useSecretsManager,
   type SecretStatus,
-  type SecretError,
   type SecretMutationResult,
 } from "@/hooks/useSecretsManager";
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
+import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
+import { SecretErrorAlert } from "./SecretErrorAlert";
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -31,30 +32,8 @@ function formatRelative(iso: string): string {
   return `há ${d}d`;
 }
 
-function describeError(err: SecretError, secretName: string): string {
-  const msg = (err.message || "").toLowerCase();
-  switch (err.code) {
-    case "forbidden":
-      return "Apenas administradores podem alterar esta credencial.";
-    case "not_whitelisted":
-      return `O nome "${secretName}" não está na lista permitida de credenciais.`;
-    case "invalid_value":
-      return "O valor precisa ter pelo menos 4 caracteres.";
-    case "db_error":
-      return `Falha ao gravar no banco: ${err.message}`;
-    default:
-      if (msg.includes("not allowed") || msg.includes("forbidden")) {
-        return "Apenas administradores podem alterar esta credencial.";
-      }
-      if (msg.includes("whitelist") || msg.includes("não permitido")) {
-        return `O nome "${secretName}" não está na lista permitida.`;
-      }
-      if (msg.includes("network") || msg.includes("failed to fetch")) {
-        return "Falha de rede. Verifique sua conexão e tente novamente.";
-      }
-      return err.message || "Erro desconhecido ao salvar credencial.";
-  }
-}
+// NOTE: error translation moved to ./secretErrors.ts so that every
+// connections component shows the same wording, chip and tone.
 
 interface FlashState {
   masked_suffix: string | null;
@@ -84,7 +63,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<FlashState | null>(null);
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
-  const [lastError, setLastError] = useState<string | null>(null);
+  const [lastError, setLastError] = useState<NormalizedSecretError | null>(null);
   const flashCounter = useRef(0);
 
   // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
@@ -175,22 +154,25 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
 
     if (!result.ok || !result.secret) {
       const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
-      const description = describeError(err, secretName);
-      setLastError(description);
-      toast.error(`Falha ao salvar ${secretName}`, {
+      const normalized = normalizeSecretError(err, secretName, { action: currentMode === "rotate" ? "rotate" : "save" });
+      setLastError(normalized);
+      const toastDescription = normalized.hint ? `${normalized.description} ${normalized.hint}` : normalized.description;
+      toast.error(normalized.title, {
         id: toastId,
-        description,
+        description: toastDescription,
         duration: 7000,
-        action: {
-          label: "Tentar novamente",
-          onClick: () => {
-            setMode(currentMode);
-            setValue(currentValue);
-            setEditing(true);
-          },
-        },
+        action: normalized.retryable
+          ? {
+              label: "Tentar novamente",
+              onClick: () => {
+                setMode(currentMode);
+                setValue(currentValue);
+                setEditing(true);
+              },
+            }
+          : undefined,
       });
-      return { ok: false as const, errorDescription: description, cancelled: false };
+      return { ok: false as const, errorDescription: toastDescription, cancelled: false };
     }
     setLastError(null);
 
@@ -380,24 +362,11 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             </Button>
           </div>
           {lastError && !saving && (
-            <div
-              className="flex items-start justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs animate-in fade-in duration-200"
-              role="alert"
-            >
-              <div className="flex items-start gap-1.5 text-destructive min-w-0">
-                <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <span className="break-words">{lastError}</span>
-              </div>
-              <Button
-                size="sm"
-                variant="outline"
-                className="h-7 px-2 shrink-0"
-                onClick={handleSave}
-                disabled={!canSave}
-              >
-                <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
-              </Button>
-            </div>
+            <SecretErrorAlert
+              error={lastError}
+              onRetry={handleSave}
+              retryDisabled={!canSave}
+            />
           )}
           {value.length > 0 && !validation.ok && validation.message && (
             <p className="text-xs text-destructive flex items-center gap-1">
