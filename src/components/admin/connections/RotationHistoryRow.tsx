@@ -3,6 +3,7 @@ import { RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useSecretsManager, type RotationHistoryEntry } from "@/hooks/useSecretsManager";
 import { RotationHistoryDialog } from "./RotationHistoryDialog";
+import { formatMaskedSuffix } from "@/lib/masked-suffix";
 
 interface Props {
   secretName: string;
