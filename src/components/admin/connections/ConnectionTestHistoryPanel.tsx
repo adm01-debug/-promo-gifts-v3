@@ -223,12 +223,28 @@ function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
               {it.triggered_by === "cron" && (
                 <Bot className="h-3 w-3 text-muted-foreground/70" aria-label="Teste automático" />
               )}
+              {(it.attempts ?? 1) > 1 && (
+                <span
+                  className={cn(
+                    "text-[9px] font-semibold leading-none px-1 py-0.5 rounded border tabular-nums",
+                    it.ok
+                      ? "bg-amber-500/10 border-amber-500/40 text-amber-700 dark:text-amber-300"
+                      : "bg-destructive/10 border-destructive/30 text-destructive",
+                  )}
+                  aria-label={`${it.attempts} tentativas`}
+                >
+                  {it.attempts}×
+                </span>
+              )}
             </span>
           </TooltipTrigger>
           <TooltipContent side="top">
             {formatAbsolute(it.tested_at)}
             {it.triggered_by === "cron" && " · automático (cron)"}
             {it.triggered_by === "manual" && " · manual"}
+            {(it.attempts ?? 1) > 1 && (
+              <> · {it.attempts} tentativas{it.ok ? " (recuperou na 2ª)" : ""}</>
+            )}
           </TooltipContent>
         </Tooltip>
         <LatencyBadge ms={it.latency_ms} />
