@@ -129,9 +129,11 @@ function LatencySparkline({ items, width = 64, height = 18 }: { items: TestHisto
 interface RowProps {
   item: TestHistoryItem;
   onClick: () => void;
+  highlighted?: boolean;
+  rowRef?: (el: HTMLDivElement | null) => void;
 }
 
-function HistoryRow({ item: it, onClick }: RowProps) {
+function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
   const Icon = it.ok ? CheckCircle2 : XCircle;
   const tail = it.ok
     ? `HTTP ${it.status ?? "?"}${it.message ? ` — ${it.message}` : ""}`
@@ -139,14 +141,16 @@ function HistoryRow({ item: it, onClick }: RowProps) {
   return (
     <li>
       <div
+        ref={rowRef}
         role="button"
         tabIndex={0}
         onClick={onClick}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
         className={cn(
-          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded transition-colors text-left cursor-pointer",
+          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded transition-all text-left cursor-pointer scroll-mt-4",
           "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           !it.ok && "bg-destructive/[0.03] hover:bg-destructive/10",
+          highlighted && "ring-2 ring-destructive/70 bg-destructive/15 animate-pulse-once",
         )}
         aria-label={it.ok ? "Ver detalhes deste teste" : "Ver detalhes do erro"}
       >
