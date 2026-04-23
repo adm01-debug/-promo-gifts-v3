@@ -106,9 +106,11 @@ export function RetestButton({
     };
   }, [inCooldown]);
 
+  // Clear any pending watchdog on unmount.
   useEffect(() => {
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
   }, []);
 
@@ -124,16 +126,43 @@ export function RetestButton({
     if (isRunning || inCooldown || disabled) return;
 
     setIsRunning(true);
+    timedOutRef.current = false;
+
+    // Watchdog: race onRetest against a hard timeout so the button never gets
+    // stuck on "Testando…" when the upstream tester (or edge function) hangs.
+    const watchdog = timeoutMs > 0
+      ? new Promise<"__retest_timeout__">((resolve) => {
+          timeoutRef.current = setTimeout(() => {
+            timedOutRef.current = true;
+            resolve("__retest_timeout__");
+          }, timeoutMs);
+        })
+      : null;
+
     try {
-      await onRetest();
+      const result = watchdog
+        ? await Promise.race([Promise.resolve(onRetest()).then(() => "__retest_done__" as const), watchdog])
+        : await onRetest();
+      if (result === "__retest_timeout__") {
+        toast.error("Tempo esgotado", {
+          description: `O teste não respondeu em ${Math.round(timeoutMs / 1000)}s. O servidor pode estar fora do ar — tente novamente em instantes.`,
+        });
+      }
+    } catch {
+      // Errors are handled & toasted inside the tester hook; swallow here so
+      // the finally block always restores the UI.
     } finally {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+        timeoutRef.current = null;
+      }
       setIsRunning(false);
       const until = Date.now() + cooldownMs;
       setCooldownUntil(until);
       setNow(Date.now());
       writePersistedCooldown(cooldownKey, until);
     }
-  }, [isRunning, inCooldown, disabled, onRetest, cooldownMs, cooldownKey]);
+  }, [isRunning, inCooldown, disabled, onRetest, cooldownMs, cooldownKey, timeoutMs]);
 
   // Cleanup persisted entry once the cooldown naturally expires.
   useEffect(() => {
