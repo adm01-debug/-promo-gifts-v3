@@ -70,14 +70,11 @@ export function ConnectionErrorDetailsDialog({
     (async () => {
       setLoading(true);
       try {
-        const { data: conns } = await supabase
-          .from("external_connections")
-          .select("id")
-          .eq("type", connectionType)
-          .eq("env_key", envKey ?? null as unknown as string);
-        // env_key may be null in DB; fallback query when no match
+        let q = supabase.from("external_connections").select("id").eq("type", connectionType);
+        if (envKey) q = q.eq("env_key", envKey);
+        const { data: conns } = await q;
         let ids = (conns ?? []).map((c) => c.id);
-        if (ids.length === 0) {
+        if (ids.length === 0 && envKey) {
           const { data: any2 } = await supabase
             .from("external_connections")
             .select("id")
