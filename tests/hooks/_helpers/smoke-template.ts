@@ -13,13 +13,11 @@ import { renderHookWithProviders } from "./render-hook-providers";
 
 export function smokeHook<TResult>(name: string, factory: () => TResult) {
   describe(`${name} (smoke)`, () => {
-    it("monta sem crashar e retorna valor estável", () => {
+    it("monta sem crashar", () => {
       const { result, unmount } = renderHookWithProviders(factory);
-      // Não deve ser undefined: hooks sempre retornam algo
-      expect(result.current).not.toBeUndefined();
-      // Tipo do retorno deve ser estável (object, array ou primitive)
+      // Tipo do retorno deve ser estável (hooks "void" podem retornar undefined)
       const t = typeof result.current;
-      expect(["object", "function", "boolean", "string", "number"].includes(t)).toBe(true);
+      expect(["object", "function", "boolean", "string", "number", "undefined"].includes(t)).toBe(true);
       unmount();
     });
   });

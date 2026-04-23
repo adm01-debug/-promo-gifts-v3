@@ -21,8 +21,10 @@ smokeHook("useCatalogFiltering (vazio)", () =>
     realProducts: [],
     filters: {
       colors: [], colorGroups: [], colorVariations: [], categories: [],
-      materials: [], priceRange: [0, 1000], minQuantityRange: [0, 10000],
-      stock: "all", search: "",
+      materials: [], suppliers: [], priceRange: [0, 1000], minQuantityRange: [0, 10000],
+      stock: "all", stockStatus: [], search: "", brands: [], tags: [],
+      verifiedOnly: false, hasImage: false, sustainableOnly: false,
+      certifications: [],
     } as never,
     sortBy: "name",
     hasFuzzySearch: false,
