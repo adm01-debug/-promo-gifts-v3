@@ -35,10 +35,14 @@ interface HealthData {
   mcpKeysUsed24h: number;
   staleSecrets: number; // secrets sem rotação há >90 dias (ou nunca rotacionados, com webhooks ativos)
   autoDisabledWebhooks: number;
+  lastAutoTestAt: string | null;
+  autoTestOkLastHour: number;
+  autoTestFailLastHour: number;
 }
 
 async function fetchHealth(): Promise<HealthData> {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const sinceLastHour = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
   const [
@@ -80,6 +84,22 @@ async function fetchHealth(): Promise<HealthData> {
       .not("auto_disabled_at", "is", null),
   ]);
 
+  // Auto-test stats (cron-triggered runs in the last hour + most recent timestamp)
+  const [{ data: autoTestRecent }, { data: lastAutoTest }] = await Promise.all([
+    supabase
+      .from("connection_test_history")
+      .select("success")
+      .eq("triggered_by", "cron")
+      .gte("tested_at", sinceLastHour),
+    supabase
+      .from("connection_test_history")
+      .select("tested_at")
+      .eq("triggered_by", "cron")
+      .order("tested_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
   const total = deliveries24h?.length ?? 0;
   const success = deliveries24h?.filter((d) => d.success).length ?? 0;
   const rate = total > 0 ? (success / total) * 100 : null;
@@ -101,6 +121,9 @@ async function fetchHealth(): Promise<HealthData> {
     mcpKeysUsed24h: mcpKeysUsed24h ?? 0,
     staleSecrets,
     autoDisabledWebhooks: autoDisabledWebhooks ?? 0,
+    lastAutoTestAt: lastAutoTest?.tested_at ?? null,
+    autoTestOkLastHour: (autoTestRecent ?? []).filter((r) => r.success).length,
+    autoTestFailLastHour: (autoTestRecent ?? []).filter((r) => !r.success).length,
   };
 }
 
