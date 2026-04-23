@@ -4,6 +4,15 @@ import { toast } from "sonner";
 
 export type ConnectionType = "supabase" | "bitrix24" | "n8n" | "mcp" | "webhook_outbound";
 
+export interface TestResult {
+  ok: boolean;
+  status?: number;
+  latency_ms?: number;
+  error?: string;
+  message?: string;
+  tested_at?: string;
+}
+
 interface TestOptions {
   env_key?: "promobrind" | "crm";
   config?: Record<string, string>;
@@ -12,13 +21,13 @@ interface TestOptions {
 
 export function useConnectionTester() {
   const [isTesting, setIsTesting] = useState(false);
+  const [lastResult, setLastResult] = useState<TestResult | null>(null);
 
   const test = useCallback(async (
     type: ConnectionType,
     optionsOrConfig: TestOptions | Record<string, string> = {},
     legacyConnectionId?: string,
-  ) => {
-    // Backwards-compat: old callers passed (type, configObj, connectionId)
+  ): Promise<TestResult> => {
     let config: Record<string, string> | undefined;
     let connection_id: string | undefined;
     let env_key: "promobrind" | "crm" | undefined;
@@ -35,26 +44,71 @@ export function useConnectionTester() {
     setIsTesting(true);
     try {
       const { data, error } = await supabase.functions.invoke("connection-tester", {
-        body: { type, config, connection_id, env_key },
+        body: { action: "test", type, config, connection_id, env_key },
       });
       if (error) throw error;
-      const r = data?.result as { ok: boolean; status?: number; latency_ms?: number; error?: string; message?: string };
-      if (r?.ok) {
+      const r = (data?.result ?? {}) as TestResult;
+      const normalized: TestResult = {
+        ok: !!r.ok,
+        status: r.status,
+        latency_ms: r.latency_ms,
+        error: r.error,
+        message: r.message,
+        tested_at: r.tested_at ?? new Date().toISOString(),
+      };
+      setLastResult(normalized);
+      if (normalized.ok) {
         toast.success("Conexão OK", {
-          description: r.message ?? `${r.status ?? "200"} em ${r.latency_ms ?? "?"}ms`,
+          description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
         });
       } else {
-        toast.error("Falha na conexão", { description: r?.error ?? `HTTP ${r?.status}` });
+        toast.error("Falha na conexão", {
+          description: normalized.error ?? `HTTP ${normalized.status ?? "?"}`,
+        });
       }
-      return r;
+      return normalized;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro";
+      const failed: TestResult = { ok: false, error: msg, tested_at: new Date().toISOString() };
+      setLastResult(failed);
       toast.error("Erro ao testar conexão", { description: msg });
-      return { ok: false, error: msg };
+      return failed;
     } finally {
       setIsTesting(false);
     }
   }, []);
 
-  return { test, isTesting };
+  const fetchLastTest = useCallback(async (
+    type: ConnectionType,
+    opts: { env_key?: "promobrind" | "crm"; connectionId?: string } = {},
+  ): Promise<{
+    tested_at: string | null;
+    ok: boolean | null;
+    message: string | null;
+    latency_ms: number | null;
+  } | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke("connection-tester", {
+        body: {
+          action: "last_test",
+          type,
+          env_key: opts.env_key,
+          connection_id: opts.connectionId,
+        },
+      });
+      if (error) return null;
+      const last = data?.last;
+      if (!last) return null;
+      return {
+        tested_at: last.last_test_at ?? null,
+        ok: last.last_test_ok ?? null,
+        message: last.last_test_message ?? null,
+        latency_ms: last.last_latency_ms ?? null,
+      };
+    } catch {
+      return null;
+    }
+  }, []);
+
+  return { test, isTesting, lastResult, fetchLastTest };
 }
