@@ -30,6 +30,23 @@ export interface TechniqueWithLimits extends Technique {
   areaName: string | null;
   /** Location name (e.g., "Lado A") */
   locationName: string | null;
+  // ─── Atributos novos (RPC fn_get_product_customization_options) ───
+  /** Máximo de cores suportadas pela técnica nessa área */
+  maxColors: number | null;
+  /** Se a tabela cobra por cor (multiplica preço por cor) */
+  chargesPerColor: boolean;
+  /** Se a técnica usa dimensão (cobra por área) */
+  usesDimension: boolean;
+  /** Se a técnica suporta superfície curva */
+  isCurved: boolean;
+  /** Custo de setup (R$) */
+  setupCost: number | null;
+  /** Label da variação (ex.: "Fiber Laser | Plana") */
+  variationLabel: string | null;
+  /** Grupo da técnica (ex.: "LASER", "SERIGRAFIA") */
+  groupCode: string | null;
+  /** Shape declarado pelo RPC (ex.: "rect", "round") */
+  shape: string | null;
 }
 
 /** Shape of each option inside a location from the RPC */
@@ -195,6 +212,14 @@ export function useFilteredTechniques(
         maxHeight: null,
         areaName: null,
         locationName: null,
+        maxColors: null,
+        chargesPerColor: false,
+        usesDimension: false,
+        isCurved: false,
+        setupCost: null,
+        variationLabel: null,
+        groupCode: null,
+        shape: null,
       }));
     }
 
@@ -214,6 +239,14 @@ export function useFilteredTechniques(
           maxHeight: dims?.maxHeight ?? null,
           areaName: null,
           locationName: null,
+          maxColors: null,
+          chargesPerColor: false,
+          usesDimension: false,
+          isCurved: false,
+          setupCost: null,
+          variationLabel: null,
+          groupCode: null,
+          shape: null,
         };
       });
     }
@@ -260,6 +293,14 @@ export function useFilteredTechniques(
         maxHeight: option.efetiva_altura_max || null,
         areaName: `${locationName} — ${option.tecnica_nome}`,
         locationName,
+        maxColors: option.max_cores ?? null,
+        chargesPerColor: option.cobra_por_cor ?? false,
+        usesDimension: option.usa_dimensao ?? false,
+        isCurved: option.is_curved ?? false,
+        setupCost: option.custo_setup ?? null,
+        variationLabel: option.variacao_label || null,
+        groupCode: option.grupo_tecnica || null,
+        shape: option.shape || null,
       });
     }
 
