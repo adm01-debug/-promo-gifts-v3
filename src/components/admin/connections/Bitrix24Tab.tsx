@@ -28,6 +28,8 @@ export function Bitrix24Tab() {
   const get = (n: string) => secrets.find((s) => s.name === n);
   const wh = get("BITRIX24_WEBHOOK_URL");
   const credsOk = !!wh?.has_value;
+  const suspicious = hasSuspiciousLength(secrets, ["BITRIX24_WEBHOOK_URL"]);
+  const credsLooksValid = credsOk && !suspicious;
   const status: "active" | "error" | "unconfigured" = !credsOk
     ? "unconfigured"
     : last?.ok === false ? "error" : "active";
