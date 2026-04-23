@@ -160,6 +160,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       setRotateConfirmOpen(false);
       setRotateConfirmError(null);
       setSaveConfirmOpen(false);
+      setSaveConfirmError(null);
       // flash is suffix-bound to the previous secret — drop it
       setFlash(null);
       prevScopeKeyRef.current = scopeKey;
