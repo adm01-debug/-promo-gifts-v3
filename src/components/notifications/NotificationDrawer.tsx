@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { notificationsMetrics, type TriggerSource } from "@/lib/notifications-metrics";
 
 const typeConfig = {
   info: { icon: Info, color: "text-primary", bg: "bg-primary/10" },
@@ -240,7 +241,8 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
   useEffect(() => () => {
     if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
   }, []);
-  const debouncedPrefetch = useCallback(() => {
+  const debouncedPrefetch = useCallback((source: TriggerSource) => {
+    notificationsMetrics.recordTrigger(source);
     if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
     prefetchDebounceRef.current = setTimeout(() => {
       prefetchDebounceRef.current = null;
@@ -255,6 +257,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
           clearTimeout(prefetchDebounceRef.current);
           prefetchDebounceRef.current = null;
         }
+        notificationsMetrics.recordTrigger("drawer-open");
         void prefetch();
       }
     }}>
@@ -267,8 +270,8 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                 aria-label="Notificações"
-                onMouseEnter={debouncedPrefetch}
-                onFocus={debouncedPrefetch}
+                onMouseEnter={() => debouncedPrefetch("hover")}
+                onFocus={() => debouncedPrefetch("focus")}
               >
                 <BellBadge
                   unreadCount={unreadCount}

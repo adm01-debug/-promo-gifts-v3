@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { notificationsMetrics, type FetchSource } from "@/lib/notifications-metrics";
 
 export interface WorkspaceNotification {
   id: string;
@@ -114,7 +115,7 @@ export function useWorkspaceNotifications() {
   }, [user]);
 
   const fetchNotifications = useCallback(
-    async (opts: { silent?: boolean } = {}) => {
+    async (opts: { silent?: boolean; source?: FetchSource } = {}) => {
       if (!user) return;
       const hasData = notifications.length > 0;
       const silent = opts.silent ?? hasData;
@@ -122,6 +123,7 @@ export function useWorkspaceNotifications() {
       if (silent) setIsRefetching(true);
       else setIsLoading(true);
 
+      notificationsMetrics.recordFetch(opts.source ?? "initial");
       const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const { data, error } = await supabase
@@ -181,7 +183,7 @@ export function useWorkspaceNotifications() {
   useEffect(() => {
     if (!user) return;
     const interval = setInterval(() => {
-      fetchNotifications({ silent: true });
+      fetchNotifications({ silent: true, source: "polling" });
     }, 30_000);
     return () => clearInterval(interval);
   }, [user, fetchNotifications]);
@@ -190,7 +192,7 @@ export function useWorkspaceNotifications() {
   const prefetch = useCallback(async () => {
     if (!user) return;
     if (Date.now() - lastFetchAtRef.current < PREFETCH_MIN_INTERVAL_MS) return;
-    await fetchNotifications({ silent: true });
+    await fetchNotifications({ silent: true, source: "prefetch" });
   }, [user, fetchNotifications]);
 
   const markAsRead = useCallback(
@@ -238,7 +240,7 @@ export function useWorkspaceNotifications() {
         // ignore
       }
       lastFetchAtRef.current = 0;
-      await fetchNotifications({ silent: true });
+      await fetchNotifications({ silent: true, source: "mutation" });
     } finally {
       markAllInFlightRef.current = false;
       setIsMutationRehydrating(false);
@@ -266,7 +268,7 @@ export function useWorkspaceNotifications() {
         // ignore
       }
       lastFetchAtRef.current = 0;
-      await fetchNotifications({ silent: true });
+      await fetchNotifications({ silent: true, source: "mutation" });
     } finally {
       clearAllInFlightRef.current = false;
       setIsMutationRehydrating(false);
