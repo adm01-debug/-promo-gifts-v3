@@ -291,7 +291,7 @@ export function ConnectionsOverviewTable() {
                 {filtered.map((row) => {
                   const meta = TYPE_META[row.type] ?? { label: row.type, Icon: Plug };
                   const Icon = meta.Icon;
-                  const isTesting = testingKey === row.key;
+                  const isTesting = testingKeys.has(row.key);
                   const message = row.last_test_message;
                   const failure = failuresMap.get(row.key);
                   const failCount = failure?.count ?? 0;
