@@ -241,6 +241,8 @@ export function useWorkspaceNotifications() {
       }
       lastFetchAtRef.current = 0;
       await fetchNotifications({ silent: true, source: "mutation" });
+    } finally {
+      markAllInFlightRef.current = false;
       setIsMutationRehydrating(false);
     }
   }, [user, fetchNotifications]);
