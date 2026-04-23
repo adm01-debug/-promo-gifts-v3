@@ -57,19 +57,37 @@ export function LastTestLine({
   const rel = formatRelative(info.tested_at);
   const latency = info.latency_ms != null ? `${info.latency_ms}ms` : null;
   const httpInfo = info.status ? `HTTP ${info.status}` : null;
-  const tail = info.ok
-    ? [latency, httpInfo].filter(Boolean).join(" · ")
-    : info.message || "Falha";
+  const errorMsg = info.ok ? null : (info.message || "Falha sem mensagem detalhada");
+  const successTail = info.ok ? [latency, httpInfo].filter(Boolean).join(" · ") : "";
   const isClickable = !!onClick;
-  const content = (
+  // Header line: status + when. Always single line, never truncates the timestamp.
+  const headerText = (
+    <>
+      {info.ok ? "Verificado" : "Falhou"} {rel}
+      {info.ok && successTail ? ` — ${successTail}` : ""}
+    </>
+  );
+  const headerNode = (
     <span className="inline-flex items-center gap-1.5 max-w-full">
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span className={cn("truncate", isClickable && "underline decoration-dotted underline-offset-2")}>
-        {info.ok ? "Verificado" : "Falhou"} {rel}
-        {tail ? ` — ${tail}` : ""}
+        {headerText}
       </span>
     </span>
   );
+  // For failures, render the error on a second line so it isn't truncated and
+  // stays visible alongside the "Testar novamente" action.
+  const body = errorMsg ? (
+    <span className="block">
+      {headerNode}
+      <span
+        className="mt-0.5 block text-[11px] leading-snug text-destructive/90 break-words whitespace-pre-wrap"
+        title={errorMsg}
+      >
+        {info.status ? `HTTP ${info.status} — ` : ""}{errorMsg}
+      </span>
+    </span>
+  ) : headerNode;
   if (isClickable) {
     return wrap(
       <button
@@ -78,7 +96,7 @@ export function LastTestLine({
         aria-label="Ver detalhes do último teste"
         title="Ver detalhes do último teste"
         className={cn(
-          "text-xs inline-flex items-center max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors cursor-pointer",
+          "text-xs inline-block w-full max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors cursor-pointer",
           info.ok
             ? "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
             : "hover:bg-destructive/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-destructive/40",
@@ -86,13 +104,13 @@ export function LastTestLine({
           !action && className,
         )}
       >
-        {content}
+        {body}
       </button>,
     );
   }
   return wrap(
-    <p className={cn("text-xs inline-flex items-center max-w-full", color, !action && className)}>
-      {content}
-    </p>,
+    <div className={cn("text-xs max-w-full", color, !action && className)}>
+      {body}
+    </div>,
   );
 }
