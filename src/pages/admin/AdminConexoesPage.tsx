@@ -10,6 +10,7 @@ import { IntegrationsHealthCard } from "@/components/admin/connections/Integrati
 import { ConnectionsOverviewTable } from "@/components/admin/connections/ConnectionsOverviewTable";
 import { SmokeTestChecklist } from "@/components/admin/connections/SmokeTestChecklist";
 import { AutoTestIntervalCard } from "@/components/admin/connections/AutoTestIntervalCard";
+import { FailureWindowCard } from "@/components/admin/connections/FailureWindowCard";
 import { CredentialsSourceFilterProvider } from "@/components/admin/connections/CredentialsSourceFilterContext";
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
 import { useEffect } from "react";
