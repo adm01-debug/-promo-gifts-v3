@@ -109,7 +109,7 @@ export function ConnectionErrorDetailsDialog({
         }
         const { data } = await supabase
           .from("connection_test_history")
-          .select("id,tested_at,success,latency_ms,status_code,error_message")
+          .select("id,tested_at,success,latency_ms,status_code,error_message,error_kind")
           .in("connection_id", ids)
           .eq("success", false)
           .order("tested_at", { ascending: false })
@@ -126,7 +126,12 @@ export function ConnectionErrorDetailsDialog({
   const message = detail?.error_message ?? summary?.message ?? null;
   const latency = detail?.latency_ms ?? summary?.latency_ms ?? null;
   const testedAt = detail?.tested_at ?? summary?.tested_at ?? null;
-  const suggestion = suggestionFor(message, status);
+  const errorKind: ErrorKind | null =
+    (detail?.error_kind as ErrorKind | null | undefined) ??
+    (summary?.error_kind as ErrorKind | null | undefined) ??
+    null;
+  const suggestion = errorKind ? SUGGESTIONS[errorKind] : suggestionFromMessage(message, status);
+  const kindMeta = errorKind ? KIND_META[errorKind] : null;
 
   const copyDetails = useCallback(() => {
     const payload = {
@@ -136,11 +141,12 @@ export function ConnectionErrorDetailsDialog({
       tested_at: testedAt,
       latency_ms: latency,
       status_code: status,
+      error_kind: errorKind,
       message,
     };
     navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
     toast.success("Detalhes copiados");
-  }, [connectionLabel, connectionType, envKey, testedAt, latency, status, message]);
+  }, [connectionLabel, connectionType, envKey, testedAt, latency, status, errorKind, message]);
 
   useEffect(() => {
     if (!open) return;
@@ -160,10 +166,22 @@ export function ConnectionErrorDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+          <DialogTitle className="flex items-center gap-2 flex-wrap">
             <XCircle className="h-5 w-5 text-destructive" />
             Detalhes da falha
             <Badge variant="outline" className="ml-2">{connectionLabel}</Badge>
+            {kindMeta && (
+              <span
+                className={cn(
+                  "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-xs font-medium",
+                  kindMeta.className,
+                )}
+                title={`Categoria do erro: ${kindMeta.label}`}
+              >
+                <kindMeta.Icon className="h-3 w-3" />
+                {kindMeta.label}
+              </span>
+            )}
           </DialogTitle>
         </DialogHeader>
 
@@ -218,6 +236,7 @@ export function ConnectionErrorDetailsDialog({
   success: detail.success,
   latency_ms: detail.latency_ms,
   status_code: detail.status_code,
+  error_kind: detail.error_kind,
   error_message: detail.error_message,
 }, null, 2)}
                 </pre>
