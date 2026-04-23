@@ -9,6 +9,7 @@ import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { hasSuspiciousLength } from "./secretValidators";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();
@@ -26,6 +27,8 @@ export function N8nTab() {
   const get = (n: string) => secrets.find((s) => s.name === n);
   const base = get("N8N_BASE_URL");
   const credsOk = !!base?.has_value;
+  const suspicious = hasSuspiciousLength(secrets, ["N8N_BASE_URL", "N8N_API_KEY"]);
+  const credsLooksValid = credsOk && !suspicious;
   const status: "active" | "error" | "unconfigured" = !credsOk
     ? "unconfigured"
     : last?.ok === false ? "error" : "active";
@@ -56,8 +59,10 @@ export function N8nTab() {
             helperText="Ex: https://n8n.suaempresa.com" />
           <SecretField label="API Key" secretName="N8N_API_KEY" status={get("N8N_API_KEY")} onSaved={list} />
           <div className="pt-2 flex gap-2">
-            <Button size="sm" disabled={isTesting || !credsOk}
-              title={credsOk ? "Testar /healthz" : "Configure a Base URL primeiro"}
+            <Button size="sm" disabled={isTesting || !credsLooksValid}
+              title={!credsOk ? "Configure a Base URL primeiro"
+                : !credsLooksValid ? "Credenciais com formato suspeito (comprimento curto) — re-salve antes de testar"
+                : "Testar /healthz"}
               onClick={onTest}>
               {isTesting ? "Testando…" : "Testar /healthz"}
             </Button>

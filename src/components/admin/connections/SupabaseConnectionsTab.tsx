@@ -10,6 +10,7 @@ import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { hasSuspiciousLength } from "./secretValidators";
 
 const ENVS = [
   {
@@ -86,6 +87,10 @@ export function SupabaseConnectionsTab() {
         const svc = env.serviceSecret ? get(env.serviceSecret) : undefined;
         const last = env.readOnly ? null : lastByEnv[env.key] ?? null;
         const credsConfigured = !!url?.has_value && !!svc?.has_value;
+        const suspicious = !env.readOnly
+          ? hasSuspiciousLength(secrets, [env.urlSecret!, env.anonSecret!, env.serviceSecret!])
+          : false;
+        const credsLooksValid = credsConfigured && !suspicious;
         const status: "active" | "error" | "unconfigured" = env.readOnly
           ? "active"
           : !credsConfigured
@@ -93,7 +98,7 @@ export function SupabaseConnectionsTab() {
             : last?.ok === false
               ? "error"
               : "active";
-        const canTest = !env.readOnly && credsConfigured;
+        const canTest = !env.readOnly && credsLooksValid;
         return (
           <Card key={env.key}>
             <CardHeader>
@@ -122,7 +127,9 @@ export function SupabaseConnectionsTab() {
                       size="sm"
                       variant="outline"
                       disabled={isTesting || !canTest}
-                      title={canTest ? "Testar conexão real" : "Configure URL e Service Role Key primeiro"}
+                      title={!credsConfigured ? "Configure URL e Service Role Key primeiro"
+                        : !credsLooksValid ? "Credenciais com formato suspeito (comprimento curto) — re-salve antes de testar"
+                        : "Testar conexão real"}
                       onClick={() => handleTest(env.envKey!, env.key)}
                     >
                       {isTesting ? "Testando…" : "Testar conexão"}

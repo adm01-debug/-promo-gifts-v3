@@ -9,6 +9,7 @@ import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { hasSuspiciousLength } from "./secretValidators";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
@@ -27,6 +28,8 @@ export function Bitrix24Tab() {
   const get = (n: string) => secrets.find((s) => s.name === n);
   const wh = get("BITRIX24_WEBHOOK_URL");
   const credsOk = !!wh?.has_value;
+  const suspicious = hasSuspiciousLength(secrets, ["BITRIX24_WEBHOOK_URL"]);
+  const credsLooksValid = credsOk && !suspicious;
   const status: "active" | "error" | "unconfigured" = !credsOk
     ? "unconfigured"
     : last?.ok === false ? "error" : "active";
@@ -60,8 +63,10 @@ export function Bitrix24Tab() {
         <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
         <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
         <div className="pt-2 flex gap-2">
-          <Button size="sm" disabled={isTesting || !credsOk}
-            title={credsOk ? "Testar conexão" : "Configure o Webhook URL primeiro"}
+          <Button size="sm" disabled={isTesting || !credsLooksValid}
+            title={!credsOk ? "Configure o Webhook URL primeiro"
+              : !credsLooksValid ? "Webhook com formato suspeito (comprimento curto) — re-salve antes de testar"
+              : "Testar conexão"}
             onClick={onTest}>
             {isTesting ? "Testando…" : "Testar conexão (crm.contact.fields)"}
           </Button>
