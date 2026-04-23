@@ -87,6 +87,10 @@ export function SupabaseConnectionsTab() {
         const svc = env.serviceSecret ? get(env.serviceSecret) : undefined;
         const last = env.readOnly ? null : lastByEnv[env.key] ?? null;
         const credsConfigured = !!url?.has_value && !!svc?.has_value;
+        const suspicious = !env.readOnly
+          ? hasSuspiciousLength(secrets, [env.urlSecret!, env.anonSecret!, env.serviceSecret!])
+          : false;
+        const credsLooksValid = credsConfigured && !suspicious;
         const status: "active" | "error" | "unconfigured" = env.readOnly
           ? "active"
           : !credsConfigured
@@ -94,7 +98,7 @@ export function SupabaseConnectionsTab() {
             : last?.ok === false
               ? "error"
               : "active";
-        const canTest = !env.readOnly && credsConfigured;
+        const canTest = !env.readOnly && credsLooksValid;
         return (
           <Card key={env.key}>
             <CardHeader>
