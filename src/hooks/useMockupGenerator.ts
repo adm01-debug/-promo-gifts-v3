@@ -112,9 +112,22 @@ export function useMockupGenerator() {
 
   const productLocations = useMemo(() => {
     if (!customizationOptions?.locations?.length) return null;
-    return customizationOptions.locations.map(loc => ({
-      code: loc.location_code, name: loc.location_name, order: loc.location_order,
-    }));
+    return customizationOptions.locations.map(loc => {
+      const opts = loc.options || [];
+      const widths = opts.map((o: any) => o.efetiva_largura_max || o.max_width || 0).filter(Boolean);
+      const heights = opts.map((o: any) => o.efetiva_altura_max || o.max_height || 0).filter(Boolean);
+      const colors = opts.map((o: any) => o.max_cores || 0).filter(Boolean);
+      return {
+        code: loc.location_code,
+        name: loc.location_name,
+        order: loc.location_order,
+        maxWidthCm: widths.length ? Math.max(...widths) : null,
+        maxHeightCm: heights.length ? Math.max(...heights) : null,
+        maxColors: colors.length ? Math.max(...colors) : null,
+        isCurved: opts.some((o: any) => o.is_curved === true),
+        techniquesAvailable: opts.length,
+      };
+    });
   }, [customizationOptions]);
 
   // ─── Effects ────────────────────────────────────────────────────────
@@ -127,6 +140,11 @@ export function useMockupGenerator() {
         id: crypto.randomUUID(), name: loc.name,
         positionX: 50, positionY: 50, logoWidth: 5, logoHeight: 3,
         logoScale: 100, logoPreview: null,
+        maxWidthCm: loc.maxWidthCm,
+        maxHeightCm: loc.maxHeightCm,
+        maxColors: loc.maxColors,
+        isCurved: loc.isCurved,
+        techniquesAvailable: loc.techniquesAvailable,
       }));
     if (newAreas.length > 0) { setPersonalizationAreas(newAreas); setActiveAreaId(newAreas[0].id); }
   }, [productLocations]);
@@ -147,10 +165,16 @@ export function useMockupGenerator() {
     if (!selectedTechnique) return;
     const mw = 'maxWidth' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxWidth : null;
     const mh = 'maxHeight' in selectedTechnique ? (selectedTechnique as TechniqueWithLimits).maxHeight : null;
-    if (!mw || !mh || mw <= 0 || mh <= 0) return;
+    if ((!mw || mw <= 0) && (!mh || mh <= 0)) return;
     setPersonalizationAreas(prev => prev.map(area => {
-      const clampedW = Math.min(area.logoWidth, mw);
-      const clampedH = Math.min(area.logoHeight, mh);
+      // Limite efetivo = menor entre técnica e área (se ambos definidos)
+      const areaW = area.maxWidthCm && area.maxWidthCm > 0 ? area.maxWidthCm : null;
+      const areaH = area.maxHeightCm && area.maxHeightCm > 0 ? area.maxHeightCm : null;
+      const effW = mw && areaW ? Math.min(mw, areaW) : (mw || areaW);
+      const effH = mh && areaH ? Math.min(mh, areaH) : (mh || areaH);
+      if (!effW || !effH) return area;
+      const clampedW = Math.min(area.logoWidth, effW);
+      const clampedH = Math.min(area.logoHeight, effH);
       return (clampedW !== area.logoWidth || clampedH !== area.logoHeight)
         ? { ...area, logoWidth: clampedW, logoHeight: clampedH } : area;
     }));
