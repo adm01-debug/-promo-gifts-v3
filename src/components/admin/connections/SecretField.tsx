@@ -396,16 +396,20 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
 
   const nameValidation = useMemo(() => validateSecretName(secretName), [secretName]);
   const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
-  const canSave = !saving && nameValidation.ok && value.length > 0 && validation.ok;
+  const suffixGuardOk = value.length === 0 || value.length >= MIN_SUFFIX_LENGTH;
+  const canSave =
+    !saving && nameValidation.ok && value.length > 0 && suffixGuardOk && validation.ok;
   const saveDisabledReason = saving
     ? null
     : !nameValidation.ok
       ? nameValidation.message ?? "Nome de credencial não permitido"
       : value.length === 0
         ? "Cole um valor antes de salvar"
-        : !validation.ok
-          ? validation.message ?? "Corrija o formato antes de salvar"
-          : null;
+        : !suffixGuardOk
+          ? `Sufixo inválido — mínimo ${MIN_SUFFIX_LENGTH} caracteres (tem ${value.length})`
+          : !validation.ok
+            ? validation.message ?? "Corrija o formato antes de salvar"
+            : null;
 
   const minLen = getMinLength(secretName);
   const storedLooksSuspicious =
