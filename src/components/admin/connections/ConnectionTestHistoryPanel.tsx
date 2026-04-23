@@ -21,7 +21,20 @@ interface Props {
   defaultPreview?: boolean;
 }
 
-const PREVIEW_COUNT = 5;
+const PREVIEW_SIZE_OPTIONS = [5, 10, 20] as const;
+type PreviewSize = typeof PREVIEW_SIZE_OPTIONS[number];
+const PREVIEW_SIZE_STORAGE_KEY = "connections.history_preview_size";
+const DEFAULT_PREVIEW_SIZE: PreviewSize = 5;
+
+function loadPreviewSize(): PreviewSize {
+  if (typeof window === "undefined") return DEFAULT_PREVIEW_SIZE;
+  try {
+    const raw = window.localStorage.getItem(PREVIEW_SIZE_STORAGE_KEY);
+    const parsed = parseInt(raw ?? "", 10);
+    if (PREVIEW_SIZE_OPTIONS.includes(parsed as PreviewSize)) return parsed as PreviewSize;
+  } catch { /* ignore */ }
+  return DEFAULT_PREVIEW_SIZE;
+}
 
 function formatRelative(iso: string): string {
   const ts = new Date(iso).getTime();
@@ -194,13 +207,20 @@ export function ConnectionTestHistoryPanel({
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
   const [detailsId, setDetailsId] = useState<string | null>(null);
+  const [previewSize, setPreviewSize] = useState<PreviewSize>(() => loadPreviewSize());
 
-  // Always fetch when defaultPreview (preview needs data); otherwise only when expanded.
-  // Polling (60s) only when expanded — preview relies on initial fetch + refreshKey.
+  const updatePreviewSize = (n: PreviewSize) => {
+    setPreviewSize(n);
+    try { window.localStorage.setItem(PREVIEW_SIZE_STORAGE_KEY, String(n)); } catch { /* ignore */ }
+  };
+
+  // Limit fetched rows to cover the largest preview size + headroom for filtering
+  const fetchLimit = expanded ? Math.max(20, previewSize * 2) : Math.max(10, previewSize + 5);
+
   const { items, total, loading } = useConnectionTestHistory({
     type, envKey, connectionId, refreshKey,
     enabled: expanded,
-    limit: 10,
+    limit: fetchLimit,
   });
 
   const counts = useMemo(() => ({
@@ -215,7 +235,7 @@ export function ConnectionTestHistoryPanel({
     return items;
   }, [items, filter]);
 
-  const previewItems = useMemo(() => visibleItems.slice(0, PREVIEW_COUNT), [visibleItems]);
+  const previewItems = useMemo(() => visibleItems.slice(0, previewSize), [visibleItems, previewSize]);
 
   const stats = useMemo(() => {
     if (items.length === 0) return null;
@@ -274,37 +294,66 @@ export function ConnectionTestHistoryPanel({
       {/* Preview inline (5 itens, com filtros rápidos) */}
       {showPreview && (
         <div className="mt-2 space-y-2">
-          <div className="flex items-center gap-1 px-1">
-            {([
-              { key: "all", label: "Todos", count: counts.all },
-              { key: "ok", label: "OK", count: counts.ok },
-              { key: "fail", label: "Falhas", count: counts.fail },
-            ] as const).map((opt) => {
-              const active = filter === opt.key;
-              const isFail = opt.key === "fail";
-              const isOk = opt.key === "ok";
-              return (
-                <button
-                  key={opt.key}
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); setFilter(opt.key); }}
-                  className={cn(
-                    "text-[11px] px-2 py-0.5 rounded-full border transition-colors tabular-nums",
-                    active
-                      ? isFail
-                        ? "bg-destructive/10 border-destructive/40 text-destructive"
-                        : isOk
-                          ? "bg-green-500/10 border-green-500/40 text-green-700 dark:text-green-400"
-                          : "bg-muted border-border text-foreground"
-                      : "border-transparent text-muted-foreground hover:bg-muted/60",
-                  )}
-                  aria-pressed={active}
-                  aria-label={`Mostrar ${opt.label.toLowerCase()}`}
-                >
-                  {opt.label} ({opt.count})
-                </button>
-              );
-            })}
+          <div className="flex items-center justify-between gap-2 px-1">
+            <div className="flex items-center gap-1 flex-wrap">
+              {([
+                { key: "all", label: "Todos", count: counts.all },
+                { key: "ok", label: "OK", count: counts.ok },
+                { key: "fail", label: "Falhas", count: counts.fail },
+              ] as const).map((opt) => {
+                const active = filter === opt.key;
+                const isFail = opt.key === "fail";
+                const isOk = opt.key === "ok";
+                return (
+                  <button
+                    key={opt.key}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); setFilter(opt.key); }}
+                    className={cn(
+                      "text-[11px] px-2 py-0.5 rounded-full border transition-colors tabular-nums",
+                      active
+                        ? isFail
+                          ? "bg-destructive/10 border-destructive/40 text-destructive"
+                          : isOk
+                            ? "bg-green-500/10 border-green-500/40 text-green-700 dark:text-green-400"
+                            : "bg-muted border-border text-foreground"
+                        : "border-transparent text-muted-foreground hover:bg-muted/60",
+                    )}
+                    aria-pressed={active}
+                    aria-label={`Mostrar ${opt.label.toLowerCase()}`}
+                  >
+                    {opt.label} ({opt.count})
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              className="flex items-center gap-0.5 text-[10px] text-muted-foreground"
+              role="group"
+              aria-label="Itens visíveis no preview"
+            >
+              <span className="mr-1 uppercase tracking-wider">Mostrar:</span>
+              {PREVIEW_SIZE_OPTIONS.map((n) => {
+                const active = previewSize === n;
+                return (
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); updatePreviewSize(n); }}
+                    className={cn(
+                      "tabular-nums px-1.5 py-0.5 rounded border transition-colors",
+                      active
+                        ? "bg-primary/10 border-primary/40 text-primary"
+                        : "border-transparent hover:bg-muted/60",
+                    )}
+                    aria-pressed={active}
+                    aria-label={`Mostrar ${n} itens`}
+                  >
+                    {n}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           {loading && previewItems.length === 0 ? (
             <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
