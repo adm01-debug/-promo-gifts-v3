@@ -51,11 +51,13 @@ export function useConnectionTester() {
     let config: Record<string, string> | undefined;
     let connection_id: string | undefined;
     let env_key: "promobrind" | "crm" | undefined;
-    if ("config" in optionsOrConfig || "env_key" in optionsOrConfig || "connectionId" in optionsOrConfig) {
+    let silent = false;
+    if ("config" in optionsOrConfig || "env_key" in optionsOrConfig || "connectionId" in optionsOrConfig || "silent" in optionsOrConfig) {
       const opts = optionsOrConfig as TestOptions;
       config = opts.config;
       connection_id = opts.connectionId ?? legacyConnectionId;
       env_key = opts.env_key;
+      silent = !!opts.silent;
     } else {
       config = optionsOrConfig as Record<string, string>;
       connection_id = legacyConnectionId;
@@ -78,24 +80,26 @@ export function useConnectionTester() {
         tested_at: r.tested_at ?? new Date().toISOString(),
       };
       setLastResult(normalized);
-      if (normalized.ok) {
-        toast.success("Conexão OK", {
-          description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
-        });
-      } else {
-        const title = normalized.error_kind
-          ? TOAST_TITLE_BY_KIND[normalized.error_kind]
-          : "Falha na conexão";
-        toast.error(title, {
-          description: normalized.error ?? `HTTP ${normalized.status ?? "?"}`,
-        });
+      if (!silent) {
+        if (normalized.ok) {
+          toast.success("Conexão OK", {
+            description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
+          });
+        } else {
+          const title = normalized.error_kind
+            ? TOAST_TITLE_BY_KIND[normalized.error_kind]
+            : "Falha na conexão";
+          toast.error(title, {
+            description: normalized.error ?? `HTTP ${normalized.status ?? "?"}`,
+          });
+        }
       }
       return normalized;
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro";
       const failed: TestResult = { ok: false, error: msg, error_kind: "unknown", tested_at: new Date().toISOString() };
       setLastResult(failed);
-      toast.error("Erro ao testar conexão", { description: msg });
+      if (!silent) toast.error("Erro ao testar conexão", { description: msg });
       return failed;
     } finally {
       setIsTesting(false);
