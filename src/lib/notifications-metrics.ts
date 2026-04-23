@@ -84,6 +84,18 @@ interface Snapshot {
    * against. Helps eyeball how often the TTL is actually doing its job.
    */
   fetchesByTtlWindow: { withinTtl: number; afterTtl: number };
+  /**
+   * Per-trigger-source coalescing efficiency, derived from
+   * `recordTriggerToFetch` samples. For each source we accumulate the total
+   * triggers absorbed (sum of `coalescedTriggers`) and the count of fetches
+   * that actually fired. `efficiency = 1 - (fetches / triggers)` (clamped to
+   * [0..1]); higher = more triggers coalesced per fetch. Sources with no
+   * samples yet report all zeros.
+   */
+  coalescingByTrigger: Record<
+    TriggerSource,
+    { triggers: number; fetches: number; saved: number; efficiency: number }
+  >;
   since: number;
   /** Last N badge render stats (most recent first). */
   badgeRenders: BadgeRenderStat[];
