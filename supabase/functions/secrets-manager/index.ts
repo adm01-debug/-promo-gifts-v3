@@ -162,20 +162,23 @@ Deno.serve(async (req) => {
 
     if (action === "set" || action === "rotate") {
       if (!name || !isAllowedSecretName(name)) {
-        return new Response(JSON.stringify({ error: "Nome de secret não permitido" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ ok: false, error: { code: "not_whitelisted", message: "Nome de secret não permitido" } }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
       if (!value || value.length < 4) {
-        return new Response(JSON.stringify({ error: "Valor inválido (mínimo 4 caracteres)" }), {
-          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return new Response(
+          JSON.stringify({ ok: false, error: { code: "invalid_value", message: "Valor inválido (mínimo 4 caracteres)" } }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
       }
 
-      // Capture previous suffix (DB > env) for rotation log
+      // Capture previous state (DB > env) for rotation log + was_update flag
       const prevMap = await loadFromDb([name]);
       const prevDb = prevMap.get(name);
       const previousSuffix = prevDb?.masked_suffix ?? maskValue(Deno.env.get(name) ?? null).masked_suffix;
+      const wasUpdate = !!prevDb && (prevDb.length ?? 0) > 0;
       const next = maskValue(value);
 
       const { error: upsertErr } = await service
@@ -189,16 +192,32 @@ Deno.serve(async (req) => {
           },
           { onConflict: "secret_name" },
         );
-      if (upsertErr) throw upsertErr;
+      if (upsertErr) {
+        return new Response(
+          JSON.stringify({ ok: false, error: { code: "db_error", message: upsertErr.message } }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+        );
+      }
 
       invalidateCredentialCache(name);
+
+      // Re-read the persisted row so the suffix returned comes from the trigger, not the client string
+      const { data: storedRow } = await service
+        .from("integration_credentials")
+        .select("secret_name, masked_suffix, length, updated_at")
+        .eq("secret_name", name)
+        .maybeSingle();
+
+      const finalSuffix = storedRow?.masked_suffix ?? next.masked_suffix;
+      const finalLength = storedRow?.length ?? value.length;
+      const finalUpdatedAt = storedRow?.updated_at ?? new Date().toISOString();
 
       if (action === "rotate") {
         await service.from("secret_rotation_log").insert({
           secret_name: name,
           rotated_by: userData.user.id,
           previous_suffix: previousSuffix,
-          new_suffix: next.masked_suffix,
+          new_suffix: finalSuffix,
           notes: notes ?? null,
         });
       }
@@ -208,21 +227,30 @@ Deno.serve(async (req) => {
         action: action === "rotate" ? "secret_rotated" : "secret_set",
         resource_type: "secret",
         resource_id: name,
-        details: { previous_suffix: previousSuffix, new_suffix: next.masked_suffix, length: value.length },
+        details: { previous_suffix: previousSuffix, new_suffix: finalSuffix, length: finalLength, was_update: wasUpdate },
       });
 
       return new Response(
         JSON.stringify({
           ok: true,
           stored: true,
-          requires_platform_action: false,
+          was_update: wasUpdate,
           previous_suffix: previousSuffix,
-          new_suffix: next.masked_suffix,
-          masked_suffix: next.masked_suffix,
-          length: value.length,
+          new_suffix: finalSuffix,
+          masked_suffix: finalSuffix,
+          length: finalLength,
+          secret: {
+            name,
+            masked_suffix: finalSuffix,
+            length: finalLength,
+            updated_at: finalUpdatedAt,
+            source: "db" as const,
+          },
           message: action === "rotate"
             ? "Credencial rotacionada e persistida com segurança."
-            : "Credencial salva e disponível para as integrações.",
+            : wasUpdate
+              ? "Credencial atualizada e disponível para as integrações."
+              : "Credencial salva e disponível para as integrações.",
         }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
