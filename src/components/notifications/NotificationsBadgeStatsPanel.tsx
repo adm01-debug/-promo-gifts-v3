@@ -220,6 +220,18 @@ export function NotificationsBadgeStatsPanel() {
           Badge stats (QA)
         </span>
         <div className="inline-flex items-center gap-2">
+          {isSuspicious && (
+            <span
+              role="status"
+              aria-live="polite"
+              aria-label={`Suspicious trigger/fetch ratio held above ${SUSPICIOUS_RATIO_THRESHOLD} for ${suspiciousStreakSeconds} seconds`}
+              className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/10 px-1.5 py-0.5 text-[10px] font-semibold text-warning animate-pulse"
+              title={`Trigger/fetch ratio ≥ ${SUSPICIOUS_RATIO_THRESHOLD} for the last ${suspiciousStreakSeconds}s — debounce + 5s TTL coalescing may be leaking. Investigate prefetch call sites.`}
+            >
+              <AlertTriangle className="h-2.5 w-2.5" aria-hidden="true" />
+              ratio ≥ {SUSPICIOUS_RATIO_THRESHOLD} for {suspiciousStreakSeconds}s
+            </span>
+          )}
           <span className="text-muted-foreground tabular-nums">
             T{triggers} · F{fetches} · {ratio.toFixed(2)}
           </span>
