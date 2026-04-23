@@ -599,6 +599,7 @@ export type Database = {
       }
       connection_test_history: {
         Row: {
+          attempts: number
           connection_id: string
           created_at: string
           dns_ms: number | null
@@ -621,6 +622,7 @@ export type Database = {
           ttfb_ms: number | null
         }
         Insert: {
+          attempts?: number
           connection_id: string
           created_at?: string
           dns_ms?: number | null
@@ -643,6 +645,7 @@ export type Database = {
           ttfb_ms?: number | null
         }
         Update: {
+          attempts?: number
           connection_id?: string
           created_at?: string
           dns_ms?: number | null
