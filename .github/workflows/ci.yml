@@ -52,3 +52,40 @@ jobs:
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
         run: npx vitest run tests/rls/ --reporter=verbose
         continue-on-error: true
+
+  hooks-tests:
+    name: Hook tests (smoke + funcionais)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Smoke primeiro: falha rápido se algum hook não monta sequer com providers padrão.
+      - name: Smoke tests (hooks)
+        run: npx vitest run "tests/hooks/**/*-smoke.test.*" --reporter=verbose
+
+      # Suíte funcional completa de hooks (separada do job principal para visibilidade dedicada no PR).
+      - name: Hook test suite (funcionais)
+        run: npx vitest run tests/hooks/ --reporter=verbose
+
+      - name: Hook coverage report
+        run: npx vitest run tests/hooks/ --coverage --coverage.reporter=text --coverage.reporter=json-summary
+        continue-on-error: true
+
+      - name: Upload hook coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hooks-coverage
+          path: coverage/
+          retention-days: 14
+          if-no-files-found: ignore
