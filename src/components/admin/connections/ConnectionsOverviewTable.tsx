@@ -126,6 +126,7 @@ export function ConnectionsOverviewTable() {
   const [testingKeys, setTestingKeys] = useState<Set<string>>(new Set());
   const [bulkTesting, setBulkTesting] = useState(false);
   const [detailsRow, setDetailsRow] = useState<OverviewRow | null>(null);
+  const [timelineRow, setTimelineRow] = useState<OverviewRow | null>(null);
   const { map: failuresMap } = useConsecutiveFailures(rows, 30000);
   const [progress, setProgress] = useState<BulkProgress | null>(null);
   const cancelRef = useRef(false);
@@ -546,6 +547,16 @@ export function ConnectionsOverviewTable() {
           connectionLabel={detailsRow.name}
           envKey={detailsRow.env_key ?? undefined}
           connectionId={detailsRow.id ?? undefined}
+          onViewFullHistory={() => setTimelineRow(detailsRow)}
+        />
+      )}
+      {timelineRow && (
+        <ConnectionTimelineDrawer
+          type={timelineRow.type}
+          label={timelineRow.name}
+          hideTrigger
+          open={!!timelineRow}
+          onOpenChange={(v) => { if (!v) setTimelineRow(null); }}
         />
       )}
     </Card>
