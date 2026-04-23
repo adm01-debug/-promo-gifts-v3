@@ -11,6 +11,7 @@ import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
 import { ConnectionErrorDetailsDialog } from "./ConnectionErrorDetailsDialog";
+import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
 export function Bitrix24Tab() {
@@ -65,7 +66,7 @@ export function Bitrix24Tab() {
           secretName="BITRIX24_DOMAIN" status={get("BITRIX24_DOMAIN")} onSaved={list} />
         <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
         <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
-        <div className="pt-2 flex gap-2">
+        <div className="pt-2 flex flex-wrap gap-2">
           <Button size="sm" disabled={isTesting || !credsLooksValid}
             title={!credsOk ? "Configure o Webhook URL primeiro"
               : !credsLooksValid ? "Webhook com formato suspeito (comprimento curto) — re-salve antes de testar"
@@ -74,6 +75,7 @@ export function Bitrix24Tab() {
             {isTesting ? "Testando…" : "Testar conexão (crm.contact.fields)"}
           </Button>
           <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
+          <RefreshFromDbButton onRefreshed={list} />
         </div>
         <LastTestLine
           info={last}
