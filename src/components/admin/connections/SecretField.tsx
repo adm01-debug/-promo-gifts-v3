@@ -240,16 +240,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const handleSave = async () => {
     if (!canSave) return;
 
-    // Rotação passa pelo modal de confirmação
+    // Both modes now require modal confirmation before touching the backend
     if (mode === "rotate") {
       setRotateConfirmError(null);
       setRotateConfirmOpen(true);
       return;
     }
+    setSaveConfirmOpen(true);
+  };
 
+  const handleConfirmedSave = async () => {
+    if (!canSave) return;
     setSaving(true);
-    await performSave("set", value);
+    const res = await performSave("set", value);
     setSaving(false);
+    if (res.ok) setSaveConfirmOpen(false);
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
