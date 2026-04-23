@@ -102,8 +102,31 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
     }
   };
 
+  // Debounce prefetch on hover/focus to coalesce rapid bursts (mouse jitter, focus rings).
+  // The hook itself enforces a 5s TTL, but the trailing-edge debounce avoids even queuing
+  // microtasks for repeated events within the window.
+  const prefetchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(() => () => {
+    if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
+  }, []);
+  const debouncedPrefetch = useCallback(() => {
+    if (prefetchDebounceRef.current) clearTimeout(prefetchDebounceRef.current);
+    prefetchDebounceRef.current = setTimeout(() => {
+      prefetchDebounceRef.current = null;
+      void prefetch();
+    }, 200);
+  }, [prefetch]);
+
   return (
-    <Sheet onOpenChange={(open) => { if (open) void prefetch(); }}>
+    <Sheet onOpenChange={(open) => {
+      if (open) {
+        if (prefetchDebounceRef.current) {
+          clearTimeout(prefetchDebounceRef.current);
+          prefetchDebounceRef.current = null;
+        }
+        void prefetch();
+      }
+    }}>
       <SheetTrigger asChild>
         <div ref={ref}>
           <Tooltip>
@@ -113,8 +136,8 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
                 aria-label="Notificações"
-                onMouseEnter={() => void prefetch()}
-                onFocus={() => void prefetch()}
+                onMouseEnter={debouncedPrefetch}
+                onFocus={debouncedPrefetch}
               >
                 <motion.div
                   animate={shouldShake ? {
