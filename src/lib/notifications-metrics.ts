@@ -350,6 +350,10 @@ export const notificationsMetrics = {
       byTrigger: { ...state.byTrigger },
       byFetch: { ...state.byFetch },
       ratio: state.triggers === 0 ? 0 : Number((state.fetches / state.triggers).toFixed(3)),
+      fetchesByTtlWindow: {
+        withinTtl: state.fetchesWithinTtl,
+        afterTtl: state.fetchesAfterTtl,
+      },
       since: state.since,
       badgeRenders: [...state.badgeRenders],
       lastBadgeRender: state.badgeRenders[0] ?? null,
