@@ -7,7 +7,7 @@
  * end users.
  */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download, AlertTriangle } from "lucide-react";
+import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download, AlertTriangle, ArrowDown } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -95,6 +95,16 @@ export function NotificationsBadgeStatsPanel() {
   /** Sliding-window samples (most recent at the END). */
   const [samples, setSamples] = useState<RatioSample[]>([]);
   const lastCountsRef = useRef<{ triggers: number; fetches: number }>({ triggers: 0, fetches: 0 });
+  /** Anchor for the "Top contributors" jump target (warning badge → section). */
+  const topContributorsRef = useRef<HTMLDivElement | null>(null);
+  const handleJumpToContributors = () => {
+    topContributorsRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+    // Brief highlight via data attribute → CSS animation defined inline below.
+    const el = topContributorsRef.current;
+    if (!el) return;
+    el.setAttribute("data-jump-flash", "1");
+    window.setTimeout(() => el.removeAttribute("data-jump-flash"), 1500);
+  };
 
   useEffect(() => {
     if (!visible) return;
@@ -321,6 +331,18 @@ export function NotificationsBadgeStatsPanel() {
               </Tooltip>
             </TooltipProvider>
           )}
+          {isSuspicious && (
+            <button
+              type="button"
+              onClick={handleJumpToContributors}
+              className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/5 px-1.5 py-0.5 text-[10px] font-medium text-warning hover:bg-warning/15 hover:border-warning/60 transition-colors"
+              title="Jump to the breakdown of which trigger sources are driving the high ratio"
+              aria-label="Jump to top trigger contributors"
+            >
+              <ArrowDown className="h-2.5 w-2.5" aria-hidden="true" />
+              Top contributors
+            </button>
+          )}
           <span className="text-muted-foreground tabular-nums">
             T{triggers} · F{fetches} · {ratio.toFixed(2)}
           </span>
@@ -538,6 +560,111 @@ export function NotificationsBadgeStatsPanel() {
               </div>
             </TooltipProvider>
           </div>
+
+          {/* Top trigger contributors — ranks hover/focus/drawer-open by their
+              contribution to the global trigger/fetch ratio. The contribution
+              for a source S is: (triggers_S - saved_S) / max(1, fetches), i.e.
+              the share of actual fetches attributable to that source after
+              coalescing. Highlighted (jump-flash) when the user clicks the
+              warning-badge button. */}
+          <div
+            ref={topContributorsRef}
+            className={cn(
+              "mt-1.5 pt-1.5 border-t border-border/30 rounded transition-all",
+              "data-[jump-flash=1]:ring-2 data-[jump-flash=1]:ring-warning/60 data-[jump-flash=1]:ring-offset-1 data-[jump-flash=1]:ring-offset-background"
+            )}
+            aria-label="Top trigger sources contributing to the trigger/fetch ratio"
+          >
+            <div className="flex items-center justify-between gap-2 mb-0.5 text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <AlertTriangle
+                  className={cn("h-2.5 w-2.5", isSuspicious ? "text-warning" : "text-muted-foreground")}
+                  aria-hidden="true"
+                />
+                Top contributors
+              </span>
+              <span className="text-[10px]">share of fetches</span>
+            </div>
+            {(() => {
+              const ranked = coalescingRows
+                .map(({ key, label }) => {
+                  const c = coalescingByTrigger[key];
+                  // Net fetches attributable to this source ≈ triggers that
+                  // weren't coalesced. Cap at fetches to avoid >100% rounding.
+                  const netFetches = Math.max(0, c.triggers - c.saved);
+                  const share = fetches === 0 ? 0 : Math.min(1, netFetches / fetches);
+                  return { key, label, c, netFetches, share };
+                })
+                .sort((a, b) => b.netFetches - a.netFetches);
+              const totalNet = ranked.reduce((sum, r) => sum + r.netFetches, 0);
+              if (totalNet === 0) {
+                return (
+                  <p className="text-[10px] text-muted-foreground italic pl-3.5">
+                    No coalescing-leak fetches yet — all sources are absorbed.
+                  </p>
+                );
+              }
+              return (
+                <div className="space-y-0.5">
+                  {ranked.map(({ key, label, c, netFetches, share }, idx) => {
+                    const pct = Math.round(share * 100);
+                    const isTop = idx === 0 && netFetches > 0;
+                    const tone = isTop && isSuspicious ? "text-warning" : "text-foreground";
+                    return (
+                      <div
+                        key={key}
+                        className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 px-1 -mx-1 rounded"
+                      >
+                        <span
+                          className={cn(
+                            "text-muted-foreground inline-flex items-center gap-1 pl-1.5",
+                            isTop && "font-semibold"
+                          )}
+                        >
+                          <span className="tabular-nums text-[10px] text-muted-foreground/70 w-3 inline-block">
+                            #{idx + 1}
+                          </span>
+                          {label}
+                          {isTop && isSuspicious && (
+                            <span className="text-[9px] text-warning uppercase tracking-wide">
+                              ◆ top
+                            </span>
+                          )}
+                        </span>
+                        <div
+                          className="h-1.5 rounded bg-muted/60 overflow-hidden"
+                          role="progressbar"
+                          aria-valuemin={0}
+                          aria-valuemax={100}
+                          aria-valuenow={pct}
+                          aria-label={`${label} contributes ${pct}% of actual fetches`}
+                        >
+                          <div
+                            className={cn(
+                              "h-full transition-all",
+                              netFetches === 0
+                                ? "bg-muted-foreground/20"
+                                : isTop && isSuspicious
+                                  ? "bg-warning"
+                                  : "bg-foreground/60"
+                            )}
+                            style={{ width: `${Math.max(2, pct)}%` }}
+                          />
+                        </div>
+                        <span
+                          className={cn("tabular-nums text-right text-[10px] font-semibold min-w-[3.5rem]", tone)}
+                          title={`${c.triggers} triggers → ${c.saved} saved → ${netFetches} actual fetches (${pct}% of all ${fetches} fetches)`}
+                        >
+                          {netFetches}/{fetches} ({pct}%)
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })()}
+          </div>
+
           {/* 60-second sparkline of the trigger/fetch ratio. */}
           <div className="mt-1.5 pt-1.5 border-t border-border/30">
             <div className="flex items-center justify-between gap-2 mb-0.5 text-muted-foreground">
