@@ -344,6 +344,36 @@ export function IntegrationsHealthCard({ secrets = [] }: { secrets?: SecretStatu
             />
           </div>
         )}
+        {sourceCounts.total > 0 && (
+          <div className="flex flex-wrap items-center gap-2 pt-1 text-[11px] border-t border-border/40">
+            <span className="text-muted-foreground">Origem das credenciais:</span>
+            <SourceCountChip
+              icon={Database}
+              tone="success"
+              count={sourceCounts.db}
+              label="no banco"
+              onClick={() => setFilter("db")}
+            />
+            <SourceCountChip
+              icon={AlertTriangle}
+              tone="warning"
+              count={sourceCounts.env}
+              label={sourceCounts.env === 1 ? "ainda em ENV" : "ainda em ENV"}
+              onClick={() => setFilter("env")}
+              emphasize={sourceCounts.env > 0}
+            />
+            <SourceCountChip
+              icon={Minus}
+              tone="muted"
+              count={sourceCounts.none}
+              label={sourceCounts.none === 1 ? "vazia" : "vazias"}
+              onClick={() => setFilter("none")}
+            />
+            {sourceCounts.env > 0 && (
+              <span className="text-warning ml-1">↳ recomendado migrar para o banco</span>
+            )}
+          </div>
+        )}
         {data && (
           <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-muted-foreground border-t border-border/40">
             <span className="inline-flex items-center gap-1.5">
