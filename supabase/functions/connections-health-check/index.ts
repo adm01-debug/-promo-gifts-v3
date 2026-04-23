@@ -1,7 +1,9 @@
 // connections-health-check: cron-driven (every 15min). Re-tests every active
 // connection, notifies admins on transitions (active→error), on auto-disabled
 // outbound webhooks and on stale secrets (>90 days). Dedupe 4h per (key) to
-// avoid notification spam.
+// avoid notification spam. The "connection_down" incident additionally requires
+// a continuous-failure window (configurable via RPC
+// `set_connection_failure_window_minutes`, default 30min) to suppress flapping.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 
 const corsHeaders = {
@@ -12,6 +14,7 @@ const corsHeaders = {
 
 const DEDUPE_WINDOW_HOURS = 4;
 const STALE_SECRET_DAYS = 90;
+const DEFAULT_FAILURE_WINDOW_MINUTES = 30;
 
 interface IncidentKey {
   key: string;
