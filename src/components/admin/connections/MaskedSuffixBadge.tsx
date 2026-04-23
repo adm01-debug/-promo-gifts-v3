@@ -89,13 +89,24 @@ export function MaskedSuffixBadge({
           )}
         >
           <Icon className="h-3 w-3 shrink-0" aria-hidden />
-          {showSuffix && <span className="font-mono">{display}</span>}
+          {showSuffix && <span className="font-mono tabular-nums">{display}</span>}
+          {isFallback && (
+            <span className="text-[9px] uppercase tracking-wider opacity-80" aria-hidden>
+              fallback
+            </span>
+          )}
           <span className="hidden sm:inline">— {diagnosis.label}</span>
         </span>
       </TooltipTrigger>
       <TooltipContent side="top" align="start" className="max-w-xs text-xs leading-relaxed">
         <p className="font-medium mb-1">{diagnosis.label}</p>
         <p className="text-muted-foreground">{diagnosis.message}</p>
+        {isFallback && length != null && length > 0 && (
+          <p className="mt-2 pt-2 border-t border-border/50 text-[11px] text-muted-foreground">
+            Exibindo placeholder derivado <span className="font-mono">{display}</span> (comprimento total: {length} chars)
+            até que o sufixo real seja regenerado.
+          </p>
+        )}
       </TooltipContent>
     </Tooltip>
   );
