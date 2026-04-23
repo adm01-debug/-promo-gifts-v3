@@ -481,7 +481,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         {status?.has_value && !editing && (
           <span className="text-xs text-muted-foreground inline-flex items-center gap-1.5 flex-wrap">
             <Check className="h-3 w-3 text-success" />
-            <MaskedSuffixBadge suffix={status.masked_suffix} secretName={secretName} />
+            <MaskedSuffixBadge suffix={status.masked_suffix} secretName={secretName} length={status.length} />
             <span>({status.length} chars)</span>
             {status.updated_at && (
               <span
@@ -706,7 +706,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
             >
               <div className="flex items-center gap-2 min-w-0 flex-wrap">
                 <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
-                <MaskedSuffixBadge suffix={status.masked_suffix} secretName={secretName} showWhenValid />
+                <MaskedSuffixBadge suffix={status.masked_suffix} secretName={secretName} length={status.length} showWhenValid />
                 <span className="text-muted-foreground">
                   ({status.length ?? 0} {status.length === 1 ? "char" : "chars"})
                 </span>
