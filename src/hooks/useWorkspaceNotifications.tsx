@@ -45,6 +45,26 @@ function writeCache(userId: string, notifications: WorkspaceNotification[]) {
   }
 }
 
+function isDebugEnabled(): boolean {
+  try {
+    if (typeof window === "undefined") return false;
+    if (window.localStorage?.getItem("debug:notifications") === "1") return true;
+    return Boolean((import.meta as { env?: { DEV?: boolean } }).env?.DEV);
+  } catch {
+    return false;
+  }
+}
+
+function debugLog(event: string, payload: Record<string, unknown>) {
+  if (!isDebugEnabled()) return;
+  // eslint-disable-next-line no-console
+  console.log(
+    `%c[notifications:${event}]`,
+    "color:#7c3aed;font-weight:600",
+    payload
+  );
+}
+
 export function useWorkspaceNotifications() {
   const { user } = useAuth();
   const [notifications, setNotifications] = useState<WorkspaceNotification[]>([]);
@@ -53,6 +73,8 @@ export function useWorkspaceNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const lastFetchAtRef = useRef<number>(0);
   const hydratedRef = useRef<string | null>(null);
+  const mountAtRef = useRef<number>(typeof performance !== "undefined" ? performance.now() : Date.now());
+  const badgeSourceRef = useRef<"pending" | "cache" | "network">("pending");
 
   // Hydrate from sessionStorage immediately on user change
   useEffect(() => {
@@ -60,6 +82,7 @@ export function useWorkspaceNotifications() {
       setNotifications([]);
       setUnreadCount(0);
       hydratedRef.current = null;
+      badgeSourceRef.current = "pending";
       return;
     }
     if (hydratedRef.current === user.id) return;
@@ -68,6 +91,18 @@ export function useWorkspaceNotifications() {
     if (cached) {
       setNotifications(cached.notifications);
       setUnreadCount(cached.notifications.filter((n) => !n.is_read).length);
+      const elapsedMs =
+        (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+        mountAtRef.current;
+      badgeSourceRef.current = "cache";
+      debugLog("badge-render", {
+        source: "cache",
+        elapsedMs: Number(elapsedMs.toFixed(2)),
+        target: "<16ms",
+        hit: elapsedMs < 16,
+        unreadCount: cached.notifications.filter((n) => !n.is_read).length,
+        cacheAgeMs: Date.now() - cached.cachedAt,
+      });
     }
   }, [user]);
 
@@ -80,6 +115,7 @@ export function useWorkspaceNotifications() {
       if (silent) setIsRefetching(true);
       else setIsLoading(true);
 
+      const t0 = typeof performance !== "undefined" ? performance.now() : Date.now();
       try {
         const { data, error } = await supabase
           .from("workspace_notifications")
@@ -94,6 +130,30 @@ export function useWorkspaceNotifications() {
         setUnreadCount(items.filter((n) => !n.is_read).length);
         lastFetchAtRef.current = Date.now();
         writeCache(user.id, items);
+        if (badgeSourceRef.current !== "cache") {
+          const elapsedMs =
+            (typeof performance !== "undefined" ? performance.now() : Date.now()) -
+            mountAtRef.current;
+          badgeSourceRef.current = "network";
+          debugLog("badge-render", {
+            source: "network",
+            elapsedMs: Number(elapsedMs.toFixed(2)),
+            target: "<16ms",
+            hit: elapsedMs < 16,
+            unreadCount: items.filter((n) => !n.is_read).length,
+            networkMs: Number(
+              ((typeof performance !== "undefined" ? performance.now() : Date.now()) - t0).toFixed(2)
+            ),
+          });
+        } else {
+          debugLog("background-refresh", {
+            silent,
+            networkMs: Number(
+              ((typeof performance !== "undefined" ? performance.now() : Date.now()) - t0).toFixed(2)
+            ),
+            unreadCount: items.filter((n) => !n.is_read).length,
+          });
+        }
       } catch (err) {
         console.error("Error fetching notifications:", err);
       } finally {
@@ -110,7 +170,6 @@ export function useWorkspaceNotifications() {
     fetchNotifications();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
-
   // Polling every 30s (silent)
   useEffect(() => {
     if (!user) return;
