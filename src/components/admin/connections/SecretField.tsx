@@ -14,6 +14,7 @@ import {
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
+import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
 import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
 import { SecretErrorAlert } from "./SecretErrorAlert";
