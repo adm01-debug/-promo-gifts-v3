@@ -226,6 +226,35 @@ export function ConnectionsOverviewTable() {
                         {formatRelative(row.last_test_at)}
                       </TableCell>
                       <TableCell>
+                        {failCount === 0 ? (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        ) : (
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span
+                                className={cn(
+                                  "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums",
+                                  overThreshold
+                                    ? "bg-destructive/10 text-destructive"
+                                    : "bg-warning/10 text-warning",
+                                )}
+                                aria-label={`${failCount} falhas consecutivas`}
+                              >
+                                {overThreshold && <AlertTriangle className="h-3 w-3" />}
+                                {failCount}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent side="top">
+                              <p className="text-xs">
+                                {failure?.since
+                                  ? `${failCount} ${failCount === 1 ? "falha consecutiva" : "falhas consecutivas"} desde ${formatRelative(failure.since)}`
+                                  : `${failCount} ${failCount === 1 ? "falha consecutiva" : "falhas consecutivas"} — nunca houve sucesso registrado`}
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        )}
+                      </TableCell>
+                      <TableCell>
                         <LatencyBadge ms={row.last_latency_ms} />
                       </TableCell>
                       <TableCell className="max-w-[260px]">
