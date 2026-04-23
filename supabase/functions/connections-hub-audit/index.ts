@@ -34,6 +34,7 @@ const REQUIRED_TABLES = [
   "inbound_webhook_endpoints",
   "inbound_webhook_events",
   "mcp_api_keys",
+  "integration_credentials",
 ];
 
 const REQUIRED_FUNCTIONS = [
