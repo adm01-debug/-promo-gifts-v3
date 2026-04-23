@@ -448,7 +448,10 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
             <Check className="h-3 w-3 text-success" />
             ••••{status.masked_suffix} ({status.length} chars)
             {status.updated_at && (
-              <span className="opacity-70">
+              <span
+                className="opacity-70"
+                title={buildUpdatedTooltip(status.updated_at, status.updated_by_email)}
+              >
                 · atualizado {formatRelative(status.updated_at)}
               </span>
             )}
