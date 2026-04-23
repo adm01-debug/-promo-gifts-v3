@@ -101,9 +101,10 @@ describe("processVoiceTranscript", () => {
     });
 
     const promise = processVoiceTranscript("teste");
-    // Avança os 15s do setTimeout interno instantaneamente
+    // Captura imediatamente para evitar unhandled rejection
+    const assertion = expect(promise).rejects.toThrow();
     await vi.advanceTimersByTimeAsync(15_000);
-    await expect(promise).rejects.toThrow();
+    await assertion;
     vi.useRealTimers();
   });
 });
