@@ -2,8 +2,23 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { DatabaseZap, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { toast } from "sonner";
+
+const SKIP_CONFIRM_KEY = "connections.global_refresh.skip_confirm";
+
 
 interface GlobalRefreshFromDbButtonProps {
   /** Callback executed in parallel with cache invalidation + secret list refresh. */
