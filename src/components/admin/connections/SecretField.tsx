@@ -443,6 +443,15 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               Cancelar
             </Button>
           </div>
+          {lastNormalization && lastNormalization.length > 0 && (
+            <div
+              className="inline-flex items-center gap-1.5 rounded-md border border-success/30 bg-success/10 px-2 py-0.5 text-[11px] text-success animate-in fade-in duration-200"
+              role="status"
+            >
+              <Sparkles className="h-3 w-3" />
+              Valor ajustado: {lastNormalization.join(", ")}
+            </div>
+          )}
           {lastError && !saving && (
             <SecretErrorAlert
               error={lastError}
