@@ -1,37 +1,57 @@
 
 
-## Mini-histórico inline no card de cada conexão
+## Coluna "Falhas consecutivas" na tabela de visão geral
 
-Hoje o `ConnectionTestHistoryPanel` já existe em Supabase / Bitrix24 / n8n / MCP, porém **colapsado por padrão** — o usuário precisa clicar para ver. O pedido é mostrar as **5 últimas verificações já visíveis no card**, com opção de expandir.
+Adicionar uma coluna na `ConnectionsOverviewTable` que mostra quantas falhas seguidas a conexão acumulou desde o último teste OK, com destaque visual quando ultrapassa um limite configurável.
 
-### Mudanças
+### Comportamento
 
-1. **`ConnectionTestHistoryPanel.tsx` ganha modo "preview inline"**
-   - Nova prop `defaultPreview?: boolean` (default `true`).
-   - Quando `defaultPreview` e ainda não expandido: renderiza uma lista compacta com as **5 últimas verificações** (ícone ok/falha + relativo + latência), sem os filtros nem o footer de stats.
-   - Cabeçalho clicável muda de "Histórico de testes (N)" para "Últimas verificações" + botão `Expandir` (chevron) à direita.
-   - Ao expandir: comportamento atual (filtros all/ok/fail, até 10 itens, taxa de sucesso, link "Ver tudo →" para o `ConnectionTimelineDrawer`).
-   - Ao colapsar: volta ao preview com 5 itens (não some completamente).
-   - O hook `useConnectionTestHistory` passa a ser chamado com `enabled: true` sempre (preview precisa de dados); polling 60s permanece quando expandido para preservar custo.
+- A contagem é derivada do histórico (`connection_test_history`): contagem regressiva a partir do mais recente, parando no primeiro `ok = true`. Se nunca houve OK, conta todas as falhas existentes.
+- Coluna nova entre **Última verificação** e **Latência**, título "Falhas seguidas".
+- Valores:
+  - `0` → traço discreto (`—`) em `text-muted-foreground`.
+  - `1–N` → badge âmbar (`bg-warning/10 text-warning`) com o número.
+  - `> N` → badge vermelho (`bg-destructive/10 text-destructive`) com ícone `AlertTriangle` + número, e a **linha inteira ganha um fundo `bg-destructive/5` + borda esquerda `border-l-2 border-destructive`** para destacar.
+- Tooltip no badge: "X falhas consecutivas desde o último sucesso em {data relativa}" (ou "nunca houve sucesso registrado").
 
-2. **Tooltip nas linhas do preview** mostra timestamp absoluto (`dd/MM/yyyy HH:mm:ss`) + origem (`manual` / `cron`), reaproveitando o padrão já existente.
+### Limite N (threshold)
 
-3. **Clique em qualquer linha do preview** abre o `ConnectionTestDetailsDialog` daquela verificação específica (passando o `id` do registro de histórico). Hoje o modal só carrega o "último teste" — adicionar prop opcional `historyId?: string` em `useConnectionTestDetails` que, quando presente, busca aquele registro específico via nova action `test_full_by_id` no edge `connection-tester` (ou reusa `last_test_full` recebendo `id`).
+- Constante exportada `CONSECUTIVE_FAILURE_THRESHOLD = 3` em `src/lib/connections-config.ts` (novo arquivo pequeno, para reuso futuro em alertas/cron).
+- Filtro adicional no `ConnectionsOverviewFilters`: novo chip toggle **"Apenas com falhas seguidas"** (não-multi, é um boolean) que mostra somente linhas com `consecutive_failures >= threshold`.
 
-4. **Estado vazio** mantém o tratamento atual (botão desabilitado, mensagem "Histórico de testes (0)").
+### Backend
 
-5. **Adicionar o painel ao `WebhooksTab.tsx`** que ainda não tem mini-histórico, para paridade com as outras 4 abas.
+- Nova action `consecutive_failures_overview` em `supabase/functions/connection-tester/index.ts`:
+  - Sem parâmetros (ou aceita lista opcional de `connection_id`).
+  - Retorna `{ items: Array<{ key: string; type: string; env_key?: string; connection_id?: string; consecutive_failures: number; since: string | null }> }`.
+  - Implementação: para cada conexão, busca os últimos ~50 registros de `connection_test_history` ordenados desc por `tested_at`, conta enquanto `ok = false`, para no primeiro `ok = true`. `since` = `tested_at` do primeiro registro da streak.
+  - Mascaramento não se aplica (sem payloads).
+- Sem alteração de schema. Sem nova tabela. Sem migração.
 
-### Arquivos
+### Frontend
 
-- **Modificado**: `src/components/admin/connections/ConnectionTestHistoryPanel.tsx` — modo preview com 5 itens visíveis, expand/collapse mantém preview, clique em linha abre modal de detalhes.
-- **Modificado**: `src/hooks/useConnectionTestDetails.ts` — aceitar `historyId` opcional; quando presente, requisita registro específico.
-- **Modificado**: `supabase/functions/connection-tester/index.ts` — `last_test_full` aceita `id` opcional e retorna aquele registro em vez do mais recente (mascaramento idêntico).
-- **Modificado**: `src/components/admin/connections/WebhooksTab.tsx` — adicionar `<ConnectionTestHistoryPanel type="webhook_outbound" connectionId={...} ... />` no card de cada webhook.
+- **Novo hook** `src/hooks/useConsecutiveFailures.ts`:
+  - Recebe `rows: OverviewRow[]` (para saber quais chaves existem).
+  - Chama a action a cada poll do overview (mesmo intervalo de 30s do `useConnectionsOverview` — disparado por um `useEffect` que observa o `length` + chaves de `rows`).
+  - Retorna `Map<string, { count: number; since: string | null }>` indexado por `OverviewRow.key`.
+- **Modificado** `src/components/admin/connections/ConnectionsOverviewTable.tsx`:
+  - Instancia o novo hook.
+  - Adiciona coluna no `<thead>` e célula no `<tbody>`.
+  - Aplica classes condicionais na `<tr>` quando `count > threshold`.
+  - Passa `consecutiveFailuresMap` para o filtro / aplica filtro no client.
+- **Modificado** `src/hooks/useConnectionsOverviewFilters.ts`:
+  - Adiciona campo `onlyConsecutiveFailures: boolean` ao `OverviewFilters`.
+  - Atualiza `applyFilters` para aceitar segundo parâmetro opcional `consecutiveFailuresMap` e filtrar quando o toggle está ativo.
+  - Persistência sessionStorage atualizada.
+- **Modificado** `src/components/admin/connections/ConnectionsOverviewFilters.tsx`:
+  - Adiciona o toggle "Apenas com falhas seguidas" ao lado dos filtros existentes (chip ativável estilo `Toggle`).
+  - Inclui no contador de filtros ativos e no botão "Limpar".
 
 ### Detalhes técnicos
 
-- O preview é um `<ul>` com 5 itens, mesma grid da lista expandida (`grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr]`), sem filtros e sem footer.
-- Não muda RLS, schema, nem o polling (60s só quando expandido; preview usa o fetch inicial + `refreshKey` como hoje).
-- `defaultPreview={false}` (opt-out) preserva o comportamento antigo caso algum consumidor queira o painel totalmente colapsado.
+- A contagem é calculada server-side para evitar trazer todo o histórico ao cliente.
+- Se a action falhar (rede), a coluna mostra `—` em vez de quebrar a tabela; nenhum highlight é aplicado.
+- O destaque na linha é puramente visual (não altera ordenação) — admin continua vendo na ordem natural por tipo+nome.
+- A11y: badge com `aria-label="3 falhas consecutivas"`; tooltip por `Tooltip` do shadcn (já no padrão do hub).
+- Sem alteração de RLS (action chamada via JWT admin como as demais).
 
