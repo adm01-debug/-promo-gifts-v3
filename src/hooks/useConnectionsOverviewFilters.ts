@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { OverviewRow } from "@/hooks/useConnectionsOverview";
+import type { ConsecutiveFailureInfo } from "@/hooks/useConsecutiveFailures";
+import { CONSECUTIVE_FAILURE_THRESHOLD } from "@/lib/connections-config";
 
 export type OverviewStatusFilter = "all" | "ok" | "fail";
 export type OverviewWindowFilter = "any" | "5m" | "1h" | "24h" | "7d" | "never";
@@ -8,12 +10,14 @@ export interface OverviewFilters {
   types: string[];
   status: OverviewStatusFilter;
   window: OverviewWindowFilter;
+  onlyConsecutiveFailures: boolean;
 }
 
 const DEFAULT_FILTERS: OverviewFilters = {
   types: [],
   status: "all",
   window: "any",
+  onlyConsecutiveFailures: false,
 };
 
 const STORAGE_KEY = "connections-overview-filters";
