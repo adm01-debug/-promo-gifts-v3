@@ -59,6 +59,7 @@ function formatAbsolute(iso: string): string {
 }
 
 type StatusFilter = "all" | "ok" | "fail";
+type SourceFilter = "all" | "manual" | "cron";
 
 /** Mini sparkline SVG (sem libs) das latências (oldest → newest, esquerda → direita). */
 function LatencySparkline({ items, width = 64, height = 18 }: { items: TestHistoryItem[]; width?: number; height?: number }) {
@@ -210,6 +211,7 @@ export function ConnectionTestHistoryPanel({
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [source, setSource] = useState<SourceFilter>("all");
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [previewSize, setPreviewSize] = useState<PreviewSize>(() => loadPreviewSize());
 
@@ -227,17 +229,35 @@ export function ConnectionTestHistoryPanel({
     limit: fetchLimit,
   });
 
+  // Source-filtered base list — status counts and visible items both derive from here
+  const sourceFiltered = useMemo(() => {
+    if (source === "manual") return items.filter((i) => i.triggered_by !== "cron");
+    if (source === "cron") return items.filter((i) => i.triggered_by === "cron");
+    return items;
+  }, [items, source]);
+
   const counts = useMemo(() => ({
-    all: items.length,
-    ok: items.filter((i) => i.ok).length,
-    fail: items.filter((i) => !i.ok).length,
-  }), [items]);
+    all: sourceFiltered.length,
+    ok: sourceFiltered.filter((i) => i.ok).length,
+    fail: sourceFiltered.filter((i) => !i.ok).length,
+  }), [sourceFiltered]);
+
+  // Cron-only counts (always over the whole `items`) — used for the source chip badges
+  const cronCounts = useMemo(() => {
+    const cron = items.filter((i) => i.triggered_by === "cron");
+    return {
+      total: cron.length,
+      ok: cron.filter((i) => i.ok).length,
+      fail: cron.filter((i) => !i.ok).length,
+    };
+  }, [items]);
+  const manualTotal = items.length - cronCounts.total;
 
   const visibleItems = useMemo(() => {
-    if (filter === "ok") return items.filter((i) => i.ok);
-    if (filter === "fail") return items.filter((i) => !i.ok);
-    return items;
-  }, [items, filter]);
+    if (filter === "ok") return sourceFiltered.filter((i) => i.ok);
+    if (filter === "fail") return sourceFiltered.filter((i) => !i.ok);
+    return sourceFiltered;
+  }, [sourceFiltered, filter]);
 
   const previewItems = useMemo(() => visibleItems.slice(0, previewSize), [visibleItems, previewSize]);
 
