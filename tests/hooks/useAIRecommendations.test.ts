@@ -19,14 +19,12 @@ import { useAIRecommendations } from "@/hooks/useAIRecommendations";
 describe("useAIRecommendations", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    // Fake timers SEM shouldAdvanceTime: avançamos manualmente nos testes de retry,
-    // para que os 500ms+1000ms de backoff exponencial não consumam tempo real.
-    vi.useFakeTimers();
     vi.stubEnv("VITE_SUPABASE_URL", "https://test.supabase.co");
     vi.stubEnv("VITE_SUPABASE_PUBLISHABLE_KEY", "test-key");
   });
 
   afterEach(() => {
+    // Garante que qualquer teste que tenha ativado fake timers volta ao normal
     vi.useRealTimers();
   });
 
