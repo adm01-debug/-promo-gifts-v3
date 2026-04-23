@@ -130,12 +130,19 @@ export function LastTestLine({
         {errorCopy.hint}
       </span>
       {technicalDetail && technicalDetail !== errorCopy.hint && (
-        <span
-          className="mt-0.5 block text-[10px] leading-snug text-muted-foreground font-mono break-all"
-          title={technicalDetail}
-        >
-          {technicalDetail}
-        </span>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span
+              className="mt-0.5 block text-[10px] leading-snug text-muted-foreground font-mono line-clamp-2 break-words cursor-help"
+              aria-label="Detalhe técnico do erro — passe o mouse para ver completo"
+            >
+              {technicalDetail}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="bottom" align="start" className="max-w-md break-words font-mono text-[11px]">
+            {technicalDetail}
+          </TooltipContent>
+        </Tooltip>
       )}
     </span>
   ) : headerNode;
