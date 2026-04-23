@@ -3846,6 +3846,27 @@ export type Database = {
         }
         Relationships: []
       }
+      system_settings: {
+        Row: {
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value: Json
+        }
+        Update: {
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
+      }
       user_comparisons: {
         Row: {
           client_id: string | null
@@ -4212,6 +4233,7 @@ export type Database = {
           week_start: string
         }[]
       }
+      get_connection_failure_window_minutes: { Args: never; Returns: number }
       get_connections_auto_test_interval: { Args: never; Returns: number }
       get_favorites_weekly_count: {
         Args: { _weeks?: number }
@@ -4389,6 +4411,10 @@ export type Database = {
         }[]
       }
       seed_discount_test_users: { Args: never; Returns: Json }
+      set_connection_failure_window_minutes: {
+        Args: { minutes: number }
+        Returns: number
+      }
       set_connections_auto_test_interval: {
         Args: { minutes: number }
         Returns: number
