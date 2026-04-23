@@ -266,9 +266,7 @@ export function useWorkspaceNotifications() {
         // ignore
       }
       lastFetchAtRef.current = 0;
-      await fetchNotifications({ silent: true });
-    } finally {
-      clearAllInFlightRef.current = false;
+      await fetchNotifications({ silent: true, source: "mutation" });
       setIsMutationRehydrating(false);
     }
   }, [user, fetchNotifications]);
