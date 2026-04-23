@@ -179,12 +179,48 @@ export function ConnectionTestHistoryPanel({
         )}
       </button>
 
-      {/* Preview inline (5 itens, sem filtros/footer) */}
+      {/* Preview inline (5 itens, com filtros rápidos) */}
       {showPreview && (
-        <div className="mt-2">
+        <div className="mt-2 space-y-2">
+          <div className="flex items-center gap-1 px-1">
+            {([
+              { key: "all", label: "Todos", count: counts.all },
+              { key: "ok", label: "OK", count: counts.ok },
+              { key: "fail", label: "Falhas", count: counts.fail },
+            ] as const).map((opt) => {
+              const active = filter === opt.key;
+              const isFail = opt.key === "fail";
+              const isOk = opt.key === "ok";
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); setFilter(opt.key); }}
+                  className={cn(
+                    "text-[11px] px-2 py-0.5 rounded-full border transition-colors tabular-nums",
+                    active
+                      ? isFail
+                        ? "bg-destructive/10 border-destructive/40 text-destructive"
+                        : isOk
+                          ? "bg-green-500/10 border-green-500/40 text-green-700 dark:text-green-400"
+                          : "bg-muted border-border text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-muted/60",
+                  )}
+                  aria-pressed={active}
+                  aria-label={`Mostrar ${opt.label.toLowerCase()}`}
+                >
+                  {opt.label} ({opt.count})
+                </button>
+              );
+            })}
+          </div>
           {loading && previewItems.length === 0 ? (
             <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
+            </div>
+          ) : previewItems.length === 0 ? (
+            <div className="py-3 text-center text-xs text-muted-foreground">
+              {filter === "fail" ? "Nenhuma falha nos últimos testes 🎉" : "Nenhum teste com este filtro."}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
