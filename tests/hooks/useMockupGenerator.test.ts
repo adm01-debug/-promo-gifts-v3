@@ -47,7 +47,15 @@ vi.mock("@/hooks/useMockupTechniques", () => ({
 }));
 
 vi.mock("@/hooks/usePositionHistory", () => ({
-  usePositionHistory: () => ({ push: vi.fn(), undo: vi.fn(), redo: vi.fn(), canUndo: false, canRedo: false }),
+  usePositionHistory: () => ({
+    push: vi.fn(),
+    undo: vi.fn(),
+    redo: vi.fn(),
+    canUndo: false,
+    canRedo: false,
+    setOnApply: vi.fn(),
+    reset: vi.fn(),
+  }),
 }));
 
 vi.mock("@/hooks/useLogoColorAnalysis", () => ({
