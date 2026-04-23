@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import { formatCurrency } from '@/lib/format';
 import type { CustomizationPriceResponse } from '@/hooks/useGravacaoPriceV2';
-import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
+import { adaptPriceResponse } from '@/lib/personalization/adapters';
 import type { Personalization } from '@/types/domain/simulator-wizard';
 
 interface QuantityRangeComparisonProps {
@@ -96,7 +96,7 @@ export function QuantityRangeComparison({
             );
 
             if (result?.success) {
-              const flat = mapPriceResponseToFlat(result);
+              const flat = adaptPriceResponse(result);
               persPrices.push({
                 persId: pers.id,
                 unitPrice: flat.unit_price,

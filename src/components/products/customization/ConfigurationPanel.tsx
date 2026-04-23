@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { invokeExternalDb } from "@/lib/external-db";
 import { invokeExternalRpc } from "@/lib/external-rpc";
 import type { PrintAreaV2, CustomizationPriceResponse, CustomizationPriceFlat } from "@/hooks/useGravacaoPriceV2";
-import { mapPriceResponseToFlat } from "@/hooks/useGravacaoPriceV2";
+import { adaptPriceResponse } from "@/lib/personalization/adapters";
 
 interface ConfigurationPanelProps {
   area: PrintAreaV2;
@@ -117,7 +117,7 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
       );
 
       if (result?.success) {
-        const flat = mapPriceResponseToFlat(result);
+        const flat = adaptPriceResponse(result);
         setPriceData(flat);
         onPriceCalculated(area.area_id, flat);
       } else {

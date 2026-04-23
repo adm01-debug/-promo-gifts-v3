@@ -8,7 +8,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { CustomizationPriceResponse } from '@/hooks/useGravacaoPriceV2';
-import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
+import { adaptPriceResponse } from '@/lib/personalization/adapters';
 import type { EngravingLocation, EngravingSpecs } from '@/types/domain/simulator-wizard';
 
 export interface LivePriceEstimate {
@@ -83,7 +83,7 @@ export function useLivePricePreview({
         if (abortRef.current) return; // Stale response
 
         if (result?.success) {
-          const flat = mapPriceResponseToFlat(result);
+          const flat = adaptPriceResponse(result);
           setEstimate({
             cheapestName: flat.technique || tech.techniqueName,
             cheapestCode: flat.tabela_codigo_curto || tech.techniqueCode,

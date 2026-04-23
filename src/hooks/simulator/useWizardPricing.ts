@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
-import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
+import { adaptPriceResponse } from '@/lib/personalization/adapters';
 import type {
   SimulatorWizardState,
   WizardAction,
@@ -64,7 +64,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
           );
 
           if (result?.success) {
-            const flat = mapPriceResponseToFlat(result);
+            const flat = adaptPriceResponse(result);
             dispatch({
               type: 'RECALC_PERSONALIZATION_PRICING',
               payload: {
@@ -157,7 +157,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
             return;
           }
 
-          const flat = mapPriceResponseToFlat(result);
+          const flat = adaptPriceResponse(result);
 
           allResults.push({
             techniqueId: tech.techniqueId,

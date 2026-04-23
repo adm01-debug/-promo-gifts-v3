@@ -19,10 +19,10 @@
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import {
   fetchProductPrintAreasV2,
-  mapPriceResponseToFlat,
   type CustomizationPriceResponse,
   type PrintAreaV2,
 } from '@/hooks/useGravacaoPriceV2';
+import { adaptPriceResponse } from '@/lib/personalization/adapters';
 import type { Technique, TechniqueSettings, SimulationOption } from '@/types/simulation';
 import { logger } from '@/lib/logger';
 
@@ -159,7 +159,7 @@ export async function fetchOptionForTechnique(
     );
   }
 
-  const flat = mapPriceResponseToFlat(result as unknown as Record<string, unknown>);
+  const flat = adaptPriceResponse(result as unknown as Record<string, unknown>);
 
   // Multiplicador por nº de posições (a regra de negócio do simulador
   // legado preserva esse comportamento — o RPC calcula 1 posição).
