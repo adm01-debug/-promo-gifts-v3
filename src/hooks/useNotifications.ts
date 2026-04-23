@@ -20,6 +20,7 @@ export interface UseNotificationsReturn {
   unreadCount: number;
   isLoading: boolean;
   isRefetching: boolean;
+  isMutationRehydrating: boolean;
   markAsRead: (id: string) => Promise<void>;
   markAllAsRead: () => Promise<void>;
   clearAll: () => Promise<void>;
@@ -39,6 +40,7 @@ export function useNotifications(): UseNotificationsReturn {
     unreadCount: workspace.unreadCount,
     isLoading: workspace.isLoading,
     isRefetching: workspace.isRefetching,
+    isMutationRehydrating: workspace.isMutationRehydrating,
     markAsRead: workspace.markAsRead,
     markAllAsRead: workspace.markAllAsRead,
     clearAll: workspace.clearAll,
