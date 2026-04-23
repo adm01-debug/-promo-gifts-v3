@@ -279,11 +279,22 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
 
   const startEdit = (m: "set" | "rotate") => { setMode(m); setEditing(true); };
 
+  const { matchesFilter, filter } = useCredentialsSourceFilter();
+  const fadeOut = !matchesFilter(status);
+
   return (
-    <div className="space-y-1.5">
+    <div
+      className={cn(
+        "space-y-1.5 transition-opacity duration-200",
+        fadeOut && "opacity-40 pointer-events-none",
+      )}
+      aria-hidden={fadeOut || undefined}
+      data-source-filter={filter}
+    >
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 min-w-0">
           <Label className="text-sm font-medium">{label}</Label>
+          <CredentialSourceBadge status={status} />
           {status?.env_fallback_active && !editing && (
             <span
               className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning animate-in fade-in duration-300"
