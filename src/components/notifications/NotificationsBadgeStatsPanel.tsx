@@ -145,11 +145,17 @@ export function NotificationsBadgeStatsPanel() {
 
   if (!visible) return null;
 
-  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow } = snapshot;
+  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow, coalescingByTrigger } = snapshot;
   const savedFetches = Math.max(0, triggers - fetches);
   const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
   const ttlWithinPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.withinTtl / fetches) * 100);
   const ttlAfterPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.afterTtl / fetches) * 100);
+  /** Per-source coalescing rows for the efficiency block. */
+  const coalescingRows: Array<{ key: TriggerSource; label: string }> = [
+    { key: "hover", label: "hover" },
+    { key: "focus", label: "focus" },
+    { key: "drawer-open", label: "drawer-open" },
+  ];
 
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
