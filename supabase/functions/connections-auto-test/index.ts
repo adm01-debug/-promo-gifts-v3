@@ -3,6 +3,7 @@
 // inserts a row in `connection_test_history` with triggered_by='cron'.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { runConnectionTest, type ConnectionType, isTransientFailure } from "../_shared/connection-test-runner.ts";
+import { resolveTimeout } from "../_shared/connection-timeouts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -11,7 +12,6 @@ const corsHeaders = {
 };
 
 const BATCH_SIZE = 5;
-const PER_TEST_TIMEOUT_MS = 8000;
 // Backoff schedule between attempts. Length defines max attempts (3 = 1 try + 2 retries).
 // Index N is the delay BEFORE attempt N+1 (so RETRY_BACKOFF_MS[0] is wait before retry #1).
 const RETRY_BACKOFF_MS = [500, 1500, 3000] as const;
@@ -40,15 +40,17 @@ async function processBatch(
               .map(([k, v]) => [k, v as string]),
           )
         : {};
+      const connType = conn.type as ConnectionType;
+      const perTypeTimeout = resolveTimeout(connType);
       const baseArgs = {
-        type: conn.type as ConnectionType,
+        type: connType,
         config: cfg,
         env_key: (conn.env_key as "promobrind" | "crm" | null) ?? undefined,
         connection_id: conn.id,
         created_by: conn.created_by,
         triggered_by: "cron" as const,
         service,
-        timeoutMs: PER_TEST_TIMEOUT_MS,
+        timeoutMs: perTypeTimeout,
       };
 
       // Probe up to MAX_ATTEMPTS times. Each attempt skips persistence so we
@@ -72,6 +74,7 @@ async function processBatch(
         ok: final.ok,
         status: final.status,
         latency_ms: final.latency_ms,
+        timeout_ms: perTypeTimeout,
         wall_ms: Date.now() - t0,
         attempts: attempt,
         retried: attempt > 1,

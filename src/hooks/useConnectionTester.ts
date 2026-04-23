@@ -20,6 +20,8 @@ export interface TestResult {
   error?: string;
   error_kind?: ErrorKind;
   message?: string;
+  /** Timeout efetivo (ms) que o backend aplicou neste teste. */
+  timeout_ms?: number;
   tested_at?: string;
 }
 
@@ -68,6 +70,7 @@ export function useConnectionTester() {
         error: r.error,
         error_kind: r.error_kind,
         message: r.message,
+        timeout_ms: r.timeout_ms,
         tested_at: r.tested_at ?? new Date().toISOString(),
       };
       setLastResult(normalized);
@@ -77,7 +80,7 @@ export function useConnectionTester() {
             description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
           });
         } else {
-          const copy = getErrorCopy(normalized.error_kind, normalized.status, normalized.error ?? normalized.message);
+          const copy = getErrorCopy(normalized.error_kind, normalized.status, normalized.error ?? normalized.message, normalized.timeout_ms);
           toast.error(copy.title, {
             description: copy.hint,
           });
