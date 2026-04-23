@@ -12,7 +12,10 @@ const corsHeaders = {
 
 const BATCH_SIZE = 5;
 const PER_TEST_TIMEOUT_MS = 8000;
-const RETRY_DELAY_MS = 800;
+// Backoff schedule between attempts. Length defines max attempts (3 = 1 try + 2 retries).
+// Index N is the delay BEFORE attempt N+1 (so RETRY_BACKOFF_MS[0] is wait before retry #1).
+const RETRY_BACKOFF_MS = [500, 1500, 3000] as const;
+const MAX_ATTEMPTS = RETRY_BACKOFF_MS.length;
 
 interface ActiveConnection {
   id: string;
