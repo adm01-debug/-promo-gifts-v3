@@ -192,7 +192,7 @@ function NotificationItem({
 }
 
 export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
-  const { notifications, unreadCount, isLoading, isRefetching, markAsRead, markAllAsRead, clearAll, prefetch } =
+  const { notifications, unreadCount, isLoading, isRefetching, isMutationRehydrating, markAsRead, markAllAsRead, clearAll, prefetch } =
     useNotifications();
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
