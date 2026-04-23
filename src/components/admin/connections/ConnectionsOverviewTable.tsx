@@ -194,15 +194,40 @@ export function ConnectionsOverviewTable() {
             <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
             Atualizar
           </Button>
-          <Button
-            variant="default"
-            size="sm"
-            onClick={runAll}
-            disabled={bulkTesting || filtered.length === 0}
-          >
-            {bulkTesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
-            Testar {activeCount > 0 ? "filtradas" : "todas"}
-          </Button>
+          <TooltipProvider delayDuration={200}>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5">
+                  <span className="font-display text-xs text-muted-foreground">Paralelos:</span>
+                  <Select value={String(concurrency)} onValueChange={changeConcurrency} disabled={bulkTesting}>
+                    <SelectTrigger className="h-8 w-[70px]" aria-label="Limite de testes paralelos">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {[1, 2, 3, 5, 8].map((n) => (
+                        <SelectItem key={n} value={String(n)}>{n}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs">Quantos testes rodam ao mesmo tempo</p></TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={runAll}
+                  disabled={bulkTesting || filtered.length === 0}
+                >
+                  {bulkTesting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <PlayCircle className="h-3.5 w-3.5" />}
+                  Testar {activeCount > 0 ? "filtradas" : "todas"}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom"><p className="text-xs max-w-[220px]">Roda os testes em paralelo até o limite escolhido. Você pode cancelar a qualquer momento.</p></TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
