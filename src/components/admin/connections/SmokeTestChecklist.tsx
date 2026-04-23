@@ -242,10 +242,10 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         });
         // eslint-disable-next-line no-console
         console.error("[smoke-test] step 3 missing in list");
-      } else if (target.masked_suffix !== expectedSuffix) {
+      } else if (normalizeMaskedSuffix(target.masked_suffix) !== expectedSuffix) {
         updateStep("reload", {
           status: "failed",
-          detail: `Sufixo divergente após reload: esperado ••••${expectedSuffix}, recebido ••••${target.masked_suffix ?? "????"}`,
+          detail: `Sufixo divergente após reload: esperado ${formatMaskedSuffix(expectedSuffix)}, recebido ${formatMaskedSuffix(target.masked_suffix)}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
@@ -254,7 +254,7 @@ export function SmokeTestChecklist({ availableSecrets = [] }: Props) {
         const sourceTag = target.source ? ` • source=${target.source}` : "";
         updateStep("reload", {
           status: "passed",
-          detail: `Persistido • ••••${target.masked_suffix} • ${target.length} chars${sourceTag}`,
+          detail: `Persistido • ${formatMaskedSuffix(target.masked_suffix)} • ${target.length} chars${sourceTag}`,
           durationMs: took,
         });
         // eslint-disable-next-line no-console
