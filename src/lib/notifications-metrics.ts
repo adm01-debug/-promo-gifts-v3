@@ -369,6 +369,9 @@ export const notificationsMetrics = {
     state.fetches = 0;
     state.byTrigger = { hover: 0, focus: 0, "drawer-open": 0 };
     state.byFetch = { initial: 0, polling: 0, prefetch: 0, mutation: 0 };
+    state.lastFetchAt = 0;
+    state.fetchesWithinTtl = 0;
+    state.fetchesAfterTtl = 0;
     state.badgeRenders = [];
     state.badgeBudget = {
       cache: { hits: 0, misses: 0 },
