@@ -148,6 +148,24 @@ export function NotificationsBadgeStatsPanel() {
     };
   }, [samples]);
 
+  /**
+   * Trailing-streak detector: count contiguous samples (from newest going back)
+   * whose ratio is ≥ SUSPICIOUS_RATIO_THRESHOLD. The warning fires once the
+   * streak reaches SUSPICIOUS_STREAK_SECONDS, signaling the prefetch debounce
+   * + 5s TTL coalescing isn't keeping up. We also require triggers > 0 in the
+   * latest sample to suppress noise from "ratio = 0/0 → 0" edge cases.
+   */
+  const suspiciousStreakSeconds = useMemo(() => {
+    let streak = 0;
+    for (let i = samples.length - 1; i >= 0; i--) {
+      const s = samples[i];
+      if (s.triggers > 0 && s.ratio >= SUSPICIOUS_RATIO_THRESHOLD) streak += 1;
+      else break;
+    }
+    return streak;
+  }, [samples]);
+  const isSuspicious = suspiciousStreakSeconds >= SUSPICIOUS_STREAK_SECONDS;
+
   if (!visible) return null;
 
   const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow, coalescingByTrigger } = snapshot;
