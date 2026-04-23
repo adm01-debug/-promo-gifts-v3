@@ -131,16 +131,18 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
   };
 
   // Reset transient state and re-hydrate the draft whenever the secretName
-  // changes — guarantees validation, button-enabled state, error/normalization
-  // banners and stored draft all match the NEW secret rules instead of leaking
-  // from the previous one.
-  const prevSecretNameRef = useRef<string>(secretName);
+  // OR connectionId changes — guarantees validation, button-enabled state,
+  // error/normalization banners and stored draft all match the NEW
+  // (secret, connection) tuple instead of leaking from the previous one.
+  const prevScopeKeyRef = useRef<string>(`${draftScope}:${secretName}`);
   useEffect(() => {
-    const prev = prevSecretNameRef.current;
-    const isFirstMount = prev === secretName && !abortRef.current;
+    const scopeKey = `${draftScope}:${secretName}`;
+    const prev = prevScopeKeyRef.current;
+    const isFirstMount = prev === scopeKey && !abortRef.current;
 
-    // On a real swap, abort any in-flight save and clear transient UI.
-    if (prev !== secretName) {
+    // On a real swap (secret OR connection changed), abort any in-flight
+    // save and clear transient UI.
+    if (prev !== scopeKey) {
       abortRef.current?.abort();
       abortRef.current = null;
       setValue("");
@@ -159,7 +161,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       setSaveConfirmOpen(false);
       // flash is suffix-bound to the previous secret — drop it
       setFlash(null);
-      prevSecretNameRef.current = secretName;
+      prevScopeKeyRef.current = scopeKey;
     }
 
     // Re-hydrate draft for the (new or initial) secret/connection. Tenta a
