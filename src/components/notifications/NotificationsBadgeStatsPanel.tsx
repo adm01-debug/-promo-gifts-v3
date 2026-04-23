@@ -145,9 +145,11 @@ export function NotificationsBadgeStatsPanel() {
 
   if (!visible) return null;
 
-  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch } = snapshot;
+  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow } = snapshot;
   const savedFetches = Math.max(0, triggers - fetches);
   const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
+  const ttlWithinPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.withinTtl / fetches) * 100);
+  const ttlAfterPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.afterTtl / fetches) * 100);
 
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
