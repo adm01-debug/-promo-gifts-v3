@@ -158,10 +158,10 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                         <ActionBadge type={(e.action_type ?? "rotate") as "set" | "rotate"} />
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {e.previous_suffix ? `••••${e.previous_suffix}` : <span className="text-muted-foreground">(env / vazio)</span>}
+                        {e.previous_suffix ? formatMaskedSuffix(e.previous_suffix) : <span className="text-muted-foreground">(env / vazio)</span>}
                       </TableCell>
                       <TableCell className="font-mono text-xs">
-                        {e.new_suffix ? `••••${e.new_suffix}` : "—"}
+                        {e.new_suffix ? formatMaskedSuffix(e.new_suffix) : "—"}
                       </TableCell>
                       <TableCell className="text-xs">
                         {e.rotated_by_email ?? <span className="text-muted-foreground font-mono">{e.rotated_by?.slice(0, 8) ?? "—"}…</span>}
