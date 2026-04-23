@@ -284,12 +284,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    return new Response(JSON.stringify({ error: "Ação desconhecida" }), {
+    return new Response(JSON.stringify({ ok: false, error: { code: "unknown_action", message: "Ação desconhecida" } }), {
       status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
     const msg = err instanceof Error ? err.message : "Erro desconhecido";
-    return new Response(JSON.stringify({ error: msg }), {
+    return new Response(JSON.stringify({ ok: false, error: { code: "unexpected", message: msg } }), {
       status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   }
