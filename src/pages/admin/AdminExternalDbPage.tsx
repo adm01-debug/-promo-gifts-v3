@@ -4,13 +4,74 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Database, RefreshCw, ChevronRight, ArrowLeft } from "lucide-react";
+import { Database, RefreshCw, ChevronRight, ArrowLeft, FileSearch, Copy, CheckCircle2, AlertTriangle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageSEO } from "@/components/seo/PageSEO";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import {
+  ENGRAVING_TABLES,
+  diffColumns,
+  buildMarkdownReport,
+  type TableDiff,
+} from "./engraving-schema-diff";
 
 export default function AdminExternalDbPage() {
   const { result, isLoading, listTables, describeTable } = useExternalDbInspect();
   const [selectedTable, setSelectedTable] = useState<string | null>(null);
+  const [diffs, setDiffs] = useState<TableDiff[] | null>(null);
+  const [diffLoading, setDiffLoading] = useState(false);
+
+  const runEngravingDiff = async () => {
+    setDiffLoading(true);
+    setDiffs(null);
+    try {
+      const results: TableDiff[] = [];
+      for (const t of ENGRAVING_TABLES) {
+        const { data, error } = await supabase.functions.invoke("external-db-inspect", {
+          body: { mode: "columns", tableName: t.table },
+        });
+        if (error || !data?.success) {
+          results.push({
+            table: t.table,
+            exists: false,
+            error: error?.message || data?.error || "Tabela não acessível",
+            expectedColumns: t.expectedColumns,
+            actualColumns: [],
+            missingInDb: [],
+            newInDb: [],
+            consumers: t.consumers,
+          });
+          continue;
+        }
+        const actual: string[] = data.columns || [];
+        const { missingInDb, newInDb } = diffColumns(t.expectedColumns, actual);
+        results.push({
+          table: t.table,
+          exists: true,
+          expectedColumns: t.expectedColumns,
+          actualColumns: actual,
+          missingInDb,
+          newInDb,
+          consumers: t.consumers,
+        });
+      }
+      setDiffs(results);
+      toast.success("Diff gerado", { description: `${results.length} tabelas inspecionadas` });
+    } catch (err) {
+      toast.error("Falha ao gerar diff", {
+        description: err instanceof Error ? err.message : "Erro desconhecido",
+      });
+    } finally {
+      setDiffLoading(false);
+    }
+  };
+
+  const copyReport = async () => {
+    if (!diffs) return;
+    await navigator.clipboard.writeText(buildMarkdownReport(diffs));
+    toast.success("Relatório copiado para a área de transferência");
+  };
 
   useEffect(() => {
     listTables();
