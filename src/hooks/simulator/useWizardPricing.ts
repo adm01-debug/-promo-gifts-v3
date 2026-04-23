@@ -6,7 +6,7 @@ import { useCallback, useEffect, useRef } from 'react';
 import { toast } from 'sonner';
 import { invokeExternalRpc } from '@/lib/external-rpc';
 import type { CustomizationPriceResponse, CustomizationPriceFlat } from '@/hooks/useGravacaoPriceV2';
-import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
+import { adaptPriceResponse } from '@/lib/personalization/adapters';
 import type {
   SimulatorWizardState,
   WizardAction,
