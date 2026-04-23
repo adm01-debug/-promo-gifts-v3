@@ -14,6 +14,7 @@ import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 import { TestProgressIndicator, type TestProgressPhase } from "./TestProgressIndicator";
+import { RetestCooldownSelector } from "./RetestCooldownSelector";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();
