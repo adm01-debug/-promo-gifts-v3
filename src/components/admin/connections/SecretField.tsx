@@ -60,6 +60,7 @@ interface FlashState {
   length: number;
   action: "set" | "rotate";
   was_update: boolean;
+  was_env_fallback: boolean;
   /** changes whenever a new flash should appear, to remount the component */
   key: number;
 }
@@ -88,6 +89,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
 
   const performSave = async (currentMode: "set" | "rotate", currentValue: string, notes?: string) => {
+    const wasEnvFallback = !!status?.env_fallback_active;
     const toastId = `secret-${secretName}-${Date.now()}`;
     const slowTimer = setTimeout(() => {
       toast.loading(
@@ -159,6 +161,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
       length,
       action: currentMode,
       was_update: !!was_update,
+      was_env_fallback: wasEnvFallback,
       key: flashCounter.current,
     });
 
@@ -219,8 +222,19 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
 
   return (
     <div className="space-y-1.5">
-      <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium">{label}</Label>
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <Label className="text-sm font-medium">{label}</Label>
+          {status?.env_fallback_active && !editing && (
+            <span
+              className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning animate-in fade-in duration-300"
+              title="Este valor está vindo da variável de ambiente do deploy, não do banco. Salve um valor aqui para sobrescrever e tornar editável."
+            >
+              <AlertCircle className="h-3 w-3" />
+              Usando ENV
+            </span>
+          )}
+        </div>
         {status?.has_value && !editing && (
           <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
             <Check className="h-3 w-3 text-success" />
@@ -229,9 +243,6 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               <span className="opacity-70">
                 · atualizado {formatRelative(status.updated_at)}
               </span>
-            )}
-            {status.source === "env" && (
-              <span className="opacity-70" title="Valor herdado de variável de ambiente; salve novamente para migrar para o banco.">· env</span>
             )}
             {storedLooksSuspicious && (
               <span
@@ -338,6 +349,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           length={flash.length}
           action={flash.action}
           was_update={flash.was_update}
+          was_env_fallback={flash.was_env_fallback}
         />
       )}
       {status?.has_value && (

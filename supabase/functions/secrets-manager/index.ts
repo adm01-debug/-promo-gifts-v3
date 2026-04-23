@@ -38,7 +38,7 @@ function isAllowedSecretName(name: string): boolean {
 }
 
 const BodySchema = z.object({
-  action: z.enum(["list", "set", "delete", "status", "rotate", "rotation_history"]),
+  action: z.enum(["list", "set", "delete", "status", "rotate", "rotation_history", "refresh_cache"]),
   names: z.array(z.string()).optional(),
   name: z.string().optional(),
   value: z.string().optional(),
@@ -160,6 +160,7 @@ Deno.serve(async (req) => {
             length: dbRow.length,
             updated_at: dbRow.updated_at,
             source: "db" as const,
+            env_fallback_active: false,
           };
         }
         const env = maskValue(Deno.env.get(n) ?? null);
@@ -170,11 +171,27 @@ Deno.serve(async (req) => {
           length: env.length,
           updated_at: null as string | null,
           source: env.has_value ? ("env" as const) : ("none" as const),
+          env_fallback_active: env.has_value,
         };
       });
       return new Response(JSON.stringify({ ok: true, secrets: results }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
+    }
+
+    if (action === "refresh_cache") {
+      invalidateCredentialCache(name);
+      await service.from("admin_audit_log").insert({
+        user_id: userData.user.id,
+        action: "secret_cache_refreshed",
+        resource_type: "secret",
+        resource_id: name ?? "*",
+        details: { scope: name ? "single" : "all" },
+      });
+      return new Response(
+        JSON.stringify({ ok: true, refreshed: name ?? "all", message: name ? `Cache de ${name} invalidado.` : "Cache de credenciais invalidado." }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
     }
 
     if (action === "set" || action === "rotate") {

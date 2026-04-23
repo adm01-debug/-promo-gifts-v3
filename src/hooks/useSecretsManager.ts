@@ -9,6 +9,7 @@ export interface SecretStatus {
   length: number;
   updated_at?: string | null;
   source?: "db" | "env" | "none";
+  env_fallback_active?: boolean;
 }
 
 export interface SecretError {
@@ -137,5 +138,18 @@ export function useSecretsManager() {
     return (data?.history ?? []) as RotationHistoryEntry[];
   }, []);
 
-  return { secrets, isLoading, list, setSecret, rotateSecret, getRotationHistory };
+  const refreshCache = useCallback(async (name?: string): Promise<{ ok: boolean; message?: string; error?: SecretError }> => {
+    const { data, error } = await supabase.functions.invoke("secrets-manager", {
+      body: { action: "refresh_cache", name },
+    });
+    if (error) {
+      return { ok: false, error: normalizeError({ message: error.message }, error.message) };
+    }
+    if (data && data.ok === false) {
+      return { ok: false, error: normalizeError(data) };
+    }
+    return { ok: true, message: data?.message };
+  }, []);
+
+  return { secrets, isLoading, list, setSecret, rotateSecret, getRotationHistory, refreshCache };
 }

@@ -11,6 +11,7 @@ import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
 import { ConnectionErrorDetailsDialog } from "./ConnectionErrorDetailsDialog";
+import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
 export function N8nTab() {
@@ -61,7 +62,7 @@ export function N8nTab() {
           <SecretField label="Base URL" secretName="N8N_BASE_URL" status={base} onSaved={list}
             helperText="Ex: https://n8n.suaempresa.com" />
           <SecretField label="API Key" secretName="N8N_API_KEY" status={get("N8N_API_KEY")} onSaved={list} />
-          <div className="pt-2 flex gap-2">
+          <div className="pt-2 flex flex-wrap gap-2">
             <Button size="sm" disabled={isTesting || !credsLooksValid}
               title={!credsOk ? "Configure a Base URL primeiro"
                 : !credsLooksValid ? "Credenciais com formato suspeito (comprimento curto) — re-salve antes de testar"
@@ -70,6 +71,7 @@ export function N8nTab() {
               {isTesting ? "Testando…" : "Testar /healthz"}
             </Button>
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
+            <RefreshFromDbButton onRefreshed={list} />
           </div>
           <LastTestLine
             info={last}

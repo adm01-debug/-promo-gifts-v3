@@ -12,6 +12,7 @@ import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
 import { ConnectionErrorDetailsDialog } from "./ConnectionErrorDetailsDialog";
+import { RefreshFromDbButton } from "./RefreshFromDbButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
 const ENVS = [
@@ -138,6 +139,7 @@ export function SupabaseConnectionsTab() {
                       {isTesting ? "Testando…" : "Testar conexão"}
                     </Button>
                     <ConnectionTimelineDrawer type="supabase" label={env.name} triggerVariant="ghost" />
+                    <RefreshFromDbButton onRefreshed={list} />
                     <Button size="sm" variant="ghost" asChild>
                       <Link to="/admin/external-db">
                         <ExternalLink className="h-4 w-4 mr-1" /> Ver schema
