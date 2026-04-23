@@ -73,8 +73,10 @@ beforeEach(() => {
   updateMock.mockClear();
   updateEqMock.mockClear();
   updateEqEqMock.mockClear();
+  updateEqEqMock.mockResolvedValue({ error: null });
   deleteMock.mockClear();
   deleteEqMock.mockClear();
+  deleteEqMock.mockResolvedValue({ error: null });
   // Initial fetch returns SEED; subsequent silent re-fetch returns server-fresh state (all read / empty).
   limitMock.mockResolvedValueOnce({ data: SEED, error: null });
 });
