@@ -99,3 +99,42 @@ export function getErrorCopy(
       };
   }
 }
+
+/**
+ * Classes Tailwind (com tokens semânticos) para o badge de `error_kind`,
+ * dando um sinal visual por tipo de falha. Usa apenas tokens da paleta
+ * (destructive/amber/blue/etc via classes utilitárias do design system).
+ */
+export function getKindBadgeClass(tone: ErrorTone): string {
+  switch (tone) {
+    case "timeout":
+      return "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-400";
+    case "network":
+      return "border-orange-500/40 bg-orange-500/10 text-orange-700 dark:text-orange-400";
+    case "dns":
+      return "border-purple-500/40 bg-purple-500/10 text-purple-700 dark:text-purple-400";
+    case "auth":
+      return "border-rose-500/40 bg-rose-500/10 text-rose-700 dark:text-rose-400";
+    case "http":
+      return "border-destructive/40 bg-destructive/10 text-destructive";
+    case "config":
+      return "border-blue-500/40 bg-blue-500/10 text-blue-700 dark:text-blue-400";
+    case "unknown":
+    default:
+      return "border-muted-foreground/40 bg-muted text-muted-foreground";
+  }
+}
+
+/** Rótulo PT-BR curto e legível para o badge. */
+export function getKindLabel(tone: ErrorTone): string {
+  switch (tone) {
+    case "timeout": return "Timeout";
+    case "network": return "Rede";
+    case "dns": return "DNS";
+    case "auth": return "Auth";
+    case "http": return "HTTP";
+    case "config": return "Config";
+    case "unknown":
+    default: return "Desconhecido";
+  }
+}

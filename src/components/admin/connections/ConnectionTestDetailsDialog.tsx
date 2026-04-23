@@ -22,7 +22,7 @@ import {
   type TestDetails,
 } from "@/hooks/useConnectionTestDetails";
 import type { ConnectionType, ErrorKind } from "@/hooks/useConnectionTester";
-import { getErrorCopy } from "@/lib/connection-error-copy";
+import { getErrorCopy, getKindBadgeClass, getKindLabel } from "@/lib/connection-error-copy";
 
 interface Props {
   open: boolean;
@@ -304,8 +304,16 @@ export function ConnectionTestDetailsDialog({
                     </div>
                     <div className="flex flex-wrap gap-1.5 pl-6">
                       {details.error?.kind && (
-                        <Badge variant="outline" className="text-[10px] font-mono h-5">
-                          kind: {details.error.kind}
+                        <Badge
+                          variant="outline"
+                          className={cn(
+                            "text-[10px] font-medium h-5 inline-flex items-center gap-1 px-1.5",
+                            getKindBadgeClass(copy.tone),
+                          )}
+                          title={`Tipo de falha: ${copy.title}`}
+                        >
+                          <ErrIcon className="h-3 w-3" aria-hidden />
+                          {getKindLabel(copy.tone)}
                         </Badge>
                       )}
                       {details.response.status != null && (
