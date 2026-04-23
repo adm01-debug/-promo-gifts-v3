@@ -22,6 +22,12 @@ interface Props {
   newSuffix: string;
   newLength: number;
   loading: boolean;
+  /**
+   * Mensagem de erro retornada pelo backend após uma tentativa fracassada.
+   * Quando preenchida, o modal permanece aberto e exibe o aviso para o
+   * usuário corrigir/repetir sem precisar reabrir o fluxo.
+   */
+  errorMessage?: string | null;
   onConfirm: () => Promise<void> | void;
 }
 
