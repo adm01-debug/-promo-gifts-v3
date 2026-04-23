@@ -19,6 +19,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Loader2,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -321,6 +322,31 @@ export function IntegrationsHealthCard() {
               value={String(data.mcpKeysUsed24h)}
               tone={data.mcpKeysUsed24h > 0 ? "success" : "default"}
             />
+          </div>
+        )}
+        {data && (
+          <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-muted-foreground border-t border-border/40">
+            <span className="inline-flex items-center gap-1.5">
+              <Bot className="h-3 w-3" aria-hidden="true" />
+              Última auto-verificação:{" "}
+              <span className="text-foreground tabular-nums">
+                {data.lastAutoTestAt
+                  ? formatDistanceToNow(new Date(data.lastAutoTestAt), { locale: ptBR, addSuffix: true })
+                  : "aguardando 1ª execução"}
+              </span>
+            </span>
+            {(data.autoTestOkLastHour + data.autoTestFailLastHour) > 0 && (
+              <span className="tabular-nums">
+                Última hora:{" "}
+                <span className="text-success font-medium">{data.autoTestOkLastHour} OK</span>
+                {data.autoTestFailLastHour > 0 && (
+                  <>
+                    {" · "}
+                    <span className="text-destructive font-medium">{data.autoTestFailLastHour} falha{data.autoTestFailLastHour === 1 ? "" : "s"}</span>
+                  </>
+                )}
+              </span>
+            )}
           </div>
         )}
       </CardContent>
