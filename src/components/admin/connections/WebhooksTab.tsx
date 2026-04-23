@@ -15,6 +15,7 @@ import { FailedDeliveriesPanel } from "./FailedDeliveriesPanel";
 import { InboundEventsPanel } from "./InboundEventsPanel";
 import { EventsMultiSelect } from "./EventsMultiSelect";
 import { WebhookPlaygroundPanel } from "./WebhookPlaygroundPanel";
+import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 
 interface OutboundHook {
   id: string; name: string; url: string; events: string[]; active: boolean;
@@ -179,6 +180,11 @@ export function WebhooksTab() {
                         </Button>
                       </div>
                     </div>
+                    <ConnectionTestHistoryPanel
+                      type="webhook_outbound"
+                      connectionId={h.id}
+                      label={h.name}
+                    />
                   </div>
                 ))}
               </div>

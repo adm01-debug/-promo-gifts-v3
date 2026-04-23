@@ -1,10 +1,11 @@
 import { useMemo, useState } from "react";
-import { ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot } from "lucide-react";
+import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LatencyBadge } from "./LatencyBadge";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
-import { useConnectionTestHistory } from "@/hooks/useConnectionTestHistory";
+import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
+import { useConnectionTestHistory, type TestHistoryItem } from "@/hooks/useConnectionTestHistory";
 import type { ConnectionType } from "@/hooks/useConnectionTester";
 
 interface Props {
@@ -13,10 +14,14 @@ interface Props {
   connectionId?: string;
   /** Bump after a "Testar conexão" succeeds to refetch. */
   refreshKey?: number | string;
-  /** Label used inside the timeline drawer ("Ver tudo →"). */
+  /** Label used inside the timeline drawer ("Ver tudo →") and detail dialog. */
   label: string;
   className?: string;
+  /** Show the 5 latest tests inline by default (default: true). */
+  defaultPreview?: boolean;
 }
+
+const PREVIEW_COUNT = 5;
 
 function formatRelative(iso: string): string {
   const ts = new Date(iso).getTime();
@@ -42,13 +47,75 @@ function formatAbsolute(iso: string): string {
 
 type StatusFilter = "all" | "ok" | "fail";
 
+interface RowProps {
+  item: TestHistoryItem;
+  onClick: () => void;
+}
+
+function HistoryRow({ item: it, onClick }: RowProps) {
+  const Icon = it.ok ? CheckCircle2 : XCircle;
+  const tail = it.ok
+    ? `HTTP ${it.status ?? "?"}${it.message ? ` — ${it.message}` : ""}`
+    : (it.message || "Falha");
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onClick}
+        className="w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr] items-center gap-2 text-xs px-1.5 py-1 rounded hover:bg-muted/60 transition-colors text-left"
+        aria-label="Ver detalhes deste teste"
+      >
+        <Icon className={cn(
+          "h-3.5 w-3.5 shrink-0",
+          it.ok ? "text-green-700 dark:text-green-400" : "text-destructive",
+        )} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className="text-muted-foreground tabular-nums truncate inline-flex items-center gap-1">
+              {formatRelative(it.tested_at)}
+              {it.triggered_by === "cron" && (
+                <Bot className="h-3 w-3 text-muted-foreground/70" aria-label="Teste automático" />
+              )}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top">
+            {formatAbsolute(it.tested_at)}
+            {it.triggered_by === "cron" && " · automático (cron)"}
+            {it.triggered_by === "manual" && " · manual"}
+          </TooltipContent>
+        </Tooltip>
+        <LatencyBadge ms={it.latency_ms} />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span className={cn(
+              "truncate",
+              it.ok ? "text-foreground/80" : "text-destructive",
+            )}>
+              {tail}
+            </span>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-sm break-words">
+            {tail}
+          </TooltipContent>
+        </Tooltip>
+      </button>
+    </li>
+  );
+}
+
 export function ConnectionTestHistoryPanel({
-  type, envKey, connectionId, refreshKey, label, className,
+  type, envKey, connectionId, refreshKey, label, className, defaultPreview = true,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [detailsId, setDetailsId] = useState<string | null>(null);
+
+  // Always fetch when defaultPreview (preview needs data); otherwise only when expanded.
+  // Polling (60s) only when expanded — preview relies on initial fetch + refreshKey.
   const { items, total, loading } = useConnectionTestHistory({
-    type, envKey, connectionId, refreshKey, enabled: open, limit: 10,
+    type, envKey, connectionId, refreshKey,
+    enabled: expanded,
+    limit: 10,
   });
 
   const counts = useMemo(() => ({
@@ -63,6 +130,8 @@ export function ConnectionTestHistoryPanel({
     return items;
   }, [items, filter]);
 
+  const previewItems = useMemo(() => items.slice(0, PREVIEW_COUNT), [items]);
+
   const stats = useMemo(() => {
     if (items.length === 0) return null;
     const latencies = items.filter((i) => i.ok && i.latency_ms != null).map((i) => i.latency_ms!);
@@ -73,29 +142,32 @@ export function ConnectionTestHistoryPanel({
   }, [items, counts.ok]);
 
   const empty = total === 0 && !loading;
+  const showPreview = defaultPreview && !empty && !expanded;
 
   return (
     <div className={cn("border-t pt-3 mt-3", className)}>
       <button
         type="button"
-        onClick={() => !empty && setOpen((v) => !v)}
+        onClick={() => !empty && setExpanded((v) => !v)}
         disabled={empty}
         className={cn(
           "w-full flex items-center justify-between gap-2 text-xs font-medium",
           "rounded-md px-1 py-1 transition-colors",
           empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
         )}
-        aria-expanded={open}
+        aria-expanded={expanded}
       >
         <span className="inline-flex items-center gap-1.5">
           {empty ? (
             <History className="h-3.5 w-3.5" />
+          ) : defaultPreview ? (
+            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
           ) : (
-            <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-90")} />
+            <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
           )}
-          Histórico de testes ({total})
+          {showPreview ? `Últimas verificações (${total})` : `Histórico de testes (${total})`}
         </span>
-        {stats && !open && (
+        {stats && !expanded && (
           <span className={cn(
             "text-[11px] tabular-nums",
             stats.rate === 100
@@ -107,7 +179,27 @@ export function ConnectionTestHistoryPanel({
         )}
       </button>
 
-      {open && !empty && (
+      {/* Preview inline (5 itens, sem filtros/footer) */}
+      {showPreview && (
+        <div className="mt-2">
+          {loading && previewItems.length === 0 ? (
+            <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
+              <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
+            </div>
+          ) : (
+            <TooltipProvider delayDuration={150}>
+              <ul className="space-y-0.5">
+                {previewItems.map((it) => (
+                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} />
+                ))}
+              </ul>
+            </TooltipProvider>
+          )}
+        </div>
+      )}
+
+      {/* Expandido: filtros + lista + stats + drawer */}
+      {expanded && !empty && (
         <div className="mt-2 space-y-2 animate-in fade-in-50 duration-200">
           <div className="flex items-center gap-1 px-1">
             {([
@@ -151,53 +243,10 @@ export function ConnectionTestHistoryPanel({
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
-              <ul className="space-y-1">
-                {visibleItems.map((it) => {
-                  const Icon = it.ok ? CheckCircle2 : XCircle;
-                  const tail = it.ok
-                    ? `HTTP ${it.status ?? "?"}${it.message ? ` — ${it.message}` : ""}`
-                    : (it.message || "Falha");
-                  return (
-                    <li
-                      key={it.id}
-                      className="grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr] items-center gap-2 text-xs px-1.5 py-1 rounded hover:bg-muted/40"
-                    >
-                      <Icon className={cn(
-                        "h-3.5 w-3.5 shrink-0",
-                        it.ok ? "text-green-700 dark:text-green-400" : "text-destructive",
-                      )} />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="text-muted-foreground tabular-nums truncate cursor-default inline-flex items-center gap-1">
-                            {formatRelative(it.tested_at)}
-                            {it.triggered_by === "cron" && (
-                              <Bot className="h-3 w-3 text-muted-foreground/70" aria-label="Teste automático" />
-                            )}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top">
-                          {formatAbsolute(it.tested_at)}
-                          {it.triggered_by === "cron" && " · automático (cron)"}
-                          {it.triggered_by === "manual" && " · manual"}
-                        </TooltipContent>
-                      </Tooltip>
-                      <LatencyBadge ms={it.latency_ms} />
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className={cn(
-                            "truncate cursor-default",
-                            it.ok ? "text-foreground/80" : "text-destructive",
-                          )}>
-                            {tail}
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent side="top" className="max-w-sm break-words">
-                          {tail}
-                        </TooltipContent>
-                      </Tooltip>
-                    </li>
-                  );
-                })}
+              <ul className="space-y-0.5">
+                {visibleItems.map((it) => (
+                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} />
+                ))}
               </ul>
             </TooltipProvider>
           )}
@@ -219,6 +268,16 @@ export function ConnectionTestHistoryPanel({
           )}
         </div>
       )}
+
+      <ConnectionTestDetailsDialog
+        open={detailsId !== null}
+        onOpenChange={(v) => { if (!v) setDetailsId(null); }}
+        connectionType={type}
+        connectionLabel={label}
+        envKey={envKey}
+        connectionId={connectionId}
+        historyId={detailsId ?? undefined}
+      />
     </div>
   );
 }
