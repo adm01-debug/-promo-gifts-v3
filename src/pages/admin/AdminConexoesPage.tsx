@@ -8,8 +8,14 @@ import { McpTab } from "@/components/admin/connections/McpTab";
 import { WebhooksTab } from "@/components/admin/connections/WebhooksTab";
 import { IntegrationsHealthCard } from "@/components/admin/connections/IntegrationsHealthCard";
 import { ConnectionsOverviewTable } from "@/components/admin/connections/ConnectionsOverviewTable";
+import { SmokeTestChecklist } from "@/components/admin/connections/SmokeTestChecklist";
+import { useEffect } from "react";
+import { useSecretsManager } from "@/hooks/useSecretsManager";
 
 export default function AdminConexoesPage() {
+  const { secrets, list } = useSecretsManager();
+  useEffect(() => { list(); }, [list]);
+
   return (
     <div className="container mx-auto py-6 space-y-6 max-w-7xl">
       <PageSEO title="Conexões | Admin" description="Hub central de integrações externas: Supabase, Bitrix24, n8n, MCP, Webhooks." />
@@ -17,12 +23,13 @@ export default function AdminConexoesPage() {
         <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
           <Plug className="h-5 w-5 text-primary" />
         </div>
-        <div>
+        <div className="flex-1">
           <h1 className="text-2xl font-bold">Conexões</h1>
           <p className="text-sm text-muted-foreground">
             Hub central de integrações externas e credenciais do sistema.
           </p>
         </div>
+        <SmokeTestChecklist availableSecrets={secrets} />
       </div>
 
       <IntegrationsHealthCard />
