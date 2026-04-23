@@ -37,6 +37,8 @@ export function GlobalRefreshFromDbButton({
   const [isRunning, setIsRunning] = useState(false);
   const [cooldownUntil, setCooldownUntil] = useState(0);
   const [now, setNow] = useState(() => Date.now());
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [dontAskAgain, setDontAskAgain] = useState(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const inCooldown = cooldownUntil > now;
