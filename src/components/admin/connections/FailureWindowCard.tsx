@@ -68,8 +68,8 @@ export function FailureWindowCard() {
     <Card className="border-dashed">
       <CardContent className="flex flex-wrap items-center gap-3 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-md bg-amber-500/10 flex items-center justify-center">
-            <ShieldAlert className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+          <div className="h-8 w-8 rounded-md bg-warning/10 flex items-center justify-center">
+            <ShieldAlert className="h-4 w-4 text-warning" />
           </div>
           <div className="leading-tight">
             <div className="text-sm font-medium">Janela de falha contínua</div>
