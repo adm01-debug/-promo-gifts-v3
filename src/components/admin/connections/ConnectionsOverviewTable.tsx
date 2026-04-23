@@ -101,10 +101,19 @@ function formatRelative(iso: string | null): string {
   return `há ${Math.round(diff / 86_400_000)}d`;
 }
 
-function rowStatus(r: OverviewRow): "active" | "degraded" | "error" | "unconfigured" | "disabled" {
-  if (r.status === "disabled") return "disabled";
-  if (!r.last_test_at) return "unconfigured";
-  return r.last_test_ok ? "active" : "error";
+function rowStatus(
+  r: OverviewRow,
+): "active" | "degraded" | "error" | "unconfigured" | "disabled" | "never_tested" {
+  // Persisted states (external_connections.status) take precedence
+  const persisted = (r.status ?? "").toLowerCase();
+  if (persisted === "disabled" || persisted === "inactive") return "disabled";
+  if (persisted === "unconfigured") return "unconfigured";
+  // Configured but never tested
+  if (!r.last_test_at) return "never_tested";
+  // Tested at least once → derive from last result
+  if (r.last_test_ok === true) return "active";
+  if (r.last_test_ok === false) return "error";
+  return "degraded";
 }
 
 export function ConnectionsOverviewTable() {
