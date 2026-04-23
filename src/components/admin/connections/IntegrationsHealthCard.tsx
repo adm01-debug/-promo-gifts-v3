@@ -19,6 +19,7 @@ import {
   RefreshCw,
   ShieldCheck,
   Loader2,
+  Bot,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
@@ -35,10 +36,14 @@ interface HealthData {
   mcpKeysUsed24h: number;
   staleSecrets: number; // secrets sem rotação há >90 dias (ou nunca rotacionados, com webhooks ativos)
   autoDisabledWebhooks: number;
+  lastAutoTestAt: string | null;
+  autoTestOkLastHour: number;
+  autoTestFailLastHour: number;
 }
 
 async function fetchHealth(): Promise<HealthData> {
   const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+  const sinceLastHour = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const ninetyDaysAgo = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
 
   const [
@@ -80,6 +85,22 @@ async function fetchHealth(): Promise<HealthData> {
       .not("auto_disabled_at", "is", null),
   ]);
 
+  // Auto-test stats (cron-triggered runs in the last hour + most recent timestamp)
+  const [{ data: autoTestRecent }, { data: lastAutoTest }] = await Promise.all([
+    supabase
+      .from("connection_test_history")
+      .select("success")
+      .eq("triggered_by", "cron")
+      .gte("tested_at", sinceLastHour),
+    supabase
+      .from("connection_test_history")
+      .select("tested_at")
+      .eq("triggered_by", "cron")
+      .order("tested_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
+
   const total = deliveries24h?.length ?? 0;
   const success = deliveries24h?.filter((d) => d.success).length ?? 0;
   const rate = total > 0 ? (success / total) * 100 : null;
@@ -101,6 +122,9 @@ async function fetchHealth(): Promise<HealthData> {
     mcpKeysUsed24h: mcpKeysUsed24h ?? 0,
     staleSecrets,
     autoDisabledWebhooks: autoDisabledWebhooks ?? 0,
+    lastAutoTestAt: lastAutoTest?.tested_at ?? null,
+    autoTestOkLastHour: (autoTestRecent ?? []).filter((r) => r.success).length,
+    autoTestFailLastHour: (autoTestRecent ?? []).filter((r) => !r.success).length,
   };
 }
 
@@ -298,6 +322,31 @@ export function IntegrationsHealthCard() {
               value={String(data.mcpKeysUsed24h)}
               tone={data.mcpKeysUsed24h > 0 ? "success" : "default"}
             />
+          </div>
+        )}
+        {data && (
+          <div className="flex items-center justify-between gap-2 pt-1 text-[11px] text-muted-foreground border-t border-border/40">
+            <span className="inline-flex items-center gap-1.5">
+              <Bot className="h-3 w-3" aria-hidden="true" />
+              Última auto-verificação:{" "}
+              <span className="text-foreground tabular-nums">
+                {data.lastAutoTestAt
+                  ? formatDistanceToNow(new Date(data.lastAutoTestAt), { locale: ptBR, addSuffix: true })
+                  : "aguardando 1ª execução"}
+              </span>
+            </span>
+            {(data.autoTestOkLastHour + data.autoTestFailLastHour) > 0 && (
+              <span className="tabular-nums">
+                Última hora:{" "}
+                <span className="text-success font-medium">{data.autoTestOkLastHour} OK</span>
+                {data.autoTestFailLastHour > 0 && (
+                  <>
+                    {" · "}
+                    <span className="text-destructive font-medium">{data.autoTestFailLastHour} falha{data.autoTestFailLastHour === 1 ? "" : "s"}</span>
+                  </>
+                )}
+              </span>
+            )}
           </div>
         )}
       </CardContent>

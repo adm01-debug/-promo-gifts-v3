@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.mcp-server]
 verify_jwt = false
+
+[functions.connections-auto-test]
+verify_jwt = false

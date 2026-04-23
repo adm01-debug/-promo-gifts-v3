@@ -607,6 +607,7 @@ export type Database = {
           status_code: number | null
           success: boolean
           tested_at: string
+          triggered_by: string
         }
         Insert: {
           connection_id: string
@@ -617,6 +618,7 @@ export type Database = {
           status_code?: number | null
           success?: boolean
           tested_at?: string
+          triggered_by?: string
         }
         Update: {
           connection_id?: string
@@ -627,6 +629,7 @@ export type Database = {
           status_code?: number | null
           success?: boolean
           tested_at?: string
+          triggered_by?: string
         }
         Relationships: [
           {
