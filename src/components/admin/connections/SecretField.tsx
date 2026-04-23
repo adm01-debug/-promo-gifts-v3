@@ -609,6 +609,16 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               </div>
             </div>
           )}
+          {lastError && !saving && value.length >= MIN_SUFFIX_LENGTH && (
+            <SecretErrorAlert
+              error={lastError}
+              onRetry={handleSave}
+              retryDisabled={!canSave}
+              onViewDetails={handleViewDetails}
+              httpStatus={testDetailsState.details?.response.status ?? null}
+              latencyMs={testDetailsState.details?.timing.latency_ms ?? null}
+            />
+          )}
           {value.length >= MIN_SUFFIX_LENGTH && !validation.ok && validation.message && (
             <p className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" /> {validation.message}
