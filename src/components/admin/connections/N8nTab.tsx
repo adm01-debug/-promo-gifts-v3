@@ -80,6 +80,12 @@ export function N8nTab() {
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
             <RefreshFromDbButton onRefreshed={list} />
           </div>
+          <TestProgressIndicator
+            phase={phase}
+            latencyMs={last?.latency_ms ?? null}
+            message={last?.ok ? `HTTP ${last?.status ?? 200}` : (last?.message ?? null)}
+            onDismiss={() => setPhase("idle")}
+          />
           <LastTestLine
             info={last}
             onClick={last?.tested_at ? () => setDetailsDialogOpen(true) : undefined}
@@ -92,7 +98,12 @@ export function N8nTab() {
               />
             }
           />
-          <ConnectionTestHistoryPanel type="n8n" label="n8n" refreshKey={historyKey} />
+          <ConnectionTestHistoryPanel
+            type="n8n"
+            label="n8n"
+            refreshKey={historyKey}
+            pendingTest={pendingStartedAt ? { startedAt: pendingStartedAt } : null}
+          />
           <ConnectionTestDetailsDialog
             open={detailsDialogOpen}
             onOpenChange={setDetailsDialogOpen}
