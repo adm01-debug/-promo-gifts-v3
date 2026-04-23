@@ -68,9 +68,9 @@ export function N8nTab() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 max-w-2xl">
-          <SecretField label="Base URL" secretName="N8N_BASE_URL" status={base} onSaved={list}
+          <SecretField label="Base URL" secretName="N8N_BASE_URL" status={base} onSaved={list} connectionId="n8n"
             helperText="Ex: https://n8n.suaempresa.com" />
-          <SecretField label="API Key" secretName="N8N_API_KEY" status={get("N8N_API_KEY")} onSaved={list} />
+          <SecretField label="API Key" secretName="N8N_API_KEY" status={get("N8N_API_KEY")} onSaved={list} connectionId="n8n" />
           <div className="pt-2 flex flex-wrap gap-2">
             <Button size="sm" disabled={isTesting || !credsLooksValid}
               title={!credsOk ? "Configure a Base URL primeiro"

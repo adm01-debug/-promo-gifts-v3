@@ -74,12 +74,12 @@ export function Bitrix24Tab() {
       </CardHeader>
       <CardContent className="space-y-4 max-w-2xl">
         <SecretField label="Webhook URL completa"
-          secretName="BITRIX24_WEBHOOK_URL" status={wh} onSaved={list}
+          secretName="BITRIX24_WEBHOOK_URL" status={wh} onSaved={list} connectionId="bitrix24"
           helperText="Ex: https://seudominio.bitrix24.com.br/rest/1/abc123xyz/" />
         <SecretField label="Domínio Bitrix24"
-          secretName="BITRIX24_DOMAIN" status={get("BITRIX24_DOMAIN")} onSaved={list} />
-        <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
-        <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
+          secretName="BITRIX24_DOMAIN" status={get("BITRIX24_DOMAIN")} onSaved={list} connectionId="bitrix24" />
+        <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} connectionId="bitrix24" />
+        <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} connectionId="bitrix24" />
         <ConnectionPreflightAlert issues={preflightIssues} />
         <div className="pt-2 flex flex-wrap gap-2">
           <Button size="sm" disabled={isTesting || !canTest}

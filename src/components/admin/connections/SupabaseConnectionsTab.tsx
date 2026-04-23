@@ -139,9 +139,9 @@ export function SupabaseConnectionsTab() {
                 </p>
               ) : (
                 <>
-                  <SecretField label="URL do projeto" secretName={env.urlSecret!} status={url} onSaved={list} />
-                  <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} />
-                  <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list}
+                  <SecretField label="URL do projeto" secretName={env.urlSecret!} status={url} onSaved={list} connectionId={env.key} />
+                  <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} connectionId={env.key} />
+                  <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list} connectionId={env.key}
                     helperText="Nunca exposto ao frontend. Usado apenas em edge functions admin." />
                   <ConnectionPreflightAlert issues={preflightIssues} />
                   <div className="flex flex-wrap gap-2 pt-2">
