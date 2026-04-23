@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger,
 } from "@/components/ui/dialog";
+import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 
 interface McpKey {
   id: string;
@@ -109,6 +110,7 @@ export function McpTab() {
               Autentique enviando o header <code className="bg-muted px-1 rounded">X-MCP-Key</code> com sua chave.
             </p>
           </div>
+          <ConnectionTestHistoryPanel type="mcp" label="Servidor MCP" />
         </CardContent>
       </Card>
 
