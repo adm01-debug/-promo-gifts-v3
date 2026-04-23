@@ -161,12 +161,12 @@ export function RetestButton({
         timeoutRef.current = null;
       }
       setIsRunning(false);
-      const until = Date.now() + cooldownMs;
+      const until = Date.now() + effectiveCooldownMs;
       setCooldownUntil(until);
       setNow(Date.now());
       writePersistedCooldown(cooldownKey, until);
     }
-  }, [isRunning, inCooldown, disabled, onRetest, cooldownMs, cooldownKey, timeoutMs]);
+  }, [isRunning, inCooldown, disabled, onRetest, effectiveCooldownMs, cooldownKey, timeoutMs]);
 
   // Cleanup persisted entry once the cooldown naturally expires.
   useEffect(() => {
