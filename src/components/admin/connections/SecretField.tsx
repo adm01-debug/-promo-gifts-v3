@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert, Sparkles } from "lucide-react";
-import { validateSecret, getMinLength } from "./secretValidators";
+import { validateSecret, getMinLength, MIN_SUFFIX_LENGTH } from "./secretValidators";
 import { normalizeSecret } from "./secretNormalizers";
 import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
@@ -492,7 +492,24 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               retryDisabled={!canSave}
             />
           )}
-          {value.length > 0 && !validation.ok && validation.message && (
+          {value.length > 0 && value.length < MIN_SUFFIX_LENGTH && (
+            <div
+              role="alert"
+              aria-live="polite"
+              className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs text-destructive"
+            >
+              <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+              <div className="min-w-0 space-y-0.5">
+                <p className="font-medium">
+                  Sufixo inválido — mínimo {MIN_SUFFIX_LENGTH} caracteres
+                </p>
+                <p className="break-words text-destructive/80">
+                  O valor tem apenas {value.length} {value.length === 1 ? "caractere" : "caracteres"}. O sufixo mascarado exibido na UI (••••XXXX) precisa de pelo menos {MIN_SUFFIX_LENGTH} caracteres para identificar a credencial sem expor o segredo. Salvamento bloqueado.
+                </p>
+              </div>
+            </div>
+          )}
+          {value.length >= MIN_SUFFIX_LENGTH && !validation.ok && validation.message && (
             <p className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" /> {validation.message}
             </p>
