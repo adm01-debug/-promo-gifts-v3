@@ -80,6 +80,7 @@ export function N8nTab() {
             </Button>
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
             <RefreshFromDbButton onRefreshed={list} />
+            <RetestCooldownSelector className="ml-auto" />
           </div>
           <TestProgressIndicator
             phase={phase}
