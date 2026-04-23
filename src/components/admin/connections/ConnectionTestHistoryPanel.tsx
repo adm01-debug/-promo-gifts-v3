@@ -130,7 +130,7 @@ export function ConnectionTestHistoryPanel({
     return items;
   }, [items, filter]);
 
-  const previewItems = useMemo(() => items.slice(0, PREVIEW_COUNT), [items]);
+  const previewItems = useMemo(() => visibleItems.slice(0, PREVIEW_COUNT), [visibleItems]);
 
   const stats = useMemo(() => {
     if (items.length === 0) return null;
