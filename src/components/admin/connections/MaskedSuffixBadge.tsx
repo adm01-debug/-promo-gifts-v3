@@ -1,7 +1,7 @@
 import { AlertTriangle, ShieldAlert, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { diagnoseMaskedSuffix, formatMaskedSuffix } from "@/lib/masked-suffix";
+import { diagnoseMaskedSuffix, formatDisplaySuffix } from "@/lib/masked-suffix";
 
 interface Props {
   /** Sufixo cru retornado pelo backend (pode ser null, curto ou completo). */
