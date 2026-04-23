@@ -16,16 +16,22 @@ import { useCatalogFiltering } from "@/hooks/useCatalogFiltering";
 import { useComparisonSync } from "@/hooks/useComparisonSync";
 import { smokeHook } from "./_helpers/smoke-template";
 
+// Proxy que retorna [] para qualquer campo de array acessado, evitando crash
+// no useMemo do hook (que lê dezenas de campos do FilterState).
+const filtersProxy = new Proxy({}, {
+  get: (_t, prop) => {
+    if (prop === "stock") return "all";
+    if (prop === "search") return "";
+    if (prop === "priceRange" || prop === "minQuantityRange") return [0, 1000];
+    if (typeof prop === "string" && (prop.endsWith("Only") || prop === "hasImage")) return false;
+    return [];
+  },
+}) as never;
+
 smokeHook("useCatalogFiltering (vazio)", () =>
   useCatalogFiltering({
     realProducts: [],
-    filters: {
-      colors: [], colorGroups: [], colorVariations: [], categories: [],
-      materials: [], suppliers: [], priceRange: [0, 1000], minQuantityRange: [0, 10000],
-      stock: "all", stockStatus: [], search: "", brands: [], tags: [],
-      verifiedOnly: false, hasImage: false, sustainableOnly: false,
-      certifications: [],
-    } as never,
+    filters: filtersProxy,
     sortBy: "name",
     hasFuzzySearch: false,
     fuzzySearchResults: [],
