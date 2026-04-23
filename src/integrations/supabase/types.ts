@@ -4209,6 +4209,7 @@ export type Database = {
           week_start: string
         }[]
       }
+      get_connections_auto_test_interval: { Args: never; Returns: number }
       get_favorites_weekly_count: {
         Args: { _weeks?: number }
         Returns: {
@@ -4385,6 +4386,10 @@ export type Database = {
         }[]
       }
       seed_discount_test_users: { Args: never; Returns: Json }
+      set_connections_auto_test_interval: {
+        Args: { minutes: number }
+        Returns: number
+      }
       snapshot_hardening_status: { Args: never; Returns: Json }
       submit_quote_response: {
         Args: { _response: string; _response_notes?: string; _token: string }

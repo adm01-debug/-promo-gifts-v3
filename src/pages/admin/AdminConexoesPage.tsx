@@ -9,6 +9,7 @@ import { WebhooksTab } from "@/components/admin/connections/WebhooksTab";
 import { IntegrationsHealthCard } from "@/components/admin/connections/IntegrationsHealthCard";
 import { ConnectionsOverviewTable } from "@/components/admin/connections/ConnectionsOverviewTable";
 import { SmokeTestChecklist } from "@/components/admin/connections/SmokeTestChecklist";
+import { AutoTestIntervalCard } from "@/components/admin/connections/AutoTestIntervalCard";
 import { CredentialsSourceFilterProvider } from "@/components/admin/connections/CredentialsSourceFilterContext";
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
 import { useEffect } from "react";
@@ -36,6 +37,8 @@ export default function AdminConexoesPage() {
         </div>
 
         <IntegrationsHealthCard secrets={secrets} />
+
+        <AutoTestIntervalCard />
 
         {secrets.length > 0 && (
           <CredentialsSourceFilter secrets={secrets} className="rounded-lg border bg-card px-4 py-3" />
