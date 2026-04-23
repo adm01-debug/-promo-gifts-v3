@@ -12,7 +12,8 @@ import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
-import { hasSuspiciousLength } from "./secretValidators";
+import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
+import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
@@ -34,6 +35,10 @@ export function Bitrix24Tab() {
   const credsOk = !!wh?.has_value;
   const suspicious = hasSuspiciousLength(secrets, ["BITRIX24_WEBHOOK_URL"]);
   const credsLooksValid = credsOk && !suspicious;
+  const preflightIssues = getPreflightIssues(secrets, [
+    { name: "BITRIX24_WEBHOOK_URL", label: "Webhook URL" },
+  ]);
+  const canTest = credsLooksValid && preflightIssues.length === 0;
   const status: "active" | "error" | "unconfigured" = !credsOk
     ? "unconfigured"
     : last?.ok === false ? "error" : "active";
@@ -66,9 +71,12 @@ export function Bitrix24Tab() {
           secretName="BITRIX24_DOMAIN" status={get("BITRIX24_DOMAIN")} onSaved={list} />
         <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
         <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
+        <ConnectionPreflightAlert issues={preflightIssues} />
         <div className="pt-2 flex flex-wrap gap-2">
-          <Button size="sm" disabled={isTesting || !credsLooksValid}
-            title={!credsOk ? "Configure o Webhook URL primeiro"
+          <Button size="sm" disabled={isTesting || !canTest}
+            title={preflightIssues.length > 0
+              ? "Corrija o campo acima antes de testar"
+              : !credsOk ? "Configure o Webhook URL primeiro"
               : !credsLooksValid ? "Webhook com formato suspeito (comprimento curto) — re-salve antes de testar"
               : "Testar conexão"}
             onClick={onTest}>
@@ -83,8 +91,11 @@ export function Bitrix24Tab() {
           action={
             <RetestButton
               onRetest={onTest}
-              disabled={!credsLooksValid}
-              disabledReason={!credsOk ? "Configure o Webhook URL primeiro" : "Webhook com formato suspeito — re-salve antes de testar"}
+              disabled={!canTest}
+              disabledReason={preflightIssues.length > 0
+                ? "Corrija os campos sinalizados acima antes de testar"
+                : !credsOk ? "Configure o Webhook URL primeiro"
+                : "Webhook com formato suspeito — re-salve antes de testar"}
             />
           }
         />

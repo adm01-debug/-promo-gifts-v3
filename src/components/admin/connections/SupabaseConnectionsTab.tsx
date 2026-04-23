@@ -13,7 +13,8 @@ import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 import { RetestButton } from "./RetestButton";
 import { ConnectionTestDetailsDialog } from "./ConnectionTestDetailsDialog";
 import { RefreshFromDbButton } from "./RefreshFromDbButton";
-import { hasSuspiciousLength } from "./secretValidators";
+import { hasSuspiciousLength, getPreflightIssues } from "./secretValidators";
+import { ConnectionPreflightAlert } from "./ConnectionPreflightAlert";
 
 const ENVS = [
   {
@@ -96,6 +97,12 @@ export function SupabaseConnectionsTab() {
           ? hasSuspiciousLength(secrets, [env.urlSecret!, env.anonSecret!, env.serviceSecret!])
           : false;
         const credsLooksValid = credsConfigured && !suspicious;
+        const preflightIssues = !env.readOnly
+          ? getPreflightIssues(secrets, [
+              { name: env.urlSecret!, label: "URL do projeto" },
+              { name: env.serviceSecret!, label: "Service Role Key" },
+            ])
+          : [];
         const status: "active" | "error" | "unconfigured" = env.readOnly
           ? "active"
           : !credsConfigured
@@ -103,7 +110,7 @@ export function SupabaseConnectionsTab() {
             : last?.ok === false
               ? "error"
               : "active";
-        const canTest = !env.readOnly && credsLooksValid;
+        const canTest = !env.readOnly && credsLooksValid && preflightIssues.length === 0;
         return (
           <Card key={env.key}>
             <CardHeader>
@@ -127,12 +134,15 @@ export function SupabaseConnectionsTab() {
                   <SecretField label="Anon Key" secretName={env.anonSecret!} status={anon} onSaved={list} />
                   <SecretField label="Service Role Key" secretName={env.serviceSecret!} status={svc} onSaved={list}
                     helperText="Nunca exposto ao frontend. Usado apenas em edge functions admin." />
+                  <ConnectionPreflightAlert issues={preflightIssues} />
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Button
                       size="sm"
                       variant="outline"
                       disabled={isTesting || !canTest}
-                      title={!credsConfigured ? "Configure URL e Service Role Key primeiro"
+                      title={preflightIssues.length > 0
+                        ? `Corrija ${preflightIssues.length === 1 ? "o campo" : "os campos"} acima antes de testar`
+                        : !credsConfigured ? "Configure URL e Service Role Key primeiro"
                         : !credsLooksValid ? "Credenciais com formato suspeito (comprimento curto) — re-salve antes de testar"
                         : "Testar conexão real"}
                       onClick={() => handleTest(env.envKey!, env.key)}
@@ -154,7 +164,10 @@ export function SupabaseConnectionsTab() {
                       <RetestButton
                         onRetest={() => handleTest(env.envKey!, env.key)}
                         disabled={!canTest}
-                        disabledReason={!credsConfigured ? "Configure URL e Service Role Key primeiro" : "Credenciais com formato suspeito — re-salve antes de testar"}
+                        disabledReason={preflightIssues.length > 0
+                          ? "Corrija os campos sinalizados acima antes de testar"
+                          : !credsConfigured ? "Configure URL e Service Role Key primeiro"
+                          : "Credenciais com formato suspeito — re-salve antes de testar"}
                       />
                     }
                   />
