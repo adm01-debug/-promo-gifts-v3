@@ -3,6 +3,7 @@ import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface RetestButtonProps {
   onRetest: () => Promise<void> | void;
@@ -16,6 +17,10 @@ interface RetestButtonProps {
    *  with [data-retest-scope] contains the focus. Default: "r". Pass null to
    *  disable. Ignored when typing inside inputs/textareas/contenteditable. */
   shortcutKey?: string | null;
+  /** Hard timeout (ms) after which the running state is cleared even if the
+   *  underlying tester promise hasn't resolved — prevents a stuck "Testando…"
+   *  state when the endpoint hangs. Default: 30000 (30s). Pass 0 to disable. */
+  timeoutMs?: number;
 }
 
 type DisabledKind = "running" | "cooldown" | "credentials" | null;
