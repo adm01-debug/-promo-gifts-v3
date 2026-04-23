@@ -177,11 +177,13 @@ export function ConnectionTimelineDrawer({
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <SheetTrigger asChild>
-        <Button variant={triggerVariant} size={triggerSize}>
-          <History className="h-4 w-4 mr-1" /> Histórico
-        </Button>
-      </SheetTrigger>
+      {!hideTrigger && (
+        <SheetTrigger asChild>
+          <Button variant={triggerVariant} size={triggerSize}>
+            <History className="h-4 w-4 mr-1" /> Histórico
+          </Button>
+        </SheetTrigger>
+      )}
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
