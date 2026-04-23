@@ -176,6 +176,37 @@ export function NotificationsBadgeStatsPanel() {
     return samples.length - suspiciousStreakSeconds;
   }, [samples.length, suspiciousStreakSeconds]);
 
+  /**
+   * Per-second samples carry CUMULATIVE counters (totals since last reset),
+   * so the # of triggers/fetches that happened *inside* the streak window is
+   * the delta between the last sample of the streak and the sample immediately
+   * BEFORE the streak started. Falls back to the first streak sample's totals
+   * when the streak begins at index 0 (no "before" sample available).
+   */
+  const streakWindowStats = useMemo(() => {
+    if (streakStartIdx < 0 || samples.length === 0) {
+      return { triggers: 0, fetches: 0, ratio: 0, fromT: 0, toT: 0, seconds: 0 };
+    }
+    const first = samples[streakStartIdx];
+    const last = samples[samples.length - 1];
+    const before = streakStartIdx > 0 ? samples[streakStartIdx - 1] : null;
+    const triggers = before
+      ? Math.max(0, last.triggers - before.triggers)
+      : last.triggers - first.triggers + first.triggers; // == last.triggers when no "before"
+    const fetches = before
+      ? Math.max(0, last.fetches - before.fetches)
+      : last.fetches - first.fetches + first.fetches;
+    const ratio = triggers === 0 ? 0 : fetches / triggers;
+    return {
+      triggers,
+      fetches,
+      ratio,
+      fromT: first.t,
+      toT: last.t,
+      seconds: suspiciousStreakSeconds,
+    };
+  }, [samples, streakStartIdx, suspiciousStreakSeconds]);
+
   if (!visible) return null;
 
   const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow, coalescingByTrigger } = snapshot;
