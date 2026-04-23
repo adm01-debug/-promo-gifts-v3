@@ -1,148 +1,116 @@
 
 
-# Filtro "Banco vs Variável de ambiente" em `/admin/conexoes`
+# Modal de confirmação antes de rotacionar credencial
 
 ## Diagnóstico
 
-O backend `secrets-manager` já devolve `source: "db" | "env" | "none"` em cada credencial listada (linhas 162/172 da edge function). O frontend já mostra um hint sutil "· env" no `SecretField`, mas não há:
+Hoje em `SecretField.tsx`, ao clicar **"Rotacionar"** com um valor novo digitado, a função `rotateSecret` é chamada imediatamente — sem confirmação. Como rotação é uma operação destrutiva (sobrescreve o segredo atual e gera entrada permanente em `secret_rotation_log`), faz sentido pedir confirmação explícita.
 
-- Visão consolidada de quais credenciais ainda vêm de variáveis de ambiente
-- Filtro para esconder/mostrar credenciais por origem
-- Ação de "migrar para o banco" (re-salvar com mesmo valor)
-
-Hoje o admin precisa abrir cada aba e olhar campo por campo para descobrir o que ainda está em env.
+Já existe `src/components/ui/ConfirmDialog.tsx` com variante `warning`, ícone `AlertTriangle`, suporte a `loading` e bloco `impactPreview` — perfeito para reutilizar.
 
 ## Solução
 
-### 1. Novo componente `CredentialsSourceFilter` (chips no topo da página)
+### 1. Novo modal `RotateSecretConfirmDialog`
 
-Renderiza logo acima das `Tabs` em `AdminConexoesPage`, lendo o resultado do `secrets-manager` action `list`. Mostra contagens por origem:
+Componente fino (~50 linhas) que envolve o `ConfirmDialog` existente com conteúdo específico para rotação:
 
 ```text
-Origem das credenciais:
-[ Todas (13) ] [ ✓ Banco (8) ] [ ⚠ Env (3) ] [ ○ Não configuradas (2) ]
-                                  └ recomendado migrar
+┌─ ⚠ Rotacionar credencial? ──────────────────────────┐
+│                                                      │
+│ Você está prestes a rotacionar:                     │
+│   SUPABASE_SERVICE_ROLE_KEY                         │
+│                                                      │
+│ ┌──────────────────────────────────────────────┐   │
+│ │ Valor atual:  ••••YZ89  (203 chars)          │   │
+│ │ Novo valor:   ••••KM47  (198 chars)          │   │
+│ └──────────────────────────────────────────────┘   │
+│                                                      │
+│ Isto irá:                                            │
+│  • Sobrescrever a credencial em uso agora            │
+│  • Registrar a rotação no histórico de auditoria    │
+│  • Disparar verificação automática da nova chave    │
+│                                                      │
+│ Esta ação não pode ser desfeita.                    │
+│                                                      │
+│        [ Cancelar ]   [ Sim, rotacionar ]           │
+└──────────────────────────────────────────────────────┘
 ```
 
-- Estado padrão: **Todas** (sem filtro)
-- Estado é mantido em `URLSearchParams` (`?source=env`) para permitir compartilhar link "veja o que falta migrar"
-- Contagens calculadas client-side a partir do `secrets` array já carregado por `useSecretsManager`
+Props:
+- `secretName: string` — nome da credencial (ex: `SUPABASE_SERVICE_ROLE_KEY`)
+- `currentSuffix: string | null` — sufixo mascarado atual (do `status.masked_suffix`)
+- `currentLength: number | null` — tamanho atual
+- `newSuffix: string` — últimos 4 chars do novo valor digitado (calculado client-side)
+- `newLength: number` — tamanho do novo valor
+- `notes?: string` — opcional (campo livre para anotação de auditoria, ver item 3)
+- `onConfirm: (notes?: string) => Promise<void>`
+- `loading: boolean`
+- `open` / `onOpenChange`
 
-### 2. Contexto compartilhado `CredentialsSourceFilterContext`
+Internamente usa `<ConfirmDialog variant="warning" impactPreview={...} />` com:
+- `title: "Rotacionar {secretName}?"`
+- `confirmLabel: "Sim, rotacionar"`
+- `cancelLabel: "Cancelar"`
+- O bloco "Valor atual / Novo valor" renderizado como `children` extras antes do `impactPreview`
 
-Provider colocado em `AdminConexoesPage` que expõe:
+### 2. Integração no `SecretField.tsx`
+
+Substituir o handler atual de "Rotacionar" por:
 
 ```ts
-{
-  filter: "all" | "db" | "env" | "none",
-  setFilter: (f) => void,
-  matchesFilter: (status?: SecretStatus) => boolean,
-}
+// antes: chama rotateSecret direto
+onClick={() => handleRotate()}
+
+// depois:
+onClick={() => setRotateConfirmOpen(true)}
 ```
 
-Cada `SecretField` consome o contexto via `useCredentialsSourceFilter()`. Quando o filtro está ativo e o secret não bate:
-- Renderiza com `opacity-40` + `pointer-events-none` (visual fade, não esconde) — assim o admin ainda vê a estrutura do card mas o foco vai para o que importa
-- Alternativa por prop `hideWhenFiltered` para casos onde queremos esconder totalmente (fica fora desta onda)
+E ao confirmar no modal, executa o `rotateSecret` real (mantendo o flash verde, toast e bump de `historyRefreshKey` que já funcionam).
 
-Cards inteiros que tenham 100% dos secrets fora do filtro recebem badge sutil "Sem credenciais nesta origem" no rodapé, mas continuam visíveis.
-
-### 3. Visual reforçado por origem dentro do `SecretField`
-
-Substitui o `· env` discreto atual por um badge inline mais visível ao lado do sufixo:
-
-```text
-Service Role Key   ✓ ••••YZ89 (203 chars) · atualizado há 2d  [DB]
-Anon Key           ✓ ••••AB12 (104 chars)                      [ENV ⚠]
-Webhook URL        — Não configurado                           [—]
+Calcular `newSuffix` no frontend a partir do valor digitado:
+```ts
+const newSuffix = newValue.slice(-4);
+const newLength = newValue.length;
 ```
 
-Cores:
-- `[DB]`: badge verde-success outline
-- `[ENV ⚠]`: badge amarelo-warning com tooltip "Valor herdado de variável de ambiente. Salve novamente para migrar para o banco e habilitar rotação/auditoria."
-- `[—]`: muted
+### 3. Campo opcional "Motivo da rotação" (auditoria)
 
-### 4. Ação rápida "Migrar para o banco" em campos `env`
+Dentro do modal, adicionar um `<Textarea>` opcional rotulado **"Motivo (opcional)"** com placeholder _"Ex: rotação periódica trimestral, comprometimento suspeito, troca de fornecedor..."_. O valor é passado como `notes` ao `rotateSecret`, que já aceita esse parâmetro e grava em `secret_rotation_log.notes` (visível depois no `RotationHistoryDialog`).
 
-Quando `status.source === "env"`, o `SecretField` ganha um botão extra ao lado de "Atualizar":
+Limite de 200 chars, contador discreto no canto. Não é obrigatório — o usuário pode confirmar com o campo vazio.
 
-```text
-[ ••••••••••• ]  [Atualizar]  [Migrar para o banco ↓]
-```
+### 4. Estados e comportamento
 
-Ao clicar:
-- Abre o input em modo `set` com placeholder "Cole novamente o valor para persistir no banco" + helper text explicando que o valor da env não pode ser lido pelo frontend (segurança)
-- Após salvar, `source` vira `"db"` automaticamente (re-list dispara)
+- **Botão "Rotacionar" no SecretField**: continua exigindo que o usuário tenha digitado um valor novo antes de habilitar (já é o comportamento atual). Só abre o modal se houver valor.
+- **Loading no modal**: durante o `await rotateSecret(...)`, botão "Sim, rotacionar" mostra spinner e fica desabilitado, "Cancelar" também desabilitado, fechamento por ESC/click-outside bloqueado.
+- **Após sucesso**: modal fecha automaticamente, flash verde aparece no campo, toast confirma, painel de histórico inline atualiza.
+- **Após erro**: modal permanece aberto com mensagem de erro inline (ex: "Falha ao rotacionar: rede indisponível"), botão volta a estar clicável para retry.
 
-Não tentamos copiar o valor da env automaticamente — `secrets-manager` nunca devolve plaintext, e expor isso quebraria a política de segurança atual.
+### 5. Detalhes visuais
 
-### 5. Card-resumo no `IntegrationsHealthCard`
-
-Adicionar uma linha extra no card de saúde existente:
-
-```text
-┌─ Saúde das integrações ────────────────────────────┐
-│ 5 ativas · 1 com erro · 2 nunca verificadas        │
-│ 8 credenciais no banco · 3 ainda em env · 2 vazias │  ← NOVO
-└────────────────────────────────────────────────────┘
-```
-
-A linha vira link clicável que aplica o filtro `?source=env` e rola até a primeira aba com pendência.
-
-### 6. Persistência via URL e atalho
-
-- `?source=env` aplica o filtro no carregamento
-- Atalho `Shift+E` alterna entre "todas" e "apenas env" (para diagnóstico rápido)
-- O `setFilter` atualiza a URL via `useSearchParams` sem recarregar
-
-## O que o usuário verá
-
-Ao abrir `/admin/conexoes?source=env`:
-
-```text
-┌─ Saúde das integrações ─────────────────────────────┐
-│ 5 ativas · 1 com erro · 2 nunca verificadas         │
-│ 8 no banco · 3 ainda em env · 2 vazias              │
-└─────────────────────────────────────────────────────┘
-
-Origem: [ Todas (13) ] [ ✓ Banco (8) ] [● ⚠ Env (3) ] [ ○ Não configuradas (2) ]
-
-[ Visão geral das conexões... ]
-
-[Tabs: Bancos | Bitrix24 | n8n | MCP | Webhooks]
-
-┌─ CRM Promobrind ─────────────────────────── [✓ Ativo] ─┐
-│ URL              ✓ ••••.co (28 chars)            [DB]  │  ← faded (não bate)
-│ Anon Key         ✓ ••••AB12 (104 chars)         [ENV ⚠]│  ← destacado
-│                  [•••••••]  [Atualizar]  [Migrar para o banco ↓]
-│ Service Role Key ✓ ••••YZ89 (203 chars)          [DB]  │  ← faded
-└────────────────────────────────────────────────────────┘
-```
-
-Limpando o filtro, todos voltam à opacidade normal.
+- Ícone do header: `AlertTriangle` amarelo (variante `warning` do `ConfirmDialog`)
+- Bloco "Valor atual / Novo valor" em fundo `bg-muted/50` com fonte `font-mono` para os sufixos, similar ao já usado em `RotationHistoryRow`
+- Texto "Esta ação não pode ser desfeita" em `text-destructive text-sm font-medium`
+- Botão de confirmação usa cor padrão warning (não destructive) — rotação é uma operação esperada/positiva, não uma exclusão
 
 ## Arquivos tocados
 
 **Frontend (novos)**
-- `src/components/admin/connections/CredentialsSourceFilter.tsx` (~80 linhas): chips com contagens, sincronia com URL.
-- `src/components/admin/connections/CredentialsSourceFilterContext.tsx` (~40 linhas): contexto + hook `useCredentialsSourceFilter`.
-- `src/components/admin/connections/CredentialSourceBadge.tsx` (~30 linhas): badge `[DB]`/`[ENV ⚠]`/`[—]` com tooltip.
+- `src/components/admin/connections/RotateSecretConfirmDialog.tsx` (~90 linhas): wrapper especializado do `ConfirmDialog` com bloco "Valor atual → Novo valor", textarea opcional de motivo, e props tipadas.
 
 **Frontend (editados)**
-- `src/pages/admin/AdminConexoesPage.tsx`: envolver com `<CredentialsSourceFilterProvider>` e renderizar `<CredentialsSourceFilter />` acima de `<ConnectionsOverviewTable />`. Carregar `secrets` uma vez no nível da página para alimentar contagens.
 - `src/components/admin/connections/SecretField.tsx`:
-  - Consumir `useCredentialsSourceFilter()` e aplicar `opacity-40 pointer-events-none` quando não bate
-  - Substituir `· env` pelo `<CredentialSourceBadge source={status?.source} />`
-  - Adicionar botão "Migrar para o banco" quando `source === "env"`
-- `src/components/admin/connections/IntegrationsHealthCard.tsx`: adicionar linha "X no banco · Y em env · Z vazias" como link para `?source=...`.
-- `src/hooks/useSecretsManager.ts`: já expõe `source` no tipo (linha 9 do hook). Sem mudanças.
-
-**Backend**
-- Nenhuma mudança. `secrets-manager` action `list` já devolve `source: "db" | "env" | "none"` (verificado nas linhas 162/172 da edge function).
+  - Adicionar state `rotateConfirmOpen` e `rotateConfirmLoading`
+  - Trocar `onClick` direto do botão "Rotacionar" por `setRotateConfirmOpen(true)`
+  - Renderizar `<RotateSecretConfirmDialog />` no rodapé do componente
+  - Mover a lógica real de `rotateSecret` para `handleConfirmedRotate(notes)` chamado pelo modal
+  - Calcular `newSuffix` e `newLength` a partir do valor digitado
 
 ## Fora de escopo
 
-- Não permite migrar automaticamente lendo o valor da env (segurança — frontend nunca recebe plaintext)
-- Não adiciona bulk action "migrar todas em env" (cada uma exige re-paste manual do valor)
-- Não muda a precedência do `_shared/credentials.ts` (DB > env > null permanece igual)
-- Não adiciona alerta/notificação automática de "X credenciais ainda em env há mais de 30d" (pode vir em onda futura via cron `connections-health-check`)
+- Não muda o backend `secrets-manager` (o action `rotate` já aceita `notes`)
+- Não adiciona modal de confirmação para "Configurar" inicial (set sem valor anterior — não é destrutivo)
+- Não adiciona modal para "Atualizar" (overwrite simples sem entrada em `secret_rotation_log` — fluxo separado, pode vir em onda futura se necessário)
+- Não adiciona política de exigir motivo obrigatório (continua opcional; pode virar feature flag depois)
+- Não muda o `RotationHistoryDialog` ou `RotationHistoryRow` (já mostram `notes` quando presente)
 
