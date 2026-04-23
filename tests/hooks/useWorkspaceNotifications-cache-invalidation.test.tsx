@@ -255,6 +255,7 @@ describe("useWorkspaceNotifications — cache TTL is honored, then invalidated b
       JSON.stringify({ cachedAt: Date.now(), notifications: SEED })
     );
 
+    limitMock.mockReset();
     let cacheAtRefetchTime: string | null = "<unset>";
     limitMock
       .mockResolvedValueOnce({ data: SEED, error: null })
