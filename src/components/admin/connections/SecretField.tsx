@@ -14,6 +14,9 @@ import {
 } from "@/hooks/useSecretsManager";
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
+import { CredentialSourceBadge } from "./CredentialSourceBadge";
+import { useCredentialsSourceFilter } from "./CredentialsSourceFilterContext";
+import { ArrowDownToLine } from "lucide-react";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
 import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
