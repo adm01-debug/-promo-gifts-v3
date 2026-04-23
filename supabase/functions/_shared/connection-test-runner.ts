@@ -28,6 +28,9 @@ export interface RunOptions {
   timeoutMs?: number;
   /** Number of attempts performed (1 = first try; 2 = after one retry). Default 1. */
   attempts?: number;
+  /** When true, skip writing to external_connections + connection_test_history.
+   *  Used by the cron to "probe" before deciding whether to retry. */
+  skipPersistence?: boolean;
 }
 
 /** Transient error kinds that are safe to retry once (no side effects expected). */
