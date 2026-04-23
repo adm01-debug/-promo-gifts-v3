@@ -26,6 +26,19 @@ export interface RunOptions {
   service: SupabaseClient;
   /** Per-test timeout in ms. Default: per-type table; falls back to 8000. */
   timeoutMs?: number;
+  /** Number of attempts performed (1 = first try; 2 = after one retry). Default 1. */
+  attempts?: number;
+}
+
+/** Transient error kinds that are safe to retry once (no side effects expected). */
+export const TRANSIENT_ERROR_KINDS: ReadonlySet<ErrorKind> = new Set(["timeout", "network", "dns"]);
+
+/** True if a RunResult-like object represents a transient failure worth retrying. */
+export function isTransientFailure(r: { ok: boolean; error_kind?: ErrorKind; status?: number }): boolean {
+  if (r.ok) return false;
+  if (r.error_kind && TRANSIENT_ERROR_KINDS.has(r.error_kind)) return true;
+  if (typeof r.status === "number" && r.status >= 500 && r.status <= 599) return true;
+  return false;
 }
 
 export interface RunResult {
