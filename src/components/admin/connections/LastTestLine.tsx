@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -21,12 +22,30 @@ function formatRelative(iso: string | null | undefined): string {
   return `há ${Math.round(diff / 86_400_000)}d`;
 }
 
-export function LastTestLine({ info, className }: { info: LastTestInfo | null; className?: string }) {
+export function LastTestLine({
+  info,
+  className,
+  action,
+}: {
+  info: LastTestInfo | null;
+  className?: string;
+  action?: ReactNode;
+}) {
+  const wrap = (content: ReactNode) =>
+    action ? (
+      <div className={cn("flex items-center justify-between gap-2 min-h-7", className)}>
+        <div className="min-w-0 flex-1">{content}</div>
+        <div className="shrink-0">{action}</div>
+      </div>
+    ) : (
+      content
+    );
+
   if (!info || !info.tested_at) {
-    return (
-      <p className={cn("text-xs text-muted-foreground inline-flex items-center gap-1.5", className)}>
+    return wrap(
+      <p className={cn("text-xs text-muted-foreground inline-flex items-center gap-1.5", !action && className)}>
         <Clock className="h-3.5 w-3.5" /> Nunca verificado
-      </p>
+      </p>,
     );
   }
   const Icon = info.ok ? CheckCircle2 : XCircle;
@@ -37,13 +56,13 @@ export function LastTestLine({ info, className }: { info: LastTestInfo | null; c
   const tail = info.ok
     ? [latency, httpInfo].filter(Boolean).join(" · ")
     : info.message || "Falha";
-  return (
-    <p className={cn("text-xs inline-flex items-center gap-1.5", color, className)}>
+  return wrap(
+    <p className={cn("text-xs inline-flex items-center gap-1.5 max-w-full", color, !action && className)}>
       <Icon className="h-3.5 w-3.5 shrink-0" />
       <span className="truncate">
         {info.ok ? "Verificado" : "Falhou"} {rel}
         {tail ? ` — ${tail}` : ""}
       </span>
-    </p>
+    </p>,
   );
 }

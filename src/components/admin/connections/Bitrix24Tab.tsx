@@ -9,6 +9,7 @@ import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { RetestButton } from "./RetestButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
 export function Bitrix24Tab() {
@@ -72,7 +73,16 @@ export function Bitrix24Tab() {
           </Button>
           <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
         </div>
-        <LastTestLine info={last} />
+        <LastTestLine
+          info={last}
+          action={
+            <RetestButton
+              onRetest={onTest}
+              disabled={!credsLooksValid}
+              disabledReason={!credsOk ? "Configure o Webhook URL primeiro" : "Webhook com formato suspeito — re-salve antes de testar"}
+            />
+          }
+        />
         <ConnectionTestHistoryPanel type="bitrix24" label="Bitrix24" refreshKey={historyKey} />
       </CardContent>
     </Card>
