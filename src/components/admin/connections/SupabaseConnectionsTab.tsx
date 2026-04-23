@@ -127,7 +127,9 @@ export function SupabaseConnectionsTab() {
                       size="sm"
                       variant="outline"
                       disabled={isTesting || !canTest}
-                      title={canTest ? "Testar conexão real" : "Configure URL e Service Role Key primeiro"}
+                      title={!credsConfigured ? "Configure URL e Service Role Key primeiro"
+                        : !credsLooksValid ? "Credenciais com formato suspeito (comprimento curto) — re-salve antes de testar"
+                        : "Testar conexão real"}
                       onClick={() => handleTest(env.envKey!, env.key)}
                     >
                       {isTesting ? "Testando…" : "Testar conexão"}
