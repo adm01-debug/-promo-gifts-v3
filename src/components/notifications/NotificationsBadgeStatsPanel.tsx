@@ -166,6 +166,15 @@ export function NotificationsBadgeStatsPanel() {
     return streak;
   }, [samples]);
   const isSuspicious = suspiciousStreakSeconds >= SUSPICIOUS_STREAK_SECONDS;
+  /**
+   * Index (in the `samples` array) of the FIRST sample that belongs to the
+   * current suspicious trailing streak. Returns -1 when no streak is active.
+   * Used by the expandable samples panel to highlight the offending segment.
+   */
+  const streakStartIdx = useMemo(() => {
+    if (suspiciousStreakSeconds === 0) return -1;
+    return samples.length - suspiciousStreakSeconds;
+  }, [samples.length, suspiciousStreakSeconds]);
 
   if (!visible) return null;
 
