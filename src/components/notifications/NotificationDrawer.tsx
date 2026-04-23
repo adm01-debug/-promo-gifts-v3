@@ -84,6 +84,8 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
   const prevCountRef = React.useRef(unreadCount);
+  const { announce } = useAriaLive();
+  const prevRefetchingRef = useRef(false);
 
   // Trigger shake animation when unread count increases
   useEffect(() => {
@@ -94,6 +96,21 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
     }
     prevCountRef.current = unreadCount;
   }, [unreadCount]);
+
+  // Announce background refresh transitions for screen readers (independent from spinner)
+  useEffect(() => {
+    if (isRefetching && !prevRefetchingRef.current) {
+      announce("Atualizando notificações", "polite");
+    } else if (!isRefetching && prevRefetchingRef.current) {
+      announce(
+        unreadCount > 0
+          ? `Notificações atualizadas. ${unreadCount} não lida${unreadCount > 1 ? "s" : ""}.`
+          : "Notificações atualizadas.",
+        "polite"
+      );
+    }
+    prevRefetchingRef.current = isRefetching;
+  }, [isRefetching, unreadCount, announce]);
 
   const handleNavigate = (url: string) => {
     if (url.startsWith("/")) {
