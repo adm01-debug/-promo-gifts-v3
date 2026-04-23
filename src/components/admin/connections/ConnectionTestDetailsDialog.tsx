@@ -21,7 +21,8 @@ import {
   useConnectionTestDetails,
   type TestDetails,
 } from "@/hooks/useConnectionTestDetails";
-import type { ConnectionType } from "@/hooks/useConnectionTester";
+import type { ConnectionType, ErrorKind } from "@/hooks/useConnectionTester";
+import { getErrorCopy } from "@/lib/connection-error-copy";
 
 interface Props {
   open: boolean;
@@ -275,16 +276,55 @@ export function ConnectionTestDetailsDialog({
                   </div>
                 </div>
               </div>
-              {details.error && (details.error.message || details.error.kind) && (
-                <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-xs">
-                  <div className="text-destructive font-medium mb-1">
-                    Erro {details.error.kind ? `· ${details.error.kind}` : ""}
+              {!details.ok && (() => {
+                const copy = getErrorCopy(
+                  (details.error?.kind ?? null) as ErrorKind | null,
+                  details.response.status,
+                  details.error?.message,
+                );
+                const ErrIcon = copy.icon;
+                const techMsg = details.error?.message?.trim();
+                return (
+                  <div
+                    role="alert"
+                    className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-2"
+                  >
+                    <div className="flex items-start gap-2">
+                      <ErrIcon className="h-4 w-4 text-destructive mt-0.5 shrink-0" aria-hidden />
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm font-semibold text-destructive leading-tight">
+                          {copy.title}
+                        </h3>
+                        <p className="text-xs text-destructive/80 mt-1 leading-snug">
+                          {copy.hint}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-1.5 pl-6">
+                      {details.error?.kind && (
+                        <Badge variant="outline" className="text-[10px] font-mono h-5">
+                          kind: {details.error.kind}
+                        </Badge>
+                      )}
+                      {details.response.status != null && (
+                        <Badge variant="outline" className="text-[10px] font-mono h-5">
+                          HTTP {details.response.status}
+                        </Badge>
+                      )}
+                    </div>
+                    {techMsg && (
+                      <details className="pl-6 text-xs">
+                        <summary className="cursor-pointer text-muted-foreground hover:text-foreground select-none">
+                          Mensagem técnica
+                        </summary>
+                        <pre className="mt-1.5 font-mono text-[11px] whitespace-pre-wrap break-words rounded border bg-muted/50 p-2">
+                          {techMsg}
+                        </pre>
+                      </details>
+                    )}
                   </div>
-                  <div className="font-mono whitespace-pre-wrap break-words">
-                    {details.error.message ?? "(sem mensagem)"}
-                  </div>
-                </div>
-              )}
+                );
+              })()}
             </TabsContent>
 
             {/* HTTP */}

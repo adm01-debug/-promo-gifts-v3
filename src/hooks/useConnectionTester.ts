@@ -1,6 +1,7 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getErrorCopy } from "@/lib/connection-error-copy";
 
 export type ConnectionType = "supabase" | "bitrix24" | "n8n" | "mcp" | "webhook_outbound";
 export type ErrorKind =
@@ -21,16 +22,6 @@ export interface TestResult {
   message?: string;
   tested_at?: string;
 }
-
-const TOAST_TITLE_BY_KIND: Record<ErrorKind, string> = {
-  timeout: "Tempo esgotado",
-  network: "Sem conexão com o serviço",
-  dns: "URL não encontrada",
-  auth: "Credenciais rejeitadas",
-  http: "Serviço retornou erro",
-  config: "Configuração incompleta",
-  unknown: "Falha na conexão",
-};
 
 interface TestOptions {
   env_key?: "promobrind" | "crm";
@@ -86,11 +77,9 @@ export function useConnectionTester() {
             description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
           });
         } else {
-          const title = normalized.error_kind
-            ? TOAST_TITLE_BY_KIND[normalized.error_kind]
-            : "Falha na conexão";
-          toast.error(title, {
-            description: normalized.error ?? `HTTP ${normalized.status ?? "?"}`,
+          const copy = getErrorCopy(normalized.error_kind, normalized.status, normalized.error ?? normalized.message);
+          toast.error(copy.title, {
+            description: copy.hint,
           });
         }
       }
