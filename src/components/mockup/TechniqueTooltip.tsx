@@ -1,12 +1,23 @@
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Badge } from "@/components/ui/badge";
-import { Info, Palette, Clock, DollarSign } from "lucide-react";
+import { Info, Palette, Clock, Layers, Ruler, Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Technique {
   id: string;
   name: string;
   code: string | null;
+  // Novos campos opcionais (vindos do RPC fn_get_product_customization_options)
+  maxColors?: number | null;
+  chargesPerColor?: boolean;
+  usesDimension?: boolean;
+  isCurved?: boolean;
+  setupCost?: number | null;
+  variationLabel?: string | null;
+  groupCode?: string | null;
+  maxWidth?: number | null;
+  maxHeight?: number | null;
+  locationName?: string | null;
 }
 
 interface TechniqueTooltipProps {
