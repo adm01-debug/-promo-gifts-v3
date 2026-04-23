@@ -6,10 +6,12 @@ import { render, screen, fireEvent } from "@testing-library/react";
 // só no comportamento de UI/validação do SecretField.
 const setSecretMock = vi.fn();
 const rotateSecretMock = vi.fn();
+const getRotationHistoryMock = vi.fn().mockResolvedValue([]);
 vi.mock("@/hooks/useSecretsManager", () => ({
   useSecretsManager: () => ({
     setSecret: setSecretMock,
     rotateSecret: rotateSecretMock,
+    getRotationHistory: getRotationHistoryMock,
   }),
 }));
 
@@ -62,7 +64,7 @@ function enterEditMode() {
 }
 
 function getInput(): HTMLInputElement {
-  return screen.getByPlaceholderText(/Cole o valor de/i) as HTMLInputElement;
+  return screen.getByPlaceholderText(/Cole o valor de|Novo valor para/i) as HTMLInputElement;
 }
 
 function getSaveButton(): HTMLButtonElement {

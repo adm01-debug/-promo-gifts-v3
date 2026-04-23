@@ -47,11 +47,13 @@ describe("MaskedSuffixBadge — UI por tamanho de sufixo", () => {
     expect(screen.queryByText("fallback")).not.toBeInTheDocument();
   });
 
-  it("2 chars (short) → '••••••ab' + label '(2/4)' + aria com '2 caractere(s)'", () => {
+  it("2 chars (short) → '••••••ab' + label '(2/4)' + aria com '2 caracteres' (plural)", () => {
     renderBadge({ suffix: "ab" });
     expect(screen.getByText("••••••ab")).toBeInTheDocument();
     expect(screen.getByText(/Sufixo curto \(2\/4\)/)).toBeInTheDocument();
-    expect(screen.getByRole("status").getAttribute("aria-label")).toContain("2 caractere(s)");
+    const aria = screen.getByRole("status").getAttribute("aria-label") ?? "";
+    expect(aria).toContain("2 caracteres");
+    expect(aria).not.toContain("2 caractere ");
   });
 
   it("3 chars (short) → '•••••abc' + label '(3/4)'", () => {

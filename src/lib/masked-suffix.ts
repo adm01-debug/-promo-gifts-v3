@@ -65,12 +65,13 @@ export function diagnoseMaskedSuffix(
     };
   }
   if (realLength < 4) {
+    const noun = realLength === 1 ? "caractere" : "caracteres";
     return {
       status: "short",
       realLength,
       label: `Sufixo curto (${realLength}/4)`,
       message:
-        `O sufixo registrado para${who} tem apenas ${realLength} caractere(s) — ` +
+        `O sufixo registrado para${who} tem apenas ${realLength} ${noun} — ` +
         `o esperado é 4. Provavelmente a credencial é muito curta ou foi truncada. ` +
         `Re-salve a credencial com um valor mais robusto para evitar colisões na auditoria.`,
     };
