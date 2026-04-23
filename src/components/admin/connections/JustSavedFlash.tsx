@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { formatMaskedSuffix } from "@/lib/masked-suffix";
 
 interface Props {
   masked_suffix: string | null;
