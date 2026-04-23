@@ -262,7 +262,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
-    if (!value || !validation.ok) return;
+    if (!value || !validation.ok || !nameValidation.ok) return;
     setSaving(true);
     setRotateConfirmError(null);
     const res = await performSave("rotate", value, notes);
