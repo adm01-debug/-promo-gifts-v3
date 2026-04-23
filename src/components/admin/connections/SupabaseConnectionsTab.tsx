@@ -9,6 +9,7 @@ import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
+import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
 
 const ENVS = [
   {
@@ -39,6 +40,7 @@ export function SupabaseConnectionsTab() {
   const { secrets, list } = useSecretsManager();
   const { test, isTesting, fetchLastTest } = useConnectionTester();
   const [lastByEnv, setLastByEnv] = useState<Record<string, LastTestInfo | null>>({});
+  const [historyKeyByEnv, setHistoryKeyByEnv] = useState<Record<string, number>>({});
 
   useEffect(() => { list(); }, [list]);
 
@@ -73,6 +75,7 @@ export function SupabaseConnectionsTab() {
         status: r.status,
       },
     }));
+    setHistoryKeyByEnv((cur) => ({ ...cur, [localKey]: (cur[localKey] ?? 0) + 1 }));
   };
 
   return (
@@ -132,6 +135,12 @@ export function SupabaseConnectionsTab() {
                     </Button>
                   </div>
                   <LastTestLine info={last} />
+                  <ConnectionTestHistoryPanel
+                    type="supabase"
+                    envKey={env.envKey!}
+                    label={env.name}
+                    refreshKey={historyKeyByEnv[env.key] ?? 0}
+                  />
                 </>
               )}
             </CardContent>
