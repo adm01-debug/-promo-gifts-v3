@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { useSecretsManager, type RotationHistoryEntry } from "@/hooks/useSecretsManager";
-import { History, RefreshCw, Save, ArrowRight, Clock } from "lucide-react";
+import { History, RefreshCw, Save, ArrowRight, Clock, User } from "lucide-react";
 
 interface Props {
   secretName: string;
@@ -73,6 +73,11 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
           <DialogTitle className="flex items-center gap-2">
             <History className="h-5 w-5 text-primary" />
             Histórico da credencial
+            {!loading && entries.length > 0 && (
+              <Badge variant="outline" className="ml-1 font-mono text-[10px]">
+                {entries.length} {entries.length === 1 ? "registro" : "registros"}
+              </Badge>
+            )}
           </DialogTitle>
           <DialogDescription className="font-mono text-xs break-all">{secretName}</DialogDescription>
         </DialogHeader>
@@ -108,8 +113,12 @@ export function RotationHistoryDialog({ secretName, open, onOpenChange }: Props)
                   </span>
                 </div>
                 <div className="flex items-center justify-between gap-2 flex-wrap text-xs text-muted-foreground">
-                  <span>
-                    Por <span className="text-foreground font-medium">
+                  <span className="flex items-center gap-1.5">
+                    <User className="h-3 w-3" />
+                    Por <span
+                      className="text-foreground font-medium"
+                      title={last.rotated_by ?? undefined}
+                    >
                       {last.rotated_by_email ?? (last.rotated_by ? `${last.rotated_by.slice(0, 8)}…` : "—")}
                     </span>
                   </span>
