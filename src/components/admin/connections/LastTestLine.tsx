@@ -58,35 +58,44 @@ export function LastTestLine({
   const rel = formatRelative(info.tested_at);
   const latency = info.latency_ms != null ? `${info.latency_ms}ms` : null;
   const httpInfo = info.status ? `HTTP ${info.status}` : null;
-  const errorMsg = info.ok ? null : (info.message || "Falha sem mensagem detalhada");
   const successTail = info.ok ? [latency, httpInfo].filter(Boolean).join(" · ") : "";
   const isClickable = !!onClick;
+  // Para falhas, derivamos copy semântica via error_kind (SSOT). O texto cru
+  // do erro (info.message) vai para a linha técnica (3ª linha) e tooltip.
+  const errorCopy = !info.ok ? getErrorCopy(info.error_kind, info.status, info.message) : null;
+  const technicalDetail = !info.ok
+    ? [httpInfo, info.message?.trim()].filter(Boolean).join(" · ")
+    : "";
   // Header line: status + when. Always single line, never truncates the timestamp.
   const headerText = (
     <>
-      {info.ok ? "Verificado" : "Falhou"} {rel}
+      {info.ok ? "Verificado" : errorCopy?.title ?? "Falhou"} · {rel}
       {info.ok && successTail ? ` — ${successTail}` : ""}
     </>
   );
   const headerNode = (
-    <span className="inline-flex items-center gap-1.5 max-w-full">
-      <Icon className="h-3.5 w-3.5 shrink-0" />
+    <span className="inline-flex items-center gap-1.5 max-w-full" title={!info.ok ? technicalDetail || undefined : undefined}>
+      <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
       <span className={cn("truncate", isClickable && "underline decoration-dotted underline-offset-2")}>
         {headerText}
       </span>
     </span>
   );
-  // For failures, render the error on a second line so it isn't truncated and
-  // stays visible alongside the "Testar novamente" action.
-  const body = errorMsg ? (
+  // Para falhas, renderizamos hint acionável (linha 2) + detalhe técnico (linha 3)
+  const body = errorCopy ? (
     <span className="block">
       {headerNode}
-      <span
-        className="mt-0.5 block text-[11px] leading-snug text-destructive/90 break-words whitespace-pre-wrap"
-        title={errorMsg}
-      >
-        {info.status ? `HTTP ${info.status} — ` : ""}{errorMsg}
+      <span className="mt-0.5 block text-[11px] leading-snug text-destructive/80 break-words">
+        {errorCopy.hint}
       </span>
+      {technicalDetail && technicalDetail !== errorCopy.hint && (
+        <span
+          className="mt-0.5 block text-[10px] leading-snug text-muted-foreground font-mono break-all"
+          title={technicalDetail}
+        >
+          {technicalDetail}
+        </span>
+      )}
     </span>
   ) : headerNode;
   if (isClickable) {
