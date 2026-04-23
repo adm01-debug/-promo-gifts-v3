@@ -7,6 +7,8 @@ export interface SecretStatus {
   has_value: boolean;
   masked_suffix: string | null;
   length: number;
+  updated_at?: string | null;
+  source?: "db" | "env" | "none";
 }
 
 export function useSecretsManager() {

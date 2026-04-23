@@ -1,6 +1,8 @@
 // connection-tester: pings external systems to verify connectivity. Admin-only.
+// Reads credentials from `integration_credentials` (DB-first) with env fallback.
 import { createClient } from "npm:@supabase/supabase-js@2.49.4";
 import { z } from "https://deno.land/x/zod@v3.23.8/mod.ts";
+import { getCredential } from "../_shared/credentials.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,6 +14,7 @@ const BodySchema = z.object({
   type: z.enum(["supabase", "bitrix24", "n8n", "mcp", "webhook_outbound"]),
   config: z.record(z.string()).optional(),
   connection_id: z.string().uuid().optional(),
+  env_key: z.enum(["promobrind", "crm"]).optional(),
 });
 
 async function pingSupabase(url: string, key: string) {
@@ -66,8 +69,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
@@ -96,39 +98,45 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { type, config = {}, connection_id } = parsed.data;
+    const { type, config = {}, connection_id, env_key } = parsed.data;
 
     let result: { ok: boolean; status?: number; latency_ms?: number; error?: string; message?: string };
     try {
       if (type === "supabase") {
-        const url = config.url || Deno.env.get("EXTERNAL_PROMOBRIND_URL") || "";
-        const key = config.key || Deno.env.get("EXTERNAL_PROMOBRIND_SERVICE_ROLE_KEY") || "";
-        if (!url || !key) throw new Error("URL/key ausente");
+        const prefix = env_key === "crm" ? "EXTERNAL_CRM" : "EXTERNAL_PROMOBRIND";
+        const url = config.url
+          || (await getCredential(`${prefix}_URL`, service))
+          || "";
+        const key = config.key
+          || (await getCredential(`${prefix}_SERVICE_ROLE_KEY`, service))
+          || "";
+        if (!url || !key) throw new Error("URL/key ausente — configure as credenciais primeiro");
         result = await pingSupabase(url, key);
       } else if (type === "bitrix24") {
-        const url = config.webhook_url || Deno.env.get("BITRIX24_WEBHOOK_URL") || "";
+        const url = config.webhook_url
+          || (await getCredential("BITRIX24_WEBHOOK_URL", service))
+          || "";
         if (!url) throw new Error("Webhook URL ausente");
         result = await pingBitrix(url);
       } else if (type === "n8n") {
-        const base = config.base_url || Deno.env.get("N8N_BASE_URL") || "";
-        const key = config.api_key || Deno.env.get("N8N_API_KEY");
+        const base = config.base_url
+          || (await getCredential("N8N_BASE_URL", service))
+          || "";
+        const key = config.api_key
+          || (await getCredential("N8N_API_KEY", service))
+          || undefined;
         if (!base) throw new Error("Base URL ausente");
-        result = await pingN8n(base, key);
+        result = await pingN8n(base, key ?? undefined);
       } else if (type === "webhook_outbound") {
         const url = config.url || "";
         if (!url) throw new Error("URL ausente");
         result = await pingWebhook(url);
       } else if (type === "mcp") {
-        // local MCP — verifica que pelo menos uma chave ativa existe
         const { count } = await service
           .from("mcp_api_keys")
           .select("*", { count: "exact", head: true })
           .is("revoked_at", null);
-        result = {
-          ok: true,
-          status: 200,
-          message: `${count ?? 0} chave(s) MCP ativa(s)`,
-        };
+        result = { ok: true, status: 200, message: `${count ?? 0} chave(s) MCP ativa(s)` };
       } else {
         result = { ok: false, error: "Tipo não suportado" };
       }
@@ -146,7 +154,6 @@ Deno.serve(async (req) => {
         status: result.ok ? "active" : "error",
       }).eq("id", connection_id);
 
-      // Histórico (Onda 12 #4) — best-effort, não bloqueia resposta
       await service.from("connection_test_history").insert({
         connection_id,
         tested_at: nowIso,
