@@ -154,14 +154,24 @@ describe("notifications-metrics — badge budget hit/miss counters", () => {
 });
 
 describe("notifications-metrics — logBadgeBudgetSummary()", () => {
-  it("does NOT log when debug is OFF, even if renders exist", () => {
-    // The test env has import.meta.env.DEV === true, so debug auto-enables.
-    // Force it OFF by stubbing the flag for this case.
+  it("does NOT log when debug is OFF, even if renders exist", async () => {
+    // Reload the module under a forced non-DEV env so `isDebugEnabled` returns false.
+    vi.resetModules();
     vi.stubEnv("DEV", "");
+    vi.stubEnv("MODE", "production");
+    const { notificationsMetrics: fresh } = await import("@/lib/notifications-metrics");
+    fresh.reset();
     expect(localStorage.getItem("debug:notifications")).toBeNull();
-    recordRender("cache", 5);
+    fresh.recordBadgeRender({
+      source: "cache",
+      elapsedMs: 5,
+      cacheAgeMs: 0,
+      networkMs: null,
+      unreadCount: 0,
+      hit: true,
+    });
     const before = findSummaryLogs().length;
-    notificationsMetrics.logBadgeBudgetSummary("test");
+    fresh.logBadgeBudgetSummary("test");
     expect(findSummaryLogs().length - before).toBe(0);
     vi.unstubAllEnvs();
   });
