@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ErrorKind } from "@/hooks/useConnectionTester";
+import { getErrorCopy } from "@/lib/connection-error-copy";
 
 export interface LastTestInfo {
   ok: boolean | null;
