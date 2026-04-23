@@ -84,6 +84,18 @@ interface Snapshot {
    * against. Helps eyeball how often the TTL is actually doing its job.
    */
   fetchesByTtlWindow: { withinTtl: number; afterTtl: number };
+  /**
+   * Per-trigger-source coalescing efficiency, derived from
+   * `recordTriggerToFetch` samples. For each source we accumulate the total
+   * triggers absorbed (sum of `coalescedTriggers`) and the count of fetches
+   * that actually fired. `efficiency = 1 - (fetches / triggers)` (clamped to
+   * [0..1]); higher = more triggers coalesced per fetch. Sources with no
+   * samples yet report all zeros.
+   */
+  coalescingByTrigger: Record<
+    TriggerSource,
+    { triggers: number; fetches: number; saved: number; efficiency: number }
+  >;
   since: number;
   /** Last N badge render stats (most recent first). */
   badgeRenders: BadgeRenderStat[];
@@ -128,6 +140,17 @@ const state = {
   },
   triggerToFetch: [] as TriggerToFetchTiming[],
   triggerToFetchTtlBreaches: 0,
+  /**
+   * Per-source coalescing aggregates fed by `recordTriggerToFetch`. We track
+   * triggers (sum of coalescedTriggers from each sample) and fetches (sample
+   * count) so that callers can derive `saved = triggers - fetches` and
+   * `efficiency = saved / triggers`.
+   */
+  coalescingByTrigger: {
+    hover: { triggers: 0, fetches: 0 },
+    focus: { triggers: 0, fetches: 0 },
+    "drawer-open": { triggers: 0, fetches: 0 },
+  } as Record<TriggerSource, { triggers: number; fetches: number }>,
 };
 
 type BadgeListener = (stat: BadgeRenderStat) => void;
@@ -327,6 +350,12 @@ export const notificationsMetrics = {
     if (state.triggerToFetch.length > TRIGGER_TO_FETCH_HISTORY) {
       state.triggerToFetch.length = TRIGGER_TO_FETCH_HISTORY;
     }
+    // Accumulate per-source coalescing aggregates. `coalescedTriggers` already
+    // includes the very first event of the burst, so it == total triggers
+    // absorbed by THIS one fetch (never < 1 for a real burst).
+    const bucket = state.coalescingByTrigger[sample.source];
+    bucket.triggers += Math.max(1, sample.coalescedTriggers);
+    bucket.fetches += 1;
     if (!withinTtl) {
       state.triggerToFetchTtlBreaches += 1;
       // Always warn on breach — even with debug OFF — since this signals
@@ -361,6 +390,16 @@ export const notificationsMetrics = {
       triggerToFetch: [...state.triggerToFetch],
       lastTriggerToFetch: state.triggerToFetch[0] ?? null,
       triggerToFetchTtlBreaches: state.triggerToFetchTtlBreaches,
+      coalescingByTrigger: (Object.keys(state.coalescingByTrigger) as TriggerSource[]).reduce(
+        (acc, src) => {
+          const { triggers, fetches } = state.coalescingByTrigger[src];
+          const saved = Math.max(0, triggers - fetches);
+          const efficiency = triggers === 0 ? 0 : Number((saved / triggers).toFixed(3));
+          acc[src] = { triggers, fetches, saved, efficiency };
+          return acc;
+        },
+        {} as Snapshot["coalescingByTrigger"]
+      ),
     };
   },
 
@@ -379,6 +418,11 @@ export const notificationsMetrics = {
     };
     state.triggerToFetch = [];
     state.triggerToFetchTtlBreaches = 0;
+    state.coalescingByTrigger = {
+      hover: { triggers: 0, fetches: 0 },
+      focus: { triggers: 0, fetches: 0 },
+      "drawer-open": { triggers: 0, fetches: 0 },
+    };
     state.since = Date.now();
     resetThrottle();
   },

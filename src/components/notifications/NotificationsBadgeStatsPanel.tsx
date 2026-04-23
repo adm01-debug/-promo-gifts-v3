@@ -11,7 +11,7 @@ import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp } from "lu
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
-import { notificationsMetrics, type BadgeRenderStat } from "@/lib/notifications-metrics";
+import { notificationsMetrics, type BadgeRenderStat, type TriggerSource } from "@/lib/notifications-metrics";
 import { cn } from "@/lib/utils";
 
 /** Sliding-window length for the sparkline (60 samples × 1s = 60s). */
@@ -145,11 +145,17 @@ export function NotificationsBadgeStatsPanel() {
 
   if (!visible) return null;
 
-  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow } = snapshot;
+  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow, coalescingByTrigger } = snapshot;
   const savedFetches = Math.max(0, triggers - fetches);
   const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
   const ttlWithinPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.withinTtl / fetches) * 100);
   const ttlAfterPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.afterTtl / fetches) * 100);
+  /** Per-source coalescing rows for the efficiency block. */
+  const coalescingRows: Array<{ key: TriggerSource; label: string }> = [
+    { key: "hover", label: "hover" },
+    { key: "focus", label: "focus" },
+    { key: "drawer-open", label: "drawer-open" },
+  ];
 
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
@@ -227,6 +233,66 @@ export function NotificationsBadgeStatsPanel() {
             >
               {fetchesByTtlWindow.afterTtl} ({ttlAfterPct}%)
             </span>
+          </div>
+          {/* Per-source coalescing efficiency: how many would-be fetches each
+              trigger source absorbed via debounce + 5s TTL. Higher = better
+              (e.g. 80% means only 1 in 5 triggers actually hit the network). */}
+          <div className="mt-1.5 pt-1.5 border-t border-border/30">
+            <div className="flex items-center justify-between gap-2 mb-0.5 text-muted-foreground">
+              <span className="inline-flex items-center gap-1">
+                <Zap className="h-2.5 w-2.5" aria-hidden="true" />
+                Coalescing efficiency by source
+              </span>
+              <span className="text-[10px]">saved %</span>
+            </div>
+            <div className="grid grid-cols-[auto_1fr_auto] gap-x-2 gap-y-0.5">
+              {coalescingRows.map(({ key, label }) => {
+                const c = coalescingByTrigger[key];
+                const pct = Math.round(c.efficiency * 100);
+                const tone =
+                  c.triggers === 0
+                    ? "text-muted-foreground"
+                    : c.efficiency >= 0.7
+                      ? "text-primary"
+                      : c.efficiency >= 0.3
+                        ? "text-foreground"
+                        : "text-warning";
+                return (
+                  <div className="contents" key={key}>
+                    <span className="text-muted-foreground pl-3.5">· {label}</span>
+                    {/* Inline efficiency bar — width reflects efficiency 0..1. */}
+                    <div
+                      className="h-1.5 self-center rounded bg-muted/60 overflow-hidden"
+                      role="progressbar"
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-valuenow={pct}
+                      aria-label={`${label} coalescing efficiency ${pct}%`}
+                    >
+                      <div
+                        className={cn(
+                          "h-full transition-all",
+                          c.triggers === 0
+                            ? "bg-muted-foreground/20"
+                            : c.efficiency >= 0.7
+                              ? "bg-primary"
+                              : c.efficiency >= 0.3
+                                ? "bg-foreground/60"
+                                : "bg-warning"
+                        )}
+                        style={{ width: `${Math.max(2, pct)}%` }}
+                      />
+                    </div>
+                    <span
+                      className={cn("tabular-nums text-right text-[10px] font-semibold", tone)}
+                      title={`${c.saved} saved fetches out of ${c.triggers} triggers (${c.fetches} actual fetches)`}
+                    >
+                      {c.triggers === 0 ? "—" : `${pct}%`}
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
           {/* 60-second sparkline of the trigger/fetch ratio. */}
           <div className="mt-1.5 pt-1.5 border-t border-border/30">
