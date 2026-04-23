@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Progress } from "@/components/ui/progress";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 import {
   RefreshCw,
   Database,
@@ -168,6 +170,26 @@ export function ConnectionsOverviewTable() {
     } finally {
       removeTestingKey(row.key);
     }
+  }
+
+  async function toggleAutoTest(row: OverviewRow, next: boolean) {
+    if (!row.id) return;
+    // Optimistic update
+    patchRow(row.key, { auto_test_enabled: next });
+    const { error } = await supabase
+      .from("external_connections")
+      .update({ auto_test_enabled: next })
+      .eq("id", row.id);
+    if (error) {
+      patchRow(row.key, { auto_test_enabled: !next });
+      toast.error("Não foi possível atualizar o auto-teste", { description: error.message });
+      return;
+    }
+    toast.success(next ? "Auto-teste habilitado" : "Auto-teste desabilitado", {
+      description: next
+        ? `${row.name} voltará a ser testada pelo cron`
+        : `${row.name} será ignorada pelo cron de testes`,
+    });
   }
 
   function changeConcurrency(v: string) {
@@ -337,6 +359,16 @@ export function ConnectionsOverviewTable() {
                   <TableHead className="w-[150px]">Última verificação</TableHead>
                   <TableHead className="w-[110px]">Falhas seguidas</TableHead>
                   <TableHead className="w-[90px]">Latência</TableHead>
+                  <TableHead className="w-[110px]">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="cursor-help underline decoration-dotted underline-offset-2">Auto-teste</span>
+                      </TooltipTrigger>
+                      <TooltipContent side="top">
+                        <p className="text-xs max-w-[240px]">Quando ligado, o cron testa essa conexão automaticamente a cada 30min.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TableHead>
                   <TableHead>Mensagem</TableHead>
                   <TableHead className="w-[140px] text-right">Ações</TableHead>
                 </TableRow>
@@ -417,6 +449,27 @@ export function ConnectionsOverviewTable() {
                       </TableCell>
                       <TableCell>
                         <LatencyBadge ms={row.last_latency_ms} />
+                      </TableCell>
+                      <TableCell>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex items-center">
+                              <Switch
+                                checked={row.auto_test_enabled}
+                                onCheckedChange={(v) => toggleAutoTest(row, v)}
+                                disabled={!row.id}
+                                aria-label={`Auto-teste ${row.auto_test_enabled ? "ligado" : "desligado"} para ${row.name}`}
+                              />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent side="top">
+                            <p className="text-xs max-w-[240px]">
+                              {row.auto_test_enabled
+                                ? "Cron testa essa conexão a cada 30min. Clique para desligar."
+                                : "Cron está ignorando essa conexão. Clique para reativar."}
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
                       </TableCell>
                       <TableCell className="max-w-[260px]">
                         {message ? (
