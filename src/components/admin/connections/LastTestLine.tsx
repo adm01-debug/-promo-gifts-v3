@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ErrorKind } from "@/hooks/useConnectionTester";
@@ -33,12 +33,40 @@ export function LastTestLine({
   className,
   action,
   onClick,
+  autoFocusOnFailure = false,
 }: {
   info: LastTestInfo | null;
   className?: string;
   action?: ReactNode;
   onClick?: () => void;
+  /**
+   * Quando `true`, move o foco do teclado para esta linha sempre que uma
+   * NOVA falha for registrada (mudança de `tested_at` com `ok === false`).
+   * Ajuda o usuário com leitor de tela / teclado a localizar o status e o
+   * botão "Testar novamente" sem precisar caçar a região na página.
+   */
+  autoFocusOnFailure?: boolean;
 }) {
+  const buttonRef = useRef<HTMLButtonElement | null>(null);
+  const regionRef = useRef<HTMLDivElement | null>(null);
+  const lastFailureKeyRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!autoFocusOnFailure) return;
+    if (!info || info.ok !== false || !info.tested_at) return;
+    const key = `${info.tested_at}:${info.status ?? ""}:${info.message ?? ""}`;
+    if (lastFailureKeyRef.current === key) return;
+    lastFailureKeyRef.current = key;
+    // Foca o elemento clicável (botão) quando disponível; caso contrário,
+    // foca a região (que recebe tabindex=-1) para que leitores de tela
+    // anunciem a falha imediatamente.
+    const target = buttonRef.current ?? regionRef.current;
+    if (target) {
+      // requestAnimationFrame garante que o nó já está montado/visível.
+      requestAnimationFrame(() => target.focus({ preventScroll: false }));
+    }
+  }, [autoFocusOnFailure, info]);
+
   const wrap = (content: ReactNode) =>
     action ? (
       <div className={cn("flex items-start justify-between gap-2 min-h-7", className)}>
@@ -110,13 +138,16 @@ export function LastTestLine({
       )}
     </span>
   ) : headerNode;
+  const ariaLive = info.ok === false ? "assertive" : "polite";
   if (isClickable) {
     return wrap(
       <button
+        ref={buttonRef}
         type="button"
         onClick={onClick}
-        aria-label="Ver detalhes do último teste"
+        aria-label={info.ok === false ? "Falha no último teste — ver detalhes" : "Ver detalhes do último teste"}
         title="Ver detalhes do último teste"
+        aria-live={ariaLive}
         className={cn(
           "text-xs inline-block w-full max-w-full text-left rounded px-1 -mx-1 py-0.5 transition-colors cursor-pointer",
           info.ok
@@ -131,7 +162,17 @@ export function LastTestLine({
     );
   }
   return wrap(
-    <div className={cn("text-xs max-w-full", color, !action && className)}>
+    <div
+      ref={regionRef}
+      tabIndex={-1}
+      aria-live={ariaLive}
+      className={cn(
+        "text-xs max-w-full rounded px-1 -mx-1 focus-visible:outline-none focus-visible:ring-2",
+        info.ok === false ? "focus-visible:ring-destructive/40" : "focus-visible:ring-ring/40",
+        color,
+        !action && className,
+      )}
+    >
       {body}
     </div>,
   );

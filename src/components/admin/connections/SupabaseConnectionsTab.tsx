@@ -181,6 +181,7 @@ export function SupabaseConnectionsTab() {
                   />
                   <LastTestLine
                     info={last}
+                    autoFocusOnFailure
                     onClick={last?.tested_at ? () => setDetailsDialogByEnv((cur) => ({ ...cur, [env.key]: true })) : undefined}
                     action={
                       <RetestButton

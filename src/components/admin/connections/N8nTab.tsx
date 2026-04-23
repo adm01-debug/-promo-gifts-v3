@@ -91,6 +91,7 @@ export function N8nTab() {
           />
           <LastTestLine
             info={last}
+            autoFocusOnFailure
             onClick={last?.tested_at ? () => setDetailsDialogOpen(true) : undefined}
             action={
               <RetestButton
