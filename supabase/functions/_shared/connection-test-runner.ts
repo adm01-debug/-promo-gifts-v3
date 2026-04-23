@@ -169,6 +169,7 @@ export async function runConnectionTest(opts: RunOptions): Promise<RunResult> {
   const { type, config = {}, env_key, service, created_by } = opts;
   const triggered_by: TriggeredBy = opts.triggered_by ?? "manual";
   const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUTS_MS[type] ?? 8000;
+  const attempts = Math.max(1, Math.min(opts.attempts ?? 1, 9));
   let connection_id = opts.connection_id;
 
   let result: {
