@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save } from "lucide-react";
 import { validateSecret, getMinLength } from "./secretValidators";
 import { cn } from "@/lib/utils";
@@ -76,6 +76,7 @@ interface Props {
 
 export function SecretField({ label, secretName, status, helperText, onSaved }: Props) {
   const { setSecret, rotateSecret } = useSecretsManager();
+  const draftKey = `secret-draft:${secretName}`;
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState<"set" | "rotate">("set");
   const [value, setValue] = useState("");
@@ -83,7 +84,32 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<FlashState | null>(null);
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
+  const [lastError, setLastError] = useState<string | null>(null);
   const flashCounter = useRef(0);
+
+  // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(draftKey);
+      if (!raw) return;
+      const draft = JSON.parse(raw) as { value?: string; mode?: "set" | "rotate" };
+      if (draft.value && typeof draft.value === "string") {
+        setValue(draft.value);
+        setMode(draft.mode === "rotate" ? "rotate" : "set");
+        setEditing(true);
+      }
+    } catch { /* ignore parse errors */ }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Persist draft whenever editing with a non-empty value; clear on success/cancel
+  useEffect(() => {
+    if (editing && value.length > 0) {
+      try { sessionStorage.setItem(draftKey, JSON.stringify({ value, mode })); } catch { /* ignore quota */ }
+    } else {
+      try { sessionStorage.removeItem(draftKey); } catch { /* ignore */ }
+    }
+  }, [editing, value, mode, draftKey]);
 
   // Rotation confirm modal
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
@@ -150,6 +176,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     if (!result.ok || !result.secret) {
       const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
       const description = describeError(err, secretName);
+      setLastError(description);
       toast.error(`Falha ao salvar ${secretName}`, {
         id: toastId,
         description,
@@ -165,6 +192,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
       });
       return { ok: false as const, errorDescription: description, cancelled: false };
     }
+    setLastError(null);
 
     const { secret, was_update, previous_suffix } = result;
     const suffix = secret.masked_suffix ?? "????";
@@ -297,7 +325,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               <Input
                 type={show ? "text" : "password"}
                 value={value}
-                onChange={(e) => setValue(e.target.value)}
+                onChange={(e) => { setValue(e.target.value); if (lastError) setLastError(null); }}
                 placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
                 autoFocus
                 disabled={saving}
@@ -345,12 +373,32 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => { setEditing(false); setValue(""); setMode("set"); }}
+              onClick={() => { setEditing(false); setValue(""); setMode("set"); setLastError(null); }}
               disabled={saving}
             >
               Cancelar
             </Button>
           </div>
+          {lastError && !saving && (
+            <div
+              className="flex items-start justify-between gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs animate-in fade-in duration-200"
+              role="alert"
+            >
+              <div className="flex items-start gap-1.5 text-destructive min-w-0">
+                <AlertCircle className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <span className="break-words">{lastError}</span>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 px-2 shrink-0"
+                onClick={handleSave}
+                disabled={!canSave}
+              >
+                <RefreshCw className="h-3 w-3 mr-1" /> Tentar novamente
+              </Button>
+            </div>
+          )}
           {value.length > 0 && !validation.ok && validation.message && (
             <p className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="h-3 w-3" /> {validation.message}
