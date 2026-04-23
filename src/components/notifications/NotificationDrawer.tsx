@@ -197,6 +197,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
     useNotifications();
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const prevCountRef = React.useRef(unreadCount);
   const { announce } = useAriaLive();
   const prevRefetchingRef = useRef(false);
