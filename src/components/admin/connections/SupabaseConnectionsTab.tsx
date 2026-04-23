@@ -51,6 +51,7 @@ export function SupabaseConnectionsTab() {
   const [detailsDialogByEnv, setDetailsDialogByEnv] = useState<Record<string, boolean>>({});
   const [phaseByEnv, setPhaseByEnv] = useState<Record<string, TestProgressPhase>>({});
   const [pendingByEnv, setPendingByEnv] = useState<Record<string, string | null>>({});
+  const [timelineOpenByEnv, setTimelineOpenByEnv] = useState<Record<string, boolean>>({});
 
   useEffect(() => { list(); }, [list]);
 
@@ -157,7 +158,13 @@ export function SupabaseConnectionsTab() {
                     >
                       {isTesting ? "Testando…" : "Testar conexão"}
                     </Button>
-                    <ConnectionTimelineDrawer type="supabase" label={env.name} triggerVariant="ghost" />
+                    <ConnectionTimelineDrawer
+                      type="supabase"
+                      label={env.name}
+                      triggerVariant="ghost"
+                      open={!!timelineOpenByEnv[env.key]}
+                      onOpenChange={(v) => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: v }))}
+                    />
                     <RefreshFromDbButton onRefreshed={list} />
                     <Button size="sm" variant="ghost" asChild>
                       <Link to="/admin/external-db">
@@ -200,6 +207,7 @@ export function SupabaseConnectionsTab() {
                     connectionType="supabase"
                     connectionLabel={env.name}
                     envKey={env.envKey!}
+                    onViewFullHistory={() => setTimelineOpenByEnv((cur) => ({ ...cur, [env.key]: true }))}
                   />
                 </>
               )}
