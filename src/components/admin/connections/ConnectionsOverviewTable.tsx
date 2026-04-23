@@ -203,9 +203,6 @@ export function ConnectionsOverviewTable() {
         }
       });
       await Promise.all(workers);
-      const finalProgress = progress;
-      const elapsedSec = Math.max(1, Math.round((Date.now() - (finalProgress?.startedAt ?? Date.now())) / 1000));
-      // Use functional read via closure: re-read from state via setter pattern
       setProgress((p) => {
         if (!p) return null;
         const secs = Math.max(1, Math.round((Date.now() - p.startedAt) / 1000));
@@ -216,7 +213,6 @@ export function ConnectionsOverviewTable() {
         }
         return p;
       });
-      void elapsedSec;
       await refresh();
     } finally {
       setBulkTesting(false);
