@@ -96,7 +96,7 @@ export function QuantityRangeComparison({
             );
 
             if (result?.success) {
-              const flat = mapPriceResponseToFlat(result);
+              const flat = adaptPriceResponse(result);
               persPrices.push({
                 persId: pers.id,
                 unitPrice: flat.unit_price,

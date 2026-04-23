@@ -322,7 +322,7 @@ export function useCustomizationPriceV2() {
       
       setLoading(false);
       if (!result?.success) return null;
-      return mapPriceResponseToFlat(result);
+      return adaptPriceResponse(result);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao calcular preço';
       setError(message);
@@ -362,7 +362,7 @@ export function useCustomizationPriceReactive(
     )
       .then((data) => {
         if (data && data.success) {
-          setPrice(mapPriceResponseToFlat(data));
+          setPrice(adaptPriceResponse(data));
         } else {
           setError('Erro no cálculo');
         }
@@ -389,7 +389,7 @@ export async function calculateCustomizationPrice(
       p_altura_cm: params.alturaCm ?? null,
     }
   );
-  return mapPriceResponseToFlat(result);
+  return adaptPriceResponse(result);
 }
 
 // ============================================

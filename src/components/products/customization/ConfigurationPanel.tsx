@@ -117,7 +117,7 @@ export function ConfigurationPanel({ area, quantity, onPriceCalculated }: Config
       );
 
       if (result?.success) {
-        const flat = mapPriceResponseToFlat(result);
+        const flat = adaptPriceResponse(result);
         setPriceData(flat);
         onPriceCalculated(area.area_id, flat);
       } else {

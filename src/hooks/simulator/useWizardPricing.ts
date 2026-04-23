@@ -64,7 +64,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
           );
 
           if (result?.success) {
-            const flat = mapPriceResponseToFlat(result);
+            const flat = adaptPriceResponse(result);
             dispatch({
               type: 'RECALC_PERSONALIZATION_PRICING',
               payload: {
@@ -157,7 +157,7 @@ export function useWizardPricing({ state, dispatch }: UseWizardPricingParams) {
             return;
           }
 
-          const flat = mapPriceResponseToFlat(result);
+          const flat = adaptPriceResponse(result);
 
           allResults.push({
             techniqueId: tech.techniqueId,
