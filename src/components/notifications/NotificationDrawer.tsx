@@ -18,6 +18,7 @@ import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
+import { notificationsMetrics, type TriggerSource } from "@/lib/notifications-metrics";
 
 const typeConfig = {
   info: { icon: Info, color: "text-primary", bg: "bg-primary/10" },
