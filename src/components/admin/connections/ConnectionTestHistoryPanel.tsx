@@ -59,6 +59,64 @@ function formatAbsolute(iso: string): string {
 }
 
 type StatusFilter = "all" | "ok" | "fail";
+type SourceFilter = "all" | "manual" | "cron";
+
+function emptyMessage(status: StatusFilter, source: SourceFilter): string {
+  if (source === "cron" && status === "fail") return "Nenhuma falha do cron neste período 🎉";
+  if (source === "cron") return "Nenhum teste automático neste período.";
+  if (source === "manual") return "Nenhum teste manual neste período.";
+  if (status === "fail") return "Nenhuma falha nos últimos testes 🎉";
+  return "Nenhum teste com este filtro.";
+}
+
+interface SourceFilterChipsProps {
+  value: SourceFilter;
+  onChange: (v: SourceFilter) => void;
+  allCount: number;
+  manualCount: number;
+  cronOk: number;
+  cronFail: number;
+  cronTotal: number;
+}
+
+function SourceFilterChips({ value, onChange, allCount, manualCount, cronOk, cronFail, cronTotal }: SourceFilterChipsProps) {
+  const options: Array<{ key: SourceFilter; label: string; count: number }> = [
+    { key: "all", label: "Todas as origens", count: allCount },
+    { key: "manual", label: "Manuais", count: manualCount },
+    { key: "cron", label: "Cron", count: cronTotal },
+  ];
+  return (
+    <div className="flex items-center gap-1 flex-wrap px-1" role="group" aria-label="Filtrar por origem do teste">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Origem:</span>
+      {options.map((opt) => {
+        const active = value === opt.key;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(opt.key); }}
+            className={cn(
+              "text-[11px] px-2 py-0.5 rounded-full border transition-colors tabular-nums inline-flex items-center gap-1.5",
+              active
+                ? "bg-primary/10 border-primary/40 text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted/60",
+            )}
+            aria-pressed={active}
+          >
+            {opt.key === "cron" && <Bot className="h-3 w-3" aria-hidden />}
+            <span>{opt.label} ({opt.count})</span>
+            {opt.key === "cron" && cronTotal > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px]">
+                <span className="text-green-700 dark:text-green-400 tabular-nums">✓{cronOk}</span>
+                <span className="text-destructive tabular-nums">✗{cronFail}</span>
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 /** Mini sparkline SVG (sem libs) das latências (oldest → newest, esquerda → direita). */
 function LatencySparkline({ items, width = 64, height = 18 }: { items: TestHistoryItem[]; width?: number; height?: number }) {
@@ -210,6 +268,7 @@ export function ConnectionTestHistoryPanel({
 }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [filter, setFilter] = useState<StatusFilter>("all");
+  const [source, setSource] = useState<SourceFilter>("all");
   const [detailsId, setDetailsId] = useState<string | null>(null);
   const [previewSize, setPreviewSize] = useState<PreviewSize>(() => loadPreviewSize());
 
@@ -227,17 +286,35 @@ export function ConnectionTestHistoryPanel({
     limit: fetchLimit,
   });
 
+  // Source-filtered base list — status counts and visible items both derive from here
+  const sourceFiltered = useMemo(() => {
+    if (source === "manual") return items.filter((i) => i.triggered_by !== "cron");
+    if (source === "cron") return items.filter((i) => i.triggered_by === "cron");
+    return items;
+  }, [items, source]);
+
   const counts = useMemo(() => ({
-    all: items.length,
-    ok: items.filter((i) => i.ok).length,
-    fail: items.filter((i) => !i.ok).length,
-  }), [items]);
+    all: sourceFiltered.length,
+    ok: sourceFiltered.filter((i) => i.ok).length,
+    fail: sourceFiltered.filter((i) => !i.ok).length,
+  }), [sourceFiltered]);
+
+  // Cron-only counts (always over the whole `items`) — used for the source chip badges
+  const cronCounts = useMemo(() => {
+    const cron = items.filter((i) => i.triggered_by === "cron");
+    return {
+      total: cron.length,
+      ok: cron.filter((i) => i.ok).length,
+      fail: cron.filter((i) => !i.ok).length,
+    };
+  }, [items]);
+  const manualTotal = items.length - cronCounts.total;
 
   const visibleItems = useMemo(() => {
-    if (filter === "ok") return items.filter((i) => i.ok);
-    if (filter === "fail") return items.filter((i) => !i.ok);
-    return items;
-  }, [items, filter]);
+    if (filter === "ok") return sourceFiltered.filter((i) => i.ok);
+    if (filter === "fail") return sourceFiltered.filter((i) => !i.ok);
+    return sourceFiltered;
+  }, [sourceFiltered, filter]);
 
   const previewItems = useMemo(() => visibleItems.slice(0, previewSize), [visibleItems, previewSize]);
 
@@ -408,13 +485,26 @@ export function ConnectionTestHistoryPanel({
               })}
             </div>
           </div>
+          <SourceFilterChips
+            value={source}
+            onChange={setSource}
+            allCount={items.length}
+            manualCount={manualTotal}
+            cronOk={cronCounts.ok}
+            cronFail={cronCounts.fail}
+            cronTotal={cronCounts.total}
+          />
+        </div>
+      )}
+      {showPreview && (
+        <div className="space-y-2 mt-2">
           {loading && previewItems.length === 0 ? (
             <div className="flex items-center justify-center py-3 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
           ) : previewItems.length === 0 ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
-              {filter === "fail" ? "Nenhuma falha nos últimos testes 🎉" : "Nenhum teste com este filtro."}
+              {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
@@ -462,6 +552,15 @@ export function ConnectionTestHistoryPanel({
               );
             })}
           </div>
+          <SourceFilterChips
+            value={source}
+            onChange={setSource}
+            allCount={items.length}
+            manualCount={manualTotal}
+            cronOk={cronCounts.ok}
+            cronFail={cronCounts.fail}
+            cronTotal={cronCounts.total}
+          />
 
           {loading && items.length === 0 ? (
             <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
@@ -469,7 +568,7 @@ export function ConnectionTestHistoryPanel({
             </div>
           ) : visibleItems.length === 0 ? (
             <div className="py-3 text-center text-xs text-muted-foreground">
-              {filter === "fail" ? "Nenhuma falha nos últimos testes 🎉" : "Nenhum teste com este filtro."}
+              {emptyMessage(filter, source)}
             </div>
           ) : (
             <TooltipProvider delayDuration={150}>
