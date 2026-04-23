@@ -174,7 +174,10 @@ describe("useAIRecommendations", () => {
     const { result } = renderHook(() => useAIRecommendations());
 
     await act(async () => {
-      await result.current.fetchRecommendations(mockClient, mockProducts);
+      const promise = result.current.fetchRecommendations(mockClient, mockProducts);
+      // Avança os 2 backoffs (500ms + 1000ms) instantaneamente em vez de esperar 1.5s reais
+      await vi.advanceTimersByTimeAsync(2_000);
+      await promise;
     });
 
     // 1 initial + 2 retries = 3 total
