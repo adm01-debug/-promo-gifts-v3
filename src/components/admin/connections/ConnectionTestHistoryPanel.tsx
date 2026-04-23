@@ -1,5 +1,5 @@
-import { useMemo, useState } from "react";
-import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot, Info } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { ChevronDown, ChevronRight, CheckCircle2, XCircle, Loader2, History, Bot, Info, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { LatencyBadge } from "./LatencyBadge";
@@ -129,9 +129,11 @@ function LatencySparkline({ items, width = 64, height = 18 }: { items: TestHisto
 interface RowProps {
   item: TestHistoryItem;
   onClick: () => void;
+  highlighted?: boolean;
+  rowRef?: (el: HTMLDivElement | null) => void;
 }
 
-function HistoryRow({ item: it, onClick }: RowProps) {
+function HistoryRow({ item: it, onClick, highlighted, rowRef }: RowProps) {
   const Icon = it.ok ? CheckCircle2 : XCircle;
   const tail = it.ok
     ? `HTTP ${it.status ?? "?"}${it.message ? ` — ${it.message}` : ""}`
@@ -139,14 +141,16 @@ function HistoryRow({ item: it, onClick }: RowProps) {
   return (
     <li>
       <div
+        ref={rowRef}
         role="button"
         tabIndex={0}
         onClick={onClick}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClick(); } }}
         className={cn(
-          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded transition-colors text-left cursor-pointer",
+          "w-full grid grid-cols-[14px_minmax(80px,auto)_minmax(54px,auto)_1fr_auto] items-center gap-2 text-xs px-1.5 py-1 rounded transition-all text-left cursor-pointer scroll-mt-4",
           "hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           !it.ok && "bg-destructive/[0.03] hover:bg-destructive/10",
+          highlighted && "ring-2 ring-destructive/70 bg-destructive/15 animate-pulse-once",
         )}
         aria-label={it.ok ? "Ver detalhes deste teste" : "Ver detalhes do erro"}
       >
@@ -249,47 +253,96 @@ export function ConnectionTestHistoryPanel({
   const empty = total === 0 && !loading;
   const showPreview = defaultPreview && !empty && !expanded;
 
+  // Most-recent failure (items are returned newest-first)
+  const latestFailure = useMemo(() => items.find((i) => !i.ok) ?? null, [items]);
+
+  // Highlight + scroll-to logic for "Ver erro mais recente"
+  const rowRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const [highlightId, setHighlightId] = useState<string | null>(null);
+  useEffect(() => {
+    if (!highlightId) return;
+    const t = setTimeout(() => setHighlightId(null), 2500);
+    return () => clearTimeout(t);
+  }, [highlightId]);
+
+  const goToLatestFailure = (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+    if (!latestFailure) return;
+    if (!expanded && !showPreview) setExpanded(true);
+    if (filter === "ok") setFilter("all");
+    setHighlightId(latestFailure.id);
+    // wait for next paint so the row exists in DOM
+    requestAnimationFrame(() => {
+      const el = rowRefs.current.get(latestFailure.id);
+      el?.scrollIntoView({ behavior: "smooth", block: "center" });
+      el?.focus?.();
+    });
+  };
+
+  const setRowRef = (id: string) => (el: HTMLDivElement | null) => {
+    if (el) rowRefs.current.set(id, el);
+    else rowRefs.current.delete(id);
+  };
+
   return (
     <div className={cn("border-t pt-3 mt-3", className)}>
-      <button
-        type="button"
-        onClick={() => !empty && setExpanded((v) => !v)}
-        disabled={empty}
-        className={cn(
-          "w-full flex items-center justify-between gap-2 text-xs font-medium",
-          "rounded-md px-1 py-1 transition-colors",
-          empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => !empty && setExpanded((v) => !v)}
+          disabled={empty}
+          className={cn(
+            "flex-1 flex items-center justify-between gap-2 text-xs font-medium",
+            "rounded-md px-1 py-1 transition-colors",
+            empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
+          )}
+          aria-expanded={expanded}
+        >
+          <span className="inline-flex items-center gap-1.5">
+            {empty ? (
+              <History className="h-3.5 w-3.5" />
+            ) : defaultPreview ? (
+              <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
+            ) : (
+              <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
+            )}
+            {showPreview ? `Últimas verificações (${total})` : `Histórico de testes (${total})`}
+          </span>
+          <span className="inline-flex items-center gap-2">
+            {!expanded && items.length >= 2 && (
+              <TooltipProvider delayDuration={150}>
+                <LatencySparkline items={items} />
+              </TooltipProvider>
+            )}
+            {stats && !expanded && (
+              <span className={cn(
+                "text-[11px] tabular-nums",
+                stats.rate === 100
+                  ? "text-green-700 dark:text-green-400"
+                  : stats.rate >= 80 ? "text-muted-foreground" : "text-destructive",
+              )}>
+                {stats.rate}% sucesso
+              </span>
+            )}
+          </span>
+        </button>
+        {latestFailure && (
+          <button
+            type="button"
+            onClick={goToLatestFailure}
+            className={cn(
+              "shrink-0 inline-flex items-center gap-1 text-[10px] font-medium",
+              "px-2 py-1 rounded border border-destructive/40 bg-destructive/10 text-destructive",
+              "hover:bg-destructive/20 transition-colors",
+            )}
+            aria-label="Rolar até o erro mais recente e destacar"
+            title="Rolar até o erro mais recente"
+          >
+            <AlertCircle className="h-3 w-3" />
+            Ver erro mais recente
+          </button>
         )}
-        aria-expanded={expanded}
-      >
-        <span className="inline-flex items-center gap-1.5">
-          {empty ? (
-            <History className="h-3.5 w-3.5" />
-          ) : defaultPreview ? (
-            <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-180")} />
-          ) : (
-            <ChevronRight className={cn("h-3.5 w-3.5 transition-transform", expanded && "rotate-90")} />
-          )}
-          {showPreview ? `Últimas verificações (${total})` : `Histórico de testes (${total})`}
-        </span>
-        <span className="inline-flex items-center gap-2">
-          {!expanded && items.length >= 2 && (
-            <TooltipProvider delayDuration={150}>
-              <LatencySparkline items={items} />
-            </TooltipProvider>
-          )}
-          {stats && !expanded && (
-            <span className={cn(
-              "text-[11px] tabular-nums",
-              stats.rate === 100
-                ? "text-green-700 dark:text-green-400"
-                : stats.rate >= 80 ? "text-muted-foreground" : "text-destructive",
-            )}>
-              {stats.rate}% sucesso
-            </span>
-          )}
-        </span>
-      </button>
+      </div>
 
       {/* Preview inline (5 itens, com filtros rápidos) */}
       {showPreview && (
@@ -367,7 +420,7 @@ export function ConnectionTestHistoryPanel({
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
                 {previewItems.map((it) => (
-                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} />
+                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
               </ul>
             </TooltipProvider>
@@ -422,7 +475,7 @@ export function ConnectionTestHistoryPanel({
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
                 {visibleItems.map((it) => (
-                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} />
+                  <HistoryRow key={it.id} item={it} onClick={() => setDetailsId(it.id)} highlighted={highlightId === it.id} rowRef={setRowRef(it.id)} />
                 ))}
               </ul>
             </TooltipProvider>
