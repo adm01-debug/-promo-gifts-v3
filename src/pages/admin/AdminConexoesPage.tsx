@@ -14,12 +14,18 @@ import { FailureWindowCard } from "@/components/admin/connections/FailureWindowC
 import { AutoTestJobStatusCard } from "@/components/admin/connections/AutoTestJobStatusCard";
 import { CredentialsSourceFilterProvider } from "@/components/admin/connections/CredentialsSourceFilterContext";
 import { CredentialsSourceFilter } from "@/components/admin/connections/CredentialsSourceFilter";
-import { useEffect } from "react";
+import { GlobalRefreshFromDbButton } from "@/components/admin/connections/GlobalRefreshFromDbButton";
+import { useCallback, useEffect, useState } from "react";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 
 export default function AdminConexoesPage() {
   const { secrets, list } = useSecretsManager();
+  const [refreshTick, setRefreshTick] = useState(0);
   useEffect(() => { list(); }, [list]);
+
+  const handleGlobalRefreshed = useCallback(() => {
+    setRefreshTick((n) => n + 1);
+  }, []);
 
   return (
     <CredentialsSourceFilterProvider>
@@ -35,6 +41,7 @@ export default function AdminConexoesPage() {
               Hub central de integrações externas e credenciais do sistema.
             </p>
           </div>
+          <GlobalRefreshFromDbButton onRefreshed={handleGlobalRefreshed} />
           <SmokeTestChecklist availableSecrets={secrets} />
         </div>
 
@@ -51,7 +58,7 @@ export default function AdminConexoesPage() {
           <CredentialsSourceFilter secrets={secrets} className="rounded-lg border bg-card px-4 py-3" />
         )}
 
-        <ConnectionsOverviewTable />
+        <ConnectionsOverviewTable refreshSignal={refreshTick} />
 
         <Tabs defaultValue="databases" className="space-y-4">
           <TabsList className="flex-wrap h-auto">

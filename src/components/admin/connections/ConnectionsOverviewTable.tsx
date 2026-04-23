@@ -119,8 +119,23 @@ function rowStatus(
   return "degraded";
 }
 
-export function ConnectionsOverviewTable() {
+interface ConnectionsOverviewTableProps {
+  /** When this number changes, the table refetches. */
+  refreshSignal?: number;
+}
+
+export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewTableProps = {}) {
   const { rows, loading, refreshing, refresh, patchRow } = useConnectionsOverview(30000);
+
+  // External refresh trigger
+  const lastSignalRef = useRef<number | undefined>(refreshSignal);
+  useEffect(() => {
+    if (refreshSignal === undefined) return;
+    if (lastSignalRef.current === refreshSignal) return;
+    lastSignalRef.current = refreshSignal;
+    void refresh();
+  }, [refreshSignal, refresh]);
+
   const { test } = useConnectionTester();
   const filterState = useConnectionsOverviewFilters();
   const { filters, activeCount, reset } = filterState;
