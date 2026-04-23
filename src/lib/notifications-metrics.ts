@@ -105,6 +105,23 @@ export const notificationsMetrics = {
     });
   },
 
+  recordBadgeRender(stat: Omit<BadgeRenderStat, "at">) {
+    const full: BadgeRenderStat = { ...stat, at: Date.now() };
+    state.badgeRenders.unshift(full);
+    if (state.badgeRenders.length > BADGE_RENDER_HISTORY) {
+      state.badgeRenders.length = BADGE_RENDER_HISTORY;
+    }
+    debugLog("badge-render", full as unknown as Record<string, unknown>);
+    badgeListeners.forEach((l) => {
+      try { l(full); } catch { /* ignore */ }
+    });
+  },
+
+  subscribeBadgeRender(listener: BadgeListener): () => void {
+    badgeListeners.add(listener);
+    return () => { badgeListeners.delete(listener); };
+  },
+
   snapshot(): Snapshot {
     return {
       triggers: state.triggers,
@@ -113,6 +130,8 @@ export const notificationsMetrics = {
       byFetch: { ...state.byFetch },
       ratio: state.triggers === 0 ? 0 : Number((state.fetches / state.triggers).toFixed(3)),
       since: state.since,
+      badgeRenders: [...state.badgeRenders],
+      lastBadgeRender: state.badgeRenders[0] ?? null,
     };
   },
 
@@ -121,6 +140,7 @@ export const notificationsMetrics = {
     state.fetches = 0;
     state.byTrigger = { hover: 0, focus: 0, "drawer-open": 0 };
     state.byFetch = { initial: 0, polling: 0, prefetch: 0, mutation: 0 };
+    state.badgeRenders = [];
     state.since = Date.now();
   },
 };
