@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
+import { Bell, Check, CheckCheck, Trash2, Info, AlertTriangle, CheckCircle2, XCircle, ExternalLink, Loader2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -78,7 +78,7 @@ function NotificationItem({
 }
 
 export const NotificationBell = React.forwardRef<HTMLDivElement>(function NotificationBell(_props, ref) {
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead, clearAll, prefetch } =
+  const { notifications, unreadCount, isLoading, isRefetching, markAsRead, markAllAsRead, clearAll, prefetch } =
     useNotifications();
   const navigate = useNavigate();
   const [shouldShake, setShouldShake] = useState(false);
@@ -162,6 +162,21 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                   {unreadCount} nova{unreadCount > 1 ? "s" : ""}
                 </Badge>
               )}
+              <AnimatePresence>
+                {isRefetching && (
+                  <motion.span
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8 }}
+                    transition={{ duration: 0.15 }}
+                    className="inline-flex items-center text-muted-foreground"
+                    aria-label="Atualizando notificações"
+                    role="status"
+                  >
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
+                  </motion.span>
+                )}
+              </AnimatePresence>
             </SheetTitle>
             <div className="flex items-center gap-1">
               {unreadCount > 0 && (
