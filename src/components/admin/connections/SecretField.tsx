@@ -71,6 +71,45 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
   const [lastError, setLastError] = useState<NormalizedSecretError | null>(null);
   const flashCounter = useRef(0);
+  const [lastNormalization, setLastNormalization] = useState<string[] | null>(null);
+  const normTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const showNormalization = (changes: string[]) => {
+    if (changes.length === 0) return;
+    setLastNormalization(changes);
+    if (normTimerRef.current) clearTimeout(normTimerRef.current);
+    normTimerRef.current = setTimeout(() => setLastNormalization(null), 4000);
+    toast.info("Valor normalizado", {
+      id: `paste-norm-${secretName}`,
+      description: changes.join(", "),
+      duration: 3500,
+    });
+  };
+
+  useEffect(() => {
+    return () => {
+      if (normTimerRef.current) clearTimeout(normTimerRef.current);
+    };
+  }, []);
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    const raw = e.clipboardData.getData("text");
+    if (!raw) return;
+    e.preventDefault();
+    const { value: normalized, changes } = normalizeSecret(secretName, raw);
+    setValue(normalized);
+    if (lastError) setLastError(null);
+    showNormalization(changes);
+  };
+
+  const handleBlur = () => {
+    if (!value) return;
+    const { value: normalized, changes } = normalizeSecret(secretName, value);
+    if (normalized !== value) {
+      setValue(normalized);
+      showNormalization(changes);
+    }
+  };
 
   // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
   useEffect(() => {
