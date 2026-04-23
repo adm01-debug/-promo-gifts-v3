@@ -98,6 +98,13 @@ export interface SimulationOption {
   // Totais
   grandTotal: number;
   grandTotalPerUnit: number;
+
+  // Origem do cálculo (auditoria)
+  // 'rpc'              → fn_get_customization_price (oficial, novas tabelas de gravação)
+  // 'legacy-heuristic' → simulationCalculator (deprecated, fórmula no front)
+  // 'unavailable'      → técnica selecionada sem print area cadastrada para o produto
+  priceSource?: 'rpc' | 'legacy-heuristic' | 'unavailable';
+  unavailableReason?: string;
 }
 
 // ============================================
