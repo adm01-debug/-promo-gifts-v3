@@ -144,6 +144,19 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [saveConfirmError, setSaveConfirmError] = useState<string | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  // Cancellation for in-flight retries (declared early for the same reason)
+  const abortRef = useRef<AbortController | null>(null);
+
+  const testerMap = useMemo(() => mapConnectionToTester(connectionId), [connectionId]);
+  const testDetailsState = useConnectionTestDetails({
+    open: detailsOpen && !!testerMap,
+    type: testerMap?.type ?? "n8n",
+    envKey: testerMap?.envKey,
+    connectionId,
+  });
+  const detailsAvailable = !!testerMap;
+  const handleViewDetails = detailsAvailable ? () => setDetailsOpen(true) : undefined;
   // Cancellation for in-flight retries (declared early for the same reason)
   const abortRef = useRef<AbortController | null>(null);
 
