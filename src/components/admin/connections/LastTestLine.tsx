@@ -37,9 +37,9 @@ export function LastTestLine({
 }) {
   const wrap = (content: ReactNode) =>
     action ? (
-      <div className={cn("flex items-center justify-between gap-2 min-h-7", className)}>
+      <div className={cn("flex items-start justify-between gap-2 min-h-7", className)}>
         <div className="min-w-0 flex-1">{content}</div>
-        <div className="shrink-0">{action}</div>
+        <div className="shrink-0 pt-0.5">{action}</div>
       </div>
     ) : (
       content
