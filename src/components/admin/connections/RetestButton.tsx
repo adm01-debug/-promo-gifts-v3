@@ -62,12 +62,15 @@ function writePersistedCooldown(key: string | undefined, until: number): void {
 export function RetestButton({
   onRetest,
   disabled = false,
-  cooldownMs = 3000,
+  cooldownMs,
   disabledReason,
   cooldownKey,
   shortcutKey = "r",
   timeoutMs = 30_000,
 }: RetestButtonProps) {
+  // Global admin-controlled cooldown; explicit prop wins when provided.
+  const { cooldownMs: globalCooldownMs } = useRetestCooldownSetting();
+  const effectiveCooldownMs = cooldownMs ?? globalCooldownMs;
   const [isRunning, setIsRunning] = useState(false);
   // Lazy init from sessionStorage so cooldown survives a remount.
   const [cooldownUntil, setCooldownUntil] = useState<number>(() => readPersistedCooldown(cooldownKey));
