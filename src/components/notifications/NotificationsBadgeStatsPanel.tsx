@@ -306,22 +306,14 @@ export function NotificationsBadgeStatsPanel() {
    * a JSON file download via an in-memory Blob URL. Wrapped in try/catch so a
    * sandboxed environment never crashes the panel.
    */
-  const handleExportDebugJson = () => {
+  /** Trigger a JSON Blob download. Shared by the full and streak-only exports. */
+  const downloadJson = (filenameStem: string, payload: unknown) => {
     try {
-      const snap = notificationsMetrics.snapshot();
-      const payload = {
-        exportedAt: new Date().toISOString(),
-        userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
-        url: typeof window !== "undefined" ? window.location.href : null,
-        debugMode: debugOn,
-        sparklineSamples: samples,
-        snapshot: snap,
-      };
       const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `notifications-metrics-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
+      a.download = `${filenameStem}-${new Date().toISOString().replace(/[:.]/g, "-")}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -332,6 +324,56 @@ export function NotificationsBadgeStatsPanel() {
       console.error("[NotificationsBadgeStatsPanel] export failed", err);
     }
   };
+
+  const handleExportDebugJson = () => {
+    const snap = notificationsMetrics.snapshot();
+    downloadJson("notifications-metrics", {
+      exportedAt: new Date().toISOString(),
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      url: typeof window !== "undefined" ? window.location.href : null,
+      debugMode: debugOn,
+      sparklineSamples: samples,
+      snapshot: snap,
+    });
+  };
+
+  /**
+   * Export a focused payload covering ONLY the suspicious streak window:
+   *   - sample range that triggered the warning
+   *   - aggregated window stats (triggers/fetches/ratio deltas)
+   *   - regression trend + tuning suggestion
+   *   - reference sample immediately BEFORE the streak (for delta validation)
+   *   - full snapshot for cross-reference
+   * Disabled when no streak is active.
+   */
+  const handleExportSuspiciousStreakJson = () => {
+    if (streakStartIdx < 0) return;
+    const snap = notificationsMetrics.snapshot();
+    const streakSamples = samples.slice(streakStartIdx);
+    const beforeStreak = streakStartIdx > 0 ? samples[streakStartIdx - 1] : null;
+    downloadJson("notifications-suspicious-streak", {
+      exportedAt: new Date().toISOString(),
+      userAgent: typeof navigator !== "undefined" ? navigator.userAgent : null,
+      url: typeof window !== "undefined" ? window.location.href : null,
+      streak: {
+        thresholdRatio: SUSPICIOUS_RATIO_THRESHOLD,
+        minStreakSeconds: SUSPICIOUS_STREAK_SECONDS,
+        actualStreakSeconds: suspiciousStreakSeconds,
+        startedAt: streakWindowStats.fromT
+          ? new Date(streakWindowStats.fromT).toISOString()
+          : null,
+        endedAt: streakWindowStats.toT
+          ? new Date(streakWindowStats.toT).toISOString()
+          : null,
+      },
+      windowStats: streakWindowStats,
+      trend: streakTrend,
+      sampleBeforeStreak: beforeStreak,
+      streakSamples,
+      snapshotAtExport: snap,
+    });
+  };
+
 
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
@@ -446,6 +488,18 @@ export function NotificationsBadgeStatsPanel() {
             >
               <ArrowDown className="h-2.5 w-2.5" aria-hidden="true" />
               Top contributors
+            </button>
+          )}
+          {isSuspicious && (
+            <button
+              type="button"
+              onClick={handleExportSuspiciousStreakJson}
+              className="inline-flex items-center gap-1 rounded border border-warning/40 bg-warning/5 px-1.5 py-0.5 text-[10px] font-medium text-warning hover:bg-warning/15 hover:border-warning/60 transition-colors"
+              title={`Download a focused JSON covering only the ${suspiciousStreakSeconds}s suspicious streak (samples + window stats + trend + suggestion)`}
+              aria-label="Export suspicious streak JSON"
+            >
+              <Download className="h-2.5 w-2.5" aria-hidden="true" />
+              Streak JSON
             </button>
           )}
           <span className="text-muted-foreground tabular-nums">
