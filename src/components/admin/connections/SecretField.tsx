@@ -472,7 +472,25 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
                 <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
               </Button>
             )}
+            {status?.source === "env" && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startEdit("set")}
+                disabled={!nameValidation.ok}
+                title="Migrar este valor da variável de ambiente para o banco. Você precisa colar o valor novamente — o frontend nunca lê plaintext de env por segurança."
+                className="border-warning/40 bg-warning/5 text-warning hover:bg-warning/10 hover:text-warning"
+              >
+                <ArrowDownToLine className="h-4 w-4 mr-1" /> Migrar para o banco
+              </Button>
+            )}
           </div>
+          {status?.source === "env" && !editing && (
+            <p className="text-[11px] text-warning/90 flex items-start gap-1">
+              <AlertCircle className="h-3 w-3 mt-0.5 shrink-0" />
+              Valor herdado de variável de ambiente. Cole novamente em "Migrar para o banco" para habilitar rotação e auditoria.
+            </p>
+          )}
           {status?.has_value && (
             <div
               className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs animate-in fade-in duration-200"
