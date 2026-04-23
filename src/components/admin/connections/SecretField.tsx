@@ -11,6 +11,7 @@ import {
   type SecretMutationResult,
 } from "@/hooks/useSecretsManager";
 import { JustSavedFlash } from "./JustSavedFlash";
+import { RotationHistoryRow } from "./RotationHistoryRow";
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -76,6 +77,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
   const [flash, setFlash] = useState<FlashState | null>(null);
+  const [rotationRefreshKey, setRotationRefreshKey] = useState(0);
   const flashCounter = useRef(0);
 
   const handleSave = async () => {
@@ -159,6 +161,10 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
       was_update: !!was_update,
       key: flashCounter.current,
     });
+
+    if (currentMode === "rotate") {
+      setRotationRefreshKey((k) => k + 1);
+    }
 
     setValue("");
     setEditing(false);
@@ -249,6 +255,9 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           action={flash.action}
           was_update={flash.was_update}
         />
+      )}
+      {status?.has_value && (
+        <RotationHistoryRow secretName={secretName} refreshKey={rotationRefreshKey} />
       )}
       {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
     </div>
