@@ -18,10 +18,16 @@ vi.mock("@/hooks/useConnectionTestDetails", () => ({
   useConnectionTestDetails: () => ({ details: null, loading: false, error: null, refresh: vi.fn() }),
 }));
 
-// Filtro de fonte de credencial usa contexto — provê stub neutro.
-vi.mock("@/components/admin/connections/CredentialsSourceFilterContext", () => ({
-  useCredentialsSourceFilter: () => ({ matchesFilter: () => true, filter: "all" }),
-}));
+// Filtro de fonte de credencial usa contexto — sobrescreve só o hook,
+// preservando exports auxiliares (`resolveSource`, etc) usados pelo
+// CredentialSourceBadge.
+vi.mock("@/components/admin/connections/CredentialsSourceFilterContext", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/components/admin/connections/CredentialsSourceFilterContext")>();
+  return {
+    ...actual,
+    useCredentialsSourceFilter: () => ({ matchesFilter: () => true, filter: "all" }),
+  };
+});
 
 // Toast: silencia para não poluir output.
 vi.mock("sonner", () => ({
