@@ -227,7 +227,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           <Label className="text-sm font-medium">{label}</Label>
           {status?.env_fallback_active && !editing && (
             <span
-              className="inline-flex items-center gap-1 rounded-md border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400 animate-in fade-in duration-300"
+              className="inline-flex items-center gap-1 rounded-md border border-warning/30 bg-warning/10 px-1.5 py-0.5 text-[10px] font-medium text-warning animate-in fade-in duration-300"
               title="Este valor está vindo da variável de ambiente do deploy, não do banco. Salve um valor aqui para sobrescrever e tornar editável."
             >
               <AlertCircle className="h-3 w-3" />
