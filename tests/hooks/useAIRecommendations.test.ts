@@ -163,6 +163,8 @@ describe("useAIRecommendations", () => {
   });
 
   it("retries up to 3 times on 5xx errors", async () => {
+    // Fake timers SOMENTE neste teste para pular os backoffs exponenciais (500ms + 1000ms)
+    vi.useFakeTimers({ shouldAdvanceTime: true });
     global.fetch = vi.fn().mockResolvedValue({
       ok: false,
       status: 503,
@@ -173,7 +175,7 @@ describe("useAIRecommendations", () => {
 
     await act(async () => {
       const promise = result.current.fetchRecommendations(mockClient, mockProducts);
-      // Avança os 2 backoffs (500ms + 1000ms) instantaneamente em vez de esperar 1.5s reais
+      // Avança 2s para cobrir os dois backoffs sem esperar tempo real
       await vi.advanceTimersByTimeAsync(2_000);
       await promise;
     });
