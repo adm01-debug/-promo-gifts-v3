@@ -71,9 +71,12 @@ export function Bitrix24Tab() {
           secretName="BITRIX24_DOMAIN" status={get("BITRIX24_DOMAIN")} onSaved={list} />
         <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
         <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
+        <ConnectionPreflightAlert issues={preflightIssues} />
         <div className="pt-2 flex flex-wrap gap-2">
-          <Button size="sm" disabled={isTesting || !credsLooksValid}
-            title={!credsOk ? "Configure o Webhook URL primeiro"
+          <Button size="sm" disabled={isTesting || !canTest}
+            title={preflightIssues.length > 0
+              ? "Corrija o campo acima antes de testar"
+              : !credsOk ? "Configure o Webhook URL primeiro"
               : !credsLooksValid ? "Webhook com formato suspeito (comprimento curto) — re-salve antes de testar"
               : "Testar conexão"}
             onClick={onTest}>
