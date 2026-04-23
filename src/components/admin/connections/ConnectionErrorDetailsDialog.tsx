@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { XCircle, Copy, History as HistoryIcon, ChevronDown, Lightbulb } from "lucide-react";
+import { XCircle, Copy, History as HistoryIcon, ChevronDown, Lightbulb, Clock, WifiOff, Globe, KeyRound, ServerCrash, Settings2, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import type { LastTestInfo } from "./LastTestLine";
+import type { ErrorKind } from "@/hooks/useConnectionTester";
 
 interface Props {
   open: boolean;
@@ -26,6 +27,7 @@ interface DetailRow {
   latency_ms: number | null;
   status_code: number | null;
   error_message: string | null;
+  error_kind: ErrorKind | null;
 }
 
 function formatRelative(iso: string | null | undefined): string {
@@ -39,16 +41,36 @@ function formatRelative(iso: string | null | undefined): string {
   return `há ${Math.round(diff / 86_400_000)}d`;
 }
 
-function suggestionFor(message: string | null | undefined, status: number | null | undefined): string | null {
+const SUGGESTIONS: Record<ErrorKind, string> = {
+  timeout: "Aumente o timeout, verifique se o serviço está sobrecarregado ou se há latência de rede excessiva.",
+  network: "O serviço pode estar offline, fora do ar ou bloqueando o IP da função. Tente novamente em alguns minutos.",
+  dns: "DNS não resolvido — verifique se a URL está correta e o domínio existe.",
+  auth: "Verifique se as credenciais estão corretas, não expiraram e têm as permissões necessárias.",
+  http: "Serviço externo retornou erro — consulte os logs do destino para entender a causa.",
+  config: "Configure as credenciais necessárias antes de testar a conexão.",
+  unknown: "Erro não categorizado — consulte os detalhes técnicos abaixo.",
+};
+
+const KIND_META: Record<ErrorKind, { label: string; Icon: typeof Clock; className: string }> = {
+  timeout: { label: "Timeout", Icon: Clock, className: "border-warning/40 bg-warning/10 text-warning" },
+  network: { label: "Rede", Icon: WifiOff, className: "border-destructive/40 bg-destructive/10 text-destructive" },
+  dns: { label: "DNS", Icon: Globe, className: "border-destructive/40 bg-destructive/10 text-destructive" },
+  auth: { label: "Auth", Icon: KeyRound, className: "border-warning/40 bg-warning/10 text-warning" },
+  http: { label: "HTTP", Icon: ServerCrash, className: "border-destructive/40 bg-destructive/10 text-destructive" },
+  config: { label: "Config", Icon: Settings2, className: "border-muted-foreground/40 bg-muted text-muted-foreground" },
+  unknown: { label: "Desconhecido", Icon: AlertCircle, className: "border-muted-foreground/40 bg-muted text-muted-foreground" },
+};
+
+/** Legacy regex-based fallback for rows persisted before error_kind existed. */
+function suggestionFromMessage(message: string | null | undefined, status: number | null | undefined): string | null {
   const m = (message ?? "").toLowerCase();
-  if (status === 401 || status === 403) return "Verifique se as credenciais estão corretas e não expiraram.";
+  if (status === 401 || status === 403) return SUGGESTIONS.auth;
   if (status === 404) return "Verifique se a URL base está correta.";
-  if (status && status >= 500) return "Serviço externo retornou erro — tente novamente em alguns minutos.";
-  if (m.includes("etimedout") || m.includes("econnrefused") || m.includes("timeout")) {
-    return "O serviço pode estar offline ou bloqueando o IP da função.";
-  }
+  if (status && status >= 500) return SUGGESTIONS.http;
+  if (m.includes("etimedout") || m.includes("timeout") || m.includes("tempo esgotado")) return SUGGESTIONS.timeout;
+  if (m.includes("econnrefused") || m.includes("network") || m.includes("rede")) return SUGGESTIONS.network;
+  if (m.includes("dns") || m.includes("getaddrinfo")) return SUGGESTIONS.dns;
   if (m.includes("jwt") || m.includes("token")) return "Token JWT possivelmente malformado — re-salve o secret.";
-  if (m.includes("dns") || m.includes("getaddrinfo")) return "DNS não resolvido — verifique a URL.";
   return null;
 }
 
