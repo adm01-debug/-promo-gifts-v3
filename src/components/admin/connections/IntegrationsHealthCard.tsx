@@ -3,7 +3,7 @@
  * Card read-only no topo de /admin/conexoes com auto-refresh 60s.
  * Mostra saúde agregada de webhooks, conexões e MCP keys.
  */
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,11 +20,19 @@ import {
   ShieldCheck,
   Loader2,
   Bot,
+  Database,
+  Minus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { toast } from "sonner";
+import {
+  useCredentialsSourceFilter,
+  resolveSource,
+  type CredentialSource,
+} from "./CredentialsSourceFilterContext";
+import type { SecretStatus } from "@/hooks/useSecretsManager";
 
 interface HealthData {
   activeWebhooks: number;
