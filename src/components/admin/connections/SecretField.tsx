@@ -415,18 +415,42 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
 
         </>
       ) : (
-        <div className="flex gap-2">
-          <Input value={status?.has_value ? "•••••••••••••••••" : ""} placeholder="Não configurado" readOnly />
-          <Button size="sm" variant="outline" onClick={() => startEdit("set")}>
-            <RefreshCw className="h-4 w-4 mr-1" />
-            {status?.has_value ? "Atualizar" : "Configurar"}
-          </Button>
-          {status?.has_value && (
-            <Button size="sm" variant="outline" onClick={() => startEdit("rotate")} title="Rotacionar (registra no log)">
-              <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
+        <>
+          <div className="flex gap-2">
+            <Input value={status?.has_value ? "•••••••••••••••••" : ""} placeholder="Não configurado" readOnly />
+            <Button size="sm" variant="outline" onClick={() => startEdit("set")}>
+              <RefreshCw className="h-4 w-4 mr-1" />
+              {status?.has_value ? "Atualizar" : "Configurar"}
             </Button>
+            {status?.has_value && (
+              <Button size="sm" variant="outline" onClick={() => startEdit("rotate")} title="Rotacionar (registra no log)">
+                <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
+              </Button>
+            )}
+          </div>
+          {status?.has_value && (
+            <div
+              className="flex items-center justify-between gap-2 rounded-md border border-border bg-muted/30 px-2.5 py-1.5 text-xs animate-in fade-in duration-200"
+              aria-live="polite"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <CheckCircle2 className="h-3.5 w-3.5 text-success shrink-0" />
+                <span className="font-mono font-medium">••••{status.masked_suffix ?? "????"}</span>
+                <span className="text-muted-foreground">
+                  ({status.length ?? 0} {status.length === 1 ? "char" : "chars"})
+                </span>
+              </div>
+              {status.updated_at && (
+                <span
+                  className="text-muted-foreground inline-flex items-center gap-1 shrink-0"
+                  title={`Última atualização: ${new Date(status.updated_at).toLocaleString("pt-BR")}`}
+                >
+                  Atualizado {formatRelative(status.updated_at)}
+                </span>
+              )}
+            </div>
           )}
-        </div>
+        </>
       )}
       {flash && (
         <JustSavedFlash
