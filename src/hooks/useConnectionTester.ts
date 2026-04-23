@@ -77,11 +77,9 @@ export function useConnectionTester() {
             description: normalized.message ?? `${normalized.status ?? "200"} em ${normalized.latency_ms ?? "?"}ms`,
           });
         } else {
-          const title = normalized.error_kind
-            ? TOAST_TITLE_BY_KIND[normalized.error_kind]
-            : "Falha na conexão";
-          toast.error(title, {
-            description: normalized.error ?? `HTTP ${normalized.status ?? "?"}`,
+          const copy = getErrorCopy(normalized.error_kind, normalized.status, normalized.error ?? normalized.message);
+          toast.error(copy.title, {
+            description: copy.hint,
           });
         }
       }
