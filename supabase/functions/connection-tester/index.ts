@@ -99,7 +99,37 @@ Deno.serve(async (req) => {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    const { type, config = {}, connection_id, env_key } = parsed.data;
+    const { action, type, config = {}, connection_id, env_key } = parsed.data;
+
+    // -- last_test: read persisted info, no ping --
+    if (action === "last_test") {
+      let row: {
+        last_test_at: string | null;
+        last_test_ok: boolean | null;
+        last_test_message: string | null;
+        last_latency_ms: number | null;
+        status: string | null;
+      } | null = null;
+      if (connection_id) {
+        const { data } = await service.from("external_connections")
+          .select("last_test_at, last_test_ok, last_test_message, last_latency_ms, status")
+          .eq("id", connection_id).maybeSingle();
+        row = data ?? null;
+      } else if (env_key) {
+        const { data } = await service.from("external_connections")
+          .select("last_test_at, last_test_ok, last_test_message, last_latency_ms, status")
+          .eq("env_key", env_key).eq("type", type).maybeSingle();
+        row = data ?? null;
+      } else if (type) {
+        const { data } = await service.from("external_connections")
+          .select("last_test_at, last_test_ok, last_test_message, last_latency_ms, status")
+          .eq("type", type).order("last_test_at", { ascending: false, nullsFirst: false }).limit(1).maybeSingle();
+        row = data ?? null;
+      }
+      return new Response(JSON.stringify({ ok: true, last: row }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     let result: { ok: boolean; status?: number; latency_ms?: number; error?: string; message?: string };
     try {
@@ -145,13 +175,15 @@ Deno.serve(async (req) => {
       result = { ok: false, error: err instanceof Error ? err.message : "Erro" };
     }
 
+    const nowIso = new Date().toISOString();
+    const message = result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`;
+
     if (connection_id) {
-      const nowIso = new Date().toISOString();
-      const message = result.error ?? result.message ?? `HTTP ${result.status ?? "?"}`;
       await service.from("external_connections").update({
         last_test_at: nowIso,
         last_test_ok: result.ok,
         last_test_message: message,
+        last_latency_ms: result.latency_ms ?? null,
         status: result.ok ? "active" : "error",
       }).eq("id", connection_id);
 
@@ -163,9 +195,25 @@ Deno.serve(async (req) => {
         status_code: result.status ?? null,
         error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
       }).then(() => undefined, (e) => console.error("history insert failed", e));
+    } else if (env_key && type === "supabase") {
+      // Upsert virtual connection row keyed by (env_key, type) so the UI can rehydrate.
+      await service.from("external_connections").upsert({
+        env_key,
+        type,
+        name: env_key === "crm" ? "Catálogo CRM" : "Catálogo Promobrind",
+        status: result.ok ? "active" : "error",
+        last_test_at: nowIso,
+        last_test_ok: result.ok,
+        last_test_message: message,
+        last_latency_ms: result.latency_ms ?? null,
+        created_by: u.user.id,
+      }, { onConflict: "env_key,type" }).then(() => undefined, (e) => console.error("env upsert failed", e));
     }
 
-    return new Response(JSON.stringify({ ok: true, result }), {
+    return new Response(JSON.stringify({
+      ok: true,
+      result: { ...result, tested_at: nowIso },
+    }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (err) {
