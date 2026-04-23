@@ -109,14 +109,50 @@ export function ConnectionTestHistoryPanel({
 
       {open && !empty && (
         <div className="mt-2 space-y-2 animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-1 px-1">
+            {([
+              { key: "all", label: "Todos", count: counts.all },
+              { key: "ok", label: "OK", count: counts.ok },
+              { key: "fail", label: "Falhas", count: counts.fail },
+            ] as const).map((opt) => {
+              const active = filter === opt.key;
+              const isFail = opt.key === "fail";
+              const isOk = opt.key === "ok";
+              return (
+                <button
+                  key={opt.key}
+                  type="button"
+                  onClick={() => setFilter(opt.key)}
+                  className={cn(
+                    "text-[11px] px-2 py-0.5 rounded-full border transition-colors tabular-nums",
+                    active
+                      ? isFail
+                        ? "bg-destructive/10 border-destructive/40 text-destructive"
+                        : isOk
+                          ? "bg-green-500/10 border-green-500/40 text-green-700 dark:text-green-400"
+                          : "bg-muted border-border text-foreground"
+                      : "border-transparent text-muted-foreground hover:bg-muted/60",
+                  )}
+                  aria-pressed={active}
+                >
+                  {opt.label} ({opt.count})
+                </button>
+              );
+            })}
+          </div>
+
           {loading && items.length === 0 ? (
             <div className="flex items-center justify-center py-4 text-xs text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" /> Carregando…
             </div>
+          ) : visibleItems.length === 0 ? (
+            <div className="py-3 text-center text-xs text-muted-foreground">
+              {filter === "fail" ? "Nenhuma falha nos últimos testes 🎉" : "Nenhum teste com este filtro."}
+            </div>
           ) : (
             <TooltipProvider delayDuration={150}>
               <ul className="space-y-1">
-                {items.map((it) => {
+                {visibleItems.map((it) => {
                   const Icon = it.ok ? CheckCircle2 : XCircle;
                   const tail = it.ok
                     ? `HTTP ${it.status ?? "?"}${it.message ? ` — ${it.message}` : ""}`
