@@ -510,7 +510,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
             {status.updated_at && (
               <span
                 className="opacity-70"
-                title={buildUpdatedTooltip(status.updated_at, status.updated_by_email)}
+                title={buildUpdatedTooltip(status.updated_at, status.updated_by_email, status.updated_by)}
               >
                 · atualizado {formatRelative(status.updated_at)}
               </span>
