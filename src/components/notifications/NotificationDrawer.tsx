@@ -253,6 +253,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
 
   return (
     <Sheet onOpenChange={(open) => {
+      setIsOpen(open);
       if (open) {
         if (prefetchDebounceRef.current) {
           clearTimeout(prefetchDebounceRef.current);
@@ -270,9 +271,16 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 variant="ghost"
                 size="icon"
                 className="relative h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-primary/10 transition-all duration-200"
-                aria-label="Notificações"
+                aria-label={
+                  unreadCount > 0
+                    ? `Notificações, ${unreadCount} não lida${unreadCount > 1 ? "s" : ""}`
+                    : "Notificações"
+                }
+                aria-haspopup="dialog"
+                aria-expanded={isOpen}
                 onMouseEnter={() => debouncedPrefetch("hover")}
                 onFocus={() => debouncedPrefetch("focus")}
+                onTouchStart={() => debouncedPrefetch("hover")}
               >
                 <BellBadge
                   unreadCount={unreadCount}
