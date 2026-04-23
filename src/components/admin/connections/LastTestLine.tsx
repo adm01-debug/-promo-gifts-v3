@@ -3,6 +3,7 @@ import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ErrorKind } from "@/hooks/useConnectionTester";
 import { getErrorCopy } from "@/lib/connection-error-copy";
+import { inferErrorKind } from "@/lib/error-kind-inference";
 
 export interface LastTestInfo {
   ok: boolean | null;
@@ -64,9 +65,18 @@ export function LastTestLine({
   const isClickable = !!onClick;
   // Para falhas, derivamos copy semântica via error_kind (SSOT). O texto cru
   // do erro (info.message) vai para a linha técnica (3ª linha) e tooltip.
-  const errorCopy = !info.ok ? getErrorCopy(info.error_kind, info.status, info.message, info.timeout_ms) : null;
+  // Fallback: registros antigos sem error_kind recebem inferência heurística.
+  const resolvedKind: ErrorKind | null = !info.ok
+    ? inferErrorKind({
+        errorKind: info.error_kind ?? null,
+        errorMessage: info.message ?? null,
+        statusCode: info.status ?? null,
+        success: info.ok,
+      })
+    : null;
+  const errorCopy = !info.ok ? getErrorCopy(resolvedKind, info.status, info.message, info.timeout_ms) : null;
   const technicalDetail = !info.ok
-    ? [httpInfo, info.error_kind === "timeout" && info.timeout_ms ? `timeout ${info.timeout_ms}ms` : null, info.message?.trim()].filter(Boolean).join(" · ")
+    ? [httpInfo, resolvedKind === "timeout" && info.timeout_ms ? `timeout ${info.timeout_ms}ms` : null, info.message?.trim()].filter(Boolean).join(" · ")
     : "";
   // Header line: status + when. Always single line, never truncates the timestamp.
   const headerText = (

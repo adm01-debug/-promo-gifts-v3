@@ -9,6 +9,8 @@ export interface TestHistoryItem {
   latency_ms: number | null;
   status: number | null;
   message: string | null;
+  /** Tipo semântico da falha (gravado pelo backend; null em sucessos ou registros antigos). */
+  error_kind?: string | null;
   triggered_by?: "manual" | "cron" | "webhook";
   attempts?: number;
 }
