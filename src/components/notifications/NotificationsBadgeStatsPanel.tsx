@@ -343,7 +343,7 @@ export function NotificationsBadgeStatsPanel() {
                     <Tooltip key={key}>
                       <TooltipTrigger asChild>
                         <div
-                          className="grid grid-cols-[auto_1fr_auto] items-center gap-x-2 cursor-help rounded px-1 -mx-1 hover:bg-muted/40"
+                          className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-x-2 cursor-help rounded px-1 -mx-1 hover:bg-muted/40"
                           aria-label={`${label}: ${c.triggers} triggers, ${c.fetches} fetches, ${c.saved} saved (${pct}% efficiency)`}
                         >
                           <span className="text-muted-foreground pl-2.5 underline decoration-dotted decoration-muted-foreground/40 underline-offset-2">
@@ -371,9 +371,18 @@ export function NotificationsBadgeStatsPanel() {
                               style={{ width: `${Math.max(2, pct)}%` }}
                             />
                           </div>
+                          {/* Raw counts inline: triggers → fetches. Hover title also surfaces saved. */}
+                          <span
+                            className="tabular-nums text-right text-[10px] text-muted-foreground"
+                            title={`${c.triggers} triggers → ${c.fetches} fetches (${c.saved} saved)`}
+                          >
+                            {c.triggers}
+                            <span className="opacity-50 mx-0.5">→</span>
+                            {c.fetches}
+                          </span>
                           <span
                             className={cn(
-                              "tabular-nums text-right text-[10px] font-semibold",
+                              "tabular-nums text-right text-[10px] font-semibold min-w-[2.5rem]",
                               tone
                             )}
                           >
