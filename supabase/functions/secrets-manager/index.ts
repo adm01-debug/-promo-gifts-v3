@@ -146,14 +146,11 @@ Deno.serve(async (req) => {
       // Enrich each entry with rotated_by_email via auth.admin lookup
       const rows = (history ?? []) as Array<{ rotated_by: string | null } & Record<string, unknown>>;
       const uniqueIds = Array.from(new Set(rows.map((r) => r.rotated_by).filter((v): v is string => !!v)));
-      const emailMap = new Map<string, string>();
-      if (uniqueIds.length > 0) {
-        // listUsers is paginated; for an admin tool with limited rotators this single page is sufficient
-        const { data: usersPage } = await service.auth.admin.listUsers({ page: 1, perPage: 200 });
-        for (const u of usersPage?.users ?? []) {
-          if (uniqueIds.includes(u.id) && u.email) emailMap.set(u.id, u.email);
-        }
-      }
+      const emailMap = await resolveEmails(uniqueIds);
+      const enriched = rows.map((r) => ({
+        ...r,
+        rotated_by_email: r.rotated_by ? emailMap.get(r.rotated_by) ?? null : null,
+      }));
       const enriched = rows.map((r) => ({
         ...r,
         rotated_by_email: r.rotated_by ? emailMap.get(r.rotated_by) ?? null : null,
