@@ -43,13 +43,6 @@ function formatRelative(iso: string | null): string {
   return `há ${Math.round(diff / 86_400_000)}d`;
 }
 
-type Filter = "all" | "active" | "error" | "never";
-
-function rowFilter(r: OverviewRow): Filter {
-  if (!r.last_test_at) return "never";
-  return r.last_test_ok ? "active" : "error";
-}
-
 function rowStatus(r: OverviewRow): "active" | "degraded" | "error" | "unconfigured" | "disabled" {
   if (r.status === "disabled") return "disabled";
   if (!r.last_test_at) return "unconfigured";
@@ -59,23 +52,12 @@ function rowStatus(r: OverviewRow): "active" | "degraded" | "error" | "unconfigu
 export function ConnectionsOverviewTable() {
   const { rows, loading, refreshing, refresh, patchRow } = useConnectionsOverview(30000);
   const { test } = useConnectionTester();
-  const [filter, setFilter] = useState<Filter>("all");
+  const filterState = useConnectionsOverviewFilters();
+  const { filters, activeCount, reset } = filterState;
   const [testingKey, setTestingKey] = useState<string | null>(null);
   const [bulkTesting, setBulkTesting] = useState(false);
 
-  const counts = useMemo(() => {
-    const c = { all: rows.length, active: 0, error: 0, never: 0 };
-    for (const r of rows) {
-      const k = rowFilter(r);
-      c[k] += 1;
-    }
-    return c;
-  }, [rows]);
-
-  const filtered = useMemo(() => {
-    if (filter === "all") return rows;
-    return rows.filter((r) => rowFilter(r) === filter);
-  }, [rows, filter]);
+  const filtered = useMemo(() => applyFilters(rows, filters), [rows, filters]);
 
   async function runTest(row: OverviewRow) {
     setTestingKey(row.key);
