@@ -140,6 +140,17 @@ const state = {
   },
   triggerToFetch: [] as TriggerToFetchTiming[],
   triggerToFetchTtlBreaches: 0,
+  /**
+   * Per-source coalescing aggregates fed by `recordTriggerToFetch`. We track
+   * triggers (sum of coalescedTriggers from each sample) and fetches (sample
+   * count) so that callers can derive `saved = triggers - fetches` and
+   * `efficiency = saved / triggers`.
+   */
+  coalescingByTrigger: {
+    hover: { triggers: 0, fetches: 0 },
+    focus: { triggers: 0, fetches: 0 },
+    "drawer-open": { triggers: 0, fetches: 0 },
+  } as Record<TriggerSource, { triggers: number; fetches: number }>,
 };
 
 type BadgeListener = (stat: BadgeRenderStat) => void;
