@@ -16,6 +16,8 @@ import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
+import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
+import { SecretErrorAlert } from "./SecretErrorAlert";
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -31,30 +33,8 @@ function formatRelative(iso: string): string {
   return `há ${d}d`;
 }
 
-function describeError(err: SecretError, secretName: string): string {
-  const msg = (err.message || "").toLowerCase();
-  switch (err.code) {
-    case "forbidden":
-      return "Apenas administradores podem alterar esta credencial.";
-    case "not_whitelisted":
-      return `O nome "${secretName}" não está na lista permitida de credenciais.`;
-    case "invalid_value":
-      return "O valor precisa ter pelo menos 4 caracteres.";
-    case "db_error":
-      return `Falha ao gravar no banco: ${err.message}`;
-    default:
-      if (msg.includes("not allowed") || msg.includes("forbidden")) {
-        return "Apenas administradores podem alterar esta credencial.";
-      }
-      if (msg.includes("whitelist") || msg.includes("não permitido")) {
-        return `O nome "${secretName}" não está na lista permitida.`;
-      }
-      if (msg.includes("network") || msg.includes("failed to fetch")) {
-        return "Falha de rede. Verifique sua conexão e tente novamente.";
-      }
-      return err.message || "Erro desconhecido ao salvar credencial.";
-  }
-}
+// NOTE: error translation moved to ./secretErrors.ts so that every
+// connections component shows the same wording, chip and tone.
 
 interface FlashState {
   masked_suffix: string | null;
