@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save } from "lucide-react";
+import { AlertCircle, Check, CheckCircle2, Eye, EyeOff, Loader2, RefreshCw, RotateCw, Save, ShieldAlert } from "lucide-react";
 import { validateSecret, getMinLength } from "./secretValidators";
+import { validateSecretName } from "./secretWhitelist";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -223,15 +224,18 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     return { ok: true as const, cancelled: false };
   };
 
+  const nameValidation = useMemo(() => validateSecretName(secretName), [secretName]);
   const validation = useMemo(() => validateSecret(secretName, value), [secretName, value]);
-  const canSave = !saving && value.length > 0 && validation.ok;
+  const canSave = !saving && nameValidation.ok && value.length > 0 && validation.ok;
   const saveDisabledReason = saving
     ? null
-    : value.length === 0
-      ? "Cole um valor antes de salvar"
-      : !validation.ok
-        ? validation.message ?? "Corrija o formato antes de salvar"
-        : null;
+    : !nameValidation.ok
+      ? nameValidation.message ?? "Nome de credencial não permitido"
+      : value.length === 0
+        ? "Cole um valor antes de salvar"
+        : !validation.ok
+          ? validation.message ?? "Corrija o formato antes de salvar"
+          : null;
 
   const minLen = getMinLength(secretName);
   const storedLooksSuspicious =
@@ -258,7 +262,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
-    if (!value || !validation.ok) return;
+    if (!value || !validation.ok || !nameValidation.ok) return;
     setSaving(true);
     setRotateConfirmError(null);
     const res = await performSave("rotate", value, notes);
@@ -307,6 +311,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           </span>
         )}
       </div>
+      {!nameValidation.ok && (
+        <div
+          role="alert"
+          className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/5 px-2.5 py-2 text-xs text-destructive"
+        >
+          <ShieldAlert className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+          <div className="min-w-0 space-y-0.5">
+            <p className="font-medium">Nome de credencial não permitido</p>
+            <p className="break-words">{nameValidation.message}</p>
+            {nameValidation.hint && (
+              <p className="text-muted-foreground break-words">{nameValidation.hint}</p>
+            )}
+          </div>
+        </div>
+      )}
       {editing ? (
         <>
           <div className="flex gap-2">
@@ -418,12 +437,24 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         <>
           <div className="flex gap-2">
             <Input value={status?.has_value ? "•••••••••••••••••" : ""} placeholder="Não configurado" readOnly />
-            <Button size="sm" variant="outline" onClick={() => startEdit("set")}>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => startEdit("set")}
+              disabled={!nameValidation.ok}
+              title={!nameValidation.ok ? nameValidation.message : undefined}
+            >
               <RefreshCw className="h-4 w-4 mr-1" />
               {status?.has_value ? "Atualizar" : "Configurar"}
             </Button>
             {status?.has_value && (
-              <Button size="sm" variant="outline" onClick={() => startEdit("rotate")} title="Rotacionar (registra no log)">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => startEdit("rotate")}
+                disabled={!nameValidation.ok}
+                title={!nameValidation.ok ? nameValidation.message : "Rotacionar (registra no log)"}
+              >
                 <RotateCw className="h-4 w-4 mr-1" /> Rotacionar
               </Button>
             )}
