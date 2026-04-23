@@ -45,6 +45,8 @@ export default function AdminConexoesPage() {
           <FailureWindowCard />
         </div>
 
+        <AutoTestJobStatusCard />
+
         {secrets.length > 0 && (
           <CredentialsSourceFilter secrets={secrets} className="rounded-lg border bg-card px-4 py-3" />
         )}
