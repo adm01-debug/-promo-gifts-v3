@@ -353,15 +353,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
       setRotateConfirmOpen(true);
       return;
     }
+    setSaveConfirmError(null);
     setSaveConfirmOpen(true);
   };
 
   const handleConfirmedSave = async () => {
     if (!canSave) return;
     setSaving(true);
+    setSaveConfirmError(null);
     const res = await performSave("set", value);
     setSaving(false);
-    if (res.ok) setSaveConfirmOpen(false);
+    if (res.ok) {
+      setSaveConfirmOpen(false);
+    } else if (!res.cancelled) {
+      setSaveConfirmError(res.errorDescription);
+    }
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
