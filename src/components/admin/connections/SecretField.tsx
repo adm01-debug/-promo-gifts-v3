@@ -245,45 +245,78 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         )}
       </div>
       {editing ? (
-        <div className="flex gap-2">
-          <div className="relative flex-1">
-            <Input
-              type={show ? "text" : "password"}
-              value={value}
-              onChange={(e) => setValue(e.target.value)}
-              placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
-              autoFocus
-              disabled={saving}
-            />
-            <button
-              type="button"
-              onClick={() => setShow((s) => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
-              aria-label={show ? "Ocultar" : "Mostrar"}
+        <>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <Input
+                type={show ? "text" : "password"}
+                value={value}
+                onChange={(e) => setValue(e.target.value)}
+                placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
+                autoFocus
+                disabled={saving}
+                className={cn(
+                  "pr-16",
+                  value.length > 0 && validation.ok && "border-success focus-visible:border-success focus-visible:ring-success/20",
+                  value.length > 0 && !validation.ok && "border-destructive focus-visible:border-destructive focus-visible:ring-destructive/20",
+                )}
+                aria-invalid={value.length > 0 && !validation.ok}
+              />
+              {value.length > 0 && (
+                <span className="absolute right-9 top-1/2 -translate-y-1/2 pointer-events-none">
+                  {validation.ok ? (
+                    <CheckCircle2 className="h-4 w-4 text-success" />
+                  ) : (
+                    <AlertCircle className="h-4 w-4 text-destructive" />
+                  )}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => setShow((s) => !s)}
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                aria-label={show ? "Ocultar" : "Mostrar"}
+                disabled={saving}
+              >
+                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            <Button
+              size="sm"
+              onClick={handleSave}
+              disabled={!canSave}
+              title={saveDisabledReason ?? undefined}
+            >
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-1" />
+              )}
+              {saving
+                ? mode === "rotate" ? "Rotacionando…" : "Salvando…"
+                : mode === "rotate" ? "Rotacionar" : "Salvar"}
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => { setEditing(false); setValue(""); setMode("set"); }}
               disabled={saving}
             >
-              {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-            </button>
+              Cancelar
+            </Button>
           </div>
-          <Button size="sm" onClick={handleSave} disabled={saving || value.length < 4}>
-            {saving ? (
-              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
-            ) : (
-              <Save className="h-4 w-4 mr-1" />
-            )}
-            {saving
-              ? mode === "rotate" ? "Rotacionando…" : "Salvando…"
-              : mode === "rotate" ? "Rotacionar" : "Salvar"}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => { setEditing(false); setValue(""); setMode("set"); }}
-            disabled={saving}
-          >
-            Cancelar
-          </Button>
-        </div>
+          {value.length > 0 && !validation.ok && validation.message && (
+            <p className="text-xs text-destructive flex items-center gap-1">
+              <AlertCircle className="h-3 w-3" /> {validation.message}
+            </p>
+          )}
+          {value.length === 0 && validation.hint && (
+            <p className="text-xs text-muted-foreground">{validation.hint}</p>
+          )}
+          {value.length > 0 && validation.ok && validation.hint && (
+            <p className="text-xs text-success">Formato válido</p>
+          )}
+        </>
       ) : (
         <div className="flex gap-2">
           <Input value={status?.has_value ? "•••••••••••••••••" : ""} placeholder="Não configurado" readOnly />
