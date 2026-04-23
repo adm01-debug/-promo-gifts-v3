@@ -270,7 +270,12 @@ export const NotificationBell = React.forwardRef<HTMLDivElement>(function Notifi
                 onMouseEnter={debouncedPrefetch}
                 onFocus={debouncedPrefetch}
               >
-                <BellBadge unreadCount={unreadCount} shouldShake={shouldShake} />
+                <BellBadge
+                  unreadCount={unreadCount}
+                  shouldShake={shouldShake}
+                  isMutationRehydrating={isMutationRehydrating}
+                />
+
               </Button>
             </TooltipTrigger>
             <TooltipContent className="bg-card border-border text-xs">
