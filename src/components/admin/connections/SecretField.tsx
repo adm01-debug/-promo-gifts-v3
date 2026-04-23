@@ -23,6 +23,27 @@ import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
 import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
 import { SecretErrorAlert } from "./SecretErrorAlert";
+import { ErrorDetailsDialog } from "./ErrorDetailsDialog";
+import { useConnectionTestDetails } from "@/hooks/useConnectionTestDetails";
+import type { ConnectionType } from "@/hooks/useConnectionTester";
+
+/**
+ * Mapeia o `connectionId` (curto, usado nas abas) para a `ConnectionType`
+ * + `env_key` que o backend de testes entende. Retorna `null` quando não há
+ * mapeamento conhecido — nesse caso o link "Ver detalhes" não é exibido.
+ */
+function mapConnectionToTester(
+  connectionId: string | undefined,
+): { type: ConnectionType; envKey?: "promobrind" | "crm" } | null {
+  if (!connectionId) return null;
+  if (connectionId === "n8n") return { type: "n8n" };
+  if (connectionId === "bitrix24") return { type: "bitrix24" };
+  if (connectionId === "mcp") return { type: "mcp" };
+  if (connectionId === "promobrind" || connectionId === "crm") {
+    return { type: "supabase", envKey: connectionId };
+  }
+  return null;
+}
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -123,8 +144,20 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
   const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
   const [saveConfirmError, setSaveConfirmError] = useState<string | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   // Cancellation for in-flight retries (declared early for the same reason)
   const abortRef = useRef<AbortController | null>(null);
+
+  const testerMap = useMemo(() => mapConnectionToTester(connectionId), [connectionId]);
+  const testDetailsState = useConnectionTestDetails({
+    open: detailsOpen && !!testerMap,
+    type: testerMap?.type ?? "n8n",
+    envKey: testerMap?.envKey,
+    connectionId,
+  });
+  const detailsAvailable = !!testerMap;
+  const handleViewDetails = detailsAvailable ? () => setDetailsOpen(true) : undefined;
+
 
   const showNormalization = (changes: string[]) => {
     if (changes.length === 0) return;
@@ -558,6 +591,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
               error={lastError}
               onRetry={handleSave}
               retryDisabled={!canSave}
+              onViewDetails={handleViewDetails}
             />
           )}
           {value.length > 0 && value.length < MIN_SUFFIX_LENGTH && (
@@ -692,6 +726,7 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
                 setMode((m) => m);
                 setEditing(true);
               }}
+              onViewDetails={handleViewDetails}
             />
           )}
         </>
@@ -746,6 +781,16 @@ export function SecretField({ label, secretName, status, helperText, onSaved, co
         errorMessage={saveConfirmError}
         onConfirm={handleConfirmedSave}
       />
+
+      {detailsAvailable && lastError && (
+        <ErrorDetailsDialog
+          open={detailsOpen}
+          onOpenChange={setDetailsOpen}
+          error={lastError}
+          details={testDetailsState.details}
+          loading={testDetailsState.loading}
+        />
+      )}
     </div>
   );
 }

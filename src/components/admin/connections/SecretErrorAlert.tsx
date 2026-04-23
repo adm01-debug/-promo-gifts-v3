@@ -1,4 +1,4 @@
-import { AlertCircle, RefreshCw } from "lucide-react";
+import { AlertCircle, Info, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,9 @@ interface Props {
   className?: string;
   /** Compact = inline near a field; expanded = standalone block. */
   variant?: "compact" | "expanded";
+  /** When provided, renders a "Ver detalhes" link that opens a details modal. */
+  onViewDetails?: () => void;
+  detailsLabel?: string;
 }
 
 /**
@@ -25,8 +28,11 @@ export function SecretErrorAlert({
   retryDisabled,
   className,
   variant = "compact",
+  onViewDetails,
+  detailsLabel = "Ver detalhes",
 }: Props) {
   const showRetry = !!onRetry && error.retryable;
+  const showDetails = !!onViewDetails;
   return (
     <div
       role="alert"
@@ -58,17 +64,37 @@ export function SecretErrorAlert({
             )}
           </div>
         </div>
-        {showRetry && (
-          <Button
-            size="sm"
-            variant="outline"
-            className={cn("shrink-0", variant === "expanded" ? "h-8" : "h-7 px-2")}
-            onClick={onRetry}
-            disabled={retryDisabled}
-          >
-            <RefreshCw className={cn("mr-1", variant === "expanded" ? "h-3.5 w-3.5" : "h-3 w-3")} />
-            {retryLabel}
-          </Button>
+        {(showRetry || showDetails) && (
+          <div className="flex items-center gap-1 shrink-0 flex-wrap justify-end">
+            {showRetry && (
+              <Button
+                size="sm"
+                variant="outline"
+                className={cn(variant === "expanded" ? "h-8" : "h-7 px-2")}
+                onClick={onRetry}
+                disabled={retryDisabled}
+              >
+                <RefreshCw className={cn("mr-1", variant === "expanded" ? "h-3.5 w-3.5" : "h-3 w-3")} />
+                {retryLabel}
+              </Button>
+            )}
+            {showDetails && (
+              <Button
+                type="button"
+                size="sm"
+                variant="link"
+                className={cn(
+                  "text-destructive hover:text-destructive/80 px-1",
+                  variant === "expanded" ? "h-8" : "h-7",
+                )}
+                onClick={onViewDetails}
+                aria-label={`${detailsLabel} do erro`}
+              >
+                <Info className={cn("mr-1", variant === "expanded" ? "h-3.5 w-3.5" : "h-3 w-3")} />
+                {detailsLabel}
+              </Button>
+            )}
+          </div>
         )}
       </div>
     </div>
