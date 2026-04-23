@@ -66,6 +66,12 @@ interface Props {
   triggerVariant?: "outline" | "ghost" | "secondary" | "default";
   /** Tamanho do botão */
   triggerSize?: "sm" | "default";
+  /** Controle externo opcional do estado aberto (ex.: abrir a partir do modal de detalhes). */
+  open?: boolean;
+  /** Callback quando o estado aberto muda (apenas em modo controlado). */
+  onOpenChange?: (open: boolean) => void;
+  /** Quando true, omite o botão trigger (drawer só abre via prop `open`). */
+  hideTrigger?: boolean;
 }
 
 export function ConnectionTimelineDrawer({
@@ -73,8 +79,17 @@ export function ConnectionTimelineDrawer({
   label,
   triggerVariant = "outline",
   triggerSize = "sm",
+  open: openProp,
+  onOpenChange,
+  hideTrigger = false,
 }: Props) {
-  const [open, setOpen] = useState(false);
+  const [openInternal, setOpenInternal] = useState(false);
+  const isControlled = openProp !== undefined;
+  const open = isControlled ? openProp : openInternal;
+  const setOpen = (v: boolean) => {
+    if (!isControlled) setOpenInternal(v);
+    onOpenChange?.(v);
+  };
   const [rows, setRows] = useState<TestRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(0);
