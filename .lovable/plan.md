@@ -1,57 +1,85 @@
 
 
-## Coluna "Falhas consecutivas" na tabela de visão geral
+## Concorrência ajustável e progresso para "Testar todas"
 
-Adicionar uma coluna na `ConnectionsOverviewTable` que mostra quantas falhas seguidas a conexão acumulou desde o último teste OK, com destaque visual quando ultrapassa um limite configurável.
+Hoje `runAll` em `ConnectionsOverviewTable` já paraleliza com **concorrência fixa = 3** e o único feedback é o spinner no botão. O pedido: deixar a concorrência configurável e mostrar progresso (barra + contador) durante a execução.
 
-### Comportamento
+### Mudanças visuais
 
-- A contagem é derivada do histórico (`connection_test_history`): contagem regressiva a partir do mais recente, parando no primeiro `ok = true`. Se nunca houve OK, conta todas as falhas existentes.
-- Coluna nova entre **Última verificação** e **Latência**, título "Falhas seguidas".
-- Valores:
-  - `0` → traço discreto (`—`) em `text-muted-foreground`.
-  - `1–N` → badge âmbar (`bg-warning/10 text-warning`) com o número.
-  - `> N` → badge vermelho (`bg-destructive/10 text-destructive`) com ícone `AlertTriangle` + número, e a **linha inteira ganha um fundo `bg-destructive/5` + borda esquerda `border-l-2 border-destructive`** para destacar.
-- Tooltip no badge: "X falhas consecutivas desde o último sucesso em {data relativa}" (ou "nunca houve sucesso registrado").
+1. **Seletor de concorrência** ao lado do botão "Testar filtradas/todas":
+   - `Select` compacto (`h-8 w-[110px]`) com opções `1`, `2`, `3` (default), `5`, `8` paralelos.
+   - Label visual: "Paralelos: N" — `font-display`, `text-xs`.
+   - Valor persistido em `localStorage` (`connections.bulk_test_concurrency`) para sobreviver refresh.
+   - Desabilitado durante `bulkTesting`.
 
-### Limite N (threshold)
+2. **Painel de progresso** que aparece **dentro do `CardContent`, acima da tabela**, somente enquanto `bulkTesting`:
+   - `Progress` (shadcn) com `value = (done / total) * 100`.
+   - Linha de status: `Testando X de Y · ✓ A · ✗ B · ⏱ Cs decorridos` em `text-xs tabular-nums`.
+   - Botão **"Cancelar"** (`variant="outline" size="sm"`) à direita que aborta os workers (não mata o teste em voo, mas impede novos da fila).
+   - Skeleton rows continuam mostrando "Testando..." nas linhas em execução (já existente via `testingKey` — passar a aceitar **set** de chaves).
 
-- Constante exportada `CONSECUTIVE_FAILURE_THRESHOLD = 3` em `src/lib/connections-config.ts` (novo arquivo pequeno, para reuso futuro em alertas/cron).
-- Filtro adicional no `ConnectionsOverviewFilters`: novo chip toggle **"Apenas com falhas seguidas"** (não-multi, é um boolean) que mostra somente linhas com `consecutive_failures >= threshold`.
+3. **Tooltip no botão "Testar"** explica: "Roda os testes em paralelo até o limite escolhido. Você pode cancelar a qualquer momento."
 
-### Backend
+### Mudanças de estado
 
-- Nova action `consecutive_failures_overview` em `supabase/functions/connection-tester/index.ts`:
-  - Sem parâmetros (ou aceita lista opcional de `connection_id`).
-  - Retorna `{ items: Array<{ key: string; type: string; env_key?: string; connection_id?: string; consecutive_failures: number; since: string | null }> }`.
-  - Implementação: para cada conexão, busca os últimos ~50 registros de `connection_test_history` ordenados desc por `tested_at`, conta enquanto `ok = false`, para no primeiro `ok = true`. `since` = `tested_at` do primeiro registro da streak.
-  - Mascaramento não se aplica (sem payloads).
-- Sem alteração de schema. Sem nova tabela. Sem migração.
+- Substituir `testingKey: string | null` por `testingKeys: Set<string>` (multi-key durante bulk; cells mostram "Testando..." quando `testingKeys.has(row.key)`).
+- Novo estado:
+  ```ts
+  interface BulkProgress {
+    total: number;
+    done: number;
+    ok: number;
+    fail: number;
+    startedAt: number;
+  }
+  const [progress, setProgress] = useState<BulkProgress | null>(null);
+  const cancelRef = useRef(false);
+  ```
+- `runAll` agora:
+  - Lê `concurrency` do estado (clamp `1..8`).
+  - Inicializa `progress = { total: filtered.length, done: 0, ok: 0, fail: 0, startedAt: Date.now() }`.
+  - Cada worker, ao terminar um item, chama `setProgress(p => ({ ...p, done: p.done+1, ok: p.ok+(res.ok?1:0), fail: p.fail+(res.ok?0:1) }))`.
+  - Verifica `cancelRef.current` no topo do loop — se `true`, drena a fila sem executar.
+  - Ao finalizar (ou cancelar), aguarda 800ms, depois `setProgress(null)` para o painel sumir suavemente.
 
-### Frontend
+### Mudanças no `useConnectionTester`
 
-- **Novo hook** `src/hooks/useConsecutiveFailures.ts`:
-  - Recebe `rows: OverviewRow[]` (para saber quais chaves existem).
-  - Chama a action a cada poll do overview (mesmo intervalo de 30s do `useConnectionsOverview` — disparado por um `useEffect` que observa o `length` + chaves de `rows`).
-  - Retorna `Map<string, { count: number; since: string | null }>` indexado por `OverviewRow.key`.
+Hoje cada `test()` dispara um `toast.success`/`toast.error`. Em modo bulk com 30+ conexões isso vira spam.
+
+- Adicionar parâmetro opcional `silent?: boolean` em `test()`:
+  ```ts
+  test(type, { ...opts, silent: true })
+  ```
+- Quando `silent`, **não chama `toast`** — feedback fica por conta do painel de progresso. Toast final agregado:
+  - `toast.success("Teste em massa concluído", { description: "X OK · Y falhas em Zs" })`
+  - `toast.error("Cancelado", { description: "X de Y testes executados" })` quando cancelado.
+
+### Acessibilidade
+
+- `Progress` recebe `aria-label="Progresso dos testes em massa"` e `aria-valuenow` automático.
+- Linha de status com `role="status"` + `aria-live="polite"` (atualiza a cada item concluído sem flood — apenas valor numérico, não texto inteiro).
+- Select de concorrência com `aria-label="Limite de testes paralelos"`.
+
+### Arquivos
+
 - **Modificado** `src/components/admin/connections/ConnectionsOverviewTable.tsx`:
-  - Instancia o novo hook.
-  - Adiciona coluna no `<thead>` e célula no `<tbody>`.
-  - Aplica classes condicionais na `<tr>` quando `count > threshold`.
-  - Passa `consecutiveFailuresMap` para o filtro / aplica filtro no client.
-- **Modificado** `src/hooks/useConnectionsOverviewFilters.ts`:
-  - Adiciona campo `onlyConsecutiveFailures: boolean` ao `OverviewFilters`.
-  - Atualiza `applyFilters` para aceitar segundo parâmetro opcional `consecutiveFailuresMap` e filtrar quando o toggle está ativo.
-  - Persistência sessionStorage atualizada.
-- **Modificado** `src/components/admin/connections/ConnectionsOverviewFilters.tsx`:
-  - Adiciona o toggle "Apenas com falhas seguidas" ao lado dos filtros existentes (chip ativável estilo `Toggle`).
-  - Inclui no contador de filtros ativos e no botão "Limpar".
+  - `testingKey` → `testingKeys: Set<string>` (com `useState` e helpers `add`/`delete`).
+  - Estados `progress`, `cancelRef`, `concurrency` (com persistência em `localStorage`).
+  - `runAll` reescrito com workers que respeitam `cancelRef` e atualizam `progress`.
+  - Novo `<BulkTestProgressPanel />` inline dentro do `CardContent`.
+  - `Select` de concorrência no header (entre `Atualizar` e `Testar todas`).
+  - Passa `silent: true` em todas as chamadas de bulk.
+- **Modificado** `src/hooks/useConnectionTester.ts`:
+  - Adiciona `silent?: boolean` em `TestOptions` (mantém compat com call-sites que usam objeto).
+  - Quando `silent`, pula os blocos `toast.success` / `toast.error` (mantém o `toast.error` do `catch` final como rede de segurança? **Não** — também silencia, retornando o `TestResult` para o caller agregar.).
+- **Novo (sub-componente no mesmo arquivo)** `BulkTestProgressPanel`:
+  - Recebe `progress`, `onCancel`, e mostra `Progress` + contadores + botão. Mantido inline para evitar mais um arquivo dado o escopo pequeno.
 
 ### Detalhes técnicos
 
-- A contagem é calculada server-side para evitar trazer todo o histórico ao cliente.
-- Se a action falhar (rede), a coluna mostra `—` em vez de quebrar a tabela; nenhum highlight é aplicado.
-- O destaque na linha é puramente visual (não altera ordenação) — admin continua vendo na ordem natural por tipo+nome.
-- A11y: badge com `aria-label="3 falhas consecutivas"`; tooltip por `Tooltip` do shadcn (já no padrão do hub).
-- Sem alteração de RLS (action chamada via JWT admin como as demais).
+- Concorrência clamp: `const c = Math.min(8, Math.max(1, parseInt(stored ?? "3", 10) || 3))`.
+- Persistência: `localStorage.setItem("connections.bulk_test_concurrency", String(c))` no `onChange` do Select.
+- Cancelamento é **cooperativo**: testes em voo terminam normalmente; apenas itens que ainda não saíram da fila são pulados. UI diz "Cancelando..." enquanto `cancelRef === true && progress.done < progress.total`, depois fecha.
+- O painel de progresso usa `Card`-less wrapper: `<div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2">` para parecer parte da tabela.
+- Sem alteração em backend, edge function, schema ou RLS.
 
