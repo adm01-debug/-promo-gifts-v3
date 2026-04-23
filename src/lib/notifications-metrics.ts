@@ -77,6 +77,13 @@ interface Snapshot {
   byFetch: Record<FetchSource, number>;
   /** fetches / triggers — lower is better (more coalescing / TTL hits). */
   ratio: number;
+  /**
+   * Breakdown of fetches by their position relative to the 5s prefetch TTL
+   * window since the previous fetch. The very first fetch (no prior fetch)
+   * is counted as `afterTtl` because there was no live cache to deduplicate
+   * against. Helps eyeball how often the TTL is actually doing its job.
+   */
+  fetchesByTtlWindow: { withinTtl: number; afterTtl: number };
   since: number;
   /** Last N badge render stats (most recent first). */
   badgeRenders: BadgeRenderStat[];
