@@ -310,12 +310,28 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
     <Sheet onOpenChange={(open) => {
       setIsOpen(open);
       if (open) {
+        // If a debounce was already pending, fold its burst into the drawer-open
+        // sample (so the timing represents the user's intent end-to-end).
+        const burstStart = burstStartRef.current ?? performance.now();
+        const coalesced = burstCountRef.current; // may be 0 for direct clicks
         if (prefetchDebounceRef.current) {
           clearTimeout(prefetchDebounceRef.current);
           prefetchDebounceRef.current = null;
         }
+        burstStartRef.current = null;
+        burstSourceRef.current = null;
+        burstCountRef.current = 0;
         notificationsMetrics.recordTrigger("drawer-open");
-        void prefetch();
+        const debounceMs = performance.now() - burstStart;
+        const fetchStart = performance.now();
+        void prefetch().finally(() => {
+          notificationsMetrics.recordTriggerToFetch({
+            source: "drawer-open",
+            debounceMs,
+            fetchMs: performance.now() - fetchStart,
+            coalescedTriggers: coalesced + 1,
+          });
+        });
       }
     }}>
       <SheetTrigger asChild>
