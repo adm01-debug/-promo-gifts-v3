@@ -10,6 +10,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { Activity, Database, Wifi, MousePointerClick, Zap, TrendingUp, Download, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { notificationsMetrics, type BadgeRenderStat, type TriggerSource } from "@/lib/notifications-metrics";
 import { cn } from "@/lib/utils";
