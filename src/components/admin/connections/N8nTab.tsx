@@ -9,6 +9,7 @@ import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { RetestButton } from "./RetestButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
 export function N8nTab() {
@@ -68,7 +69,16 @@ export function N8nTab() {
             </Button>
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
           </div>
-          <LastTestLine info={last} />
+          <LastTestLine
+            info={last}
+            action={
+              <RetestButton
+                onRetest={onTest}
+                disabled={!credsLooksValid}
+                disabledReason={!credsOk ? "Configure a Base URL primeiro" : "Credenciais com formato suspeito — re-salve antes de testar"}
+              />
+            }
+          />
           <ConnectionTestHistoryPanel type="n8n" label="n8n" refreshKey={historyKey} />
         </CardContent>
       </Card>

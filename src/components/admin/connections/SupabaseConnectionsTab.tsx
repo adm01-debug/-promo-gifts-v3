@@ -10,6 +10,7 @@ import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
 import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 import { ConnectionTestHistoryPanel } from "./ConnectionTestHistoryPanel";
+import { RetestButton } from "./RetestButton";
 import { hasSuspiciousLength } from "./secretValidators";
 
 const ENVS = [
@@ -141,7 +142,16 @@ export function SupabaseConnectionsTab() {
                       </Link>
                     </Button>
                   </div>
-                  <LastTestLine info={last} />
+                  <LastTestLine
+                    info={last}
+                    action={
+                      <RetestButton
+                        onRetest={() => handleTest(env.envKey!, env.key)}
+                        disabled={!canTest}
+                        disabledReason={!credsConfigured ? "Configure URL e Service Role Key primeiro" : "Credenciais com formato suspeito — re-salve antes de testar"}
+                      />
+                    }
+                  />
                   <ConnectionTestHistoryPanel
                     type="supabase"
                     envKey={env.envKey!}
