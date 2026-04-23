@@ -14,6 +14,7 @@ import {
 import { JustSavedFlash } from "./JustSavedFlash";
 import { RotationHistoryRow } from "./RotationHistoryRow";
 import { RotateSecretConfirmDialog } from "./RotateSecretConfirmDialog";
+import { SaveSecretConfirmDialog } from "./SaveSecretConfirmDialog";
 import { withRetryBackoff, CancelledError } from "./secretRetry";
 import { normalizeSecretError, type NormalizedSecretError } from "./secretErrors";
 import { SecretErrorAlert } from "./SecretErrorAlert";
@@ -90,9 +91,10 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     }
   }, [editing, value, mode, draftKey]);
 
-  // Rotation confirm modal
+  // Confirmation modals
   const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
   const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
   // Cancellation for in-flight retries
   const abortRef = useRef<AbortController | null>(null);
@@ -238,16 +240,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const handleSave = async () => {
     if (!canSave) return;
 
-    // Rotação passa pelo modal de confirmação
+    // Both modes now require modal confirmation before touching the backend
     if (mode === "rotate") {
       setRotateConfirmError(null);
       setRotateConfirmOpen(true);
       return;
     }
+    setSaveConfirmOpen(true);
+  };
 
+  const handleConfirmedSave = async () => {
+    if (!canSave) return;
     setSaving(true);
-    await performSave("set", value);
+    const res = await performSave("set", value);
     setSaving(false);
+    if (res.ok) setSaveConfirmOpen(false);
   };
 
   const handleConfirmedRotate = async (notes?: string) => {
@@ -452,6 +459,21 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         loading={saving}
         errorMessage={rotateConfirmError}
         onConfirm={handleConfirmedRotate}
+      />
+
+      <SaveSecretConfirmDialog
+        open={saveConfirmOpen}
+        onOpenChange={(open) => {
+          if (!saving) setSaveConfirmOpen(open);
+        }}
+        secretName={secretName}
+        isUpdate={!!status?.has_value}
+        currentSuffix={status?.masked_suffix ?? null}
+        currentLength={status?.length ?? null}
+        newSuffix={value.slice(-4)}
+        newLength={value.length}
+        loading={saving}
+        onConfirm={handleConfirmedSave}
       />
     </div>
   );
