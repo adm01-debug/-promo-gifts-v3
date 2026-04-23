@@ -388,6 +388,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
                 type={show ? "text" : "password"}
                 value={value}
                 onChange={(e) => { setValue(e.target.value); if (lastError) setLastError(null); }}
+                onPaste={handlePaste}
+                onBlur={handleBlur}
                 placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
                 autoFocus
                 disabled={saving}
