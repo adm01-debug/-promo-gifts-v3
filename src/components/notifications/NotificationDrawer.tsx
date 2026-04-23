@@ -387,6 +387,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
             </div>
           )}
         </ScrollArea>
+        <NotificationsBadgeStatsPanel />
       </SheetContent>
     </Sheet>
   );
