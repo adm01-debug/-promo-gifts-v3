@@ -233,6 +233,14 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             {status.source === "env" && (
               <span className="opacity-70" title="Valor herdado de variável de ambiente; salve novamente para migrar para o banco.">· env</span>
             )}
+            {storedLooksSuspicious && (
+              <span
+                className="text-warning inline-flex items-center gap-1"
+                title={`Comprimento abaixo do esperado (${status.length} chars, mínimo ${minLen}). Pode estar truncado — re-salve para garantir.`}
+              >
+                <AlertCircle className="h-3 w-3" /> comprimento suspeito
+              </span>
+            )}
           </span>
         )}
       </div>
