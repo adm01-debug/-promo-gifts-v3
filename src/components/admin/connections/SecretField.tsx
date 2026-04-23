@@ -57,11 +57,23 @@ interface Props {
   status?: SecretStatus;
   helperText?: string;
   onSaved?: () => void;
+  /**
+   * Escopo opcional do rascunho (sessionStorage). Quando informado, o
+   * rascunho é isolado por conexão — assim o mesmo `secretName`
+   * (ex: BITRIX24_TOKEN) usado em conexões diferentes mantém valores
+   * digitados separados ao navegar entre abas/cards. Se omitido, cai no
+   * escopo legado global do secret (`_:secretName`).
+   */
+  connectionId?: string;
 }
 
-export function SecretField({ label, secretName, status, helperText, onSaved }: Props) {
+export function SecretField({ label, secretName, status, helperText, onSaved, connectionId }: Props) {
   const { setSecret, rotateSecret } = useSecretsManager();
-  const draftKey = `secret-draft:${secretName}`;
+  const draftScope = connectionId ?? "_";
+  const draftKey = `secret-draft:${draftScope}:${secretName}`;
+  // Chaves legadas (versões anteriores escreviam sem escopo de conexão).
+  // Lidas como fallback para não perder rascunhos já em andamento.
+  const legacyDraftKey = `secret-draft:${secretName}`;
   const [editing, setEditing] = useState(false);
   const [mode, setMode] = useState<"set" | "rotate">("set");
   const [value, setValue] = useState("");
@@ -150,19 +162,30 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
       prevSecretNameRef.current = secretName;
     }
 
-    // Re-hydrate draft for the (new or initial) secretName.
+    // Re-hydrate draft for the (new or initial) secret/connection. Tenta a
+    // chave escopada primeiro; se vazia, faz fallback para a chave legada
+    // (sem connectionId) para preservar rascunhos antigos. Após hidratar de
+    // legado, migra para a nova chave e remove a antiga.
     try {
-      const raw = sessionStorage.getItem(`secret-draft:${secretName}`);
+      const scopedRaw = sessionStorage.getItem(draftKey);
+      const raw = scopedRaw ?? sessionStorage.getItem(legacyDraftKey);
       if (!raw) return;
       const draft = JSON.parse(raw) as { value?: string; mode?: "set" | "rotate" };
       if (draft.value && typeof draft.value === "string") {
         setValue(draft.value);
         setMode(draft.mode === "rotate" ? "rotate" : "set");
         setEditing(true);
+        if (!scopedRaw) {
+          // Migra rascunho legado para a chave escopada.
+          try {
+            sessionStorage.setItem(draftKey, raw);
+            sessionStorage.removeItem(legacyDraftKey);
+          } catch { /* ignore quota */ }
+        }
       }
     } catch { /* ignore parse errors */ }
     void isFirstMount;
-  }, [secretName]);
+  }, [secretName, draftKey, legacyDraftKey]);
 
   // Persist draft whenever editing with a non-empty value; clear on success/cancel
   useEffect(() => {
