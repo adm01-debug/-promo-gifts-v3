@@ -362,6 +362,33 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
           {value.length > 0 && validation.ok && validation.hint && (
             <p className="text-xs text-success">Formato válido</p>
           )}
+          {value.length > 0 && validation.ok && (() => {
+            const newSuffix = value.slice(-4).padStart(4, "•");
+            const actionLabel =
+              mode === "rotate" ? "Após rotacionar" : status?.has_value ? "Após atualizar" : "Após salvar";
+            const showTransition = mode === "rotate" || !!status?.has_value;
+            return (
+              <div
+                className="flex items-center gap-2 rounded-md border border-dashed border-border bg-muted/40 px-2.5 py-1.5 text-xs animate-in fade-in duration-200"
+                aria-live="polite"
+              >
+                <span className="text-muted-foreground shrink-0">{actionLabel}:</span>
+                {showTransition && status?.masked_suffix && (
+                  <>
+                    <span className="font-mono text-muted-foreground line-through opacity-70">
+                      ••••{status.masked_suffix}
+                    </span>
+                    <span className="text-muted-foreground">→</span>
+                  </>
+                )}
+                <span className="font-mono font-medium text-success">••••{newSuffix}</span>
+                <span className="text-muted-foreground">
+                  ({value.length} {value.length === 1 ? "char" : "chars"})
+                </span>
+              </div>
+            );
+          })()}
+
         </>
       ) : (
         <div className="flex gap-2">
