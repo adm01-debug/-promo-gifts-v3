@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Database, ExternalLink } from "lucide-react";
@@ -8,6 +8,7 @@ import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
+import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 
 const ENVS = [
   {
@@ -36,11 +37,43 @@ const ENVS = [
 
 export function SupabaseConnectionsTab() {
   const { secrets, list } = useSecretsManager();
-  const { test, isTesting } = useConnectionTester();
+  const { test, isTesting, fetchLastTest } = useConnectionTester();
+  const [lastByEnv, setLastByEnv] = useState<Record<string, LastTestInfo | null>>({});
 
   useEffect(() => { list(); }, [list]);
 
+  const hydrate = useCallback(async () => {
+    const entries = await Promise.all(
+      ENVS.filter((e) => e.envKey).map(async (e) => {
+        const last = await fetchLastTest("supabase", { env_key: e.envKey! });
+        return [e.key, last ? {
+          ok: last.ok,
+          tested_at: last.tested_at,
+          latency_ms: last.latency_ms,
+          message: last.message,
+        } as LastTestInfo : null] as const;
+      }),
+    );
+    setLastByEnv(Object.fromEntries(entries));
+  }, [fetchLastTest]);
+
+  useEffect(() => { hydrate(); }, [hydrate]);
+
   const get = (n: string) => secrets.find((s) => s.name === n);
+
+  const handleTest = async (envKey: "promobrind" | "crm", localKey: string) => {
+    const r = await test("supabase", { env_key: envKey });
+    setLastByEnv((cur) => ({
+      ...cur,
+      [localKey]: {
+        ok: r.ok,
+        tested_at: r.tested_at ?? new Date().toISOString(),
+        latency_ms: r.latency_ms,
+        message: r.error ?? r.message,
+        status: r.status,
+      },
+    }));
+  };
 
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -48,10 +81,16 @@ export function SupabaseConnectionsTab() {
         const url = env.urlSecret ? get(env.urlSecret) : undefined;
         const anon = env.anonSecret ? get(env.anonSecret) : undefined;
         const svc = env.serviceSecret ? get(env.serviceSecret) : undefined;
-        const status = env.readOnly
+        const last = env.readOnly ? null : lastByEnv[env.key] ?? null;
+        const credsConfigured = !!url?.has_value && !!svc?.has_value;
+        const status: "active" | "error" | "unconfigured" = env.readOnly
           ? "active"
-          : url?.has_value && svc?.has_value ? "active" : "unconfigured";
-        const canTest = !env.readOnly && !!url?.has_value && !!svc?.has_value;
+          : !credsConfigured
+            ? "unconfigured"
+            : last?.ok === false
+              ? "error"
+              : "active";
+        const canTest = !env.readOnly && credsConfigured;
         return (
           <Card key={env.key}>
             <CardHeader>
@@ -81,7 +120,7 @@ export function SupabaseConnectionsTab() {
                       variant="outline"
                       disabled={isTesting || !canTest}
                       title={canTest ? "Testar conexão real" : "Configure URL e Service Role Key primeiro"}
-                      onClick={() => test("supabase", { env_key: env.envKey! })}
+                      onClick={() => handleTest(env.envKey!, env.key)}
                     >
                       {isTesting ? "Testando…" : "Testar conexão"}
                     </Button>
@@ -92,6 +131,7 @@ export function SupabaseConnectionsTab() {
                       </Link>
                     </Button>
                   </div>
+                  <LastTestLine info={last} />
                 </>
               )}
             </CardContent>

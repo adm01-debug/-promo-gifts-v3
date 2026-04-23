@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Briefcase } from "lucide-react";
@@ -7,15 +7,32 @@ import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
+import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 
 export function Bitrix24Tab() {
   const { secrets, list } = useSecretsManager();
-  const { test, isTesting } = useConnectionTester();
+  const { test, isTesting, fetchLastTest } = useConnectionTester();
+  const [last, setLast] = useState<LastTestInfo | null>(null);
+
   useEffect(() => { list(); }, [list]);
+
+  const hydrate = useCallback(async () => {
+    const r = await fetchLastTest("bitrix24");
+    setLast(r ? { ok: r.ok, tested_at: r.tested_at, latency_ms: r.latency_ms, message: r.message } : null);
+  }, [fetchLastTest]);
+  useEffect(() => { hydrate(); }, [hydrate]);
 
   const get = (n: string) => secrets.find((s) => s.name === n);
   const wh = get("BITRIX24_WEBHOOK_URL");
-  const status = wh?.has_value ? "active" : "unconfigured";
+  const credsOk = !!wh?.has_value;
+  const status: "active" | "error" | "unconfigured" = !credsOk
+    ? "unconfigured"
+    : last?.ok === false ? "error" : "active";
+
+  const onTest = async () => {
+    const r = await test("bitrix24");
+    setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status });
+  };
 
   return (
     <Card>
@@ -40,11 +57,14 @@ export function Bitrix24Tab() {
         <SecretField label="User ID" secretName="BITRIX24_USER_ID" status={get("BITRIX24_USER_ID")} onSaved={list} />
         <SecretField label="Token" secretName="BITRIX24_TOKEN" status={get("BITRIX24_TOKEN")} onSaved={list} />
         <div className="pt-2 flex gap-2">
-          <Button size="sm" disabled={isTesting} onClick={() => test("bitrix24")}>
+          <Button size="sm" disabled={isTesting || !credsOk}
+            title={credsOk ? "Testar conexão" : "Configure o Webhook URL primeiro"}
+            onClick={onTest}>
             {isTesting ? "Testando…" : "Testar conexão (crm.contact.fields)"}
           </Button>
           <ConnectionTimelineDrawer type="bitrix24" label="Bitrix24" />
         </div>
+        <LastTestLine info={last} />
       </CardContent>
     </Card>
   );

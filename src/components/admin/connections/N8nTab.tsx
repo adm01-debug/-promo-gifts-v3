@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Workflow } from "lucide-react";
@@ -7,14 +7,31 @@ import { SecretField } from "./SecretField";
 import { useSecretsManager } from "@/hooks/useSecretsManager";
 import { useConnectionTester } from "@/hooks/useConnectionTester";
 import { ConnectionTimelineDrawer } from "./ConnectionTimelineDrawer";
+import { LastTestLine, type LastTestInfo } from "./LastTestLine";
 
 export function N8nTab() {
   const { secrets, list } = useSecretsManager();
-  const { test, isTesting } = useConnectionTester();
+  const { test, isTesting, fetchLastTest } = useConnectionTester();
+  const [last, setLast] = useState<LastTestInfo | null>(null);
+
   useEffect(() => { list(); }, [list]);
+  const hydrate = useCallback(async () => {
+    const r = await fetchLastTest("n8n");
+    setLast(r ? { ok: r.ok, tested_at: r.tested_at, latency_ms: r.latency_ms, message: r.message } : null);
+  }, [fetchLastTest]);
+  useEffect(() => { hydrate(); }, [hydrate]);
+
   const get = (n: string) => secrets.find((s) => s.name === n);
   const base = get("N8N_BASE_URL");
-  const status = base?.has_value ? "active" : "unconfigured";
+  const credsOk = !!base?.has_value;
+  const status: "active" | "error" | "unconfigured" = !credsOk
+    ? "unconfigured"
+    : last?.ok === false ? "error" : "active";
+
+  const onTest = async () => {
+    const r = await test("n8n");
+    setLast({ ok: r.ok, tested_at: r.tested_at ?? new Date().toISOString(), latency_ms: r.latency_ms, message: r.error ?? r.message, status: r.status });
+  };
 
   return (
     <div className="space-y-4">
@@ -36,11 +53,14 @@ export function N8nTab() {
             helperText="Ex: https://n8n.suaempresa.com" />
           <SecretField label="API Key" secretName="N8N_API_KEY" status={get("N8N_API_KEY")} onSaved={list} />
           <div className="pt-2 flex gap-2">
-            <Button size="sm" disabled={isTesting} onClick={() => test("n8n")}>
+            <Button size="sm" disabled={isTesting || !credsOk}
+              title={credsOk ? "Testar /healthz" : "Configure a Base URL primeiro"}
+              onClick={onTest}>
               {isTesting ? "Testando…" : "Testar /healthz"}
             </Button>
             <ConnectionTimelineDrawer type="n8n" label="n8n" />
           </div>
+          <LastTestLine info={last} />
         </CardContent>
       </Card>
       <Card>
