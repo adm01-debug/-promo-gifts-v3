@@ -244,7 +244,7 @@ Deno.serve(async (req) => {
       }).then(() => undefined, (e) => console.error("history insert failed", e));
     } else if (env_key && type === "supabase") {
       // Upsert virtual connection row keyed by (env_key, type) so the UI can rehydrate.
-      await service.from("external_connections").upsert({
+      const { data: upserted } = await service.from("external_connections").upsert({
         env_key,
         type,
         name: env_key === "crm" ? "Catálogo CRM" : "Catálogo Promobrind",
@@ -254,7 +254,17 @@ Deno.serve(async (req) => {
         last_test_message: message,
         last_latency_ms: result.latency_ms ?? null,
         created_by: u.user.id,
-      }, { onConflict: "env_key,type" }).then(() => undefined, (e) => console.error("env upsert failed", e));
+      }, { onConflict: "env_key,type" }).select("id").maybeSingle();
+      if (upserted?.id) {
+        await service.from("connection_test_history").insert({
+          connection_id: upserted.id,
+          tested_at: nowIso,
+          success: result.ok,
+          latency_ms: result.latency_ms ?? null,
+          status_code: result.status ?? null,
+          error_message: result.ok ? null : (result.error ?? message)?.slice(0, 500),
+        }).then(() => undefined, (e) => console.error("history insert failed (env)", e));
+      }
     }
 
     return new Response(JSON.stringify({
