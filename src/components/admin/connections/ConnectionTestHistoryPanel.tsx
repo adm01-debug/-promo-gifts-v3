@@ -21,7 +21,20 @@ interface Props {
   defaultPreview?: boolean;
 }
 
-const PREVIEW_COUNT = 5;
+const PREVIEW_SIZE_OPTIONS = [5, 10, 20] as const;
+type PreviewSize = typeof PREVIEW_SIZE_OPTIONS[number];
+const PREVIEW_SIZE_STORAGE_KEY = "connections.history_preview_size";
+const DEFAULT_PREVIEW_SIZE: PreviewSize = 5;
+
+function loadPreviewSize(): PreviewSize {
+  if (typeof window === "undefined") return DEFAULT_PREVIEW_SIZE;
+  try {
+    const raw = window.localStorage.getItem(PREVIEW_SIZE_STORAGE_KEY);
+    const parsed = parseInt(raw ?? "", 10);
+    if (PREVIEW_SIZE_OPTIONS.includes(parsed as PreviewSize)) return parsed as PreviewSize;
+  } catch { /* ignore */ }
+  return DEFAULT_PREVIEW_SIZE;
+}
 
 function formatRelative(iso: string): string {
   const ts = new Date(iso).getTime();
