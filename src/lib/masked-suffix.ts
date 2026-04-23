@@ -83,3 +83,48 @@ export function diagnoseMaskedSuffix(
   };
 }
 
+/**
+ * Resolve um sufixo "exibível" mesmo quando o `masked_suffix` está inválido.
+ *
+ * Estratégia em camadas (primeira que satisfizer vence):
+ *   1. Se o sufixo cru tem 4 chars válidos → usa-o.
+ *   2. Se o sufixo cru tem 1-3 chars → padding com "•" à esquerda (preserva
+ *      a informação real disponível, ex: "ab" → "••ab").
+ *   3. Se há `length` conhecido (>0) → mostra um placeholder informativo
+ *      com a contagem (ex: "L=12" indicando "credencial de 12 chars, sufixo
+ *      desconhecido"). Garante que NUNCA quebra o layout (sempre 4 chars
+ *      visíveis no espaço reservado para o sufixo).
+ *   4. Caso contrário → "????" (sem nenhuma informação derivável).
+ *
+ * Retorna sempre uma string com EXATAMENTE 4 caracteres.
+ */
+export function resolveDisplaySuffix(
+  raw: string | null | undefined,
+  opts: { length?: number | null } = {},
+): string {
+  const trimmed = (raw ?? "").trim();
+  if (trimmed.length >= 4) return trimmed.slice(-4);
+  if (trimmed.length > 0) return trimmed.padStart(4, "•");
+  // Fallback derivado: tenta refletir a presença da credencial via length.
+  const len = opts.length ?? 0;
+  if (len > 0) {
+    // Formata como "L=NN" mantendo 4 chars: "L=NN" (4) ou "L=N " (4) com
+    // espaço/zero-pad. Para tamanhos >=100, abrevia: "L99+".
+    if (len < 10) return `L=0${len}`;
+    if (len < 100) return `L=${len}`;
+    return "L99+";
+  }
+  return "????";
+}
+
+/**
+ * Versão "rica" do `formatMaskedSuffix` que usa fallback derivado quando o
+ * sufixo está ausente/curto. Sempre devolve `••••XXXX` (8 chars) para preservar
+ * o layout do componente que renderiza o badge.
+ */
+export function formatDisplaySuffix(
+  raw: string | null | undefined,
+  opts: { length?: number | null } = {},
+): string {
+  return `••••${resolveDisplaySuffix(raw, opts)}`;
+}
