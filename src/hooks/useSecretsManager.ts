@@ -11,6 +11,36 @@ export interface SecretStatus {
   source?: "db" | "env" | "none";
 }
 
+export interface SecretError {
+  code: string;
+  message: string;
+}
+
+export interface SecretMutationResult {
+  ok: boolean;
+  was_update?: boolean;
+  previous_suffix?: string | null;
+  secret?: SecretStatus;
+  masked_suffix?: string | null;
+  length?: number;
+  error?: SecretError;
+}
+
+function normalizeError(raw: unknown, fallback = "Erro desconhecido"): SecretError {
+  if (raw && typeof raw === "object") {
+    const r = raw as Record<string, unknown>;
+    if (r.error && typeof r.error === "object") {
+      const e = r.error as Record<string, unknown>;
+      return {
+        code: typeof e.code === "string" ? e.code : "unexpected",
+        message: typeof e.message === "string" ? e.message : fallback,
+      };
+    }
+    if (typeof r.message === "string") return { code: "unexpected", message: r.message };
+  }
+  return { code: "unexpected", message: fallback };
+}
+
 export function useSecretsManager() {
   const [secrets, setSecrets] = useState<SecretStatus[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -34,32 +64,55 @@ export function useSecretsManager() {
     }
   }, []);
 
-  const setSecret = useCallback(async (name: string, value: string) => {
+  const setSecret = useCallback(async (name: string, value: string): Promise<SecretMutationResult> => {
     const { data, error } = await supabase.functions.invoke("secrets-manager", {
       body: { action: "set", name, value },
     });
     if (error) {
-      toast.error("Falha ao salvar credencial", { description: error.message });
-      return null;
+      // Try to read structured payload from FunctionsHttpError context
+      const ctx = (error as { context?: Response }).context;
+      let payload: unknown = null;
+      if (ctx && typeof ctx.json === "function") {
+        try { payload = await ctx.json(); } catch { /* ignore */ }
+      }
+      return { ok: false, error: normalizeError(payload ?? { message: error.message }, error.message) };
     }
-    toast.success("Credencial registrada", {
-      description: data?.message ?? "Use o painel de Secrets do Lovable para persistir.",
-    });
-    return data;
+    if (data && data.ok === false) {
+      return { ok: false, error: normalizeError(data) };
+    }
+    return {
+      ok: true,
+      was_update: !!data?.was_update,
+      previous_suffix: data?.previous_suffix ?? null,
+      masked_suffix: data?.masked_suffix ?? null,
+      length: data?.length ?? value.length,
+      secret: data?.secret as SecretStatus | undefined,
+    };
   }, []);
 
-  const rotateSecret = useCallback(async (name: string, value: string, notes?: string) => {
+  const rotateSecret = useCallback(async (name: string, value: string, notes?: string): Promise<SecretMutationResult> => {
     const { data, error } = await supabase.functions.invoke("secrets-manager", {
       body: { action: "rotate", name, value, notes },
     });
     if (error) {
-      toast.error("Falha ao rotacionar credencial", { description: error.message });
-      return null;
+      const ctx = (error as { context?: Response }).context;
+      let payload: unknown = null;
+      if (ctx && typeof ctx.json === "function") {
+        try { payload = await ctx.json(); } catch { /* ignore */ }
+      }
+      return { ok: false, error: normalizeError(payload ?? { message: error.message }, error.message) };
     }
-    toast.success("Rotação registrada", {
-      description: data?.message ?? "Atualize o valor no painel de Secrets para finalizar.",
-    });
-    return data;
+    if (data && data.ok === false) {
+      return { ok: false, error: normalizeError(data) };
+    }
+    return {
+      ok: true,
+      was_update: true,
+      previous_suffix: data?.previous_suffix ?? null,
+      masked_suffix: data?.masked_suffix ?? null,
+      length: data?.length ?? value.length,
+      secret: data?.secret as SecretStatus | undefined,
+    };
   }, []);
 
   const getRotationHistory = useCallback(async (name?: string) => {

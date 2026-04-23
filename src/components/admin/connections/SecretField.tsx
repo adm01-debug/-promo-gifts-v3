@@ -1,9 +1,16 @@
-import { useState } from "react";
-import { Eye, EyeOff, Save, RefreshCw, Check, RotateCw } from "lucide-react";
+import { useRef, useState } from "react";
+import { Eye, EyeOff, Save, RefreshCw, Check, RotateCw, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { useSecretsManager, type SecretStatus } from "@/hooks/useSecretsManager";
+import {
+  useSecretsManager,
+  type SecretStatus,
+  type SecretError,
+  type SecretMutationResult,
+} from "@/hooks/useSecretsManager";
+import { JustSavedFlash } from "./JustSavedFlash";
 
 function formatRelative(iso: string): string {
   const then = new Date(iso).getTime();
@@ -17,6 +24,40 @@ function formatRelative(iso: string): string {
   if (hr < 24) return `há ${hr}h`;
   const d = Math.floor(hr / 24);
   return `há ${d}d`;
+}
+
+function describeError(err: SecretError, secretName: string): string {
+  const msg = (err.message || "").toLowerCase();
+  switch (err.code) {
+    case "forbidden":
+      return "Apenas administradores podem alterar esta credencial.";
+    case "not_whitelisted":
+      return `O nome "${secretName}" não está na lista permitida de credenciais.`;
+    case "invalid_value":
+      return "O valor precisa ter pelo menos 4 caracteres.";
+    case "db_error":
+      return `Falha ao gravar no banco: ${err.message}`;
+    default:
+      if (msg.includes("not allowed") || msg.includes("forbidden")) {
+        return "Apenas administradores podem alterar esta credencial.";
+      }
+      if (msg.includes("whitelist") || msg.includes("não permitido")) {
+        return `O nome "${secretName}" não está na lista permitida.`;
+      }
+      if (msg.includes("network") || msg.includes("failed to fetch")) {
+        return "Falha de rede. Verifique sua conexão e tente novamente.";
+      }
+      return err.message || "Erro desconhecido ao salvar credencial.";
+  }
+}
+
+interface FlashState {
+  masked_suffix: string | null;
+  length: number;
+  action: "set" | "rotate";
+  was_update: boolean;
+  /** changes whenever a new flash should appear, to remount the component */
+  key: number;
 }
 
 interface Props {
@@ -34,13 +75,91 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const [value, setValue] = useState("");
   const [show, setShow] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [flash, setFlash] = useState<FlashState | null>(null);
+  const flashCounter = useRef(0);
 
   const handleSave = async () => {
-    if (!value || value.length < 4) return;
+    if (!value || value.length < 4 || saving) return;
+    const currentMode = mode;
+    const currentValue = value;
+
     setSaving(true);
-    if (mode === "rotate") await rotateSecret(secretName, value);
-    else await setSecret(secretName, value);
+
+    // Show "Salvando…" loading toast only after 800ms to avoid flicker on fast networks
+    const toastId = `secret-${secretName}-${Date.now()}`;
+    const slowTimer = setTimeout(() => {
+      toast.loading(
+        currentMode === "rotate" ? `Rotacionando ${secretName}…` : `Salvando ${secretName}…`,
+        { id: toastId },
+      );
+    }, 800);
+
+    let result: SecretMutationResult;
+    try {
+      result =
+        currentMode === "rotate"
+          ? await rotateSecret(secretName, currentValue)
+          : await setSecret(secretName, currentValue);
+    } catch (err) {
+      result = {
+        ok: false,
+        error: { code: "unexpected", message: err instanceof Error ? err.message : "Erro inesperado" },
+      };
+    }
+    clearTimeout(slowTimer);
     setSaving(false);
+
+    if (!result.ok || !result.secret) {
+      const err = result.error ?? { code: "unexpected", message: "Erro desconhecido" };
+      toast.error(`Falha ao salvar ${secretName}`, {
+        id: toastId,
+        description: describeError(err, secretName),
+        duration: 7000,
+        action: {
+          label: "Tentar novamente",
+          onClick: () => {
+            setMode(currentMode);
+            setValue(currentValue);
+            setEditing(true);
+          },
+        },
+      });
+      return;
+    }
+
+    const { secret, was_update, previous_suffix } = result;
+    const suffix = secret.masked_suffix ?? "????";
+    const length = secret.length ?? currentValue.length;
+
+    if (currentMode === "rotate") {
+      toast.success("Rotação concluída", {
+        id: toastId,
+        description: `${secretName}: ••••${previous_suffix ?? "????"} → ••••${suffix} (${length} chars · registrado no log)`,
+        duration: 5000,
+      });
+    } else if (was_update) {
+      toast.success("Credencial atualizada", {
+        id: toastId,
+        description: `${secretName} agora termina em ••••${suffix} (${length} chars)`,
+        duration: 5000,
+      });
+    } else {
+      toast.success("Credencial salva", {
+        id: toastId,
+        description: `${secretName} agora termina em ••••${suffix} (${length} chars)`,
+        duration: 5000,
+      });
+    }
+
+    flashCounter.current += 1;
+    setFlash({
+      masked_suffix: suffix,
+      length,
+      action: currentMode,
+      was_update: !!was_update,
+      key: flashCounter.current,
+    });
+
     setValue("");
     setEditing(false);
     setMode("set");
@@ -77,20 +196,34 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
               onChange={(e) => setValue(e.target.value)}
               placeholder={mode === "rotate" ? `Novo valor para ${secretName}…` : `Cole o valor de ${secretName}…`}
               autoFocus
+              disabled={saving}
             />
             <button
               type="button"
               onClick={() => setShow((s) => !s)}
-              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground disabled:opacity-50"
               aria-label={show ? "Ocultar" : "Mostrar"}
+              disabled={saving}
             >
               {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
             </button>
           </div>
           <Button size="sm" onClick={handleSave} disabled={saving || value.length < 4}>
-            <Save className="h-4 w-4 mr-1" /> {mode === "rotate" ? "Rotacionar" : "Salvar"}
+            {saving ? (
+              <Loader2 className="h-4 w-4 mr-1 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4 mr-1" />
+            )}
+            {saving
+              ? mode === "rotate" ? "Rotacionando…" : "Salvando…"
+              : mode === "rotate" ? "Rotacionar" : "Salvar"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => { setEditing(false); setValue(""); setMode("set"); }}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => { setEditing(false); setValue(""); setMode("set"); }}
+            disabled={saving}
+          >
             Cancelar
           </Button>
         </div>
@@ -107,6 +240,15 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
             </Button>
           )}
         </div>
+      )}
+      {flash && (
+        <JustSavedFlash
+          key={flash.key}
+          masked_suffix={flash.masked_suffix}
+          length={flash.length}
+          action={flash.action}
+          was_update={flash.was_update}
+        />
       )}
       {helperText && <p className="text-xs text-muted-foreground">{helperText}</p>}
     </div>
