@@ -3845,6 +3845,7 @@ export type Database = {
           comparison_column_order: Json
           comparison_weights: Json
           created_at: string
+          filter_states: Json
           id: string
           updated_at: string
           user_id: string
@@ -3853,6 +3854,7 @@ export type Database = {
           comparison_column_order?: Json
           comparison_weights?: Json
           created_at?: string
+          filter_states?: Json
           id?: string
           updated_at?: string
           user_id: string
@@ -3861,6 +3863,7 @@ export type Database = {
           comparison_column_order?: Json
           comparison_weights?: Json
           created_at?: string
+          filter_states?: Json
           id?: string
           updated_at?: string
           user_id?: string
