@@ -61,6 +61,63 @@ function formatAbsolute(iso: string): string {
 type StatusFilter = "all" | "ok" | "fail";
 type SourceFilter = "all" | "manual" | "cron";
 
+function emptyMessage(status: StatusFilter, source: SourceFilter): string {
+  if (source === "cron" && status === "fail") return "Nenhuma falha do cron neste período 🎉";
+  if (source === "cron") return "Nenhum teste automático neste período.";
+  if (source === "manual") return "Nenhum teste manual neste período.";
+  if (status === "fail") return "Nenhuma falha nos últimos testes 🎉";
+  return "Nenhum teste com este filtro.";
+}
+
+interface SourceFilterChipsProps {
+  value: SourceFilter;
+  onChange: (v: SourceFilter) => void;
+  allCount: number;
+  manualCount: number;
+  cronOk: number;
+  cronFail: number;
+  cronTotal: number;
+}
+
+function SourceFilterChips({ value, onChange, allCount, manualCount, cronOk, cronFail, cronTotal }: SourceFilterChipsProps) {
+  const options: Array<{ key: SourceFilter; label: string; count: number }> = [
+    { key: "all", label: "Todas as origens", count: allCount },
+    { key: "manual", label: "Manuais", count: manualCount },
+    { key: "cron", label: "Cron", count: cronTotal },
+  ];
+  return (
+    <div className="flex items-center gap-1 flex-wrap px-1" role="group" aria-label="Filtrar por origem do teste">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground mr-1">Origem:</span>
+      {options.map((opt) => {
+        const active = value === opt.key;
+        return (
+          <button
+            key={opt.key}
+            type="button"
+            onClick={(e) => { e.stopPropagation(); onChange(opt.key); }}
+            className={cn(
+              "text-[11px] px-2 py-0.5 rounded-full border transition-colors tabular-nums inline-flex items-center gap-1.5",
+              active
+                ? "bg-primary/10 border-primary/40 text-primary"
+                : "border-transparent text-muted-foreground hover:bg-muted/60",
+            )}
+            aria-pressed={active}
+          >
+            {opt.key === "cron" && <Bot className="h-3 w-3" aria-hidden />}
+            <span>{opt.label} ({opt.count})</span>
+            {opt.key === "cron" && cronTotal > 0 && (
+              <span className="inline-flex items-center gap-1 text-[10px]">
+                <span className="text-green-700 dark:text-green-400 tabular-nums">✓{cronOk}</span>
+                <span className="text-destructive tabular-nums">✗{cronFail}</span>
+              </span>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Mini sparkline SVG (sem libs) das latências (oldest → newest, esquerda → direita). */
 function LatencySparkline({ items, width = 64, height = 18 }: { items: TestHistoryItem[]; width?: number; height?: number }) {
   // Ordena cronologicamente asc (mais antigo à esquerda) e pega até 12 pontos
