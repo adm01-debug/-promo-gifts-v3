@@ -73,6 +73,13 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
   const flashCounter = useRef(0);
   const [lastNormalization, setLastNormalization] = useState<string[] | null>(null);
   const normTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Confirmation modals (declared early so the secretName-swap effect below
+  // can close them when the prop changes mid-flow)
+  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
+  const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
+  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
+  // Cancellation for in-flight retries (declared early for the same reason)
+  const abortRef = useRef<AbortController | null>(null);
 
   const showNormalization = (changes: string[]) => {
     if (changes.length === 0) return;
@@ -111,10 +118,41 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     }
   };
 
-  // Hydrate draft (value + mode) from sessionStorage on mount — survives accidental reload after a failed save
+  // Reset transient state and re-hydrate the draft whenever the secretName
+  // changes — guarantees validation, button-enabled state, error/normalization
+  // banners and stored draft all match the NEW secret rules instead of leaking
+  // from the previous one.
+  const prevSecretNameRef = useRef<string>(secretName);
   useEffect(() => {
+    const prev = prevSecretNameRef.current;
+    const isFirstMount = prev === secretName && !abortRef.current;
+
+    // On a real swap, abort any in-flight save and clear transient UI.
+    if (prev !== secretName) {
+      abortRef.current?.abort();
+      abortRef.current = null;
+      setValue("");
+      setEditing(false);
+      setMode("set");
+      setShow(false);
+      setSaving(false);
+      setLastError(null);
+      setLastNormalization(null);
+      if (normTimerRef.current) {
+        clearTimeout(normTimerRef.current);
+        normTimerRef.current = null;
+      }
+      setRotateConfirmOpen(false);
+      setRotateConfirmError(null);
+      setSaveConfirmOpen(false);
+      // flash is suffix-bound to the previous secret — drop it
+      setFlash(null);
+      prevSecretNameRef.current = secretName;
+    }
+
+    // Re-hydrate draft for the (new or initial) secretName.
     try {
-      const raw = sessionStorage.getItem(draftKey);
+      const raw = sessionStorage.getItem(`secret-draft:${secretName}`);
       if (!raw) return;
       const draft = JSON.parse(raw) as { value?: string; mode?: "set" | "rotate" };
       if (draft.value && typeof draft.value === "string") {
@@ -123,8 +161,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
         setEditing(true);
       }
     } catch { /* ignore parse errors */ }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    void isFirstMount;
+  }, [secretName]);
 
   // Persist draft whenever editing with a non-empty value; clear on success/cancel
   useEffect(() => {
@@ -135,13 +173,8 @@ export function SecretField({ label, secretName, status, helperText, onSaved }: 
     }
   }, [editing, value, mode, draftKey]);
 
-  // Confirmation modals
-  const [rotateConfirmOpen, setRotateConfirmOpen] = useState(false);
-  const [rotateConfirmError, setRotateConfirmError] = useState<string | null>(null);
-  const [saveConfirmOpen, setSaveConfirmOpen] = useState(false);
 
-  // Cancellation for in-flight retries
-  const abortRef = useRef<AbortController | null>(null);
+
 
   const performSave = async (currentMode: "set" | "rotate", currentValue: string, notes?: string) => {
     const wasEnvFallback = !!status?.env_fallback_active;
