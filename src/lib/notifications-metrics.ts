@@ -77,6 +77,13 @@ interface Snapshot {
   byFetch: Record<FetchSource, number>;
   /** fetches / triggers — lower is better (more coalescing / TTL hits). */
   ratio: number;
+  /**
+   * Breakdown of fetches by their position relative to the 5s prefetch TTL
+   * window since the previous fetch. The very first fetch (no prior fetch)
+   * is counted as `afterTtl` because there was no live cache to deduplicate
+   * against. Helps eyeball how often the TTL is actually doing its job.
+   */
+  fetchesByTtlWindow: { withinTtl: number; afterTtl: number };
   since: number;
   /** Last N badge render stats (most recent first). */
   badgeRenders: BadgeRenderStat[];
@@ -107,6 +114,12 @@ const state = {
   fetches: 0,
   byTrigger: { hover: 0, focus: 0, "drawer-open": 0 } as Record<TriggerSource, number>,
   byFetch: { initial: 0, polling: 0, prefetch: 0, mutation: 0 } as Record<FetchSource, number>,
+  /** Wall-clock of the most recent recordFetch() call, used for TTL-window classification. */
+  lastFetchAt: 0,
+  /** Fetches that landed within the 5s prefetch TTL window of the previous fetch. */
+  fetchesWithinTtl: 0,
+  /** Fetches that landed after the 5s window expired (or were the very first fetch). */
+  fetchesAfterTtl: 0,
   since: Date.now(),
   badgeRenders: [] as BadgeRenderStat[],
   badgeBudget: {
@@ -231,11 +244,22 @@ export const notificationsMetrics = {
   recordFetch(source: FetchSource) {
     state.fetches += 1;
     state.byFetch[source] += 1;
+    // Classify this fetch relative to the 5s prefetch TTL window since the
+    // previous fetch. The very first fetch (lastFetchAt === 0) is counted as
+    // afterTtl because there was nothing to coalesce against.
+    const now = Date.now();
+    const sincePrevious = state.lastFetchAt === 0 ? Infinity : now - state.lastFetchAt;
+    const withinTtl = sincePrevious < TRIGGER_TO_FETCH_TTL_MS;
+    if (withinTtl) state.fetchesWithinTtl += 1;
+    else state.fetchesAfterTtl += 1;
+    state.lastFetchAt = now;
     debugLog("fetch", {
       source,
       triggers: state.triggers,
       fetches: state.fetches,
       ratio: state.triggers === 0 ? 0 : Number((state.fetches / state.triggers).toFixed(3)),
+      withinTtl,
+      msSincePrevious: sincePrevious === Infinity ? null : sincePrevious,
     });
   },
 
@@ -326,6 +350,10 @@ export const notificationsMetrics = {
       byTrigger: { ...state.byTrigger },
       byFetch: { ...state.byFetch },
       ratio: state.triggers === 0 ? 0 : Number((state.fetches / state.triggers).toFixed(3)),
+      fetchesByTtlWindow: {
+        withinTtl: state.fetchesWithinTtl,
+        afterTtl: state.fetchesAfterTtl,
+      },
       since: state.since,
       badgeRenders: [...state.badgeRenders],
       lastBadgeRender: state.badgeRenders[0] ?? null,
@@ -341,6 +369,9 @@ export const notificationsMetrics = {
     state.fetches = 0;
     state.byTrigger = { hover: 0, focus: 0, "drawer-open": 0 };
     state.byFetch = { initial: 0, polling: 0, prefetch: 0, mutation: 0 };
+    state.lastFetchAt = 0;
+    state.fetchesWithinTtl = 0;
+    state.fetchesAfterTtl = 0;
     state.badgeRenders = [];
     state.badgeBudget = {
       cache: { hits: 0, misses: 0 },

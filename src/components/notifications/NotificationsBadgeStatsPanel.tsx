@@ -145,9 +145,11 @@ export function NotificationsBadgeStatsPanel() {
 
   if (!visible) return null;
 
-  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch } = snapshot;
+  const { lastBadgeRender, badgeRenders, triggers, fetches, ratio, byTrigger, byFetch, fetchesByTtlWindow } = snapshot;
   const savedFetches = Math.max(0, triggers - fetches);
   const savedPct = triggers === 0 ? 0 : Math.round((savedFetches / triggers) * 100);
+  const ttlWithinPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.withinTtl / fetches) * 100);
+  const ttlAfterPct = fetches === 0 ? 0 : Math.round((fetchesByTtlWindow.afterTtl / fetches) * 100);
 
   return (
     <div className="border-t border-border/40 bg-muted/20 px-3 py-2 text-[11px]">
@@ -201,6 +203,30 @@ export function NotificationsBadgeStatsPanel() {
             <span className="tabular-nums text-right">{byFetch.polling}</span>
             <span className="pl-3.5">· mutation</span>
             <span className="tabular-nums text-right">{byFetch.mutation}</span>
+            {/* TTL-window split: how many fetches landed inside the 5s prefetch
+                TTL since the previous fetch (= candidates that *could* have
+                been coalesced) vs after the window expired (= legitimately
+                fresh fetches). High `within TTL` count = TTL gate is leaky. */}
+            <span className="pl-3.5 inline-flex items-center gap-1 mt-0.5">
+              <Zap className="h-2.5 w-2.5" aria-hidden="true" />
+              within TTL (&lt;5s)
+            </span>
+            <span
+              className={cn(
+                "tabular-nums text-right mt-0.5 font-semibold",
+                fetchesByTtlWindow.withinTtl === 0 ? "text-muted-foreground" : "text-warning"
+              )}
+              title="Fetches that fired within 5s of the previous fetch — should normally be 0 thanks to the prefetch TTL gate."
+            >
+              {fetchesByTtlWindow.withinTtl} ({ttlWithinPct}%)
+            </span>
+            <span className="pl-3.5">· after TTL (≥5s)</span>
+            <span
+              className="tabular-nums text-right text-primary font-semibold"
+              title="Fetches that fired after the 5s window expired (or were the very first fetch). Healthy default."
+            >
+              {fetchesByTtlWindow.afterTtl} ({ttlAfterPct}%)
+            </span>
           </div>
           {/* 60-second sparkline of the trigger/fetch ratio. */}
           <div className="mt-1.5 pt-1.5 border-t border-border/30">
