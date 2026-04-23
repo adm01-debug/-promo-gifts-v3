@@ -1,136 +1,116 @@
 
 
-# Camada de Adaptação Schema Antigo → Novo (Gravação)
+# Atualizar nomes e colunas no front (Técnicas / Áreas / Faixas) com base no schema real
 
-## Problema
+## Contexto
 
-Hoje o front consome o RPC `fn_get_customization_price` em **6 arquivos** diferentes, cada um chamando `mapPriceResponseToFlat()` (definido dentro de `useGravacaoPriceV2.ts`). Essa função já tem heurística `isNested` para suportar 2 formatos (nested v5.9 e flat v6.x), mas:
+A página `/admin/external-db` já compara o schema esperado pelo front (`engraving-schema-diff.ts`) com o schema real retornado pela edge function `external-db-inspect`. Este plano usa esse diff como **fonte da verdade** para alinhar os tipos TS, hooks e adapters do front com os nomes/colunas que de fato existem no banco hoje.
 
-- A lógica de adaptação está **misturada** com o hook (478 linhas).
-- Não há cobertura de testes para mudanças de schema.
-- Quando o back mudar nomes de colunas (ex.: `preco_unitario` → `unit_price`, `valor_gravacao` → `subtotal_pieces`), teremos que caçar consumidores manualmente.
-- O RPC `fn_get_product_customization_options` também precisa de adaptação (campos `cobra_por_cor`, `usa_dimensao`, `is_curved` podem virar `charges_per_color`, `uses_dimension`, `curved_surface`).
+A camada de adapters criada no ciclo anterior (`src/lib/personalization/adapters/`) **isola** os componentes — então a maior parte da mudança fica concentrada em 3 lugares: tipos canônicos, schema esperado e os adapters/hooks de leitura direta.
 
-## Solução: Pasta `src/lib/personalization/adapters/`
+## Passos
 
-Camada dedicada de tradutores entre **payloads externos** e **tipos canônicos do front**. O front continua falando o "idioma novo" (canônico), e os adapters traduzem **qualquer formato** que o back enviar (antigo, novo, futuro).
+### 1. Capturar o snapshot real do banco
 
-### Estrutura
+Rodar o painel de diff em `/admin/external-db` e exportar o markdown para `docs/engraving-schema-snapshot-<data>.md`. Esse arquivo vira referência permanente do schema atual e entrada das próximas etapas. Também salvar a lista bruta de colunas reais por tabela em `src/lib/personalization/contracts/__fixtures__/` (JSON) para alimentar testes.
 
-```text
-src/lib/personalization/adapters/
-├── index.ts                          // Barrel exports
-├── price-response.adapter.ts         // fn_get_customization_price (3 formatos)
-├── customization-options.adapter.ts  // fn_get_product_customization_options
-├── print-area.adapter.ts             // print_area_techniques rows
-├── schema-detection.ts               // Detecta versão do payload
-└── __tests__/
-    ├── price-response.adapter.test.ts
-    └── customization-options.adapter.test.ts
-```
+### 2. Atualizar o **expected schema** do front
 
-### 1. `schema-detection.ts` — Identifica versão
+Arquivo: `src/pages/admin/engraving-schema-diff.ts`
 
-```ts
-export type PriceSchemaVersion = 'v5.9-nested' | 'v6.x-flat' | 'v7-new' | 'unknown';
+- Para cada uma das 4 tabelas (`tabela_preco_gravacao_oficial`, `tabela_preco_gravacao_oficial_faixa`, `print_area_techniques`, `tecnica_gravacao`), substituir `expectedColumns` pela lista **real** retornada pela edge function.
+- Remover colunas que sumiram (entram em `missingInDb`).
+- Adicionar colunas novas que o front passa a consumir (sai de `newInDb` → `expectedColumns`).
+- Atualizar `consumers` se algum arquivo deixou de usar.
 
-export function detectPriceSchema(resp: Record<string, unknown>): PriceSchemaVersion {
-  if (resp.area && typeof resp.area === 'object' && 'id' in (resp.area as object)) return 'v5.9-nested';
-  if ('preco_unitario' in resp && 'valor_gravacao' in resp) return 'v6.x-flat';
-  if ('unit_price' in resp && 'subtotal_pieces' in resp) return 'v7-new'; // futuro
-  return 'unknown';
-}
-```
+### 3. Atualizar tipos canônicos do front
 
-### 2. `price-response.adapter.ts` — Tradutor unificado
+Arquivos:
+- `src/types/customization.ts`
+- `src/types/gravacao-database.ts` (interfaces `TabelaPrecoOficial`, `FaixaPrecoOficial`, `TecnicaGravacao`, `PrintAreaTechnique`)
+- `src/hooks/gravacao/gravacao-types.ts` (mesmas interfaces espelhadas)
+- `src/components/admin/products/sections/engraving/types.ts`
 
-- Migra `mapPriceResponseToFlat()` de `useGravacaoPriceV2.ts` para cá.
-- Adiciona suporte a um **terceiro formato hipotético v7** (mapeando colunas renomeadas conhecidas).
-- Avisa via `console.warn` (1x por sessão, deduplicado) quando recebe schema `unknown`.
-- Retorna sempre o tipo canônico **`CustomizationPriceFlat`** (atual, intocado — front continua igual).
+Para cada coluna renomeada no banco:
+- Adicionar o **novo nome** como campo canônico.
+- Manter o **nome antigo** como `@deprecated` opcional por 1 ciclo (compatibilidade).
+- Para colunas removidas: marcar como `@deprecated`, remover apenas se nenhum consumidor usa.
+- Para colunas novas relevantes (ex.: novas flags de precificação, campos de validade): incluir no tipo.
 
-```ts
-const RENAME_MAP_V7 = {
-  unit_price: 'preco_unitario',
-  subtotal_pieces: 'valor_gravacao',
-  setup_total_value: 'setup_total',
-  charges_per_color: 'cobra_por_cor',
-  // ... lista evolui conforme back migra
-};
-```
+### 4. Estender os adapters para mapear aliases
 
-### 3. `customization-options.adapter.ts`
-
-Traduz a resposta de `fn_get_product_customization_options` para `CustomizationOptionsResponse` canônica. Hoje o front lê 12+ campos diretos (`cobra_por_cor`, `max_cores`, `usa_dimensao`, `is_curved`, `efetiva_largura_max`...). O adapter aceita aliases:
-
-| Canônico (front) | Aliases aceitos |
-|---|---|
-| `cobra_por_cor` | `charges_per_color`, `price_by_color` |
-| `usa_dimensao` | `uses_dimension`, `price_by_area` |
-| `is_curved` | `curved`, `curved_surface` |
-| `efetiva_largura_max` | `effective_max_width`, `max_width_effective` |
-| `max_cores` | `max_colors` |
-
-### 4. `print-area.adapter.ts`
-
-Normaliza linhas de `print_area_techniques` (já consumidas em `fetch-print-areas.ts` e `simulationPriceFetcher.ts`).
-
-### 5. Refator dos consumidores
-
-Substituir em **6 arquivos** o import direto:
-
-```ts
-// antes
-import { mapPriceResponseToFlat } from '@/hooks/useGravacaoPriceV2';
-
-// depois
-import { adaptPriceResponse } from '@/lib/personalization/adapters';
-```
-
-Manter `mapPriceResponseToFlat` em `useGravacaoPriceV2.ts` como **re-export deprecated** (`@deprecated use adaptPriceResponse`) por 1 ciclo, para não quebrar nada.
-
-### 6. Testes (vitest)
-
-- `price-response.adapter.test.ts`: 3 fixtures (nested, flat, novo hipotético) → todas devolvem `CustomizationPriceFlat` consistente.
-- `customization-options.adapter.test.ts`: payload com nomes antigos e novos retorna a mesma struct canônica.
-- Caso `unknown`: garante `console.warn` deduplicado e fallback seguro.
-
-### 7. Telemetria leve
-
-Em `schema-detection.ts`, contador in-memory por versão detectada (exposto via `window.__personalizationSchemaStats` em dev) — ajuda a saber **quando** o back parou de devolver o formato antigo, para podermos remover o tradutor v5.9.
-
-## Compatibilidade
-
-- Zero breaking change: os tipos canônicos (`CustomizationPriceFlat`, `CustomizationOptionsResponse`) **não mudam**.
-- Os 6 consumidores existentes continuam funcionando após refator de import.
-- O hook `useGravacaoPriceV2.ts` cai de 478 → ~280 linhas (adapter sai dele).
-
-## Arquivos tocados
-
-**Criados** (5):
-- `src/lib/personalization/adapters/index.ts`
-- `src/lib/personalization/adapters/price-response.adapter.ts`
+Arquivos:
 - `src/lib/personalization/adapters/customization-options.adapter.ts`
+- `src/lib/personalization/adapters/price-response.adapter.ts`
 - `src/lib/personalization/adapters/print-area.adapter.ts`
-- `src/lib/personalization/adapters/schema-detection.ts`
 
-**Editados** (8):
-- `src/hooks/useGravacaoPriceV2.ts` (remove `mapPriceResponseToFlat`, re-exporta como deprecated)
-- `src/hooks/useProductCustomizationOptions.ts`
-- `src/hooks/useMockupTechniques.ts`
-- `src/hooks/simulation/simulationPriceFetcher.ts`
-- `src/hooks/simulator/useWizardPricing.ts`
-- `src/hooks/simulator/useLivePricePreview.ts`
+- Ampliar a tabela de aliases (PT antigo → canônico novo) com as renomeações descobertas no diff.
+- Garantir que se o banco devolver o nome antigo OU o novo, a saída canônica seja idêntica.
+- Adicionar log único por sessão quando um campo legado for detectado (telemetria já existe via `window.__personalizationSchemaStats`).
+
+### 5. Atualizar leitores diretos (sem adapter)
+
+Arquivos que ainda fazem `select` cru e leem colunas:
+- `src/hooks/usePrintAreas.ts` (lê `print_area_techniques` e `tabela_preco_gravacao_oficial`)
+- `src/hooks/useMockupGenerator.ts`
+- `src/hooks/tecnicas/useTecnicasList.ts`
+- `src/lib/fetch-print-areas.ts`
+- `src/components/admin/techniques-manager/TechniqueTable.tsx`
+- `src/components/admin/techniques-manager/useTechniquesData.ts` (se existir o mapeamento `TecnicaRow`)
 - `src/components/products/customization/ConfigurationPanel.tsx`
-- `src/components/simulator/wizard/QuantityRangeComparison.tsx`
 
-**Testes** (2):
-- `tests/lib/personalization/adapters/price-response.adapter.test.ts`
-- `tests/lib/personalization/adapters/customization-options.adapter.test.ts`
+Para cada um:
+- Trocar leituras de colunas renomeadas pelo nome novo.
+- Quando viável, **rotear via adapter** em vez de ler colunas direto, eliminando dívida de manutenção.
+- Atualizar `select: '...'` (quando explícito) para listar as colunas novas.
 
-## Verificação
+### 6. Sincronizar contratos Zod (preparação para o próximo ciclo)
 
-- `npx tsc --noEmit` limpo
-- `npx vitest run tests/lib/personalization/adapters` passando
-- Smoke: `/admin/external-db` (diff panel), simulador wizard (preview live) e mockup (seleção de técnica) continuam funcionais
+Arquivo: o ciclo anterior previa `src/lib/personalization/contracts/`. Caso já exista, ajustar os schemas com as novas colunas e gerar fixtures a partir do JSON salvo no passo 1, garantindo que `safeValidate` continue passando contra o payload real.
+
+### 7. Componentes admin de técnicas
+
+Arquivo: `src/components/admin/techniques-manager/TechniqueTable.tsx` e suas mutations.
+
+- Atualizar payloads de `onUpdate` para usar os nomes novos das colunas (`code`, `setup_price`, `handling_price`, etc., conforme o diff).
+- Conferir badges (`precoPorCor`, `precoPorArea`, `precoPorPontos`) se as flags base mudaram de nome.
+
+### 8. Testes
+
+- Atualizar fixtures em `tests/lib/personalization/adapters/*.test.ts` com payloads no schema **novo** (mantendo um teste com payload **antigo** para garantir backward compat).
+- Adicionar teste de regressão: rodar o diff `engraving-schema-diff.ts` contra o JSON salvo e exigir `missingInDb.length === 0`.
+
+### 9. Verificação final
+
+- `npx tsc --noEmit`
+- `npx vitest run tests/lib/personalization`
+- Smoke manual: `/admin/external-db` (sem campos vermelhos), simulador wizard, mockup config panel, admin techniques manager.
+
+## Arquivos tocados (estimativa)
+
+**Editados (~14)**:
+- `src/pages/admin/engraving-schema-diff.ts`
+- `src/types/customization.ts`
+- `src/types/gravacao-database.ts`
+- `src/hooks/gravacao/gravacao-types.ts`
+- `src/components/admin/products/sections/engraving/types.ts`
+- `src/lib/personalization/adapters/{customization-options,price-response,print-area}.adapter.ts`
+- `src/hooks/usePrintAreas.ts`
+- `src/hooks/useMockupGenerator.ts`
+- `src/hooks/tecnicas/useTecnicasList.ts`
+- `src/lib/fetch-print-areas.ts`
+- `src/components/admin/techniques-manager/TechniqueTable.tsx`
+- `src/components/products/customization/ConfigurationPanel.tsx`
+- `tests/lib/personalization/adapters/*.test.ts`
+
+**Criados (~3)**:
+- `docs/engraving-schema-snapshot-<data>.md`
+- `src/lib/personalization/contracts/__fixtures__/{techniques,areas,tiers}.json`
+- (se necessário) novo teste `tests/lib/personalization/schema-sync.test.ts`
+
+## Riscos e mitigação
+
+- **Risco**: deprecar coluna antiga e quebrar consumidor esquecido. **Mitigação**: manter `@deprecated` opcional por 1 ciclo + grep por nome antigo antes do merge.
+- **Risco**: edge function `external-db-inspect` devolver colunas que o usuário ainda não quer expor no front. **Mitigação**: adicionar somente colunas que o front realmente precisa consumir; as demais ficam como "newInDb" no painel.
+- **Risco**: payload real diferir entre ambientes. **Mitigação**: snapshot é versionado em `docs/` por data, e fixtures de teste viram referência única.
 
