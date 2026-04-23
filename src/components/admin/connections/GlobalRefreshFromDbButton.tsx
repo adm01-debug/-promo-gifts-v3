@@ -58,7 +58,7 @@ export function GlobalRefreshFromDbButton({
 
   useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
 
-  const handleClick = useCallback(async () => {
+  const runRefresh = useCallback(async () => {
     if (isRunning || inCooldown) return;
     setIsRunning(true);
     const startedAt = Date.now();
@@ -101,6 +101,23 @@ export function GlobalRefreshFromDbButton({
       setNow(Date.now());
     }
   }, [isRunning, inCooldown, refreshCache, list, onRefreshed, cooldownMs]);
+
+  const requestConfirm = useCallback(() => {
+    if (isRunning || inCooldown) return;
+    let skip = false;
+    try { skip = window.localStorage.getItem(SKIP_CONFIRM_KEY) === "1"; } catch { /* noop */ }
+    if (skip) { void runRefresh(); return; }
+    setDontAskAgain(false);
+    setConfirmOpen(true);
+  }, [isRunning, inCooldown, runRefresh]);
+
+  const handleConfirm = useCallback(() => {
+    if (dontAskAgain) {
+      try { window.localStorage.setItem(SKIP_CONFIRM_KEY, "1"); } catch { /* noop */ }
+    }
+    setConfirmOpen(false);
+    void runRefresh();
+  }, [dontAskAgain, runRefresh]);
 
   // Keyboard shortcut: R (no modifiers, not in input/textarea/contenteditable)
   useEffect(() => {
