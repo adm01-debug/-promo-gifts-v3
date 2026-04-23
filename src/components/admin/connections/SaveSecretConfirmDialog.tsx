@@ -128,6 +128,15 @@ export function SaveSecretConfirmDialog({
           </ul>
         </div>
 
+        {errorMessage && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive animate-in fade-in duration-200"
+          >
+            {errorMessage}
+          </div>
+        )}
+
         <AlertDialogFooter>
           <Button
             variant="outline"
