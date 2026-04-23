@@ -192,6 +192,22 @@ export function ConnectionTestDetailsDialog({
             )}
             Detalhes do último teste
             <Badge variant="outline" className="ml-2">{connectionLabel}</Badge>
+            {onViewFullHistory && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto h-7 px-2 text-xs gap-1.5 font-normal"
+                onClick={() => {
+                  onOpenChange(false);
+                  // Aguarda o fade-out do dialog antes de abrir o drawer (evita scroll-lock conflict)
+                  setTimeout(() => onViewFullHistory(), 180);
+                }}
+                title="Fechar este modal e abrir o histórico completo desta conexão"
+              >
+                <History className="h-3.5 w-3.5" />
+                Ver histórico completo
+              </Button>
+            )}
           </DialogTitle>
         </DialogHeader>
 
