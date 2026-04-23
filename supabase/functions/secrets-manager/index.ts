@@ -102,17 +102,35 @@ Deno.serve(async (req) => {
 
     // Helper: load DB rows for a list of names
     async function loadFromDb(targets: string[]) {
-      if (targets.length === 0) return new Map<string, { masked_suffix: string | null; length: number; updated_at: string }>();
+      type Row = { masked_suffix: string | null; length: number; updated_at: string; updated_by: string | null };
+      if (targets.length === 0) return new Map<string, Row>();
       const { data } = await service
         .from("integration_credentials")
-        .select("secret_name, masked_suffix, length, updated_at")
+        .select("secret_name, masked_suffix, length, updated_at, updated_by")
         .in("secret_name", targets);
-      const map = new Map<string, { masked_suffix: string | null; length: number; updated_at: string }>();
-      for (const row of (data ?? []) as Array<{ secret_name: string; masked_suffix: string | null; length: number; updated_at: string }>) {
-        map.set(row.secret_name, { masked_suffix: row.masked_suffix, length: row.length, updated_at: row.updated_at });
+      const map = new Map<string, Row>();
+      for (const row of (data ?? []) as Array<{ secret_name: string } & Row>) {
+        map.set(row.secret_name, {
+          masked_suffix: row.masked_suffix,
+          length: row.length,
+          updated_at: row.updated_at,
+          updated_by: row.updated_by,
+        });
       }
       return map;
     }
+
+    // Helper: resolve uuid → email via auth.admin (bounded single page; admin tool)
+    async function resolveEmails(ids: string[]): Promise<Map<string, string>> {
+      const map = new Map<string, string>();
+      if (ids.length === 0) return map;
+      const { data: usersPage } = await service.auth.admin.listUsers({ page: 1, perPage: 200 });
+      for (const u of usersPage?.users ?? []) {
+        if (ids.includes(u.id) && u.email) map.set(u.id, u.email);
+      }
+      return map;
+    }
+
 
     if (action === "rotation_history") {
       const baseQ = service
