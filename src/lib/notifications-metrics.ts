@@ -20,6 +20,20 @@
 
 export type TriggerSource = "hover" | "focus" | "drawer-open";
 export type FetchSource = "initial" | "polling" | "prefetch" | "mutation";
+export type BadgeRenderSource = "cache" | "network";
+
+export interface BadgeRenderStat {
+  source: BadgeRenderSource;
+  /** Time from hook mount to badge first paint (ms). Target: <16ms for cache. */
+  elapsedMs: number;
+  /** For cache renders: age of the cached payload (ms). null for network renders. */
+  cacheAgeMs: number | null;
+  /** For network renders: round-trip duration (ms). null for cache renders. */
+  networkMs: number | null;
+  unreadCount: number;
+  hit: boolean;
+  at: number;
+}
 
 interface Snapshot {
   triggers: number;
@@ -29,7 +43,12 @@ interface Snapshot {
   /** fetches / triggers — lower is better (more coalescing / TTL hits). */
   ratio: number;
   since: number;
+  /** Last N badge render stats (most recent first). */
+  badgeRenders: BadgeRenderStat[];
+  lastBadgeRender: BadgeRenderStat | null;
 }
+
+const BADGE_RENDER_HISTORY = 20;
 
 const state = {
   triggers: 0,
@@ -37,7 +56,11 @@ const state = {
   byTrigger: { hover: 0, focus: 0, "drawer-open": 0 } as Record<TriggerSource, number>,
   byFetch: { initial: 0, polling: 0, prefetch: 0, mutation: 0 } as Record<FetchSource, number>,
   since: Date.now(),
+  badgeRenders: [] as BadgeRenderStat[],
 };
+
+type BadgeListener = (stat: BadgeRenderStat) => void;
+const badgeListeners = new Set<BadgeListener>();
 
 function isDebugEnabled(): boolean {
   try {
